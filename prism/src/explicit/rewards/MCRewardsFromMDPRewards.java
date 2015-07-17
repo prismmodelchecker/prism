@@ -26,6 +26,9 @@
 
 package explicit.rewards;
 
+import explicit.Model;
+import explicit.Product;
+
 
 /**
  * Explicit-state representation of a DTMC rewards structure, constructed (implicitly)
@@ -54,5 +57,11 @@ public class MCRewardsFromMDPRewards implements MCRewards
 		// For now, state/transition rewards from MDP are both put into state reward
 		// This works fine for cumulative rewards, but not instantaneous ones
 		return mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, strat[s]);
+	}
+	
+	@Override
+	public MCRewards liftFromModel(Product<? extends Model> product)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

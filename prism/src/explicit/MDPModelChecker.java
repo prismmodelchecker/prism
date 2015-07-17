@@ -158,7 +158,7 @@ public class MDPModelChecker extends ProbModelChecker
 		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
 		
 		// Adapt reward info to product model
-		productRewards = product.liftFromModel((MDPRewards) modelRewards);
+		productRewards = ((MDPRewards) modelRewards).liftFromModel(product);
 		
 		// Output product, if required
 		if (getExportProductTrans()) {

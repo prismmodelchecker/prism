@@ -28,6 +28,9 @@ package explicit.rewards;
 
 import java.util.ArrayList;
 
+import explicit.Model;
+import explicit.Product;
+
 /**
  * Explicit-state storage of just state rewards (mutable).
  */
@@ -93,6 +96,20 @@ public class StateRewardsSimple extends StateRewards
 		}
 	}
 
+	// Converters
+	
+	@Override
+	public StateRewards liftFromModel(Product<? extends Model> product)
+	{
+		Model modelProd = product.getProductModel();
+		int numStatesProd = modelProd.getNumStates();
+		StateRewardsSimple rewardsProd = new StateRewardsSimple();
+		for (int s = 0; s < numStatesProd; s++) {
+			rewardsProd.setStateReward(s, getStateReward(product.getModelState(s)));
+		}
+		return rewardsProd;
+	}
+	
 	// Other
 
 	@Override

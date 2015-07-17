@@ -26,6 +26,9 @@
 
 package explicit.rewards;
 
+import explicit.Model;
+import explicit.Product;
+
 /**
  * Explicit-state storage of constant state rewards.
  */
@@ -49,6 +52,14 @@ public class StateRewardsConstant extends StateRewards
 		return stateReward;
 	}
 
+	// Converters
+	
+	@Override
+	public StateRewards liftFromModel(Product<? extends Model> product)
+	{
+		return deepCopy();
+	}
+	
 	// Other
 
 	@Override

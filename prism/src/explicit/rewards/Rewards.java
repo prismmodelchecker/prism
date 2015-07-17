@@ -27,10 +27,17 @@
 
 package explicit.rewards;
 
+import explicit.Model;
+import explicit.Product;
+
 /**
- * A dummy interface implemented by all reward classes.
+ * Interface implemented by all reward classes.
  */
 public interface Rewards
 {
-
+	/**
+	 * Create a new reward structure that lifts this one such that it is defined over states of a
+	 * model that is a product of the one that this reward structure is defined over. 
+	 */
+	public Rewards liftFromModel(Product<? extends Model> product);
 }

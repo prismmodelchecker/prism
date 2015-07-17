@@ -27,6 +27,7 @@
 package explicit.rewards;
 
 import explicit.Model;
+import explicit.Product;
 
 /**
  * Explicit-state storage of just state rewards (as an array).
@@ -85,6 +86,20 @@ public class StateRewardsArray extends StateRewards
 	public double getStateReward(int s)
 	{
 		return stateRewards[s];
+	}
+	
+	// Converters
+	
+	@Override
+	public StateRewards liftFromModel(Product<? extends Model> product)
+	{
+		Model modelProd = product.getProductModel();
+		int numStatesProd = modelProd.getNumStates();
+		StateRewardsArray rewardsProd = new StateRewardsArray(numStatesProd);
+		for (int s = 0; s < numStatesProd; s++) {
+			rewardsProd.setStateReward(s, stateRewards[product.getModelState(s)]);
+		}
+		return rewardsProd;
 	}
 	
 	// Other
