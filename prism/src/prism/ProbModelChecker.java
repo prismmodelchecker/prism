@@ -863,7 +863,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		else if (Expression.isCoSafeLTLSyntactic(expr)) {
 			throw new PrismNotSupportedException("Co-safe reward properties not yet supported for DTMCs in this engine");
 		}
-		throw new PrismException("Invalid contents for an R operator: " + expr);
+		throw new PrismException("R operator contains a path formula that is not syntactically co-safe: " + expr);
 	}
 	
 	// reach reward
