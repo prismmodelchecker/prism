@@ -26,10 +26,12 @@
 
 package explicit.rewards;
 
+import explicit.Model;
+
 /**
  * Explicit-state storage of just state rewards (as an array).
  */
-public class StateRewardsArray implements MCRewards, MDPRewards
+public class StateRewardsArray extends StateRewards
 {
 	/** Array of state rewards **/
 	protected double stateRewards[] = null;
@@ -41,10 +43,24 @@ public class StateRewardsArray implements MCRewards, MDPRewards
 	public StateRewardsArray(int numStates)
 	{
 		stateRewards = new double[numStates];
-		for (int i = 0; i < numStates; i++)
+		for (int i = 0; i < numStates; i++) {
 			stateRewards[i] = 0.0;
+		}
 	}
 	
+	/**
+	 * Copy constructor
+	 * @param rews Rewards to copy
+	 */
+	public StateRewardsArray(StateRewardsArray rews)
+	{
+		int numStates= rews.stateRewards.length;
+		stateRewards = new double[numStates];
+		for (int i = 0; i < numStates; i++) {
+			stateRewards[i] = rews.stateRewards[i];
+		}
+	}
+
 	// Mutators
 	
 	/**
@@ -71,9 +87,11 @@ public class StateRewardsArray implements MCRewards, MDPRewards
 		return stateRewards[s];
 	}
 	
+	// Other
+
 	@Override
-	public double getTransitionReward(int s, int i)
+	public StateRewardsArray deepCopy()
 	{
-		return 0.0;
+		return new StateRewardsArray(this);
 	}
 }
