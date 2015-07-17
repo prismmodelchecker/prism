@@ -83,12 +83,12 @@ public class MDPModelChecker extends ProbModelChecker
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(this);
 
+		// Build product of MDP and automaton
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
 				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
 		};
-
 		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
 		
 		// Output product, if required
@@ -150,11 +150,11 @@ public class MDPModelChecker extends ProbModelChecker
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(this);
 
+		// Build product of MDP and automaton
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
 				AcceptanceType.REACH
 		};
-
 		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
 		
 		// Adapt reward info to product model
