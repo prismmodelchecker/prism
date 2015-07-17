@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.*;
 
 import explicit.rewards.MCRewards;
+import explicit.rewards.Rewards;
 import explicit.rewards.StateRewardsArray;
 import parser.ast.*;
 import parser.type.*;
@@ -61,6 +62,23 @@ public class CTMCModelChecker extends DTMCModelChecker
 		
 		// use superclass (DTMCModelChecker) method on the embedded DTMC
 		return super.checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax, statesOfInterest);
+	}
+	
+	@Override
+	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		
+		// Convert rewards
+		int n = model.getNumStates();
+		StateRewardsArray rewEmb = new StateRewardsArray(n);
+		for (int i = 0; i < n; i++) {
+			rewEmb.setStateReward(i, ((MCRewards) modelRewards).getStateReward(i) / ((CTMC)model).getExitRate(i));
+		}
+		
+		// use superclass (DTMCModelChecker) method on the embedded DTMC
+		return super.checkRewardCoSafeLTL(dtmcEmb, rewEmb, expr, minMax, statesOfInterest);
 	}
 	
 	@Override
