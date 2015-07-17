@@ -192,7 +192,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println("\nComputing reachability rewards...");
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
-		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards((MDP)product.getProductModel(), productRewards, acc, minMax.isMin()).soln, product.getProductModel());
+		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc, minMax.isMin()).soln, product.getProductModel());
 		
 		// Mapping rewards in the original model
 		rewards = product.projectToOriginalModel(rewardsProduct);

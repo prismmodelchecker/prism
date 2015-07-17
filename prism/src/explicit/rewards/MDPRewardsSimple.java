@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import explicit.Model;
-import explicit.NondetModel;
 import explicit.Product;
 
 /**
@@ -203,7 +202,7 @@ public class MDPRewardsSimple implements MDPRewards
 		}
 		if (transRewards != null) {
 			for (int s = 0; s < numStatesProd; s++) {
-				int numChoices = transRewards.get(s).size();
+				int numChoices = transRewards.get(product.getModelState(s)).size();
 				for (int i = 0; i < numChoices; i++) {
 					rewardsProd.setTransitionReward(s, i, transRewards.get(product.getModelState(s)).get(i));
 				}

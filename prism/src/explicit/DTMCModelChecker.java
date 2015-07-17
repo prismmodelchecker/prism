@@ -46,6 +46,7 @@ import prism.PrismUtils;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 import explicit.rewards.MCRewards;
+import explicit.rewards.Rewards;
 
 /**
  * Explicit-state model checker for discrete-time Markov chains (DTMCs).
@@ -120,6 +121,69 @@ public class DTMCModelChecker extends ProbModelChecker
 		return probs;
 	}
 
+	/**
+	 * Compute rewards for a co-safe LTL reward operator.
+	 */
+	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		LTLModelChecker mcLtl;
+		MCRewards productRewards;
+		StateValues rewardsProduct, rewards;
+		DTMCModelChecker mcProduct;
+		LTLModelChecker.LTLProduct<DTMC> product;
+
+		// For LTL model checking routines
+		mcLtl = new LTLModelChecker(this);
+
+		// Build product of Markov chain and automaton
+		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.RABIN,
+				AcceptanceType.REACH
+		};
+		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest, allowedAcceptance);
+		
+		// Adapt reward info to product model
+		productRewards = ((MCRewards) modelRewards).liftFromModel(product);
+		
+		// Output product, if required
+		if (getExportProductTrans()) {
+				mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
+				product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename());
+		}
+		if (getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
+			VarList newVarList = (VarList) modulesFile.createVarList().clone();
+			String daVar = "_da";
+			while (newVarList.getIndex(daVar) != -1) {
+				daVar = "_" + daVar;
+			}
+			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
+			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
+			out.close();
+		}
+		
+		// Find accepting states + compute reachability rewards
+		BitSet acc;
+		if (product.getAcceptance() instanceof AcceptanceReach) {
+			mainLog.println("\nSkipping BSCC computation since acceptance is defined via goal states...");
+			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		} else {
+			mainLog.println("\nFinding accepting BSCCs...");
+			acc = mcLtl.findAcceptingBSCCs(product.getProductModel(), product.getAcceptance());
+		}
+		mainLog.println("\nComputing reachability probabilities...");
+		mcProduct = new DTMCModelChecker(this);
+		mcProduct.inheritSettings(this);
+		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc).soln, product.getProductModel());
+		
+		// Mapping rewards in the original model
+		rewards = product.projectToOriginalModel(rewardsProduct);
+		rewardsProduct.clear();
+		
+		return rewards;
+	}
+	
 	public ModelCheckerResult computeInstantaneousRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
 	{
 		ModelCheckerResult res = null;
