@@ -36,7 +36,6 @@ import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
-import parser.type.TypeDouble;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -393,47 +392,6 @@ public class DTMCModelChecker extends ProbModelChecker
 	public StateValues doTransient(DTMC dtmc, int k, double initDist[]) throws PrismException
 	{
 		throw new PrismNotSupportedException("Not implemented yet");
-	}
-
-	// Utility methods for probability distributions
-
-	/**
-	 * Generate a probability distribution, stored as a StateValues object, from a file.
-	 * If {@code distFile} is null, so is the return value.
-	 */
-	public StateValues readDistributionFromFile(File distFile, Model model) throws PrismException
-	{
-		StateValues dist = null;
-
-		if (distFile != null) {
-			mainLog.println("\nImporting probability distribution from file \"" + distFile + "\"...");
-			// Build an empty vector 
-			dist = new StateValues(TypeDouble.getInstance(), model);
-			// Populate vector from file
-			dist.readFromFile(distFile);
-		}
-
-		return dist;
-	}
-
-	/**
-	 * Build a probability distribution, stored as a StateValues object,
-	 * from the initial states info of the current model: either probability 1 for
-	 * the (single) initial state or equiprobable over multiple initial states.
-	 */
-	public StateValues buildInitialDistribution(Model model) throws PrismException
-	{
-		StateValues dist = null;
-
-		// Build an empty vector 
-		dist = new StateValues(TypeDouble.getInstance(), model);
-		// Populate vector (equiprobable over initial states)
-		double d = 1.0 / model.getNumInitialStates();
-		for (int in : model.getInitialStates()) {
-			dist.setDoubleValue(in, d);
-		}
-
-		return dist;
 	}
 
 	// Numerical computation functions

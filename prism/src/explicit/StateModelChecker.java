@@ -186,6 +186,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public void inheritSettings(StateModelChecker other)
 	{
+		setModulesFileAndPropertiesFile(other.modulesFile, other.propertiesFile);
 		setLog(other.getLog());
 		setVerbosity(other.getVerbosity());
 		setExportTarget(other.getExportTarget());
@@ -350,7 +351,8 @@ public class StateModelChecker extends PrismComponent
 		this.propertiesFile = propertiesFile;
 		// Get combined constant values from model/properties
 		constantValues = new Values();
-		constantValues.addValues(modulesFile.getConstantValues());
+		if (modulesFile != null)
+			constantValues.addValues(modulesFile.getConstantValues());
 		if (propertiesFile != null)
 			constantValues.addValues(propertiesFile.getConstantValues());
 	}

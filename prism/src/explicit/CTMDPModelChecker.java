@@ -27,19 +27,18 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.List;
 import java.util.Map;
 
 import parser.ast.ExpressionTemporal;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Explicit-state model checker for continuous-time Markov decision processes (CTMDPs).
- * 
- * This uses various bits of functionality of MDPModelChecker, so we inherit from that.
- * (This way MDPModelChecker picks up any options set on this one.) 
  */
-public class CTMDPModelChecker extends MDPModelChecker
+public class CTMDPModelChecker extends ProbModelChecker
 {
 	/**
 	 * Create a new CTMDPModelChecker, inherit basic state from parent (unless null).
@@ -241,6 +240,33 @@ public class CTMDPModelChecker extends MDPModelChecker
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;
+	}
+
+	/**
+	 * Compute reachability probabilities.
+	 * i.e. compute the min/max probability of reaching a state in {@code target}.
+	 * @param ctmdp The CTMDP
+	 * @param target Target states
+	 * @param min Min or max probabilities (true=min, false=max)
+	 */
+	public ModelCheckerResult computeReachProbs(CTMDP ctmdp, BitSet target, boolean min) throws PrismException
+	{
+		throw new PrismNotSupportedException("Not implemented yet");
+	}
+
+	/**
+	 * Construct strategy information for min/max reachability probabilities.
+	 * (More precisely, list of indices of choices resulting in min/max.)
+	 * (Note: indices are guaranteed to be sorted in ascending order.)
+	 * @param ctmdp The CTMDP
+	 * @param state The state to generate strategy info for
+	 * @param target The set of target states to reach
+	 * @param min Min or max probabilities (true=min, false=max)
+	 * @param lastSoln Vector of values from which to recompute in one iteration 
+	 */
+	public List<Integer> probReachStrategy(CTMDP ctmdp, int state, BitSet target, boolean min, double lastSoln[]) throws PrismException
+	{
+		throw new PrismNotSupportedException("Not implemented yet");
 	}
 
 	/**
