@@ -1629,6 +1629,13 @@ void RewardIndex(ExpressionReward exprRew) :
 
 // Contents of an R operator
 
+
+// (bounded temporal operators and semicolon-less properties files)
+// (see the relevant productions for details)
+// we allow two or more successive expressions resulting in potential ambiguities
+// e.g. "-a-b" = "(-a)-b" = "-a" "-b"
+// Ignoring the warning results in the largest match being taken.
+
 Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
 {
 	Expression expr = null;
@@ -1639,13 +1646,15 @@ Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
 {
 	{ begin = getToken(1); }
 	(
+	// Path formula (including F "target")
+	// NB: Lookahead used to avoid conflict between R [ S ], where "S" is the long-run reward operator,
+	// and R [ S [ ] ] where "S [ ]" is a treated as an LTL formula comprising a single atomic proposition
+	LOOKAHEAD(ExpressionSS(prop, pathprop)) expr = Expression(prop, true) { ret = expr; }
 	// Normal reward operators
-	LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
+	| LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
 	| <C> { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); }
 	| <I> <EQ> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_I, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
 	| <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); }
-	// Path formula (including F "target")
-	| expr = Expression(prop, true) { ret = expr; }
 	)
 	{ ret.setPosition(begin, getToken(0)); return ret; }
 }
