@@ -313,6 +313,33 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Generate a deterministic automaton for the given LTL formula
+	 * and construct the product of this automaton with an STPG.
+	 *
+	 * @param mc a ProbModelChecker, used for checking maximal state formulas
+	 * @param model the model
+	 * @param expr a path expression
+	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
+	 * @param allowedAcceptance the allowed acceptance conditions
+	 * @return the product with the DA
+	 * @throws PrismException
+	 */
+	public LTLProduct<STPG> constructProductSTPG(ProbModelChecker mc, STPG model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		// Convert LTL formula to automaton
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		DA<BitSet,? extends AcceptanceOmega> da;
+		da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
+
+		// Build product of model and automaton
+		mainLog.println("\nConstructing STPG-"+da.getAutomataType()+" product...");
+		LTLProduct<STPG> product = constructProductModel(da, model, labelBS, statesOfInterest);
+		mainLog.print("\n" + product.getProductModel().infoStringTable());
+
+		return product;
+	}
+	
+	/**
+	 * Generate a deterministic automaton for the given LTL formula
 	 * and construct the product of this automaton with a model.
 	 *
 	 * @param mc a ProbModelChecker, used for checking maximal state formulas
@@ -323,7 +350,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public <M extends Model> LTLProduct<M> constructProductSTPG(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	public <M extends Model> LTLProduct<M> constructProductModel(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		// Convert LTL formula to automaton
 		Vector<BitSet> labelBS = new Vector<BitSet>();
