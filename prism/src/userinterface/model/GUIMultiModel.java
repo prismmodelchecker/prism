@@ -73,9 +73,6 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	public static final int CONTINUE = 0;
 	public static final int CANCEL = 1;
 
-	public static final int FILTER_PRISM_MODEL = 0;
-	public static final int FILTER_PEPA_MODEL = 1;
-
 	//GUI
 	private JTextField fileTextField;
 	private JMenu modelMenu, newMenu, viewMenu, exportMenu, computeMenu, computeExportMenu;
