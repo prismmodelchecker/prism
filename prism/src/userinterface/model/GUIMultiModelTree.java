@@ -1683,6 +1683,8 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 						return handler.getParseErrorMessage();
 					else if (parseSynchState == TREE_SYNCHRONIZED_GOOD)
 						return "Model parsed successfully";
+					else if (!handler.isAutoParse())
+						return "Auto-parsing disabled";
 					else
 						return "Model not parsed";
 				}

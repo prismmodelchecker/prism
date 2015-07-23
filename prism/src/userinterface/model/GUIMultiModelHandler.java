@@ -86,8 +86,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	public static final int STATES_EXPORT = 4;
 	public static final int LABELS_EXPORT = 5;
 
-	public static final int DEFAULT_WAIT = 1000;
-
 	private GUIMultiModel theModel;
 	private GUIMultiModelTree tree;
 	private GUIModelEditor editor;
@@ -101,14 +99,10 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	private ModulesFile parsedModel;
 	private Values lastMFConstants = null;
 	private PrismException lastBuildError = null;
-	//tosettings: private boolean isAutoParse = true;
 	private boolean busy = false;
-	//tosettings: private boolean isSwitchOnLarge = true;   //now model.autoManual
-	//tosettings: private int autoParseWaitTime = DEFAULT_WAIT;
 
-	// Options (these are synchronised with those in PrismSettings, they are here for speed)
-	private boolean autoParseFast;
-	private int parseWaitTimeFast;
+	// Options
+	private boolean autoParse;
 
 	private Font prismEditorFontFast;
 	private Color prismEditorColourFast;
@@ -157,7 +151,8 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		prism = theModel.getPrism();
 		prism.addModelListener(this);
 
-		waiter = new WaitParseThread(DEFAULT_WAIT, this);
+		int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
+		waiter = new WaitParseThread(parseDelay, this);
 		editor = new GUITextModelEditor("", this);
 		tree = new GUIMultiModelTree(this);
 		splitter = new JSplitPane();
@@ -442,7 +437,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 		currentMode = PRISM_MODE;
 
-		checkSwitchAutoParse();
+		updateAutoParse();
 		lastError = "";
 		new ParseModelThread(this, editor.getParseText(), false, isAutoParse()).start();
 		tree.startParsing();
@@ -490,7 +485,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		}
 		currentMode = PEPA_MODE;
 
-		checkSwitchAutoParse();
+		updateAutoParse();
 		lastError = "";
 		new ParseModelThread(this, editor.getParseText(), true, isAutoParse()).start();
 		tree.startParsing();
@@ -543,24 +538,12 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 		currentMode = GRAPHIC_MODE;
 
-		checkSwitchAutoParse();
+		updateAutoParse();
 		lastError = "";
 		new ParseModelThread(this, editor.getParseText(), false, isAutoParse()).start();
 		tree.startParsing();
 		theModel.doEnables();
 		theModel.tabToFront();
-	}
-
-	private void checkSwitchAutoParse()
-	{
-		if (isSwitchOnLarge() && isAutoParse()) {
-			if (currentMode == PRISM_MODE || currentMode == PEPA_MODE) {
-				if (editor.getParseText().length() > 25000) //500 lines at 50char per line
-				{
-					setAutoParse(false);
-				}
-			}
-		}
 	}
 
 	// Reload model...
@@ -588,7 +571,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modifiedSinceParse = false;
 		updateBuiltModelDisplay();
 		currentMode = PRISM_MODE;
-		checkSwitchAutoParse();
+		updateAutoParse();
 		if (!parsing) {
 			parsing = true;
 			tree.makeNotUpToDate();
@@ -612,7 +595,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modifiedSinceParse = false;
 		updateBuiltModelDisplay();
 		currentMode = PEPA_MODE;
-		checkSwitchAutoParse();
+		updateAutoParse();
 		if (!parsing) {
 			parsing = true;
 			tree.makeNotUpToDate();
@@ -636,7 +619,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modifiedSinceParse = false;
 		updateBuiltModelDisplay();
 		currentMode = GRAPHIC_MODE;
-		checkSwitchAutoParse();
+		updateAutoParse();
 		if (!parsing) {
 			parsing = true;
 			tree.makeNotUpToDate();
@@ -757,7 +740,8 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 				if (waiter != null) {
 					waiter.interrupt();
 				}
-				waiter = new WaitParseThread(DEFAULT_WAIT, this);
+				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
+				waiter = new WaitParseThread(parseDelay, this);
 				waiter.start();
 				//Funky thread waiting stuff
 			}
@@ -795,7 +779,8 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 				if (waiter != null) {
 					waiter.interrupt();
 				}
-				waiter = new WaitParseThread(DEFAULT_WAIT, this);
+				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
+				waiter = new WaitParseThread(parseDelay, this);
 				waiter.start();
 				//Funky thread waiting stuff
 			}
@@ -1044,7 +1029,8 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 				if (waiter != null) {
 					waiter.interrupt();
 				}
-				waiter = new WaitParseThread(DEFAULT_WAIT, this);
+				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
+				waiter = new WaitParseThread(parseDelay, this);
 				waiter.start();
 				//Funky thread waiting stuff
 			}
@@ -1122,76 +1108,59 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			return "<Untitled>";
 	}
 
+	/**
+	 * Is auto-parsing currently enabled?
+	 */
 	public synchronized boolean isAutoParse()
 	{
-		//tosettings: return isAutoParse;
-		//return theModel.getPrism().getSettings().getBoolean(PrismSettings.MODEL_AUTO_PARSE, true);
-		return autoParseFast;
+		return autoParse;
 	}
 
-	public synchronized void setAutoParse(boolean b)
+	/**
+	 * Update whether auto-parsing is currently enabled,
+	 * based on current PRISM settings (and the current model size).
+	 */
+	public synchronized void updateAutoParse()
 	{
-		// Set flag
-		//isAutoParse = b;
-		autoParseFast = b;
-		try {
-			theModel.getPrism().getSettings().set(PrismSettings.MODEL_AUTO_PARSE, b);
-		} catch (PrismException e) {
-
-		}
-		// If the flag has just been switched ON, do a parse...
-		if (!b)
-			return;
-		tree.makeNotUpToDate();
-		theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
-
-		if (!parsing) {
-			if (isAutoParse()) {
-				if (waiter != null) {
-					waiter.interrupt();
+		// Is auto-parse switched on?
+		autoParse = theModel.getPrism().getSettings().getBoolean(PrismSettings.MODEL_AUTO_PARSE);
+		
+		// Should we disable auto parsing? (if the model is too big and that option is not disabled)
+		if (isSwitchOnLarge() && autoParse) {
+			if (currentMode == PRISM_MODE || currentMode == PEPA_MODE) {
+				// "too big" == 25000 chars = 500 lines at 50 chars per line
+				if (editor.getParseText().length() > 25000) {
+					autoParse = false;
 				}
-				waiter = new WaitParseThread(DEFAULT_WAIT, this);
-				waiter.start();
-				//Funky thread waiting stuff
 			}
-		} else {
-			parseAfterParse = true;
 		}
-		theModel.doEnables();
+
+		// If the flag has just been switched ON, do a parse...
+		if (autoParse) {
+			tree.makeNotUpToDate();
+			theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
+			if (!parsing) {
+				if (isAutoParse()) {
+					if (waiter != null) {
+						waiter.interrupt();
+					}
+					int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
+					waiter = new WaitParseThread(parseDelay, this);
+					waiter.start();
+				}
+			} else {
+				parseAfterParse = true;
+			}
+			theModel.doEnables();
+		}
 	}
 
+	/**
+	 * Should auto=parsing be disabled for large models?
+	 */
 	public synchronized boolean isSwitchOnLarge()
 	{
-		//tosettings: return isSwitchOnLarge;
 		return theModel.getPrism().getSettings().getBoolean(PrismSettings.MODEL_AUTO_MANUAL);
-	}
-
-	public synchronized int getAutoParseWaitTime()
-	{
-		//tosettings: return this.autoParseWaitTime;
-		//return theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY, DEFAULT_WAIT);
-		return parseWaitTimeFast;
-	}
-
-	public synchronized void setAutoParseWaitTime(int t)
-	{
-		//tosettings: autoParseWaitTime = t;
-		parseWaitTimeFast = t;
-		try {
-			theModel.getPrism().getSettings().set(PrismSettings.MODEL_PARSE_DELAY, t);
-		} catch (PrismException e) {
-			//do nothing
-		}
-	}
-
-	public synchronized void setSwitchOnLarge(boolean b)
-	{
-		//isSwitchOnLarge = b;
-		try {
-			theModel.getPrism().getSettings().set(PrismSettings.MODEL_AUTO_MANUAL, b);
-		} catch (PrismException e) {
-			//do nothing
-		}
 	}
 
 	public synchronized ModelType getParsedModelType()
@@ -1248,8 +1217,8 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 	public void notifySettings(PrismSettings settings)
 	{
-		autoParseFast = settings.getBoolean(PrismSettings.MODEL_AUTO_PARSE);
-		parseWaitTimeFast = settings.getInteger(PrismSettings.MODEL_PARSE_DELAY);
+		updateAutoParse();
+		
 		prismEditorFontFast = settings.getFontColorPair(PrismSettings.MODEL_PRISM_EDITOR_FONT).f;
 		if (editor instanceof GUITextModelEditor)
 			((GUITextModelEditor) editor).setEditorFont(prismEditorFontFast);
@@ -1330,24 +1299,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			((GUIPepaModelEditor) editor).setEditorBackground(pepaEditorBGColourFast);
 		pepaEditorCommentFast = new Style(settings.getColor(PrismSettings.MODEL_PEPA_EDITOR_COMMENT_COLOUR),
 				settings.getInteger(PrismSettings.MODEL_PEPA_EDITOR_COMMENT_STYLE));
-	}
-
-	/**
-	 * Getter for property autoParseFast.
-	 * @return Value of property autoParseFast.
-	 */
-	public boolean isAutoParseFast()
-	{
-		return autoParseFast;
-	}
-
-	/**
-	 * Getter for property parseWaitTimeFast.
-	 * @return Value of property parseWaitTimeFast.
-	 */
-	public int getParseWaitTimeFast()
-	{
-		return parseWaitTimeFast;
 	}
 
 	/**
