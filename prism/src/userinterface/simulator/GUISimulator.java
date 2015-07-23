@@ -30,6 +30,7 @@ package userinterface.simulator;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.table.*;
 import javax.swing.event.*;
@@ -62,6 +63,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	//Current State
 	private boolean pathActive;
 	private ModulesFile parsedModel;
+	private boolean newPathAfterReceiveParseNotification, newPathPlotAfterReceiveParseNotification;
+	private boolean chooseInitialState;
 
 	private GUISimulatorPathTableModel pathTableModel;
 	private UpdateTableModel updateTableModel;
@@ -317,6 +320,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	public void a_newPath(boolean chooseInitialState)
 	{
+		// Request a parse
+		newPathAfterReceiveParseNotification = true;
+		this.chooseInitialState = chooseInitialState;
+		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
+	}
+	
+	public void newPathAfterParse() 
+	{
+		newPathAfterReceiveParseNotification = false;
 		Values initialState;
 		try {
 			// Check model is simulate-able
@@ -696,6 +708,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	public void a_newPathPlot(boolean chooseInitialState)
 	{
+		// Request a parse
+		newPathPlotAfterReceiveParseNotification = true;
+		this.chooseInitialState = chooseInitialState;
+		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
+	}
+	
+	public void newPathPlotAfterParse() 
+	{
+		newPathPlotAfterReceiveParseNotification = false;
 		Values initialState;
 		try {
 			// Check model is simulate-able
@@ -865,7 +886,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			} else if (me.getID() == GUIModelEvent.MODEL_PARSED) {
 				a_loadModulesFile(me.getModulesFile());
 				doEnables();
-			}
+				if (newPathAfterReceiveParseNotification)
+					newPathAfterParse();
+				if (newPathPlotAfterReceiveParseNotification)
+					newPathPlotAfterParse();
+			} else if (me.getID() == GUIModelEvent.MODEL_PARSE_FAILED) {
+				newPathAfterReceiveParseNotification = false;
+				newPathPlotAfterReceiveParseNotification = false;			}
 
 		} else if (e instanceof GUIComputationEvent) {
 			if (e.getID() == GUIComputationEvent.COMPUTATION_START) {
