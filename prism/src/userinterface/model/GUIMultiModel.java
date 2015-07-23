@@ -34,6 +34,8 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -48,6 +50,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import prism.ModelType;
 import prism.Prism;
@@ -60,7 +64,6 @@ import userinterface.OptionsPanel;
 import userinterface.util.GUIComputationEvent;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIExitEvent;
-import userinterface.util.GUIPrismFileFilter;
 import userinterface.util.GUIUndoManager;
 
 @SuppressWarnings("serial")
@@ -85,10 +88,13 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	private JPopupMenu popup;
 	//Contents
 	private GUIMultiModelHandler handler;
-	private GUIPrismFileFilter modelFilters[];
-	private GUIPrismFileFilter textFilter[];
-	private GUIPrismFileFilter matlabFilter[];
-	private GUIPrismFileFilter dotFilter[];
+	private Map<String,FileFilter> modelFilters;
+	private Map<String,FileFilter> staFilters;
+	private Map<String,FileFilter> traFilters;
+	private Map<String,FileFilter> labFilters;
+	private FileFilter textFilter;
+	private FileFilter matlabFilter;
+	private FileFilter dotFilter;
 	//State
 	private boolean computing = false;
 	private boolean initialised = false;
@@ -272,15 +278,15 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 	{
 		int cont = doModificationCheck();
 		if (cont == CONTINUE) {
-			int filterIndex;
+			String filterName;
 			switch (handler.getModelMode()) {
 			case GUIMultiModelHandler.PEPA_MODE:
-				filterIndex = FILTER_PEPA_MODEL;
+				filterName = "pepa";
 				break;
 			default:
-				filterIndex = FILTER_PRISM_MODEL;
+				filterName = "prism";
 			}
-			if (showOpenFileDialog(modelFilters, modelFilters[filterIndex]) == JFileChooser.APPROVE_OPTION) {
+			if (showOpenFileDialog(modelFilters.values(), modelFilters.get(filterName)) == JFileChooser.APPROVE_OPTION) {
 				File file = getChooserFile();
 				if (file == null) {
 					error("No file selected");
@@ -313,16 +319,15 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 
 	protected int a_saveModelAs()
 	{
-		int mode = handler.getModelMode();
-		int filterIndex;
-		switch (mode) {
+		String filterName;
+		switch (handler.getModelMode()) {
 		case GUIMultiModelHandler.PEPA_MODE:
-			filterIndex = FILTER_PEPA_MODEL;
+			filterName = "pepa";
 			break;
 		default:
-			filterIndex = FILTER_PRISM_MODEL;
+			filterName = "prism";
 		}
-		if (showSaveFileDialog(modelFilters, modelFilters[filterIndex]) != JFileChooser.APPROVE_OPTION) {
+		if (showSaveFileDialog(modelFilters.values(), modelFilters.get(filterName)) != JFileChooser.APPROVE_OPTION) {
 			return CANCEL;
 		}
 		// do save
@@ -349,24 +354,27 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		// pop up dialog to select file
 		switch (exportType) {
 		case Prism.EXPORT_DOT:
-			res = showSaveFileDialog(dotFilter, dotFilter[0]);
+			res = showSaveFileDialog(dotFilter);
 			break;
 		case Prism.EXPORT_DOT_STATES:
-			res = showSaveFileDialog(dotFilter, dotFilter[0]);
+			res = showSaveFileDialog(dotFilter);
 			break;
 		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			res = showSaveFileDialog(matlabFilter);
 			break;
 		default:
 			switch (exportEntity) {
 			case GUIMultiModelHandler.STATES_EXPORT:
-				res = showSaveFileDialog(textFilter, textFilter[1]);
+				res = showSaveFileDialog(staFilters.values(), staFilters.get("sta"));
+				break;
 			case GUIMultiModelHandler.TRANS_EXPORT:
-				res = showSaveFileDialog(textFilter, textFilter[2]);
+				res = showSaveFileDialog(traFilters.values(), traFilters.get("tra"));
+				break;
 			case GUIMultiModelHandler.LABELS_EXPORT:
-				res = showSaveFileDialog(textFilter, textFilter[3]);
+				res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
+				break;
 			default:
-				res = showSaveFileDialog(textFilter, textFilter[0]);
+				res = showSaveFileDialog(textFilter);
 			}
 			break;
 		}
@@ -402,11 +410,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		int res = JFileChooser.CANCEL_OPTION;
 		switch (exportType) {
 		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			res = showSaveFileDialog(matlabFilter);
 			break;
 		case Prism.EXPORT_PLAIN:
 		default:
-			res = showSaveFileDialog(textFilter, textFilter[0]);
+			res = showSaveFileDialog(textFilter);
 			break;
 		}
 		if (res != JFileChooser.APPROVE_OPTION)
@@ -435,11 +443,11 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		int res = JFileChooser.CANCEL_OPTION;
 		switch (exportType) {
 		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			res = showSaveFileDialog(matlabFilter);
 			break;
 		case Prism.EXPORT_PLAIN:
 		default:
-			res = showSaveFileDialog(textFilter, textFilter[0]);
+			res = showSaveFileDialog(textFilter);
 			break;
 		}
 		if (res != JFileChooser.APPROVE_OPTION)
@@ -1170,29 +1178,21 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 			popup.add(viewPrismCode);
 		}
 
-		modelFilters = new GUIPrismFileFilter[2];
-		modelFilters[FILTER_PRISM_MODEL] = new GUIPrismFileFilter("PRISM models (*.prism, *.pm, *.nm, *.sm)");
-		modelFilters[FILTER_PRISM_MODEL].addExtension("prism");
-		modelFilters[FILTER_PRISM_MODEL].addExtension("pm");
-		modelFilters[FILTER_PRISM_MODEL].addExtension("nm");
-		modelFilters[FILTER_PRISM_MODEL].addExtension("sm");
-		modelFilters[FILTER_PEPA_MODEL] = new GUIPrismFileFilter("PEPA models (*.pepa)");
-		modelFilters[FILTER_PEPA_MODEL].addExtension("pepa");
-		textFilter = new GUIPrismFileFilter[4];
-		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
-		textFilter[0].addExtension("txt");
-		textFilter[1] = new GUIPrismFileFilter("State list files (*.sta)");
-		textFilter[1].addExtension("sta");
-		textFilter[2] = new GUIPrismFileFilter("Transition matrix files (*.tra)");
-		textFilter[2].addExtension("tra");
-		textFilter[3] = new GUIPrismFileFilter("Label files (*.lab)");
-		textFilter[3].addExtension("lab");
-		matlabFilter = new GUIPrismFileFilter[1];
-		matlabFilter[0] = new GUIPrismFileFilter("Matlab files (*.m)");
-		matlabFilter[0].addExtension("m");
-		dotFilter = new GUIPrismFileFilter[1];
-		dotFilter[0] = new GUIPrismFileFilter("Dot files (*.dot)");
-		dotFilter[0].addExtension("dot");
+		modelFilters = new HashMap<String,FileFilter>();
+		modelFilters.put("prism", new FileNameExtensionFilter("PRISM models (*.prism, *.pm, *.nm, *.sm)", "prism", "pm", "nm", "sm")); 
+		modelFilters.put("pepa", new FileNameExtensionFilter("PEPA models (*.pepa)", "pepa"));
+		staFilters = new HashMap<String,FileFilter>();
+		staFilters.put("sta", new FileNameExtensionFilter("State list files (*.sta)", "sta"));
+		staFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
+		traFilters = new HashMap<String,FileFilter>();
+		traFilters.put("tra", new FileNameExtensionFilter("Transition matrix files (*.tra)", "tra"));
+		traFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
+		labFilters = new HashMap<String,FileFilter>();
+		labFilters.put("lab", new FileNameExtensionFilter("Label files (*.lab)", "lab"));
+		labFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
+		textFilter =  new FileNameExtensionFilter("Plain text files (*.txt)", "txt");
+		matlabFilter = new FileNameExtensionFilter("Matlab files (*.m)", "m");
+		dotFilter = new FileNameExtensionFilter("Dot files (*.dot)", "dot");
 
 		setLayout(new BorderLayout());
 		add(topPanel, BorderLayout.CENTER);

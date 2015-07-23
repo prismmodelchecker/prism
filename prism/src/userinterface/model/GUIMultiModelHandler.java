@@ -65,8 +65,6 @@ import userinterface.model.computation.LoadPRISMModelThread;
 import userinterface.model.computation.ParseModelThread;
 import userinterface.model.pepaModel.GUIPepaModelEditor;
 import userinterface.util.GUIUndoManager;
-import userinterface.util.PropertyTable;
-import userinterface.util.PropertyTableModel;
 
 @SuppressWarnings("serial")
 public class GUIMultiModelHandler extends JPanel implements PrismModelListener

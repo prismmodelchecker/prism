@@ -26,19 +26,45 @@
 
 package userinterface.simulator.networking;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
-import simulator.networking.*;
-import settings.*;
-import prism.*;
-import userinterface.*;
-import userinterface.util.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JTree;
+import javax.swing.KeyStroke;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+
+import prism.PrismException;
+import settings.FileSelector;
+import settings.SettingTable;
+import simulator.networking.FileSystem;
+import simulator.networking.SSHHost;
+import simulator.networking.SimulatorNetworkHandler;
+import userinterface.GUIPrism;
 
 public class GUINetworkEditor extends JDialog implements TreeSelectionListener, MouseListener, Observer, FileSelector
 {
@@ -63,7 +89,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 	private boolean modified = false;
 	private File activeFile = null;
 	
-	private GUIPrismFileFilter[] netFilters;
+	private FileNameExtensionFilter netFilter;
 	
 	
 	/** Creates new form GUINetworkEditor */
@@ -92,9 +118,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		networkTree.addTreeSelectionListener(this);
 		networkTree.addMouseListener(this);
 		
-		netFilters = new GUIPrismFileFilter[1];
-		netFilters[0] = new GUIPrismFileFilter("PRISM networks (*.xml)");
-		netFilters[0].addExtension("xml");
+		netFilter = new FileNameExtensionFilter("PRISM networks (*.xml)", "xml");
 	}
 	
 	public int doModificationCheck()
@@ -166,7 +190,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 		int cont = doModificationCheck();
 		if(cont == CONTINUE)
 		{
-			if (showOpenFileDialog(netFilters, netFilters[0]) == JFileChooser.APPROVE_OPTION)
+			if (showOpenFileDialog(netFilter) == JFileChooser.APPROVE_OPTION)
 			{
 				File file = GUIPrism.getGUI().getChooser().getSelectedFile();
 				if (file == null)
@@ -222,7 +246,7 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 	public int a_saveAs()
 	{
 		
-		if (showSaveFileDialog(netFilters, netFilters[0]) != JFileChooser.APPROVE_OPTION)
+		if (showSaveFileDialog(netFilter) != JFileChooser.APPROVE_OPTION)
 		{
 			return CANCEL;
 		}
@@ -896,12 +920,11 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 	 * @param ff The file filter to be used as the default within the filechooser.
 	 * @return An integer which is one of the JFileChooser selection constants.
 	 */
-	public int showOpenFileDialog(GUIPrismFileFilter ffs[], GUIPrismFileFilter ff)
+	public int showOpenFileDialog(FileFilter ff)
 	{
 		JFileChooser choose = GUIPrism.getGUI().getChooser();
 		choose.resetChoosableFileFilters();
-		for(int j = 0; j < ffs.length; j++)
-			choose.addChoosableFileFilter(ffs[j]);
+		choose.addChoosableFileFilter(ff);
 		choose.setFileFilter(ff);
 		choose.setSelectedFile(new File(""));
 		return choose.showOpenDialog(this);
@@ -913,12 +936,11 @@ public class GUINetworkEditor extends JDialog implements TreeSelectionListener, 
 	 * @param ff The file filter to be used as the default within the filechooser.
 	 * @return An integer which is one of the JFileChooser selection constants.
 	 */
-	public int showSaveFileDialog(GUIPrismFileFilter ffs[], GUIPrismFileFilter ff)
+	public int showSaveFileDialog(FileFilter ff)
 	{
 		JFileChooser choose = GUIPrism.getGUI().getChooser();
 		choose.resetChoosableFileFilters();
-		for(int j = 0; j < ffs.length; j++)
-			choose.addChoosableFileFilter(ffs[j]);
+		choose.addChoosableFileFilter(ff);
 		choose.setFileFilter(ff);
 		choose.setSelectedFile(new File(""));
 		int res = choose.showSaveDialog(this);

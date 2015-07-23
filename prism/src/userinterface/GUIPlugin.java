@@ -27,11 +27,26 @@
 
 package userinterface;
 
-import javax.swing.*;
-import java.awt.*;
-import prism.*;
-import java.io.*;
-import userinterface.util.*;
+import java.awt.Dimension;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+
+import javax.swing.Action;
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
+import javax.swing.filechooser.FileFilter;
+
+import prism.Prism;
+import prism.PrismSettingsListener;
+import userinterface.util.GUIEvent;
+import userinterface.util.GUIEventHandler;
+import userinterface.util.GUIEventListener;
+import userinterface.util.GUILogEvent;
+import userinterface.util.GUIUndoManager;
 
 /** This abstract class should be overridden to implement a component to be plugged
  * in to the PRISM GUI.  It extends JPanel so that it can be directly added to the
@@ -331,36 +346,62 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 		return JOptionPane.showOptionDialog(gui, message, title, buttonType, messageType, null, choices, defa);
 	}
 	
-	/** A utility method to show a file opening dialog with the given file filter as a
-	 * default.
-	 * @param ffs The list of file filters to be used within the filechooser.
-	 * @param ff The file filter to be used as the default within the filechooser.
+	/**
+	 * A utility method to show a file opening dialog with a specified file filter
+	 * 
+	 * @param fileFilter The file filter to be used within the file chooser.
 	 * @return An integer which is one of the JFileChooser selection constants.
 	 */	
-	public int showOpenFileDialog(GUIPrismFileFilter ffs[], GUIPrismFileFilter ff)
+	public int showOpenFileDialog(FileFilter fileFilter)
+	{
+		return showOpenFileDialog(Collections.singletonList(fileFilter), fileFilter);
+	}
+	
+	/**
+	 * A utility method to show a file opening dialog with a selection of file filters and one as the default.
+	 * 
+	 * @param fileFilters The file filters to be used within the file chooser.
+	 * @param defaultFilter The file filter to be used as the default within the filechooser.
+	 * @return An integer which is one of the JFileChooser selection constants.
+	 */	
+	public int showOpenFileDialog(Collection<FileFilter> fileFilters, FileFilter defaultFilter)
 	{
 		JFileChooser choose = gui.getChooser();
 		choose.resetChoosableFileFilters();
-		for(int j = 0; j < ffs.length; j++)
-			choose.addChoosableFileFilter(ffs[j]);
-		choose.setFileFilter(ff);
+		for (FileFilter ff : fileFilters) {
+			choose.addChoosableFileFilter(ff);
+		}
+		choose.setFileFilter(defaultFilter);
 		choose.setSelectedFile(new File(""));
 		return choose.showOpenDialog(gui);
 	}
 	
-	/** A utility method to show a file saving dialog with the given file filter as a
-	 * default.
-	 * @param ffs The list of file filters to be used within the filechooser.
-	 * @param ff The file filter to be used as the default within the filechooser.
+	/**
+	 * A utility method to show a file saving dialog with a specified file filter
+	 * 
+	 * @param fileFilter The file filter to be used within the file chooser.
 	 * @return An integer which is one of the JFileChooser selection constants.
 	 */	
-	public int showSaveFileDialog(GUIPrismFileFilter ffs[], GUIPrismFileFilter ff)
+	public int showSaveFileDialog(FileFilter fileFilter)
+	{
+		return showSaveFileDialog(Collections.singletonList(fileFilter), fileFilter);
+	}
+	
+	/**
+	 * A utility method to show a file saving dialog with a selection of file filters and one as the default.
+	 * 
+	 * @param fileFilters The file filters to be used within the file chooser.
+	 * @param defaultFilter The file filter to be used as the default within the filechooser.
+	 * @return An integer which is one of the JFileChooser selection constants.
+	 */	
+	public int showSaveFileDialog(Collection<FileFilter> fileFilters, FileFilter defaultFilter)
 	{
 		JFileChooser choose = gui.getChooser();
 		choose.resetChoosableFileFilters();
-		for(int j = 0; j < ffs.length; j++)
-			choose.addChoosableFileFilter(ffs[j]);
-		choose.setFileFilter(ff);
+		for (FileFilter ff : fileFilters) {
+			choose.addChoosableFileFilter(ff);
+		}
+		choose.setFileFilter(defaultFilter);
 		choose.setSelectedFile(new File(""));
 		int res = choose.showSaveDialog(gui);
 		if (res != JFileChooser.APPROVE_OPTION) return res;
@@ -371,7 +412,7 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 			return JFileChooser.CANCEL_OPTION;
 		}
 		// check for file overwrite
-		if(file.exists()) {
+		if (file.exists()) {
 			int selectionNo = JOptionPane.CANCEL_OPTION;
 			selectionNo = optionPane("File \""+file.getPath()+"\" exists. Overwrite?", "Confirm Overwrite", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, null);
 			if (selectionNo != JOptionPane.OK_OPTION) return JFileChooser.CANCEL_OPTION;

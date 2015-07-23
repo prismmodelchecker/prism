@@ -54,9 +54,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -76,12 +78,11 @@ import javax.swing.KeyStroke;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.jfree.data.xy.XYDataItem;
 
-import param.BigRational;
-import param.Function;
-import param.RegionValues;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ModulesFile;
@@ -117,7 +118,6 @@ import userinterface.simulator.GUISimulator;
 import userinterface.util.GUIComputationEvent;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIExitEvent;
-import userinterface.util.GUIPrismFileFilter;
 
 /**
  *  Properties tab of the PRISM GUI.
@@ -152,10 +152,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private File exportFile = null;
 
 	// GUI
-	private GUIPrismFileFilter propsFilter[];
-	private GUIPrismFileFilter resultsFilter[];
-	private GUIPrismFileFilter textFilter[];
-	private GUIPrismFileFilter matlabFilter[];
+	private FileFilter propsFilter;
+	private Map<String,FileFilter> labFilters;
+	private FileFilter textFilter;
+	private FileFilter csvFilter;
+	private FileFilter matlabFilter;
 	private JMenu propMenu;
 	private JPopupMenu propertiesPopup, constantsPopup, labelsPopup, experimentPopup;
 	private GUIExperimentTable experiments;
@@ -735,7 +736,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		if (doModificationCheck() != CONTINUE)
 			return;
 
-		if (showOpenFileDialog(propsFilter, propsFilter[0]) == JFileChooser.APPROVE_OPTION) {
+		if (showOpenFileDialog(propsFilter) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
 			if (file == null) {
 				error("No file selected");
@@ -797,7 +798,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			message("Cannot save properties list: some constants are invalid");
 			return CANCEL;
 		}
-		if (showSaveFileDialog(propsFilter, propsFilter[0]) == JFileChooser.APPROVE_OPTION) {
+		if (showSaveFileDialog(propsFilter) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
 			// do save
 			try {
@@ -820,7 +821,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	public void a_insert()
 	{
-		if (showOpenFileDialog(propsFilter, propsFilter[0]) == JFileChooser.APPROVE_OPTION) {
+		if (showOpenFileDialog(propsFilter) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
 			if (file == null) {
 				error("No file selected");
@@ -1090,10 +1091,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// pop up dialog to select file
 		switch (exportType) {
 		case Prism.EXPORT_MATLAB:
-			res = showSaveFileDialog(matlabFilter, matlabFilter[0]);
+			res = showSaveFileDialog(matlabFilter);
 			break;
 		default:
-			res = showSaveFileDialog(textFilter, textFilter[1]);
+			res = showSaveFileDialog(labFilters.values(), labFilters.get("lab"));
 			break;
 		}
 		if (res != JFileChooser.APPROVE_OPTION)
@@ -1219,7 +1220,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		for (i = 0; i < n; i++)
 			exps[i] = experiments.getExperiment(inds[i]);
 		// get filename to save
-		if (showSaveFileDialog(resultsFilter, sep.equals(", ") ? resultsFilter[1] : resultsFilter[0]) == JFileChooser.APPROVE_OPTION) {
+		if (showSaveFileDialog(sep.equals(", ") ? csvFilter : textFilter) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
 			Thread t = new ExportResultsThread(this, exps, file, exportMatrix, sep);
 			t.setPriority(Thread.NORM_PRIORITY);
@@ -1781,24 +1782,13 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 		createPopups();
 		//file filters
-		propsFilter = new GUIPrismFileFilter[1];
-		propsFilter[0] = new GUIPrismFileFilter("PRISM properties (*.props, *.pctl, *.csl)");
-		propsFilter[0].addExtension("props");
-		propsFilter[0].addExtension("pctl");
-		propsFilter[0].addExtension("csl");
-		resultsFilter = new GUIPrismFileFilter[2];
-		resultsFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
-		resultsFilter[0].addExtension("txt");
-		resultsFilter[1] = new GUIPrismFileFilter("Comma-separated values (*.csv)");
-		resultsFilter[1].addExtension("csv");
-		textFilter = new GUIPrismFileFilter[2];
-		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
-		textFilter[0].addExtension("txt");
-		textFilter[1] = new GUIPrismFileFilter("Label files (*.lab)");
-		textFilter[1].addExtension("lab");
-		matlabFilter = new GUIPrismFileFilter[1];
-		matlabFilter[0] = new GUIPrismFileFilter("Matlab files (*.m)");
-		matlabFilter[0].addExtension("m");
+		propsFilter = new FileNameExtensionFilter("PRISM properties (*.props, *.pctl, *.csl)", "props", "pctl", "csl");
+		labFilters = new HashMap<String,FileFilter>();
+		labFilters.put("lab", new FileNameExtensionFilter("Label files (*.lab)", "lab"));
+		labFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
+		textFilter =  new FileNameExtensionFilter("Plain text files (*.txt)", "txt");
+		csvFilter =  new FileNameExtensionFilter("Comma-separated values (*.csv)", "csv");
+		matlabFilter = new FileNameExtensionFilter("Matlab files (*.m)", "m");
 	}
 
 	private void createPopups()

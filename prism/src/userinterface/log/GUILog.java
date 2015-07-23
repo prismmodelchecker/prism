@@ -27,15 +27,38 @@
 
 package userinterface.log;
 
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
-import userinterface.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import prism.PrismLog;
-import userinterface.util.*;
-import prism.*;
+import prism.PrismSettings;
+import prism.PrismSettingsListener;
+import userinterface.GUIClipboardEvent;
+import userinterface.GUIPlugin;
+import userinterface.GUIPrism;
+import userinterface.OptionsPanel;
+import userinterface.util.GUIEvent;
+import userinterface.util.GUILogEvent;
 
 @SuppressWarnings("serial")
 public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsListener
@@ -44,9 +67,7 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 	private JTextArea text;
 	private JPopupMenu popupMenu;
 	private JMenu logMenu;
-	
-	//private GUILogOptions options;
-	private GUIPrismFileFilter textFilter[];
+	private FileFilter logFilter;
 	private Action clearAction, saveAction;
 	
 	/** Creates a new instance of GUILog */
@@ -200,8 +221,7 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				if (showSaveFileDialog(textFilter, textFilter[0]) == JFileChooser.APPROVE_OPTION)
-				{
+				if (showSaveFileDialog(logFilter) == JFileChooser.APPROVE_OPTION) {
 					File file = getChooserFile();
 					// do save...
 					try
@@ -233,15 +253,12 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 		popupMenu.add(new JSeparator());
 		popupMenu.add(GUIPrism.getClipboardPlugin().getSelectAllAction());
 		
-		
 		logMenu.setMnemonic('L');
 		logMenu.add(saveAction);
 		logMenu.add(new JSeparator());
 		logMenu.add(clearAction);
 		
-		textFilter = new GUIPrismFileFilter[1];
-		textFilter[0] = new GUIPrismFileFilter("Plain text files (*.txt)");
-		textFilter[0].addExtension("txt");
+		logFilter = new FileNameExtensionFilter("Plain text files (*.txt)", "txt"); 
 	}
 	
 	private void initComponentsAsVisualLog(GUIVisualLogModel log)
