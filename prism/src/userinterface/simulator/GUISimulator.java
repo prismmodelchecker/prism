@@ -853,32 +853,18 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 	}
 
-	private boolean ignoreNextParse;
-
-	public void ignoreNextParse()
-	{
-		ignoreNextParse = true;
-	}
-
 	public boolean processGUIEvent(userinterface.util.GUIEvent e)
 	{
 		if (e instanceof GUIModelEvent) {
 			GUIModelEvent me = (GUIModelEvent) e;
 			if (me.getID() == me.NEW_MODEL) {
 				//New Model
-
 				a_clearModel();
-
 				doEnables();
 				//newList();
-			} else if (!ignoreNextParse && me.getID() == GUIModelEvent.MODEL_PARSED) {
-
+			} else if (me.getID() == GUIModelEvent.MODEL_PARSED) {
 				a_loadModulesFile(me.getModulesFile());
-
 				doEnables();
-
-			} else if (ignoreNextParse) {
-				ignoreNextParse = false;
 			}
 
 		} else if (e instanceof GUIComputationEvent) {
