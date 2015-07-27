@@ -43,7 +43,6 @@ import parser.type.TypeDouble;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
 import prism.IntegerBound;
-import prism.ModelType;
 import prism.OpRelOpBound;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -468,8 +467,12 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		StateValues res;
 
+		// <<>> or [[]] operator
+		if (expr instanceof ExpressionStrategy) {
+			res = checkExpressionStrategy(model, (ExpressionStrategy) expr, statesOfInterest);
+		}
 		// P operator
-		if (expr instanceof ExpressionProb) {
+		else if (expr instanceof ExpressionProb) {
 			res = checkExpressionProb(model, (ExpressionProb) expr, statesOfInterest);
 		}
 		// R operator
@@ -479,10 +482,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		// S operator
 		else if (expr instanceof ExpressionSS) {
 			res = checkExpressionSteadyState(model, (ExpressionSS) expr);
-		}
-		// <<>> operator
-		else if (expr instanceof ExpressionStrategy) {
-			res = checkExpressionStrategy(model, (ExpressionStrategy) expr, statesOfInterest);
 		}
 		// Otherwise, use the superclass
 		else {
@@ -498,28 +497,36 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionStrategy(Model model, ExpressionStrategy expr, BitSet statesOfInterest) throws PrismException
 	{
-		// Only support <<>> right now, not [[]]
-		if (!expr.isThereExists())
-			throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is not yet supported");
-
-		// Only support <<>> for MDPs right now
+		// Only support <<>>/[[]] for MDPs right now
 		if (!(this instanceof MDPModelChecker))
 			throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
 
+		// Will we be quantifying universally or existentially over strategies/adversaries?
+		boolean forAll = !expr.isThereExists();
+		
 		// Extract coalition info
 		Coalition coalition = expr.getCoalition();
-		// Strip any parentheses (they might have been needless wrapped around a single P or R)
+		// For non-games (i.e., models with a single player), deal with the coalition operator here and then remove it
+		if (coalition != null && !model.getModelType().multiplePlayers()) {
+			if (coalition.isEmpty()) {
+				// An empty coalition negates the quantification ("*" has no effect)
+				forAll = !forAll;
+			}
+			coalition = null;
+		}
+
+		// Strip any parentheses (they might have been needlessly wrapped around a single P or R)
 		Expression exprSub = expr.getExpression();
 		while (Expression.isParenth(exprSub))
 			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
 		// Pass onto relevant method:
 		// P operator
 		if (exprSub instanceof ExpressionProb) {
-			return checkExpressionProb(model, (ExpressionProb) exprSub, false, coalition, statesOfInterest);
+			return checkExpressionProb(model, (ExpressionProb) exprSub, forAll, coalition, statesOfInterest);
 		}
 		// R operator
 		else if (exprSub instanceof ExpressionReward) {
-			return checkExpressionReward(model, (ExpressionReward) exprSub, false, coalition, statesOfInterest);
+			return checkExpressionReward(model, (ExpressionReward) exprSub, forAll, coalition, statesOfInterest);
 		}
 		// Anything else is an error 
 		else {
@@ -550,16 +557,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		// Get info from P operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
-		MinMax minMax = opInfo.getMinMax(model.getModelType());
+		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 
-		// Deal with coalition operator, if present (just MDPs, currently)
-		if (coalition != null && model.getModelType() == ModelType.MDP) {
-			if (coalition.isEmpty()) {
-				// An empty coalition negates the min/max ("*" has no effect)
-				minMax = minMax.negate();
-			}
-		}
-		
 		// Compute probabilities
 		StateValues probs = checkProbPathFormula(model, expr.getExpression(), minMax, statesOfInterest);
 
@@ -827,10 +826,12 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Model check a P operator expression and return the values for all states.
+	 * Model check an R operator expression and return the values for all states.
 	 */
 	protected StateValues checkExpressionReward(Model model, ExpressionReward expr, BitSet statesOfInterest) throws PrismException
 	{
+		// Use the default semantics for a standalone R operator
+		// (i.e. quantification over all strategies, and no game-coalition info)
 		return checkExpressionReward(model, expr, true, null, statesOfInterest);
 	}
 	
@@ -841,7 +842,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		// Get info from R operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
-		MinMax minMax = opInfo.getMinMax(model.getModelType());
+		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 
 		// Build rewards
 		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);

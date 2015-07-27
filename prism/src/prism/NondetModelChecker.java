@@ -43,11 +43,13 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import odd.ODDUtils;
+import parser.ast.Coalition;
 import parser.ast.Expression;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionQuant;
 import parser.ast.ExpressionReward;
+import parser.ast.ExpressionStrategy;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.PropertiesFile;
@@ -142,8 +144,12 @@ public class NondetModelChecker extends NonProbModelChecker
 	{
 		StateValues res;
 
+		// <<>> or [[]] operator
+		if (expr instanceof ExpressionStrategy) {
+			res = checkExpressionStrategy((ExpressionStrategy) expr);
+		}
 		// P operator
-		if (expr instanceof ExpressionProb) {
+		else if (expr instanceof ExpressionProb) {
 			res = checkExpressionProb((ExpressionProb) expr);
 		}
 		// R operator
@@ -175,13 +181,63 @@ public class NondetModelChecker extends NonProbModelChecker
 	}
 
 	/**
+	 * Model check a <<>> or [[]] operator expression and return the values for all states.
+	 */
+	protected StateValues checkExpressionStrategy(ExpressionStrategy expr) throws PrismException
+	{
+		// Will we be quantifying universally or existentially over strategies/adversaries?
+		boolean forAll = !expr.isThereExists();
+		
+		// Extract coalition info
+		Coalition coalition = expr.getCoalition();
+		// Deal with the coalition operator here and then remove it
+		if (coalition != null) {
+			if (coalition.isEmpty()) {
+				// An empty coalition negates the quantification ("*" has no effect)
+				forAll = !forAll;
+			}
+			coalition = null;
+		}
+
+		// Strip any parentheses (they might have been needlessly wrapped around a single P or R)
+		Expression exprSub = expr.getExpression();
+		while (Expression.isParenth(exprSub))
+			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
+		// Pass onto relevant method:
+		// P operator
+		if (exprSub instanceof ExpressionProb) {
+			return checkExpressionProb((ExpressionProb) exprSub, forAll);
+		}
+		// R operator
+		else if (exprSub instanceof ExpressionReward) {
+			return checkExpressionReward((ExpressionReward) exprSub, forAll);
+		}
+		// Anything else is an error 
+		else {
+			throw new PrismException("Unexpected operators in " + expr.getOperatorString() + " operator");
+		}
+	}
+	
+	/**
 	 * Model check a P operator expression and return the values for all states.
 	 */
 	protected StateValues checkExpressionProb(ExpressionProb expr) throws PrismException
 	{
+		// Use the default semantics for a standalone P operator
+		// (i.e. quantification over all strategies)
+		return checkExpressionProb(expr, true);
+	}
+	
+	/**
+	 * Model check a P operator expression and return the values for all states.
+	 * @param expr The P operator expression
+	 * @param forAll Are we checking "for all strategies" (true) or "there exists a strategy" (false)? [irrelevant for numerical (=?) queries] 
+	 */
+	protected StateValues checkExpressionProb(ExpressionProb expr, boolean forAll) throws PrismException
+	{
 		// Get info from P operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
-		MinMax minMax = opInfo.getMinMax(model.getModelType());
+		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 		
 		// Check for trivial (i.e. stupid) cases
 		if (opInfo.isTriviallyTrue()) {
@@ -220,13 +276,25 @@ public class NondetModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Model check an R operator expression and return the values for all states.
+	 * Model check n R operator expression and return the values for all states.
 	 */
 	protected StateValues checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
+		// Use the default semantics for a standalone R operator
+		// (i.e. quantification over all strategies)
+		return checkExpressionReward(expr, true);
+	}
+	
+	/**
+	 * Model check an R operator expression and return the values for all states.
+	 * @param expr The R operator expression
+	 * @param forAll Are we checking "for all strategies" (true) or "there exists a strategy" (false)? [irrelevant for numerical (=?) queries] 
+	 */
+	protected StateValues checkExpressionReward(ExpressionReward expr, boolean forAll) throws PrismException
+	{
 		// Get info from R operator
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
-		MinMax minMax = opInfo.getMinMax(model.getModelType());
+		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 
 		// Get rewards
 		Object rs = expr.getRewardStructIndex();

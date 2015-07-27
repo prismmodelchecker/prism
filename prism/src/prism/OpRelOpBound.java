@@ -80,15 +80,27 @@ public class OpRelOpBound
 
 	public MinMax getMinMax(ModelType modelType) throws PrismException
 	{
+		return getMinMax(modelType, true);
+	}
+
+	public MinMax getMinMax(ModelType modelType, boolean forAll) throws PrismException
+	{
 		MinMax minMax = MinMax.blank();
 		if (modelType.nondeterministic()) {
-			if (relOp == RelOp.EQ && isNumeric()) {
-				throw new PrismException("Can't use \"" + op + "=?\" for nondeterministic models; use e.g. \"" + op + "min=?\" or \"" + op + "max=?\"");
-			}
-			if (modelType == ModelType.MDP || modelType == ModelType.CTMDP) {
-				minMax = (relOp.isLowerBound() || relOp.isMin()) ? MinMax.min() : MinMax.max();
-			} else {
+			if (!(modelType == ModelType.MDP || modelType == ModelType.CTMDP)) {
 				throw new PrismException("Don't know how to model check " + getTypeOfOperator() + " properties for " + modelType + "s");
+			}
+			if (isNumeric()) {
+				if (relOp == RelOp.EQ) {
+					throw new PrismException("Can't use \"" + op + "=?\" for nondeterministic models; use e.g. \"" + op + "min=?\" or \"" + op + "max=?\"");
+				}
+				minMax = relOp.isMin() ? MinMax.min() : MinMax.max();
+			} else {
+				if (forAll) {
+					minMax = (relOp.isLowerBound() ) ? MinMax.min() : MinMax.max();
+				} else {
+					minMax = (relOp.isLowerBound() ) ? MinMax.max() : MinMax.min();
+				}
 			}
 		}
 		return minMax;
