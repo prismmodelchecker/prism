@@ -26,6 +26,7 @@
 
 package jdd;
 
+import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -37,7 +38,7 @@ import java.util.Vector;
  * when no longer used. This will dereference all the variables contained in the JDDVars
  * object.
  */
-public class JDDVars
+public class JDDVars implements Iterable<JDDNode>
 {
 	private Vector<JDDNode> vars;
 	private long array;
@@ -213,6 +214,12 @@ public class JDDVars
 	public int n()
 	{
 		return vars.size();
+	}
+
+	@Override
+	public Iterator<JDDNode> iterator()
+	{
+		return vars.iterator();
 	}
 
 	@Override
