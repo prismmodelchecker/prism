@@ -28,6 +28,15 @@ package jdd;
 
 import java.util.Vector;
 
+/**
+ * Container for MTBDD variables.
+ * Each variable is represented by a JDDNode (result of JDD.Var(), a projection function).
+ *
+ * It is assumed in general that each JDDNode held in a JDDVars container
+ * counts as a single reference and that a JDDVars object is cleared using derefAll()
+ * when no longer used. This will dereference all the variables contained in the JDDVars
+ * object.
+ */
 public class JDDVars
 {
 	private Vector<JDDNode> vars;
@@ -49,6 +58,9 @@ public class JDDVars
 		}
 	}
 
+	/**
+	 * Constructor.
+	 */
 	public JDDVars()
 	{
 		vars = new Vector<JDDNode>();
@@ -56,6 +68,11 @@ public class JDDVars
 		arrayBuilt = false;
 	}
 		
+	/**
+	 * Appends a variable to this JDDVars container.
+	 * <br>
+	 * [ DEREFs: var (on derefAll call) ]
+	 */
 	public void addVar(JDDNode var)
 	{
 		vars.addElement(var);
@@ -63,44 +80,63 @@ public class JDDVars
 		arrayBuilt = false;
 	}
 	
+	/**
+	 * Appends the variables of another JDDVars container to this container.
+	 * Does not increase the refcount of the JDDNodes!
+	 */
 	public void addVars(JDDVars ddv)
 	{
-		int i;
-		
 		vars.addAll(ddv.vars);
 		if (arrayBuilt) DDV_FreeArray(array);
 		arrayBuilt = false;
 	}
-	
+
+	/**
+	 * Removes the JDDNodes contained in ddv from this JDDVars container.
+	 * Does not decrease the refcount!
+	 */
 	public void removeVars(JDDVars ddv)
 	{
-		int i;
-		
 		vars.removeAll(ddv.vars);
 		if (arrayBuilt) DDV_FreeArray(array);
 		arrayBuilt = false;
 	}
-	
+
+	/** Returns the number of variables stored in this JDDVars container. */
 	public int getNumVars()
 	{
 		return vars.size();
 	}
 
+	/**
+	 * Returns the JDDNode for the i-th stored variable.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public JDDNode getVar(int i)
 	{
 		return (JDDNode)vars.elementAt(i);
 	}
-	
+
+	/**
+	 * Returns the internal Cudd pointer for the i-th stored variable.
+	 */
 	public long getVarPtr(int i)
 	{
 		return ((JDDNode)vars.elementAt(i)).ptr();
 	}
-	
+
+	/**
+	 * Returns the Cudd variable index for the i-th stored variable.
+	 */
 	public int getVarIndex(int i)
 	{
 		return DDV_GetIndex(((JDDNode)vars.elementAt(i)).ptr());
 	}
-	
+
+	/**
+	 * Returns the minimal Cudd variable index for the stored variables,
+	 * or -1 if there are no stored variables.
+	 */
 	public int getMinVarIndex()
 	{
 		int i, j, n, min;
@@ -113,7 +149,11 @@ public class JDDVars
 		}
 		return min;
 	}
-	
+
+	/**
+	 * Returns the maximal Cudd variable index for the stored variables,
+	 * or -1 if there are no stored variables.
+	 */
 	public int getMaxVarIndex()
 	{
 		int i, j, n, max;
@@ -126,7 +166,10 @@ public class JDDVars
 		}
 		return max;
 	}
-	
+
+	/**
+	 * Increases the refcount of all contained JDDNodes.
+	 */
 	public void refAll()
 	{
 		int i;
@@ -135,16 +178,23 @@ public class JDDVars
 			JDD.Ref((JDDNode)vars.elementAt(i));
 		}
 	}
-	
+
+	/**
+	 * Decreases the refcount of all contained JDDNodes.
+	 */
 	public void derefAll()
 	{
 		int i;
-		
+
 		for (i = 0; i < vars.size(); i++) {
 			JDD.Deref((JDDNode)vars.elementAt(i));
 		}
 	}
-	
+
+	/**
+	 * Constructs a JNI array for the stored variables
+	 * that can be passed to the C-based functions.
+	 */
 	public long array()
 	{
 		if (arrayBuilt) {
@@ -156,12 +206,16 @@ public class JDDVars
 			return array;
 		}
 	}
-	
+
+	/**
+	 * Returns the number of stored variables.
+	 */
 	public int n()
 	{
 		return vars.size();
 	}
-	
+
+	@Override
 	public String toString()
 	{
 		int i;
