@@ -115,6 +115,19 @@ public class JDDVars implements Iterable<JDDNode>
 			addVar(var.copy());
 		}
 	}
+	
+	/**
+	 * Copy an array of JDDVars[] by copying each JDDVars container.
+	 * The copy will have fully referenced JDDNodes.
+	 */
+	public static JDDVars[] copyArray(JDDVars[] vararray)
+	{
+		JDDVars[] result = new JDDVars[vararray.length];
+		for (int i = 0;  i< vararray.length; i++) {
+			result[i] = vararray[i].copy();
+		}
+		return result;
+	}
 
 	/**
 	 * Removes the JDDNodes contained in ddv from this JDDVars container.
