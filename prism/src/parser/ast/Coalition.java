@@ -35,14 +35,14 @@ import prism.PrismUtils;
 /**
  * Class to represent coalition info, e.g., in an ExpressionStrategy object.
  * Stored as a list of strings which are either player names (e.g. "controller")
- * or player indices (e.g. "2") starting from 1. Alternatively, "*" denotes all players.
+ * or player indices (e.g. "2"). Alternatively, "*" denotes all players.
  */
 public class Coalition
 {
 	/** Is coalition all players? (denoted by *) */
 	protected boolean allPlayers;
 	
-	/** Coalition: list of player names */
+	/** Coalition: list of player names/indices */
 	protected List<String> players; 
 	
 	// Constructors
@@ -52,7 +52,7 @@ public class Coalition
 	 */
 	public Coalition()
 	{
-		// Default" empty list of players
+		// Empty list of players
 		allPlayers = false;
 		players = new ArrayList<String>();
 	}
@@ -62,10 +62,9 @@ public class Coalition
 	 */
 	public Coalition(Coalition c)
 	{
-		if (c.isAllPlayers())
-			allPlayers = true;
-		else
-			players = new ArrayList<String>(c.getPlayers());
+		// Copy all info (though, strictly speaking, "players" is irrelevant if allPlayers==true
+		allPlayers = c.isAllPlayers();
+		players = new ArrayList<String>(c.getPlayers());
 	}
 
 	// Set methods
@@ -76,12 +75,12 @@ public class Coalition
 	public void setAllPlayers()
 	{
 		allPlayers = true;
-		players = null;
+		players.clear();;
 	}
 
 	/**
 	 * Make this coalition comprise these players
-	 * (each string can be a player name or a (1-indexed) player index)
+	 * (each string can be a player name or an integer player index)
 	 */
 	public void setPlayers(List<String> players)
 	{
@@ -101,60 +100,39 @@ public class Coalition
 	}
 	
 	/**
+	 * Is this coalition empty?
+	 */
+	public boolean isEmpty()
+	{
+		return !allPlayers && players.isEmpty();
+	}
+	
+	/**
 	 * Get a list of strings describing the coalition
-	 * (each string can be a player name or a (1-indexed) player index).
+	 * (each string can be a player name or an integer player index).
 	 * This will be null is the coalition is "*" (all players).
 	 */
 	public List<String> getPlayers()
 	{
-		return players;
+		return allPlayers ? null : players;
 	}
 	
-	// Other methods
-	
 	/**
-	 * Check if a given player (specified by its index) is in the coalition.
-	 * Player indices start from 1. A list of player names must be passed in,
-	 * whose size equals the number of players, but in which some names can be null or "".
+	 * Check if a given player (specified by its index) is in the coalition,
+	 * i.e., if the index or the name of the player with this index is in the list.
+	 * The mapping from player indices to player names is passed in.
 	 */
-	public boolean isPlayerIndexInCoalition(int index, List<String> playerNames)
+	public boolean isPlayerIndexInCoalition(int index, Map<Integer, String> playerNames)
 	{
-		if (allPlayers)
+		if (allPlayers) {
 			return true;
-		int playerIndex;
-		for (String player : players) {
-			try {
-				playerIndex = Integer.parseInt(player);
-				if (index == playerIndex)
-					return true;
-			} catch (NumberFormatException e) {
-				playerIndex = playerNames.indexOf(player);
-				if (playerIndex != -1 && index == playerIndex)
-					return true;
-			}
 		}
-		return false;
-	}
-	
-	/**
-	 * Check if a given player (specified by its index) is in the coalition.
-	 * Player indices start from 1. A mapping from player names to indices is passed in.
-	 */
-	public boolean isPlayerIndexInCoalition(int index, Map<String, Integer> playerNamesMap)
-	{
-		if (allPlayers)
+		if (players.contains("" + index)) {
 			return true;
-		int playerIndex;
-		for (String player : players) {
-			try {
-				playerIndex = Integer.parseInt(player);
-				if (index == playerIndex)
-					return true;
-			} catch (NumberFormatException e) {
-				Integer playerIndexI = playerNamesMap.get(player);
-				if (playerIndexI != null && index == (int) playerIndexI)
-					return true;
-			}
+		}
+		String playerName = playerNames.get(index);
+		if (playerName != null && !"".equals(playerName) && players.contains(playerName)) {
+			return true;
 		}
 		return false;
 	}
