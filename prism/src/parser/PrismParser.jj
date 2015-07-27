@@ -1709,8 +1709,8 @@ Expression ExpressionStrategy(boolean prop, boolean pathprop) :
 	{ if (!prop) throw generateParseException(); }
 	(
 	// <<...>> or [[...]]
-	(( begin = <DLT> { ret = new ExpressionStrategy(true); } <DGT> )
-	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } <DRBRACKET> ))
+	(( begin = <DLT> { ret = new ExpressionStrategy(true); } ExpressionStrategyCoalition(ret) <DGT> )
+	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } ExpressionStrategyCoalition(ret) <DRBRACKET> ))
 	// Child expression
 	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop)
 	| expr = ExpressionParenth(prop, pathprop) | expr = ExpressionFuncOrIdent(prop, pathprop) )
@@ -1720,6 +1720,32 @@ Expression ExpressionStrategy(boolean prop, boolean pathprop) :
 		ret.setPosition(begin, getToken(0));
 		return ret;
 	}
+}
+
+// Coalition (player list) for a strategy (<<>> or [[]]) operator
+
+void ExpressionStrategyCoalition(ExpressionStrategy exprStrat) :
+{
+	List<String> coalition = new ArrayList<String>();
+	String s;
+}
+{
+	( <TIMES> ) { exprStrat.setCoalitionAllPlayers();}
+	|
+	( s = ExpressionStrategyCoalitionPlayer() { coalition.add(s); }
+	( <COMMA> s = ExpressionStrategyCoalitionPlayer()  { coalition.add(s); } )* )?
+	{ exprStrat.setCoalition(coalition); }
+}
+
+// Single player in a coalition for a strategy (<<>> or [[]]) operator
+
+String ExpressionStrategyCoalitionPlayer() :
+{
+	String s;
+}
+{
+	( <REG_INT> | <REG_IDENT> ) { s = getToken(0).image; }
+	{ return s; }
 }
 
 // (Property) expression: label (including "init")
