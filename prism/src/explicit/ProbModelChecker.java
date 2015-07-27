@@ -43,6 +43,7 @@ import parser.type.TypeDouble;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
 import prism.IntegerBound;
+import prism.ModelType;
 import prism.OpRelOpBound;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -551,6 +552,14 @@ public class ProbModelChecker extends NonProbModelChecker
 		OpRelOpBound opInfo = expr.getRelopBoundInfo(constantValues);
 		MinMax minMax = opInfo.getMinMax(model.getModelType());
 
+		// Deal with coalition operator, if present (just MDPs, currently)
+		if (coalition != null && model.getModelType() == ModelType.MDP) {
+			if (coalition.isEmpty()) {
+				// An empty coalition negates the min/max ("*" has no effect)
+				minMax = minMax.negate();
+			}
+		}
+		
 		// Compute probabilities
 		StateValues probs = checkProbPathFormula(model, expr.getExpression(), minMax, statesOfInterest);
 
