@@ -30,7 +30,7 @@ import java.util.Vector;
 
 public class JDDVars
 {
-	private Vector vars;
+	private Vector<JDDNode> vars;
 	private long array;
 	private boolean arrayBuilt;
 	
@@ -51,7 +51,7 @@ public class JDDVars
 
 	public JDDVars()
 	{
-		vars = new Vector();
+		vars = new Vector<JDDNode>();
 		array = 0;
 		arrayBuilt = false;
 	}
