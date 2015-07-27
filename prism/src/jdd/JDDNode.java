@@ -118,6 +118,18 @@ public class JDDNode
 		}
 		return result;
 	}
+
+	/**
+	 * Returns a referenced copy of this node.
+	 * This has the effect of increasing the reference count
+	 * for the underlying MTBDD.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public JDDNode copy()
+	{
+		JDD.Ref(this);
+		return new JDDNode(this);
+	}
 }
 
 //------------------------------------------------------------------------------
