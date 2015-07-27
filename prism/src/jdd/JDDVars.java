@@ -68,7 +68,7 @@ public class JDDVars implements Iterable<JDDNode>
 		array = 0;
 		arrayBuilt = false;
 	}
-		
+
 	/**
 	 * Appends a variable to this JDDVars container.
 	 * <br>
@@ -90,6 +90,30 @@ public class JDDVars implements Iterable<JDDNode>
 		vars.addAll(ddv.vars);
 		if (arrayBuilt) DDV_FreeArray(array);
 		arrayBuilt = false;
+	}
+
+	/**
+	 * Creates a copy of this JDDVars container,
+	 * containing referenced copies of each variable JDDNode in this container.
+	 */
+	public JDDVars copy()
+	{
+		JDDVars result = new JDDVars();
+		for (JDDNode var : this) {
+			result.addVar(var.copy());
+		}
+		return result;
+	}
+
+	/**
+	 * Copies variables from another JDDVars container,
+	 * appending to this container.
+	 * Does a (referencing) copy of each of the variable JDDNodes.
+	 */
+	public void copyVarsFrom(JDDVars ddv) {
+		for (JDDNode var : ddv) {
+			addVar(var.copy());
+		}
 	}
 
 	/**
