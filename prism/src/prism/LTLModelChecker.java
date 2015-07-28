@@ -468,15 +468,6 @@ public class LTLModelChecker extends PrismComponent
 		Declaration decl = new Declaration(daVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(da.size() - 1, 1))));
 		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
-		// Extra references (because will get derefed when new model is done with)
-		for (i = 0; i < model.getNumModules(); i++) {
-			model.getModuleDDRowVars(i).refAll();
-			model.getModuleDDColVars(i).refAll();
-		}
-		model.getAllDDSchedVars().refAll();
-		model.getAllDDSynchVars().refAll();
-		model.getAllDDChoiceVars().refAll();
-		model.getAllDDNondetVars().refAll();
 
 		// Build transition matrix for product
 		newTrans = buildTransMask(da, labelDDs, allDDRowVars, allDDColVars, daDDRowVars, daDDColVars);
@@ -505,11 +496,17 @@ public class LTLModelChecker extends PrismComponent
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
 				// Nondet variables (unchanged)
-				model.getAllDDSchedVars(), model.getAllDDSynchVars(), model.getAllDDChoiceVars(), model.getAllDDNondetVars(),
+				model.getAllDDSchedVars().copy(),
+				model.getAllDDSynchVars().copy(),
+				model.getAllDDChoiceVars().copy(),
+				model.getAllDDNondetVars().copy(),
 				// New list of var names
 				newDDVarNames,
 				// Module info (unchanged)
-				model.getNumModules(), model.getModuleNames(), model.getModuleDDRowVars(), model.getModuleDDColVars(),
+				model.getNumModules(),
+				model.getModuleNames(),
+				JDDVars.copyArray(model.getModuleDDRowVars()),
+				JDDVars.copyArray(model.getModuleDDColVars()),
 				// New var info
 				model.getNumVars() + 1, newVarList, newVarDDRowVars, newVarDDColVars,
 				// Constants (no change)
