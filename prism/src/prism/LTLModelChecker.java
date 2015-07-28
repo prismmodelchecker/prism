@@ -452,18 +452,16 @@ public class LTLModelChecker extends PrismComponent
 			newVarDDRowVars[before ? i + 1 : i] = varDDRowVars[i].copy();
 			newVarDDColVars[before ? i + 1 : i] = varDDColVars[i].copy();
 		}
-		newAllDDRowVars = new JDDVars();
-		newAllDDColVars = new JDDVars();
 		if (before) {
-			newAllDDRowVars.addVars(daDDRowVars);
-			newAllDDColVars.addVars(daDDColVars);
-			newAllDDRowVars.addVars(allDDRowVars);
-			newAllDDColVars.addVars(allDDColVars);
+			newAllDDRowVars = daDDRowVars.copy();
+			newAllDDColVars = daDDColVars.copy();
+			newAllDDRowVars.copyVarsFrom(allDDRowVars);
+			newAllDDColVars.copyVarsFrom(allDDColVars);
 		} else {
-			newAllDDRowVars.addVars(allDDRowVars);
-			newAllDDColVars.addVars(allDDColVars);
-			newAllDDRowVars.addVars(daDDRowVars);
-			newAllDDColVars.addVars(daDDColVars);
+			newAllDDRowVars = allDDRowVars.copy();
+			newAllDDColVars = allDDColVars.copy();
+			newAllDDRowVars.copyVarsFrom(daDDRowVars);
+			newAllDDColVars.copyVarsFrom(daDDColVars);
 		}
 		newVarList = (VarList) varList.clone();
 		// NB: if DA only has one state, we add an extra dummy state
@@ -471,14 +469,10 @@ public class LTLModelChecker extends PrismComponent
 		newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, model.getConstantValues());
 
 		// Extra references (because will get derefed when new model is done with)
-		allDDRowVars.refAll();
-		allDDColVars.refAll();
 		for (i = 0; i < model.getNumModules(); i++) {
 			model.getModuleDDRowVars(i).refAll();
 			model.getModuleDDColVars(i).refAll();
 		}
-		daDDRowVars.refAll();
-		daDDColVars.refAll();
 		model.getAllDDSchedVars().refAll();
 		model.getAllDDSynchVars().refAll();
 		model.getAllDDChoiceVars().refAll();
