@@ -566,19 +566,17 @@ public class Modules2MTBDD
 		}
 		// go thru all variables
 		for (i = 0; i < numVars; i++) {
-			varDDRowVars[i].refAll();
-			varDDColVars[i].refAll();
 			// check which module it belongs to
 			m = varList.getModule(i);
 			// if global...
 			if (m == -1) {
-				globalDDRowVars.addVars(varDDRowVars[i]);
-				globalDDColVars.addVars(varDDColVars[i]);
+				globalDDRowVars.copyVarsFrom(varDDRowVars[i]);
+				globalDDColVars.copyVarsFrom(varDDColVars[i]);
 			}
 			// otherwise...
 			else {
-				moduleDDRowVars[m].addVars(varDDRowVars[i]);
-				moduleDDColVars[m].addVars(varDDColVars[i]);
+				moduleDDRowVars[m].copyVarsFrom(varDDRowVars[i]);
+				moduleDDColVars[m].copyVarsFrom(varDDColVars[i]);
 			}
 		}
 		
@@ -595,10 +593,8 @@ public class Modules2MTBDD
 		// go thru all variables
 		for (i = 0; i < numVars; i++) {
 			// add to list
-			varDDRowVars[i].refAll();
-			varDDColVars[i].refAll();
-			allDDRowVars.addVars(varDDRowVars[i]);
-			allDDColVars.addVars(varDDColVars[i]);
+			allDDRowVars.copyVarsFrom(varDDRowVars[i]);
+			allDDColVars.copyVarsFrom(varDDColVars[i]);
 		}
 		if (modelType == ModelType.MDP) {
 			// go thru all syncronising action vars

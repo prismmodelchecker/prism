@@ -431,10 +431,8 @@ public class ExplicitFiles2MTBDD
 		moduleDDColVars[0] = new JDDVars();
 		// go thru all variables
 		for (i = 0; i < numVars; i++) {
-			varDDRowVars[i].refAll();
-			varDDColVars[i].refAll();
-			moduleDDRowVars[0].addVars(varDDRowVars[i]);
-			moduleDDColVars[0].addVars(varDDColVars[i]);
+			moduleDDRowVars[0].copyVarsFrom(varDDRowVars[i]);
+			moduleDDColVars[0].copyVarsFrom(varDDColVars[i]);
 		}
 
 		// put refs for all vars in whole system together
@@ -450,10 +448,8 @@ public class ExplicitFiles2MTBDD
 		// go thru all variables
 		for (i = 0; i < numVars; i++) {
 			// add to list
-			varDDRowVars[i].refAll();
-			varDDColVars[i].refAll();
-			allDDRowVars.addVars(varDDRowVars[i]);
-			allDDColVars.addVars(varDDColVars[i]);
+			allDDRowVars.copyVarsFrom(varDDRowVars[i]);
+			allDDColVars.copyVarsFrom(varDDColVars[i]);
 		}
 		if (modelType == ModelType.MDP) {
 			for (i = 0; i < ddChoiceVars.length; i++) {
