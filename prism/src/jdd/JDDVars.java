@@ -230,6 +230,16 @@ public class JDDVars implements Iterable<JDDNode>
 	}
 
 	/**
+	 * Calls derefAll on all JDDVars elements of a JDDVars[] array.
+	 */
+	public static void derefAllArray(JDDVars[] vars)
+	{
+		for (JDDVars v : vars) {
+			v.derefAll();
+		}
+	}
+
+	/**
 	 * Constructs a JNI array for the stored variables
 	 * that can be passed to the C-based functions.
 	 */
