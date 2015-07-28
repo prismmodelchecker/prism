@@ -1494,6 +1494,7 @@ public class PrismSettings implements Observer
 			if (i < args.length - 1) {
 				setExportPropAut(true);
 				setExportPropAutFilename(args[++i]);
+				setExportPropAutType("txt");  // default
 				for (Map.Entry<String, String> option : options.entrySet()) {
 				    if (option.getKey().equals("txt")) {
 						setExportPropAutType("txt");
