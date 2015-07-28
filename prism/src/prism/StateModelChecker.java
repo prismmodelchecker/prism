@@ -151,9 +151,9 @@ public class StateModelChecker implements ModelChecker
 		                      null,             // moduleNames
 		                      null,             // moduleRowVars
 		                      null,             // moduleColVars
-		                      0,                // numVars
+		                      varDDRowVars.length, // numVars
 		                      varList,          // varList
-		                      varDDRowVars,     // varDDRowVars
+		                      JDDVars.copyArray(varDDRowVars), // varDDRowVars
 		                      null,             // varDDColVars
 		                      constantValues    // constantValues
 		                     );
