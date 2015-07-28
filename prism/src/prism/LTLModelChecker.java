@@ -402,7 +402,7 @@ public class LTLModelChecker extends PrismComponent
 		int i, j, n;
 		boolean before;
 
-		// Get details of old model
+		// Get details of old model (no copy, does not need to be cleaned up)
 		varDDRowVars = model.getVarDDRowVars();
 		varDDColVars = model.getVarDDColVars();
 		allDDRowVars = model.getAllDDRowVars();
@@ -426,10 +426,8 @@ public class LTLModelChecker extends PrismComponent
 			before = false;
 		}
 
-		// If passed in var lists are null, create new lists
-		// (which won't be accessible later in this case)
-		daDDRowVars = (daDDRowVarsCopy == null) ? new JDDVars() : daDDRowVarsCopy;
-		daDDColVars = (daDDColVarsCopy == null) ? new JDDVars() : daDDColVarsCopy;
+		daDDRowVars = new JDDVars();
+		daDDColVars = new JDDVars();
 		// Create the new dd variables
 		newDDVarNames = new Vector<String>();
 		newDDVarNames.addAll(ddVarNames);
@@ -483,6 +481,8 @@ public class LTLModelChecker extends PrismComponent
 			model.getModuleDDRowVars(i).refAll();
 			model.getModuleDDColVars(i).refAll();
 		}
+		daDDRowVars.refAll();
+		daDDColVars.refAll();
 		daDDRowVars.refAll();
 		daDDColVars.refAll();
 		model.getAllDDSchedVars().refAll();
@@ -555,11 +555,14 @@ public class LTLModelChecker extends PrismComponent
 		//try { prism.exportStatesToFile(modelProd, Prism.EXPORT_PLAIN, new java.io.File("prod.sta")); }
 		//catch (java.io.FileNotFoundException e) {}
 
-		// Reference DA DD vars (if being returned)
+		// return copies of the DA DD variables via the method parameters if possible
 		if (daDDRowVarsCopy != null)
-			daDDRowVarsCopy.refAll();
+			daDDRowVarsCopy.copyVarsFrom(daDDRowVars);
 		if (daDDColVarsCopy != null)
-			daDDColVarsCopy.refAll();
+			daDDColVarsCopy.copyVarsFrom(daDDColVars);
+
+		daDDRowVars.derefAll();
+		daDDColVars.derefAll();
 
 		return modelProd;
 	}
