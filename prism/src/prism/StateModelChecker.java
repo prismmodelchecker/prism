@@ -122,7 +122,11 @@ public class StateModelChecker implements ModelChecker
 
 	/**
 	 * Additional constructor for creating stripped down StateModelChecker for
-	 * expression to MTBDD conversions.
+	 * expression to MTBDD conversions (no colum variables, no transition function, ...).
+	 * <br>
+	 * The dummy model constructed for these purposes has to be cleared by calling
+	 * {@code clearDummyModel()} later.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
 	{
@@ -135,9 +139,24 @@ public class StateModelChecker implements ModelChecker
 		this.constantValues = constantValues;
 		// Create dummy model
 		reach = null;
-		allDDRowVars.refAll();
-		model = new ProbModel(JDD.Constant(0), JDD.Constant(0), new JDDNode[] {}, new JDDNode[] {}, null, allDDRowVars, new JDDVars(), null, 0, null, null,
-				null, 0, varList, varDDRowVars, null, constantValues);
+		model = new ProbModel(JDD.Constant(0),  // trans
+		                      JDD.Constant(0),  // start
+		                      new JDDNode[] {}, // state-rew
+		                      new JDDNode[] {}, // trans-rew
+		                      null,             // rewardStructNames
+		                      allDDRowVars.copy(), // allDDRowVars
+		                      new JDDVars(),    // allDDColVars
+		                      null,             // ddVarNames
+		                      0,                // numModules
+		                      null,             // moduleNames
+		                      null,             // moduleRowVars
+		                      null,             // moduleColVars
+		                      0,                // numVars
+		                      varList,          // varList
+		                      varDDRowVars,     // varDDRowVars
+		                      null,             // varDDColVars
+		                      constantValues    // constantValues
+		                     );
 	}
 
 	/**
