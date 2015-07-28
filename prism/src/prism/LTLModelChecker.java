@@ -236,10 +236,8 @@ public class LTLModelChecker extends PrismComponent
 			before = false;
 		}
 
-		// If passed in var lists are null, create new lists
-		// (which won't be accessible later in this case)
-		daDDRowVars = (daDDRowVarsCopy == null) ? new JDDVars() : daDDRowVarsCopy;
-		daDDColVars = (daDDColVarsCopy == null) ? new JDDVars() : daDDColVarsCopy;
+		daDDRowVars = new JDDVars();
+		daDDColVars = new JDDVars();
 		// Create the new dd variables
 		newDDVarNames = new Vector<String>();
 		newDDVarNames.addAll(ddVarNames);
@@ -295,6 +293,8 @@ public class LTLModelChecker extends PrismComponent
 		}
 		daDDRowVars.refAll();
 		daDDColVars.refAll();
+		daDDRowVars.refAll();
+		daDDColVars.refAll();
 
 		// Build transition matrix for product
 		newTrans = buildTransMask(da, labelDDs, allDDRowVars, allDDColVars, daDDRowVars, daDDColVars);
@@ -345,11 +345,14 @@ public class LTLModelChecker extends PrismComponent
 		newStart = JDD.And(model.getStart(), newStart);
 		modelProd.setStart(newStart);
 
-		// Reference DA DD vars (if being returned)
+		// if possible, return copies of the DA DD variables via the method parameters
 		if (daDDRowVarsCopy != null)
-			daDDRowVarsCopy.refAll();
+			daDDRowVarsCopy.copyVarsFrom(daDDRowVars);
 		if (daDDColVarsCopy != null)
-			daDDColVarsCopy.refAll();
+			daDDColVarsCopy.copyVarsFrom(daDDColVars);
+
+		daDDRowVars.derefAll();
+		daDDColVars.derefAll();
 
 		return modelProd;
 	}
