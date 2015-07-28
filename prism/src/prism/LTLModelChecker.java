@@ -212,7 +212,7 @@ public class LTLModelChecker extends PrismComponent
 		int i, j, n;
 		boolean before;
 
-		// Get details of old model
+		// Get details of old model (no copy, does not need to be cleaned up)
 		varDDRowVars = model.getVarDDRowVars();
 		varDDColVars = model.getVarDDColVars();
 		allDDRowVars = model.getAllDDRowVars();
@@ -256,13 +256,11 @@ public class LTLModelChecker extends PrismComponent
 		// Create/populate new lists
 		newVarDDRowVars = new JDDVars[varDDRowVars.length + 1];
 		newVarDDColVars = new JDDVars[varDDRowVars.length + 1];
-		newVarDDRowVars[before ? 0 : varDDRowVars.length] = daDDRowVars;
-		newVarDDColVars[before ? 0 : varDDColVars.length] = daDDColVars;
+		newVarDDRowVars[before ? 0 : varDDRowVars.length] = daDDRowVars.copy();
+		newVarDDColVars[before ? 0 : varDDColVars.length] = daDDColVars.copy();
 		for (i = 0; i < varDDRowVars.length; i++) {
-			newVarDDRowVars[before ? i + 1 : i] = new JDDVars();
-			newVarDDColVars[before ? i + 1 : i] = new JDDVars();
-			newVarDDRowVars[before ? i + 1 : i].addVars(varDDRowVars[i]);
-			newVarDDColVars[before ? i + 1 : i].addVars(varDDColVars[i]);
+			newVarDDRowVars[before ? i + 1 : i] = varDDRowVars[i].copy();
+			newVarDDColVars[before ? i + 1 : i] = varDDColVars[i].copy();
 		}
 		newAllDDRowVars = new JDDVars();
 		newAllDDColVars = new JDDVars();
@@ -284,15 +282,11 @@ public class LTLModelChecker extends PrismComponent
 
 		// Extra references (because will get derefed when new model is done with)
 		allDDRowVars.refAll();
-		allDDRowVars.refAll();
-		allDDColVars.refAll();
 		allDDColVars.refAll();
 		for (i = 0; i < model.getNumModules(); i++) {
 			model.getModuleDDRowVars(i).refAll();
 			model.getModuleDDColVars(i).refAll();
 		}
-		daDDRowVars.refAll();
-		daDDColVars.refAll();
 		daDDRowVars.refAll();
 		daDDColVars.refAll();
 
