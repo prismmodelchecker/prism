@@ -546,7 +546,7 @@ public class StateValuesMTBDD implements StateValues
 	/**
 	 * Print vector to a log/file (non-zero entries only)
 	 */
-	public void print(PrismLog log) throws PrismException
+	public void print(PrismLog log)
 	{
 		int i;
 		
