@@ -46,7 +46,7 @@ import jdd.JDDVars;
  */
 @SuppressWarnings("serial")
 public class AcceptanceStreettDD
-       extends ArrayList<AcceptanceStreettDD.StreettPair>
+       extends ArrayList<AcceptanceStreettDD.StreettPairDD>
        implements AcceptanceOmegaDD
 {
 
@@ -54,7 +54,7 @@ public class AcceptanceStreettDD
 	 * A pair in a Streett acceptance condition, i.e., with
 	 *  (G F "R") -> (G F "G")
 	 **/
-	public static class StreettPair {
+	public static class StreettPairDD {
 		/** State set R */
 		private JDDNode R;
 		
@@ -65,7 +65,7 @@ public class AcceptanceStreettDD
 		 * Constructor with R and G state sets.
 		 * Becomes owner of the references of R and G.
 		 */
-		public StreettPair(JDDNode R, JDDNode G)
+		public StreettPairDD(JDDNode R, JDDNode G)
 		{
 			this.R = R;
 			this.G = G;
@@ -145,7 +145,7 @@ public class AcceptanceStreettDD
 				newG = JDD.SetVectorElement(newG, ddRowVars, i, 1.0);
 			}
 	
-			StreettPair newPair = new StreettPair(newR, newG);
+			StreettPairDD newPair = new StreettPairDD(newR, newG);
 			this.add(newPair);
 		}
 	}
@@ -153,7 +153,7 @@ public class AcceptanceStreettDD
 	@Override
 	public boolean isBSCCAccepting(JDDNode bscc_states)
 	{
-		for (StreettPair pair : this) {
+		for (StreettPairDD pair : this) {
 			if (!pair.isBSCCAccepting(bscc_states)) {
 				return false;
 			}
@@ -164,7 +164,7 @@ public class AcceptanceStreettDD
 	@Override
 	public void clear()
 	{
-		for (StreettPair pair : this) {
+		for (StreettPairDD pair : this) {
 			pair.clear();
 		}
 		super.clear();
@@ -173,7 +173,7 @@ public class AcceptanceStreettDD
 	@Override
 	public String toString() {
 		String result = "";
-		for (StreettPair pair : this) {
+		for (StreettPairDD pair : this) {
 			result += pair.toString();
 		}
 		return result;
