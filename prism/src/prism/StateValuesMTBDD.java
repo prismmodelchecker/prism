@@ -566,7 +566,28 @@ public class StateValuesMTBDD implements StateValues
 		printRec(values, 0, odd, 0);
 		//log.println();
 	}
-	
+
+	/**
+	 * Print the state values for a JDDNode, representing an MTBDD over the row vars of a model.
+	 * <br>[ REFS: <i>none</i>, DEREFS: value ]
+	 * @param log the output log
+	 * @param values the MTBDD node
+	 * @param model the Model (for the variable information)
+	 * @param description an optional description for printing (may be {@code null})
+	 */
+	public static void print(PrismLog log, JDDNode values, Model model, String description)
+	{
+		StateValuesMTBDD sv = null;
+		try {
+			sv = new StateValuesMTBDD(values, model);
+			if (description != null) log.println(description);
+			sv.print(log);
+		} finally {
+			if (sv != null)
+				sv.clear();
+		}
+	}
+
 	/**
 	 * Print vector to a log/file.
 	 * @param log The log
