@@ -30,7 +30,6 @@ package jdd;
 
 import java.util.*;
 
-import prism.PrismException;
 import prism.PrismLog;
 
 public class JDD
