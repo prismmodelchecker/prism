@@ -285,6 +285,58 @@ public class JDDVars implements Iterable<JDDNode>
 		
 		return s;
 	}
+	
+	
+	/**
+	 * Converts a DD cubeset (conjunction of variables)
+	 * to a corresponding JDDVars array.<br>
+	 * <br> [ REFS: <i>the variables in the returned JDDVars container</i>, DEREFS: cubeSet ]
+	 */
+	public static JDDVars fromCubeSet(JDDNode cubeSet)
+	{
+		try {
+			JDDVars result = new JDDVars();
+
+			JDDNode current = cubeSet;
+			// We do not need to bother with reference manipulation,
+			// as we only call getThen() and getElse(), which do not increase
+			// the refcount
+			while (!current.equals(JDD.ONE)) {
+				if (current.isConstant()) {
+					// may not be any other constant than ONE
+					throw new IllegalArgumentException("JDDVars.fromCubeSet: The argument is not a cubeset");
+				}
+				if (!current.getElse().equals(JDD.ZERO)) {
+					// else always has to point to ZERO
+					throw new IllegalArgumentException("JDDVars.fromCubeSet: The argument is not a cubeset");
+				}
+
+				int index = current.getIndex();
+				JDDNode var = JDD.Var(index);
+				result.addVar(var);
+
+				current = current.getThen();
+			}
+
+			return result;
+		} finally {
+			JDD.Deref(cubeSet);
+		}
+	}
+
+	/**
+	 * Constructs a DD cubeset (conjunction of variables)
+	 * corresponding to this JDDVars container.<br>
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public JDDNode toCubeSet()
+	{
+		JDDNode result = JDD.Constant(1);
+		for (JDDNode var : vars) {
+			result = JDD.And(result, var.copy());
+		}
+		return result;
+	}
 }
 
 //------------------------------------------------------------------------------
