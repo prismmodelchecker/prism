@@ -30,6 +30,9 @@ package jdd;
 
 import java.util.*;
 
+import prism.PrismException;
+import prism.PrismLog;
+
 public class JDD
 {
 	// dd library functions
@@ -1013,7 +1016,155 @@ public class JDD
 		}
 		return new JDDNode(DD_MatrixMultiply(dd1.ptr(), dd2.ptr(), vars.array(), vars.n(), method));
 	}
-	
+
+	/**
+	 * Print the minterms for a JDDNode (using the support of dd as variables).
+	 * <br>
+	 * Positive variables are marked with 1, negatives with 0 and don't cares are marked with -
+ 	 * <br>[ REFS: <i>none</i>, DEREFS: dd ]
+ 	 *
+	 * @param log the output log
+	 * @param dd the MTBDD
+	 */
+	public static void PrintMinterms(PrismLog log, JDDNode dd)
+	{
+		PrintMinterms(log, dd, null);
+	}
+
+	/**
+	 * Print the minterms for a JDDNode (using the support of dd as variables).
+	 * <br>
+	 * Positive variables are marked with 1, negatives with 0 and don't cares are marked with -
+	 * <br>[ REFS: <i>none</i>, DEREFS: dd ]
+ 	 *
+	 * @param log the output log
+	 * @param dd the MTBDD
+	 * @param name an optional description to be printed ({@code null} for none)
+	 */
+	public static void PrintMinterms(PrismLog log, JDDNode dd, String description)
+	{
+		JDDNode csSupport = GetSupport(dd);
+		JDDVars vars = JDDVars.fromCubeSet(csSupport);
+		PrintMinterms(log, dd, vars, description);
+		vars.derefAll();
+	}
+
+	/**
+	 * Print the minterms for a JDDNode over the variables {@code vars}.
+	 * <br>
+	 * Positive variables are marked with 1, negatives with 0 and don't cares are marked with -
+	 * <br>
+	 * {@code vars} has to be ordered with increasing variable indizes and
+	 * has to contain all variables in the support of {@code dd}.
+ 	 * <br>[ REFS: <i>none</i>, DEREFS: dd ]
+ 	 *
+	 * @param log the output log
+	 * @param dd the MTBDD
+	 * @param vars JDDVars of the relevant variables
+	 * @param description an optional description to be printed ({@code null} for none)
+	 * @throws IllegalArgumentException if {@code vars} does not fullfil the constraints
+	 */
+	public static void PrintMinterms(PrismLog log, JDDNode dd, JDDVars vars, String description)
+	{
+		try {
+			if (description != null)
+				log.println(description+":");
+			log.print(" Variables: (");
+			boolean first = true;
+			for (JDDNode var : vars) {
+				if (!first) log.print(",");
+				first = false;
+				log.print(var.getIndex());
+			}
+			log.println(")");
+			char[] minterm = new char[vars.n()];
+			for (int i = 0; i< minterm.length; i++) {
+				minterm[i] = '-';
+			}
+			PrintMintermsRec(log, dd, vars, 0, minterm);
+		} finally {
+			JDD.Deref(dd);
+		}
+	}
+
+	/**
+	 * Recursively print the minterms for a JDDNode over the variables {@code vars}.
+	 * <br>
+	 * Positive variables are marked with 1, negatives with 0 and don't cares are marked with -
+	 * <br>
+	 * {@code vars} has to be ordered with increasing variable indizes and
+	 * has to contain all variables in the support of {@code dd}.
+ 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+ 	 *
+	 * @param log the output log
+	 * @param dd the MTBDD
+	 * @param vars JDDVars of the relevant variables
+	 * @param cur_index the current index into {@code vars}
+	 * @param minterm character array of length {@code vars.n()} storing the current (partial) minterm
+	 * @throws IllegalArgumentException if {@code vars} does not fullfil the constraints
+	 */
+	private static void PrintMintermsRec(PrismLog log, JDDNode dd, JDDVars vars, int cur_index, char[] minterm)
+	{
+		if (dd.isConstant()) {
+			// base case: we are at the ZERO sink, don't print
+			if (dd.equals(JDD.ZERO))
+				return;
+
+			// print the current minterm buffer
+			log.print(" |");
+			for (char c : minterm) {
+				log.print(c);
+			}
+			// ... and the constant value
+			log.println("| = " +dd.getValue());
+		} else {
+			// Get the current variable index
+			int index = dd.getIndex();
+			// As long as there are variables left in vars
+			while (cur_index < vars.n()) {
+				int var_index = vars.getVar(cur_index).getIndex();
+				// We are at the level of the next var in vars
+				if (var_index == index) {
+					// Recurse for else
+					minterm[cur_index]='0';
+					PrintMintermsRec(log, dd.getElse(), vars, cur_index+1, minterm);
+					// Recurse for then
+					minterm[cur_index]='1';
+					PrintMintermsRec(log, dd.getThen(), vars, cur_index+1, minterm);
+					// ... and we are done
+					minterm[cur_index]='-';
+					return;
+				} else if (var_index < index) {
+					// The next variable in vars is less then the current dd index
+					//  -> don't care
+					minterm[cur_index]='-';
+					// Go to next variable in vars
+					++cur_index;
+					// ... and continue
+					continue;
+				} else {
+					// var_index > index
+					// Either the vars are not ordered correctly or
+					// the dd has relevant variables not included in vars
+					// To help with debugging, differentiate between the two cases...
+					for (JDDNode var : vars) {
+						if (var.getIndex() == index) {
+							// There is a var with the current index in vars, but
+							// not at the correct position
+							throw new IllegalArgumentException("PrintMinterms: vars array does not appear to be sorted correctly (DD index = "+index+", var index = "+var_index+")");
+						}
+					}
+					// otherwise, the dd depends on a variable not in vars
+					throw new IllegalArgumentException("PrintMinterms: MTBDD depends on variable "+index+", not included in vars");
+				}
+			}
+			if (vars.n() == 0) {
+				throw new IllegalArgumentException("PrintMinterms: MTBDD depends on variable "+index+", not included in vars");
+			}
+			throw new UnsupportedOperationException("PrintMinterms: Implementation error");
+		}
+	}
+
 	/**
 	 * prints out vector dd
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
