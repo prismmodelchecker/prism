@@ -63,8 +63,9 @@ public class Coalition
 	public Coalition(Coalition c)
 	{
 		// Copy all info (though, strictly speaking, "players" is irrelevant if allPlayers==true
+		// (note that we access c.players directly since getPlayers() can return null)
 		allPlayers = c.isAllPlayers();
-		players = new ArrayList<String>(c.getPlayers());
+		players = new ArrayList<String>(c.players);
 	}
 
 	// Set methods
