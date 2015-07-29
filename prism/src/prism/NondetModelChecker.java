@@ -43,6 +43,7 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import odd.ODDUtils;
+import parser.BooleanUtils;
 import parser.ast.Coalition;
 import parser.ast.Expression;
 import parser.ast.ExpressionFunc;
@@ -55,6 +56,7 @@ import parser.ast.ExpressionUnaryOp;
 import parser.ast.PropertiesFile;
 import parser.ast.RelOp;
 import parser.type.TypeBool;
+import parser.type.TypeDouble;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
 import sparse.PrismSparse;
@@ -199,22 +201,22 @@ public class NondetModelChecker extends NonProbModelChecker
 			coalition = null;
 		}
 
-		// Strip any parentheses (they might have been needlessly wrapped around a single P or R)
+		// Strip any parentheses
 		Expression exprSub = expr.getExpression();
 		while (Expression.isParenth(exprSub))
 			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
 		// Pass onto relevant method:
-		// P operator
+		// Single P operator
 		if (exprSub instanceof ExpressionProb) {
 			return checkExpressionProb((ExpressionProb) exprSub, forAll);
 		}
-		// R operator
+		// Single R operator
 		else if (exprSub instanceof ExpressionReward) {
 			return checkExpressionReward((ExpressionReward) exprSub, forAll);
 		}
-		// Anything else is an error 
+		// Anything else is treated as multi-objective 
 		else {
-			throw new PrismException("Unexpected operators in " + expr.getOperatorString() + " operator");
+			return checkExpressionMultiObjective(expr, forAll);
 		}
 	}
 	
@@ -347,6 +349,76 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 	}
 
+	protected StateValues checkExpressionMultiObjective(ExpressionStrategy expr, boolean forAll) throws PrismException
+	{
+		// Copy expression because we will modify it
+		expr = (ExpressionStrategy) expr.deepCopy();
+
+		// Strip any outer parentheses in operand
+		Expression exprSub = expr.getExpression();
+		while (Expression.isParenth(exprSub)) {
+			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
+		}
+
+		// Reduce to form that can be expressed as an old multi(...) function..
+
+		// Boolean
+		if (exprSub.getType() instanceof TypeBool) {
+			// We will solve an existential query, so negate if universal
+			if (forAll) {
+				exprSub = Expression.Not(exprSub);
+			}
+			// Convert to DNF
+			List<List<Expression>> dnf = BooleanUtils.convertToDNFLists(exprSub);
+			// Check all "propositions" of DNF are valid
+			for (List<Expression> conjunction : dnf) {
+				for (Expression prop : conjunction) {
+					if (Expression.isNot(prop)) {
+						prop = ((ExpressionUnaryOp) prop).getOperand();
+					}
+					if (!(prop instanceof ExpressionQuant)) {
+						throw new PrismException("Expression " + prop + " is not allowed in a multi-objective query");
+					}
+				}
+			}
+			// Push negation inside objectives
+			for (List<Expression> conjunction : dnf) {
+				for (int j = 0; j < conjunction.size(); j++) {
+					Expression prop = conjunction.get(j);
+					if (Expression.isNot(prop)) {
+						ExpressionQuant exprQuant = (ExpressionQuant) ((ExpressionUnaryOp) prop).getOperand();
+						exprQuant.setRelOp(exprQuant.getRelOp().negate());
+						conjunction.set(j, exprQuant);
+					}
+				}
+			}
+			// Print reduced query
+			mainLog.println("\nReducing multi-objective query to DNF: " + BooleanUtils.convertDNFListsToExpression(dnf));
+
+			// Only handle a single disjunct for now
+			if (dnf.size() > 1) {
+				throw new PrismException("Multi-objective model checking of multiople disjuncts not yet supported");
+			}
+			// Convert to multi(...)
+			ExpressionFunc exprMulti = new ExpressionFunc("multi");
+			for (Expression conjunct : dnf.get(0)) {
+				exprMulti.addOperand(conjunct);
+			}
+			// Handle negation
+			if (forAll) {
+				return checkExpression(Expression.Not(exprMulti));
+			} else {
+				return checkExpressionMultiObjective(exprMulti);
+			}
+		} else if (exprSub.getType() instanceof TypeDouble) {
+			ExpressionFunc exprMulti = new ExpressionFunc("multi");
+			exprMulti.addOperand(exprSub);
+			return checkExpressionMultiObjective(exprMulti);
+		} else {
+			throw new PrismException("Multi-objective model checking not supported for: " + exprSub);
+		}
+	}
+	
 	/**
 	 * Model check a multi-objective expression and return the result.
 	 * For multi-objective queries, we only find the value for one state.

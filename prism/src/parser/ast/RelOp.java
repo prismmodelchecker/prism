@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import prism.PrismLangException;
+
 /**
  * Class to represent a relational operator (or similar) found in a P/R/S operator.
  */
@@ -97,6 +99,31 @@ public enum RelOp {
 			return true;
 		default:
 			return false;
+		}
+	}
+
+	/**
+	 * Returns the negated form of this operator.
+	 */
+	public RelOp negate() throws PrismLangException
+	{
+		switch (this) {
+		case GT:
+			return RelOp.LEQ;
+		case GEQ:
+			return RelOp.LT;
+		case MIN:
+			return RelOp.MAX;
+		case LT:
+			return RelOp.GEQ;
+		case LEQ:
+			return RelOp.GT;
+		case MAX:
+			return RelOp.MIN;
+		case EQ:
+			throw new PrismLangException("Cannot negate =");
+		default:
+			throw new PrismLangException("Cannot negate " + this);
 		}
 	}
 
