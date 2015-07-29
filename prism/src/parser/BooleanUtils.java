@@ -309,8 +309,8 @@ public class BooleanUtils
 			}
 			return cnf;
 		}
-		// Or
-		if (Expression.isOr(expr)) {
+		// And
+		if (Expression.isAnd(expr)) {
 			Expression a = ((ExpressionBinaryOp) expr).getOperand1();
 			Expression b = ((ExpressionBinaryOp) expr).getOperand2();
 			List<List<Expression>> aCnf = doConversionToCNF(a);

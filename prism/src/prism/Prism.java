@@ -1424,30 +1424,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public ModulesFile importPepaString(String s) throws PrismException, PrismLangException
 	{
-		File pepaFile = null;
-		String modelString;
-
-		// create temporary file containing pepa model
-		try {
-			pepaFile = File.createTempFile("tempPepa" + System.currentTimeMillis(), ".pepa");
-			FileWriter write = new FileWriter(pepaFile);
-			write.write(s);
-			write.close();
-		} catch (IOException e) {
-			if (pepaFile != null)
-				pepaFile.delete();
-			throw new PrismException("Couldn't create temporary file for PEPA conversion");
-		}
-
-		// compile pepa file to string
-		try {
-			modelString = pepa.compiler.Main.compile("" + pepaFile);
-		} catch (pepa.compiler.InternalError e) {
-			if (pepaFile != null)
-				pepaFile.delete();
-			throw new PrismException("Could not import PEPA file:\n" + e.getMessage());
-		}
-
+		String prismModelString  = new PrismLanguageImporter().convert("pepa", s);
 		// parse string as prism model and return
 		return parseModelString(modelString);
 	}
