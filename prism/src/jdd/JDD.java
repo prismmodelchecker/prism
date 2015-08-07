@@ -121,6 +121,23 @@ public class JDD
 	private static native void DD_ExportMatrixToMatlabFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String name, String filename);
 	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
 
+	/**
+	 * An exception indicating that CuDD ran out of memory or that another internal error
+	 * occurred.
+	 * <br>
+	 * This exception is thrown by ptrToNode if a NULL pointer is returned by one of the native
+	 * DD methods. It is generally not safe to use the CuDD library after this error occurred,
+	 * so the program should quit as soon as feasible.
+	 */
+	public static class CuddOutOfMemoryException extends RuntimeException {
+		private static final long serialVersionUID = -3094099053041270477L;
+
+		/** Constructor */
+		CuddOutOfMemoryException() {
+			super("The MTBDD library CuDD seems to have run out of memory or encountered an internal error.");
+		}
+	}
+
 	static
 	{
 		try {
@@ -1336,10 +1353,14 @@ public class JDD
 
 	/**
 	 * Convert a (referenced) ptr returned from Cudd into a JDDNode.
+	 * <br>Throws a CuddOutOfMemoryException if the pointer is NULL.
 	 * <br>[ REFS: <i>none</i> ]
 	 */
 	public static JDDNode ptrToNode(long ptr)
 	{
+		if (ptr == 0L) {
+			throw new CuddOutOfMemoryException();
+		}
 		return new JDDNode(ptr);
 	}
 
