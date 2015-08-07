@@ -31,6 +31,7 @@
 #include "dd_term.h"
 #include "dd_export.h"
 #include "dd_cudd.h"
+#include <limits>  // for NaN value
 
 //------------------------------------------------------------------------------
 
@@ -228,7 +229,7 @@ DdNode *dd
 	DdNode *v = Cudd_addFindMin(ddman, dd);
 	if (v == NULL) {
 		DD_SetErrorFlag();
-		return 0.0;
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 	return Cudd_V(v);
 }
@@ -244,7 +245,7 @@ DdNode *dd
 	DdNode *v = Cudd_addFindMax(ddman, dd);
 	if (v == NULL) {
 		DD_SetErrorFlag();
-		return 0.0;
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 	return Cudd_V(v);
 }
