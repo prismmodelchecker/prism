@@ -31,7 +31,7 @@
 
 extern FILE *dd_out;
 
-// A flag indicating that a CuDD error has occurred
+// A flag indicating that a CUDD error has occurred
 // that could not be signalled by returning a NULL DdNode*
 // from a function
 bool dd_cudd_error_flag = false;
@@ -239,7 +239,7 @@ bool DD_GetErrorFlag(DdManager *ddman)
 
 //-----------------------------------------------------------------------------------
 
-// Set the DD error flag. Should be set if a CuDD error has been
+// Set the DD error flag. Should be set if a CUDD error has been
 // detected that could not be signalled by returning a NULL DdNode*
 // from the function
 void DD_SetErrorFlag()

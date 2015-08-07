@@ -123,11 +123,11 @@ public class JDD
 	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
 
 	/**
-	 * An exception indicating that CuDD ran out of memory or that another internal error
+	 * An exception indicating that CUDD ran out of memory or that another internal error
 	 * occurred.
 	 * <br>
 	 * This exception is thrown by ptrToNode if a NULL pointer is returned by one of the native
-	 * DD methods. It is generally not safe to use the CuDD library after this error occurred,
+	 * DD methods. It is generally not safe to use the CUDD library after this error occurred,
 	 * so the program should quit as soon as feasible.
 	 */
 	public static class CuddOutOfMemoryException extends RuntimeException {
@@ -135,7 +135,7 @@ public class JDD
 
 		/** Constructor */
 		CuddOutOfMemoryException() {
-			super("The MTBDD library CuDD seems to have run out of memory or encountered an internal error.");
+			super("The MTBDD library CUDD seems to have run out of memory or encountered an internal error.");
 		}
 	}
 
@@ -1399,7 +1399,7 @@ public class JDD
 
 	/**
 	 * Check whether the DD error flag is set, indicating an
-	 * out-of-memory situation in CuDD or another internal error.
+	 * out-of-memory situation in CUDD or another internal error.
 	 * If the flag is set, throws a {@code CuddOutOfMemoryException}.
 	 */
 	public static void checkForCuddError()

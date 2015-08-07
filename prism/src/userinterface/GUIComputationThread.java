@@ -54,7 +54,7 @@ public class GUIComputationThread extends Thread
 	public void error(Exception e)
 	{
 		if (e instanceof jdd.JDD.CuddOutOfMemoryException) {
-			error(e.getMessage()+"\nPlease restart PRISM. You can increase the memory for CuDD in the settings...");
+			error(e.getMessage()+"\nPlease restart PRISM. You can increase the memory for CUDD in the settings...");
 		} else if (e instanceof PrismException) {
 			error(e.getMessage());
 		} else {
