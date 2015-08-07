@@ -42,8 +42,10 @@ int num_vars
 	DdNode *cube, *res;
 	
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
+	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
 	res = Cudd_addOrAbstract(ddman, dd, cube);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman,cube);
@@ -64,8 +66,10 @@ int num_vars
 	DdNode *cube, *res;
 	
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
+	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
-	res = Cudd_addUnivAbstract(ddman, dd, cube);	
+	res = Cudd_addUnivAbstract(ddman, dd, cube);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman, cube);
@@ -86,8 +90,10 @@ int num_vars
 	DdNode *cube, *res;
 	
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
+	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
 	res = Cudd_addExistAbstract(ddman, dd, cube);	
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman, cube);
@@ -108,8 +114,10 @@ int num_vars
 	DdNode *cube, *res;
 	
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
+	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
 	res = Cudd_addUnivAbstract(ddman, dd, cube);	
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman, cube);
@@ -130,8 +138,10 @@ int num_vars
 	DdNode *cube, *res;
 	
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
+	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
 	res = Cudd_addMinAbstract(ddman, dd, cube);	
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman, cube);
@@ -152,8 +162,10 @@ int num_vars
 	DdNode *cube, *res;
 	
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
+	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
 	res = Cudd_addMaxAbstract(ddman, dd, cube);	
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman, cube);
