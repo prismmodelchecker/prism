@@ -36,5 +36,7 @@ void DD_SetCUDDEpsilon(DdManager *ddman, double epsilon);
 void DD_PrintCacheInfo(DdManager *ddman);
 void DD_CloseDownCUDD(DdManager *ddman);
 void DD_CloseDownCUDD(DdManager *ddman, bool check);
+bool DD_GetErrorFlag(DdManager *ddman);
+void DD_SetErrorFlag();
 
 //------------------------------------------------------------------------------

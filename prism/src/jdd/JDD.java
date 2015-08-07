@@ -48,6 +48,7 @@ public class JDD
 	private static native void DD_Ref(long dd);
 	private static native void DD_Deref(long dd);
 	private static native void DD_PrintCacheInfo();
+	private static native boolean DD_GetErrorFlag();
 	// dd_basics
 	private static native long DD_Create();
 	private static native long DD_Constant(double value);
@@ -1378,6 +1379,17 @@ public class JDD
 			throw new CuddOutOfMemoryException();
 		}
 		return new JDDNode(ptr);
+	}
+
+	/**
+	 * Check whether the DD error flag is set, indicating an
+	 * out-of-meory situation in CuDD or another internal error.
+	 * If the flag is set, throws a {@code CuddOutOfMemoryException}.
+	 */
+	public static void checkForCuddError()
+	{
+		if (DD_GetErrorFlag())
+			throw new CuddOutOfMemoryException();
 	}
 
 }

@@ -145,6 +145,14 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1PrintCacheInfo
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_GetErrorFlag
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1GetErrorFlag
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_Create
  * Signature: ()J
  */

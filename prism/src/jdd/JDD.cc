@@ -872,3 +872,10 @@ JNIEXPORT jint JNICALL Java_jdd_DebugJDD_DebugJDD_1GetRefCount(JNIEnv *env, jcla
 {
 	return (jlong_to_DdNode(dd))->ref;
 }
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1GetErrorFlag(JNIEnv *env, jclass cls)
+{
+	return DD_GetErrorFlag(ddman);
+}
