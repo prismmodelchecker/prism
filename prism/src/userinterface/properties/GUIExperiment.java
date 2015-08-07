@@ -230,9 +230,9 @@ public class GUIExperiment
 					try {
 						definedMFConstants = undefinedConstants.getMFConstantValues();
 						prism.setPRISMModelConstants(definedMFConstants);
-					} catch (PrismException e) {
+					} catch (Exception e) {
 						// in case of error, report it (in log only), store as result, and go on to the next model
-						errorLog(e.getMessage());
+						errorLog(e);
 						setMultipleErrors(definedMFConstants, null, e);
 						undefinedConstants.iterateModel();
 						continue;
@@ -244,9 +244,9 @@ public class GUIExperiment
 							info = null;
 							info = GUISimulationPicker.defineSimulationWithDialog(guiProp.getGUI(), propertyToCheck.getExpression(), prism.getPRISMModel(), "("
 									+ definedMFConstants + ")");
-						} catch (PrismException e) {
+						} catch (Exception e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
-							errorLog(e.getMessage());
+							errorLog(e);
 							setMultipleErrors(definedMFConstants, null, e);
 							undefinedConstants.iterateModel();
 							continue;
@@ -284,9 +284,9 @@ public class GUIExperiment
 							// update progress meter
 							// (all properties simulated simultaneously so can't get more accurate feedback at the moment anyway)
 							table.progressChanged();
-						} catch (PrismException e) {
+						} catch (Exception e) {
 							// in case of error, report it (in log only), store as result, and go on to the next model
-							errorLog(e.getMessage());
+							errorLog(e);
 							setMultipleErrors(definedMFConstants, null, e);
 							undefinedConstants.iterateModel();
 							continue;
@@ -322,9 +322,9 @@ public class GUIExperiment
 									res = prism.modelCheckSimulator(propertiesFile, propertyToCheck.getExpression(), definedPFConstants, initialState,
 											info.getMaxPathLength(), info.createSimulationMethod());
 								}
-							} catch (PrismException e) {
+							} catch (Exception e) {
 								// in case of error, report it (in log only), store exception as the result and proceed
-								errorLog(e.getMessage());
+								errorLog(e);
 								res = new Result(e);
 							}
 							// store result of model checking

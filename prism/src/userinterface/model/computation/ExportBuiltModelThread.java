@@ -112,8 +112,8 @@ public class ExportBuiltModelThread extends GUIComputationThread
 					}
 				});
 				return;
-			} catch (PrismException e2) {
-				error(e2.getMessage());
+			} catch (Exception e2) {
+				error(e2);
 				SwingUtilities.invokeAndWait(new Runnable()
 				{
 					public void run()

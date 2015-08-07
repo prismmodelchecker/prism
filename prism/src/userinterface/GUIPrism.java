@@ -97,6 +97,11 @@ public class GUIPrism extends JFrame
             System.err.println("Error: "+e.getMessage());
             System.exit(1);
         }
+        catch(jdd.JDD.CuddOutOfMemoryException e)
+        {
+            System.err.println("Error: "+e.getMessage());
+            System.exit(1);
+        }
     }
     
     /**

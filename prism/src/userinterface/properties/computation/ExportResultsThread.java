@@ -106,7 +106,7 @@ public class ExportResultsThread extends Thread
 			out.flush();
 			out.close();
 		}
-		catch (IOException e) {
+		catch (Exception e) {
 			SwingUtilities.invokeLater(new Runnable()
 			{
 				public void run()
