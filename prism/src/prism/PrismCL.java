@@ -196,8 +196,26 @@ public class PrismCL implements PrismModelListener
 	private String[] paramUpperBounds = null;
 	private String[] paramNames = null;
 
-	// entry point - run method
 
+	/**
+	 * Entry point: call run method, catch CuddOutOfMemoryException
+	 */
+	public void go(String[] args) {
+		try {
+			run(args);
+		} catch (jdd.JDD.CuddOutOfMemoryException e) {
+			mainLog.println("\nError: " + e.getMessage());
+			mainLog.println(" Try to restart PRISM and increase the memory available to CuDD using the -cuddmaxmem argument.\n");
+			mainLog.println(" Stack trace for the failed method:");
+			for (StackTraceElement st : e.getStackTrace()) {
+				mainLog.print("  ");
+				mainLog.println(st);
+			}
+			System.exit(1);
+		}
+	}
+
+	// entry point - run method
 	public void run(String[] args)
 	{
 		int i, j, k;
@@ -2335,7 +2353,7 @@ public class PrismCL implements PrismModelListener
 
 	public static void main(String[] args)
 	{
-		new PrismCL().run(args);
+		new PrismCL().go(args);
 	}
 }
 
