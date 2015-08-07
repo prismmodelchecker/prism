@@ -728,7 +728,9 @@ public class JDD
 	 */
 	public static boolean EqualSupNorm(JDDNode dd1, JDDNode dd2, double epsilon)
 	{
-		return DD_EqualSupNorm(dd1.ptr(), dd2.ptr(), epsilon);
+		boolean rv = DD_EqualSupNorm(dd1.ptr(), dd2.ptr(), epsilon);
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -737,7 +739,9 @@ public class JDD
 	 */
 	public static double FindMin(JDDNode dd)
 	{
-		return DD_FindMin(dd.ptr());
+		double rv = DD_FindMin(dd.ptr());
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -746,7 +750,9 @@ public class JDD
 	 */
 	public static double FindMax(JDDNode dd)
 	{
-		return DD_FindMax(dd.ptr());
+		double rv = DD_FindMax(dd.ptr());
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -768,7 +774,9 @@ public class JDD
 	 */
 	public static int GetNumNodes(JDDNode dd)
 	{
-		return DD_GetNumNodes(dd.ptr());
+		int rv = DD_GetNumNodes(dd.ptr());
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -777,7 +785,9 @@ public class JDD
 	 */
 	public static int GetNumTerminals(JDDNode dd)
 	{
-		return DD_GetNumTerminals(dd.ptr());
+		int rv = DD_GetNumTerminals(dd.ptr());
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -786,7 +796,9 @@ public class JDD
 	 */
 	public static double GetNumMinterms(JDDNode dd, int num_vars)
 	{
-		return DD_GetNumMinterms(dd.ptr(), num_vars);
+		double rv = DD_GetNumMinterms(dd.ptr(), num_vars);
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -813,7 +825,9 @@ public class JDD
 	 */
 	public static double GetNumPaths(JDDNode dd)
 	{
-		return DD_GetNumPaths(dd.ptr());
+		double rv = DD_GetNumPaths(dd.ptr());
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
@@ -1014,7 +1028,9 @@ public class JDD
 	 */
 	public static double GetVectorElement(JDDNode dd, JDDVars vars, long index)
 	{
-		return DD_GetVectorElement(dd.ptr(), vars.array(), vars.n(), index);
+		double rv = DD_GetVectorElement(dd.ptr(), vars.array(), vars.n(), index);
+		checkForCuddError();
+		return rv;
 	}
 	
 	/**
