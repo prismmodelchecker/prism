@@ -139,7 +139,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Reachability(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), start.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until probability 1 precomputation (probabilistic/dtmc)
@@ -148,7 +148,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Prob1(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr(), no.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until probability 0 precomputation (probabilistic/dtmc)
@@ -157,7 +157,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Prob0(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until probability 1 precomputation - there exists (nondeterministic/mdp)
@@ -166,7 +166,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Prob1E(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr(), no.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until probability 1 precomputation - for all (nondeterministic/mdp)
@@ -175,7 +175,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Prob1A(trans01.ptr(), reach.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), no.ptr(), b2.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until probability 0 precomputation - there exists (nondeterministic/mdp)
@@ -184,7 +184,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Prob0E(trans01.ptr(), reach.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until probability 0 precomputation - for all (nondeterministic/mdp)
@@ -193,7 +193,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Prob0A(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
 		//if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	//------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_ProbBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), bound);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until (probabilistic/dtmc)
@@ -215,7 +215,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_ProbUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl cumulative reward (probabilistic/dtmc)
@@ -224,7 +224,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_ProbCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), bound);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	// pctl inst reward (probabilistic/dtmc)
@@ -233,7 +233,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_ProbInstReward(trans.ptr(), sr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	// pctl reach reward (probabilistic/dtmc)
@@ -242,7 +242,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_ProbReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	// transient (probabilistic/dtmc)
@@ -251,7 +251,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_ProbTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	//------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_NondetBoundedUntil(trans.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), bound, minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl until (nondeterministic/mdp)
@@ -273,7 +273,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_NondetUntil(trans.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// pctl inst reward (nondeterministic/mdp)
@@ -282,7 +282,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_NondetInstReward(trans.ptr(), sr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), time, minmax, init.ptr());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	// pctl reach reward (nondeterministic/mdp)
@@ -291,7 +291,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_NondetReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	//------------------------------------------------------------------------------
@@ -305,7 +305,7 @@ public class PrismMTBDD
 		long mult = (multProbs == null) ? 0 : multProbs.ptr();
 		long ptr = PM_StochBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), time, mult);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// csl cumulative reward (stochastic/ctmc)
@@ -314,7 +314,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_StochCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// steady state (stochastic/ctmc)
@@ -323,7 +323,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_StochSteadyState(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n());
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// transient (stochastic/ctmc)
@@ -332,7 +332,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_StochTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	//------------------------------------------------------------------------------
@@ -382,7 +382,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_Power(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 	
 	// jor method
@@ -391,7 +391,7 @@ public class PrismMTBDD
 	{
 		long ptr = PM_JOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, omega);
 		if (ptr == 0) throw new PrismException(getErrorMessage());
-		return new JDDNode(ptr);
+		return JDD.ptrToNode(ptr);
 	}
 
 	//------------------------------------------------------------------------------

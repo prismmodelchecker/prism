@@ -293,22 +293,22 @@ public class DoubleVector
 		
 		switch (relOp) {
 		case GEQ:
-			sol = new JDDNode(
+			sol = JDD.ptrToNode(
 				DV_BDDGreaterThanEquals(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
 			break;
 		case GT:
-			sol = new JDDNode(
+			sol = JDD.ptrToNode(
 				DV_BDDGreaterThan(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
 			break;
 		case LEQ:
-			sol = new JDDNode(
+			sol = JDD.ptrToNode(
 				DV_BDDLessThanEquals(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
 			break;
 		case LT:
-			sol = new JDDNode(
+			sol = JDD.ptrToNode(
 				DV_BDDLessThan(v, bound, vars.array(), vars.n(), odd.ptr())
 			);
 			break;
@@ -331,7 +331,7 @@ public class DoubleVector
 	{
 		JDDNode sol;
 		
-		sol = new JDDNode(
+		sol = JDD.ptrToNode(
 			DV_BDDInterval(v, lo, hi, vars.array(), vars.n(), odd.ptr())
 		);
 		
@@ -347,7 +347,7 @@ public class DoubleVector
 	{
 		JDDNode sol;
 		
-		sol = new JDDNode(
+		sol = JDD.ptrToNode(
 			DV_BDDCloseValueAbs(v, value, epsilon, vars.array(), vars.n(), odd.ptr())
 		);
 		
@@ -363,7 +363,7 @@ public class DoubleVector
 	{
 		JDDNode sol;
 		
-		sol = new JDDNode(
+		sol = JDD.ptrToNode(
 			DV_BDDCloseValueRel(v, value, epsilon, vars.array(), vars.n(), odd.ptr())
 		);
 		
@@ -379,7 +379,7 @@ public class DoubleVector
 	{
 		JDDNode sol;
 		
-		sol = new JDDNode(
+		sol = JDD.ptrToNode(
 			DV_ConvertToMTBDD(v, vars.array(), vars.n(), odd.ptr())
 		);
 		

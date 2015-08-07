@@ -97,7 +97,7 @@ public class ODDUtils
 	 */
 	public static JDDNode SingleIndexToDD(int i, ODDNode odd, JDDVars vars)
 	{
-		return new JDDNode(ODD_SingleIndexToDD(i, odd.ptr(), vars.array(), vars.n()));
+		return JDD.ptrToNode(ODD_SingleIndexToDD(i, odd.ptr(), vars.array(), vars.n()));
 	}
 	
 	//------------------------------------------------------------------------------
