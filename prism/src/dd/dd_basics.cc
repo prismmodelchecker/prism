@@ -38,6 +38,7 @@ DdNode *DD_Create(DdManager *ddman)
 	DdNode *res;
 
 	res = Cudd_addConst(ddman, 0);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	
 	return res;
@@ -50,6 +51,7 @@ DdNode *DD_Constant(DdManager *ddman, double value)
 	DdNode *res;
 
 	res = Cudd_addConst(ddman, value);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	
 	return res;
@@ -62,6 +64,7 @@ DdNode *DD_PlusInfinity(DdManager *ddman)
 	DdNode *res;
 
 	res = Cudd_ReadPlusInfinity(ddman);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	
 	return res;
@@ -74,6 +77,7 @@ DdNode *DD_MinusInfinity(DdManager *ddman)
 	DdNode *res;
 
 	res = Cudd_ReadMinusInfinity(ddman);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	
 	return res;
@@ -86,6 +90,7 @@ DdNode *DD_Var(DdManager *ddman, int i)
 	DdNode *res;
 
 	res = Cudd_addIthVar(ddman, i);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	
 	return res;
@@ -98,6 +103,7 @@ DdNode *DD_Not(DdManager *ddman, DdNode *dd)
 	DdNode *res;
 
 	res = Cudd_addCmpl(ddman, dd);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	
@@ -111,6 +117,7 @@ DdNode *DD_Or(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 	DdNode *res;
 
 	res = Cudd_addApply(ddman, Cudd_addOr, dd1, dd2);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd1);
 	Cudd_RecursiveDeref(ddman, dd2);
@@ -122,7 +129,16 @@ DdNode *DD_Or(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 
 DdNode *DD_And(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 {
-	return DD_Not(ddman, DD_Or(ddman, DD_Not(ddman, dd1), DD_Not(ddman, dd2)));
+	DdNode *n1 = DD_Not(ddman, dd1);
+	if (n1 == NULL) return NULL;
+
+	DdNode *n2 = DD_Not(ddman, dd2);
+	if (n2 == NULL) return NULL;
+
+	DdNode *o = DD_Or(ddman, n1, n2);
+	if (o == NULL) return NULL;
+
+	return DD_Not(ddman, o);
 }
 
 //------------------------------------------------------------------------------
@@ -132,6 +148,7 @@ DdNode *DD_Xor(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 	DdNode *res;
 
 	res = Cudd_addApply(ddman, Cudd_addXor, dd1, dd2);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd1);
 	Cudd_RecursiveDeref(ddman, dd2);
@@ -143,7 +160,10 @@ DdNode *DD_Xor(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 
 DdNode *DD_Implies(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 {
-	return DD_Or(ddman, DD_Not(ddman, dd1), dd2);
+	DdNode *n1 = DD_Not(ddman, dd1);
+	if (n1 == NULL) return NULL;
+
+	return DD_Or(ddman, n1, dd2);
 }
 
 //------------------------------------------------------------------------------
@@ -170,6 +190,7 @@ DdNode *DD_Apply(DdManager *ddman, int op, DdNode *dd1, DdNode *dd2)
 		case APPLY_LOGXY: res = Cudd_addApply(ddman, Cudd_addLogXY, dd1, dd2); break;
 		default: printf("\nError: Invalid APPLY operator.\n"); exit(1);
 	}
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd1);
 	Cudd_RecursiveDeref(ddman, dd2);
@@ -188,6 +209,7 @@ DdNode *DD_MonadicApply(DdManager *ddman, int op, DdNode *dd)
 		case APPLY_CEIL: res = Cudd_addMonadicApply(ddman, Cudd_addCeil, dd); break;
 		default: printf("\nError: Invalid monadic APPLY operator.\n"); exit(1);
 	}
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	
@@ -201,6 +223,7 @@ DdNode *DD_Restrict(DdManager *ddman, DdNode *dd, DdNode *cube)
 	DdNode *res;
 
 	res = Cudd_addRestrict(ddman, dd, cube);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);
 	Cudd_RecursiveDeref(ddman, cube);
@@ -215,6 +238,7 @@ DdNode *DD_ITE(DdManager *ddman, DdNode *dd1, DdNode *dd2, DdNode *dd3)
 	DdNode *res;
 
 	res = Cudd_addIte(ddman, dd1, dd2, dd3);
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd1);
 	Cudd_RecursiveDeref(ddman, dd2);
