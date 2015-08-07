@@ -49,12 +49,35 @@ public class GUIComputationThread extends Thread
 		errorLog(s);
 		errorDialog(s);
 	}
-	
+
+	/** Report an error for an Exception (in log and popup dialog) */
+	public void error(Exception e)
+	{
+		if (e instanceof jdd.JDD.CuddOutOfMemoryException) {
+			error(e.getMessage()+"\nPlease restart PRISM. You can increase the memory for CuDD in the settings...");
+		} else if (e instanceof PrismException) {
+			error(e.getMessage());
+		} else {
+			error(e.toString()+"\nThis is an unexpected error, it might be a good idea to restart PRISM");
+		}
+	}
+
 	/** Report an error (in log) */
 	public void errorLog(String s)
 	{
 		logln("\nError: " + s + ".");
 	}
+
+	/** Report an Exception error (in log) */
+	public void errorLog(Exception e)
+	{
+		if (e instanceof PrismException || e instanceof jdd.JDD.CuddOutOfMemoryException) {
+			logln("\nError: " + e.getMessage() + ".");
+		} else {
+			logln("\nError: " + e.toString() +".");
+		}
+	}
+
 	
 	// send messages to log
 	public void log(Object o) { plug.log(o); }
