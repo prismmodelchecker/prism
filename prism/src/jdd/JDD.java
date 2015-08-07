@@ -1399,7 +1399,7 @@ public class JDD
 
 	/**
 	 * Check whether the DD error flag is set, indicating an
-	 * out-of-meory situation in CuDD or another internal error.
+	 * out-of-memory situation in CuDD or another internal error.
 	 * If the flag is set, throws a {@code CuddOutOfMemoryException}.
 	 */
 	public static void checkForCuddError()
