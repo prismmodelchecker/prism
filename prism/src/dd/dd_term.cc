@@ -43,7 +43,9 @@ double threshold
 )
 {
 	DdNode *tmp, *tmp2;
-	
+
+	if (dd == NULL) return NULL;
+
 	tmp = Cudd_addBddThreshold(ddman, dd, threshold);
 	if (tmp == NULL) return NULL;
 	Cudd_Ref(tmp);
@@ -65,7 +67,9 @@ double threshold
 )
 {
 	DdNode *tmp, *tmp2;
-	
+
+	if (dd == NULL) return NULL;
+
 	tmp = Cudd_addBddStrictThreshold(ddman, dd, threshold);
 	if (tmp == NULL) return NULL;
 	Cudd_Ref(tmp);
@@ -111,6 +115,9 @@ double threshold
 )
 {
 	DdNode* res;
+
+	if (dd == NULL) return NULL;
+
 	res = DD_Threshold(ddman, dd, threshold);
 	if (res == NULL) return NULL;
 	return DD_Not(ddman, res);
@@ -126,6 +133,9 @@ double threshold
 )
 {
 	DdNode* res;
+
+	if (dd == NULL) return NULL;
+
 	res = DD_StrictThreshold(ddman, dd, threshold);
 	if (res == NULL) return NULL;
 	return DD_Not(ddman, res);
@@ -155,6 +165,8 @@ double upper
 {
 	DdNode *tmp, *tmp2;
 
+	if (dd == NULL) return NULL;
+
 	tmp = Cudd_addBddInterval(ddman, dd, lower, upper);
 	if (tmp == NULL) return NULL;
 	Cudd_Ref(tmp);
@@ -177,7 +189,9 @@ int places
 )
 {
 	DdNode *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	res = Cudd_addRoundOff(ddman, dd, places);
 	if (res == NULL) return NULL;
 	Cudd_Ref(res);
@@ -262,7 +276,9 @@ int num_vars
 {
 	int i;
 	DdNode *ptr, *next_ptr, *filter, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	// construct filter to get first non-zero element
 	ptr = dd;
 	filter = DD_Constant(ddman, 1);

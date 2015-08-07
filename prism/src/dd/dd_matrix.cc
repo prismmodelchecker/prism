@@ -51,7 +51,9 @@ double value
 {
 	DdNode *tmp, *tmp2, *f, *tmp_f, *g, *res;
 	int i;
-		
+
+	if (dd == NULL) return NULL;
+
 	// build a 0-1 ADD to store position of element of the vector
 	f = DD_Constant(ddman, 1);
 	if (f == NULL) return NULL;
@@ -103,7 +105,9 @@ double value
 {
 	DdNode *tmp, *tmp2, *f, *tmp_f, *g, *res;
 	int i;
-		
+
+	if (dd == NULL) return NULL;
+
 	// build a 0-1 ADD to store position of element of the matrix
 	f = DD_Constant(ddman, 1);
 	if (f == NULL) return NULL;
@@ -174,7 +178,9 @@ double value
 {
 	DdNode *tmp, *tmp2, *f, *tmp_f, *g, *res;
 	int i;
-		
+
+	if (dd == NULL) return NULL;
+
 	// build a 0-1 ADD to store position of element of the matrix
 	f = DD_Constant(ddman, 1);
 	if (f == NULL) return NULL;
@@ -257,6 +263,8 @@ long x
 	int *inputs;
 	double val;
 
+	if (dd == NULL) return NULL;
+
 	// create array to store 0's & 1's used to query DD
 	inputs = new int[Cudd_ReadSize(ddman)];
 	
@@ -313,7 +321,10 @@ int method
 )
 {
 	DdNode *res;
-	
+
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
+
 	if (method == MM_CMU) {
 		res = Cudd_addTimesPlus(ddman, dd1, dd2, vars, num_vars);
 	}
@@ -348,7 +359,9 @@ int num_vars
 {
 	int i, *permut;
 	DdNode *res;
-		
+
+	if (dd == NULL) return NULL;
+
 	permut = new int[Cudd_ReadSize(ddman)];
 	for (i = 0; i < Cudd_ReadSize(ddman); i++) {
 		permut[i] = i;

@@ -45,7 +45,9 @@ int num_vars
 {
 	int i, *permut;
 	DdNode *res;
-		
+
+	if (dd == NULL) return NULL;
+
 	permut = new int[Cudd_ReadSize(ddman)];
 	for (i = 0; i < Cudd_ReadSize(ddman); i++) {
 		permut[i] = i;
@@ -79,7 +81,9 @@ int num_vars
 )
 {
 	DdNode *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	res = Cudd_addSwapVariables(ddman, dd, old_vars, new_vars, num_vars);
 	if (res != NULL) Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd);

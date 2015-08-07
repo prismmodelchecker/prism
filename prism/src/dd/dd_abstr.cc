@@ -40,7 +40,9 @@ int num_vars
 )
 {
 	DdNode *cube, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
 	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
@@ -64,7 +66,9 @@ int num_vars
 )
 {
 	DdNode *cube, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
 	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
@@ -88,7 +92,9 @@ int num_vars
 )
 {
 	DdNode *cube, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
 	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
@@ -112,7 +118,9 @@ int num_vars
 )
 {
 	DdNode *cube, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
 	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
@@ -136,7 +144,9 @@ int num_vars
 )
 {
 	DdNode *cube, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
 	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);
@@ -160,7 +170,9 @@ int num_vars
 )
 {
 	DdNode *cube, *res;
-	
+
+	if (dd == NULL) return NULL;
+
 	cube = Cudd_addComputeCube(ddman, vars, NULL, num_vars);
 	if (cube == NULL) return NULL;
 	Cudd_Ref(cube);

@@ -102,6 +102,8 @@ DdNode *DD_Not(DdManager *ddman, DdNode *dd)
 {
 	DdNode *res;
 
+	if (dd == NULL) return NULL;
+
 	res = Cudd_addCmpl(ddman, dd);
 	if (res == NULL) return NULL;
 	Cudd_Ref(res);
@@ -116,6 +118,9 @@ DdNode *DD_Or(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 {
 	DdNode *res;
 
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
+
 	res = Cudd_addApply(ddman, Cudd_addOr, dd1, dd2);
 	if (res == NULL) return NULL;
 	Cudd_Ref(res);
@@ -129,16 +134,10 @@ DdNode *DD_Or(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 
 DdNode *DD_And(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 {
-	DdNode *n1 = DD_Not(ddman, dd1);
-	if (n1 == NULL) return NULL;
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
 
-	DdNode *n2 = DD_Not(ddman, dd2);
-	if (n2 == NULL) return NULL;
-
-	DdNode *o = DD_Or(ddman, n1, n2);
-	if (o == NULL) return NULL;
-
-	return DD_Not(ddman, o);
+	return DD_Not(ddman, DD_Or(ddman, DD_Not(ddman, dd1), DD_Not(ddman, dd2))); 
 }
 
 //------------------------------------------------------------------------------
@@ -146,6 +145,9 @@ DdNode *DD_And(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 DdNode *DD_Xor(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 {
 	DdNode *res;
+
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
 
 	res = Cudd_addApply(ddman, Cudd_addXor, dd1, dd2);
 	if (res == NULL) return NULL;
@@ -160,10 +162,10 @@ DdNode *DD_Xor(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 
 DdNode *DD_Implies(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 {
-	DdNode *n1 = DD_Not(ddman, dd1);
-	if (n1 == NULL) return NULL;
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
 
-	return DD_Or(ddman, n1, dd2);
+	return DD_Or(ddman, DD_Not(ddman, dd1), dd2);
 }
 
 //------------------------------------------------------------------------------
@@ -171,6 +173,9 @@ DdNode *DD_Implies(DdManager *ddman, DdNode *dd1, DdNode *dd2)
 DdNode *DD_Apply(DdManager *ddman, int op, DdNode *dd1, DdNode *dd2)
 {
 	DdNode *res;
+
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
 
 	switch (op) {
 		case APPLY_PLUS: res = Cudd_addApply(ddman, Cudd_addPlus, dd1, dd2); break;
@@ -204,6 +209,8 @@ DdNode *DD_MonadicApply(DdManager *ddman, int op, DdNode *dd)
 {
 	DdNode *res;
 
+	if (dd == NULL) return NULL;
+
 	switch (op) {
 		case APPLY_FLOOR: res = Cudd_addMonadicApply(ddman, Cudd_addFloor, dd); break;
 		case APPLY_CEIL: res = Cudd_addMonadicApply(ddman, Cudd_addCeil, dd); break;
@@ -222,6 +229,9 @@ DdNode *DD_Restrict(DdManager *ddman, DdNode *dd, DdNode *cube)
 {
 	DdNode *res;
 
+	if (dd == NULL) return NULL;
+	if (cube == NULL) return NULL;
+
 	res = Cudd_addRestrict(ddman, dd, cube);
 	if (res == NULL) return NULL;
 	Cudd_Ref(res);
@@ -236,6 +246,10 @@ DdNode *DD_Restrict(DdManager *ddman, DdNode *dd, DdNode *cube)
 DdNode *DD_ITE(DdManager *ddman, DdNode *dd1, DdNode *dd2, DdNode *dd3)
 {
 	DdNode *res;
+
+	if (dd1 == NULL) return NULL;
+	if (dd2 == NULL) return NULL;
+	if (dd3 == NULL) return NULL;
 
 	res = Cudd_addIte(ddman, dd1, dd2, dd3);
 	if (res == NULL) return NULL;
