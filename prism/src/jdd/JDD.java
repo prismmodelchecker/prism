@@ -265,9 +265,17 @@ public class JDD
 	 */
 	public static void Ref(JDDNode dd)
 	{
+		long ptr = dd.ptr();
+		// For robustness, catch NULL pointer
+		// In general, this should not happen,
+		// as constructing a JDDNode with NULL
+		// pointer should not happen...
+		if (ptr == 0) {
+			throw new CuddOutOfMemoryException();
+		}
 		if (DebugJDD.debugEnabled)
 			DebugJDD.increment(dd);
-		DD_Ref(dd.ptr());
+		DD_Ref(ptr);
 	}
 	
 	/**
@@ -276,9 +284,17 @@ public class JDD
 	 */
 	public static void Deref(JDDNode dd)
 	{
+		long ptr = dd.ptr();
+		// For robustness, catch NULL pointer
+		// In general, this should not happen,
+		// as constructing a JDDNode with NULL
+		// pointer should not happen...
+		if (ptr == 0) {
+			throw new CuddOutOfMemoryException();
+		}
 		if (DebugJDD.debugEnabled)
 			DebugJDD.decrement(dd);
-		DD_Deref(dd.ptr());
+		DD_Deref(ptr);
 	}
 
 	/**
