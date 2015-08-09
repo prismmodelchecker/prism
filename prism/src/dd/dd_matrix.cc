@@ -328,12 +328,8 @@ int method
 	if (method == MM_CMU) {
 		res = Cudd_addTimesPlus(ddman, dd1, dd2, vars, num_vars);
 	}
-	else if (method == MM_BOULDER) {
+	else { // (method == MM_BOULDER)
 		res = Cudd_addMatrixMultiply(ddman, dd1, dd2, vars, num_vars);
-	}
-	else {
-		printf("Error: no multiplication algorithm specified\n");
-		exit(1);
 	}
 	if (res == NULL) {
 		printf("DD_MatrixMultiply: res is NULL\n");
