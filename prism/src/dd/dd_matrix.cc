@@ -331,10 +331,7 @@ int method
 	else { // (method == MM_BOULDER)
 		res = Cudd_addMatrixMultiply(ddman, dd1, dd2, vars, num_vars);
 	}
-	if (res == NULL) {
-		printf("DD_MatrixMultiply: res is NULL\n");
-		exit(1);
-	}
+	if (res == NULL) return NULL;
 	Cudd_Ref(res);
 	Cudd_RecursiveDeref(ddman, dd1);
 	Cudd_RecursiveDeref(ddman, dd2);
