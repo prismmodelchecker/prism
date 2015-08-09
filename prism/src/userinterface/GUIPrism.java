@@ -28,15 +28,18 @@
 package userinterface;
 //Java Packages
 import java.util.*;
+import java.util.List;
 import java.io.*;
 import java.net.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.*;
 import javax.swing.plaf.metal.*;
+
 //Prism Packages
 import prism.*;
 import userinterface.util.*;
@@ -376,15 +379,23 @@ public class GUIPrism extends JFrame
         pack();
     }
     
-    public void passCLArgs(String args[])
-    {
-        // just before we get started, pass any command-line args to all plugins
-        for(int i = 0; i < plugs.size(); i++)
-        {
-            GUIPlugin plug = (GUIPlugin)plugs.get(i);
-            plug.takeCLArgs(args);
-        }
-    }
+	public void passCLArgs(String args[])
+	{
+		// just before we get started, pass any command-line args to all plugins
+		// we first remove the -javamaxmem argument, if present
+		List<String> argsCopy = new ArrayList<String>(); 
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].equals("-javamaxmem")) {
+				i++;
+			} else {
+				argsCopy.add(args[i]);	
+			}
+		}
+		for (int i = 0; i < plugs.size(); i++) {
+			GUIPlugin plug = (GUIPlugin) plugs.get(i);
+			plug.takeCLArgs(argsCopy.toArray(new String[0]));
+		}
+	}
     
     /**
      *  Adjust the main font for the GUI (+1 = one size up, -1 = one size down)
