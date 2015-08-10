@@ -225,6 +225,8 @@ def renameExports(prefix, args):
         return arg.startswith("-export")
     if args:
         return [args[0]] + [prependToFile(prefix, args[i+1]) if isExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
+    else:
+        return args
 
 # Find all files that match any -export switch file argument
 # This takes into account that a .all extension corresponds to five different files
