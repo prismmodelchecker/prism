@@ -135,7 +135,7 @@ public class JDD
 
 		/** Constructor */
 		CuddOutOfMemoryException() {
-			super("The MTBDD library CUDD seems to have run out of memory or encountered an internal error.");
+			super("Out of memory (or other internal error) in the CUDD library");
 		}
 	}
 
