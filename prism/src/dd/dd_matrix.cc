@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <util.h>
+#include <limits>  // for NaN value
 #include <cudd.h>
 #include <cuddInt.h>
 #include "dd_matrix.h"
@@ -263,29 +264,32 @@ long x
 	int *inputs;
 	double val;
 
-	if (dd == NULL) return NULL;
+	if (dd == NULL) {
+		DD_SetErrorFlag();
+		return std::numeric_limits<double>::quiet_NaN();
+	}
 
 	// create array to store 0's & 1's used to query DD
 	inputs = new int[Cudd_ReadSize(ddman)];
-	
+
 	for (i = 0; i < Cudd_ReadSize(ddman); i++) {
 		inputs[i] = 0;
 	}
-		
-	for (i = 0; i < num_vars; i++) {			
+
+	for (i = 0; i < num_vars; i++) {
 		inputs[vars[i]->index] = ((x & (1l<<(num_vars-i-1))) == 0) ? 0 : 1;
 	}
 	node = Cudd_Eval(ddman, dd, inputs);
 	if (node == NULL) {
 		DD_SetErrorFlag();
-		return 0;
+		return std::numeric_limits<double>::quiet_NaN();
 	}
 	val = Cudd_V(node);
-	
+
 	if (inputs != NULL) {
 		delete[] inputs;
 	}
-	
+
 	return val;
 }
 
