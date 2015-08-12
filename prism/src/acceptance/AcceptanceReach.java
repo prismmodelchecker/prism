@@ -28,6 +28,8 @@ package acceptance;
 
 import java.util.BitSet;
 
+import prism.PrismException;
+import prism.PrismNotSupportedException;
 import jdd.JDDVars;
 
 /**
@@ -76,6 +78,54 @@ public class AcceptanceReach implements AcceptanceOmega
 		return bscc_states.intersects(goalStates);
 	}
 
+	/**
+	 * Get a Rabin acceptance condition that is the complement of this condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Rabin condition.
+	 * <br>
+	 * Relies on the fact that once the goal states have been reached, all subsequent states
+	 * are goal states.
+	 *
+	 * @param numStates the number of states in the underlying model / automaton (needed for complementing BitSets)
+	 * @return the complement Rabin acceptance condition
+	 */
+	public AcceptanceRabin complementToRabin(int numStates)
+	{
+		AcceptanceRabin rabin = new AcceptanceRabin();
+		BitSet allStates = new BitSet();
+		allStates.set(0, numStates-1);
+		rabin.add(new AcceptanceRabin.RabinPair((BitSet) goalStates.clone(), allStates));
+		return rabin;
+	}
+
+	/**
+	 * Get a Streett acceptance condition that is the complement of this condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Streett condition.
+	 * <br>
+	 * Relies on the fact that once the goal states have been reached, all subsequent states
+	 * are goal states.
+	 *
+	 * @param numStates the number of states in the underlying model / automaton (needed for complementing BitSets)
+	 * @return the complement Streett acceptance condition
+	 */
+	public AcceptanceStreett complementToStreett(int numStates)
+	{
+		AcceptanceStreett streett = new AcceptanceStreett();
+		streett.add(new AcceptanceStreett.StreettPair((BitSet) goalStates.clone(), new BitSet()));
+		return streett;
+	}
+
+	@Override
+	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.RABIN)) {
+			return complementToRabin(numStates);
+		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
+			return complementToStreett(numStates);
+		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return new AcceptanceGeneric(AcceptanceGeneric.ElementType.FIN, (BitSet) goalStates.clone());
+		}
+		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to a supported acceptance type");
+	}
 
 	@Override
 	public void lift(LiftBitSet lifter)

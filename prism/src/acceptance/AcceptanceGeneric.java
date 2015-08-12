@@ -29,6 +29,8 @@ package acceptance;
 
 import java.util.BitSet;
 
+import prism.PrismException;
+import prism.PrismNotSupportedException;
 import jdd.JDDVars;
 
 /**
@@ -198,6 +200,43 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 		throw new UnsupportedOperationException("Unsupported operator in generic acceptance condition");
 	}
 
+	/** Complement this acceptance condition, return as AcceptanceGeneric. */
+	public AcceptanceGeneric complementToGeneric()
+	{
+		switch (kind) {
+		case TRUE: return new AcceptanceGeneric(false);
+		case FALSE:  return new AcceptanceGeneric(true);
+
+		case AND:
+			return new AcceptanceGeneric(ElementType.OR,
+			                             getLeft().complementToGeneric(),
+			                             getRight().complementToGeneric());
+		case OR:
+			return new AcceptanceGeneric(ElementType.AND,
+                        	             getLeft().complementToGeneric(),
+                        	             getRight().complementToGeneric());
+		case FIN:
+			return new AcceptanceGeneric(ElementType.INF, (BitSet) states.clone());
+		case FIN_NOT:
+			return new AcceptanceGeneric(ElementType.INF_NOT, (BitSet) states.clone());
+		case INF:
+			return new AcceptanceGeneric(ElementType.FIN, (BitSet) states.clone());
+		case INF_NOT:
+			return new AcceptanceGeneric(ElementType.FIN_NOT, (BitSet) states.clone());
+		default:
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	@Override
+	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return this.complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to required acceptance type");
+	}
+
 	@Override
 	public void lift(LiftBitSet lifter) {
 		switch(kind) {
@@ -271,5 +310,6 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 				return null;
 		}
 	}
+
 
 }

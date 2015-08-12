@@ -29,6 +29,8 @@ package acceptance;
 import java.util.ArrayList;
 import java.util.BitSet;
 
+import prism.PrismException;
+import prism.PrismNotSupportedException;
 import jdd.JDDVars;
 
 /**
@@ -58,7 +60,10 @@ public class AcceptanceRabin
 		/** State set K (should be visited infinitely often) */
 		private BitSet K;
 
-		/** Constructor with L and K state sets */
+		/**
+		 * Constructor with L and K state sets.
+		 *  (F G !"L")  &  (G F "K")
+		 */
 		public RabinPair(BitSet L, BitSet K) {
 			this.L = L;
 			this.K = K;
@@ -175,7 +180,7 @@ public class AcceptanceRabin
 	 * any word that is accepted by this condition is rejected by the returned Streett condition.
 	 * @return the complement Streett acceptance condition
 	 */
-	public AcceptanceStreett complement()
+	public AcceptanceStreett complementToStreett()
 	{
 		AcceptanceStreett accRabin = new AcceptanceStreett();
 
@@ -187,6 +192,15 @@ public class AcceptanceRabin
 		}
 
 		return accRabin;
+	}
+
+	@Override
+	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
+			return complementToStreett();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to a supported acceptance type");
 	}
 
 	/**

@@ -28,6 +28,7 @@ package acceptance;
 
 import java.util.BitSet;
 
+import prism.PrismException;
 import jdd.JDDVars;
 
 /**
@@ -63,6 +64,13 @@ public interface AcceptanceOmega extends Cloneable
 
 	/** Make a copy of the acceptance condition. */
 	public AcceptanceOmega clone();
+
+	/**
+	 * Complement the acceptance condition if possible.
+	 * @param numStates the number of states in the underlying model / automaton (needed for complementing BitSets)
+	 * @param allowedAcceptance the allowed acceptance types that may be used for complementing
+	 */
+	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException;
 
 	/** Abstract functor for use with the lift function. */
 	public static abstract class LiftBitSet {

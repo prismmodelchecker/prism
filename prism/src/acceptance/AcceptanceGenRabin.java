@@ -30,6 +30,8 @@ package acceptance;
 import java.util.ArrayList;
 import java.util.BitSet;
 
+import prism.PrismException;
+import prism.PrismNotSupportedException;
 import jdd.JDDVars;
 
 /**
@@ -186,6 +188,22 @@ public class AcceptanceGenRabin
 		}
 
 		return false;
+	}
+
+	/** Complement this acceptance condition, return as AcceptanceGeneric. */
+	public AcceptanceGeneric complementToGeneric()
+	{
+		AcceptanceGeneric generic = toAcceptanceGeneric();
+		return generic.complementToGeneric();
+	}
+
+	@Override
+	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to a supported acceptance type");
 	}
 
 	@Override
