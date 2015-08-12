@@ -96,6 +96,11 @@ public class AcceptanceRabinDD
 			return K;
 		}
 
+		public RabinPairDD clone()
+		{
+			return new RabinPairDD(getL(), getK());
+		}
+
 		/** Returns true if the bottom strongly connected component
 		 * given by bscc_states is accepting for this pair.
 		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
@@ -123,6 +128,11 @@ public class AcceptanceRabinDD
 		{
 			return "(" + L + "," + K + ")";
 		}
+	}
+
+	/** Constructor, create empty condition */
+	public AcceptanceRabinDD()
+	{
 	}
 
 	/**
@@ -159,6 +169,43 @@ public class AcceptanceRabinDD
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Get the Streett acceptance condition that is the dual of this Rabin acceptance condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Streett condition.
+	 * @return the complement Streett acceptance condition
+	 */
+	public AcceptanceStreettDD complement()
+	{
+		AcceptanceStreettDD accStreett = new AcceptanceStreettDD();
+
+		for (RabinPairDD accPairRabin : this) {
+			JDDNode R = accPairRabin.getK();
+			JDDNode G = accPairRabin.getL();
+			AcceptanceStreettDD.StreettPairDD accPairStreett = new AcceptanceStreettDD.StreettPairDD(R, G);
+			accStreett.add(accPairStreett);
+		}
+		return accStreett;
+	}
+
+	/**
+	 * Returns a new Rabin acceptance condition that corresponds to the disjunction
+	 * of this and the other Rabin acceptance condition. The RabinPairs are cloned, i.e.,
+	 * not shared with the argument acceptance condition.
+	 * @param other the other Rabin acceptance condition
+	 * @return new AcceptanceRabin, disjunction of this and other
+	 */
+	public AcceptanceRabinDD or(AcceptanceRabinDD other)
+	{
+		AcceptanceRabinDD result = new AcceptanceRabinDD();
+		for (RabinPairDD pair : this) {
+			result.add(pair.clone());
+		}
+		for (RabinPairDD pair : other) {
+			result.add(pair.clone());
+		}
+		return result;
 	}
 
 	@Override

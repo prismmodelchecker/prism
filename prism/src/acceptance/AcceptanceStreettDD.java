@@ -96,6 +96,11 @@ public class AcceptanceStreettDD
 			return G;
 		}
 
+		public StreettPairDD clone()
+		{
+			return new StreettPairDD(getR(), getG());
+		}
+
 		/** Returns true if the bottom strongly connected component
 		 * given by bscc_states is accepting for this pair.
 		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
@@ -123,6 +128,11 @@ public class AcceptanceStreettDD
 		{
 			return "(" + R + "->" + G + ")";
 		}
+	}
+
+	/** Constructor, create empty condition */
+	public AcceptanceStreettDD()
+	{
 	}
 
 	/**
@@ -168,6 +178,43 @@ public class AcceptanceStreettDD
 			pair.clear();
 		}
 		super.clear();
+	}
+
+	/**
+	 * Returns a new Streett acceptance condition that corresponds to the conjunction
+	 * of this and the other Streett acceptance condition. The StreettPairs are cloned, i.e.,
+	 * not shared with the argument acceptance condition.
+	 * @param other the other Streett acceptance condition
+	 * @return new AcceptanceStreett, conjunction of this and other
+	 */
+	public AcceptanceStreettDD and(AcceptanceStreettDD other)
+	{
+		AcceptanceStreettDD result = new AcceptanceStreettDD();
+		for (StreettPairDD pair : this) {
+			result.add(pair.clone());
+		}
+		for (StreettPairDD pair : other) {
+			result.add(pair.clone());
+		}
+		return result;
+	}
+
+	/**
+	 * Get the Rabin acceptance condition that is the dual of this Streett acceptance condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Rabin condition.
+	 * @return the complement Rabin acceptance condition
+	 */
+	public AcceptanceRabinDD complement()
+	{
+		AcceptanceRabinDD accRabin = new AcceptanceRabinDD();
+
+		for (StreettPairDD accPairStreett : this) {
+			JDDNode L = accPairStreett.getG();
+			JDDNode K = accPairStreett.getR();
+			AcceptanceRabinDD.RabinPairDD accPairRabin = new AcceptanceRabinDD.RabinPairDD(L, K);
+			accRabin.add(accPairRabin);
+		}
+		return accRabin;
 	}
 
 	@Override
