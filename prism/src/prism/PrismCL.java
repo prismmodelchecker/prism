@@ -1078,6 +1078,22 @@ public class PrismCL implements PrismModelListener
 					test = true;
 					testExitsOnFail = false;
 				}
+				else if (sw.equals("dddebug")) {
+					jdd.DebugJDD.enable();
+				}
+				else if (sw.equals("ddtrace")) {
+					if (i < args.length - 1) {
+						String idString = args[++i];
+						try {
+							int id = Integer.parseInt(idString);
+							jdd.DebugJDD.enableTracingForID(id);
+						} catch (NumberFormatException e) {
+							errorAndExit("The -" + sw + " switch requires an integer argument (JDDNode ID)");
+						}
+					} else {
+						errorAndExit("The -" + sw + " switch requires an additional argument (JDDNode ID)");
+					}
+				}
 
 				// IMPORT OPTIONS:
 
