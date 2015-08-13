@@ -69,15 +69,15 @@ public class StateValuesDV implements StateValues
 
 	// CONSTRUCTORS
 
-	public StateValuesDV(DoubleVector p, Model m)
+	public StateValuesDV(DoubleVector values, Model model)
 	{
 		int i;
 
 		// store values vector
-		values = p;
+		this.values = values;
 
 		// get info from model
-		model = m;
+		this.model = model;
 		vars = model.getAllDDRowVars();
 		numVars = vars.n();
 		odd = model.getODD();

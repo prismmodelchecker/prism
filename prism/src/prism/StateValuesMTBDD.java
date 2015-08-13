@@ -64,15 +64,15 @@ public class StateValuesMTBDD implements StateValues
 
 	// CONSTRUCTOR
 	
-	public StateValuesMTBDD(JDDNode p, Model m)
+	public StateValuesMTBDD(JDDNode values, Model model)
 	{
 		int i;
 		
 		// store values vector mtbdd
-		values = p;
+		this.values = values;
 		
 		// get info from model
-		model = m;
+		this.model = model;
 		vars = model.getAllDDRowVars();
 		reach = model.getReach();
 		numDDRowVars = model.getNumDDRowVars();
