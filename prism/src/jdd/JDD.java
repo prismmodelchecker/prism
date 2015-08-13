@@ -847,7 +847,40 @@ public class JDD
 			return "" + paths;
 		}
 	}
-	
+
+	/**
+	 * Returns {@true} if the {@code dd} is is a single satisfying
+	 * assignment to the variables in {@code vars}.
+	 * <br>
+	 * This is the case if there is a single path to the ONE constant
+	 * and all variables of {@code vars} occur on the path.
+	 * @param dd the DD
+	 * @param vars the variables
+	 */
+	public static boolean isSingleton(JDDNode dd, JDDVars vars)
+	{
+		int i=0;
+		while (!dd.isConstant()) {
+			int index = dd.getIndex();
+			if (vars.getVar(i).getIndex() != index)
+				return false;
+			JDDNode t = dd.getThen();
+			JDDNode e = dd.getElse();
+
+			if (t.equals(JDD.ZERO)) {
+				dd = e;
+			} else if (e.equals(JDD.ZERO)) {
+				dd = t;
+			} else {
+				// then or else have to be ZERO
+				return false;
+			}
+			i++;
+		}
+
+		return dd.equals(JDD.ONE);
+	}
+
 	/**
 	 * prints out info for dd (nodes, terminals, minterms)
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
