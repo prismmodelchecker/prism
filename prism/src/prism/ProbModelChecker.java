@@ -1726,9 +1726,9 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		// Find states with infinite reward (those reach a non-zero reward BSCC with prob > 0)  
 		JDDNode inf = PrismMTBDD.Prob0(tr01, reach, allDDRowVars, allDDColVars, reach, bsccsNonZero);
-		inf = JDD.And(reach, JDD.Not(inf));
-		JDDNode maybe = JDD.And(reach, JDD.Not(inf));
-		JDD.Ref(bsccsNonZero);
+		inf = JDD.And(reach.copy(), JDD.Not(inf));
+		JDDNode maybe = JDD.And(reach.copy(), JDD.Not(inf.copy()));
+		JDD.Deref(bsccsNonZero);
 
 		// Print out inf/maybe
 		mainLog.print("\ninf = " + JDD.GetNumMintermsString(inf, allDDRowVars.n()));
