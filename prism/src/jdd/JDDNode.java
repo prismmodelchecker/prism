@@ -32,11 +32,11 @@ public class JDDNode
 	private long ptr;
 	
 	// native methods (jni)
-	private native boolean DDN_IsConstant(long dd);
-	private native int DDN_GetIndex(long dd);
-	private native double DDN_GetValue(long dd);
-	private native long DDN_GetThen(long dd);
-	private native long DDN_GetElse(long dd);
+	protected static native boolean DDN_IsConstant(long dd);
+	protected static native int DDN_GetIndex(long dd);
+	protected static native double DDN_GetValue(long dd);
+	protected static native long DDN_GetThen(long dd);
+	protected static native long DDN_GetElse(long dd);
 
 	static
 	{

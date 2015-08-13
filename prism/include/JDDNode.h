@@ -13,7 +13,7 @@ extern "C" {
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDDNode
@@ -21,7 +21,7 @@ JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDDNode
@@ -29,7 +29,7 @@ JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex
  * Signature: (J)D
  */
 JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDDNode
@@ -37,7 +37,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_jdd_JDDNode_DDN_1GetThen
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 /*
  * Class:     jdd_JDDNode
@@ -45,7 +45,7 @@ JNIEXPORT jlong JNICALL Java_jdd_JDDNode_DDN_1GetThen
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_jdd_JDDNode_DDN_1GetElse
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jclass, jlong);
 
 #ifdef __cplusplus
 }

@@ -781,7 +781,7 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile(JNIEnv *env, jclas
 //	
 //==============================================================================
 
-JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
+JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return Cudd_IsConstant(jlong_to_DdNode(dd));
 }
@@ -789,7 +789,7 @@ JNIEXPORT jboolean JNICALL Java_jdd_JDDNode_DDN_1IsConstant(JNIEnv *env, jobject
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
+JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return (jlong_to_DdNode(dd))->index;
 }
@@ -797,7 +797,7 @@ JNIEXPORT jint JNICALL Java_jdd_JDDNode_DDN_1GetIndex(JNIEnv *env, jobject obj, 
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
+JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return Cudd_V(jlong_to_DdNode(dd));
 }
@@ -805,7 +805,7 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jobject ob
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(Cudd_T(jlong_to_DdNode(dd)));
 }
@@ -813,7 +813,7 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env
 //------------------------------------------------------------------------------
 
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetElse(JNIEnv *env, jobject obj, jlong __jlongpointer dd)
+JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetElse(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return ptr_to_jlong(Cudd_E(jlong_to_DdNode(dd)));
 }
