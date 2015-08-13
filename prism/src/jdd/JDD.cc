@@ -807,7 +807,9 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDDNode_DDN_1GetValue(JNIEnv *env, jclass cls
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
-	return ptr_to_jlong(Cudd_T(jlong_to_DdNode(dd)));
+	DdNode *node = jlong_to_DdNode(dd);
+	if (Cudd_IsConstant(node)) return ptr_to_jlong(NULL);
+	return ptr_to_jlong(Cudd_T(node));
 }
 
 //------------------------------------------------------------------------------
@@ -815,7 +817,9 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetThen(JNIEnv *env
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDDNode_DDN_1GetElse(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
-	return ptr_to_jlong(Cudd_E(jlong_to_DdNode(dd)));
+	DdNode *node = jlong_to_DdNode(dd);
+	if (Cudd_IsConstant(node)) return ptr_to_jlong(NULL);
+	return ptr_to_jlong(Cudd_E(node));
 }
 
 //==============================================================================

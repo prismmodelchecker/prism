@@ -91,6 +91,8 @@ public class JDDNode
 		assert !this.isConstant();
 
 		// just return the node, even if DebugJDD is enabled
+		// DDN_GetThen will return NULL if the current node is a
+		// constant, raising an Exception in the JDDNode constructor
 		return new JDDNode(DDN_GetThen(ptr));
 	}
 
@@ -106,7 +108,9 @@ public class JDDNode
 		assert !this.isConstant();
 
 		// just return the node, even if DebugJDD is enabled
-		return new JDDNode(DDN_GetElse(ptr));
+		// DDN_GetElse will return NULL if the current node is a
+		// constant, raising an Exception in the JDDNode constructor
+ 		return new JDDNode(DDN_GetElse(ptr));
 	}
 
 	public boolean equals(Object o)        
