@@ -246,7 +246,15 @@ public class StateValuesMTBDD implements StateValues
 		JDD.Ref(filter);
 		values = JDD.Apply(JDD.TIMES, values, filter);
 	}
-	
+
+	@Override
+	public void filter(JDDNode filter, double d)
+	{
+		// If filter, then keep value, else constant d,
+		// but only for the reachable states
+		values = JDD.Times(reach.copy(), JDD.ITE(filter.copy(), values, JDD.Constant(d)));
+	}
+
 	@Override
 	public void maxMTBDD(JDDNode vec2)
 	{

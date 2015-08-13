@@ -78,6 +78,12 @@ public interface StateValues extends StateVector
 	void filter(JDDNode filter);
 
 	/**
+	 * Filter this vector using a BDD (set elements not in filter to constant {@code d}).
+	 * <br>[ DEREFS: <i>none</i> ]
+	 */
+	void filter(JDDNode filter, double d);
+
+	/**
 	 * Apply max operator, i.e. vec[i] = max(vec[i], vec2[i]), where vec2 is an MTBDD
 	 * <br>[ DEREFS: <i>none</i> ]
 	 */

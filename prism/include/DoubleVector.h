@@ -98,10 +98,10 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1DotProduct
 /*
  * Class:     dv_DoubleVector
  * Method:    DV_Filter
- * Signature: (JJJIJ)V
+ * Signature: (JJDJIJ)V
  */
 JNIEXPORT void JNICALL Java_dv_DoubleVector_DV_1Filter
-  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jdouble, jlong, jint, jlong);
 
 /*
  * Class:     dv_DoubleVector

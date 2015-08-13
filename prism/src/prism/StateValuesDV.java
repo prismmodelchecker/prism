@@ -234,6 +234,12 @@ public class StateValuesDV implements StateValues
 	}
 
 	@Override
+	public void filter(JDDNode filter, double d)
+	{
+		values.filter(filter, d, vars, odd);
+	}
+
+	@Override
 	public void maxMTBDD(JDDNode vec2)
 	{
 		values.maxMTBDD(vec2, vars, odd);

@@ -126,6 +126,12 @@ public class StateValuesVoid implements StateValues
 	}
 
 	@Override
+	public void filter(JDDNode filter, double d)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void maxMTBDD(JDDNode vec2)
 	{
 		throw new UnsupportedOperationException();

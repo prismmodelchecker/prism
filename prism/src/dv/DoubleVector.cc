@@ -258,6 +258,7 @@ JNIEnv *env,
 jobject obj,
 jlong __jlongpointer vector,
 jlong __jlongpointer filter,
+jdouble d,
 jlong __jlongpointer vars,
 jint num_vars,
 jlong __jlongpointer odd
@@ -267,6 +268,7 @@ jlong __jlongpointer odd
 		ddman,
 		jlong_to_double(vector),
 		jlong_to_DdNode(filter),
+		d,
 		jlong_to_DdNode_array(vars), num_vars,
 		jlong_to_ODDNode(odd)
 	);
