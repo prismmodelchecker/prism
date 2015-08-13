@@ -7,8 +7,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef jdd_DebugJDD_debugEnabled
-#define jdd_DebugJDD_debugEnabled 0L
 /*
  * Class:     jdd_DebugJDD
  * Method:    DebugJDD_GetRefCount
@@ -25,6 +23,17 @@ JNIEXPORT jint JNICALL Java_jdd_DebugJDD_DebugJDD_1GetRefCount
 JNIEXPORT jlongArray JNICALL Java_jdd_DebugJDD_DebugJDD_1GetExternalRefCounts
   (JNIEnv *, jclass);
 
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class jdd_DebugJDD_DebugJDDNode */
+
+#ifndef _Included_jdd_DebugJDD_DebugJDDNode
+#define _Included_jdd_DebugJDD_DebugJDDNode
+#ifdef __cplusplus
+extern "C" {
+#endif
 #ifdef __cplusplus
 }
 #endif

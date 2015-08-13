@@ -49,20 +49,14 @@ public class JDDNode
 		}
 	}
 
-	public JDDNode(long p, boolean increased_reference)
+	/**
+	 * Protected constructor from a DdNode pointer.
+	 * In general, to get a JDDNode from a pointer,
+	 * use JDD.ptrToNode().
+	 */
+	protected JDDNode(long p)
 	{
 		ptr = p;
-		if (DebugJDD.debugEnabled)
-			DebugJDD.addToSet(this, increased_reference ? 1 : 0);
-	}
-	
-	public JDDNode(long p) {
-		this(p, true);
-	}
-	
-	public JDDNode(JDDNode dd)
-	{
-		this(dd.ptr());
 	}
 	
 	public long ptr()
@@ -85,18 +79,34 @@ public class JDDNode
 		return DDN_GetValue(ptr);
 	}
 
+	/**
+	 * Returns the Then child of a (non-constant) JDDNode.
+	 * <br>
+	 * This method does NOT increase the reference count of the returned
+	 * node, it is therefore illegal to call JDD.Deref on the result.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public JDDNode getThen()
 	{
 		assert !this.isConstant();
-		// TODO I believe that this breaks debug reference counting
-		// JDDNode will create a reference to this, but DDN_GetThen will not.
-		return new JDDNode(DDN_GetThen(ptr), false);
+
+		// just return the node, even if DebugJDD is enabled
+		return new JDDNode(DDN_GetThen(ptr));
 	}
-	
+
+	/**
+	 * Returns the Else child of a (non-constant) JDDNode.
+	 * <br>
+	 * This method does NOT increase the reference count of the returned
+	 * node, it is therefore illegal to call JDD.Deref on the result.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
 	public JDDNode getElse()
 	{
 		assert !this.isConstant();
-		return new JDDNode(DDN_GetElse(ptr), false);
+
+		// just return the node, even if DebugJDD is enabled
+		return new JDDNode(DDN_GetElse(ptr));
 	}
 
 	public boolean equals(Object o)        
@@ -127,8 +137,14 @@ public class JDDNode
 	 */
 	public JDDNode copy()
 	{
-		JDD.Ref(this);
-		return new JDDNode(this);
+		JDDNode result;
+		if (DebugJDD.debugEnabled) {
+			result = new DebugJDD.DebugJDDNode(ptr, false);
+		} else {
+			result = new JDDNode(ptr());
+		}
+		JDD.Ref(result);
+		return result;
 	}
 }
 

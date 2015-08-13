@@ -1394,6 +1394,9 @@ public class JDD
 		if (ptr == 0L) {
 			throw new CuddOutOfMemoryException();
 		}
+		if (DebugJDD.debugEnabled) {
+			return new DebugJDD.DebugJDDNode(ptr, true);
+		}
 		return new JDDNode(ptr);
 	}
 
