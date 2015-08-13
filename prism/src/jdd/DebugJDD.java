@@ -36,6 +36,7 @@ import java.util.ListIterator;
 public class DebugJDD
 {
 	private static native int DebugJDD_GetRefCount(long dd);
+	private static native long[] DebugJDD_GetExternalRefCounts();
 
 	static {
 		try {

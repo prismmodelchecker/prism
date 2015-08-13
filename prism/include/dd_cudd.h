@@ -26,6 +26,7 @@
 
 #include <util.h>
 #include <cudd.h>
+#include <map>
 
 //------------------------------------------------------------------------------
 
@@ -36,6 +37,8 @@ void DD_SetCUDDEpsilon(DdManager *ddman, double epsilon);
 void DD_PrintCacheInfo(DdManager *ddman);
 void DD_CloseDownCUDD(DdManager *ddman);
 void DD_CloseDownCUDD(DdManager *ddman, bool check);
+void DD_ReportExternalRefCounts(DdManager *ddman);
+void DD_GetExternalRefCounts(DdManager *ddman, std::map<DdNode*,int>& external_refs);
 bool DD_GetErrorFlag(DdManager *ddman);
 void DD_SetErrorFlag();
 

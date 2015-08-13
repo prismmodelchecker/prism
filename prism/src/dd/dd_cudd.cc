@@ -29,6 +29,9 @@
 #include "cuddInt.h"
 #include "dd_cudd.h"
 
+#include <map>
+#include <set>
+
 extern FILE *dd_out;
 
 // A flag indicating that a CUDD error has occurred
@@ -109,6 +112,7 @@ void DD_CloseDownCUDD(DdManager *ddman, bool check)
 //	fprintf(dd_out, "Number of cache entries: %u\n", ddman->cacheSlots);
 //	fprintf(dd_out, "Hard limit for cache size: %u\n", Cudd_ReadMaxCacheHard(ddman));
 //	fprintf(dd_out, "Soft limit for cache size: %u\n", Cudd_ReadMaxCache(ddman));
+
 
 	if (check) {
 		// if required, check everthing is closed down OK and warn if not
@@ -227,6 +231,188 @@ int Cudd_CheckZeroRefVerbose(DdManager *manager)
  	}
  	return(count);
 
+}
+
+//-----------------------------------------------------------------------------------
+
+// -------------- Reference analysis ------------------------------------------------
+
+// dump info about a node
+static void dump_node(DdNode* node)
+{
+	if (Cudd_IsConstant(node)) {
+		printf("%p: value=%f, refs=%d\n", node, Cudd_V(node), node->ref);
+	} else {
+		int index = node->index;
+		printf("%p: var=%d, refs=%d\n", node, index, node->ref);
+	}
+}
+
+// add a reference for node to the reference map
+static void add_reference(std::map<DdNode*, int>& references, DdNode* node, int increase=1)
+{
+	std::map<DdNode*, int>::iterator it = references.find(node);
+	if (it == references.end()) {
+		// node was not yet registered
+		references[node] = increase;
+	} else {
+		// increase the value
+		int& v = it->second;
+		v += increase;
+	}
+}
+
+// Analyze the nodes, return all encountered nodes in the set nodes
+// and return the number of internal references for each node in the
+// map internal_refs.
+// An internal reference is a reference via the then or else pointer of
+// another node or a reference by the manager (projection functions, some constants).
+static void DD_AnalyzeRefCounts(DdManager *manager, std::set<DdNode*>& nodes, std::map<DdNode*,int>& internal_refs)
+{
+ 	int size;
+ 	int i, j;
+ 	int remain;
+ 	DdNode **nodelist;
+ 	DdNode *node;
+ 	DdNode *sentinel = &(manager->sentinel);
+ 	DdSubtable *subtable;
+ 	int count = 0;
+ 	int index;
+ 	const bool debug = false;
+
+#ifndef DD_NO_DEATH_ROW
+	cuddClearDeathRow(manager);
+#endif
+
+	if (manager->sizeZ > 0) {
+		printf("Can not handle ZDD in Cudd, abort...");
+		return;
+	}
+
+	size = manager->size;
+	if (debug)
+		printf("manager->size = %d\n", size);
+
+ 	for (i = 0; i < size; i++) {
+	subtable = &(manager->subtables[i]);
+	nodelist = subtable->nodelist;
+	for (j = 0; (unsigned) j < subtable->slots; j++) {
+	 	node = nodelist[j];
+	 	while (node != sentinel) {
+	 	nodes.insert(node);
+	 	if (debug) printf("add:\n ");
+	 	if (debug) dump_node(node);
+	 	if (node->ref == DD_MAXREF) {
+	 		// TODO: Error handling, how do we deal with this case?
+	 	}
+		index = (int) node->index;
+		if (node == manager->vars[index]) {
+			// a projection function, deal with references from the manager later
+			if (debug) printf("%p is projection\n", node);
+		} else if (node->ref > 0) {
+			DdNode *t = Cudd_Regular(Cudd_T(node));
+			add_reference(internal_refs, t);
+			if (debug) printf("t ref: %p  -> %d\n", t, internal_refs[t]);
+			DdNode *e = Cudd_Regular(Cudd_E(node));
+			add_reference(internal_refs, e);
+			if (debug) printf("e ref: %p  -> %d\n", e, internal_refs[e]);
+		}
+		node = node->next;
+	 	}
+	}
+ 	}
+
+	for (i=0; i<size; i++) {
+		node = manager->vars[i];
+		add_reference(internal_refs, node);
+		if (debug) printf("::%p projection -> %d\n", node, internal_refs[node]);
+		DdNode *t = Cudd_Regular(Cudd_T(node));
+		add_reference(internal_refs, t);
+		if (debug) printf("t ref: %p  -> %d\n", t, internal_refs[t]);
+		DdNode *e = Cudd_Regular(Cudd_E(node));
+		add_reference(internal_refs, e);
+		if (debug) printf("e ref: %p  -> %d\n", e, internal_refs[e]);
+	}
+
+ 	// Examine the constant table. Plusinfinity, minusinfinity, one and
+ 	// zero are referenced by the manager.
+ 	nodelist = manager->constants.nodelist;
+ 	for (j = 0; (unsigned) j < manager->constants.slots; j++) {
+	node = nodelist[j];
+	while (node != NULL) {
+		nodes.insert(node);
+	 	if (node->ref == DD_MAXREF) {
+	 		// Error handling
+	 	}
+		if (node == manager->one ||
+		    node == manager->zero ||
+		    node == manager->plusinfinity ||
+		    node == manager->minusinfinity) {
+			// manager refs
+			add_reference(internal_refs, node);
+			if (debug) printf("%p Constant(%f) -> %d\n", node, Cudd_V(node), internal_refs[node]);
+		}
+	 	node = node->next;
+	}
+	}
+}
+
+
+// Print a report about the nodes of this manager, with the number of internal references
+void DD_ReportExternalRefCounts(DdManager *manager)
+{
+	std::set<DdNode*> nodes;
+	std::map<DdNode*, int> internal_refs;
+
+	DD_AnalyzeRefCounts(manager, nodes, internal_refs);
+	printf("%lu nodes\n", nodes.size());
+
+	for (std::set<DdNode*>::iterator it = nodes.begin();
+	     it != nodes.end();
+	     ++it) {
+	     DdNode* node = *it;
+		printf("%d -> ", (internal_refs.find(node) != internal_refs.end() ? internal_refs[node] : 0));
+		dump_node(node);
+	}
+
+	// Analysis
+	printf("\nExternal references:\n");
+	for (std::set<DdNode*>::iterator it = nodes.begin();
+	     it != nodes.end();
+	     ++it) {
+		DdNode* node = *it;
+		int internal = (internal_refs.find(node) != internal_refs.end() ? internal_refs[node] : 0);
+
+		if (node->ref > internal) {
+			dump_node(node);
+			printf(" Internal references: %d\n", internal);
+		} else if (node->ref < internal) {
+			dump_node(node);
+			printf("Underflow! Internal references: %d\n", internal);
+		}
+	}
+}
+
+// Analyze the BDD and return the implied number of external references per node
+// in the map external_refs (only return nodes with non-zero external references)
+void DD_GetExternalRefCounts(DdManager *manager, std::map<DdNode*,int>& external_refs)
+{
+	std::set<DdNode*> nodes;
+	std::map<DdNode*, int> internal_refs;
+
+	DD_AnalyzeRefCounts(manager, nodes, internal_refs);
+
+	for (std::set<DdNode*>::iterator it = nodes.begin();
+	     it != nodes.end();
+	     ++it) {
+		DdNode* node = *it;
+		int internal = (internal_refs.find(node) != internal_refs.end() ? internal_refs[node] : 0);
+
+		if (node->ref != internal) {
+			external_refs[node] = node->ref - internal;
+		}
+	}
+	// printf("Found %lu problematic nodes\n", external_refs.size());
 }
 
 //-----------------------------------------------------------------------------------

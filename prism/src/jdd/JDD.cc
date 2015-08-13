@@ -875,6 +875,35 @@ JNIEXPORT jint JNICALL Java_jdd_DebugJDD_DebugJDD_1GetRefCount(JNIEnv *env, jcla
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT jlongArray JNICALL Java_jdd_DebugJDD_DebugJDD_1GetExternalRefCounts(JNIEnv *env, jclass cls)
+{
+	// get external reference counts and return as a long[] Java array
+	// the entries of the array will be alternating ptr / count values
+	std::map<DdNode*, int> external_refs;
+	DD_GetExternalRefCounts(ddman, external_refs);
+	std::size_t v_size = 2 * external_refs.size();
+
+	jlong* v = new jlong[v_size];
+	std::size_t i = 0;
+	for (std::map<DdNode*,int>::iterator it = external_refs.begin();
+	     it != external_refs.end();
+	     ++it) {
+		DdNode *node = it->first;
+		int refs = it->second;
+
+		v[i++] = ptr_to_jlong(node);
+		v[i++] = refs;
+	}
+
+	// printf("v_size = %lu\n", v_size);
+	jlongArray result = env->NewLongArray(v_size);
+	env->SetLongArrayRegion(result, 0, v_size, v);
+	delete[] v;
+
+	return result;
+}
+//------------------------------------------------------------------------------
+
 JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1GetErrorFlag(JNIEnv *env, jclass cls)
 {
 	return DD_GetErrorFlag(ddman);

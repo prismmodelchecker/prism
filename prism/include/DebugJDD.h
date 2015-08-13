@@ -17,6 +17,14 @@ extern "C" {
 JNIEXPORT jint JNICALL Java_jdd_DebugJDD_DebugJDD_1GetRefCount
   (JNIEnv *, jclass, jlong);
 
+/*
+ * Class:     jdd_DebugJDD
+ * Method:    DebugJDD_GetExternalRefCounts
+ * Signature: ()[J
+ */
+JNIEXPORT jlongArray JNICALL Java_jdd_DebugJDD_DebugJDD_1GetExternalRefCounts
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif
