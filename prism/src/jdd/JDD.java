@@ -433,7 +433,25 @@ public class JDD
 		}
 		return ptrToNode(DD_Apply(op, dd1.ptr(), dd2.ptr()));
 	}
-	
+
+	/**
+	 * Multi-operand Apply(JDD.TIMES) (multiplication) operation.
+	 * Operands are processed from left-to-right.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>all arguments</i> ]
+	 */
+	public static JDDNode Times(JDDNode... nodes) {
+		if (nodes.length <= 1) {
+			throw new IllegalArgumentException("JDD.Times needs at least two arguments.");
+		}
+
+		JDDNode result = nodes[0];
+		for (int i = 1; i<nodes.length; i++) {
+			result = Apply(JDD.TIMES, result, nodes[i]);
+		}
+
+		return result;
+	}
+
 	/**
 	 * generic monadic apply operation
 	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
