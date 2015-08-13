@@ -38,13 +38,15 @@ import jdd.JDDVars;
  */
 public class StateValuesVoid implements StateValues
 {
+	/** The stored object */
 	private Object value = null;
-	
+
+	/** Constructor, store value */
 	public StateValuesVoid(Object value)
 	{
 		this.value = value;
 	}
-	
+
 	@Override
 	public int getSize()
 	{
@@ -57,167 +59,199 @@ public class StateValuesVoid implements StateValues
 		return value;
 	}
 
+	/** Get the value */
 	public Object getValue()
 	{
 		return value;
 	}
 
+	/** Set the value */
 	public void setValue(Object value)
 	{
 		this.value = value;
 	}
 
+	@Override
 	public StateValuesDV convertToStateValuesDV()
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public StateValuesMTBDD convertToStateValuesMTBDD()
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void readFromFile(File file) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void roundOff(int places)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void subtractFromOne()
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void add(StateValues sp)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void timesConstant(double d)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public double dotProduct(StateValues sp)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void filter(JDDNode filter)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void maxMTBDD(JDDNode vec2)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
 	@Override
 	public void clear()
 	{
 		// Do nothing
 	}
-	
+
+	@Override
 	public int getNNZ()
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public String getNNZString()
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public double firstFromBDD(JDDNode filter)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public double minOverBDD(JDDNode filter)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public double maxOverBDD(JDDNode filter)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public double sumOverBDD(JDDNode filter)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public double sumOverMTBDD(JDDNode mult)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public JDDNode getBDDFromInterval(String relOpString, double bound)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public JDDNode getBDDFromInterval(RelOp relOp, double bound)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public JDDNode getBDDFromInterval(double lo, double hi)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public JDDNode getBDDFromCloseValue(double val, double epsilon, boolean abs)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public JDDNode getBDDFromCloseValueAbs(double val, double epsilon)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public JDDNode getBDDFromCloseValueRel(double val, double epsilon)
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void print(PrismLog log) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void printFiltered(PrismLog log, JDDNode filter) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
-	
+
+	@Override
 	public StateValues deepCopy() throws PrismException
 	{
 		throw new UnsupportedOperationException();

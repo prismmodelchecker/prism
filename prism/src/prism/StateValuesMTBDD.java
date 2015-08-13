@@ -37,33 +37,46 @@ import parser.VarList;
 import parser.ast.RelOp;
 import parser.type.*;
 
-// Class for state-indexed vectors of (integer or double) values, represented by an MTBDD
-
+/**
+ * Class for state-indexed vectors of (integer or double) values, represented by an MTBDD
+ */
 public class StateValuesMTBDD implements StateValues
 {
-	// MTBDD storing vector of values
+	/** MTBDD storing vector of values */
 	JDDNode values;
-	
+
 	// info from model
+	/** The underlying model */
 	Model model;
+	/** The BDD row variables of the underlying model */
 	JDDVars vars;
 	JDDNode reach;
+	/** The number of BDD row variables in the underlying model */
 	int numDDRowVars;
+	/** The number of BDD row variables in the underlying model */
 	int numVars;
+	/** The ODD for the reachable states of the underlying model */
 	ODDNode odd;
+	/** The VarList of the underlying model*/
 	VarList varList;
-	
+
 	// stuff to keep track of variable values in print method
 	int[] varSizes;
 	int[] varValues;
 	int currentVar;
 	int currentVarLevel;
 	
-	// log for output from print method
+	/** log for output from print method */
 	PrismLog outputLog;
 
 	// CONSTRUCTOR
 	
+	/**
+	 * Constructor from a JDDNode (which is stored, not copied).
+	 * <br>[ STORES: values, derefed on later call to clear() ]
+	 * @param values the JddNode for the values
+	 * @param model the underlying model
+	 */
 	public StateValuesMTBDD(JDDNode values, Model model)
 	{
 		int i;
@@ -90,22 +103,24 @@ public class StateValuesMTBDD implements StateValues
 
 	// CONVERSION METHODS
 	
-	// convert to StateValuesDV, destroy (clear) old vector
+	@Override
 	public StateValuesDV convertToStateValuesDV()
 	{
+		// convert to StateValuesDV, destroy (clear) old vector
 		StateValuesDV res = new StateValuesDV(values, model);
 		clear();
 		return res;
 	}
-	
-	// convert to StateValuesMTBDD (nothing to do)
+
+	@Override
 	public StateValuesMTBDD convertToStateValuesMTBDD()
 	{
+		// convert to StateValuesMTBDD (nothing to do)
 		return this;
 	}
-	
+
 	// METHODS TO MODIFY VECTOR
-	
+
 	/**
 	 * Set element i of this vector to value d. 
 	 */
@@ -134,10 +149,8 @@ public class StateValuesMTBDD implements StateValues
 		// Add element to vector MTBDD
 		values = JDD.ITE(dd, JDD.Constant(d), values);
 	}
-	
-	/**
-	 * Set the elements of this vector by reading them in from a file.
-	 */
+
+	@Override
 	public void readFromFile(File file) throws PrismException
 	{
 		BufferedReader in;
@@ -186,40 +199,35 @@ public class StateValuesMTBDD implements StateValues
 			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
 		}
 	}
-	
-	// round
-	
+
+	@Override
 	public void roundOff(int places)
 	{
 		values = JDD.RoundOff(values, places);
 	}
-	
-	// subtract all values from 1
-	
+
+	@Override
 	public void subtractFromOne() 
 	{
 		JDD.Ref(reach);
 		values = JDD.Apply(JDD.MINUS, reach, values);
 	}
-	
-	// add another vector to this one
-	
+
+	@Override
 	public void add(StateValues sp) 
 	{
 		StateValuesMTBDD spm = (StateValuesMTBDD) sp;
 		JDD.Ref(spm.values);
 		values = JDD.Apply(JDD.PLUS, values, spm.values);
 	}
-	
-	// multiply vector by a constant
-	
+
+	@Override
 	public void timesConstant(double d) 
 	{
 		values = JDD.Apply(JDD.TIMES, values, JDD.Constant(d));
 	}
-	
-	// compute dot (inner) product of this and another vector
-	
+
+	@Override
 	public double dotProduct(StateValues sp) 
 	{
 		StateValuesMTBDD spm = (StateValuesMTBDD) sp;
@@ -231,17 +239,15 @@ public class StateValuesMTBDD implements StateValues
 		JDD.Deref(tmp);
 		return d;
 	}
-	
-	// filter vector using a bdd (set elements not in filter to 0)
-	
+
+	@Override
 	public void filter(JDDNode filter)
 	{
 		JDD.Ref(filter);
 		values = JDD.Apply(JDD.TIMES, values, filter);
 	}
 	
-	// apply max operator, i.e. vec[i] = max(vec[i], vec2[i]), where vec2 is an mtbdd
-	
+	@Override
 	public void maxMTBDD(JDDNode vec2)
 	{
 		JDD.Ref(vec2);
@@ -261,7 +267,7 @@ public class StateValuesMTBDD implements StateValues
 	{
 		return (int) model.getNumStates();
 	}
-	
+
 	@Override
 	public Object getValue(int i)
 	{
@@ -281,32 +287,35 @@ public class StateValuesMTBDD implements StateValues
 		// TODO: cast to Integer or Double as required?
 		return dd.getValue();
 	}
-	
-	// get mtbdd
-	
+
+	/**
+	 * Get the underlying JDDNode of this StateValuesMTBDD.
+	 * <br>
+	 * Note: The returned JDDNode is NOT a copy, i.e., the caller
+	 * is responsible that the node does not get derefed.
+	 * <br>[ REFS: <i>none</i> ]
+	 */
 	public JDDNode getJDDNode()
 	{
 		return values;
 	}
-	
-	// get num non zeros
-	
+
+	@Override
 	public int getNNZ()
 	{
 		double nnz = JDD.GetNumMinterms(values, numDDRowVars);
 		return (nnz > Integer.MAX_VALUE) ? -1 : (int)Math.round(nnz);
 	}
-	
+
+	@Override
 	public String getNNZString()
 	{
 		return "" + getNNZ();
 	}
-	
+
 	// Filter operations
-	
-	/**
-	 * Get the value of first vector element that is in the (BDD) filter.
-	 */
+
+	@Override
 	public double firstFromBDD(JDDNode filter)
 	{
 		JDDNode tmp;
@@ -337,10 +346,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return d;
 	}
-	
-	/**
-	 * Get the minimum value of those that are in the (BDD) filter.
-	 */
+
+	@Override
 	public double minOverBDD(JDDNode filter)
 	{
 		JDDNode tmp;
@@ -363,9 +370,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return d;
 	}
-	
-	// get max value over BDD filter
-	
+
+	@Override
 	public double maxOverBDD(JDDNode filter)
 	{
 		JDDNode tmp;
@@ -388,10 +394,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return d;
 	}
-	
-	/**
-	 * Get the sum of those elements that are in the (BDD) filter.
-	 */
+
+	@Override
 	public double sumOverBDD(JDDNode filter)
 	{
 		JDDNode tmp;
@@ -406,11 +410,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return d;
 	}
-	
-	/**
-	 * Do a weighted sum of the elements of the vector and the values the mtbdd passed in
-	 * (used for CSL reward steady state operator).
-	 */
+
+	@Override
 	public double sumOverMTBDD(JDDNode mult)
 	{
 		JDDNode tmp;
@@ -425,11 +426,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return d;
 	}
-	
-	/**
-	* Sum up the elements of the vector, over a subset of its DD vars
-	* store the result in a new StateValues (for newModel)
-	*/
+
+	@Override
 	public StateValues sumOverDDVars(JDDVars sumVars, Model newModel)
 	{
 		JDDNode tmp;
@@ -439,20 +437,14 @@ public class StateValuesMTBDD implements StateValues
 		
 		return new StateValuesMTBDD(tmp, newModel);
 	}
-	
-	/**
-	 * 	Generate BDD for states in the given interval
-	 * (interval specified as relational operator and bound)
-	 */
+
+	@Override
 	public JDDNode getBDDFromInterval(String relOpString, double bound)
 	{
 		return getBDDFromInterval(RelOp.parseSymbol(relOpString), bound);
 	}
-	
-	/**
-	 * 	Generate BDD for states in the given interval
-	 * (interval specified as relational operator and bound)
-	 */
+
+	@Override
 	public JDDNode getBDDFromInterval(RelOp relOp, double bound)
 	{
 		JDDNode sol = null;
@@ -476,11 +468,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return sol;
 	}
-	
-	/**
-	 * 	Generate BDD for states in the given interval
-	 * (interval specified as lower/upper bound)
-	 */
+
+	@Override
 	public JDDNode getBDDFromInterval(double lo, double hi)
 	{
 		JDDNode sol;
@@ -491,10 +480,7 @@ public class StateValuesMTBDD implements StateValues
 		return sol;
 	}
 
-	/**
-	 * 	Generate BDD for states whose value is close to 'value'
-	 * (within either absolute or relative error 'epsilon')
-	 */
+	@Override
 	public JDDNode getBDDFromCloseValue(double value, double epsilon, boolean abs)
 	{
 		if (abs)
@@ -502,11 +488,8 @@ public class StateValuesMTBDD implements StateValues
 		else
 			return getBDDFromCloseValueRel(value, epsilon);
 	}
-	
-	/**
-	 * Generate BDD for states whose value is close to 'value'
-	 * (within absolute error 'epsilon')
-	 */
+
+	@Override
 	public JDDNode getBDDFromCloseValueAbs(double value, double epsilon)
 	{
 		JDDNode sol;
@@ -520,11 +503,8 @@ public class StateValuesMTBDD implements StateValues
 		
 		return sol;
 	}
-	
-	/**
-	 * 	Generate BDD for states whose value is close to 'value'
-	 * (within relative error 'epsilon')
-	 */
+
+	@Override
 	public JDDNode getBDDFromCloseValueRel(double value, double epsilon)
 	{
 		JDDNode sol;
@@ -540,12 +520,10 @@ public class StateValuesMTBDD implements StateValues
 		
 		return sol;
 	}
-	
+
 	// PRINTING STUFF
-	
-	/**
-	 * Print vector to a log/file (non-zero entries only)
-	 */
+
+	@Override
 	public void print(PrismLog log)
 	{
 		int i;
@@ -588,26 +566,13 @@ public class StateValuesMTBDD implements StateValues
 		}
 	}
 
-	/**
-	 * Print vector to a log/file.
-	 * @param log The log
-	 * @param printSparse Print non-zero elements only? 
-	 * @param printMatlab Print in Matlab format?
-	 * @param printStates Print states (variable values) for each element? 
-	 */
+	@Override
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		print(log, printSparse, printMatlab, printStates, true);
 	}
 
-	/**
-	 * Print vector to a log/file.
-	 * @param log The log
-	 * @param printSparse Print non-zero elements only? 
-	 * @param printMatlab Print in Matlab format?
-	 * @param printStates Print states (variable values) for each element? 
-	 * @param printIndices Print state indices for each element? 
-	 */
+	@Override
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{
 		// Because non-sparse output from MTBDD requires a bit more effort...
@@ -615,7 +580,7 @@ public class StateValuesMTBDD implements StateValues
 		else throw new PrismException("Not supported");
 		// Note we also ignore printMatlab/printStates/printIndices due to laziness
 	}
-	
+
 	/**
 	 * Recursive part of print method.
 	 * 
@@ -680,13 +645,9 @@ public class StateValuesMTBDD implements StateValues
 		varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
 	}
 
-	/**
-	 * Print part of a vector to a log/file (non-zero entries only).
-	 * @param log The log
-	 * @param filter A BDD specifying which states to print for.
-	 */
+	@Override
 	public void printFiltered(PrismLog log, JDDNode filter) throws PrismException
-		{
+	{
 		int i;
 		JDDNode tmp;
 		
@@ -713,15 +674,8 @@ public class StateValuesMTBDD implements StateValues
 		//log.println();
 		JDD.Deref(tmp);
 	}
-	
-	/**
-	 * Print part of a vector to a log/file (non-zero entries only).
-	 * @param log The log
-	 * @param filter A BDD specifying which states to print for.
-	 * @param printSparse Print non-zero elements only? 
-	 * @param printMatlab Print in Matlab format?
-	 * @param printStates Print states (variable values) for each element? 
-	 */
+
+	@Override
 	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
 	{
 		// Because non-sparse output from MTBDD requires a bit more effort... 
