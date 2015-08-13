@@ -1058,8 +1058,13 @@ public class StateModelChecker implements ModelChecker
 			currentFilter = null;
 		}
 
-		// Check operand recursively
-		vals = checkExpression(expr.getOperand());
+		try {
+			// Check operand recursively
+			vals = checkExpression(expr.getOperand());
+		} catch (PrismException e) {
+			JDD.Deref(ddFilter);
+			throw e;
+		}
 
 		// Print out number of states satisfying filter
 		if (!filterInit)
