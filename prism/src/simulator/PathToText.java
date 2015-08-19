@@ -28,6 +28,7 @@ package simulator;
 
 import parser.State;
 import parser.ast.ModulesFile;
+import prism.PrismFileLog;
 import prism.PrismLog;
 
 /**
@@ -302,6 +303,14 @@ public class PathToText extends PathDisplayer
 			if (contTime && showTimeSpent)
 				log.print(getColSep() + 0.0);
 			log.println();
+		}
+	}
+	
+	@Override
+	public void close()
+	{
+		if (log instanceof PrismFileLog) {
+			log.close();
 		}
 	}
 }

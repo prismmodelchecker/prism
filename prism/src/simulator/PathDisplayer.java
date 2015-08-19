@@ -198,7 +198,15 @@ public abstract class PathDisplayer
 	public abstract void displaySnapshot(double timeCumul, long newStateIndex, State newState, double[] newStateRewards);
 
 	/**
-	 * Finish displaying a path..
+	 * Finish displaying a path.
 	 */
 	public abstract void endDisplay();
+
+	/**
+	 * "Close" this displayer (e.g., if it is to a file, close the file).
+	 */
+	public void close()
+	{
+		// By default, do nothing
+	}
 }

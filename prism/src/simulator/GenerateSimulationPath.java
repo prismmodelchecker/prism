@@ -119,6 +119,7 @@ public class GenerateSimulationPath
 			generateMultiplePaths(displayer);
 		else
 			generatePath(displayer);
+		displayer.close();
 	}
 
 	/**
