@@ -183,8 +183,18 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 	}
 
 	@Override
-	public String getSignatureForState(int i) {
-		return "";
+	public String getSignatureForState(int stateIndex) {
+		List<AcceptanceGeneric> leafNodes = getLeafNodes();
+
+		String result = "";
+		for (int i=0; i < leafNodes.size(); i++) {
+			if (leafNodes.get(i).getStates().get(stateIndex)) {
+				result += (result.isEmpty() ? "" : ",")+i;
+			}
+		}
+
+		result = "{" + result + "}";
+		return result;
 	}
 
 	@Override
