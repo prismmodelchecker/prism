@@ -27,10 +27,8 @@
 
 package automata;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,9 +37,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import acceptance.AcceptanceOmega;
-import acceptance.AcceptanceRabin;
-import acceptance.AcceptanceType;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
@@ -55,6 +50,9 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
+import acceptance.AcceptanceOmega;
+import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceType;
 
 /**
  * Infrastructure for constructing deterministic automata for LTL formulas.
@@ -316,26 +314,32 @@ public class LTL2DA extends PrismComponent
 	}
 
 	/**
-	 * Simple test method: convert LTL formula (in LBT format) to HOA format
+	 * Simple test method: convert LTL formula (in LBT format) to HOA/Dot/txt
 	 */
 	public static void main(String args[])
 	{
 		try {
-			// Read in LTL formula (from args[0])  
-			BufferedReader r = new BufferedReader(new FileReader(args[0]));
-			String ltl = r.readLine();
-			r.close();
+			// Usage:
+			// * ... 'X p1' 
+			// * ... 'X p1' da.hoa 
+			// * ... 'X p1' da.hoa hoa 
+			// * ... 'X p1' da.dot dot 
+			// * ... 'X p1' - hoa 
+			// * ... 'X p1' - txt 
 			
 			// Convert to Expression
-			SimpleLTL sltl = SimpleLTL.parseFormulaLBT(ltl);
+			String ltl = args[0];
+			SimpleLTL sltl = SimpleLTL.parseFormulaLBT(args[0]);
 			Expression expr = Expression.createFromJltl2ba(sltl);
 			System.out.println("LBT: " + ltl);
 			System.out.println("LTL: " + expr);
 			
-			// Build/export DA (to args[1])
+			// Build/export DA
 			LTL2DA ltl2da = new LTL2DA(new PrismComponent());
 			DA<BitSet,? extends AcceptanceOmega> da = ltl2da.convertLTLFormulaToDA(expr, null, AcceptanceType.RABIN, AcceptanceType.REACH);
-			da.printHOA(new PrintStream(args[1]));
+			PrintStream out = (args.length < 2 || "-".equals(args[1])) ? System.out : new PrintStream(args[1]);
+			String format = (args.length < 3) ? "hoa" : args[2];
+			da.print(out, format);
 
 		} catch (Exception e) {
 			e.printStackTrace();
