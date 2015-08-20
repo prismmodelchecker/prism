@@ -1281,7 +1281,6 @@ public class PrismSettings implements Observer
 			if (i < args.length - 1) {
 				String filename = args[++i];
 				set(PRISM_LTL2DA_TOOL, filename);
-				System.out.println(getString(PRISM_LTL2DA_TOOL));
 			} else {
 				throw new PrismException("The -" + sw + " switch requires one argument (path to the executable)");
 			}
