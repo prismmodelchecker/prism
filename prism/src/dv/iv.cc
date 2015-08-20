@@ -31,7 +31,7 @@
 
 // local function prototypes
 
-static void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, int *res);
+static void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, long n, int *res);
 static DdNode *integer_vector_to_mtbdd_rec(DdManager *ddman, int *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
 
 //------------------------------------------------------------------------------
@@ -51,8 +51,8 @@ EXPORT int *mtbdd_to_integer_vector(DdManager *ddman, DdNode *dd, DdNode **vars,
 
 EXPORT int *mtbdd_to_integer_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, int *res)
 {
-	int i, n;
-	
+	long i, n;
+
 	// determine size
 	n = odd->eoff + odd->toff;
 	// create array (if not supplied)
@@ -62,18 +62,22 @@ EXPORT int *mtbdd_to_integer_vector(DdManager *ddman, DdNode *dd, DdNode **vars,
 		res[i] = 0.0;
 	}
 	// build array recursively
-	mtbdd_to_integer_vector_rec(ddman, dd, vars, num_vars, 0, odd, 0, res);
+	mtbdd_to_integer_vector_rec(ddman, dd, vars, num_vars, 0, odd, 0, n, res);
 	
 	return res;
 }
 
-void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, int *res)
+void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, long n, int *res)
 {
 	DdNode *e, *t;
 
 	if (dd == Cudd_ReadZero(ddman)) return;
 
 	if (level == num_vars) {
+		if (o < 0 || o >= n) {
+			printf("Internal error: Can not convert MTBDD to integer vector: Value out of range of the ODD (does the MTBDD encode non-reachable states?)\n");
+			exit(1);
+		}
 		res[o] = (int) Cudd_V(dd);
 		return;
 	}
@@ -84,10 +88,10 @@ void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, in
 		e = Cudd_E(dd);
 		t = Cudd_T(dd);
 	}
-	
-	mtbdd_to_integer_vector_rec(ddman, e, vars, num_vars, level+1, odd->e, o, res);
-	mtbdd_to_integer_vector_rec(ddman, t, vars, num_vars, level+1, odd->t, o+odd->eoff, res);
-}	
+
+	mtbdd_to_integer_vector_rec(ddman, e, vars, num_vars, level+1, odd->e, o, n, res);
+	mtbdd_to_integer_vector_rec(ddman, t, vars, num_vars, level+1, odd->t, o+odd->eoff, n, res);
+}
 
 //------------------------------------------------------------------------------
 
