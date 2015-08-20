@@ -917,13 +917,13 @@ public abstract class Expression extends ASTElement
 		case FALSE:
 			return Expression.False();
 		case FINALLY:
-			return new ExpressionTemporal(ExpressionTemporal.P_F, null, createFromJltl2ba(ltl.right));
+			return new ExpressionTemporal(ExpressionTemporal.P_F, null, createFromJltl2ba(ltl.left));
 		case GLOBALLY:
-			return new ExpressionTemporal(ExpressionTemporal.P_G, null, createFromJltl2ba(ltl.right));
+			return new ExpressionTemporal(ExpressionTemporal.P_G, null, createFromJltl2ba(ltl.left));
 		case IMPLIES:
 			return Expression.Implies(createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
 		case NEXT:
-			return new ExpressionTemporal(ExpressionTemporal.P_X, null, createFromJltl2ba(ltl.right));
+			return new ExpressionTemporal(ExpressionTemporal.P_X, null, createFromJltl2ba(ltl.left));
 		case NOT:
 			return Expression.Not(createFromJltl2ba(ltl.left));
 		case OR:
