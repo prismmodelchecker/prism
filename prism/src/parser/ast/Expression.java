@@ -765,7 +765,7 @@ public abstract class Expression extends ASTElement
 	public static boolean isPositiveNormalFormLTL(Expression expr)
 	{
 		// State formulae (negated or otherwise) are OK
-		if (expr.type instanceof TypeBool)
+		if (expr.getType() instanceof TypeBool)
 			return true;
 		// Otherwise recurse, looking for negations...
 		else if (expr instanceof ExpressionUnaryOp) {
