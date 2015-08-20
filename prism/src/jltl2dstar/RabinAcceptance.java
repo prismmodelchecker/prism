@@ -126,6 +126,26 @@ public class RabinAcceptance implements Iterable<Integer> {
 	}
 
 	/**
+	 * Print the Acceptance: header in the HOA format
+	 * @param out the output stream.
+	 */
+	public void outputAcceptanceHeaderHOA(PrintStream out) throws PrismException
+	{
+		out.println("acc-name: Rabin "+size());
+		out.print("Acceptance: " + (size()*2)+" ");
+		if (size() == 0) {
+			out.println("f");
+			return;
+		}
+
+		for (int pair = 0; pair < size(); pair++) {
+			if (pair > 0) out.print(" | ");
+			out.print("( Fin(" + (2*pair) + ") & Inf(" + (2*pair+1) +") )");
+		}
+		out.println();
+	}
+
+	/**
 	 * Print the Acc-Sig: line for a state (part of interface AcceptanceCondition).
 	 * @param out the output stream.
 	 * @param state_index the state
@@ -141,6 +161,28 @@ public class RabinAcceptance implements Iterable<Integer> {
 			}
 		}
 		out.println();
+	}
+
+	/**
+	 * Print the acceptance signature for a state (HOA format)
+	 * @param out the output stream.
+	 * @param state_index the state
+	 */
+	public void outputAcceptanceForStateHOA(PrintStream out, int state_index) throws PrismException
+	{
+		String signature = "";
+		for (int pair_index = 0; pair_index < size(); pair_index++) {
+			if (isStateInAcceptance_L(pair_index, state_index)) {
+				signature += (!signature.isEmpty() ? " " :"")+(pair_index*2+1);
+			}
+			if (isStateInAcceptance_U(pair_index, state_index)) {
+				signature += (!signature.isEmpty() ? " " :"")+(pair_index*2);
+			}
+		}
+
+		if (!signature.isEmpty()) {
+			out.println("{" + signature + "}");
+		}
 	}
 
 	/**
