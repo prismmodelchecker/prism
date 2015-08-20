@@ -327,7 +327,15 @@ public class LTL2DA extends PrismComponent
 			// * ... 'X p1' - hoa 
 			// * ... 'X p1' - txt 
 			
-			// Convert to Expression
+			// Convert to Expression (from PRISM format)
+			/*String pltl = "P=?[" + ltl + "]";
+			PropertiesFile pf = Prism.getPrismParser().parsePropertiesFile(new ModulesFile(), new ByteArrayInputStream(pltl.getBytes()));
+			Prism.releasePrismParser();
+			Expression expr = pf.getProperty(0);
+			expr = ((ExpressionProb) expr).getExpression();
+			System.out.println("LTL: " + expr);*/
+			
+			// Convert to Expression (from LBT format)
 			String ltl = args[0];
 			SimpleLTL sltl = SimpleLTL.parseFormulaLBT(args[0]);
 			Expression expr = Expression.createFromJltl2ba(sltl);
