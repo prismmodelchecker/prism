@@ -26,6 +26,7 @@
 
 package acceptance;
 
+import java.io.PrintStream;
 import java.util.BitSet;
 
 import prism.PrismException;
@@ -65,6 +66,9 @@ public interface AcceptanceOmega extends Cloneable
 
 	/** Returns a full name for this acceptance condition */
 	public String getTypeName();
+
+	/** Print the appropriate Acceptance (and potentially acc-name) header */
+	public void outputHOAHeader(PrintStream out);
 
 	/** Make a copy of the acceptance condition. */
 	public AcceptanceOmega clone();

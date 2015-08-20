@@ -26,6 +26,7 @@
 
 package acceptance;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 
@@ -318,5 +319,22 @@ public class AcceptanceStreett
 	public String getTypeName()
 	{
 		return "Streett";
+	}
+
+	@Override
+	public void outputHOAHeader(PrintStream out)
+	{
+		out.println("acc-name: Streett "+size());
+		out.print("Acceptance: " + (size()*2)+" ");
+		if (size() == 0) {
+			out.println("t");
+			return;
+		}
+
+		for (int pair = 0; pair < size(); pair++) {
+			if (pair > 0) out.print(" & ");
+			out.print("( Fin(" + (2*pair) + ") | Inf(" + (2*pair+1) +") )");
+		}
+		out.println();
 	}
 }

@@ -26,6 +26,7 @@
 
 package acceptance;
 
+import java.io.PrintStream;
 import java.util.BitSet;
 
 import prism.PrismException;
@@ -192,4 +193,10 @@ public class AcceptanceReach implements AcceptanceOmega
 		return "Finite";
 	}
 
+	@Override
+	public void outputHOAHeader(PrintStream out)
+	{
+		out.println("acc-name: Buchi");
+		out.println("Acceptance: 1 Inf(0)");
+	}
 }

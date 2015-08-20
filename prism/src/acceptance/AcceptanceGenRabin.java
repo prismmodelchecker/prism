@@ -27,6 +27,7 @@
 
 package acceptance;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 
@@ -332,5 +333,36 @@ public class AcceptanceGenRabin
 	public String getTypeName()
 	{
 		return "Generalized Rabin";
+	}
+
+	@Override
+	public void outputHOAHeader(PrintStream out)
+	{
+		int sets = 0;
+		out.print("acc-name: generalized-Rabin "+size());
+		for (GenRabinPair pair : this) {
+			sets++;  // the Fin
+			out.print(" "+pair.getNumK());
+			sets += pair.getNumK();
+		}
+		out.println();
+		out.print("Acceptance: " + sets);
+		if (sets == 0) {
+			out.println("f");
+			return;
+		}
+
+		int set_index = 0;
+		for (GenRabinPair pair : this) {
+			if (set_index > 0) out.print(" | ");
+			out.print("( Fin(" + set_index + ")");
+			set_index++;
+			for (int i = 0; i < pair.getNumK(); i++) {
+				out.print(" & Inf(" + set_index +")");
+				set_index++;
+			}
+			out.print(")");
+		}
+		out.println();
 	}
 }
