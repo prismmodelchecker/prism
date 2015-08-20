@@ -27,7 +27,10 @@
 
 package acceptance;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.List;
 
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -154,6 +157,29 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 			}
 		}
 		return false;
+	}
+
+	/** Get a list of all the (non-true/false) leaf nodes in this acceptance condition */
+	public List<AcceptanceGeneric> getLeafNodes()
+	{
+		switch (getKind()) {
+		case AND:
+		case OR: {
+			List<AcceptanceGeneric> result = new ArrayList<AcceptanceGeneric>();
+			result.addAll(left.getLeafNodes());
+			result.addAll(right.getLeafNodes());
+			return result;
+		}
+		case TRUE:
+		case FALSE:
+			return Collections.emptyList();
+		case FIN:
+		case FIN_NOT:
+		case INF:
+		case INF_NOT:
+			return Collections.singletonList(this);
+		}
+		throw new UnsupportedOperationException("Unknown kind");
 	}
 
 	@Override
