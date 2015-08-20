@@ -27,6 +27,11 @@
 
 package jltl2ba;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import jltl2dstar.APMonom;
 import jltl2dstar.NBA;
 import prism.PrismException;
@@ -1173,6 +1178,101 @@ public class SimpleLTL {
 			rv = null;
 		}
 		return rv;
+	}
+
+	/** Parse a formula in LBT (prefix format) */
+	public static SimpleLTL parseFormulaLBT(String formula) throws Exception
+	{
+		formula=formula.trim();  // remove leading, trailing spaces
+		String[] split = formula.split("[ ]+");
+		List<String> formulaList = new ArrayList<String>();
+		for (String s : split) formulaList.add(s);
+
+		// set up operator -> SimpleLTL.LTLType mapping for the standard operators
+		Map<String, SimpleLTL.LTLType> unaryOps  = new HashMap<String, SimpleLTL.LTLType>();
+		Map<String, SimpleLTL.LTLType> binaryOps = new HashMap<String, SimpleLTL.LTLType>();
+		unaryOps.put("!", SimpleLTL.LTLType.NOT);
+		unaryOps.put("F", SimpleLTL.LTLType.FINALLY);
+		unaryOps.put("G", SimpleLTL.LTLType.GLOBALLY);
+		unaryOps.put("X", SimpleLTL.LTLType.NEXT);
+		binaryOps.put("|", SimpleLTL.LTLType.OR);
+		binaryOps.put("&", SimpleLTL.LTLType.AND);
+		binaryOps.put("i", SimpleLTL.LTLType.IMPLIES);
+		binaryOps.put("e", SimpleLTL.LTLType.EQUIV);
+		binaryOps.put("U", SimpleLTL.LTLType.UNTIL);
+		binaryOps.put("V", SimpleLTL.LTLType.RELEASE);
+
+		SimpleLTL result = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+
+		if (formulaList.size()>0) {
+			String remainingFormula = "";
+			for (String op : formulaList) remainingFormula += " "+op;
+			throw new RuntimeException("Malformed formula, extra information after end of formula: "+remainingFormula);
+		}
+		return result;
+	}
+
+	/**
+	 * Parse a formula in LBT format, where the formula is already split into a list of operators / APs
+	 * @param formulaList sequence of operators / APs
+	 * @param unaryOps map for the standard unary ops
+	 * @param binaryOps map for the standard binary ops
+	 * @throws RuntimeException on parse error
+	 */
+	private static SimpleLTL parseFormulaLBT(List<String> formulaList,
+	                                         Map<String, SimpleLTL.LTLType> unaryOps,
+	                                         Map<String, SimpleLTL.LTLType> binaryOps) throws RuntimeException
+	{
+		if (formulaList.size() == 0) {
+			throw new RuntimeException("Malformed formula, premature ending");
+		}
+		String current = formulaList.get(0);
+		formulaList.remove(0);
+
+		if (current.equals("t")) {
+			return new SimpleLTL(true);
+		} else if (current.equals("f")) {
+			return new SimpleLTL(false);
+		} else if (unaryOps.containsKey(current)) {
+			// standard unary op
+			SimpleLTL operand = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+			return new SimpleLTL(unaryOps.get(current), operand);
+		} else if (binaryOps.containsKey(current)) {
+			// standard binary op
+			SimpleLTL operand1 = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+			SimpleLTL operand2 = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+			return new SimpleLTL(binaryOps.get(current), operand1, operand2);
+		} else if (current.equals("W")) {
+			// a W b == !(a&!b U !a&!b)
+			SimpleLTL operand1 = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+			SimpleLTL operand2 = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+
+			SimpleLTL aAndNotb =
+			   new SimpleLTL(SimpleLTL.LTLType.AND, operand1.clone(),
+			     new SimpleLTL(SimpleLTL.LTLType.NOT, operand2.clone()));
+			
+			SimpleLTL NotaAndNotb =
+			   new SimpleLTL(SimpleLTL.LTLType.AND,
+			     new SimpleLTL(SimpleLTL.LTLType.NOT, operand1.clone()),
+			     new SimpleLTL(SimpleLTL.LTLType.NOT, operand2.clone()));
+
+			return new SimpleLTL(SimpleLTL.LTLType.NOT,
+			   new SimpleLTL(SimpleLTL.LTLType.UNTIL, aAndNotb, NotaAndNotb));
+		} else if (current.equals("^")) {
+			// a xor b == !(a equiv b)
+			SimpleLTL operand1 = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+			SimpleLTL operand2 = parseFormulaLBT(formulaList, unaryOps, binaryOps);
+
+			return new SimpleLTL(SimpleLTL.LTLType.NOT,
+			    new SimpleLTL(SimpleLTL.LTLType.EQUIV, operand1, operand2));
+		} else if (current.equals("M") || current.equals("B")) {
+			throw new RuntimeException("Operator "+current+" currently not supported.");
+		} else if (current.matches("[a-zA-Z].*")) {
+			// atomic proposition
+			return new SimpleLTL(current);
+		} else {
+			throw new RuntimeException("Illegal/unsupported operator: "+current);
+		}
 	}
 
 	public NBA toNBA(APSet apset) throws PrismException
