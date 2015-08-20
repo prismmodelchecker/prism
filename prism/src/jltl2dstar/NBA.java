@@ -255,9 +255,58 @@ public class NBA implements Iterable<NBA_State> {
 		}
 	}
 
-	
-	
-	// public void print_lbtt(std::ostream& out);
+	/** Print the NBA as an LBTT automaton to out */
+	public void print_lbtt(PrintStream out) {
+		out.println(getStateCount()+" 1s");
+		for (NBA_State state : _index) {
+			out.print(state.getName());  // id
+			out.print(" ");
+			out.print((getStartState() == state ? "1" : "0"));
+			out.print(" ");
+			out.println((state.isFinal() ? "0 -1" : "-1"));
+			
+			for (Map.Entry<APElement, MyBitSet> edge : state) {
+				APElement label = edge.getKey();
+				MyBitSet to_states = edge.getValue();
+				for (Integer to : to_states) {
+					out.print(to);
+					out.print(" ");
+					out.println(label.toStringLBTT(getAPSet()));
+				}
+
+			}
+			out.println("-1");
+		}
+	}
+
+	/** Print the NBA as a HOA automaton to out */
+	public void print_hoa(PrintStream out) {
+		out.println("HOA: v1");
+		out.println("States: "+size());
+		_apset.print_hoa(out);
+		out.println("Start: "+getStartState().getName());
+		out.println("Acceptance: 1 Inf(0)");
+		out.println("acc-name: Buchi");
+		out.println("properties: trans-labels explicit-labels state-acc no-univ-branch");
+		out.println("--BODY--");
+		for (NBA_State state : _index) {
+			out.print("State: "+state.getName());  // id
+			out.println((state.isFinal() ? " {0}" : ""));
+
+			for (Map.Entry<APElement, MyBitSet> edge : state) {
+				APElement label = edge.getKey();
+				String labelString = "["+label.toStringHOA(_apset.size())+"]";
+				MyBitSet to_states = edge.getValue();
+				for (Integer to : to_states) {
+					out.print(labelString);
+					out.print(" ");
+					out.println(to);
+				}
+			}
+			out.println("--END--");
+		}
+	}
+
 	// public void print_dot(std::ostream& out);
 
 	/** Return number of states. */
