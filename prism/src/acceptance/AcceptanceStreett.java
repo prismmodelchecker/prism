@@ -266,6 +266,27 @@ public class AcceptanceStreett
 	}
 
 	@Override
+	public String getSignatureForStateHOA(int stateIndex)
+	{
+		String result = "";
+
+		for (int pairIndex=0; pairIndex<size(); pairIndex++) {
+			StreettPair pair = get(pairIndex);
+			if (pair.getR().get(stateIndex)) {
+				result += (result.isEmpty() ? "" : " ") + pairIndex*2;
+			}
+			if (pair.getG().get(stateIndex)) {
+				result += (result.isEmpty() ? "" : " ") + (pairIndex*2+1);
+			}
+		}
+
+		if (!result.isEmpty())
+			result = "{"+result+"}";
+
+		return result;
+	}
+
+	@Override
 	public String toString()
 	{
 		String result = "";

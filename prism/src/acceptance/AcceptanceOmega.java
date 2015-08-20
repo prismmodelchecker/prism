@@ -41,9 +41,13 @@ public interface AcceptanceOmega extends Cloneable
 	 **/
 	public boolean isBSCCAccepting(BitSet bscc_states);
 
-	/** Get the acceptance signature for state i.
+	/** Get the acceptance signature for state {@code stateIndex}.
 	 **/
-	public String getSignatureForState(int i);
+	public String getSignatureForState(int stateIndex);
+
+	/** Get the acceptance signature for state {@code stateIndex} (HOA format).
+	 */
+	public String getSignatureForStateHOA(int stateIndex);
 
 	/**
 	 * Get a string describing the acceptance condition's size,

@@ -150,6 +150,16 @@ public class AcceptanceReach implements AcceptanceOmega
 	{
 		return goalStates.get(i) ? "!" : " ";
 	}
+	
+	@Override
+	public String getSignatureForStateHOA(int stateIndex)
+	{
+		if (goalStates.get(stateIndex)) {
+			return "{0}";
+		} else {
+			return "";
+		}
+	}
 
 	/** Returns a textual representation of this acceptance condition. */
 	@Override

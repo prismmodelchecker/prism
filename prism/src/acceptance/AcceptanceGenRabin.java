@@ -274,6 +274,31 @@ public class AcceptanceGenRabin
 		return result;
 	}
 
+	@Override
+	public String getSignatureForStateHOA(int stateIndex)
+	{
+		String result = "";
+
+		int set_index = 0;
+		for (GenRabinPair pair : this) {
+			if (pair.getL().get(stateIndex)) {
+				result += (result.isEmpty() ? "" : " ") + set_index;
+			}
+			set_index++;
+			for (int i=0; i < pair.getNumK(); i++) {
+				if (pair.getK(i).get(stateIndex)) {
+					result += (result.isEmpty() ? "" : " ") + set_index;
+				}
+				set_index++;
+			}
+		}
+
+		if (!result.isEmpty())
+			result = "{"+result+"}";
+
+		return result;
+	}
+
 	/** Returns a textual representation of this acceptance condition. */
 	@Override
 	public String toString()

@@ -198,6 +198,22 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 	}
 
 	@Override
+	public String getSignatureForStateHOA(int stateIndex) {
+		List<AcceptanceGeneric> leafNodes = getLeafNodes();
+
+		String result = "";
+		for (int i=0; i < leafNodes.size(); i++) {
+			if (leafNodes.get(i).getStates().get(stateIndex)) {
+				result += (result.isEmpty() ? "" : " ")+i;
+			}
+		}
+
+		if (!result.isEmpty())
+			result = "{" + result + "}";
+		return result;
+	}
+
+	@Override
 	public String getSizeStatistics() {
 		return "generic acceptance with " + countAcceptanceSets() + " acceptance sets";
 	}
