@@ -32,10 +32,6 @@ import java.util.List;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
-import parser.ast.ExpressionLabel;
-import parser.ast.ExpressionProb;
-import parser.ast.ExpressionQuant;
-import parser.ast.ExpressionReward;
 import parser.ast.ExpressionUnaryOp;
 import parser.visitor.ASTTraverseModify;
 import prism.PrismException;
@@ -77,42 +73,6 @@ public class BooleanUtils
 		} else {
 			disjuncts.add(expr);
 		}
-	}
-
-	/**
-	 * Extract maximal state formula from an LTL path formula, model check them (with passed in model checker) and
-	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
-	 * is also returned. As an optimisation, expressions that results in true/false for all states are converted to an
-	 * actual true/false, and duplicate results (or their negations) reuse the same label. BDDs giving the states which
-	 * satisfy each label are put into the vector labelDDs, which should be empty when this function is called.
-	 */
-	public static Expression extractAtomsFromBooleanExpression(Expression expr, List<ExpressionQuant> labelDDs) throws PrismException
-	{
-		// A state formula
-		if (expr instanceof ExpressionProb || expr instanceof ExpressionReward) {
-			labelDDs.add((ExpressionQuant) expr);
-			return new ExpressionLabel("L" + (labelDDs.size() - 1));
-		}
-		// A path formula (recurse, modify, return)
-		else if (Expression.isOr(expr)) {
-			ExpressionBinaryOp exprOr = (ExpressionBinaryOp) expr;
-			exprOr.setOperand1(extractAtomsFromBooleanExpression(exprOr.getOperand1(), labelDDs));
-			exprOr.setOperand2(extractAtomsFromBooleanExpression(exprOr.getOperand2(), labelDDs));
-		} else if (Expression.isAnd(expr)) {
-			ExpressionBinaryOp exprAnd = (ExpressionBinaryOp) expr;
-			exprAnd.setOperand1(extractAtomsFromBooleanExpression(exprAnd.getOperand1(), labelDDs));
-			exprAnd.setOperand2(extractAtomsFromBooleanExpression(exprAnd.getOperand2(), labelDDs));
-		} else if (Expression.isImplies(expr)) {
-			ExpressionBinaryOp exprImplies = (ExpressionBinaryOp) expr;
-			exprImplies.setOperand1(extractAtomsFromBooleanExpression(exprImplies.getOperand1(), labelDDs));
-			exprImplies.setOperand2(extractAtomsFromBooleanExpression(exprImplies.getOperand2(), labelDDs));
-		} else if (Expression.isNot(expr)) {
-			ExpressionUnaryOp exprNot = (ExpressionUnaryOp) expr;
-			exprNot.setOperand(extractAtomsFromBooleanExpression(exprNot.getOperand(), labelDDs));
-		} else {
-			throw new PrismException("arg " + expr);
-		}
-		return expr;
 	}
 
 	/**
