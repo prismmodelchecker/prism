@@ -28,6 +28,9 @@
 
 package automata;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -39,6 +42,9 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerException;
+import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
+import jhoafparser.parser.HOAFParser;
+import jhoafparser.transformations.ToStateAcceptance;
 import jhoafparser.util.ImplicitEdgeHelper;
 import jltl2ba.APElement;
 import jltl2ba.APSet;
@@ -602,4 +608,64 @@ public class HOAF2DA implements HOAConsumer {
 		throw new HOAConsumerException(warning);
 	}
 
+	/** Command-line interface for reading, parsing and printing a HOA automaton (for testing) */
+	public static void main(String args[])
+	{
+		int rv = 0;
+		InputStream input = null;
+		try {
+			if (args.length != 2) {
+				System.err.println("Usage: input-file output-file\n\n Filename can be '-' for standard input/output");
+				System.exit(1);
+			}
+			if (args[0].equals("-")) {
+				input = System.in;
+			} else {
+				input = new FileInputStream(args[0]);
+			}
+
+			PrintStream output;
+			String outfile = args[1];
+			if (outfile.equals("-")) {
+				output = System.out;
+			} else {
+				output = new PrintStream(outfile);
+			}
+
+			DA<BitSet, ? extends AcceptanceOmega> result;
+			try {
+				HOAF2DA consumerDA = new HOAF2DA();
+				HOAFParser.parseHOA(input, consumerDA);
+				result = consumerDA.getDA();
+			} catch (HOAF2DA.TransitionBasedAcceptanceException e) {
+				// try again, this time transforming to state acceptance
+				if (input == System.in) {
+					System.out.println("Automaton with transition-based acceptance, can only be (re)parsed from file");
+					System.exit(1);
+				}
+				System.out.println("Automaton with transition-based acceptance, automatically converting to state-based acceptance...");
+				HOAF2DA consumerDA = new HOAF2DA();
+				HOAIntermediateStoreAndManipulate consumerTransform = new HOAIntermediateStoreAndManipulate(consumerDA, new ToStateAcceptance());
+
+				HOAFParser.parseHOA(input, consumerTransform);
+				result = consumerDA.getDA();
+			}
+
+			if (result == null) {
+				throw new PrismException("Could not construct DA");
+			}
+
+			// should we try and simplify?
+			// result = DASimplifyAcceptance.simplifyAcceptance(result, acceptance.AcceptanceType.REACH);
+
+			result.printHOA(output);
+		} catch (Exception e) {
+			System.err.println(e.toString());
+			rv = 1;
+		}
+		
+		if (rv != 0) {
+			System.exit(rv);
+		}
+	}
 }
