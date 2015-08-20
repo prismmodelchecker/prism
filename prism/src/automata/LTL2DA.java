@@ -27,11 +27,14 @@
 
 package automata;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -312,4 +315,31 @@ public class LTL2DA extends PrismComponent
 		// p0 | !p0, the external tool could simplify to 'true' and omit all APs
 	}
 
+	/**
+	 * Simple test method: convert LTL formula (in LBT format) to HOA format
+	 */
+	public static void main(String args[])
+	{
+		try {
+			// Read in LTL formula (from args[0])  
+			BufferedReader r = new BufferedReader(new FileReader(args[0]));
+			String ltl = r.readLine();
+			r.close();
+			
+			// Convert to Expression
+			SimpleLTL sltl = SimpleLTL.parseFormulaLBT(ltl);
+			Expression expr = Expression.createFromJltl2ba(sltl);
+			System.out.println("LBT: " + ltl);
+			System.out.println("LTL: " + expr);
+			
+			// Build/export DA (to args[1])
+			LTL2DA ltl2da = new LTL2DA(new PrismComponent());
+			DA<BitSet,? extends AcceptanceOmega> da = ltl2da.convertLTLFormulaToDA(expr, null, AcceptanceType.RABIN, AcceptanceType.REACH);
+			da.printHOA(new PrintStream(args[1]));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.print("Error: " + e);
+		}
+	}
 }
