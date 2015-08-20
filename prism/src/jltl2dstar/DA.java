@@ -25,6 +25,7 @@ import java.io.PrintStream;
 import java.util.*;
 
 import jltl2ba.APElement;
+import jltl2ba.APElementIterator;
 import jltl2ba.APSet;
 import prism.PrismException;
 
@@ -261,6 +262,8 @@ public class DA {
 			throw new PrismException("No start state in DA!");
 		}
 
+		out.println(da_type+" v2 explicit");
+		
 		if (_comment != "") {
 			out.println("Comment: \"" + _comment + "\"");
 		}
@@ -289,9 +292,11 @@ public class DA {
 
 			_acceptance.outputAcceptanceForState(out, i_state);
 			
-			// the entry set isn't sorted so we need to print the transition label too
-			for (Map.Entry<APElement, DA_State> transition : cur_state.edges().entrySet()) {
-				out.println(transition.getKey().toString(_ap_set, true) + " -> " + transition.getValue().getName());
+			Iterator<APElement> it = _ap_set.elementIterator();
+			while (it.hasNext()) {
+				APElement e = it.next();
+				DA_State to = cur_state.edges().get(e);
+				out.println(to.getName());
 			}
 		}
 	}
