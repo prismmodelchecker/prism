@@ -26,9 +26,11 @@
 
 package parser.ast;
 
+import jltl2ba.SimpleLTL;
 import parser.*;
 import parser.visitor.*;
 import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLangException;
 import parser.type.*;
 
@@ -898,6 +900,43 @@ public abstract class Expression extends ASTElement
 		}
 
 		return expr;
+	}
+
+	/**
+	 * Create a property expression (an LTL formula) from the classes used by the jltl2ba (and jltl2dstar) libraries.
+	 */
+	public static Expression createFromJltl2ba(SimpleLTL ltl) throws PrismException
+	{
+		switch (ltl.kind) {
+		case AND:
+			return Expression.And(createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
+		case AP:
+			return new ExpressionLabel(ltl.ap);
+		case EQUIV:
+			return Expression.Iff(createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
+		case FALSE:
+			return Expression.False();
+		case FINALLY:
+			return new ExpressionTemporal(ExpressionTemporal.P_F, null, createFromJltl2ba(ltl.right));
+		case GLOBALLY:
+			return new ExpressionTemporal(ExpressionTemporal.P_G, null, createFromJltl2ba(ltl.right));
+		case IMPLIES:
+			return Expression.Implies(createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
+		case NEXT:
+			return new ExpressionTemporal(ExpressionTemporal.P_X, null, createFromJltl2ba(ltl.right));
+		case NOT:
+			return Expression.Not(createFromJltl2ba(ltl.left));
+		case OR:
+			return Expression.Or(createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
+		case RELEASE:
+			return new ExpressionTemporal(ExpressionTemporal.P_R, createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
+		case TRUE:
+			return Expression.True();
+		case UNTIL:
+			return new ExpressionTemporal(ExpressionTemporal.P_U, createFromJltl2ba(ltl.left), createFromJltl2ba(ltl.right));
+		default:
+			throw new PrismException("Cannot convert jltl2ba formula " + ltl);
+		}
 	}
 }
 
