@@ -323,6 +323,24 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		}
 	}
 
+	/**
+	 * Print automaton to a PrintStream in a specified format ("dot", "txt" or "hoa").
+	 */
+	public void print(PrintStream out, String type) throws PrismException
+	{
+		switch (type) {
+		case "txt":
+			out.println(toString());
+			break;
+		case "dot":
+			printDot(out);
+			break;
+		case "hoa":
+			printHOA(out);
+			break;
+		}
+	}
+
 	// Standard methods
 
 	@Override

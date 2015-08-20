@@ -30,6 +30,7 @@ import hybrid.PrismHybrid;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
@@ -558,7 +559,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// If required, export DA
 		if (prism.getSettings().getExportPropAut()) {
 			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
-			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
+			PrintStream out = PrismUtils.newPrintStream(prism.getSettings().getExportPropAutFilename());
 			da.print(out, prism.getSettings().getExportPropAutType());
 			out.close();
 		}
@@ -962,7 +963,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// If required, export DA 
 		if (prism.getSettings().getExportPropAut()) {
 			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
-			PrismLog out = new PrismFileLog(prism.getSettings().getExportPropAutFilename());
+			PrintStream out = PrismUtils.newPrintStream(prism.getSettings().getExportPropAutFilename());
 			da.print(out, prism.getSettings().getExportPropAutType());
 			out.close();
 			//da.printDot(new java.io.PrintStream("da.dot"));

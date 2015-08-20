@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
@@ -335,6 +337,18 @@ public class PrismUtils
 		/*for (String s : new String[] { "1g", "1500m", "2g", "1000m", "1024m", "1" }) {
 			System.out.println(s + " => " + PrismUtils.convertMemoryStringtoKB(s) * 1024 + " => " + PrismUtils.convertBytesToMemoryString(PrismUtils.convertMemoryStringtoKB(s) * 1024));
 		}*/
+	}
+	
+	/**
+	 * Utility method to create a new PrintStream for a file, but any errors are converted to PrismExceptions
+	 */
+	public static PrintStream newPrintStream(String filename) throws PrismException
+	{
+		try {
+			return new PrintStream(filename);
+		} catch (FileNotFoundException e) {
+			throw new PrismException("File \"" + filename + "\" could not opened for output");
+		}
 	}
 }
 

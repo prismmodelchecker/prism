@@ -29,6 +29,7 @@
 package prism;
 
 import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -93,7 +94,7 @@ public class MultiObjModelChecker extends PrismComponent
 		if (prism.getSettings().getExportPropAut()) {
 			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(prism.getSettings().getExportPropAutFilename(), i + 1);
 			mainLog.println("Exporting DRA to file \"" + exportPropAutFilename + "\"...");
-			PrismLog out = new PrismFileLog(exportPropAutFilename);
+			PrintStream out = PrismUtils.newPrintStream(exportPropAutFilename);
 			dra[i].print(out, settings.getExportPropAutType());
 			out.close();
 		}

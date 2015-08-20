@@ -28,6 +28,7 @@
 package explicit;
 
 import java.awt.Point;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -49,10 +50,9 @@ import parser.type.TypePathBool;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismFileLog;
 import prism.PrismLangException;
-import prism.PrismLog;
 import prism.PrismNotSupportedException;
+import prism.PrismUtils;
 import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
@@ -60,6 +60,7 @@ import acceptance.AcceptanceStreett;
 import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2DA;
+
 import common.IterableStateSet;
 
 /**
@@ -250,7 +251,7 @@ public class LTLModelChecker extends PrismComponent
 		// If required, export DA
 		if (settings.getExportPropAut()) {
 			mainLog.println("Exporting " + da.getAutomataType() + " to file \"" + settings.getExportPropAutFilename() + "\"...");
-			PrismLog out = new PrismFileLog(settings.getExportPropAutFilename());
+			PrintStream out = PrismUtils.newPrintStream(settings.getExportPropAutFilename());
 			da.print(out, settings.getExportPropAutType());
 			out.close();
 		}

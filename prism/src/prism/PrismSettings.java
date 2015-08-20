@@ -1500,6 +1500,8 @@ public class PrismSettings implements Observer
 						setExportPropAutType("txt");
 				    } else if (option.getKey().equals("dot")) {
 						setExportPropAutType("dot");
+				    } else if (option.getKey().equals("hoa")) {
+						setExportPropAutType("hoa");
 				    } else {
 				    		throw new PrismException("Unknown option \"" + option.getKey() + "\" for -" + sw + " switch"); 
 				    }
