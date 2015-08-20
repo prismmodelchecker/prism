@@ -22,6 +22,8 @@
 
 package jltl2ba;
 
+import java.util.BitSet;
+
 /**
  * Class representing an element of 2^AP. 
  */
@@ -60,5 +62,59 @@ public class APElement extends MyBitSet {
 			r += ap_set.getAP(i);
 		}
 		return r;
+	}
+
+	/**
+	 * Return a string representation of this APElement in LBTT format (transition label)
+	 * @param ap_set the underlying AP set
+	 */
+	public String toStringLBTT(APSet ap_set)
+	{
+		if (ap_set.size()==0) {return "t";}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 1; i < ap_set.size(); i++) {
+			sb.append("& ");
+		}
+		for (int i = 0; i < ap_set.size(); i++) {
+			if (!this.get(i)) {
+				sb.append("!");
+			}
+			sb.append(ap_set.getAP(i));
+			sb.append(" ");
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Return a string representation of this APElement in HOA format (transition label)
+	 * @param apSetSize the size of the underlying AP set
+	 */
+	public String toStringHOA(int apSetSize)
+	{
+		return toStringHOA(this, apSetSize);
+	}
+
+	/**
+	 * Return a string representation of a transition label in HOA format,
+	 * where the active/inactive APs are given as a BitSet.
+	 * @param label the set of APs that are active
+	 * @param apSetSize the size of the underlying AP set
+	 */
+	public static String toStringHOA(BitSet label, int apSetSize)
+	{
+		if (apSetSize == 0) {
+			return "t";
+		}
+
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i < apSetSize; i++) {
+			if (i > 0) sb.append("&");
+			if (label.get(i)) {
+				sb.append(" "+i);
+			} else {
+				sb.append("!"+i);
+			}
+		}
+		return sb.toString();
 	}
 }
