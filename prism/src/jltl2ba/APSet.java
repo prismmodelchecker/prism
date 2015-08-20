@@ -135,7 +135,18 @@ public class APSet implements Iterable<String> {
 			out.println(i + ": " + getAP(i));
 		}
 	}
-	
+
+	/** Print this APSet as a HOA AP: header */
+	public void print_hoa(PrintStream out) {
+		out.print("AP: ");
+		out.print(size());
+		for (String ap : this) {
+			// TODO(JK): proper quoting
+			out.print(" \""+ap+"\"");
+		}
+		out.println();
+	}
+
 	public String toString() {
 		String rv = "{";
 		for (Iterator<String> it = this.iterator(); it.hasNext(); ) {
