@@ -32,6 +32,7 @@ import java.util.List;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.visitor.ASTTraverseModify;
 import prism.PrismException;
@@ -86,7 +87,32 @@ public class BooleanUtils
 	public static Expression convertToPositiveNormalForm(Expression expr) throws PrismLangException
 	{
 		// First expand implies/iff/parentheses
-		Expression exprBool = (Expression) expr.accept(new ASTTraverseModify() {
+		// Then do conversion to +ve normal form
+		return doConversionToPositiveNormalForm(removeImpliesIffAndParentheses(expr), false);
+	}
+	
+	/**
+	 * Convert an LTL formula to positive normal form,
+	 * i.e., remove any instances of =>, <=> or () and then push
+	 * all negation inwards so that it only occurs on "propositions".
+	 * A "proposition" is any Expression object that
+	 * is not an operator used to define a Boolean expression (!, &, |, =>, <=>, ())
+	 * or an temporal operator (X, U, F, G, R, W).
+	 * The passed in expression is modified, and the result is returned. 
+	 */
+	public static Expression convertLTLToPositiveNormalForm(Expression expr) throws PrismLangException
+	{
+		// First expand implies/iff/parentheses
+		// Then do conversion to +ve normal form
+		return doConversionToPositiveNormalForm(removeImpliesIffAndParentheses(expr), true);
+	}
+	
+	/**
+	 * Remove any instances of =>, <=> or () by expanding/deleting as appropriate.
+	 */
+	private static Expression removeImpliesIffAndParentheses(Expression expr) throws PrismLangException
+	{
+		return (Expression) expr.accept(new ASTTraverseModify() {
 			public Object visit(ExpressionUnaryOp e) throws PrismLangException
 			{
 				// Remove parentheses: (a)
@@ -116,40 +142,83 @@ public class BooleanUtils
 				return super.visit(e);
 			}
 		});
-		
-		// Then do conversion to +ve normal form
-		return doConversionToPositiveNormalForm(exprBool);
 	}
 	
 	/**
 	 * Do the main part of the conversion of a Boolean expression to positive normal form,
-	 * i.e., push all negation inwards to the propositions. It is assumed that the Boolean expression
-	 * comprises only the operators !, & and |. Anything else is treated as a proposition.
+	 * i.e., push all negation inwards to the propositions. If {@code ltl} is false, it is assumed
+	 * that the Boolean expression comprises only the Boolean operators !, & and |.
+	 * If {@code ltl} is true, the expression can also contain temporal operators (X, U, F, G, R, W). 
+	 * Anything else is treated as a proposition.
 	 * The passed in expression is modified, and the result is returned. 
 	 */
-	private static Expression doConversionToPositiveNormalForm(Expression expr)
+	private static Expression doConversionToPositiveNormalForm(Expression expr, boolean ltl)
 	{
 		// Remove negation
 		if (Expression.isNot(expr)) {
 			Expression neg = ((ExpressionUnaryOp) expr).getOperand();
+			// Boolean operators
 			if (Expression.isNot(neg)) {
 				Expression a = ((ExpressionUnaryOp) neg).getOperand();
 				// !(!a)  ==  a 
-				return doConversionToPositiveNormalForm(a);
+				return doConversionToPositiveNormalForm(a, ltl);
 			} else if (Expression.isOr(neg)) {
 				Expression a = ((ExpressionBinaryOp) neg).getOperand1();
 				Expression b = ((ExpressionBinaryOp) neg).getOperand2();
 				Expression aNeg = Expression.Not(a);
 				Expression bNeg = Expression.Not(b);
 				// !(a | b)  ==  !a & !b 
-				return doConversionToPositiveNormalForm(Expression.And(aNeg, bNeg));
+				return doConversionToPositiveNormalForm(Expression.And(aNeg, bNeg), ltl);
 			} else if (Expression.isAnd(neg)) {
 				Expression a = ((ExpressionBinaryOp) neg).getOperand1();
 				Expression b = ((ExpressionBinaryOp) neg).getOperand2();
 				Expression aNeg = Expression.Not(a);
 				Expression bNeg = Expression.Not(b);
 				// !(a & b)  ==  !a | !b 
-				return doConversionToPositiveNormalForm(Expression.Or(aNeg, bNeg));
+				return doConversionToPositiveNormalForm(Expression.Or(aNeg, bNeg), ltl);
+			}
+			// Temporal operators (if required)
+			else if (ltl) {
+				if (neg instanceof ExpressionTemporal) {
+					ExpressionTemporal exprTemp = (ExpressionTemporal) neg;
+					Expression a = exprTemp.getOperand1();
+					Expression b = exprTemp.getOperand2();
+					Expression aNeg = null, bNeg = null, aCopy = null, bNegCopy = null;
+					switch (exprTemp.getOperator()) {
+					case ExpressionTemporal.P_X:
+						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
+						// !(X b)  ==  X !b
+						return new ExpressionTemporal(ExpressionTemporal.P_X, null, bNeg);
+					case ExpressionTemporal.P_U:
+						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
+						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
+						// !(a U b)  ==  !a R !b
+						return new ExpressionTemporal(ExpressionTemporal.P_R, aNeg, bNeg);
+					case ExpressionTemporal.P_F:
+						 bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
+						// !(F b)  ==  G !b
+						return new ExpressionTemporal(ExpressionTemporal.P_G, null, bNeg);
+					case ExpressionTemporal.P_G:
+						 bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
+						// !(G b)  ==  F !b
+						return new ExpressionTemporal(ExpressionTemporal.P_F, null, bNeg);
+					case ExpressionTemporal.P_W:
+						aCopy = doConversionToPositiveNormalForm(a.deepCopy(), ltl);
+						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
+						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
+						bNegCopy = doConversionToPositiveNormalForm(Expression.Not(b.deepCopy()), ltl);
+						// !(a W b) == a&!b U !a&!b
+						return new ExpressionTemporal(ExpressionTemporal.P_R, Expression.And(aCopy, bNeg), Expression.And(aNeg, bNegCopy));
+					case ExpressionTemporal.P_R:
+						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
+						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
+						// !(a R b)  ==  !a U !b
+						return new ExpressionTemporal(ExpressionTemporal.P_U, aNeg, bNeg);
+					default:
+						// Don't change (shouldn't happen)
+						return expr;
+					}
+				}
 			} else {
 				// Proposition (negated)
 				return expr;
@@ -157,15 +226,23 @@ public class BooleanUtils
 		}
 		// Preserve and
 		if (Expression.isAnd(expr)) {
-			Expression a = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand1());
-			Expression b = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand2());
+			Expression a = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand1(), ltl);
+			Expression b = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand2(), ltl);
 			return Expression.And(a, b);
 		}
 		// Preserve or
 		if (Expression.isOr(expr)) {
-			Expression a = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand1());
-			Expression b = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand2());
+			Expression a = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand1(), ltl);
+			Expression b = doConversionToPositiveNormalForm(((ExpressionBinaryOp) expr).getOperand2(), ltl);
 			return Expression.Or(a, b);
+		}
+		// Preserve temporal operators
+		if (ltl && expr instanceof ExpressionTemporal) {
+			Expression a = ((ExpressionTemporal) expr).getOperand1(); 
+			Expression b = ((ExpressionTemporal) expr).getOperand2();
+			Expression aConv = (a == null) ? null : doConversionToPositiveNormalForm(a, ltl);
+			Expression bConv = (b == null) ? null : doConversionToPositiveNormalForm(b, ltl);
+			return new ExpressionTemporal(((ExpressionTemporal) expr).getOperator(), aConv, bConv);
 		}
 		// Proposition
 		return expr;
