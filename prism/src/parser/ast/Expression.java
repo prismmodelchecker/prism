@@ -761,6 +761,7 @@ public abstract class Expression extends ASTElement
 	/**
 	 * Test if an expression is an LTL formula and is in positive normal form,
 	 * i.e. where negation only occurs at the level of state formulae.
+	 * This means that the operators => and <=> are also disallowed. 
 	 */
 	public static boolean isPositiveNormalFormLTL(Expression expr)
 	{
@@ -782,7 +783,15 @@ public abstract class Expression extends ASTElement
 		}
 		else if (expr instanceof ExpressionBinaryOp) {
 			ExpressionBinaryOp exprBinOp = (ExpressionBinaryOp) expr;
-			return isPositiveNormalFormLTL(exprBinOp.getOperand1()) && isPositiveNormalFormLTL(exprBinOp.getOperand2());
+			int op = exprBinOp.getOperator();
+			switch (op) {
+			// => and <=> are not allowed
+			case ExpressionBinaryOp.IMPLIES:
+			case ExpressionBinaryOp.IFF:
+				return false;
+			default:
+				return isPositiveNormalFormLTL(exprBinOp.getOperand1()) && isPositiveNormalFormLTL(exprBinOp.getOperand2());
+			}
 		}
 		else if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
