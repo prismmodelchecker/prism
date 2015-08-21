@@ -37,8 +37,10 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
+import parser.BooleanUtils;
 import parser.ast.*;
 import parser.type.*;
+import parser.visitor.*;
 import prism.ModelType;
 import prism.PrismLangException;
 
@@ -73,6 +75,7 @@ public class PrismParser
 				System.out.println("Where: <switch> = -modulesfile or -mf");
 				System.out.println("                  -propertiesfile or -pf");
 				System.out.println("                  -expression or -e");
+				System.out.println("                  -ltl or -l");
 				System.exit(1);
 			}
 			
@@ -103,6 +106,25 @@ public class PrismParser
 				expr.semanticCheck();
 				System.out.println("Type: " + expr.getType().getTypeString());
 				System.out.println("Eval: " + expr.evaluate());
+			}
+			else if (args[0].equals("-ltl") || args[0].equals("-l")) {
+				Expression expr = p.parseSingleLTLFormula(str);
+				expr = (Expression) expr.accept(new ASTTraverseModify() {
+					public Object visit(ExpressionIdent e) throws PrismLangException
+					{
+						return new parser.ast.ExpressionVar(e.getName(), TypeBool.getInstance());
+					}
+				});
+				System.out.println("LTL formula: " + expr.toString());
+				System.out.print("Tree:\n=====\n" + expr.toTreeString());
+				expr.typeCheck();
+				expr.semanticCheck();
+				System.out.println("Type: " + expr.getType().getTypeString());
+				boolean pnf = Expression.isPositiveNormalFormLTL(expr);
+				System.out.println("Positive normal form: " + pnf);
+				if (!pnf) {
+					System.out.println("Positive normal form conversion: " + BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy()));
+				}
 			} else {
 				System.out.println("Unknown switch"); System.exit(1);
 			}
@@ -186,6 +208,24 @@ public class PrismParser
 		// Parse
 		try {
 			expr = SingleExpression();
+		}
+		catch (ParseException e) {
+			throw generateSyntaxError(e);
+		}
+		return expr;
+	}
+	
+	// Parse a single LTL formula
+	
+	public Expression parseSingleLTLFormula(InputStream str) throws PrismLangException
+	{
+		Expression expr = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		// Parse
+		try {
+			expr = SingleLTLFormula();
 		}
 		catch (ParseException e) {
 			throw generateSyntaxError(e);
@@ -598,6 +638,16 @@ Expression SingleExpression() :
 }
 {
 	( ret = Expression(false, false) <EOF> ) { return ret; }
+}
+
+// A single LTL formula
+
+Expression SingleLTLFormula() :
+{
+	Expression ret;
+}
+{
+	( ret = Expression(true, true) <EOF> ) { return ret; }
 }
 
 //-----------------------------------------------------------------------------------
