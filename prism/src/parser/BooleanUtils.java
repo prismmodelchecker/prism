@@ -165,17 +165,17 @@ public class BooleanUtils
 			} else if (Expression.isOr(neg)) {
 				Expression a = ((ExpressionBinaryOp) neg).getOperand1();
 				Expression b = ((ExpressionBinaryOp) neg).getOperand2();
-				Expression aNeg = Expression.Not(a);
-				Expression bNeg = Expression.Not(b);
+				Expression aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
+				Expression bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 				// !(a | b)  ==  !a & !b 
-				return doConversionToPositiveNormalForm(Expression.And(aNeg, bNeg), ltl);
+				return Expression.And(aNeg, bNeg);
 			} else if (Expression.isAnd(neg)) {
 				Expression a = ((ExpressionBinaryOp) neg).getOperand1();
 				Expression b = ((ExpressionBinaryOp) neg).getOperand2();
-				Expression aNeg = Expression.Not(a);
-				Expression bNeg = Expression.Not(b);
+				Expression aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
+				Expression bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 				// !(a & b)  ==  !a | !b 
-				return doConversionToPositiveNormalForm(Expression.Or(aNeg, bNeg), ltl);
+				return Expression.Or(aNeg, bNeg);
 			}
 			// Temporal operators (if required)
 			else if (ltl) {
