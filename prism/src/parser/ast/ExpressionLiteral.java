@@ -107,6 +107,16 @@ public class ExpressionLiteral extends Expression
 	{
 		return v.visit(this);
 	}
+
+	@Override
+	public Expression deepCopy()
+	{
+		Expression expr = new ExpressionLiteral(type, value, string);
+		expr.setPosition(this);
+		return expr;
+	}
+
+	// Standard methods
 	
 	@Override
 	public String toString()
@@ -115,11 +125,36 @@ public class ExpressionLiteral extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public int hashCode()
 	{
-		Expression expr = new ExpressionLiteral(type, value, string);
-		expr.setPosition(this);
-		return expr;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((string == null) ? 0 : string.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionLiteral other = (ExpressionLiteral) obj;
+		if (string == null) {
+			if (other.string != null)
+				return false;
+		} else if (!string.equals(other.string))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		return true;
 	}
 }
 

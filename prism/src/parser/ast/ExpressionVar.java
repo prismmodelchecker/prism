@@ -107,12 +107,6 @@ public class ExpressionVar extends Expression
 	{
 		return v.visit(this);
 	}
-	
-	@Override
-	public String toString()
-	{
-		return name;
-	}
 
 	@Override
 	public Expression deepCopy()
@@ -121,6 +115,44 @@ public class ExpressionVar extends Expression
 		expr.setIndex(index);
 		expr.setPosition(this);
 		return expr;
+	}
+
+	// Standard methods
+	
+	@Override
+	public String toString()
+	{
+		return name;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + index;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionVar other = (ExpressionVar) obj;
+		if (index != other.index)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
 	}
 }
 

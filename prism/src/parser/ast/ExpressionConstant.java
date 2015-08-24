@@ -33,7 +33,7 @@ import parser.type.*;
 
 public class ExpressionConstant extends Expression
 {
-	String name;
+	protected String name;
 	
 	// Constructors
 	
@@ -99,17 +99,46 @@ public class ExpressionConstant extends Expression
 	}
 	
 	@Override
+	public Expression deepCopy()
+	{
+		Expression ret = new ExpressionConstant(name, type);
+		ret.setPosition(this);
+		return ret;
+	}
+	
+	// Standard methods
+	
+	@Override
 	public String toString()
 	{
 		return name;
 	}
 
 	@Override
-	public Expression deepCopy()
+	public int hashCode()
 	{
-		Expression ret = new ExpressionConstant(name, type);
-		ret.setPosition(this);
-		return ret;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionConstant other = (ExpressionConstant) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
 	}
 }
 

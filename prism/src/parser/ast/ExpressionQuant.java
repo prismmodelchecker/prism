@@ -160,6 +160,56 @@ public abstract class ExpressionQuant extends Expression
 	{
 		return filter;
 	}
+
+	// Standard methods
+	
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((bound == null) ? 0 : bound.hashCode());
+		result = prime * result + ((expression == null) ? 0 : expression.hashCode());
+		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
+		result = prime * result + ((modifier == null) ? 0 : modifier.hashCode());
+		result = prime * result + ((relOp == null) ? 0 : relOp.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionQuant other = (ExpressionQuant) obj;
+		if (bound == null) {
+			if (other.bound != null)
+				return false;
+		} else if (!bound.equals(other.bound))
+			return false;
+		if (expression == null) {
+			if (other.expression != null)
+				return false;
+		} else if (!expression.equals(other.expression))
+			return false;
+		if (filter == null) {
+			if (other.filter != null)
+				return false;
+		} else if (!filter.equals(other.filter))
+			return false;
+		if (modifier == null) {
+			if (other.modifier != null)
+				return false;
+		} else if (!modifier.equals(other.modifier))
+			return false;
+		if (relOp != other.relOp)
+			return false;
+		return true;
+	}
 }
 
 //------------------------------------------------------------------------------

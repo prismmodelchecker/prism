@@ -162,6 +162,20 @@ public class ExpressionStrategy extends Expression
 	}
 
 	@Override
+	public Expression deepCopy()
+	{
+		ExpressionStrategy expr = new ExpressionStrategy();
+		expr.setThereExists(isThereExists());
+		expr.coalition = new Coalition(coalition);
+		expr.setExpression(expression == null ? null : expression.deepCopy());
+		expr.setType(type);
+		expr.setPosition(this);
+		return expr;
+	}
+
+	// Standard methods
+
+	@Override
 	public String toString()
 	{
 		String s = "";
@@ -173,14 +187,38 @@ public class ExpressionStrategy extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public int hashCode()
 	{
-		ExpressionStrategy expr = new ExpressionStrategy();
-		expr.setThereExists(isThereExists());
-		expr.coalition = new Coalition(coalition);
-		expr.setExpression(expression == null ? null : expression.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((coalition == null) ? 0 : coalition.hashCode());
+		result = prime * result + ((expression == null) ? 0 : expression.hashCode());
+		result = prime * result + (thereExists ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionStrategy other = (ExpressionStrategy) obj;
+		if (coalition == null) {
+			if (other.coalition != null)
+				return false;
+		} else if (!coalition.equals(other.coalition))
+			return false;
+		if (expression == null) {
+			if (other.expression != null)
+				return false;
+		} else if (!expression.equals(other.expression))
+			return false;
+		if (thereExists != other.thereExists)
+			return false;
+		return true;
 	}
 }

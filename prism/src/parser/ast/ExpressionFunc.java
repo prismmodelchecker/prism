@@ -364,6 +364,26 @@ public class ExpressionFunc extends Expression
 	}
 
 	@Override
+	public Expression deepCopy()
+	{
+		int i, n;
+		ExpressionFunc e;
+
+		e = new ExpressionFunc(name);
+		e.setOldStyle(oldStyle);
+		n = getNumOperands();
+		for (i = 0; i < n; i++) {
+			e.addOperand((Expression) getOperand(i).deepCopy());
+		}
+		e.setType(type);
+		e.setPosition(this);
+
+		return e;
+	}
+	
+	// Standard methods
+	
+	@Override
 	public String toString()
 	{
 		int i, n;
@@ -388,21 +408,42 @@ public class ExpressionFunc extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public int hashCode()
 	{
-		int i, n;
-		ExpressionFunc e;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + code;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (oldStyle ? 1231 : 1237);
+		result = prime * result + ((operands == null) ? 0 : operands.hashCode());
+		return result;
+	}
 
-		e = new ExpressionFunc(name);
-		e.setOldStyle(oldStyle);
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			e.addOperand((Expression) getOperand(i).deepCopy());
-		}
-		e.setType(type);
-		e.setPosition(this);
-
-		return e;
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionFunc other = (ExpressionFunc) obj;
+		if (code != other.code)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (oldStyle != other.oldStyle)
+			return false;
+		if (operands == null) {
+			if (other.operands != null)
+				return false;
+		} else if (!operands.equals(other.operands))
+			return false;
+		return true;
 	}
 }
 

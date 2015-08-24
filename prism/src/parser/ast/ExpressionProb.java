@@ -140,6 +140,21 @@ public class ExpressionProb extends ExpressionQuant
 	}
 
 	@Override
+	public Expression deepCopy()
+	{
+		ExpressionProb expr = new ExpressionProb();
+		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
+		expr.setRelOp(getRelOp());
+		expr.setBound(getBound() == null ? null : getBound().deepCopy());
+		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
+		expr.setType(type);
+		expr.setPosition(this);
+		return expr;
+	}
+
+	// Standard methods
+
+	@Override
 	public String toString()
 	{
 		String s = "";
@@ -152,19 +167,6 @@ public class ExpressionProb extends ExpressionQuant
 		s += " ]";
 
 		return s;
-	}
-
-	@Override
-	public Expression deepCopy()
-	{
-		ExpressionProb expr = new ExpressionProb();
-		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
-		expr.setRelOp(getRelOp());
-		expr.setBound(getBound() == null ? null : getBound().deepCopy());
-		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
 	}
 }
 

@@ -32,8 +32,8 @@ import prism.PrismLangException;
 
 public class ExpressionFormula extends Expression
 {
-	String name;
-	Expression definition;
+	protected String name;
+	protected Expression definition;
 	
 	// Constructors
 	
@@ -113,18 +113,53 @@ public class ExpressionFormula extends Expression
 	}
 		
 	@Override
-	public String toString()
-	{
-		return name;
-	}
-
-	@Override
 	public Expression deepCopy()
 	{
 		ExpressionFormula ret = new ExpressionFormula(name);
 		ret.setDefinition(definition == null ? null : definition.deepCopy());
 		ret.setPosition(this);
 		return ret;
+	}
+
+	// Standard methods
+	
+	@Override
+	public String toString()
+	{
+		return name;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionFormula other = (ExpressionFormula) obj;
+		if (definition == null) {
+			if (other.definition != null)
+				return false;
+		} else if (!definition.equals(other.definition))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
 	}
 }
 

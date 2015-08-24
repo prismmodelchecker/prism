@@ -238,6 +238,25 @@ public class ExpressionTemporal extends Expression
 	}
 
 	@Override
+	public Expression deepCopy()
+	{
+		ExpressionTemporal expr = new ExpressionTemporal();
+		expr.setOperator(op);
+		if (operand1 != null)
+			expr.setOperand1(operand1.deepCopy());
+		if (operand2 != null)
+			expr.setOperand2(operand2.deepCopy());
+		expr.setLowerBound(lBound == null ? null : lBound.deepCopy(), lBoundStrict);
+		expr.setUpperBound(uBound == null ? null : uBound.deepCopy(), uBoundStrict);
+		expr.equals = equals;
+		expr.setType(type);
+		expr.setPosition(this);
+		return expr;
+	}
+
+	// Standard methods
+
+	@Override
 	public String toString()
 	{
 		String s = "";
@@ -267,20 +286,60 @@ public class ExpressionTemporal extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public int hashCode()
 	{
-		ExpressionTemporal expr = new ExpressionTemporal();
-		expr.setOperator(op);
-		if (operand1 != null)
-			expr.setOperand1(operand1.deepCopy());
-		if (operand2 != null)
-			expr.setOperand2(operand2.deepCopy());
-		expr.setLowerBound(lBound == null ? null : lBound.deepCopy(), lBoundStrict);
-		expr.setUpperBound(uBound == null ? null : uBound.deepCopy(), uBoundStrict);
-		expr.equals = equals;
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (equals ? 1231 : 1237);
+		result = prime * result + ((lBound == null) ? 0 : lBound.hashCode());
+		result = prime * result + (lBoundStrict ? 1231 : 1237);
+		result = prime * result + op;
+		result = prime * result + ((operand1 == null) ? 0 : operand1.hashCode());
+		result = prime * result + ((operand2 == null) ? 0 : operand2.hashCode());
+		result = prime * result + ((uBound == null) ? 0 : uBound.hashCode());
+		result = prime * result + (uBoundStrict ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionTemporal other = (ExpressionTemporal) obj;
+		if (equals != other.equals)
+			return false;
+		if (lBound == null) {
+			if (other.lBound != null)
+				return false;
+		} else if (!lBound.equals(other.lBound))
+			return false;
+		if (lBoundStrict != other.lBoundStrict)
+			return false;
+		if (op != other.op)
+			return false;
+		if (operand1 == null) {
+			if (other.operand1 != null)
+				return false;
+		} else if (!operand1.equals(other.operand1))
+			return false;
+		if (operand2 == null) {
+			if (other.operand2 != null)
+				return false;
+		} else if (!operand2.equals(other.operand2))
+			return false;
+		if (uBound == null) {
+			if (other.uBound != null)
+				return false;
+		} else if (!uBound.equals(other.uBound))
+			return false;
+		if (uBoundStrict != other.uBoundStrict)
+			return false;
+		return true;
 	}
 
 	// Other useful methods

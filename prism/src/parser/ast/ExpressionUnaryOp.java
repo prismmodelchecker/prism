@@ -133,6 +133,17 @@ public class ExpressionUnaryOp extends Expression
 	}
 
 	@Override
+	public Expression deepCopy()
+	{
+		ExpressionUnaryOp expr = new ExpressionUnaryOp(op, operand.deepCopy());
+		expr.setType(type);
+		expr.setPosition(this);
+		return expr;
+	}
+
+	// Standard methods
+
+	@Override
 	public String toString()
 	{
 		if (op == PARENTH)
@@ -142,12 +153,33 @@ public class ExpressionUnaryOp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public int hashCode()
 	{
-		ExpressionUnaryOp expr = new ExpressionUnaryOp(op, operand.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + op;
+		result = prime * result + ((operand == null) ? 0 : operand.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ExpressionUnaryOp other = (ExpressionUnaryOp) obj;
+		if (op != other.op)
+			return false;
+		if (operand == null) {
+			if (other.operand != null)
+				return false;
+		} else if (!operand.equals(other.operand))
+			return false;
+		return true;
 	}
 }
 

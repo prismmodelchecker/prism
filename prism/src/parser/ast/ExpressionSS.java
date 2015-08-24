@@ -124,6 +124,21 @@ public class ExpressionSS extends ExpressionQuant
 	{
 		return v.visit(this);
 	}
+
+	@Override
+	public Expression deepCopy()
+	{
+		ExpressionSS expr = new ExpressionSS();
+		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
+		expr.setRelOp(getRelOp());
+		expr.setBound(getBound() == null ? null : getBound().deepCopy());
+		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
+		expr.setType(type);
+		expr.setPosition(this);
+		return expr;
+	}
+
+	// Standard methods
 	
 	@Override
 	public String toString()
@@ -137,19 +152,6 @@ public class ExpressionSS extends ExpressionQuant
 		s += " ]";
 		
 		return s;
-	}
-
-	@Override
-	public Expression deepCopy()
-	{
-		ExpressionSS expr = new ExpressionSS();
-		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
-		expr.setRelOp(getRelOp());
-		expr.setBound(getBound() == null ? null : getBound().deepCopy());
-		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
 	}
 }
 
