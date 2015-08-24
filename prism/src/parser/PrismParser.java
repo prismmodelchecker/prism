@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
+import jltl2ba.SimpleLTL;
 import parser.BooleanUtils;
 import parser.ast.*;
 import parser.type.*;
@@ -85,18 +86,29 @@ public class PrismParser implements PrismParserConstants {
                                 System.out.println("LTL formula: " + expr.toString());
                                 System.out.print("Tree:\u005cn=====\u005cn" + expr.toTreeString());
                                 expr.typeCheck();
-                                expr.semanticCheck();
+                                //expr.semanticCheck();
                                 System.out.println("Type: " + expr.getType().getTypeString());
                                 boolean pnf = Expression.isPositiveNormalFormLTL(expr);
                                 System.out.println("Positive normal form: " + pnf);
                                 if (!pnf) {
                                         System.out.println("Positive normal form conversion: " + BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy()));
                                 }
+                                Expression expr2 = (Expression) expr.deepCopy().accept(new ASTTraverseModify() {
+                                        public Object visit(ExpressionVar e) throws PrismLangException
+                                        {
+                                                        return new parser.ast.ExpressionLabel(e.getName());
+                                        }
+                                });
+                                SimpleLTL sltl = expr2.convertForJltl2ba();
+                                System.out.println("LBT: " + sltl.toStringLBT());
+                                System.out.println("Spot: " + sltl.toStringSpot());
+                                System.out.println("Spin: " + sltl.toStringSpin());
                         } else {
                                 System.out.println("Unknown switch"); System.exit(1);
                         }
                 }
                 catch (PrismLangException e) {
+                	e.printStackTrace();
                         System.out.println("Error in "+src+": " + e.getMessage()+"."); System.exit(1);
                 }
                 catch (FileNotFoundException e) {
@@ -3477,64 +3489,6 @@ public class PrismParser implements PrismParserConstants {
     finally { jj_save(17, xla); }
   }
 
-  static private boolean jj_3R_165() {
-    if (jj_scan_token(P)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_190()) jj_scanpos = xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_191()) {
-    jj_scanpos = xsp;
-    if (jj_3R_192()) {
-    jj_scanpos = xsp;
-    if (jj_3R_193()) {
-    jj_scanpos = xsp;
-    if (jj_3R_194()) return true;
-    }
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_62() {
-    if (jj_scan_token(U)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_147() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_165()) {
-    jj_scanpos = xsp;
-    if (jj_3R_166()) {
-    jj_scanpos = xsp;
-    if (jj_3R_167()) return true;
-    }
-    }
-    if (jj_scan_token(LBRACKET)) return true;
-    if (jj_3R_38()) return true;
-    xsp = jj_scanpos;
-    if (jj_3R_168()) jj_scanpos = xsp;
-    if (jj_scan_token(RBRACKET)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_56() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_62()) {
-    jj_scanpos = xsp;
-    if (jj_3R_63()) {
-    jj_scanpos = xsp;
-    if (jj_3R_64()) return true;
-    }
-    }
-    xsp = jj_scanpos;
-    if (jj_3R_65()) jj_scanpos = xsp;
-    if (jj_3R_55()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_189() {
     if (jj_scan_token(COMMA)) return true;
     if (jj_3R_38()) return true;
@@ -4337,13 +4291,6 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
-  static private boolean jj_3_1() {
-    if (jj_scan_token(MODULE)) return true;
-    if (jj_3R_29()) return true;
-    if (jj_scan_token(EQ)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_117() {
     Token xsp;
     xsp = jj_scanpos;
@@ -4352,6 +4299,13 @@ public class PrismParser implements PrismParserConstants {
     if (jj_3R_123()) return true;
     }
     if (jj_3R_116()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_1() {
+    if (jj_scan_token(MODULE)) return true;
+    if (jj_3R_29()) return true;
+    if (jj_scan_token(EQ)) return true;
     return false;
   }
 
@@ -5100,6 +5054,64 @@ public class PrismParser implements PrismParserConstants {
 
   static private boolean jj_3R_63() {
     if (jj_scan_token(W)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_165() {
+    if (jj_scan_token(P)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_190()) jj_scanpos = xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_191()) {
+    jj_scanpos = xsp;
+    if (jj_3R_192()) {
+    jj_scanpos = xsp;
+    if (jj_3R_193()) {
+    jj_scanpos = xsp;
+    if (jj_3R_194()) return true;
+    }
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_62() {
+    if (jj_scan_token(U)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_147() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_165()) {
+    jj_scanpos = xsp;
+    if (jj_3R_166()) {
+    jj_scanpos = xsp;
+    if (jj_3R_167()) return true;
+    }
+    }
+    if (jj_scan_token(LBRACKET)) return true;
+    if (jj_3R_38()) return true;
+    xsp = jj_scanpos;
+    if (jj_3R_168()) jj_scanpos = xsp;
+    if (jj_scan_token(RBRACKET)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_56() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_62()) {
+    jj_scanpos = xsp;
+    if (jj_3R_63()) {
+    jj_scanpos = xsp;
+    if (jj_3R_64()) return true;
+    }
+    }
+    xsp = jj_scanpos;
+    if (jj_3R_65()) jj_scanpos = xsp;
+    if (jj_3R_55()) return true;
     return false;
   }
 

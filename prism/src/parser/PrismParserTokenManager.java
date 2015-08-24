@@ -3,6 +3,7 @@ package parser;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import jltl2ba.SimpleLTL;
 import parser.BooleanUtils;
 import parser.ast.*;
 import parser.type.*;

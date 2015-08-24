@@ -37,6 +37,7 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
+import jltl2ba.SimpleLTL;
 import parser.BooleanUtils;
 import parser.ast.*;
 import parser.type.*;
@@ -125,6 +126,16 @@ public class PrismParser
 				if (!pnf) {
 					System.out.println("Positive normal form conversion: " + BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy()));
 				}
+				Expression expr2 = (Expression) expr.deepCopy().accept(new ASTTraverseModify() {
+					public Object visit(ExpressionVar e) throws PrismLangException
+					{
+							return new parser.ast.ExpressionLabel(e.getName());
+					}
+				});
+				SimpleLTL sltl = expr2.convertForJltl2ba();
+				System.out.println("LBT: " + sltl.toStringLBT());
+				System.out.println("Spot: " + sltl.toStringSpot());
+				System.out.println("Spin: " + sltl.toStringSpin());
 			} else {
 				System.out.println("Unknown switch"); System.exit(1);
 			}
