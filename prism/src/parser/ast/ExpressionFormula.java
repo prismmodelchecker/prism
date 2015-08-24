@@ -73,9 +73,7 @@ public class ExpressionFormula extends Expression
 	
 	// Methods required for Expression:
 	
-	/**
-	 * Is this expression constant?
-	 */
+	@Override
 	public boolean isConstant()
 	{
 		// Unless defined, don't know so err on the side of caution
@@ -89,10 +87,7 @@ public class ExpressionFormula extends Expression
 		return definition == null ? false : definition.isProposition();
 	}
 	
-	/**
-	 * Evaluate this expression, return result.
-	 * Note: assumes that type checking has been done already.
-	 */
+	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		// Should only be called (if at all) after definition has been set
@@ -111,25 +106,19 @@ public class ExpressionFormula extends Expression
 
 	// Methods required for ASTElement:
 	
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 		
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		return name;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public Expression deepCopy()
 	{
 		ExpressionFormula ret = new ExpressionFormula(name);

@@ -82,9 +82,7 @@ public class ExpressionITE extends Expression
 
 	// Methods required for Expression:
 
-	/**
-	 * Is this expression constant?
-	 */
+	@Override
 	public boolean isConstant()
 	{
 		return operand1.isConstant() && operand2.isConstant() && operand3.isConstant();
@@ -96,10 +94,7 @@ public class ExpressionITE extends Expression
 		return operand1.isProposition() && operand2.isProposition() && operand3.isProposition();
 	}
 	
-	/**
-	 * Evaluate this expression, return result. Note: assumes that type checking
-	 * has been done already.
-	 */
+	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		return operand1.evaluateBoolean(ec) ? operand2.evaluate(ec) : operand3.evaluate(ec);
@@ -113,25 +108,19 @@ public class ExpressionITE extends Expression
 
 	// Methods required for ASTElement:
 
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		return operand1 + " ? " + operand2 + " : " + operand3;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public Expression deepCopy()
 	{
 		ExpressionITE expr = new ExpressionITE(operand1.deepCopy(), operand2.deepCopy(), operand3.deepCopy());

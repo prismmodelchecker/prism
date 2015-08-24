@@ -115,9 +115,7 @@ public class ExpressionBinaryOp extends Expression
 
 	// Methods required for Expression:
 
-	/**
-	 * Is this expression constant?
-	 */
+	@Override
 	public boolean isConstant()
 	{
 		return operand1.isConstant() && operand2.isConstant();
@@ -129,10 +127,7 @@ public class ExpressionBinaryOp extends Expression
 		return operand1.isProposition() && operand2.isProposition();
 	}
 
-	/**
-	 * Evaluate this expression, return result.
-	 * Note: assumes that type checking has been done already.
-	 */
+	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		switch (op) {
@@ -212,25 +207,19 @@ public class ExpressionBinaryOp extends Expression
 
 	// Methods required for ASTElement:
 
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		return operand1 + opSymbols[op] + operand2;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public Expression deepCopy()
 	{
 		ExpressionBinaryOp expr = new ExpressionBinaryOp(op, operand1.deepCopy(), operand2.deepCopy());

@@ -88,9 +88,7 @@ public class ExpressionUnaryOp extends Expression
 
 	// Methods required for Expression:
 
-	/**
-	 * Is this expression constant?
-	 */
+	@Override
 	public boolean isConstant()
 	{
 		return operand.isConstant();
@@ -102,10 +100,7 @@ public class ExpressionUnaryOp extends Expression
 		return operand.isProposition();
 	}
 	
-	/**
-	 * Evaluate this expression, return result. Note: assumes that type checking
-	 * has been done already.
-	 */
+	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		switch (op) {
@@ -131,17 +126,13 @@ public class ExpressionUnaryOp extends Expression
 
 	// Methods required for ASTElement:
 
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		if (op == PARENTH)
@@ -150,9 +141,7 @@ public class ExpressionUnaryOp extends Expression
 			return opSymbols[op] + operand;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public Expression deepCopy()
 	{
 		ExpressionUnaryOp expr = new ExpressionUnaryOp(op, operand.deepCopy());

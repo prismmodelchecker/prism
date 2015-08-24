@@ -184,9 +184,7 @@ public class ExpressionFilter extends Expression
 	
 	// Methods required for Expression:
 
-	/**
-	 * Is this expression constant?
-	 */
+	@Override
 	public boolean isConstant()
 	{
 		// Note: In some sense, ExpressionFilters are (often) constant since they return the same
@@ -201,15 +199,13 @@ public class ExpressionFilter extends Expression
 		return false;
 	}
 	
-	/**
-	 * Evaluate this expression, return result.
-	 * Note: assumes that type checking has been done already.
-	 */
+	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a filter without a model");
 	}
 
+	@Override
 	public boolean returnsSingleValue()
 	{
 		// Most filters return a single value, but there are some exceptions...
@@ -223,17 +219,13 @@ public class ExpressionFilter extends Expression
 	
 	// Methods required for ASTElement:
 
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		String s = "";
@@ -246,9 +238,7 @@ public class ExpressionFilter extends Expression
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public Expression deepCopy()
 	{
 		ExpressionFilter e;
@@ -260,6 +250,8 @@ public class ExpressionFilter extends Expression
 
 		return e;
 	}
+	
+	// Utility methods
 	
 	/**
 	 * Wrap a "default" ExpressionFilter around an Expression representing a property to be model checked,
