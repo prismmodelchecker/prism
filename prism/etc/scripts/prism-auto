@@ -178,8 +178,11 @@ def getMatchingArgListsForFile(file):
 # Add any extra args provided to this script to each of the given argument lists
 
 def addExtraArgs(argLists):
-    if options.extraArgs:
-        return argLists + options.extraArgs.split(' ')
+    if len(options.extraArgs) > 0:
+        result = argLists
+        for x in options.extraArgs:
+            result = result + x.split(' ')
+        return result
     else:
         return argLists
 
@@ -638,7 +641,7 @@ parser.add_option("-m", "--matching", action="store_true", dest="matching", defa
 parser.add_option("-b", "--build", action="store_true", dest="build", default=False, help="Just build models, don't model check properties")
 parser.add_option("-p", "--prog", dest="prismExec", metavar="FILE", default="prism", help="Program to execute [default=prism]")
 parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
-parser.add_option("-x", "--extra", dest="extraArgs", metavar="XXX", default="", help="Pass (single string of) extra switches to PRISM")
+parser.add_option("-x", "--extra", action="append", dest="extraArgs", metavar="XXX", default=[], help="Pass extra switches to PRISM")
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
 parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
