@@ -201,10 +201,16 @@ public abstract class SCCComputer extends PrismComponent
 		mainLog.print("\nSCCs: " + sccs.size()); // Note: the BDDs in sccs have been derefed but the array still exists
 		mainLog.print(", BSCCs: " + bsccs.size());
 		mainLog.println(", non-BSCC states: " + JDD.GetNumMintermsString(notInBSCCs, allDDRowVars.n()));
-		mainLog.print("BSCC sizes:");
-		for (i = 0; i < bsccs.size(); i++) {
-			mainLog.print(" " + (i + 1) + ":" + JDD.GetNumMintermsString(bsccs.elementAt(i), allDDRowVars.n()));
+
+		boolean verbose = getSettings().getBoolean(PrismSettings.PRISM_VERBOSE);
+		if (!verbose && bsccs.size() > 10) {
+			mainLog.print("BSCC sizes: More than 10 BSCCs, use verbose mode to view sizes for all.\n");
+		} else {
+			mainLog.print("BSCC sizes:");
+			for (i = 0; i < bsccs.size(); i++) {
+				mainLog.print(" " + (i + 1) + ":" + JDD.GetNumMintermsString(bsccs.elementAt(i), allDDRowVars.n()));
+			}
+			mainLog.println();
 		}
-		mainLog.println();
 	}
 }
