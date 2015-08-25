@@ -107,7 +107,7 @@ public class ECComputerDefault extends ECComputer
 		}
 		// Initialise L with set of all states to look in (if non-empty)
 		List<BitSet> L = new ArrayList<BitSet>();
-		if (restrict.cardinality() == 0)
+		if (restrict.isEmpty())
 			return L;
 		L.add(restrict);
 		// Find MECs
@@ -181,7 +181,7 @@ public class ECComputerDefault extends ECComputer
 							act.set(j);
 						}
 					}
-					if (act.cardinality() == 0) {
+					if (act.isEmpty()) {
 						states.clear(i);
 						changed = true;
 					}
@@ -217,7 +217,7 @@ public class ECComputerDefault extends ECComputer
 
 	private boolean isMEC(BitSet b)
 	{
-		if (b.cardinality() == 0)
+		if (b.isEmpty())
 			return false;
 
 		int state = b.nextSetBit(0);
