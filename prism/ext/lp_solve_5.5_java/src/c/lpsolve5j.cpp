@@ -3222,7 +3222,9 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getSensitivityRhs
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_duals, c_dualsfrom, c_dualstill;
+	delete c_duals;
+	delete c_dualsfrom;
+	delete c_dualstill;
 }
 
 /*
@@ -3309,7 +3311,9 @@ JNIEXPORT jobjectArray JNICALL Java_lpsolve_LpSolve_getPtrSensitivityRhs
 
 
 cleanup:
-	delete c_duals, c_dualsfrom, c_dualstill;
+	delete c_duals;
+	delete c_dualsfrom;
+	delete c_dualstill;
 	return result;
 }
 
@@ -3445,7 +3449,8 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getSensitivityObj
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_objfrom, c_objtill;
+	delete c_objfrom;
+	delete c_objtill;
 }
 
 /*
@@ -3518,7 +3523,8 @@ JNIEXPORT jobjectArray JNICALL Java_lpsolve_LpSolve_getPtrSensitivityObj
 
 
 cleanup:
-	delete c_objfrom, c_objtill;
+	delete c_objfrom;
+	delete c_objtill;
 	return result;
 }
 
@@ -3580,7 +3586,10 @@ void getSensitivityObjex
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_objfrom, c_objtill, c_objfromvalue, c_objtillvalue;
+	delete c_objfrom;
+	delete c_objtill;
+	delete c_objfromvalue;
+	delete c_objtillvalue;
 }
 
 
@@ -3658,7 +3667,10 @@ JNIEXPORT jobjectArray JNICALL Java_lpsolve_LpSolve_getPtrSensitivityObjex
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_objfrom, c_objtill, c_objfromvalue, c_objtillvalue;
+	delete c_objfrom;
+	delete c_objtill;
+	delete c_objfromvalue;
+	delete c_objtillvalue;
 	return result;
 }
 
