@@ -66,6 +66,8 @@ public abstract class ModelExplicit implements Model
 	protected List<State> statesList;
 	/** (Optionally) a list of values for constants associated with this model. */
 	protected Values constantValues;
+	/** (Optionally) the list of variables */
+	protected VarList varList;
 	/** (Optionally) some labels (atomic propositions) associated with the model,
 	 * represented as a String->BitSet mapping from their names to the states that satisfy them. */
 	protected Map<String, BitSet> labels = new TreeMap<String, BitSet>();
@@ -94,6 +96,7 @@ public abstract class ModelExplicit implements Model
 		statesList = model.statesList;
 		constantValues = model.constantValues;
 		labels = model.labels;
+		varList = model.varList;
 	}
 
 	/**
@@ -117,6 +120,7 @@ public abstract class ModelExplicit implements Model
 		statesList = null;
 		constantValues = model.constantValues;
 		labels.clear();
+		varList = model.varList;
 	}
 
 	/**
@@ -129,6 +133,7 @@ public abstract class ModelExplicit implements Model
 		deadlocks = new TreeSet<Integer>();
 		statesList = null;
 		constantValues = null;
+		varList = null;
 		labels = new TreeMap<String, BitSet>();
 	}
 
@@ -175,6 +180,14 @@ public abstract class ModelExplicit implements Model
 	public void setConstantValues(Values constantValues)
 	{
 		this.constantValues = constantValues;
+	}
+
+	/**
+	 * Sets the VarList for this model (may be {@code null}).
+	 */
+	public void setVarList(VarList varList)
+	{
+		this.varList = varList;
 	}
 
 	/**
@@ -268,6 +281,12 @@ public abstract class ModelExplicit implements Model
 	public Values getConstantValues()
 	{
 		return constantValues;
+	}
+	
+	@Override
+	public VarList getVarList()
+	{
+		return varList;
 	}
 
 	@Override

@@ -174,6 +174,14 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
+	public VarList getVarList()
+	{
+		// we can return the varList of the model, as we do not change
+		// the variables in the model
+		return model.getVarList();
+	}
+
+	@Override
 	public Values getConstantValues()
 	{
 		throw new UnsupportedOperationException();
