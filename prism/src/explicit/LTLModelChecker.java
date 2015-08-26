@@ -211,8 +211,8 @@ public class LTLModelChecker extends PrismComponent
 	 * @param mc a ProbModelChecker, used for checking maximal state formulas
 	 * @param model the model
 	 * @param expr a path expression, i.e. the LTL formula
- 	 * @param labelBS empty vector to be filled with BitSets for subformulas 
- 	 * @param allowedAcceptance the allowed acceptance types
+	 * @param labelBS empty vector to be filled with BitSets for subformulas 
+	 * @param allowedAcceptance the allowed acceptance types
 	 * @return the DA
 	 */
 	public DA<BitSet,? extends AcceptanceOmega> constructDAForLTLFormula(ProbModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS, AcceptanceType... allowedAcceptance) throws PrismException
