@@ -27,7 +27,9 @@
 
 package prism;
 
-public abstract class PrismLog
+import java.io.Closeable;
+
+public abstract class PrismLog implements Closeable, AutoCloseable
 {
 	/**
 	 * Specifies that only more important messages should be printed
