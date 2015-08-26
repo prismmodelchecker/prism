@@ -216,4 +216,10 @@ public class MDPRewardsSimple implements MDPRewards
 	{
 		return "st: " + this.stateRewards + "; tr:" + this.transRewards;
 	}
+
+	@Override
+	public boolean hasTransitionRewards()
+	{
+		return transRewards != null;
+	}
 }

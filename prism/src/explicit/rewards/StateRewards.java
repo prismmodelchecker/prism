@@ -64,4 +64,11 @@ public abstract class StateRewards implements MCRewards, MDPRewards, STPGRewards
 	 * Perform a deep copy.
 	 */
 	public abstract StateRewards deepCopy();
+
+	@Override
+	public boolean hasTransitionRewards()
+	{
+		// only state rewards
+		return false;
+	}
 }

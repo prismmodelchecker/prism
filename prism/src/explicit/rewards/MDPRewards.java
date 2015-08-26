@@ -46,4 +46,7 @@ public interface MDPRewards extends Rewards
 
 	@Override
 	public MDPRewards liftFromModel(Product<? extends Model> product);
+
+	/** Returns true if this reward structure has transition rewards */
+	public boolean hasTransitionRewards();
 }

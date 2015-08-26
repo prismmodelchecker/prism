@@ -40,4 +40,7 @@ public interface Rewards
 	 * model that is a product of the one that this reward structure is defined over. 
 	 */
 	public Rewards liftFromModel(Product<? extends Model> product);
+
+	/** Returns true if this reward structure has transition rewards */
+	public boolean hasTransitionRewards();
 }

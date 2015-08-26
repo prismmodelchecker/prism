@@ -64,4 +64,11 @@ public class MCRewardsFromMDPRewards implements MCRewards
 	{
 		throw new UnsupportedOperationException();
 	}
+
+	@Override
+	public boolean hasTransitionRewards()
+	{
+		// only state rewards
+		return false;
+	}
 }
