@@ -108,7 +108,6 @@ public class PrismParser implements PrismParserConstants {
                         }
                 }
                 catch (PrismLangException e) {
-                	e.printStackTrace();
                         System.out.println("Error in "+src+": " + e.getMessage()+"."); System.exit(1);
                 }
                 catch (FileNotFoundException e) {

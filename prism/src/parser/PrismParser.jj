@@ -119,7 +119,7 @@ public class PrismParser
 				System.out.println("LTL formula: " + expr.toString());
 				System.out.print("Tree:\n=====\n" + expr.toTreeString());
 				expr.typeCheck();
-				expr.semanticCheck();
+				//expr.semanticCheck();
 				System.out.println("Type: " + expr.getType().getTypeString());
 				boolean pnf = Expression.isPositiveNormalFormLTL(expr);
 				System.out.println("Positive normal form: " + pnf);
