@@ -204,6 +204,10 @@ public class LTL2DA extends PrismComponent
 			builder.redirectOutput(tool_output);
 			builder.redirectErrorStream(true);
 
+			// if we are running under the Nailgun environment, setup the
+			// environment to include the environment variables of the Nailgun client
+			prism.PrismNG.setupChildProcessEnvironment(builder);
+
 			Process p = builder.start();
 			p.getInputStream().close();
 

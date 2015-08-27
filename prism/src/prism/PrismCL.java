@@ -28,6 +28,7 @@ package prism;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -2369,7 +2370,19 @@ public class PrismCL implements PrismModelListener
 
 	public static void main(String[] args)
 	{
-		new PrismCL().go(args);
+		// Normal operation: just run PrismCL
+		if (!(args.length > 0 && "-ng".equals(args[0]))) {
+			new PrismCL().go(args);
+		}
+		// Nailgun server mode (-ng switch)
+		else {
+			try {
+				System.out.println("Starting PRISM-Nailgun server...");
+				com.martiansoftware.nailgun.NGServer.main(new String[0]);
+			} catch (NumberFormatException | UnknownHostException e) {
+				System.out.println("Failed to launch Nailgun server: " + e);
+			}
+		}
 	}
 }
 

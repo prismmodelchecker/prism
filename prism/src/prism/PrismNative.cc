@@ -29,6 +29,7 @@
 #include <string.h>
 #include <limits.h>
 #include <locale.h>
+#include <unistd.h>
 #include "PrismNativeGlob.h"
 #include "jnipointer.h"
 
@@ -179,6 +180,17 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdvFilename(JNIEnv *e
 		export_adv_filename = NULL;
 	}
 }
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jint JNICALL Java_prism_PrismNative_PN_1SetWorkingDirectory(JNIEnv *env, jclass cls, jstring dn) {
+	int rv;
+	const char* dirname = env->GetStringUTFChars(dn, 0);
+	rv = chdir(dirname);
+	env->ReleaseStringUTFChars(dn, dirname);
+	return rv;
+}
+
 //------------------------------------------------------------------------------
 // Some miscellaneous native methods
 //------------------------------------------------------------------------------

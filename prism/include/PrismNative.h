@@ -129,6 +129,14 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdvFilename
 
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_SetWorkingDirectory
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_prism_PrismNative_PN_1SetWorkingDirectory
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_GetStdout
  * Signature: ()J
  */

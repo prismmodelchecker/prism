@@ -420,6 +420,8 @@ bin_scripts:
 	  echo Copying "$(SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
 	  cp $(SRC_DIR)/bin/$$target bin/$$target_trunc; \
 	done;
+	@echo Copying "$(OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
+	cp $(OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
 	@./install.sh silent
 
 # Unless VERSION has been passed in (as VERSION=xxx),
