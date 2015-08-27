@@ -997,7 +997,7 @@ public class PrismCL implements PrismModelListener
 								@Override
 								public void run()
 								{
-									mainLog.println("\nError: Timeout (after "+timeout+" seconds)!");
+									mainLog.println("\nError: Timeout (after " + timeout + " seconds).");
 									mainLog.flush();
 									System.exit(1);
 								}
