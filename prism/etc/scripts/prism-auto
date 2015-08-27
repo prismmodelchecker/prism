@@ -668,8 +668,6 @@ if options.logDir and not os.path.isdir(options.logDir):
     print "Log directory \"" + options.logDir + "\" does not exist"
     sys.exit(1)
 if options.nailgun:
-    exitCode = subprocess.Popen([options.ngprism, "--nailgun-help"], stderr=open(os.devnull, 'w')).wait()
-    print exitCode
     os.system(options.prismExec + " -ng &")
     time.sleep(0.5)
 for arg in args:
