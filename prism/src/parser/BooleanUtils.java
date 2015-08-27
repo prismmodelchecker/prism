@@ -32,8 +32,10 @@ import java.util.List;
 
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
+import parser.type.TypeBool;
 import parser.visitor.ASTTraverseModify;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -158,7 +160,13 @@ public class BooleanUtils
 		if (Expression.isNot(expr)) {
 			Expression neg = ((ExpressionUnaryOp) expr).getOperand();
 			// Boolean operators
-			if (Expression.isNot(neg)) {
+			if (Expression.isTrue(neg)) {
+				// ! true  ==  false
+				return new ExpressionLiteral(TypeBool.getInstance(), false);
+			} else if (Expression.isFalse(neg)) {
+				// ! false  ==  true
+				return new ExpressionLiteral(TypeBool.getInstance(), true);
+			} else if (Expression.isNot(neg)) {
 				Expression a = ((ExpressionUnaryOp) neg).getOperand();
 				// !(!a)  ==  a 
 				return doConversionToPositiveNormalForm(a, ltl);
