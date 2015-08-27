@@ -678,4 +678,4 @@ for arg in args:
     else:
         print "Error: File/directory " + arg + " does not exist"
 if options.nailgun:
-    subprocess.Popen(["ngprism", "stop"]).wait()
+    subprocess.Popen([options.ngprism, "stop"]).wait()
