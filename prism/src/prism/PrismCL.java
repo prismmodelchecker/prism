@@ -31,7 +31,6 @@ import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import parser.Values;
 import parser.ast.Expression;
@@ -917,6 +916,20 @@ public class PrismCL implements PrismModelListener
 		techLog.close();
 	}
 
+	/** Set a timeout, exit program if timeout is reached */
+	private void setTimeout(final int timeout)
+	{
+		common.Timeout.setTimeout(timeout, new Runnable() {
+			@Override
+			public void run()
+			{
+				mainLog.println("\nError: Timeout (after " + timeout + " seconds).");
+				mainLog.flush();
+				System.exit(1);
+			}
+		});
+	}
+
 	// PrismModelListener methods
 
 	@Override
@@ -978,33 +991,17 @@ public class PrismCL implements PrismModelListener
 					i++;
 					// ignore - this is dealt with before java is launched
 				}
+				// timeout
 				else if (sw.equals("timeout")) {
 					if (i < args.length - 1) {
-						String timeoutSpec = args[++i];
-						int multiplier = 1;
-						if (timeoutSpec.endsWith("s")) {
-							timeoutSpec = timeoutSpec.substring(0, timeoutSpec.length()-1);
-						} else if (timeoutSpec.endsWith("m")) {
-							timeoutSpec = timeoutSpec.substring(0, timeoutSpec.length()-1);
-							multiplier = 60;
-						} else if (timeoutSpec.endsWith("h")) {
-							timeoutSpec = timeoutSpec.substring(0, timeoutSpec.length()-1);
-							multiplier = 60*60;
+						int timeout = PrismUtils.convertTimeStringtoSeconds(args[++i]);
+						if (timeout < 0) {
+							errorAndExit("Negative timeout value \"" + timeout + "\" for -" + sw + " switch");
 						}
-						try {
-							final int timeout = Integer.parseInt(timeoutSpec) * multiplier;
-							common.Timeout.setTimeout(timeout, new Runnable() {
-								@Override
-								public void run()
-								{
-									mainLog.println("\nError: Timeout (after " + timeout + " seconds).");
-									mainLog.flush();
-									System.exit(1);
-								}
-							});
-						} catch (NumberFormatException e) {
-							errorAndExit("Illegal timeout value '" + timeoutSpec + "' for -" + sw + " switch");
+						if (timeout > 0) {
+							setTimeout(timeout);
 						}
+						// timeout == 0 -> no timeout
 					} else {
 						errorAndExit("Missing timeout value for -" + sw + " switch");
 					}

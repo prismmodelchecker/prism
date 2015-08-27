@@ -321,6 +321,42 @@ public class PrismUtils
 	}
 
 	/**
+	 * Convert a string representing an amount of time (e.g. 5s, 5m, 5h, 5d, 5w) to the value
+	 * in seconds.
+	 * If the unit is omitted, we assume it is seconds.
+	 */
+	public static int convertTimeStringtoSeconds(String time) throws PrismException
+	{
+		Pattern p = Pattern.compile("([0-9]+)([smhdw]?)");
+		Matcher m = p.matcher(time);
+		if (!m.matches()) {
+			throw new PrismException("Invalid time value \"" + time + "\"");
+		}
+		int value;
+		try {
+			value = Integer.parseInt(m.group(1));
+		} catch (NumberFormatException e) {
+			throw new PrismException("Invalid time value \"" + time + "\"");
+		}
+		switch (m.group(2)) {
+		case "":
+		case "s":  // seconds
+			return value;
+		case "m":  // minutes
+			return value * 60;
+		case "h":  // hours
+			return value * (60 * 60);
+		case "d":  // days
+			return value * (24 * 60 * 60);
+		case "w":  // weeks
+			return value * (7 * 24 * 60 * 60);
+		default:
+			// Shouldn't happen
+			throw new PrismException("Invalid time value \"" + time + "\"");
+		}
+	}
+
+	/**
 	 * Convert a number of bytes to a string representing the amount of memory (e.g. 125k, 50m, 4g).
 	 */
 	public static String convertBytesToMemoryString(long bytes) throws PrismException
