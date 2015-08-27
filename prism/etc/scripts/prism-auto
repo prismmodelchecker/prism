@@ -11,7 +11,7 @@
 
 # Run "prism-auto -h" for details of further options.
 
-import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging
+import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging,time
 from pipes import quote
 from optparse import OptionParser
 
@@ -308,7 +308,10 @@ def runPrism(args, dir=""):
     if options.test:
         if options.testAll: args.append("-testall")
         else: args.append("-test")
-    prismArgs = [options.prismExec] + args
+    if options.nailgun:
+        prismArgs = ["ngprism"] + args
+    else:
+        prismArgs = [options.prismExec] + args
     if options.echo or options.echoFull:
         if options.echoFull:
             prismArgs = ['echo', quote(' '.join(prismArgs)), ';'] + prismArgs
@@ -628,6 +631,8 @@ def printUsage():
     print "Usage: prism-auto ..."
 
 def signal_handler(signal, frame):
+    if options.nailgun:
+        subprocess.Popen(["ngprism", "stop"]).wait()
     sys.exit(1)
 
 # Main program
@@ -644,6 +649,7 @@ parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", d
 parser.add_option("-x", "--extra", action="append", dest="extraArgs", metavar="XXX", default=[], help="Pass extra switches to PRISM")
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
 parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
+parser.add_option("--nailgun", action="store_true", dest="nailgun", default=False, help="Run PRISM in Nailgun mode")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
@@ -660,6 +666,9 @@ if options.debug:
 if options.logDir and not os.path.isdir(options.logDir):
     print "Log directory \"" + options.logDir + "\" does not exist"
     sys.exit(1)
+if options.nailgun:
+    os.system(options.prismExec + " -ng &")
+    time.sleep(0.5)
 for arg in args:
     if os.path.isdir(arg):
         benchmarkDir(arg)
@@ -667,3 +676,5 @@ for arg in args:
         benchmarkFile(arg)
     else:
         print "Error: File/directory " + arg + " does not exist"
+if options.nailgun:
+    subprocess.Popen(["ngprism", "stop"]).wait()
