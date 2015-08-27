@@ -133,7 +133,7 @@ public class BooleanUtils
 					return Expression.Or(Expression.Not(a), b);
 				}
 				// Remove iff: a <=> b
-				if (Expression.isImplies(e)) {
+				if (Expression.isIff(e)) {
 					Expression a = (Expression)(e.getOperand1().accept(this));
 					Expression b = (Expression)(e.getOperand2().accept(this));
 					// a <=> b  ==  (a | !b) & (!a | b) 
