@@ -31,7 +31,7 @@ O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all
 
-all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismNative.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism
+all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismNative.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE)
 
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
@@ -54,11 +54,16 @@ $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(O_FILES)
 $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
 	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
 
-$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism: ngprism.c
-	$(C) $(CPPFLAGS) -o $@ $<
+# Don't build ngprism on Windows/Cygwin for now
+$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE): ngprism.c
+	@if [ "$(EXE)" = "" ]; then \
+	  $(C) $(LDFLAGS) $(CPPFLAGS) -o $@ $<; \
+	else \
+	  touch $@; \
+	fi;
 
 clean: checks
-	@rm -f $(CLASS_FILES) $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) $(O_FILES)
+	@rm -f $(CLASS_FILES) $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) $(O_FILES) $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE)
 
 celan: clean
 
