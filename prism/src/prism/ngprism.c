@@ -695,6 +695,14 @@ int main(int argc, char *argv[], char *env[]) {
      display usage and exit.  Don't handle -h|--help if a command other than
      ng or ng.exe was used, since the appropriate nail should then handle
      --help. */
+  if (argc > 1 && strcmp("stop", argv[1]) == 0) {
+    cmd = "ng-stop";
+  }
+     
+  /* if executing just the ng client with no arguments or -h|--help, then
+     display usage and exit.  Don't handle -h|--help if a command other than
+     ng or ng.exe was used, since the appropriate nail should then handle
+     --help. */
   if (((argc == 2 && strcmp("--help", argv[1]) == 0) ||
 	  (argc == 2 && strcmp("-h", argv[1]) == 0))) usage(0);
      
