@@ -51,8 +51,20 @@ public class NondetModel extends ProbModel
 	protected JDDVars allDDNondetVars; // all nondet dd vars (union of two above)
 	protected JDDNode transInd; // BDD for independent part of trans
 	protected JDDNode transSynch[]; // BDD for parts of trans from each action
+	protected JDDNode transReln; // BDD for the transition relation (no action encoding)
 
 	// accessor methods
+
+	@Override
+	public JDDNode getTransReln()
+	{
+		// First, compute the transition relation if it is not there
+		if (transReln == null) {
+			JDD.Ref(trans01);
+			transReln = JDD.ThereExists(trans01, allDDNondetVars);
+		}
+		return transReln;
+	}
 
 	// type
 	public ModelType getModelType()
@@ -181,6 +193,7 @@ public class NondetModel extends ProbModel
 
 		transInd = null;
 		transSynch = null;
+		transReln = null;
 	}
 
 	// do reachability
@@ -221,7 +234,12 @@ public class NondetModel extends ProbModel
 				transSynch[i] = JDD.Apply(JDD.TIMES, reach, transSynch[i]);
 			}
 		}
-
+		// also filter transReln DD (if necessary)
+		if (transReln != null) {
+			JDD.Ref(reach);
+			transReln = JDD.Apply(JDD.TIMES, reach, transReln);
+		}
+		
 		// build mask for nondeterminstic choices
 		// (and work out number of choices)
 		JDD.Ref(trans01);
@@ -268,6 +286,12 @@ public class NondetModel extends ProbModel
 				transInd = JDD.Or(transInd, JDD.ThereExists(tmp, allDDColVars));
 			}
 			JDD.Deref(tmp);
+			// recompute transReln (if needed)
+			if (transReln != null) {
+				JDD.Deref(transReln);
+				JDD.Ref(trans01);
+				transReln = JDD.ThereExists(trans01, allDDNondetVars);
+			}
 			// update transition count
 			numTransitions = JDD.GetNumMinterms(trans01, getNumDDVarsInTrans());
 			// re-build mask for nondeterminstic choices
@@ -425,6 +449,8 @@ public class NondetModel extends ProbModel
 			for (int i = 0; i < numSynchs; i++) {
 				JDD.Deref(transSynch[i]);
 			}
+		if (transReln != null)
+			JDD.Deref(transReln);
 	}
 }
 

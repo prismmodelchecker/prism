@@ -79,6 +79,12 @@ public interface Model
 	JDDNode getReach();
 	
 	/**
+	 * Get a BDD storing the underlying transition relation of the model.
+	 * If it is not stored already, it will be computed.
+	 */
+	JDDNode getTransReln();
+	
+	/**
 	 * Get a BDD storing the set of states that are/were deadlocks.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */

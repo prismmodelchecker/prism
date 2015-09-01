@@ -245,6 +245,12 @@ public class ProbModel implements Model
 	}
 
 	@Override
+	public JDDNode getTransReln()
+	{
+		return trans01;
+	}
+
+	@Override
 	public JDDNode getDeadlocks()
 	{
 		return deadlocks;

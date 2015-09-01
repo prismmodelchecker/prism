@@ -59,7 +59,7 @@ public abstract class SCCComputer extends PrismComponent
 	 */
 	public static SCCComputer createSCCComputer(PrismComponent parent, Model model) throws PrismException
 	{
-		return createSCCComputer(parent, model.getReach(), model.getTrans01(), model.getAllDDRowVars(), model.getAllDDColVars());
+		return createSCCComputer(parent, model.getReach(), model.getTransReln(), model.getAllDDRowVars(), model.getAllDDColVars());
 	}
 
 	/**
