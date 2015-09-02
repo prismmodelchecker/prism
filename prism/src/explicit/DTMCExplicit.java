@@ -28,6 +28,7 @@ package explicit;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -181,8 +182,8 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 			result[s] = mvMultRewSingle(s, vect, mcRewards);
 		}
 	}
-	
-	public class AddDefaultActionToTransitionsIterator implements Iterator<Map.Entry<Integer,Pair<Double,Object>>>
+
+	public class AddDefaultActionToTransitionsIterator implements Iterator<Map.Entry<Integer, Pair<Double, Object>>>
 	{
 		private Iterator<Entry<Integer, Double>> transIter;
 		private Object defaultAction;
@@ -198,27 +199,9 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 		public Entry<Integer, Pair<Double, Object>> next()
 		{
 			next = transIter.next();
-			Entry<Integer, Pair<Double, Object>> next2 = new Entry<Integer, Pair<Double, Object>>()
-			{
-				@Override
-				public Pair<Double, Object> setValue(Pair<Double, Object> value)
-				{
-					return null; // read-only
-				}
-
-				@Override
-				public Pair<Double, Object> getValue()
-				{
-					return new Pair<Double, Object>(next.getValue(), defaultAction);
-				}
-
-				@Override
-				public Integer getKey()
-				{
-					return next.getKey();
-				}
-			};
-			return next2;
+			final Integer state = next.getKey();
+			final Double probability = next.getValue();
+			return new AbstractMap.SimpleImmutableEntry<>(state, new Pair<>(probability, defaultAction));
 		}
 
 		@Override
@@ -226,7 +209,7 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 		{
 			return transIter.hasNext();
 		}
-		
+
 		@Override
 		public void remove()
 		{
