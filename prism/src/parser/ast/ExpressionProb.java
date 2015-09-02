@@ -30,7 +30,6 @@ import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
 import prism.OpRelOpBound;
-import prism.PrismException;
 import prism.PrismLangException;
 
 public class ExpressionProb extends ExpressionQuant
@@ -80,12 +79,12 @@ public class ExpressionProb extends ExpressionQuant
 	}
 
 	@Override
-	public OpRelOpBound getRelopBoundInfo(Values constantValues) throws PrismException
+	public OpRelOpBound getRelopBoundInfo(Values constantValues) throws PrismLangException
 	{
 		if (getBound() != null) {
 			double boundVal = getBound().evaluateDouble(constantValues);
 			if (boundVal < 0 || boundVal > 1)
-				throw new PrismException("Invalid probability bound " + boundVal + " in P operator");
+				throw new PrismLangException("Invalid probability bound " + boundVal + " in P operator");
 			return new OpRelOpBound("P", getRelOp(), boundVal);
 		} else {
 			return new OpRelOpBound("P", getRelOp(), null);
