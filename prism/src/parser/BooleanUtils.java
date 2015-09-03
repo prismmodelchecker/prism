@@ -114,39 +114,40 @@ public class BooleanUtils
 	 */
 	private static Expression removeImpliesIffAndParentheses(Expression expr)
 	{
-		
 		Expression exprMod = null;
 		try {
-		exprMod = (Expression) expr.accept(new ASTTraverseModify() {
-			public Object visit(ExpressionUnaryOp e) throws PrismLangException
+			exprMod = (Expression) expr.accept(new ASTTraverseModify()
 			{
-				// Remove parentheses: (a)
-				if (Expression.isParenth(e)) {
-					Expression a = (Expression)(e.getOperand().accept(this));
-					// (a)  ==  a 
-					return a;
+				public Object visit(ExpressionUnaryOp e) throws PrismLangException
+				{
+					// Remove parentheses: (a)
+					if (Expression.isParenth(e)) {
+						Expression a = (Expression) (e.getOperand().accept(this));
+						// (a)  ==  a 
+						return a;
+					}
+					return super.visit(e);
 				}
-				return super.visit(e);
-			}
-			public Object visit(ExpressionBinaryOp e) throws PrismLangException
-			{
-				// Remove implication: a => b
-				if (Expression.isImplies(e)) {
-					Expression a = (Expression)(e.getOperand1().accept(this));
-					Expression b = (Expression)(e.getOperand2().accept(this));
-					// a => b  ==  !a | b 
-					return Expression.Or(Expression.Not(a), b);
+
+				public Object visit(ExpressionBinaryOp e) throws PrismLangException
+				{
+					// Remove implication: a => b
+					if (Expression.isImplies(e)) {
+						Expression a = (Expression) (e.getOperand1().accept(this));
+						Expression b = (Expression) (e.getOperand2().accept(this));
+						// a => b  ==  !a | b 
+						return Expression.Or(Expression.Not(a), b);
+					}
+					// Remove iff: a <=> b
+					if (Expression.isIff(e)) {
+						Expression a = (Expression) (e.getOperand1().accept(this));
+						Expression b = (Expression) (e.getOperand2().accept(this));
+						// a <=> b  ==  (a | !b) & (!a | b) 
+						return Expression.And(Expression.Or(a, Expression.Not(b)), Expression.Or(Expression.Not(a.deepCopy()), b.deepCopy()));
+					}
+					return super.visit(e);
 				}
-				// Remove iff: a <=> b
-				if (Expression.isIff(e)) {
-					Expression a = (Expression)(e.getOperand1().accept(this));
-					Expression b = (Expression)(e.getOperand2().accept(this));
-					// a <=> b  ==  (a | !b) & (!a | b) 
-					return Expression.And(Expression.Or(a, Expression.Not(b)), Expression.Or(Expression.Not(a.deepCopy()), b.deepCopy()));
-				}
-				return super.visit(e);
-			}
-		});
+			});
 		} catch (PrismLangException e) {
 			// Shouldn't happen since we do not throw PrismLangException above
 		}
