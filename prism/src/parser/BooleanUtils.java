@@ -86,7 +86,7 @@ public class BooleanUtils
 	 * is not an operator used to define a Boolean expression (!, &, |, =>, <=>, ()).
 	 * The passed in expression is modified, and the result is returned. 
 	 */
-	public static Expression convertToPositiveNormalForm(Expression expr) throws PrismLangException
+	public static Expression convertToPositiveNormalForm(Expression expr)
 	{
 		// First expand implies/iff/parentheses
 		// Then do conversion to +ve normal form
@@ -102,7 +102,7 @@ public class BooleanUtils
 	 * or a temporal operator (X, U, F, G, R, W).
 	 * The passed in expression is modified, and the result is returned. 
 	 */
-	public static Expression convertLTLToPositiveNormalForm(Expression expr) throws PrismLangException
+	public static Expression convertLTLToPositiveNormalForm(Expression expr)
 	{
 		// First expand implies/iff/parentheses
 		// Then do conversion to +ve normal form
@@ -112,9 +112,12 @@ public class BooleanUtils
 	/**
 	 * Remove any instances of =>, <=> or () by expanding/deleting as appropriate.
 	 */
-	private static Expression removeImpliesIffAndParentheses(Expression expr) throws PrismLangException
+	private static Expression removeImpliesIffAndParentheses(Expression expr)
 	{
-		return (Expression) expr.accept(new ASTTraverseModify() {
+		
+		Expression exprMod = null;
+		try {
+		exprMod = (Expression) expr.accept(new ASTTraverseModify() {
 			public Object visit(ExpressionUnaryOp e) throws PrismLangException
 			{
 				// Remove parentheses: (a)
@@ -144,6 +147,10 @@ public class BooleanUtils
 				return super.visit(e);
 			}
 		});
+		} catch (PrismLangException e) {
+			// Shouldn't happen since we do not throw PrismLangException above
+		}
+		return exprMod;
 	}
 	
 	/**
@@ -260,7 +267,7 @@ public class BooleanUtils
 	 * Convert an expression to disjunctive normal form (DNF).
 	 * The passed in expression is modified, and the result is returned. 
 	 */
-	public static Expression convertToDNF(Expression expr) throws PrismException
+	public static Expression convertToDNF(Expression expr)
 	{
 		return convertDNFListsToExpression(doConversionToDNF(convertToPositiveNormalForm(expr)));
 	}
@@ -269,7 +276,7 @@ public class BooleanUtils
 	 * Convert an expression to disjunctive normal form (DNF).
 	 * The passed in expression is modified, and the result is returned as a list of lists of Expression;
 	 */
-	public static List<List<Expression>> convertToDNFLists(Expression expr) throws PrismException
+	public static List<List<Expression>> convertToDNFLists(Expression expr)
 	{
 		return doConversionToDNF(convertToPositiveNormalForm(expr));
 	}
@@ -316,7 +323,7 @@ public class BooleanUtils
 	 * Convert an expression to conjunctive normal form (CNF).
 	 * The passed in expression is modified, and the result is returned. 
 	 */
-	public static Expression convertToCNF(Expression expr) throws PrismException
+	public static Expression convertToCNF(Expression expr)
 	{
 		return convertCNFListsToExpression(doConversionToCNF(convertToPositiveNormalForm(expr)));
 	}
@@ -325,7 +332,7 @@ public class BooleanUtils
 	 * Convert an expression to conjunctive normal form (CNF).
 	 * The passed in expression is modified, and the result is returned as a list of lists of Expression;
 	 */
-	public static List<List<Expression>> convertToCNFLists(Expression expr) throws PrismException
+	public static List<List<Expression>> convertToCNFLists(Expression expr)
 	{
 		return doConversionToCNF(convertToPositiveNormalForm(expr));
 	}
