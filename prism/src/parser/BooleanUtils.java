@@ -99,7 +99,7 @@ public class BooleanUtils
 	 * all negation inwards so that it only occurs on "propositions".
 	 * A "proposition" is any Expression object that
 	 * is not an operator used to define a Boolean expression (!, &, |, =>, <=>, ())
-	 * or an temporal operator (X, U, F, G, R, W).
+	 * or a temporal operator (X, U, F, G, R, W).
 	 * The passed in expression is modified, and the result is returned. 
 	 */
 	public static Expression convertLTLToPositiveNormalForm(Expression expr) throws PrismLangException
