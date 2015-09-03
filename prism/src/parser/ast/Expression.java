@@ -809,13 +809,29 @@ public abstract class Expression extends ASTElement
 	
 	/**
 	 * Test if an expression is a co-safe LTL formula, detected syntactically
-	 * (i.e. if it is in positive normal form and only uses X, F and U). 
+	 * (i.e. if it is in positive normal form and only uses X, F and U).
 	 */
 	public static boolean isCoSafeLTLSyntactic(Expression expr)
 	{
-		// Check for positive normal form
-		if (!isPositiveNormalFormLTL(expr))
-			return false;
+		return isCoSafeLTLSyntactic(expr, false);
+	}
+
+	/**
+	 * Test if an expression is a co-safe LTL formula, detected syntactically
+	 * (i.e. if it is in positive normal form and only uses X, F and U).
+	 * If {@code convert} is true, the expression is first converted into positive normal form,
+	 * and then it is checked whether it only uses X, F and U.
+	 * For example, a => ! (G b) would return true if (and only if) {@code convert} was true.
+	 */
+	public static boolean isCoSafeLTLSyntactic(Expression expr, boolean convert)
+	{
+		// Convert to or check for positive normal form
+		if (convert) {
+			expr = BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy());
+		} else {
+			if (!isPositiveNormalFormLTL(expr))
+				return false;
+		}
 		// Check temporal operators
 		try {
 			ASTTraverse astt = new ASTTraverse()
