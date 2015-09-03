@@ -90,8 +90,11 @@ public class PrismParser implements PrismParserConstants {
                                 System.out.println("Type: " + expr.getType().getTypeString());
                                 boolean pnf = Expression.isPositiveNormalFormLTL(expr);
                                 System.out.println("Positive normal form: " + pnf);
+                                System.out.println("Syntactically co-safe: " + Expression.isCoSafeLTLSyntactic(expr));
                                 if (!pnf) {
-                                        System.out.println("Positive normal form conversion: " + BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy()));
+                                        Expression exprPnf = BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy());
+                                        System.out.println("Positive normal form conversion: " + exprPnf);
+                                        System.out.println("Syntactically co-safe: " + Expression.isCoSafeLTLSyntactic(exprPnf));
                                 }
                                 Expression expr2 = (Expression) expr.deepCopy().accept(new ASTTraverseModify() {
                                         public Object visit(ExpressionVar e) throws PrismLangException
@@ -4290,6 +4293,13 @@ public class PrismParser implements PrismParserConstants {
     return false;
   }
 
+  static private boolean jj_3_1() {
+    if (jj_scan_token(MODULE)) return true;
+    if (jj_3R_29()) return true;
+    if (jj_scan_token(EQ)) return true;
+    return false;
+  }
+
   static private boolean jj_3R_117() {
     Token xsp;
     xsp = jj_scanpos;
@@ -4298,13 +4308,6 @@ public class PrismParser implements PrismParserConstants {
     if (jj_3R_123()) return true;
     }
     if (jj_3R_116()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1() {
-    if (jj_scan_token(MODULE)) return true;
-    if (jj_3R_29()) return true;
-    if (jj_scan_token(EQ)) return true;
     return false;
   }
 
