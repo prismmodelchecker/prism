@@ -820,7 +820,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (Expression.isReach(expr)) {
 			return checkRewardReach((ExpressionTemporal) expr, stateRewards, transRewards);
 		}
-		else if (Expression.isCoSafeLTLSyntactic(expr)) {
+		else if (Expression.isCoSafeLTLSyntactic(expr, true)) {
 			return checkRewardCoSafeLTL(expr, stateRewards, transRewards);
 		}
 		throw new PrismException("R operator contains a path formula that is not syntactically co-safe: " + expr);
