@@ -26,36 +26,114 @@
 
 package prism;
 
-public enum ModelType {
-
+public enum ModelType
+{
 	// List of model types (ordered alphabetically)
-	CTMC, CTMDP, DTMC, LTS, MDP, PTA, STPG, SMG;
+	CTMC("continuous-time Markov chain") {
+		@Override
+		public boolean choicesSumToOne()
+		{
+			return false;
+		}
+
+		@Override
+		public boolean continuousTime()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean nondeterministic()
+		{
+			return false;
+		}
+
+		@Override
+		public String probabilityOrRate()
+		{
+			return RATE;
+		}
+	},
+	CTMDP("continuous-time Markov decision process") {
+		@Override
+		public boolean choicesSumToOne()
+		{
+			return false;
+		}
+
+		@Override
+		public boolean continuousTime()
+		{
+			return true;
+		}
+
+		@Override
+		public String probabilityOrRate()
+		{
+			return RATE;
+		}
+	},
+	DTMC("discrete-time Markov chain") {
+		@Override
+		public boolean nondeterministic()
+		{
+			return false;
+		}
+	},
+	LTS("labelled transition system") {
+		@Override
+		public boolean isProbabilistic()
+		{
+			return false;
+		}
+
+		@Override
+		public String probabilityOrRate()
+		{
+			return NEITHER;
+		}
+	},
+	MDP("Markov decision process") {
+		
+	},
+	PTA("probabilistic timed automaton") {
+		@Override
+		public boolean continuousTime()
+		{
+			return true;
+		}
+	},
+	STPG("stochastic two-player game") {
+		@Override
+		public boolean multiplePlayers()
+		{
+			return true;
+		}
+	},
+	SMG("stochastic multi-player game") {
+		@Override
+		public boolean multiplePlayers()
+		{
+			return true;
+		}
+	};
+
+	private static final String PROBABILITY = "Probability";
+	private static final String RATE = "Rate";
+	private static final String NEITHER = "";
+
+	private final String fullName;
+
+	ModelType(final String fullName) {
+		this.fullName = fullName;
+	}
 
 	/**
 	 * Get the full name, in words, of the this model type.
 	 */
 	public String fullName()
 	{
-		switch (this) {
-		case CTMC:
-			return "continuous-time Markov chain";
-		case CTMDP:
-			return "continuous-time Markov decision process";
-		case DTMC:
-			return "discrete-time Markov chain";
-		case LTS:
-			return "labelled transition system";
-		case MDP:
-			return "Markov decision process";
-		case PTA:
-			return "probabilistic timed automaton";
-		case STPG:
-			return "stochastic two-player game";
-		case SMG:
-			return "stochastic multi-player game";
-		}
-		// Should never happen
-		return "";
+		return fullName;
 	}
 
 	/**
@@ -63,26 +141,7 @@ public enum ModelType {
 	 */
 	public String keyword()
 	{
-		switch (this) {
-		case CTMC:
-			return "ctmc";
-		case CTMDP:
-			return "ctmdp";
-		case DTMC:
-			return "dtmc";
-		case LTS:
-			return "lts";
-		case MDP:
-			return "mdp";
-		case PTA:
-			return "pta";
-		case STPG:
-			return "stpg";
-		case SMG:
-			return "smg";
-		}
-		// Should never happen
-		return "";
+		return this.name().toLowerCase();
 	}
 
 	/**
@@ -91,41 +150,15 @@ public enum ModelType {
 	 */
 	public boolean choicesSumToOne()
 	{
-		switch (this) {
-		case DTMC:
-		case LTS:
-		case MDP:
-		case PTA:
-		case STPG:
-		case SMG:
-			return true;
-		case CTMC:
-		case CTMDP:
-			return false;
-		}
-		// Should never happen
 		return true;
 	}
 
 	/**
-	 * Are time delay continuous for this model type?
+	 * Are time delays continuous for this model type?
 	 */
 	public boolean continuousTime()
 	{
-		switch (this) {
-		case DTMC:
-		case LTS:
-		case MDP:
-		case STPG:
-		case SMG:
-			return false;
-		case PTA:
-		case CTMC:
-		case CTMDP:
-			return true;
-		}
-		// Should never happen
-		return true;
+		return false;
 	}
 
 	/**
@@ -133,19 +166,6 @@ public enum ModelType {
 	 */
 	public boolean nondeterministic()
 	{
-		switch (this) {
-		case DTMC:
-		case CTMC:
-			return false;
-		case LTS:
-		case MDP:
-		case STPG:
-		case SMG:
-		case PTA:
-		case CTMDP:
-			return true;
-		}
-		// Should never happen
 		return true;
 	}
 
@@ -154,20 +174,7 @@ public enum ModelType {
 	 */
 	public boolean multiplePlayers()
 	{
-		switch (this) {
-		case DTMC:
-		case CTMC:
-		case LTS:
-		case MDP:
-		case PTA:
-		case CTMDP:
-			return false;
-		case STPG:
-		case SMG:
-			return true;
-		}
-		// Should never happen
-		return true;
+		return false;
 	}
 
 	/**
@@ -175,50 +182,24 @@ public enum ModelType {
 	 */
 	public boolean isProbabilistic()
 	{
-		switch (this) {
-		case LTS:
-			return false;
-		default:
-			return true;
-		}
+		return true;
 	}
-	
+
 	/**
 	 * Does this model have probabilities or rates?
 	 * Returns "Probability" or "Rate", accordingly (or "" if there are neither)
 	 */
 	public String probabilityOrRate()
 	{
-		switch (this) {
-		case CTMC:
-		case CTMDP:
-			return "Rate";
-		case LTS:
-			return "";
-		default:
-			return "Probability";
-		}
+		return PROBABILITY;
 	}
 
 	public static ModelType parseName(String name)
 	{
-		if ("ctmc".equals(name))
-			return CTMC;
-		else if ("ctmdp".equals(name))
-			return CTMDP;
-		else if ("dtmc".equals(name))
-			return DTMC;
-		else if ("mdp".equals(name))
-			return MDP;
-		else if ("lts".equals(name))
-			return LTS;
-		else if ("pta".equals(name))
-			return PTA;
-		else if ("stpg".equals(name))
-			return STPG;
-		else if ("smg".equals(name))
-			return SMG;
-		else
+		try {
+			return valueOf(name.toUpperCase());
+		} catch (IllegalArgumentException e) {
 			return null;
+		}
 	}
 }
