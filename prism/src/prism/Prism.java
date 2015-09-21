@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1405,17 +1407,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public ModulesFile importPepaFile(File file) throws PrismException, PrismLangException
 	{
-		String modelString;
-
-		// compile pepa file to string
-		try {
-			modelString = pepa.compiler.Main.compile("" + file);
-		} catch (pepa.compiler.InternalError e) {
-			throw new PrismException("Could not import PEPA file:\n" + e.getMessage());
-		}
-
-		// parse string as prism model and return
-		return parseModelString(modelString);
+		return importModelFile("pepa", file);
 	}
 
 	/**
@@ -1424,34 +1416,68 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public ModulesFile importPepaString(String s) throws PrismException, PrismLangException
 	{
-		File pepaFile = null;
-		String modelString;
-
-		// create temporary file containing pepa model
-		try {
-			pepaFile = File.createTempFile("tempPepa" + System.currentTimeMillis(), ".pepa");
-			FileWriter write = new FileWriter(pepaFile);
-			write.write(s);
-			write.close();
-		} catch (IOException e) {
-			if (pepaFile != null)
-				pepaFile.delete();
-			throw new PrismException("Couldn't create temporary file for PEPA conversion");
-		}
-
-		// compile pepa file to string
-		try {
-			modelString = pepa.compiler.Main.compile("" + pepaFile);
-		} catch (pepa.compiler.InternalError e) {
-			if (pepaFile != null)
-				pepaFile.delete();
-			throw new PrismException("Could not import PEPA file:\n" + e.getMessage());
-		}
-
-		// parse string as prism model and return
-		return parseModelString(modelString);
+		return importModelString("pepa", s);
 	}
 
+	/**
+	 * Import a PRISM model from an SBML model in a file
+	 * @param file File to read in
+	 */
+	public ModulesFile importSBMLFile(File file) throws PrismException, PrismLangException
+	{
+		return importModelFile("sbml", file);
+	}
+
+	/**
+	 * Import a PRISM model from an SBML model in a string
+	 * @param file File to read in
+	 */
+	public ModulesFile importSBMLString(String s) throws PrismException, PrismLangException
+	{
+		return importModelString("sbml", s);
+	}
+
+	/**
+	 * Import a PRISM model by translating from another language
+	 */
+	public ModulesFile importModelFile(String lang, File file) throws PrismException, PrismLangException
+	{
+		PrismLanguageTranslator importer = createPrismLanguageTranslator(lang);
+		importer.load(file);
+		String prismModelString = importer.translateToString();
+		return parseModelString(prismModelString);
+	}
+
+	/**
+	 * Import a PRISM model by translating from another language
+	 */
+	public ModulesFile importModelString(String lang, String s) throws PrismException, PrismLangException
+	{
+		PrismLanguageTranslator importer = createPrismLanguageTranslator(lang);
+		importer.load(s);
+		String prismModelString = importer.translateToString();
+		return parseModelString(prismModelString);
+	}
+
+	/**
+	 * Create a translator to the PRISM language.
+	 */
+	private PrismLanguageTranslator createPrismLanguageTranslator(String lang) throws PrismException
+	{
+		PrismLanguageTranslator importer = null;
+		switch (lang) {
+		case "pepa":
+			importer = new PEPA2Prism();
+			break;
+		case "sbml":
+			importer = new SBML2Prism();
+			break;
+		default:
+			throw new PrismException("Unknown import language \"" + lang + "\"");
+		}
+		return importer;
+	}
+	
 	/**
 	 * Import a PRISM model from a PRISM preprocessor file
 	 * @param file File to read in

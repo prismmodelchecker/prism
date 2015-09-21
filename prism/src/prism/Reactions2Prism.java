@@ -31,7 +31,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -44,7 +43,7 @@ import parser.PrismParser;
 /**
  * Base class for classes that build/store a set of biological reactions and then convert to PRISM.
  */
-public class Reactions2Prism
+public abstract class Reactions2Prism extends PrismLanguageTranslator
 {
 	// Log for output of warnings, messages
 	protected PrismLog mainLog = null;
@@ -104,7 +103,7 @@ public class Reactions2Prism
 	/**
 	 * Process the currently loaded reaction set model, convert to PRISM code, export to an OutputStream. 
 	 */
-	protected void convertToPRISMCode(OutputStream out) throws PrismException
+	protected void convertToPRISMCode(PrintStream out) throws PrismException
 	{
 		StringBuilder sb = convertToPRISMCode();
 		try {
