@@ -650,6 +650,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Get methods
 
 	/**
+	 * Get the name of this tool.
+	 * ("PRISM" by default, extensions might override) 
+	 */
+	public static String getToolName()
+	{
+		return "PRISM";
+	}
+	
+	/**
 	 * Get current version number, as a string. 
 	 */
 	public static String getVersion()
@@ -1287,7 +1296,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		boolean verbose = this.getSettings().getBoolean("PRISM_VERBOSE");
 		mainLog.setVerbosityLevel(verbose ? PrismLog.VL_ALL : PrismLog.VL_DEFAULT);
-		mainLog.print("PRISM\n=====\n");
+		mainLog.print(getToolName() + "\n");
+		mainLog.print(new String(new char[getToolName().length()]).replace("\0", "=") + "\n");
 		mainLog.print("\nVersion: " + getVersion() + "\n");
 		mainLog.print("Date: " + new java.util.Date() + "\n");
 		try {

@@ -382,7 +382,7 @@ public class GUIPrism extends JFrame
 		}
 
 		setJMenuBar(menuBar);
-		setTitle("PRISM " + prism.getVersion());
+		setTitle(Prism.getToolName() + " " + Prism.getVersion());
 		setDefaultCloseOperation(javax.swing.JFrame.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new java.awt.event.WindowAdapter()
 		{
