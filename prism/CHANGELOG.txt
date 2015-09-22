@@ -1,5 +1,20 @@
 This file contains details of the changes in each new version of PRISM.
 
+Recent changes: (up to svn rev 10687)
+
+* Timeout feature (-timeout switch)
+* Built-in support for Nailgun client/server
+* Allow -exportpropaut to export DA in HOA format (-exportpropaut:hoa da.hoa)
+* Debugging options: -dddebug and -ddtrace command-line switches
+* Allow -javamaxmem switch for GUI as well as command line
+* Better error handling when CUDD runs out of memory
+* Partial support for multi-objective queries expressed as Boolean expressions
+* Allow <<>> and [[]] operators for MDP (only * or empty), all engines
+* Model checking of expected reward to satisfy a co-safe LTL formula, all engines
+* Performance improvements in explicit engine
+* prism-auto: new options (--show-warnings, --nailgun, --ngprism), multiple -x switches
+* Bug fixes
+
 -----------------------------------------------------------------------------
 Version 4.3 (first released 14/7/2015)
 -----------------------------------------------------------------------------
