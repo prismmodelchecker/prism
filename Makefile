@@ -26,13 +26,6 @@ do_build:
 	@if [ -e prism/tests ]; then \
 	  echo "mv prism/tests dontcopy"; mv prism/tests dontcopy; \
 	fi
-	mkdir dontcopy
-	@if [ -e prism/examples ]; then \
-	  echo "mv prism/examples dontcopy"; mv prism/examples dontcopy; \
-	fi
-	@if [ -e prism/tests ]; then \
-	  echo "mv prism/tests dontcopy"; mv prism/tests dontcopy; \
-	fi
 	@if [ -e prism/examples-distr ]; then \
 	  echo "mv prism/examples-distr prism/examples"; mv prism/examples-distr prism/examples; \
 	else \
