@@ -320,6 +320,10 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 		case "dot":
 			printDot(out);
 			break;
+		// Default to txt
+		default:
+			out.println(toString());
+			break;
 		}
 	}
 
@@ -337,6 +341,10 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 			break;
 		case "hoa":
 			printHOA(out);
+			break;
+		// Default to txt
+		default:
+			out.println(toString());
 			break;
 		}
 	}
