@@ -202,9 +202,12 @@ public class MDPRewardsSimple implements MDPRewards
 		}
 		if (transRewards != null) {
 			for (int s = 0; s < numStatesProd; s++) {
-				int numChoices = transRewards.get(product.getModelState(s)).size();
-				for (int i = 0; i < numChoices; i++) {
-					rewardsProd.setTransitionReward(s, i, transRewards.get(product.getModelState(s)).get(i));
+				List<Double> list = transRewards.get(product.getModelState(s));
+				if (list != null) {
+					int numChoices = list.size();
+					for (int i = 0; i < numChoices; i++) {
+						rewardsProd.setTransitionReward(s, i, list.get(i));
+					}
 				}
 			}
 		}
