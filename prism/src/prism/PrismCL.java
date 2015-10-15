@@ -2329,7 +2329,7 @@ public class PrismCL implements PrismModelListener
 
 	private void printVersion()
 	{
-		mainLog.println("PRISM version " + Prism.getVersion());
+		mainLog.println(Prism.getToolName() + " version " + Prism.getVersion());
 	}
 
 	/**
