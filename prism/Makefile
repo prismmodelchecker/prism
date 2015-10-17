@@ -584,7 +584,7 @@ clean_strat: checks
 
 checks:
 	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \
-	  echo "To compile PRISM, the environment variable OSTYPE"; \
+	  echo "\033[33mTo compile PRISM, the environment variable OSTYPE"; \
 	  echo "must be set to one of: linux, solaris, cygwin or darwin,"; \
 	  echo "depending on which operating system you are using."; \
 	  echo "This is not the case on your system. Please specify"; \
@@ -598,7 +598,7 @@ checks:
 	  exit 1; \
 	fi; \
 	if [ "$(JAVA_DIR)" = "" ]; then \
-	  echo "PRISM was unable to find the directory which contains"; \
+	  echo "\033[33mPRISM was unable to find the directory which contains"; \
 	  echo "your Java distribution. Please specify this manually to"; \
 	  echo "make, as in these examples:"; \
 	  echo; \
@@ -613,16 +613,16 @@ checks:
 	  exit 1; \
 	fi; \
 	if [ ! -d "$(JAVA_DIR)" ]; then \
-	  echo "Java directory \"$(JAVA_DIR)\" does not exist."; \
+	  echo "\033[33mJava directory \"$(JAVA_DIR)\" does not exist."; \
 	  exit 1; \
 	fi; \
 	if [ ! -f "$(JAVA_JNI_H_DIR)"/jni.h ]; then \
-	  echo "Could not locate JNI header jni.h within \"$(JAVA_DIR)\"."; \
+	  echo "\033[33mCould not locate JNI header jni.h within \"$(JAVA_DIR)\"."; \
 	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
 	if [ ! -f "$(JAVA_JNI_MD_H_DIR)"/jni_md.h ]; then \
-	  echo "Could not locate JNI header jni_md.h within \"$(JAVA_DIR)\"."; \
+	  echo "\033[33mCould not locate JNI header jni_md.h within \"$(JAVA_DIR)\"."; \
 	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
 	  exit 1; \
 	fi; \
