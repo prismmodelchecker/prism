@@ -36,18 +36,18 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
-import acceptance.AcceptanceRabin;
-import automata.DA;
-import automata.LTL2DA;
-import parser.ast.Expression;
-import parser.ast.RelOp;
-import dv.DoubleVector;
-import mtbdd.PrismMTBDD;
-import sparse.NDSparseMatrix;
-import sparse.PrismSparse;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import mtbdd.PrismMTBDD;
+import parser.ast.Expression;
+import parser.ast.RelOp;
+import sparse.NDSparseMatrix;
+import sparse.PrismSparse;
+import acceptance.AcceptanceRabin;
+import automata.DA;
+import automata.LTL2DA;
+import dv.DoubleVector;
 
 /**
  * Multi-objective model checking functionality
@@ -800,17 +800,6 @@ public class MultiObjModelChecker extends PrismComponent
 
 			double[] weights = new double[dimProb + dimReward];
 			weights[i] = 1.0;
-			/*if (prism.getMDPMultiSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
-				//System.out.println("Doing GS");
-					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, new DoubleVector[] {probDoubleVectors[i]}, new int[] {probStepBounds[i]}, null,
-							new double[] { 1.0 }, null);
-			} else {
-				//System.out.println("Not doing GS");
-				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, new DoubleVector[] {probDoubleVectors[i]}, new int[] {probStepBounds[i]}, null,
-						new double[] { 1.0 }, null);
-			}*/
 			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
@@ -838,18 +827,6 @@ public class MultiObjModelChecker extends PrismComponent
 			double[] result;
 			double[] weights = new double[dimProb + dimReward];
 			weights[i] = 1.0;
-			/*System.out.println(prism.getMDPSolnMethod());
-			if (prism.getMDPSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
-				//System.out.println("Doing GS");
-					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, null, null, new NDSparseMatrix[] { rewSparseMatrices[i] },
-							new double[] { 1.0 }, new int[] { rewardStepBounds[i] });
-			} else {
-				//System.out.println("Not doing GS");
-					result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, null, null, new NDSparseMatrix[] { rewSparseMatrices[i] },
-							new double[] { 1.0 }, new int[] { rewardStepBounds[i] });
-			}*/
 			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
