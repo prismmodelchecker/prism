@@ -3,7 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -173,11 +173,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		for(int rewi = 0; rewi < lenRew; rewi++)
 			ndsm_r[rewi] = (NDSparseMatrix *) jlong_to_NDSparseMatrix(ptr_ndsm_r[rewi]);
 		
-		double* weights = env->GetDoubleArrayElements(_weights, 0);
-		
 		int* step_bounds_r = (has_rewards) ? (int*)env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
 		int* step_bounds = (has_yes_vec) ? (int*)env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
-
 		
 		int max_step_bound = 0;
 		for(int rewi = 0; rewi < lenRew; rewi++) {
