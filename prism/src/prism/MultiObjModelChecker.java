@@ -64,7 +64,7 @@ public class MultiObjModelChecker extends PrismComponent
 	{
 		super(parent);
 		this.prism = prism;
-		this.verbose = prism.getVerbose();
+		this.verbose = settings.getBoolean(PrismSettings.PRISM_VERBOSE);
 	}
 
 	//TODO: dra's element is changed here, not neat.
@@ -85,14 +85,14 @@ public class MultiObjModelChecker extends PrismComponent
 			ltl = Expression.Not(Expression.Parenth(ltl));
 		mainLog.println("\nBuilding deterministic Rabin automaton (for " + ltl + ")...");
 		long l = System.currentTimeMillis();
-		LTL2DA ltl2da = new LTL2DA(prism);
+		LTL2DA ltl2da = new LTL2DA(this);
 		dra[i] = ltl2da.convertLTLFormulaToDRA(ltl, modelChecker.getConstantValues());
 		mainLog.print("DRA has " + dra[i].size() + " states, " + ", " + dra[i].getAcceptance().getSizeStatistics()+".");
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for Rabin translation: " + l / 1000.0 + " seconds.");
 		// If required, export DRA 
-		if (prism.getSettings().getExportPropAut()) {
-			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(prism.getSettings().getExportPropAutFilename(), i + 1);
+		if (settings.getExportPropAut()) {
+			String exportPropAutFilename = PrismUtils.addCounterSuffixToFilename(settings.getExportPropAutFilename(), i + 1);
 			mainLog.println("Exporting DRA to file \"" + exportPropAutFilename + "\"...");
 			PrintStream out = PrismUtils.newPrintStream(exportPropAutFilename);
 			dra[i].print(out, settings.getExportPropAutType());
@@ -533,7 +533,7 @@ public class MultiObjModelChecker extends PrismComponent
 		Object value;
 		int i, j, n;
 		// Local copy of setting
-		int engine = prism.getEngine();
+		int engine = settings.getChoice(PrismSettings.PRISM_ENGINE);
 
 		//JDDNode maybe_r = null; // maybe states for the reward formula
 		//JDDNode trr = null; // transition rewards
@@ -751,8 +751,8 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 		}
 		
-		double tolerance = prism.getSettings().getDouble(PrismSettings.PRISM_PARETO_EPSILON);
-		int maxIters = prism.getSettings().getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
+		double tolerance = settings.getDouble(PrismSettings.PRISM_PARETO_EPSILON);
+		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 
 		NativeIntArray adversary = new NativeIntArray((int) modelProduct.getNumStates());
 		int dimProb = targets.length;
@@ -811,7 +811,7 @@ public class MultiObjModelChecker extends PrismComponent
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, new DoubleVector[] {probDoubleVectors[i]}, new int[] {probStepBounds[i]}, null,
 						new double[] { 1.0 }, null);
 			}*/
-			if (prism.getMDPSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(),
 						modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars(), false, st, adversary,
 						trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights, rewardStepBounds);
@@ -850,7 +850,7 @@ public class MultiObjModelChecker extends PrismComponent
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, null, null, new NDSparseMatrix[] { rewSparseMatrices[i] },
 							new double[] { 1.0 }, new int[] { rewardStepBounds[i] });
 			}*/
-			if (prism.getMDPSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(),
 						modelProduct.getAllDDColVars(), modelProduct.getAllDDNondetVars(), false, st, adversary,
 						trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights, rewardStepBounds);
@@ -949,7 +949,7 @@ public class MultiObjModelChecker extends PrismComponent
 			throw new PrismException("The computation did not finish in " + maxIters
 					+ " target point iterations, try increasing this number using the -multimaxpoints switch.");
 		else {
-			String paretoFile = prism.getSettings().getString(PrismSettings.PRISM_EXPORT_PARETO_FILENAME);
+			String paretoFile = settings.getString(PrismSettings.PRISM_EXPORT_PARETO_FILENAME);
 			
 			//export to file if required
 			if (paretoFile != null && !paretoFile.equals("")) {
@@ -1001,7 +1001,7 @@ public class MultiObjModelChecker extends PrismComponent
 		boolean maximizingReward = (opsAndBounds.rewardSize() > 0 && (opsAndBounds.getRewardOperator(0) == Operator.R_MAX || opsAndBounds.getRewardOperator(0) == Operator.R_MIN));
 		boolean maximizingNegated = (maximizingProb && opsAndBounds.getProbOperator(0) == Operator.P_MIN) || (maximizingReward && opsAndBounds.getRewardOperator(0) == Operator.R_MIN);
 
-		int maxIters = prism.getSettings().getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
+		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 
 		NativeIntArray adversary = new NativeIntArray((int) modelProduct.getNumStates());
 		int dimProb = targets.length;
@@ -1062,7 +1062,7 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 
 			double[] result;
-			if (prism.getMDPSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
 				//System.out.println("Doing GS");
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, null, null, new NDSparseMatrix[] { rewSparseMatrices[0] },
