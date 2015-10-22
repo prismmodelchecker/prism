@@ -387,10 +387,11 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						}
 						d2 += non_zeros[k] * soln[cols[k]];
 					}
-					
+					// see if the combined reward value is the min/max so far
 					bool pickThis = first || (min&&(d2<d1)) || (!min&&(d2>d1));
-					
-					//HOTFIX for cumulative reward
+					// if it equals the min/max do far for the combined reward value,
+					// but it is better for some individual reward, we choose it.
+					// not sure why
 					if (!pickThis && (d2==d1)) {
 						for (int it = 0; it < lenProb + lenRew; it++) {
 							if (it != ignoredWeight) {
@@ -399,11 +400,10 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 									break;
 								}
 							}
-							
 						}
 					}
-					
 					if (pickThis) {
+						// store optimal values for combined and individual rewards
 						d1 = d2;
 						for (int it = 0; it < lenRew + lenProb; it++)
 							if (it != ignoredWeight)
