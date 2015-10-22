@@ -97,7 +97,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j;
-	//int *adv = NULL;
+	int *adv = NULL;
 	// action info
 	int *actions;
 	jstring *action_names_jstrings;
@@ -230,6 +230,19 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		kb = n*8.0/1024.0;
 		kbt += 2*kb;
 		
+		// if required, create storage for adversary and initialise
+		if (export_adv_enabled != EXPORT_ADV_NONE) {
+			PS_PrintToMainLog(env, "Allocating adversary vector... ");
+			adv = new int[n];
+			kb = n*sizeof(int)/1024.0;
+			kbt += kb;
+			PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
+			// Initialise all entries to -1 ("don't know")
+			for (i = 0; i < n; i++) {
+				adv[i] = -1;
+			}
+		}
+	
 		// Get index of single (first) initial state
 		start_index = get_index_of_first_from_bdd(ddman, start, rvars, num_rvars, odd);
 		
@@ -290,6 +303,17 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		weightedDone = false;
 		//PS_PrintToMainLog(env, "Starting iterations...\n");
 		
+		// open file to store adversary (if required)
+		if (export_adv_enabled != EXPORT_ADV_NONE) {
+			fp_adv = fopen(export_adv_filename, "w");
+			if (fp_adv) {
+				fprintf(fp_adv, "%d ?\n", n);
+			} else {
+				PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
+				export_adv_enabled = EXPORT_ADV_NONE;
+			}
+		}
+
 		// store local copies of stuff
 		double *non_zeros = ndsm->non_zeros;
 		unsigned char *row_counts = ndsm->row_counts;
@@ -408,6 +432,21 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						for (int it = 0; it < lenRew + lenProb; it++)
 							if (it != ignoredWeight)
 								pd1[it] = pd2[it];
+						// if adversary generation is enabled, remember optimal choice
+						if (export_adv_enabled != EXPORT_ADV_NONE) {
+							// for max, only remember strictly better choices
+							// (this resolves problems with end components)
+							if (!min) {
+								if (adv[i] == -1 || (d1>soln[i])) {
+									adv[i] = j;
+								}
+							}
+							// for min, this is straightforward
+							// (in fact, could do it at the end of value iteration, but we don't)
+							else {
+								adv[i] = j;
+							}
+						}
 					}
 					first = false;
 				}
@@ -591,6 +630,12 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		
 		env->ReleaseDoubleArrayElements(ret, retNative, 0);
 
+		// close file to store adversary (if required)
+		if (export_adv_enabled != EXPORT_ADV_NONE) {
+			fclose(fp_adv);
+			PS_PrintToMainLog(env, "\nAdversary written to file \"%s\".\n", export_adv_filename);
+		}
+	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
 		PS_SetErrorMessage("Out of memory");
@@ -625,6 +670,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		delete[] actions;
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	}
+	if (adv) delete[] adv;
 
 	return ret;
 }
