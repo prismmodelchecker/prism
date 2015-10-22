@@ -533,7 +533,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	{
 		tree.stopParsing();
 		parsing = false;
-		System.out.println("parsing = false");
 		parsedModel = m;
 		modifiedSinceParse = false;
 		lastError = "Parse Successful";
@@ -549,7 +548,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 					waiter.interrupt();
 				}
 				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
-				System.out.println("*");
 				waiter = new WaitParseThread(parseDelay, this);
 				waiter.start();
 				//Funky thread waiting stuff
@@ -946,7 +944,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 		// If the flag has just been switched ON, do a parse...
 		if (autoParse) {
-			System.out.println("## " + parsing);
 			tree.makeNotUpToDate();
 			theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
 			if (!parsing) {
@@ -959,7 +956,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 					waiter.start();
 				}
 			} else {
-				System.out.println("**");
 				parseAfterParse = true;
 			}
 			theModel.doEnables();
@@ -1214,9 +1210,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 		public WaitParseThread(int time, GUIMultiModelHandler handler)
 		{
-    		new Exception().printStackTrace(System.out);
-        	
-			
 			this.time = time;
 			this.handler = handler;
 		}
@@ -1225,7 +1218,6 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		{
 			try {
 				sleep(time);
-				System.out.println(time);
 				parseThread = new ParseModelThread(handler, editor.getParseText(), currentMode == PEPA_MODE, isAutoParse());
 				parsing = true;
 				tree.startParsing();
