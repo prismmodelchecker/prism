@@ -328,6 +328,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			for (int rewi = 0; rewi < lenRew; rewi++)
 				h2_r[rewi] = 0;
 			
+			// loop through states
 			for (i = 0; i < n; i++) {
 				//first, get the decision of the adversary optimizing the combined reward
 				d1 = -INFINITY;
@@ -336,15 +337,23 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						pd1[it] = -INFINITY;
 				
 				first = true; // (because we also remember 'first')
+				
+				// get pointers to nondeterministic choices for state i
 				if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
 				else { l1 = h1; h1 += row_counts[i]; }
+				// loop through those choices
 				for (j = l1; j < h1; j++) {
+					// compute, for state i for this iteration,
+					// the combined and individual reward values
+					// start with 0 (we don't have any state rewards)
 					d2 = 0;
 					for (int it = 0; it < lenRew + lenProb; it++)
 						if (it != ignoredWeight)
 							pd2[it] = 0;
+					// get pointers to transitions
 					if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
 					else { l2 = h2; h2 += choice_counts[j]; }
+					// and get pointers to transition rewards
 					for (int rewi = 0; rewi < lenRew; rewi++) {
 						if (!ndsm_r[rewi]->use_counts) {
 							l2_r[rewi] = choice_starts_r[rewi][j];
@@ -354,12 +363,14 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 							h2_r[rewi] += choice_counts_r[rewi][j];
 						}
 					}
+					// loop through transitions
 					for (k = l2; k < h2; k++) {
+						// for each reward structure
 						for (int rewi = 0; rewi < lenRew; rewi++) {
+							// find corresponding transition reward if any
 							k_r[rewi] = l2_r[rewi];
-							while (k_r[rewi] < h2_r[rewi] && cols_r[rewi][k_r[rewi]] != cols[k])
-								k_r[rewi]++;
-							// if there is one, add reward * prob to reward value
+							while (k_r[rewi] < h2_r[rewi] && cols_r[rewi][k_r[rewi]] != cols[k]) k_r[rewi]++;
+							// if there is one, add reward * prob to combined and individual reward values
 							if (k_r[rewi] < h2_r[rewi] && max_iters_local - iters < step_bounds_r[rewi]) {
 								d2 += weights[rewi + lenProb] * non_zeros_r[rewi][k_r[rewi]] * non_zeros[k];
 								if (lenProb + rewi != ignoredWeight) {
@@ -368,13 +379,12 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 								k_r[rewi]++;
 							}
 						}
-						
-						//add value of successors
+						// add prob * corresponding reward from previous iteration
+						// (for both combined and individual rewards)
 						for (int it = 0; it < lenRew + lenProb; it++) {
 							if (it != ignoredWeight)
 								pd2[it] += non_zeros[k] * psoln[it][cols[k]];
 						}
-						
 						d2 += non_zeros[k] * soln[cols[k]];
 					}
 					
