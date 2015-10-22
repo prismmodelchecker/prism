@@ -929,9 +929,12 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	 */
 	public synchronized void updateAutoParse()
 	{
+		// Store existing status
+		boolean autoParseOld = autoParse;
+		
 		// Is auto-parse switched on?
 		autoParse = theModel.getPrism().getSettings().getBoolean(PrismSettings.MODEL_AUTO_PARSE);
-		
+
 		// Should we disable auto parsing? (if the model is too big and that option is not disabled)
 		if (isSwitchOnLarge() && autoParse) {
 			if (currentMode == PRISM_MODE || currentMode == PEPA_MODE) {
@@ -943,7 +946,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		}
 
 		// If the flag has just been switched ON, do a parse...
-		if (autoParse) {
+		if (!autoParseOld && autoParse) {
 			tree.makeNotUpToDate();
 			theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
 			if (!parsing) {
