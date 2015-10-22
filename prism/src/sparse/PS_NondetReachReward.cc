@@ -90,10 +90,8 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
 	int export_adv_enabled = export_adv;
-	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j;
-	bool adv_new;
 	int *adv = NULL;
 	// action info
 	jstring *action_names_jstrings;
@@ -266,7 +264,6 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		for (i = 0; i < n; i++) {
 			d1 = 0.0; // initial value doesn't matter
 			first = true; // (because we also remember 'first')
-			adv_new = false;
 			// get pointers to nondeterministic choices for state i
 			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
 			else { l1 = h1; h1 += row_counts[i]; }
@@ -340,9 +337,6 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		tmpsoln = soln;
 		soln = soln2;
 		soln2 = tmpsoln;
-		
-		// if we're done, but adversary generation is required, go round once more
-		if (done && adv) adv_loop = !adv_loop;
 	}
 	
 	// Traverse matrix to extract adversary

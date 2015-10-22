@@ -341,7 +341,7 @@ public class GenerateSimulationPath
 	private PathDisplayer generateDisplayerForExport() throws PrismException
 	{
 		PrismLog log;
-		PathToText displayer;
+		PathToDaikonTrace displayer;
 
 		if (file != null) {
 			log = new PrismFileLog(file.getPath());
@@ -351,8 +351,8 @@ public class GenerateSimulationPath
 		} else {
 			log = mainLog;
 		}
-		displayer = new PathToText(log, modulesFile);
-		displayer.setColSep(simPathSep);
+		displayer = new PathToDaikonTrace(log, modulesFile);
+		//displayer.setColSep(simPathSep);
 		displayer.setVarsToShow(simVars);
 		displayer.setShowProbs(simPathShowProbs);
 		displayer.setShowRewards(simPathShowRewards);

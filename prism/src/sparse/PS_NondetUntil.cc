@@ -86,10 +86,8 @@ jlong _strat				// strategy storage
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
 	int export_adv_enabled = export_adv;
-	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j;
-	bool adv_new;
 	int *adv = NULL;
 	// action info
 	jstring *action_names_jstrings;
@@ -239,7 +237,6 @@ jlong _strat				// strategy storage
 		for (i = 0; i < n; i++) {
 			d1 = 0.0; // initial value doesn't matter
 			first = true; // (because we also remember 'first')
-			adv_new = false;
 			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
 			else { l1 = h1; h1 += row_counts[i]; }
 			for (j = l1; j < h1; j++) {

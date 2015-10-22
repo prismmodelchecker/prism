@@ -136,6 +136,8 @@ public class PrismParser implements PrismParserConstants {
 
         public ModulesFile parseModulesFile(InputStream str, ModelType typeOverride) throws PrismLangException
         {
+    		new Exception().printStackTrace(System.out);
+        	
                 ModulesFile mf = null;
 
                 // (Re)start parser

@@ -94,7 +94,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
 	int export_adv_enabled = export_adv;
-	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j;
 	//int *adv = NULL;

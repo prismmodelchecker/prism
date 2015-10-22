@@ -384,6 +384,14 @@ public class NondetModel extends ProbModel
 		} else {
 			PrismSparse.ExportMDP(trans, transActions, getSynchs(), getTransSymbol(), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType,
 					(file != null) ? file.getPath() : null);
+			if (exportType == Prism.EXPORT_DOT_STATES) {
+				PrismLog tmpLog;
+				tmpLog = PrismFileLog.create(file.getPath(), true);
+				// insert states info into dot file
+				getReachableStates().printDot(tmpLog);
+				// print footer
+				tmpLog.println("}");
+			}
 		}
 	}
 
