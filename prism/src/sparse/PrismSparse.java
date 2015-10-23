@@ -238,8 +238,8 @@ public class PrismSparse
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
-	private static native double[] PS_NondetMultiObj(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, long[] ptr_yes_vec, int[] probStepBounds, long[] ptr_RewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds);
-	public static double[] NondetMultiObj(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
+	private static native double[] PS_NondetMultiObj(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, List<String> synchs, long[] ptr_yes_vec, int[] probStepBounds, long[] ptr_RewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds);
+	public static double[] NondetMultiObj(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, List<String> synchs, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
 	{
 		long[] ptr_ndsp_r = null;
 		if (rewSparseMatrix != null) {
@@ -255,7 +255,7 @@ public class PrismSparse
 				ptr_yes_vec[i] = (yes_vec[i]!=null) ? yes_vec[i].getPtr() : 0;
 		}
 		
-		double[] ret = PS_NondetMultiObj(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), minmax, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), ptr_yes_vec, probStepBounds, ptr_ndsp_r, rewardWeights, rewardStepBounds);
+		double[] ret = PS_NondetMultiObj(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), minmax, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), synchs, ptr_yes_vec, probStepBounds, ptr_ndsp_r, rewardWeights, rewardStepBounds);
 		if (ret == null)
 			throw new PrismException(getErrorMessage());
 		else

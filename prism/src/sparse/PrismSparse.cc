@@ -366,6 +366,39 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1BuildSubND
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT void JNICALL Java_sparse_NDSparseMatrix_PS_1AddActionsToNDSparseMatrix
+(JNIEnv *env, jclass cls,
+ jlong __jlongpointer t,    // trans
+ jlong __jlongpointer ta,    // trans action labels
+ jlong __jlongpointer od, // odd
+ jlong __jlongpointer rv, // row vars
+ jint num_rvars,
+ jlong __jlongpointer cv, // col vars
+ jint num_cvars,
+ jlong __jlongpointer ndv,  // nondet vars
+ jint num_ndvars,
+ jlong __jlongpointer nd    // sparse matrix
+ )
+{
+    DdNode *trans = jlong_to_DdNode(t); 			//trans/reward matrix
+	DdNode *trans_actions = jlong_to_DdNode(ta);	// trans action labels
+    ODDNode *odd = jlong_to_ODDNode(od);      // reachable states
+    DdNode **rvars = jlong_to_DdNode_array(rv);   // row vars
+    DdNode **cvars = jlong_to_DdNode_array(cv);   // col vars
+    DdNode **ndvars = jlong_to_DdNode_array(ndv); // nondet vars
+	NDSparseMatrix *ndsm = (NDSparseMatrix *) jlong_to_NDSparseMatrix(nd); // sparse matrix
+    
+	jstring *action_names_jstrings;
+	const char** action_names = NULL;
+	int num_actions;
+	
+	if (trans_actions != NULL) {
+		build_nd_action_vector(ddman, trans, trans_actions, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
+	}
+}
+
+//------------------------------------------------------------------------------
+
 JNIEXPORT void __jlongpointer JNICALL Java_sparse_NDSparseMatrix_PS_1DeleteNDSparseMatrix
 (JNIEnv *env, jclass cls,
  jlong __jlongpointer _ndsm)

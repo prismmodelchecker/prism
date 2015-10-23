@@ -44,6 +44,8 @@ public class NDSparseMatrix
 
 	private static native long PS_BuildSubNDSparseMatrix(long trans, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long rewards);
 
+	private static native void PS_AddActionsToNDSparseMatrix(long trans, long trans_actions, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long ndsm);
+	
 	private static native void PS_DeleteNDSparseMatrix(long ptr_matrix);
 
 	static {
@@ -107,5 +109,10 @@ public class NDSparseMatrix
 		if (ptr == 0)
 			throw new PrismException(PrismSparse.getErrorMessage());
 		return new NDSparseMatrix(ptr);
+	}
+
+	public static void AddActionsToNDSparseMatrix(JDDNode trans, JDDNode transActions, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, NDSparseMatrix ndsm) throws PrismException
+	{
+		PS_AddActionsToNDSparseMatrix(trans.ptr(), transActions.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), ndsm.getPtr());
 	}
 }

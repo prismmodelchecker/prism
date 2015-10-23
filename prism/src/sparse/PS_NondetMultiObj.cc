@@ -62,6 +62,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
  jlong __jlongpointer _start, // initial state(s)
  jlong _adversary,
  jlong __jlongpointer _ndsm, //pointer to trans sparse matrix
+ jobject synchs,
  jlongArray _yes_vec, //pointer to yes vector array
  jintArray _prob_step_bounds, //step bounds for probabilistic operators
  jlongArray  _ndsm_r, //pointer to reward sparse matrix array
@@ -98,8 +99,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	int adv_j;
 	int *adv = NULL;
 	// action info
-	int *actions;
 	jstring *action_names_jstrings;
+	const char** action_names = NULL;
 	int num_actions;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
@@ -107,7 +108,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	double d1, d2, kb, kbt;
 	double *pd1 = NULL, *pd2 = NULL;
 	bool done, weightedDone, first;
-	const char** action_names = NULL;
 	int num_yes = 0;
 	int start_index;
 	unsigned int *row_starts1, *predecessors;
@@ -158,6 +158,13 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		// build sparse matrix
 		ndsm = (NDSparseMatrix *) jlong_to_NDSparseMatrix(_ndsm);
 		
+		// if needed, and if info is available, get action names
+		if (export_adv_enabled != EXPORT_ADV_NONE) {
+			if (synchs != NULL) {
+				get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
+			}
+		}
+	
 		// get number of transitions/choices
 		nnz = ndsm->nnz;
 		nc = ndsm->nc;
@@ -191,9 +198,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				max_step_bound = step_bounds[probi];
 			}
 		}
-		
-		// if needed, and if info is available, build a vector of action indices for the MDP
-		actions = NULL;
 		
 		// get vector for yes
 		yes_vec = new double *[lenProb];
@@ -231,11 +235,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		
 		// if required, create storage for adversary and initialise
 		if (export_adv_enabled != EXPORT_ADV_NONE) {
-			PS_PrintToMainLog(env, "Allocating adversary vector... ");
 			adv = new int[n];
-			kb = n*sizeof(int)/1024.0;
-			kbt += kb;
-			PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 			// Initialise all entries to -1 ("don't know")
 			for (i = 0; i < n; i++) {
 				adv[i] = -1;
@@ -596,6 +596,47 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			}
 		}
 		
+		// Traverse matrix to extract adversary
+		if (export_adv_enabled != EXPORT_ADV_NONE) {
+			// Do two passes: first to compute the number of transitions,
+			// the second to actually do the export
+			int num_trans = 0;
+			for (int pass = 1; pass <= 2; pass++) {
+				if (pass == 2) {
+					fprintf(fp_adv, "%d %d\n", n, num_trans);
+				}
+				h1 = h2 = 0;
+				for (i = 0; i < n; i++) {
+					if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
+					else { l1 = h1; h1 += row_counts[i]; }
+					// Have to loop through all choices (to compute offsets)
+					for (j = l1; j < h1; j++) {
+						if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
+						else { l2 = h2; h2 += choice_counts[j]; }
+						// But only output a choice if it is in the adversary
+						if (j == adv[i]) {
+							switch (pass) {
+							case 1:
+								num_trans += (h2-l2);
+								break;
+							case 2:
+								for (k = l2; k < h2; k++) {
+									switch (export_adv_enabled) {
+									case EXPORT_ADV_DTMC:
+										fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]); break;
+									case EXPORT_ADV_MDP:
+										fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
+									}
+									if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
+									fprintf(fp_adv, "\n");
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	
 		// stop clocks
 		stop = util_cpu_time();
 		time_for_iters = (double)(stop - start2)/1000;
@@ -661,15 +702,12 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			if (psoln[it]) delete[] psoln[it];
 		}
 	}
-	
 	if (psoln2) delete[] psoln2;
 	if (psoln) delete[] psoln;
-	    
-	if (actions != NULL) {
-		delete[] actions;
+	if (adv) delete[] adv;
+	if (action_names != NULL) {
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	}
-	if (adv) delete[] adv;
 
 	return ret;
 }
