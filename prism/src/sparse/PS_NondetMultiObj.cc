@@ -305,9 +305,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		// open file to store adversary (if required)
 		if (export_adv_enabled != EXPORT_ADV_NONE) {
 			fp_adv = fopen(export_adv_filename, "w");
-			if (fp_adv) {
-				fprintf(fp_adv, "%d ?\n", n);
-			} else {
+			if (!fp_adv) {
 				PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
 				export_adv_enabled = EXPORT_ADV_NONE;
 			}
