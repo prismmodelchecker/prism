@@ -163,7 +163,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
-			renderer.setText(value.toString());
+			renderer.setText(value == null ? "" : value.toString());
 
 			int dist;
 
