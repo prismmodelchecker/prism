@@ -138,10 +138,10 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetReachReward
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetMultiObj
- * Signature: (JJIJIJIZJJJ[J[I[J[D[I)[D
+ * Signature: (JJIJIJIZJJJLjava/util/List;[J[I[J[D[I)[D
  */
 JNIEXPORT jdoubleArray JNICALL Java_sparse_PrismSparse_PS_1NondetMultiObj
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jboolean, jlong, jlong, jlong, jlongArray, jintArray, jlongArray, jdoubleArray, jintArray);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jboolean, jlong, jlong, jlong, jobject, jlongArray, jintArray, jlongArray, jdoubleArray, jintArray);
 
 /*
  * Class:     sparse_PrismSparse

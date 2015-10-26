@@ -33,6 +33,14 @@ JNIEXPORT jlong JNICALL Java_sparse_NDSparseMatrix_PS_1BuildSubNDSparseMatrix
 
 /*
  * Class:     sparse_NDSparseMatrix
+ * Method:    PS_AddActionsToNDSparseMatrix
+ * Signature: (JJJJIJIJIJ)V
+ */
+JNIEXPORT void JNICALL Java_sparse_NDSparseMatrix_PS_1AddActionsToNDSparseMatrix
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong);
+
+/*
+ * Class:     sparse_NDSparseMatrix
  * Method:    PS_DeleteNDSparseMatrix
  * Signature: (J)V
  */
