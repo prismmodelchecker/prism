@@ -730,9 +730,9 @@ public class ExplicitFiles2MTBDD
 				// close file
 				in.close();
 			} catch (IOException e) {
-				throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
+				throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
 			} catch (NumberFormatException e) {
-				throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
+				throw new PrismException("Error detected at line " + lineNum + " of labels file \"" + labelsFile + "\"");
 			}
 			if (count < 1) {
 				throw new PrismException("No initial states found in labels file");
