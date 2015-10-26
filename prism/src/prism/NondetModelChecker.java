@@ -465,11 +465,10 @@ public class NondetModelChecker extends NonProbModelChecker
 		int numObjectives = expr.getNumOperands();
 		OpsAndBoundsList opsAndBounds = new OpsAndBoundsList();
 		List<JDDNode> rewards = new ArrayList<JDDNode>(numObjectives);
-		List<JDDNode> rewardsIndex = new ArrayList<JDDNode>(numObjectives);
-		ArrayList<String> targetName = new ArrayList<String>();
-		List<Expression> targetExprs = new ArrayList<Expression>(numObjectives);
+		List<JDDNode> transRewardsList = new ArrayList<JDDNode>(numObjectives);
+		List<Expression> pathFormulas = new ArrayList<Expression>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			extractInfoFromMultiObjectiveOperand((ExpressionQuant) expr.getOperand(i), opsAndBounds, rewardsIndex, targetName, targetExprs);
+			extractInfoFromMultiObjectiveOperand((ExpressionQuant) expr.getOperand(i), opsAndBounds, transRewardsList, pathFormulas);
 		}
 
 		//currently we do 1 numerical subject to booleans, or multiple numericals only 
@@ -503,7 +502,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (opsAndBounds.isProbabilityObjective(i)) {
 				draDDRowVars[i] = new JDDVars();
 				draDDColVars[i] = new JDDVars();
-				modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, ltl[i], i, dra, opsAndBounds.getOperator(i), targetExprs.get(i),
+				modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, ltl[i], i, dra, opsAndBounds.getOperator(i), pathFormulas.get(i),
 						draDDRowVars[i], draDDColVars[i], ddStateIndex);
 				// Deref old product (unless is the original model)
 				if (i > 0 & !originalmodel)
@@ -523,7 +522,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		//print some info
 		outputProductMulti(modelProduct);
 
-		for (JDDNode rindex : rewardsIndex) {
+		for (JDDNode rindex : transRewardsList) {
 			JDD.Ref(rindex);
 			JDD.Ref(modelProduct.getTrans01());
 			rewards.add(JDD.Apply(JDD.TIMES, rindex, modelProduct.getTrans01()));
@@ -531,13 +530,13 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Removing actions with non-zero reward from the product for maximum cases
 		if (hasMaxReward /*& hasLTLconstraint*/) {
-			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, rewardsIndex, opsAndBounds, numObjectives, dra, draDDRowVars, draDDColVars);
+			mcMo.removeNonZeroMecsForMax(modelProduct, mcLtl, transRewardsList, opsAndBounds, numObjectives, dra, draDDRowVars, draDDColVars);
 		}
 
 		// Remove all non-zero reward from trans in order to search for zero reward end components
 		JDDNode tmptrans = modelProduct.getTrans();
 		JDDNode tmptrans01 = modelProduct.getTrans01();
-		boolean transchanged = mcMo.removeNonZeroRewardTrans(modelProduct, rewardsIndex, opsAndBounds);
+		boolean transchanged = mcMo.removeNonZeroRewardTrans(modelProduct, transRewardsList, opsAndBounds);
 
 		// Compute all maximal end components
 		ArrayList<ArrayList<JDDNode>> allstatesH = new ArrayList<ArrayList<JDDNode>>(numObjectives);
@@ -582,12 +581,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		List<JDDNode> targetDDs = new ArrayList<JDDNode>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
+				mainLog.println("\nFinding accepting end components for " + pathFormulas.get(i).toString() + "...");
 				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], allecs, allstatesH.get(i),
-						allstatesL.get(i), mcLtl, conflictformulae > 1, targetName.get(i)));
+						allstatesL.get(i), mcLtl, conflictformulae > 1));
 			} else {
 				// Fixme: maybe not efficient
-				if (targetExprs.get(i) != null) {
-					JDDNode dd = checkExpressionDD(targetExprs.get(i));
+				if (pathFormulas.get(i) != null) {
+					JDDNode dd = checkExpressionDD(pathFormulas.get(i));
 					JDD.Ref(modelProduct.getReach());
 					dd = JDD.And(dd, modelProduct.getReach());
 					targetDDs.add(dd);
@@ -678,75 +678,88 @@ public class NondetModelChecker extends NonProbModelChecker
 
 	/**
 	 * Extract the information from the operator defining one objective of a multi-objective query,
-	 * store the info in the passed in arrays and so some checks. 
+	 * store the info in the passed in arrays and so some checks.
+	 *  
+	 * @param exprQuant The operator for the objective
+	 * @param opsAndBounds Where to add info about ops/bounds
+	 * @param transRewardsList Where to add the transition rewards
+	 * @param pathFormulas Where to store the path formulas (for P operators; null for R operators)
 	 */
-	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> rewardsIndex, List<String> targetName,
-			List<Expression> targetExprs) throws PrismException
+	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> transRewardsList,
+			List<Expression> pathFormulas) throws PrismException
 	{
-		int stepBound = 0;
 		ExpressionProb exprProb = null;
 		ExpressionReward exprReward = null;
-		ExpressionTemporal exprTemp;
-		RelOp relOp;
 		
+		// Check if it's a P or an R operator
 		if (exprQuant instanceof ExpressionProb) {
 			exprProb = (ExpressionProb) exprQuant;
 			exprReward = null;
-			relOp = exprProb.getRelOp();
 		} else if (exprQuant instanceof ExpressionReward) {
 			exprReward = (ExpressionReward) exprQuant;
 			exprProb = null;
-			relOp = exprReward.getRelOp();
-			Object rs = exprReward.getRewardStructIndex();
-			JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
-			JDDNode transRewards = getTransitionRewardsByIndexObject(rs, model, constantValues);
-
-			//check if there are state rewards and display a warning
-			if (stateRewards != null && !stateRewards.equals(JDD.ZERO))
-				throw new PrismException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
-			
-			rewardsIndex.add(transRewards);
 		} else {
 			throw new PrismException("Multi-objective properties can only contain P and R operators");
 		}
-		// Get the cumulative step bound for reward 
+
+		// For a reward objective, store the transition rewards
 		if (exprReward != null) {
-			exprTemp = (ExpressionTemporal) exprReward.getExpression();
-			
+			Object rs = exprReward.getRewardStructIndex();
+			// Check there are no state rewards (which are not currently supported), and throw an exception if there are
+			JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
+			if (stateRewards != null && !stateRewards.equals(JDD.ZERO)) {
+				throw new PrismException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
+			}
+			// Add transition rewards to list
+			transRewardsList.add(getTransitionRewardsByIndexObject(rs, model, constantValues));
+		}
+		
+		// Check that the temporal/reward operator is supported, and store step bounds if present
+		int stepBound = 0;
+		if (exprProb != null) {
+			// F<=k is allowed
+			Expression expr = exprProb.getExpression();
+			if (expr.isSimplePathFormula() && Expression.isReach(expr)) {
+				ExpressionTemporal exprTemp = ((ExpressionTemporal) expr);
+				if (exprTemp.getLowerBound() != null) {
+					throw new PrismException("Lower time bounds are not supported in multi-objective queries");
+				}
+				if (exprTemp.getUpperBound() != null) {
+					stepBound = exprTemp.getUpperBound().evaluateInt(constantValues);
+				} else {
+					stepBound = -1;
+				}
+			} else {
+				if (Expression.containsTemporalTimeBounds(expr)) {
+					throw new PrismException("Time bounds in multi-objective queries can only be on F or C operators");
+				} else {
+					stepBound = -1;
+				}
+			}
+		}
+		if (exprReward != null) {
+			ExpressionTemporal exprTemp = ((ExpressionTemporal) exprReward.getExpression());
 			// We only allow C or C<=k reward operators, others such as F are not supported currently
 			if (exprTemp.getOperator() != ExpressionTemporal.R_C) {
-				throw new PrismException("Reward operators in multi-objective properties must be C or C<=k (" + exprTemp.getOperatorSymbol()
-						+ " is not yet supported)");
+				throw new PrismException("Only the C and C>=k reward operators are currently supported for multi-objective properties (not "
+						+ exprTemp.getOperatorSymbol() + ")");
 			}
-			
-			if (exprTemp.getUpperBound() != null) {
-				//This is the case of C<=k
-				stepBound = exprTemp.getUpperBound().evaluateInt(constantValues);
-			} else {
-				//Here we just have C
-				stepBound = -1;
-			}
-			/*if (exprTemp.getOperator() != ExpressionTemporal.R_F) {
-				throw new PrismException("Multi-objective only supports F operator for rewards");
-			}*/
-		}
-		if (exprProb != null && exprProb.getExpression() instanceof ExpressionTemporal) {// || ((ExpressionTemporal) exprReward.getExpression()).getOperator() != ExpressionTemporal.R_C) {
-			exprTemp = (ExpressionTemporal) exprProb.getExpression();
-			//TODO we currently ignore the lower bound
+			// R [ C<=k ]
 			if (exprTemp.getUpperBound() != null) {
 				stepBound = exprTemp.getUpperBound().evaluateInt(constantValues);
 			}
-			else
+			// R [ C ]
+			else {
 				stepBound = -1;
+			}
 		}
-
-		// Get info from P/R operator
+		
+		// Get/check/store info about relational operator and bound
 		OpRelOpBound opInfo = exprQuant.getRelopBoundInfo(constantValues);
-		
-		// Store relational operator
-		if (opInfo.getRelOp().isStrict())
+		RelOp relOp = opInfo.getRelOp();
+		if (relOp.isStrict()) {
 			throw new PrismException("Multi-objective properties can not use strict inequalities on P/R operators");
-		
+		}
 		Operator op;
 		if (relOp == RelOp.MAX) {
 			op = (exprProb != null) ? Operator.P_MAX : Operator.R_MAX;
@@ -756,24 +769,24 @@ public class NondetModelChecker extends NonProbModelChecker
 			op = (exprProb != null) ? Operator.P_MIN : Operator.R_MIN;
 		} else if (relOp == RelOp.LEQ) {
 			op = (exprProb != null) ? Operator.P_LE : Operator.R_LE;
-		} else
+		} else {
 			throw new PrismException("Multi-objective properties can only contain P/R operators with max/min=? or lower/upper probability bounds");
-		
+		}
 		// Find bound
 		double p = opInfo.isNumeric() ? -1.0 : opInfo.getBound();
 		// Subtract bound from 1 if of the form P<=p
-		if (opInfo.isProbabilistic() && opInfo.getRelOp().isUpperBound())
+		if (opInfo.isProbabilistic() && opInfo.getRelOp().isUpperBound()) {
 			p = 1 - p;
+		}
 		// Store bound
 		opsAndBounds.add(opInfo, op, p, stepBound);
 
-		// Now extract targets
+		// Finally, extract path formulas
 		if (exprProb != null) {
-			targetExprs.add(exprProb.getExpression());
-			targetName.add(exprProb.getExpression().toString());
-		} else {
-			targetExprs.add(null);
-			targetName.add("");
+			pathFormulas.add(exprProb.getExpression());
+		}
+		if (exprReward != null) {
+			pathFormulas.add(null);
 		}
 	}
 

@@ -69,7 +69,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 	//TODO: dra's element is changed here, not neat.
 	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, Expression ltl, int i,
-			DA<BitSet, AcceptanceRabin> dra[], Operator operator, Expression targetExpr, JDDVars draDDRowVars, JDDVars draDDColVars, JDDNode ddStateIndex)
+			DA<BitSet, AcceptanceRabin> dra[], Operator operator, Expression pathFormula, JDDVars draDDRowVars, JDDVars draDDColVars, JDDNode ddStateIndex)
 			throws PrismException
 	{
 
@@ -77,7 +77,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 		// Model check maximal state formulas
 		Vector<JDDNode> labelDDs = new Vector<JDDNode>();
-		ltl = mcLtl.checkMaximalStateFormulas(modelChecker, model, targetExpr.deepCopy(), labelDDs);
+		ltl = mcLtl.checkMaximalStateFormulas(modelChecker, model, pathFormula.deepCopy(), labelDDs);
 
 		// Convert LTL formula to deterministic Rabin automaton (DRA)
 		// For min probabilities, need to negate the formula
@@ -172,9 +172,8 @@ public class MultiObjModelChecker extends PrismComponent
 	//there are some other bits which I don't currently understand
 	protected JDDNode computeAcceptingEndComponent(DA<BitSet, AcceptanceRabin> dra, NondetModel modelProduct, JDDVars draDDRowVars, JDDVars draDDColVars,
 			List<JDDNode> allecs, List<JDDNode> statesH, List<JDDNode> statesL, //Vojta: at the time of writing this I have no idea what these two parameters do, so I don't know how to call them
-			LTLModelChecker mcLtl, boolean conflictformulaeGtOne, String name) throws PrismException
+			LTLModelChecker mcLtl, boolean conflictformulaeGtOne) throws PrismException
 	{
-		mainLog.println("\nFinding accepting end components for " + name + "...");
 		long l = System.currentTimeMillis();
 		// increase ref count for checking conflict formulas
 		if (conflictformulaeGtOne) {
