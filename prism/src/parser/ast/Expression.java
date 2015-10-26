@@ -705,7 +705,7 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Test if an expression is a reachability path formula (F phi) 
+	 * Test if an expression is a reachability path formula (F phi), possibly with a time bound.
 	 */
 	public static boolean isReach(Expression expr)
 	{
