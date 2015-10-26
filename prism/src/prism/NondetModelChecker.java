@@ -398,7 +398,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 			// Only handle a single disjunct for now
 			if (dnf.size() > 1) {
-				throw new PrismException("Multi-objective model checking of multiople disjuncts not yet supported");
+				throw new PrismException("Multi-objective model checking of multiple disjuncts not yet supported");
 			}
 			// Convert to multi(...)
 			ExpressionFunc exprMulti = new ExpressionFunc("multi");
