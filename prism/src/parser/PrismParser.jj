@@ -1776,10 +1776,12 @@ Expression ExpressionStrategy(boolean prop, boolean pathprop) :
 	(( begin = <DLT> { ret = new ExpressionStrategy(true); } ExpressionStrategyCoalition(ret) <DGT> )
 	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } ExpressionStrategyCoalition(ret) <DRBRACKET> ))
 	// Child expression
-	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop)
-	| expr = ExpressionParenth(prop, pathprop) | expr = ExpressionFuncOrIdent(prop, pathprop) )
-	{ ret.setExpression(expr); }
-	)
+	(
+	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop) )
+	{ ret.setSingleOperand(expr); }
+	| expr = ExpressionParenth(prop, pathprop)
+	{ ret.addOperand(expr); }
+	))
 	{
 		ret.setPosition(begin, getToken(0));
 		return ret;

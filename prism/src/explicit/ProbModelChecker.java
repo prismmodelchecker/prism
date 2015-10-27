@@ -28,6 +28,7 @@ package explicit;
 
 import java.io.File;
 import java.util.BitSet;
+import java.util.List;
 
 import parser.ast.Coalition;
 import parser.ast.Expression;
@@ -515,10 +516,12 @@ public class ProbModelChecker extends NonProbModelChecker
 			coalition = null;
 		}
 
-		// Strip any parentheses (they might have been needlessly wrapped around a single P or R)
-		Expression exprSub = expr.getExpression();
-		while (Expression.isParenth(exprSub))
-			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
+		// For now, just support a single expression (which may encode a Boolean combination of objectives)
+		List<Expression> exprs = expr.getOperands();
+		if (exprs.size() > 1) {
+			throw new PrismException("Cannot currently check strategy operators wth lists of expressions");
+		}
+		Expression exprSub = exprs.get(0);
 		// Pass onto relevant method:
 		// P operator
 		if (exprSub instanceof ExpressionProb) {

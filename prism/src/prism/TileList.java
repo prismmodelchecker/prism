@@ -75,7 +75,7 @@ public class TileList
 	 */
 	protected static List<Expression> storedFormulasX;
 	protected static List<Expression> storedFormulasY;
-	protected static List<Expression> storedFormulas;
+	protected static List<List<Expression>> storedFormulas;
 
 	public static List<Expression> getStoredFormulasX()
 	{
@@ -87,7 +87,7 @@ public class TileList
 		return storedFormulasY;
 	}
 
-	public static List<Expression> getStoredFormulas()
+	public static List<List<Expression>> getStoredFormulas()
 	{
 		return storedFormulas;
 	}
@@ -104,7 +104,7 @@ public class TileList
 	static {
 		storedFormulasX = new ArrayList<Expression>();
 		storedFormulasY = new ArrayList<Expression>();
-		storedFormulas = new ArrayList<Expression>();
+		storedFormulas = new ArrayList<List<Expression>>();
 		storedTileLists = new ArrayList<TileList>();
 	}
 

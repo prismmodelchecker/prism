@@ -552,7 +552,20 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(ExpressionStrategy e) throws PrismLangException
 	{
-		e.setType(e.getExpression().getType());
+		// Get types of operands
+		int n = e.getNumOperands();
+		Type types[] = new Type[n];
+		for (int i = 0; i < n; i++) {
+			types[i] = e.getOperand(i).getType();
+		}
+
+		// Currently, resulting type is always same as first arg
+		if (types[0] instanceof TypeBool)
+			e.setType(TypeBool.getInstance());
+		else if (types.length == 1 || types[1] instanceof TypeBool) //in this case type[0] is TypeDouble
+			e.setType(TypeDouble.getInstance());
+		else
+			e.setType(TypeVoid.getInstance());
 	}
 
 	public void visitPost(ExpressionLabel e) throws PrismLangException

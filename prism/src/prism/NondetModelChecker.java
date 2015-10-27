@@ -202,22 +202,20 @@ public class NondetModelChecker extends NonProbModelChecker
 			coalition = null;
 		}
 
-		// Strip any parentheses
-		Expression exprSub = expr.getExpression();
-		while (Expression.isParenth(exprSub))
-			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
+		// Process operand(s)
+		List<Expression> exprs = expr.getOperands();
 		// Pass onto relevant method:
 		// Single P operator
-		if (exprSub instanceof ExpressionProb) {
-			return checkExpressionProb((ExpressionProb) exprSub, forAll);
+		if (exprs.size() == 1 && exprs.get(0) instanceof ExpressionProb) {
+			return checkExpressionProb((ExpressionProb) exprs.get(0), forAll);
 		}
 		// Single R operator
-		else if (exprSub instanceof ExpressionReward) {
-			return checkExpressionReward((ExpressionReward) exprSub, forAll);
+		else if (exprs.size() == 1 && exprs.get(0) instanceof ExpressionReward) {
+			return checkExpressionReward((ExpressionReward) exprs.get(0), forAll);
 		}
 		// Anything else is treated as multi-objective 
 		else {
-			return checkExpressionMultiObjective(expr, forAll);
+			return checkExpressionMultiObjective(exprs, forAll);
 		}
 	}
 	
@@ -350,21 +348,25 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 	}
 
-	protected StateValues checkExpressionMultiObjective(ExpressionStrategy expr, boolean forAll) throws PrismException
+	/**
+	 * Model check a multi-objective query (from the contents of a strategy operator).
+	 * Return the result as a StateValues object (usually this gives values for all states,
+	 * but for a multi-objective query, we just give a single value, usually for the initial state).
+	 * @param exprs The list of Expressions specifying the objectives
+	 * @param forAll Are we checking "for all strategies" (true) or "there exists a strategy" (false)? [irrelevant for numerical (=?) queries] 
+	 */
+	protected StateValues checkExpressionMultiObjective(List<Expression> exprs, boolean forAll) throws PrismException
 	{
-		// Copy expression because we will modify it
-		expr = (ExpressionStrategy) expr.deepCopy();
-
-		// Strip any outer parentheses in operand
-		Expression exprSub = expr.getExpression();
-		while (Expression.isParenth(exprSub)) {
-			exprSub = ((ExpressionUnaryOp) exprSub).getOperand();
+		// For now, just support a single expression (which may encode a Boolean combination of objectives)
+		if (exprs.size() > 1) {
+			throw new PrismException("Cannot currently check strategy operators with lists of expressions");
 		}
-
-		// Reduce to form that can be expressed as an old multi(...) function..
+		Expression exprSub = exprs.get(0);
 
 		// Boolean
 		if (exprSub.getType() instanceof TypeBool) {
+			// Copy expression because we will modify it
+			exprSub = (ExpressionStrategy) exprSub.deepCopy();
 			// We will solve an existential query, so negate if universal
 			if (forAll) {
 				exprSub = Expression.Not(exprSub);
@@ -412,9 +414,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				return checkExpressionMultiObjective(exprMulti);
 			}
 		} else if (exprSub.getType() instanceof TypeDouble) {
-			ExpressionFunc exprMulti = new ExpressionFunc("multi");
-			exprMulti.addOperand(exprSub);
-			return checkExpressionMultiObjective(exprMulti);
+			return checkExpressionMultiObjective(exprs);
 		} else {
 			throw new PrismException("Multi-objective model checking not supported for: " + exprSub);
 		}
@@ -425,6 +425,21 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * For multi-objective queries, we only find the value for one state.
 	 */
 	protected StateValues checkExpressionMultiObjective(ExpressionFunc expr) throws PrismException
+	{
+		// Extract objective list from 'multi' function
+		List<Expression> exprs = new ArrayList<Expression>();
+		int n = expr.getNumOperands();
+		for (int i = 0; i < n; i++) {
+			exprs.add(expr.getOperand(i));
+		}
+		return checkExpressionMultiObjective(exprs);
+	}
+	
+	/**
+	 * Model check a multi-objective expression and return the result.
+	 * For multi-objective queries, we only find the value for one state.
+	 */
+	protected StateValues checkExpressionMultiObjective(List<Expression> exprs) throws PrismException
 	{
 		// Objective/target info
 		List<JDDNode> multitargetDDs = null;
@@ -462,13 +477,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		}*/
 
 		// Check format and extract bounds/etc.
-		int numObjectives = expr.getNumOperands();
+		int numObjectives = exprs.size();
 		OpsAndBoundsList opsAndBounds = new OpsAndBoundsList();
 		List<JDDNode> rewards = new ArrayList<JDDNode>(numObjectives);
 		List<JDDNode> transRewardsList = new ArrayList<JDDNode>(numObjectives);
 		List<Expression> pathFormulas = new ArrayList<Expression>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			extractInfoFromMultiObjectiveOperand((ExpressionQuant) expr.getOperand(i), opsAndBounds, transRewardsList, pathFormulas);
+			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), opsAndBounds, transRewardsList, pathFormulas);
 		}
 
 		//currently we do 1 numerical subject to booleans, or multiple numericals only 
@@ -650,14 +665,14 @@ public class NondetModelChecker extends NonProbModelChecker
 			if (opsAndBounds.numberOfNumerical() == 2) {			
 				synchronized(TileList.getStoredTileLists()) {
 					//in multi-obj result probs go first, so we have to swap order if needed
-					if (expr.getOperand(0) instanceof ExpressionReward && expr.getOperand(1) instanceof ExpressionProb) {
-						TileList.storedFormulasX.add(expr.getOperand(1));
-						TileList.storedFormulasY.add(expr.getOperand(0));
+					if (exprs.get(0) instanceof ExpressionReward && exprs.get(1) instanceof ExpressionProb) {
+						TileList.storedFormulasX.add(exprs.get(1));
+						TileList.storedFormulasY.add(exprs.get(0));
 					} else {
-						TileList.storedFormulasX.add(expr.getOperand(0));
-						TileList.storedFormulasY.add(expr.getOperand(1));
+						TileList.storedFormulasX.add(exprs.get(0));
+						TileList.storedFormulasY.add(exprs.get(1));
 					}
-					TileList.storedFormulas.add(expr);
+					TileList.storedFormulas.add(exprs);
 					TileList.storedTileLists.add((TileList) value);
 				}
 			} //else, i.e. in 3D, the output was treated in the algorithm itself.

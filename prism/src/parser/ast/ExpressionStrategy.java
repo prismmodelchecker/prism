@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import parser.EvaluateContext;
@@ -44,9 +45,12 @@ public class ExpressionStrategy extends Expression
 	/** Coalition info (for game models) */
 	protected Coalition coalition = new Coalition(); 
 	
-	/** Child expression */
-	protected Expression expression = null;
-
+	/** Child expression(s) */
+	protected List<Expression> operands = new ArrayList<Expression>();
+	
+	/** Is there just a single operand (P/R operator)? If not, the operand list will be parenthesised. **/
+	protected boolean singleOperand = false;
+	
 	// Constructors
 
 	public ExpressionStrategy()
@@ -61,7 +65,8 @@ public class ExpressionStrategy extends Expression
 	public ExpressionStrategy(boolean thereExists, Expression expression)
 	{
 		this.thereExists = thereExists;
-		this.expression = expression;
+		operands.add(expression);
+		singleOperand = true;
 	}
 
 	// Set methods
@@ -81,9 +86,21 @@ public class ExpressionStrategy extends Expression
 		this.coalition.setPlayers(coalition);
 	}
 
-	public void setExpression(Expression expression)
+	public void setSingleOperand(Expression expression)
 	{
-		this.expression = expression;
+		operands.clear();
+		operands.add(expression);
+		singleOperand = true;
+	}
+
+	public void addOperand(Expression e)
+	{
+		operands.add(e);
+	}
+
+	public void setOperand(int i, Expression e)
+	{
+		operands.set(i, e);
 	}
 
 	// Get methods
@@ -116,9 +133,24 @@ public class ExpressionStrategy extends Expression
 		return coalition.getPlayers();
 	}
 	
-	public Expression getExpression()
+	public boolean hasSingleOperand()
 	{
-		return expression;
+		return singleOperand;
+	}
+	
+	public int getNumOperands()
+	{
+		return operands.size();
+	}
+
+	public Expression getOperand(int i)
+	{
+		return operands.get(i);
+	}
+
+	public List<Expression> getOperands()
+	{
+		return operands;
 	}
 
 	// Methods required for Expression:
@@ -141,11 +173,11 @@ public class ExpressionStrategy extends Expression
 		throw new PrismLangException("Cannot evaluate a " + getOperatorString() + " operator without a model");
 	}
 
-	@Override
+	/*@Override
 	public String getResultName()
 	{
 		return expression.getResultName();
-	}
+	}*/
 
 	@Override
 	public boolean returnsSingleValue()
@@ -167,7 +199,10 @@ public class ExpressionStrategy extends Expression
 		ExpressionStrategy expr = new ExpressionStrategy();
 		expr.setThereExists(isThereExists());
 		expr.coalition = new Coalition(coalition);
-		expr.setExpression(expression == null ? null : expression.deepCopy());
+		for (Expression operand : operands) {
+			expr.addOperand((Expression) operand.deepCopy());
+		}
+		expr.singleOperand = singleOperand;
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
@@ -181,8 +216,21 @@ public class ExpressionStrategy extends Expression
 		String s = "";
 		s += (thereExists ? "<<" : "[[");
 		s += coalition;
-		s += (thereExists ? ">>" : "]]");
-		s += " " + expression.toString();
+		s += (thereExists ? ">> " : "]] ");
+		if (singleOperand) {
+			s += operands.get(0);
+		} else {
+			s += "(";
+			boolean first = true;
+			for (Expression operand : operands) {
+				if (!first)
+					s += ", ";
+				else
+					first = false;
+				s = s + operand;
+			}
+			s += ")";
+		}
 		return s;
 	}
 
@@ -192,7 +240,8 @@ public class ExpressionStrategy extends Expression
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((coalition == null) ? 0 : coalition.hashCode());
-		result = prime * result + ((expression == null) ? 0 : expression.hashCode());
+		result = prime * result + ((operands == null) ? 0 : operands.hashCode());
+		result = prime * result + (singleOperand ? 1231 : 1237);
 		result = prime * result + (thereExists ? 1231 : 1237);
 		return result;
 	}
@@ -212,10 +261,12 @@ public class ExpressionStrategy extends Expression
 				return false;
 		} else if (!coalition.equals(other.coalition))
 			return false;
-		if (expression == null) {
-			if (other.expression != null)
+		if (operands == null) {
+			if (other.operands != null)
 				return false;
-		} else if (!expression.equals(other.expression))
+		} else if (!operands.equals(other.operands))
+			return false;
+		if (singleOperand != other.singleOperand)
 			return false;
 		if (thereExists != other.thereExists)
 			return false;
