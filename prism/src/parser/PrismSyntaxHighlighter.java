@@ -65,6 +65,8 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_HTML.add("<"); puncReplaceTo_HTML.add("&lt;");
 		puncReplaceFrom_HTML.add(">"); puncReplaceTo_HTML.add("&gt;");
 		puncReplaceFrom_LATEX = new ArrayList<String>(); puncReplaceTo_LATEX = new ArrayList<String>();
+		puncReplaceFrom_LATEX.add("\\{"); puncReplaceTo_LATEX.add("\\\\{");
+		puncReplaceFrom_LATEX.add("\\}"); puncReplaceTo_LATEX.add("\\\\}");
 		puncReplaceFrom_LATEX.add("&"); puncReplaceTo_LATEX.add("\\\\&");
 		puncReplaceFrom_LATEX.add("_"); puncReplaceTo_LATEX.add("\\\\_");
 		puncReplaceFrom_LATEX.add("%"); puncReplaceTo_LATEX.add("\\\\%");
@@ -72,13 +74,13 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_LATEX.add("<="); puncReplaceTo_LATEX.add("\\${\\\\leq}\\$");
 		puncReplaceFrom_LATEX.add("->"); puncReplaceTo_LATEX.add("\\$\\\\rightarrow\\$");
 		puncReplaceFrom_LATEX.add("=>"); puncReplaceTo_LATEX.add("\\$\\\\Rightarrow\\$");
-		puncReplaceFrom_LATEX.add("\\{"); puncReplaceTo_LATEX.add("\\\\{");
-		puncReplaceFrom_LATEX.add("\\}"); puncReplaceTo_LATEX.add("\\\\}");
 		puncReplaceFrom_LATEX.add("="); puncReplaceTo_LATEX.add("\\${=}\\$");
 		puncReplaceFrom_LATEX.add(">"); puncReplaceTo_LATEX.add("\\${>}\\$");
 		puncReplaceFrom_LATEX.add("<"); puncReplaceTo_LATEX.add("\\${<}\\$");
 		puncReplaceFrom_LATEX.add("#"); puncReplaceTo_LATEX.add("\\\\#");
 		puncReplaceFrom_LATEXMATHS = new ArrayList<String>(); puncReplaceTo_LATEXMATHS = new ArrayList<String>();
+		puncReplaceFrom_LATEXMATHS.add("\\{"); puncReplaceTo_LATEXMATHS.add("\\\\{");
+		puncReplaceFrom_LATEXMATHS.add("\\}"); puncReplaceTo_LATEXMATHS.add("\\\\}");
 		puncReplaceFrom_LATEXMATHS.add("&"); puncReplaceTo_LATEXMATHS.add("\\\\&");
 		puncReplaceFrom_LATEXMATHS.add("_"); puncReplaceTo_LATEXMATHS.add("\\\\_");
 		puncReplaceFrom_LATEXMATHS.add("%"); puncReplaceTo_LATEXMATHS.add("\\\\%");
@@ -86,8 +88,6 @@ public class PrismSyntaxHighlighter
 		puncReplaceFrom_LATEXMATHS.add("<="); puncReplaceTo_LATEXMATHS.add("{\\\\leq}");
 		puncReplaceFrom_LATEXMATHS.add("->"); puncReplaceTo_LATEXMATHS.add("\\\\rightarrow");
 		puncReplaceFrom_LATEXMATHS.add("=>"); puncReplaceTo_LATEXMATHS.add("\\\\Rightarrow");
-		puncReplaceFrom_LATEXMATHS.add("\\{"); puncReplaceTo_LATEXMATHS.add("\\\\{");
-		puncReplaceFrom_LATEXMATHS.add("\\}"); puncReplaceTo_LATEXMATHS.add("\\\\}");
 		puncReplaceFrom_LATEXMATHS.add("="); puncReplaceTo_LATEXMATHS.add("{=}");
 		puncReplaceFrom_LATEXMATHS.add(">"); puncReplaceTo_LATEXMATHS.add("{>}");
 		puncReplaceFrom_LATEXMATHS.add("<"); puncReplaceTo_LATEXMATHS.add("{<}");
