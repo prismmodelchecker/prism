@@ -1463,6 +1463,28 @@ cuddUniqueInterZdd(
 } /* end of cuddUniqueInterZdd */
 
 
+/**
+ * Truncate a double value to 10^-10 precision.
+ */
+static double truncateDoubleConstant(double value)
+{
+	double trunc, m, n;
+
+	// (round off before doing hash function to ensure
+	//  close valued constants are in the same table)
+	if (finite(value)) {
+		trunc = 10000000000.0; // 10^10
+		m = value * trunc;
+		n = floor(m);
+		if (m-n >= 0.5)
+			n = n + 1;
+		n = n / trunc;
+		return n;
+	} else {
+		return value;
+	}
+}
+
 /**Function********************************************************************
 
   Synopsis    [Checks the unique table for the existence of a constant node.]
@@ -1511,17 +1533,7 @@ cuddUniqueConst(
     // this is the new version...
     // (round off before doing hash function to ensure
     //  close valued constants are in the same table)
-    if (finite(value)) {
-		trunc = 10000000000.0; // 10^10
-		m = value * trunc;
-		n = floor(m);
-		if (m-n >= 0.5) 
-			n = n + 1;
-		n = n / trunc;
-		split.value = n;
-	} else {
-	    split.value = value;
-	}
+    split.value = truncateDoubleConstant(value);
 
     pos = ddHash(split.bits[0], split.bits[1], unique->constants.shift);
     nodelist = unique->constants.nodelist;
@@ -1710,6 +1722,7 @@ cuddRehash(
 	    while (node != NULL) {
 		next = node->next;
 		split.value = cuddV(node);
+		split.value = truncateDoubleConstant(split.value);
 		pos = ddHash(split.bits[0], split.bits[1], shift);
 		node->next = nodelist[pos];
 		nodelist[pos] = node;
