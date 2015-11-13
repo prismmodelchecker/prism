@@ -44,6 +44,7 @@ import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
+import common.IterableBitSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.Rewards;
 
@@ -470,7 +471,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	/**
 	 * Compute until probabilities.
 	 * i.e. compute the probability of reaching a state in {@code target},
-	 * while remaining in those in @{code remain}.
+	 * while remaining in those in {@code remain}.
 	 * @param dtmc The DTMC
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -483,7 +484,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	/**
 	 * Compute reachability/until probabilities.
 	 * i.e. compute the min/max probability of reaching a state in {@code target},
-	 * while remaining in those in @{code remain}.
+	 * while remaining in those in {@code remain}.
 	 * @param dtmc The DTMC
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -495,7 +496,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	{
 		ModelCheckerResult res = null;
 		BitSet no, yes;
-		int i, n, numYes, numNo;
+		int n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
 		PredecessorRelation pre = null;
 		// Local copy of setting
@@ -518,10 +519,12 @@ public class DTMCModelChecker extends ProbModelChecker
 		n = dtmc.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
-		if (init != null && known != null) {
-			BitSet targetNew = new BitSet(n);
-			for (i = 0; i < n; i++) {
-				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 1.0));
+		if (init != null && known != null && !known.isEmpty()) {
+			BitSet targetNew = (BitSet) target.clone();
+			for (int i : new IterableBitSet(known)) {
+				if (init[i] == 1.0) {
+					targetNew.set(i);
+				}
 			}
 			target = targetNew;
 		}
@@ -529,7 +532,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		// If required, export info about target states
 		if (getExportTarget()) {
 			BitSet bsInit = new BitSet(n);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				bsInit.set(i, dtmc.isInitialState(i));
 			}
 			List<BitSet> labels = Arrays.asList(bsInit, target);
@@ -1036,7 +1039,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	/**
 	 * Compute bounded until probabilities.
 	 * i.e. compute the probability of reaching a state in {@code target},
-	 * within k steps, and while remaining in states in @{code remain}.
+	 * within k steps, and while remaining in states in {@code remain}.
 	 * @param dtmc The DTMC
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -1050,7 +1053,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	/**
 	 * Compute bounded reachability/until probabilities.
 	 * i.e. compute the probability of reaching a state in {@code target},
-	 * within k steps, and while remaining in states in @{code remain}.
+	 * within k steps, and while remaining in states in {@code remain}.
 	 * @param dtmc The DTMC
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -1157,7 +1160,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
-		int i, n, numTarget, numInf;
+		int n, numTarget, numInf;
 		long timer, timerProb1;
 		// Local copy of setting
 		LinEqMethod linEqMethod = this.linEqMethod;
@@ -1179,10 +1182,12 @@ public class DTMCModelChecker extends ProbModelChecker
 		n = dtmc.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
-		if (init != null && known != null) {
-			BitSet targetNew = new BitSet(n);
-			for (i = 0; i < n; i++) {
-				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 0.0));
+		if (init != null && known != null && !known.isEmpty()) {
+			BitSet targetNew = (BitSet) target.clone();
+			for (int i : new IterableBitSet(known)) {
+				if (init[i] == 1.0) {
+					targetNew.set(i);
+				}
 			}
 			target = targetNew;
 		}

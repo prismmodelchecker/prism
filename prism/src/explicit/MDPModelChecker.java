@@ -46,6 +46,7 @@ import prism.PrismUtils;
 import strat.MDStrategyArray;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
+import common.IterableBitSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
@@ -282,7 +283,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute until probabilities.
 	 * i.e. compute the min/max probability of reaching a state in {@code target},
-	 * while remaining in those in @{code remain}.
+	 * while remaining in those in {@code remain}.
 	 * @param mdp The MDP
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -296,7 +297,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute reachability/until probabilities.
 	 * i.e. compute the min/max probability of reaching a state in {@code target},
-	 * while remaining in those in @{code remain}.
+	 * while remaining in those in {@code remain}.
 	 * @param mdp The MDP
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -309,8 +310,8 @@ public class MDPModelChecker extends ProbModelChecker
 	public ModelCheckerResult computeReachProbs(MDP mdp, BitSet remain, BitSet target, boolean min, double init[], BitSet known) throws PrismException
 	{
 		ModelCheckerResult res = null;
-		BitSet targetOrig, no, yes;
-		int i, n, numYes, numNo;
+		BitSet no, yes;
+		int n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
 		int strat[] = null;
 		// Local copy of setting
@@ -346,18 +347,20 @@ public class MDPModelChecker extends ProbModelChecker
 		n = mdp.getNumStates();
 
 		// Optimise by enlarging target set (if more info is available)
-		targetOrig = target;
-		if (init != null && known != null) {
-			target = new BitSet(n);
-			for (i = 0; i < n; i++) {
-				target.set(i, targetOrig.get(i) || (known.get(i) && init[i] == 1.0));
+		if (init != null && known != null && !known.isEmpty()) {
+			BitSet targetNew = (BitSet) target.clone();
+			for (int i : new IterableBitSet(known)) {
+				if (init[i] == 1.0) {
+					targetNew.set(i);
+				}
 			}
+			target = targetNew;
 		}
 
 		// If required, export info about target states 
 		if (getExportTarget()) {
 			BitSet bsInit = new BitSet(n);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				bsInit.set(i, mdp.isInitialState(i));
 			}
 			List<BitSet> labels = Arrays.asList(bsInit, target);
@@ -371,7 +374,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// (except for target states, which are -2, denoting arbitrary)
 		if (genStrat || exportAdv) {
 			strat = new int[n];
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				strat[i] = target.get(i) ? -2 : -1;
 			}
 		}
@@ -401,12 +404,12 @@ public class MDPModelChecker extends ProbModelChecker
 		// This is just for the cases max=0 and min=1, where arbitrary choices suffice (denoted by -2)
 		if (genStrat || exportAdv) {
 			if (min) {
-				for (i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
+				for (int i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
 					if (!target.get(i))
 						strat[i] = -2;
 				}
 			} else {
-				for (i = no.nextSetBit(0); i >= 0; i = no.nextSetBit(i + 1)) {
+				for (int i = no.nextSetBit(0); i >= 0; i = no.nextSetBit(i + 1)) {
 					strat[i] = -2;
 				}
 			}
@@ -464,7 +467,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Prob0 precomputation algorithm.
 	 * i.e. determine the states of an MDP which, with min/max probability 0,
-	 * reach a state in {@code target}, while remaining in those in @{code remain}.
+	 * reach a state in {@code target}, while remaining in those in {@code remain}.
 	 * {@code min}=true gives Prob0E, {@code min}=false gives Prob0A. 
 	 * Optionally, for min only, store optimal (memoryless) strategy info for 0 states. 
 	 * @param mdp The MDP
@@ -550,7 +553,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Prob1 precomputation algorithm.
 	 * i.e. determine the states of an MDP which, with min/max probability 1,
-	 * reach a state in {@code target}, while remaining in those in @{code remain}.
+	 * reach a state in {@code target}, while remaining in those in {@code remain}.
 	 * {@code min}=true gives Prob1A, {@code min}=false gives Prob1E. 
 	 * Optionally, for max only, store optimal (memoryless) strategy info for 1 states. 
 	 * @param mdp The MDP
@@ -1058,7 +1061,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute bounded until probabilities.
 	 * i.e. compute the min/max probability of reaching a state in {@code target},
-	 * within k steps, and while remaining in states in @{code remain}.
+	 * within k steps, and while remaining in states in {@code remain}.
 	 * @param mdp The MDP
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -1073,7 +1076,7 @@ public class MDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute bounded reachability/until probabilities.
 	 * i.e. compute the min/max probability of reaching a state in {@code target},
-	 * within k steps, and while remaining in states in @{code remain}.
+	 * within k steps, and while remaining in states in {@code remain}.
 	 * @param mdp The MDP
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
@@ -1241,7 +1244,7 @@ public class MDPModelChecker extends ProbModelChecker
 	{
 		ModelCheckerResult res = null;
 		BitSet inf;
-		int i, n, numTarget, numInf;
+		int n, numTarget, numInf;
 		long timer, timerProb1;
 		int strat[] = null;
 		// Local copy of setting
@@ -1269,12 +1272,13 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Store num states
 		n = mdp.getNumStates();
-
 		// Optimise by enlarging target set (if more info is available)
-		if (init != null && known != null) {
-			BitSet targetNew = new BitSet(n);
-			for (i = 0; i < n; i++) {
-				targetNew.set(i, target.get(i) || (known.get(i) && init[i] == 0.0));
+		if (init != null && known != null && !known.isEmpty()) {
+			BitSet targetNew = (BitSet) target.clone();
+			for (int i : new IterableBitSet(known)) {
+				if (init[i] == 1.0) {
+					targetNew.set(i);
+				}
 			}
 			target = targetNew;
 		}
@@ -1282,7 +1286,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// If required, export info about target states 
 		if (getExportTarget()) {
 			BitSet bsInit = new BitSet(n);
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				bsInit.set(i, mdp.isInitialState(i));
 			}
 			List<BitSet> labels = Arrays.asList(bsInit, target);
@@ -1296,7 +1300,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// (except for target states, which are -2, denoting arbitrary)
 		if (genStrat || exportAdv || mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION) {
 			strat = new int[n];
-			for (i = 0; i < n; i++) {
+			for (int i = 0; i < n; i++) {
 				strat[i] = target.get(i) ? -2 : -1;
 			}
 		}
@@ -1317,13 +1321,13 @@ public class MDPModelChecker extends ProbModelChecker
 			if (min) {
 				// If min reward is infinite, all choices give infinity
 				// So the choice can be arbitrary, denoted by -2; 
-				for (i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
+				for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
 					strat[i] = -2;
 				}
 			} else {
 				// If max reward is infinite, there is at least one choice giving infinity.
 				// So we pick, for all "inf" states, the first choice for which some transitions stays in "inf".
-				for (i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
+				for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
 					int numChoices = mdp.getNumChoices(i);
 					for (int k = 0; k < numChoices; k++) {
 						if (mdp.allSuccessorsInSet(i, k, inf)) {
