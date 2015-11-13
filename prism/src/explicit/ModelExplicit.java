@@ -327,13 +327,15 @@ public abstract class ModelExplicit implements Model
 	@Override
 	public void exportToPrismExplicitTra(String filename) throws PrismException
 	{
-		exportToPrismExplicitTra(PrismFileLog.create(filename));
+		try (PrismFileLog log = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(log);
+		}
 	}
 
 	@Override
 	public void exportToPrismExplicitTra(File file) throws PrismException
 	{
-		exportToPrismExplicitTra(PrismFileLog.create(file.getPath()));
+		exportToPrismExplicitTra(file.getPath());
 	}
 
 	@Override
@@ -342,13 +344,15 @@ public abstract class ModelExplicit implements Model
 	@Override
 	public void exportToDotFile(String filename) throws PrismException
 	{
-		exportToDotFile(PrismFileLog.create(filename), null);
+		exportToDotFile(filename, null);
 	}
 
 	@Override
 	public void exportToDotFile(String filename, BitSet mark) throws PrismException
 	{
-		exportToDotFile(PrismFileLog.create(filename), mark);
+		try (PrismFileLog log = PrismFileLog.create(filename)) {
+			exportToDotFile(log, mark);
+		}
 	}
 
 	@Override
