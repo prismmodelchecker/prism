@@ -1576,17 +1576,19 @@ cuddUniqueConst(
      * infinite, since Infinity - Infinity is NaN and NaN < X is 0 for
      * every X.
      */
+    // PRISM: check explicitly for not-a-number (NaN), as NaN != NaN
     while (looking != NULL) {
-	if (looking->type.value == value ||
-	ddEqualVal(looking->type.value,value,unique->epsilon)) {
-	    if (looking->ref == 0) {
-		cuddReclaim(unique,looking);
-	    }
-	    return(looking);
-	}
-	looking = looking->next;
+        if (looking->type.value == value ||
+            (isnan(value) && isnan(looking->type.value)) ||
+            ddEqualVal(looking->type.value,value,unique->epsilon)) {
+            if (looking->ref == 0) {
+                cuddReclaim(unique,looking);
+            }
+            return(looking);
+        }
+        looking = looking->next;
 #ifdef DD_UNIQUE_PROFILE
-	unique->uniqueLinks++;
+        unique->uniqueLinks++;
 #endif
     }
 
