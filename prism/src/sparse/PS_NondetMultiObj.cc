@@ -112,34 +112,35 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	int start_index;
 	unsigned int *row_starts1, *predecessors;
 	unsigned int extra_node;
-
-	//in this we will store the result array, 0 returned means error
+	// storage for result array (0 means error)
 	jdoubleArray ret = 0;
+	// local copy of max_iters, since we will change it
+	int max_iters_local = max_iters;
 	
+	// Extract some info about objectives
 	bool has_rewards = _ndsm_r != 0;
 	bool has_yes_vec = _yes_vec != 0;
-    
-	//we will change maximal number of iters, so make sure we don't change the global number
-	int max_iters_local = max_iters;
-    
 	jsize lenRew = (has_rewards) ? env->GetArrayLength(_ndsm_r) : 0;
 	jsize lenProb = (has_yes_vec) ? env->GetArrayLength(_yes_vec) : 0;
-    
+	jlong *ptr_ndsm_r = (has_rewards) ? env->GetLongArrayElements(_ndsm_r, 0) : NULL;
+	jlong *ptr_yes_vec = (has_yes_vec) ? env->GetLongArrayElements(_yes_vec, 0) : NULL;
 	double* weights = env->GetDoubleArrayElements(_weights, 0);
+	int* step_bounds_r = (has_rewards) ? (int*)env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
+	int* step_bounds = (has_yes_vec) ? (int*)env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
 	
-	//We will ignore one of the rewards and compute it's value from the other ones and
-	//from the combined value. We must make sure that this reward has nonzero weight,
-	//otherwise we can't compute it.
+	// We will ignore one of the rewards and compute its value from the other ones and
+	// from the combined value. We must make sure that this reward has nonzero weight,
+	// otherwise we can't compute it.
 	int ignoredWeight = -1;
-
-	/* HOTFIX: not used for numerical problems	
+	
+	/* HOTFIX: not used for numerical problems
 	for (i = lenProb + lenRew - 1; i>=0; i--) {
 		if (weights[i] > 0) {
 			ignoredWeight = i;
 			break;
 		}
 	}*/
-
+	
 	//determine the minimal nonzero weight
 	double min_weight = 1;
 	for (i = 0; i < lenProb + lenRew; i++)
@@ -171,16 +172,10 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		kb = ndsm->mem;
 		kbt = kb;
 		
-		jlong *ptr_ndsm_r = (has_rewards) ? env->GetLongArrayElements(_ndsm_r, 0) : NULL;
-		jlong *ptr_yes_vec = (has_yes_vec) ? env->GetLongArrayElements(_yes_vec, 0) : NULL;
-		
 		NDSparseMatrix *ndsm_r[lenRew];
 		
 		for(int rewi = 0; rewi < lenRew; rewi++)
 			ndsm_r[rewi] = (NDSparseMatrix *) jlong_to_NDSparseMatrix(ptr_ndsm_r[rewi]);
-		
-		int* step_bounds_r = (has_rewards) ? (int*)env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
-		int* step_bounds = (has_yes_vec) ? (int*)env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
 		
 		int max_step_bound = 0;
 		for(int rewi = 0; rewi < lenRew; rewi++) {
@@ -217,7 +212,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		// create solution/iteration vectors
 		soln = new double[n];
 		soln2 = new double[n];
-		
 		psoln = new double *[lenProb + lenRew];
 		psoln2 = new double *[lenProb + lenRew];
 		for (int it = 0; it < lenProb + lenRew ; it++) {
@@ -226,7 +220,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				psoln2[it] = new double[n];
 			}
 		}
-		
 		pd1 = new double[lenProb + lenRew];
 		pd2 = new double[lenProb + lenRew];
 		
@@ -250,19 +243,17 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			soln[i] = 0;
 			soln2[i] = 0;
 			for (int probi = 0; probi < lenProb; probi++) {
-				if (step_bounds[probi] == max_iters_local)
+				if (step_bounds[probi] == max_iters_local) {
 					soln[i] += weights[probi] * yes_vec[probi][i];
-				//PS_PrintToMainLog(env, "s: %d %d %f %f %f\n", i, probi, soln[i], weights[probi], yes_vec[probi][i]);
+				}
 			}
 			for (int probi = 0; probi < lenProb; probi++) {
 				if (probi != ignoredWeight) {
 					if (step_bounds[probi] == max_iters_local) {
-						//PS_PrintToMainLog(env, "setting %d psoln to some number\n", probi);
 						psoln[probi][i] = 0;//yes_vec[probi][i];
 					}
 					else {
 						psoln[probi][i] = 0;
-						//PS_PrintToMainLog(env, "setting %d psoln to 0\n", probi);
 					}
 					psoln2[probi][i] = 0;
 				}
@@ -284,11 +275,14 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		
 		
 		for (int it = 0; it < lenRew + lenProb; it++) {
-			PS_PrintToMainLog(env, "Initial psoln: ");
-			if (ignoredWeight != it)
+			if (it != ignoredWeight) {
+				PS_PrintToMainLog(env, "psoln: ");
 				for (int o = 0; o < n; o++)
 					PS_PrintToMainLog(env, "%f, ", psoln[it][o]);
-			PS_PrintToMainLog(env, "\n");  
+				PS_PrintToMainLog(env, "\n");
+			} else {
+				PS_PrintToMainLog(env, "psoln: (ignored)\n");
+			}
 		}
 #endif
 		// get setup time
@@ -351,13 +345,13 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			
 			// loop through states
 			for (i = 0; i < n; i++) {
-				//first, get the decision of the adversary optimizing the combined reward
+				first = true;
+				
+				// first, get the decision of the adversary optimizing the combined reward
 				d1 = -INFINITY;
 				for (int it = 0; it < lenRew + lenProb; it++)
 					if (it != ignoredWeight)
 						pd1[it] = -INFINITY;
-				
-				first = true; // (because we also remember 'first')
 				
 				// get pointers to nondeterministic choices for state i
 				if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
@@ -403,8 +397,9 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						// add prob * corresponding reward from previous iteration
 						// (for both combined and individual rewards)
 						for (int it = 0; it < lenRew + lenProb; it++) {
-							if (it != ignoredWeight)
+							if (it != ignoredWeight) {
 								pd2[it] += non_zeros[k] * psoln[it][cols[k]];
+							}
 						}
 						d2 += non_zeros[k] * soln[cols[k]];
 					}
