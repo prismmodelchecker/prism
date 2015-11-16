@@ -757,7 +757,7 @@ public class MultiObjModelChecker extends PrismComponent
 		// Determine whether we are using Gauss-Seidel value iteration
 		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
 		if (opsAndBounds.numberOfStepBounded() > 0) {
-			mainLog.println("Not using Guass-Seidel since there are step-bounded objectives");
+			mainLog.println("Not using Gauss-Seidel since there are step-bounded objectives");
 			useGS = false;
 		}
 
@@ -1007,7 +1007,7 @@ public class MultiObjModelChecker extends PrismComponent
 		// Determine whether we are using Gauss-Seidel value iteration
 		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
 		if (opsAndBounds.numberOfStepBounded() > 0) {
-			mainLog.println("Not using Guass-Seidel since there are step-bounded objectives");
+			mainLog.println("Not using Gauss-Seidel since there are step-bounded objectives");
 			useGS = false;
 		}
 
