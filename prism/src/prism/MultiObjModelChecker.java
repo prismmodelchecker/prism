@@ -806,6 +806,7 @@ public class MultiObjModelChecker extends PrismComponent
 		PrismNative.setExportAdv(Prism.EXPORT_ADV_NONE);
 		
 		for (int i = 0; i < dimProb; i++) {
+			mainLog.println("Computing maximum values for probability objective " + (i + 1) + "/" + dimProb);
 			double[] result;
 
 			double[] weights = new double[dimProb + dimReward];
@@ -826,10 +827,12 @@ public class MultiObjModelChecker extends PrismComponent
 				throw new PrismException("The probabilistic objective number " + i + " is degenerate since the optimal value is also the least optimal value." );
 			*/
 			targetPoint = new Point(result);
+			mainLog.println("Computed point: " + targetPoint);
 			pointsForInitialTile.add(targetPoint);
 		}
 
 		for (int i = 0; i < dimReward; i++) {
+			mainLog.println("Computing maximum values for reward objective " + (i + 1) + "/" + dimProb);
 			if (verbose) {
 				mainLog.println("Getting an upper bound on maximizing objective " + i);
 			}
@@ -849,6 +852,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 			numberOfPoints++;
 			targetPoint = new Point(result);
+			mainLog.println("Computed point: " + targetPoint);
 			pointsForInitialTile.add(targetPoint);
 
 			if (verbose) {
