@@ -291,6 +291,20 @@ public class OpsAndBoundsList
 		return num;
 	}
 	
+	/**
+	 * Returns the number of step-bounded (<=k) objectives.
+	 */
+	public int numberOfStepBounded()
+	{
+		int num = 0;
+		for (int k : stepBounds) {
+			if (k != -1) {
+				num++;
+			}
+		}
+		return num;
+	}
+	
 	@Override
 	public String toString()
 	{

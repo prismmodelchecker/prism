@@ -146,10 +146,10 @@ JNIEXPORT jdoubleArray JNICALL Java_sparse_PrismSparse_PS_1NondetMultiObj
 /*
  * Class:     sparse_PrismSparse
  * Method:    PS_NondetMultiObjGS
- * Signature: (JJIJIJIZJJJ[J[I[J[D[I)[D
+ * Signature: (JJIJIJIZJJJ[J[J[D)[D
  */
 JNIEXPORT jdoubleArray JNICALL Java_sparse_PrismSparse_PS_1NondetMultiObjGS
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jboolean, jlong, jlong, jlong, jlongArray, jintArray, jlongArray, jdoubleArray, jintArray);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jint, jboolean, jlong, jlong, jlong, jlongArray, jlongArray, jdoubleArray);
 
 /*
  * Class:     sparse_PrismSparse

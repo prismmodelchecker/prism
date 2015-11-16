@@ -3,7 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Vojtech Forejt <vojtech.forejt@cs.ox.ac.uk> (University of Oxford)
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -63,10 +63,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
  jlong _adversary,
  jlong __jlongpointer _ndsm, //pointer to trans sparse matrix
  jlongArray _yes_vec, //pointer to yes vector array
- jintArray _prob_step_bounds, //step bounds for prob. Currently ignored.
  jlongArray  _ndsm_r, //pointer to reward sparse matrix array
- jdoubleArray _weights, //weights of rewards and yes_vec vectors
- jintArray _ndsm_r_step_bounds
+ jdoubleArray _weights //weights of rewards and yes_vec vectors
  )
 {
 	// cast function parameters
@@ -173,21 +171,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 			ndsm_r[rewi] = (NDSparseMatrix *) jlong_to_NDSparseMatrix(ptr_ndsm_r[rewi]);
 		
 		double* weights = env->GetDoubleArrayElements(_weights, 0);
-		
-		int* step_bounds_r = (has_rewards) ? (int*)env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
-		int* step_bounds = (has_yes_vec) ? (int*)env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
-		
-		for(int rewi = 0; rewi < lenRew; rewi++)
-			if (step_bounds_r[rewi] != -1) {
-				PS_SetErrorMessage("Cannot do Gauss Seidel method for step bounded objectives!");
-				throw 1;
-			}
-		
-		for(int probi = 0; probi < lenProb; probi++)
-			if (step_bounds[probi] != -1) {
-				PS_SetErrorMessage("Cannot do Gauss Seidel method for step bounded objectives!");
-				throw 1;
-			}
 		
 		// if needed, and if info is available, build a vector of action indices for the MDP
 		actions = NULL;

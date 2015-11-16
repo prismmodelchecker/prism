@@ -714,8 +714,9 @@ public class MultiObjModelChecker extends PrismComponent
 
 		if (numberOfMaximizing >= 2) {
 			return generateParetoCurve(modelProduct, yes_ones, maybe, st, targets, rewards, opsAndBounds);
-		} else
+		} else {
 			return targetDrivenMultiReachProbs(modelProduct, yes_ones, maybe, st, targets, rewards, opsAndBounds);
+		}
 	}
 
 	protected TileList generateParetoCurve(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, final JDDNode st, JDDNode[] targets,
@@ -733,6 +734,13 @@ public class MultiObjModelChecker extends PrismComponent
 		double timer = System.currentTimeMillis();
 		boolean min = false;
 
+		// Determine whether we are using Gauss-Seidel value iteration
+		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL); 
+		if (opsAndBounds.numberOfStepBounded() > 0) {
+			mainLog.println("Not using Guass-Seidel since there are step-bounded objectives");
+			useGS = false;
+		}
+		
 		//convert minimizing rewards to maximizing
 		for (int i = 0; i < opsAndBounds.rewardSize(); i++) {
 			if (opsAndBounds.getRewardOperator(i) == Operator.R_LE) {
@@ -811,10 +819,9 @@ public class MultiObjModelChecker extends PrismComponent
 
 			double[] weights = new double[dimProb + dimReward];
 			weights[i] = 1.0;
-			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (useGS) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
-						rewardStepBounds);
+						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, weights);
 			} else {
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
@@ -840,10 +847,9 @@ public class MultiObjModelChecker extends PrismComponent
 			double[] result;
 			double[] weights = new double[dimProb + dimReward];
 			weights[i] = 1.0;
-			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (useGS) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
-						rewardStepBounds);
+						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, weights);
 			} else {
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
@@ -893,10 +899,9 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 			
 			double[] result;
-			if (prism.getMDPSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (useGS) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
-						rewardStepBounds);
+						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, weights);
 			} else {
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
@@ -979,6 +984,13 @@ public class MultiObjModelChecker extends PrismComponent
 		double timer = System.currentTimeMillis();
 		boolean min = false;
 
+		// Determine whether we are using Gauss-Seidel value iteration
+		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL); 
+		if (opsAndBounds.numberOfStepBounded() > 0) {
+			mainLog.println("Not using Guass-Seidel since there are step-bounded objectives");
+			useGS = false;
+		}
+		
 		//convert minimizing rewards to maximizing
 		for (int i = 0; i < opsAndBounds.rewardSize(); i++) {
 			if (opsAndBounds.getRewardOperator(i) == Operator.R_LE) {
@@ -1062,11 +1074,11 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 
 			double[] result;
-			if (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (useGS) {
 				//System.out.println("Doing GS");
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, null, null, new NDSparseMatrix[] { rewSparseMatrices[0] },
-						new double[] { 1.0 }, new int[] { rewardStepBounds[0] });
+						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, null, new NDSparseMatrix[] { rewSparseMatrices[0] },
+						new double[] { 1.0 });
 			} else {
 				//System.out.println("Not doing GS");
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
@@ -1102,10 +1114,9 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 
 			double[] result;
-			if (prism.getMDPSolnMethod() == Prism.MDP_MULTI_GAUSSSEIDEL) {
+			if (useGS) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, probStepBounds, rewSparseMatrices, weights,
-						rewardStepBounds);
+						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, weights);
 			} else {
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), probDoubleVectors, probStepBounds, rewSparseMatrices, weights,

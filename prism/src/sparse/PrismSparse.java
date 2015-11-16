@@ -29,11 +29,16 @@ package sparse;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import prism.*;
-import strat.MDStrategyIV;
-import jdd.*;
-import dv.*;
-import odd.*;
+import jdd.JDD;
+import jdd.JDDNode;
+import jdd.JDDVars;
+import odd.ODDNode;
+import prism.NativeIntArray;
+import prism.OpsAndBoundsList;
+import prism.PrismException;
+import prism.PrismLog;
+import dv.DoubleVector;
+import dv.IntegerVector;
 
 //----------------------------------------------------------------------------------------------
 
@@ -263,8 +268,8 @@ public class PrismSparse
 	
 	}
 	
-	private static native double[] PS_NondetMultiObjGS(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, long[] ptr_yes_vec, int[] probStepBounds, long[] ptr_RewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds);
-	public static double[] NondetMultiObjGS(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
+	private static native double[] PS_NondetMultiObjGS(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, long[] ptr_yes_vec, long[] ptr_RewSparseMatrix, double[] rewardWeights);
+	public static double[] NondetMultiObjGS(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, DoubleVector[] yes_vec, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights) throws PrismException
 	{
 		long[] ptr_ndsp_r = null;
 		if (rewSparseMatrix != null) {
@@ -280,7 +285,7 @@ public class PrismSparse
 				ptr_yes_vec[i] = (yes_vec[i]!=null) ? yes_vec[i].getPtr() : 0;
 		}
 		
-		double[] ret = PS_NondetMultiObjGS(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), minmax, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), ptr_yes_vec, probStepBounds, ptr_ndsp_r, rewardWeights, rewardStepBounds);
+		double[] ret = PS_NondetMultiObjGS(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), minmax, start.ptr(), adversary.getPtr(), transSparseMatrix.getPtr(), ptr_yes_vec, ptr_ndsp_r, rewardWeights);
 		if (ret == null)
 			throw new PrismException(getErrorMessage());
 		else
