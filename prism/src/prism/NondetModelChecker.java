@@ -479,8 +479,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Check format and extract bounds/etc.
 		int numObjectives = exprs.size();
 		OpsAndBoundsList opsAndBounds = new OpsAndBoundsList();
-		List<JDDNode> rewards = new ArrayList<JDDNode>(numObjectives);
-		List<JDDNode> transRewardsList = new ArrayList<JDDNode>(numObjectives);
+		List<JDDNode> transRewardsList = new ArrayList<JDDNode>();
 		List<Expression> pathFormulas = new ArrayList<Expression>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), opsAndBounds, transRewardsList, pathFormulas);
@@ -534,13 +533,15 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Replace min by max and <= by >=
 		opsAndBounds.makeAllProbUp();
 
-		//print some info
+		// Print some info
 		outputProductMulti(modelProduct);
 
-		for (JDDNode rindex : transRewardsList) {
-			JDD.Ref(rindex);
+		// Construct rewards for product model
+		List<JDDNode> transRewardsListProduct = new ArrayList<JDDNode>();
+		for (JDDNode transRewards : transRewardsList) {
+			JDD.Ref(transRewards);
 			JDD.Ref(modelProduct.getTrans01());
-			rewards.add(JDD.Apply(JDD.TIMES, rindex, modelProduct.getTrans01()));
+			transRewardsListProduct.add(JDD.Apply(JDD.TIMES, transRewards, modelProduct.getTrans01()));
 		}
 
 		// Removing actions with non-zero reward from the product for maximum cases
@@ -592,7 +593,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		List<JDDNode> allecs = mcMo.computeAllEcs(modelProduct, mcLtl, allstatesH, allstatesL, acceptanceVector_H, acceptanceVector_L, draDDRowVars, draDDColVars,
 				opsAndBounds, numObjectives);
 
-		// Create array to store target DDs
+		// Create array to store BDDs for targets (i.e. accepting EC states); probability objectives only 
 		List<JDDNode> targetDDs = new ArrayList<JDDNode>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
 			if (opsAndBounds.isProbabilityObjective(i)) {
@@ -600,6 +601,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				targetDDs.add(mcMo.computeAcceptingEndComponent(dra[i], modelProduct, draDDRowVars[i], draDDColVars[i], allecs, allstatesH.get(i),
 						allstatesL.get(i), mcLtl, conflictformulae > 1));
 			} else {
+				// (not used currently)
 				// Fixme: maybe not efficient
 				if (pathFormulas.get(i) != null) {
 					JDDNode dd = checkExpressionDD(pathFormulas.get(i));
@@ -641,7 +643,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			modelProduct.trans01 = tmptrans01;
 		}
 
-		Object value = mcMo.computeMultiReachProbs(modelProduct, mcLtl, rewards, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
+		// Do multi-objective computation
+		Object value = mcMo.computeMultiReachProbs(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
 				conflictformulae > 1);
 		
 		// Deref, clean up
@@ -697,7 +700,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 *  
 	 * @param exprQuant The operator for the objective
 	 * @param opsAndBounds Where to add info about ops/bounds
-	 * @param transRewardsList Where to add the transition rewards
+	 * @param transRewardsList Where to add the transition rewards (R operators only)
 	 * @param pathFormulas Where to store the path formulas (for P operators; null for R operators)
 	 */
 	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> transRewardsList,
