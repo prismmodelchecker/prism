@@ -859,7 +859,7 @@ public class MultiObjModelChecker extends PrismComponent
 		}
 
 		for (int i = 0; i < dimReward; i++) {
-			mainLog.println("Computing maximum values for reward objective " + (i + 1) + "/" + dimProb);
+			mainLog.println("Computing maximum values for reward objective " + (i + 1) + "/" + dimReward);
 			if (verbose) {
 				mainLog.println("Getting an upper bound on maximizing objective " + i);
 			}
