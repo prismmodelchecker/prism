@@ -336,7 +336,6 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 					}
 					// see if the combined reward value is the min/max so far
 					bool pickThis = first || (min&&(d2<d1)) || (!min&&(d2>d1));
-					
 					//HOTFIX for cumulative reward
 					if (!pickThis && (d2==d1)) {
 						for (int it = 0; it < lenProb + lenRew; it++) {
@@ -367,18 +366,18 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 					first = false;
 				}
 				
+				// HOTFIX: it seems that on self loops d1 can be unchanged because the other for cycle is not executed, which is not desirable
+				if (d1 == -INFINITY) {
+					d1 = 0;
+					for (int it = 0; it < lenRew + lenProb; it++) {
+						pd1[it] = 0;
+					}
+				}
+				
 				double val_yes = 0.0;  
 				for (int probi = 0; probi < lenProb; probi++) {
 					if (probi != ignoredWeight && yes_vec[probi]!=NULL);
 					val_yes += weights[probi] * yes_vec[probi][i];
-				}
-				
-				
-				//HOTFIX: it seems that on self loops d1 can be unchanged because the other for cycle is not executed, which is not desirable
-				if (d1==-INFINITY) {
-					d1 = 0;
-					for (int it = 0; it < lenRew + lenProb; it++)
-						pd1[it] = 0;
 				}
 				
 				//TODO: we need to handle val_yes somehow
