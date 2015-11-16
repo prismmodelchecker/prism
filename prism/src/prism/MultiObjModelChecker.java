@@ -834,13 +834,13 @@ public class MultiObjModelChecker extends PrismComponent
 		PrismNative.setExportAdv(Prism.EXPORT_ADV_NONE);
 
 		for (int i = 0; i < dimProb; i++) {
-			mainLog.println("Computing maximum values for probability objective " + (i + 1) + "/" + dimProb);
 			double[] result = null;
 
 			// Optimise in direction of probability objective i
 			Point direction = new Point(dimProb + dimReward);
 			direction.setCoord(i, 1);
 			try {
+				mainLog.println("Optimising weighted sum for probability objective " + (i + 1) + "/" + dimProb + ": weights " + direction);
 				if (useGS) {
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, direction.getCoords());
@@ -857,7 +857,8 @@ public class MultiObjModelChecker extends PrismComponent
 				for (int j = 0; j < dimProb + dimReward; j++) {
 					direction.setCoord(j, j == i ? large : 1);
 				}
-				direction.normalize();
+				direction = direction.normalize();
+				mainLog.println("Optimising weighted sum for probability objective " + (i + 1) + "/" + dimProb + ": weights " + direction);
 				if (useGS) {
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, direction.getCoords());
@@ -879,16 +880,13 @@ public class MultiObjModelChecker extends PrismComponent
 		}
 
 		for (int i = 0; i < dimReward; i++) {
-			mainLog.println("Computing maximum values for reward objective " + (i + 1) + "/" + dimReward);
-			if (verbose) {
-				mainLog.println("Getting an upper bound on maximizing objective " + i);
-			}
 
 			double[] result = null;
 			// Optimise in direction of reward objective i
 			Point direction = new Point(dimProb + dimReward);
 			direction.setCoord(dimProb + i, 1);
 			try {
+				mainLog.println("Optimising weighted sum for reward objective " + (i + 1) + "/" + dimReward + ": weights " + direction);
 				if (useGS) {
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, direction.getCoords());
@@ -905,7 +903,8 @@ public class MultiObjModelChecker extends PrismComponent
 				for (int j = 0; j < dimProb + dimReward; j++) {
 					direction.setCoord(j, j == dimProb + i ? large : 1);
 				}
-				direction.normalize();
+				direction = direction.normalize();
+				mainLog.println("Optimising weighted sum for reward objective " + (i + 1) + "/" + dimReward + ": weights " + direction);
 				if (useGS) {
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, direction.getCoords());
@@ -946,28 +945,21 @@ public class MultiObjModelChecker extends PrismComponent
 		while (iters < maxIters) {
 			iters++;
 
-			//create the weights array
-			double[] weights = new double[dimProb + dimReward];
-			for (int i = 0; i < dimProb + dimReward; i++) {
-				weights[i] = direction.getCoord(i);
-			}
-
 			// If adversary generation is enabled, we amend the filename so that multiple adversaries can be exported
 			String advFileName = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
 			if (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
 				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileName, iters));
 			}
 
-			mainLog.println("Computing weighted sum of objectives for weights " + Arrays.toString(weights));
-			
+			mainLog.println("Optimising weighted sum of objectives: weights " + direction);
 			double[] result;
 			if (useGS) {
 				result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
-						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, weights);
+						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, probDoubleVectors, rewSparseMatrices, direction.getCoords());
 			} else {
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), probDoubleVectors, probStepBounds,
-						rewSparseMatrices, weights, rewardStepBounds);
+						rewSparseMatrices, direction.getCoords(), rewardStepBounds);
 			}
 
 			/*	//Minimizing operators are negated, and for Pareto we need to maximize.
