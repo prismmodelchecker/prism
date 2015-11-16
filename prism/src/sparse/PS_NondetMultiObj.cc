@@ -516,7 +516,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						doneBeforeBounded = true;
 						for (i = 0; i < n; i++) {
 							for (int it = 0; it < lenProb + lenRew; it++) {
-								if (it != ignoredWeight && weights[it] > 0 && fabs(psoln2[it][i] - psoln[it][i]) > term_crit_param) {
+								if (it != ignoredWeight && fabs(psoln2[it][i] - psoln[it][i]) > term_crit_param) {
 									done = false;
 									doneBeforeBounded = false;
 									goto end_switch;
@@ -538,7 +538,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						doneBeforeBounded = true;
 						for (i = 0; i < n; i++) {
 							for (int it = 0; it < lenProb + lenRew; it++) {
-								if (it != ignoredWeight && weights[it] > 0 && fabs(psoln2[it][i] - psoln[it][i])/fabs(psoln2[it][i]) > term_crit_param) {
+								if (it != ignoredWeight && fabs(psoln2[it][i] - psoln[it][i])/fabs(psoln2[it][i]) > term_crit_param) {
 									done = false;
 									doneBeforeBounded = false;
 									goto end_switch;
