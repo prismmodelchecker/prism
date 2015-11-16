@@ -238,15 +238,17 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		// Get index of single (first) initial state
 		start_index = get_index_of_first_from_bdd(ddman, start, rvars, num_rvars, odd);
 		
-		// initial solution is yes
+		// initial solution
 		for (i = 0; i < n; i++) {
+			// combined value initialised to weighted sum of yes vectors (for unbounded probability objectives)
+			// or 0 (for anything else: step-bounded probabilities, or cumulative rewards)
 			soln[i] = 0;
-			soln2[i] = 0;
 			for (int probi = 0; probi < lenProb; probi++) {
 				if (step_bounds[probi] == max_iters_local) {
 					soln[i] += weights[probi] * yes_vec[probi][i];
 				}
 			}
+			// individual objectives
 			for (int probi = 0; probi < lenProb; probi++) {
 				if (probi != ignoredWeight) {
 					if (step_bounds[probi] == max_iters_local) {
@@ -255,14 +257,18 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 					else {
 						psoln[probi][i] = 0;
 					}
-					psoln2[probi][i] = 0;
 				}
 			}
 			for (int rewi = 0; rewi < lenRew; rewi++) {
-				//soln[rewi + lenProb][i] = 0;
 				if (lenProb + rewi != ignoredWeight) {
 					psoln[rewi + lenProb][i] = 0;
-					psoln2[rewi + lenProb][i] = 0;
+				}
+			}
+			// soln2 vector(s) just initialised to zero (not read until updated again)
+			soln2[i] = 0;
+			for (int it = 0; it < lenRew + lenProb; it++) {
+				if (it != ignoredWeight) {
+					psoln2[it][i] = 0;
 				}
 			}
 		}

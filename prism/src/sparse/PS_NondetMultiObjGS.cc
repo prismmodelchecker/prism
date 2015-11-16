@@ -190,12 +190,15 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		// Get index of single (first) initial state
 		start_index = get_index_of_first_from_bdd(ddman, start, rvars, num_rvars, odd);
 		
-		// initial solution is yes
+		// initial solution
 		for (i = 0; i < n; i++) {
+			// combined value initialised to weighted sum of yes vectors
+			// (for probability objectives) or 0 (for cumulative rewards)
 			soln[i] = 0;
 			for (int probi = 0; probi < lenProb; probi++) {
 				soln[i] += weights[probi] * yes_vec[probi][i];
 			}
+			// individual objectives
 			for (int probi = 0; probi < lenProb; probi++) {
 				if (probi != ignoredWeight) {
 					psoln[probi][i] = 0;//yes_vec[probi][i];
