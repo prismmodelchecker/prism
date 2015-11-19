@@ -27,11 +27,13 @@
 
 package jltl2ba;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import common.PlainObjectReference;
 import jltl2dstar.APMonom;
 import jltl2dstar.NBA;
 import prism.PrismException;
@@ -1299,4 +1301,65 @@ public class SimpleLTL {
 	{
 		return this.toNBA(new APSet());
 	}
+
+	/** Print a DOT representation of the syntax tree of this SimpleLTL formula */
+	public void toDot(PrintStream out) {
+		HashMap<PlainObjectReference<SimpleLTL>, String> map = new HashMap<PlainObjectReference<SimpleLTL>, String>();
+
+		out.println("digraph {");
+		toDot(out, map);
+		out.println("}");
+	}
+
+	/**
+	 * Print a DOT representation of the syntax tree of this SimpleLTL formula.
+	 *
+	 * @param out the output print stream
+	 * @param seen a map storing an identifier for each subformula that has already been seen / printed
+	 */
+	private String toDot(PrintStream out, HashMap<PlainObjectReference<SimpleLTL>, String> seen)
+	{
+		PlainObjectReference<SimpleLTL> ref = new PlainObjectReference<SimpleLTL>(this);
+		if (seen.containsKey(ref)) {
+			return seen.get(ref);
+		}
+
+		String id = Integer.toString(seen.size());
+		seen.put(ref, id);
+		out.println(id + " [label=\""+toStringLBT()+"\"]");
+
+		switch (kind) {
+		case AND:
+		case EQUIV:
+		case OR:
+		case UNTIL:
+		case RELEASE:
+		case IMPLIES: {
+			String leftID = left.toDot(out, seen);
+			String rightID = right.toDot(out, seen);
+			out.println(id + " -> " + leftID);
+			out.println(id + " -> " + rightID);
+			break;
+		}
+		case FINALLY:
+		case GLOBALLY:
+		case NEXT:
+		case NOT: {
+			String leftID = left.toDot(out, seen);
+			out.println(id + " -> " + leftID);
+			break;
+		}
+
+		case AP:
+		case TRUE:
+		case FALSE:
+			break;
+
+		default:
+			break;
+		}
+
+		return id;
+	}
+
 }
