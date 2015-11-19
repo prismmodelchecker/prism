@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Carlos S. Bederián (Universidad Nacional de Córdoba)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,41 +28,102 @@
 
 package parser.visitor;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
 import parser.ast.*;
 import prism.PrismLangException;
 import jltl2ba.*;
 import parser.type.*;
+
 /*
  * Convert a property expression (an LTL formula) into the classes used by
  * the jltl2ba (and jltl2dstar) libraries.
+ *
+ * Optionally, during this conversion, identical subtrees are shared, i.e.,
+ * the resulting SimpleLTL structure is a directed acyclic graph (DAG)
+ * instead of a tree. This is controlled via the {@code allowSharing} flag.
+ *
+ * Note that, currently, the jltl2ba LTL to NBA translator requires that the
+ * SimpleLTL formula does not share subtrees.
  */
-public class ConvertForJltl2ba extends ASTTraverseModify
+public class ConvertForJltl2ba
 {
-	private Hashtable<ASTElement, SimpleLTL> formulas;
+	/** Flag: allow sharing (produce DAG instead of tree) */
+	private boolean allowSharing = true;
+	/** Hash map to lookup already translated subformulas (if sharing is allowed) */
+	private HashMap<ASTElement, SimpleLTL> formulas = null;
 
+	/** Default constructor (don't allow sharing) */
 	public ConvertForJltl2ba()
 	{
-		formulas = new Hashtable<ASTElement, SimpleLTL>();
+		this(false);
 	}
 
-	public Object setFormula(ASTElement e, SimpleLTL formula)
+	/**
+	 * Constructor
+	 * @param allowSharing Flag: allow sharing (produce DAG instead of tree)
+	 */
+	public ConvertForJltl2ba(boolean allowSharing)
+	{
+		this.allowSharing = allowSharing;
+		if (allowSharing) {
+			formulas = new HashMap<ASTElement, SimpleLTL>();
+		}
+	}
+
+	/** Convert expression to a SimpleLTL formula */
+	public SimpleLTL convert(Expression e) throws PrismLangException
+	{
+		SimpleLTL res = null;
+
+		if (allowSharing) {
+			// if sharing is allowed, lookup the expression and return
+			// a previously converted SimpleLTL if available
+			res = getFormula(e);
+			if (res != null) {
+				return res;
+			}
+		}
+
+		// do the actual conversion
+		if (e instanceof ExpressionTemporal) {
+			res = convertTemporal((ExpressionTemporal)e);
+		} else if (e instanceof ExpressionBinaryOp) {
+			res = convertBinaryOp((ExpressionBinaryOp)e);
+		} else if (e instanceof ExpressionUnaryOp) {
+			res = convertUnaryOp((ExpressionUnaryOp)e);
+		} else if (e instanceof ExpressionLiteral) {
+			res = convertLiteral((ExpressionLiteral)e);
+		} else if (e instanceof ExpressionLabel) {
+			res = convertLabel((ExpressionLabel)e);
+		}
+
+		if (allowSharing) {
+			// store converted formula if sharing is allowed
+			setFormula(e, res);
+		}
+		return res;
+	}
+
+	/** Helper: store converted formula in hash map */
+	private Object setFormula(ASTElement e, SimpleLTL formula)
 	{
 		return formulas.put(e, formula);
 	}
 
-	public SimpleLTL getFormula(ASTElement e)
+	/** Helper: lookup formula in hash map */
+	private SimpleLTL getFormula(ASTElement e)
 	{
 		return formulas.get(e);
 	}
 
-	public void visitPost(ExpressionTemporal e) throws PrismLangException
+	/** Convert ExpressionTemporal to a SimpleLTL formula */
+	private SimpleLTL convertTemporal(ExpressionTemporal e) throws PrismLangException
 	{
 		SimpleLTL ltl1 = null, ltl2 = null, res = null;
 		Expression until;
-		if (e.getOperand1() != null) ltl1 = getFormula(e.getOperand1());
-		if (e.getOperand2() != null) ltl2 = getFormula(e.getOperand2());
+		if (e.getOperand1() != null) ltl1 = convert(e.getOperand1());
+		if (e.getOperand2() != null) ltl2 = convert(e.getOperand2());
 		switch (e.getOperator()) {
 		case ExpressionTemporal.P_X:
 			res = new SimpleLTL(SimpleLTL.LTLType.NEXT, ltl2);
@@ -78,20 +140,26 @@ public class ConvertForJltl2ba extends ASTTraverseModify
 		case ExpressionTemporal.P_W:
 		case ExpressionTemporal.P_R:
 			until = e.convertToUntilForm();
-			until.accept(this);
-			res = getFormula(until);
+			if (allowSharing) {
+				res = getFormula(until);
+			}
+			if (res == null) {
+				// convert normally
+				res = convert(until);
+			}
 			break;
 		default:
 			throw new PrismLangException("Cannot convert expression to jltl2ba form", e);
 		}
-		setFormula(e, res);
+		return res;
 	}
-	
-	public void visitPost(ExpressionBinaryOp e) throws PrismLangException
+
+	/** Convert ExpressionBinaryOp to a SimpleLTL formula */
+	private SimpleLTL convertBinaryOp(ExpressionBinaryOp e) throws PrismLangException
 	{
 		SimpleLTL ltl1 = null, ltl2 = null, res = null;
-		if (e.getOperand1() != null) ltl1 = getFormula(e.getOperand1());
-		if (e.getOperand2() != null) ltl2 = getFormula(e.getOperand2());
+		if (e.getOperand1() != null) ltl1 = convert(e.getOperand1());
+		if (e.getOperand2() != null) ltl2 = convert(e.getOperand2());
 		switch (e.getOperator()) {
 		case ExpressionBinaryOp.IMPLIES:
 			res = new SimpleLTL(SimpleLTL.LTLType.IMPLIES, ltl1, ltl2);
@@ -108,13 +176,14 @@ public class ConvertForJltl2ba extends ASTTraverseModify
 		default:
 			throw new PrismLangException("Cannot convert expression to jltl2ba form", e);
 		}
-		setFormula(e, res);
+		return res;
 	}
-	
-	public void visitPost(ExpressionUnaryOp e) throws PrismLangException
+
+	/** Convert ExpressionUnaryOp to a SimpleLTL formula */
+	private SimpleLTL convertUnaryOp(ExpressionUnaryOp e) throws PrismLangException
 	{
 		SimpleLTL ltl1 = null, res = null;
-		if (e.getOperand() != null) ltl1 = getFormula(e.getOperand());
+		if (e.getOperand() != null) ltl1 = convert(e.getOperand());
 		switch (e.getOperator()) {
 		case ExpressionUnaryOp.NOT:
 			res = new SimpleLTL(SimpleLTL.LTLType.NOT, ltl1);
@@ -125,19 +194,21 @@ public class ConvertForJltl2ba extends ASTTraverseModify
 		default:
 			throw new PrismLangException("Cannot convert expression to jltl2ba form", e);
 		}
-		setFormula(e, res);
+		return res;
 	}
-	
-	public void visitPost(ExpressionLiteral e) throws PrismLangException
+
+	/** Convert ExpressionLiteral to a SimpleLTL formula */
+	private SimpleLTL convertLiteral(ExpressionLiteral e) throws PrismLangException
 	{
 		if (!(e.getType() instanceof TypeBool)) {
 			throw new PrismLangException("Cannot convert expression to jltl2ba form", e);
 		}
-		setFormula(e, new SimpleLTL(e.evaluateBoolean()));
+		return new SimpleLTL(e.evaluateBoolean());
 	}
-	
-	public void visitPost(ExpressionLabel e) throws PrismLangException
+
+	/** Convert ExpressionLabel to a SimpleLTL formula */
+	private SimpleLTL convertLabel(ExpressionLabel e) throws PrismLangException
 	{
-		setFormula(e, new SimpleLTL(e.getName()));
+		return new SimpleLTL(e.getName());
 	}
 }

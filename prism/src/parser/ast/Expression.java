@@ -158,9 +158,8 @@ public abstract class Expression extends ASTElement
 	 */
 	public jltl2ba.SimpleLTL convertForJltl2ba() throws PrismLangException
 	{
-		ConvertForJltl2ba visitor = new ConvertForJltl2ba();
-		accept(visitor);
-		return visitor.getFormula(this);
+		ConvertForJltl2ba converter = new ConvertForJltl2ba();
+		return converter.convert(this);
 	}
 
 	/**
