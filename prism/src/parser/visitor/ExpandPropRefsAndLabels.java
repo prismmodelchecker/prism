@@ -31,9 +31,10 @@ import parser.type.*;
 import prism.PrismLangException;
 
 /**
-	 * Expand property references and labels, return result.
-	 * Property expansion is done recursively.
-	 * Special labels "deadlock", "init" and any not in label list are left.
+ * Expand property references and labels, return result.
+ * Property expansion is done recursively.
+ * Either properties file or label list can be omitted (set to null)
+ * Special labels "deadlock", "init" and any not in label list are left.
  */
 public class ExpandPropRefsAndLabels extends ASTTraverseModify
 {
@@ -53,6 +54,11 @@ public class ExpandPropRefsAndLabels extends ASTTraverseModify
 		int i;
 		Type t;
 		Expression expr;
+		
+		// Skip this if label list is missing
+		if (labelList == null) {
+			return e;
+		}
 		
 		// See if identifier corresponds to a label
 		i = labelList.getLabelIndex(e.getName());
@@ -83,6 +89,11 @@ public class ExpandPropRefsAndLabels extends ASTTraverseModify
 		Property prop;
 		Type t;
 		Expression expr;
+		
+		// Skip this if label list is missing
+		if (propertiesFile == null) {
+			return e;
+		}
 		
 		// See if name corresponds to a property
 		prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
