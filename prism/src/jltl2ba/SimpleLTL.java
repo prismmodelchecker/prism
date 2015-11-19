@@ -197,24 +197,38 @@ public class SimpleLTL {
 						left.implies(b.left) && right.implies(b.right)));
 	}
 
-	// simplified PNF form
+	/**
+	 * Construct simplified PNF form.
+	 *
+	 * Currently, this requires that the SimpleLTL formula is a tree, i.e., that
+	 * subtrees are not shared. If this is not the case,
+	 * an {@code IllegalArgumentException} is thrown.
+	 */
 	public SimpleLTL simplify()
+	{
+		if (!this.isTree()) {
+			throw new IllegalArgumentException("Implementation error: SimpleLTL.simplify() requires that the formula is a tree, not a DAG");
+		}
+		return this.simplified();
+	}
+	
+	private SimpleLTL simplified()
 	{
 		SimpleLTL tmp, tmp2, a, b;
 		SimpleLTL rv = this;
 		
 		switch (kind) {
 		case AND: case OR: case IMPLIES: case EQUIV: case UNTIL: case RELEASE:
-			right = right.simplify();
+			right = right.simplified();
 		case NOT: case NEXT: case FINALLY: case GLOBALLY:
-			left = left.simplify();
+			left = left.simplified();
 		}
 
 		switch (kind) {
 		case NOT:
 			tmp = this.pushNegation();
 			if (tmp.kind != LTLType.NOT)
-				rv = tmp.simplify();
+				rv = tmp.simplified();
 			else rv = tmp;
 			break;
 			
@@ -232,7 +246,7 @@ public class SimpleLTL {
 				/* fall thru */
 			}
 			tmp = new SimpleLTL(LTLType.UNTIL, new SimpleLTL(true), left);
-			rv = tmp.simplify();
+			rv = tmp.simplified();
 			break;
 
 		case GLOBALLY:
@@ -249,7 +263,7 @@ public class SimpleLTL {
 				/* fall thru */
 			}
 			tmp = new SimpleLTL(LTLType.RELEASE, new SimpleLTL(false), left);
-			rv = tmp.simplify();
+			rv = tmp.simplified();
 			break;
 
 		case UNTIL:
