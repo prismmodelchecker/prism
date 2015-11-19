@@ -30,6 +30,7 @@ package jltl2ba;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -888,6 +889,42 @@ public class SimpleLTL {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Returns true if this SimpleLTL structure is a tree, i.e., not a
+	 * directed acyclical graph (DAG) where sharing of subtrees is allowed.
+	 */
+	public boolean isTree()
+	{
+		HashSet<PlainObjectReference<SimpleLTL>> seen = new HashSet<PlainObjectReference<SimpleLTL>>();
+		return isTree(seen);
+	}
+
+	/**
+	 * Recursive function for checking if this SimpleLTL structure is a tree, i.e., not a
+	 * directed acyclical graph (DAG) where sharing of subtrees is allowed.
+	 *
+	 * The already seen SimpleLTL subtrees are tracked in {@code seen}.
+	 */
+	private boolean isTree(HashSet<PlainObjectReference<SimpleLTL>> seen)
+	{
+		PlainObjectReference<SimpleLTL> ref = new PlainObjectReference<SimpleLTL>(this);
+		if (seen.contains(ref)) {
+			return false;
+		}
+		seen.add(ref);
+
+		if (left != null && !left.isTree(seen)) {
+			// left child exists and is not a tree
+			return false;
+		}
+		if (right != null && !right.isTree(seen)) {
+			// right child exists and is not a tree
+			return false;
+		}
+
+		return true;
 	}
 
 	public SimpleLTL toDNF() throws PrismException
