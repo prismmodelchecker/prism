@@ -823,8 +823,8 @@ public class PrismSettings implements Observer
 	
 	// Export property automaton info?
 	protected boolean exportPropAut = false;
-	protected String exportPropAutType = null;
-	protected String exportPropAutFilename = null;
+	protected String exportPropAutType = "txt";
+	protected String exportPropAutFilename = "da.txt";
 	
 	public void setExportPropAut(boolean b) throws PrismException
 	{
