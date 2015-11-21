@@ -926,6 +926,8 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println(" took " + iters + " cycles (" + totalIters + " iterations in total) and " + timer / 1000.0 + " seconds.");
 
 		// Return results
+		// (Note we don't add the strategy - the one passed in is already there
+		// and might have some existing choices stored for other states).
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.numIters = totalIters;
@@ -1022,6 +1024,8 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println(" took " + iters + " cycles (" + totalIters + " iterations in total) and " + timer / 1000.0 + " seconds.");
 
 		// Return results
+		// (Note we don't add the strategy - the one passed in is already there
+		// and might have some existing choices stored for other states).
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.numIters = totalIters;
@@ -1193,8 +1197,7 @@ public class MDPModelChecker extends ProbModelChecker
 		while (iters < k) {
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			int strat[] = new int[n];
-			mdp.mvMultRewMinMax(soln, mdpRewards, min, soln2, null, false, strat);
+			mdp.mvMultRewMinMax(soln, mdpRewards, min, soln2, null, false, null);
 			// Swap vectors for next iter
 			tmpsoln = soln;
 			soln = soln2;
@@ -1330,7 +1333,7 @@ public class MDPModelChecker extends ProbModelChecker
 				for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
 					int numChoices = mdp.getNumChoices(i);
 					for (int k = 0; k < numChoices; k++) {
-						if (mdp.allSuccessorsInSet(i, k, inf)) {
+						if (mdp.someSuccessorsInSet(i, k, inf)) {
 							strat[i] = k;
 							continue;
 						}
