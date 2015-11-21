@@ -681,6 +681,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		default:
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
+		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
@@ -722,7 +723,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (windowSize == null) {
 			// unbounded
 			ModelCheckerResult res = null;
-
 			switch (model.getModelType()) {
 			case DTMC:
 				res = ((DTMCModelChecker) this).computeUntilProbs((DTMC) model, remain, target);
@@ -736,7 +736,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			default:
 				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
-
+			result.setStrategy(res.strat);
 			sv = StateValues.createFromDoubleArray(res.soln, model);
 		} else if (windowSize == 0) {
 			// A trivial case: windowSize=0 (prob is 1 in target states, 0 otherwise)
@@ -758,6 +758,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			default:
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
+			result.setStrategy(res.strat);
 			sv = StateValues.createFromDoubleArray(res.soln, model);
 		}
 
@@ -808,7 +809,6 @@ public class ProbModelChecker extends NonProbModelChecker
 			break;
 		case MDP:
 			res = ((MDPModelChecker) this).computeUntilProbs((MDP) model, remain, target, minMax.isMin());
-			result.setStrategy(res.strat);
 			break;
 		case STPG:
 			res = ((STPGModelChecker) this).computeUntilProbs((STPG) model, remain, target, minMax.isMin1(), minMax.isMin2());
@@ -816,6 +816,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		default:
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
+		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
@@ -948,6 +949,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
 		}
+		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
@@ -993,12 +995,12 @@ public class ProbModelChecker extends NonProbModelChecker
 			break;
 		case MDP:
 			res = ((MDPModelChecker) this).computeCumulativeRewards((MDP) model, (MDPRewards) modelRewards, timeInt, minMax.isMin());
-			result.setStrategy(res.strat);
 			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
 		}
+		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
@@ -1026,6 +1028,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
 		}
+		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
@@ -1067,7 +1070,6 @@ public class ProbModelChecker extends NonProbModelChecker
 			break;
 		case MDP:
 			res = ((MDPModelChecker) this).computeReachRewards((MDP) model, (MDPRewards) modelRewards, target, minMax.isMin());
-			result.setStrategy(res.strat);
 			break;
 		case STPG:
 			res = ((STPGModelChecker) this).computeReachRewards((STPG) model, (STPGRewards) modelRewards, target, minMax.isMin1(), minMax.isMin2());
@@ -1076,6 +1078,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
 		}
+		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
