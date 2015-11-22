@@ -110,7 +110,7 @@ public class SimulatorEngine extends PrismComponent
 	private List<State> reachableStates;
 	// Strategy
 	private Strategy strategy;
-	
+
 	// Labels + properties info
 	protected List<Expression> labels;
 	private List<Expression> properties;
@@ -490,7 +490,7 @@ public class SimulatorEngine extends PrismComponent
 	{
 		this.reachableStates = reachableStates;
 	}
-	
+
 	/**
 	 * Load a strategy for the currently loaded model into the simulator.
 	 */
@@ -498,7 +498,7 @@ public class SimulatorEngine extends PrismComponent
 	{
 		this.strategy = strategy;
 	}
-	
+
 	/**
 	 * Construct a path through a model to match a supplied path,
 	 * specified as a PathFullInfo object.
@@ -726,7 +726,7 @@ public class SimulatorEngine extends PrismComponent
 
 		// Clear storage for strategy
 		strategy = null;
-		
+
 		// Create storage for labels/properties
 		labels = new ArrayList<Expression>();
 		properties = new ArrayList<Expression>();
@@ -862,7 +862,7 @@ public class SimulatorEngine extends PrismComponent
 			strategy.initialise(s);
 		}
 	}
-	
+
 	/**
 	 * Update the state of the loaded strategy, if present, based on the last step that occurred.
 	 */
@@ -875,7 +875,7 @@ public class SimulatorEngine extends PrismComponent
 			strategy.update(action, s);
 		}
 	}
-	
+
 	// ------------------------------------------------------------------------------
 	// Queries regarding model
 	// ------------------------------------------------------------------------------
