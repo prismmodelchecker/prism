@@ -333,20 +333,13 @@ public class PathFull extends Path implements PathFullInfo
 
 	// ACCESSORS (for PathFullInfo)
 
-	/**
-	 * Get the state at a given step of the path.
-	 * @param step Step index (0 = initial state/step of path)
-	 */
+	@Override
 	public State getState(int step)
 	{
 		return steps.get(step).state;
 	}
 
-	/**
-	 * Get a state reward for the state at a given step of the path.
-	 * @param step Step index (0 = initial state/step of path)
-	 * @param rsi Reward structure index
-	 */
+	@Override
 	public double getStateReward(int step, int rsi)
 	{
 		return steps.get(step).stateRewards[rsi];
@@ -361,58 +354,37 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(step).stateRewards;
 	}
 
-	/**
-	 * Get the total time spent up until entering a given step of the path.
-	 * @param step Step index (0 = initial state/step of path)
-	 */
+	@Override
 	public double getCumulativeTime(int step)
 	{
 		return steps.get(step).timeCumul;
 	}
 
-	/**
-	 * Get the total (state and transition) reward accumulated up until entering a given step of the path.
-	 * @param step Step index (0 = initial state/step of path)
-	 * @param rsi Reward structure index
-	 */
+	@Override
 	public double getCumulativeReward(int step, int rsi)
 	{
 		return steps.get(step).rewardsCumul[rsi];
 	}
 
-	/**
-	 * Get the time spent in a state at a given step of the path.
-	 * @param step Step index (0 = initial state/step of path)
-	 */
+	@Override
 	public double getTime(int step)
 	{
 		return steps.get(step).time;
 	}
 
-	/**
-	 * Get the index of the choice taken for a given step.
-	 * @param step Step index (0 = initial state/step of path)
-	 */
+	@Override
 	public int getChoice(int step)
 	{
 		return steps.get(step).choice;
 	}
 
-	/**
-	 * Get the index i of the action taken for a given step.
-	 * If i>0, then i-1 is the index of an action label (0-indexed)
-	 * If i<0, then -i-1 is the index of a module (0-indexed)
-	 * @param step Step index (0 = initial state/step of path)
-	 */
+	@Override
 	public int getModuleOrActionIndex(int step)
 	{
 		return steps.get(step).moduleOrActionIndex;
 	}
 
-	/**
-	 * Get a string describing the action/module of a given step.
-	 * @param step Step index (0 = initial state/step of path)
-	 */
+	@Override
 	public String getModuleOrAction(int step)
 	{
 		int i = steps.get(step).moduleOrActionIndex;
@@ -433,11 +405,7 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(steps.size() - 2).probability;
 	}
 
-	/**
-	 * Get a transition reward associated with a given step.
-	 * @param step Step index (0 = initial state/step of path)
-	 * @param rsi Reward structure index
-	 */
+	@Override
 	public double getTransitionReward(int step, int rsi)
 	{
 		return steps.get(step).transitionRewards[rsi];
