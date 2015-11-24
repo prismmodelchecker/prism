@@ -37,7 +37,7 @@ import prism.PrismUtils;
 
 /**
  * Explicit representation of a probability distribution.
- * Basically, a mapping from (integer-valued) state indices to (non-zero, double-valued) probabilities. 
+ * Basically, a mapping from (integer-valued) indices to (non-zero, double-valued) probabilities. 
  */
 public class Distribution implements Iterable<Entry<Integer, Double>>
 {
@@ -65,8 +65,8 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Construct a distribution from an existing one and a state index permutation,
-	 * i.e. in which state index i becomes index permut[i].
+	 * Construct a distribution from an existing one and an index permutation,
+	 * i.e. in which index i becomes index permut[i].
 	 * Note: have to build the new distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
@@ -89,9 +89,9 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Add 'prob' to the probability for state 'j'.
+	 * Add 'prob' to the probability for index 'j'.
 	 * Return boolean indicating whether or not there was already
-	 * non-zero probability for this state (i.e. false denotes new transition).
+	 * non-zero probability for this index (i.e. false denotes new transition).
 	 */
 	public boolean add(int j, double prob)
 	{
@@ -106,7 +106,7 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Set the probability for state 'j' to 'prob'.
+	 * Set the probability for index 'j' to 'prob'.
 	 */
 	public void set(int j, double prob)
 	{
@@ -117,7 +117,7 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Get the probability for state j. 
+	 * Get the probability for index j. 
 	 */
 	public double get(int j)
 	{
@@ -209,7 +209,7 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Get the sum of all the probabilities in the distribution except for state j.
+	 * Get the sum of all the probabilities in the distribution except for index j.
 	 */
 	public double sumAllBut(int j)
 	{
@@ -224,8 +224,8 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 	}
 
 	/**
-	 * Create a new distribution, based on a mapping from the state indices
-	 * used in this distribution to a different set  of state indices.
+	 * Create a new distribution, based on a mapping from the indices
+	 * used in this distribution to a different set of indices.
 	 */
 	public Distribution map(int map[])
 	{
