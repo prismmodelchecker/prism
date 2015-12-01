@@ -533,27 +533,27 @@ public abstract class Expression extends ASTElement
 
 	// Static constructors for convenience
 
-	public static Expression True()
+	public static ExpressionLiteral True()
 	{
 		return new ExpressionLiteral(TypeBool.getInstance(), true);
 	}
 
-	public static Expression False()
+	public static ExpressionLiteral False()
 	{
 		return new ExpressionLiteral(TypeBool.getInstance(), false);
 	}
 
-	public static Expression Int(int i)
+	public static ExpressionLiteral Int(int i)
 	{
 		return new ExpressionLiteral(TypeInt.getInstance(), i);
 	}
 
-	public static Expression Double(double d)
+	public static ExpressionLiteral Double(double d)
 	{
 		return new ExpressionLiteral(TypeDouble.getInstance(), d);
 	}
 
-	public static Expression Literal(Object o) throws PrismLangException
+	public static ExpressionLiteral Literal(Object o) throws PrismLangException
 	{
 		if (o instanceof Integer) {
 			return Int(((Integer) o).intValue());
@@ -566,54 +566,63 @@ public abstract class Expression extends ASTElement
 		}
 	}
 
-	public static Expression Not(Expression expr)
+	public static ExpressionUnaryOp Not(Expression expr)
 	{
 		return new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr);
 	}
 
-	public static Expression And(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp And(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.AND, expr1, expr2);
 	}
 
-	public static Expression Or(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp Or(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.OR, expr1, expr2);
 	}
 
-	public static Expression Iff(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp Iff(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.IFF, expr1, expr2);
 	}
 
-	public static Expression Implies(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp Implies(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, expr1, expr2);
 	}
 
-	public static Expression Plus(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp Plus(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.PLUS, expr1, expr2);
 	}
 
-	public static Expression Minus(Expression expr1, Expression expr2)
+	public static ExpressionUnaryOp Minus(Expression expr)
+	{
+		return new ExpressionUnaryOp(ExpressionUnaryOp.MINUS, expr);
+	}
+
+	public static ExpressionBinaryOp Minus(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.MINUS, expr1, expr2);
 	}
 
-	public static Expression Times(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp Times(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.TIMES, expr1, expr2);
 	}
 
-	public static Expression Divide(Expression expr1, Expression expr2)
+	public static ExpressionBinaryOp Divide(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.DIVIDE, expr1, expr2);
 	}
 
-	public static Expression Parenth(Expression expr)
+	public static ExpressionUnaryOp Parenth(Expression expr)
 	{
 		return new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr);
+	}
+
+	public static ExpressionTemporal Next(Expression expr) {
+		return new ExpressionTemporal(ExpressionTemporal.P_X, null, expr);
 	}
 
 	// Static testers for convenience
