@@ -30,6 +30,8 @@ import java.util.*;
 
 import parser.*;
 import parser.visitor.*;
+import prism.ModelInfo;
+import prism.PrismException;
 import prism.PrismLangException;
 import prism.ModelType;
 import prism.PrismUtils;
@@ -37,7 +39,7 @@ import parser.type.*;
 
 // Class representing parsed model file
 
-public class ModulesFile extends ASTElement
+public class ModulesFile extends ASTElement implements ModelInfo
 {
 	// Model type (enum)
 	private ModelType modelType;
@@ -229,6 +231,24 @@ public class ModulesFile extends ASTElement
 		return formulaList;
 	}
 
+	@Override
+	public int getNumLabels()
+	{
+		return labelList.size();
+	}
+
+	@Override
+	public String getLabelName(int i) throws PrismException
+	{
+		return labelList.getLabelName(i);
+	}
+
+	@Override
+	public int getLabelIndex(String label)
+	{
+		return labelList.getLabelIndex(label);
+	}
+	
 	public LabelList getLabelList()
 	{
 		return labelList;
@@ -239,6 +259,7 @@ public class ModulesFile extends ASTElement
 		return constantList;
 	}
 
+	@Override
 	public ModelType getModelType()
 	{
 		return modelType;
@@ -558,6 +579,7 @@ public class ModulesFile extends ASTElement
 		return false;
 	}
 
+	@Override
 	public boolean containsUnboundedVariables()
 	{
 		int n = getNumVars();
