@@ -83,13 +83,13 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	 */
 	private void initialise() throws PrismLangException
 	{
+		// Evaluate constants and optimise (a copy of) the model for analysis
+		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
+
 		// Get info
 		varList = modulesFile.createVarList();
 		labelList = modulesFile.getLabelList();
 		
-		// Evaluate constants and optimise (a copy of) the model for analysis
-		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
-
 		// Create data structures for exploring model
 		updater = new Updater(modulesFile, varList, parent);
 		transitionList = new TransitionList();
