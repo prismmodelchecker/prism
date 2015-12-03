@@ -516,6 +516,9 @@ tarcf:
 	echo Building tar file "../"$$TARCF_DIR".tar.gz" && \
 	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
 
+count_loc:
+	find $(SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+
 PRISM_CLASSPATH = "$(CLASSES_DIR)$(CLASSPATHSEP)$(LIB_DIR)/*"
 
 javadoc:
