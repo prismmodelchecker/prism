@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -32,39 +32,22 @@ import parser.ast.*;
 import prism.PrismLangException;
 
 /**
- * Perform further semantic checks that can only be done once values
- * for (at least some) undefined constants have been defined. Optionally pass in parent
- * ModulesFile and PropertiesFile for some additional checks (or leave null);
+ * Perform further  semantic checks on a ModulesFile (or parts of it)
+ * that can only be done once values for (at least some) undefined constants have been defined.
  */
-public class SemanticCheckAfterConstants extends ASTTraverse
+public class ModulesFileSemanticCheckAfterConstants extends ASTTraverse
 {
+	@SuppressWarnings("unused")
 	private ModulesFile modulesFile;
-	private PropertiesFile propertiesFile;
 
-	public SemanticCheckAfterConstants()
-	{
-		this(null, null);
-	}
-
-	public SemanticCheckAfterConstants(ModulesFile modulesFile)
-	{
-		this(modulesFile, null);
-	}
-
-	public SemanticCheckAfterConstants(ModulesFile modulesFile, PropertiesFile propertiesFile)
+	public ModulesFileSemanticCheckAfterConstants(ModulesFile modulesFile)
 	{
 		setModulesFile(modulesFile);
-		setPropertiesFile(propertiesFile);
 	}
 
 	public void setModulesFile(ModulesFile modulesFile)
 	{
 		this.modulesFile = modulesFile;
-	}
-
-	public void setPropertiesFile(PropertiesFile propertiesFile)
-	{
-		this.propertiesFile = propertiesFile;
 	}
 
 	public void visitPost(Update e) throws PrismLangException

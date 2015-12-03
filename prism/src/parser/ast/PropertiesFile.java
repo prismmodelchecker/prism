@@ -285,7 +285,7 @@ public class PropertiesFile extends ASTElement
 		findCyclesInPropertyReferences();
 		
 		// Various semantic checks 
-		semanticCheck(modulesFile, this);
+		doSemanticChecks();
 		// Type checking
 		typeCheck(this);
 
@@ -441,6 +441,16 @@ public class PropertiesFile extends ASTElement
 		}
 	}
 
+	/**
+	  * Perform any required semantic checks.
+	  * These checks are done *before* any undefined constants have been defined.
+	 */
+	private void doSemanticChecks() throws PrismLangException
+	{
+		PropertiesSemanticCheck visitor = new PropertiesSemanticCheck(this, modulesFile);
+		accept(visitor);
+	}
+	
 	/**
 	 * Get a list of all undefined constants in the properties files
 	 * ("const int x;" rather than "const int x = 1;") 

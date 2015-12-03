@@ -34,62 +34,29 @@ import prism.ModelType;
 import prism.PrismLangException;
 
 /**
- * Perform any required semantic checks. Optionally pass in parent ModulesFile
- * and PropertiesFile for some additional checks (or leave null);
+ * Perform any required semantic checks on a ModulesFile (or parts of it).
  * These checks are done *before* any undefined constants have been defined.
  */
-public class SemanticCheck extends ASTTraverse
+public class ModulesFileSemanticCheck extends SemanticCheck
 {
 	private ModulesFile modulesFile;
-	private PropertiesFile propertiesFile;
 	// Sometimes we need to keep track of parent (ancestor) objects
-	private ModulesFile inModulesFile = null;
-	private Module inModule = null;
+	//private Module inModule = null;
 	private Expression inInvariant = null;
 	private Expression inGuard = null;
-	private Update inUpdate = null;
+	//private Update inUpdate = null;
 
-	public SemanticCheck()
-	{
-		this(null, null);
-	}
-
-	public SemanticCheck(ModulesFile modulesFile)
-	{
-		this(modulesFile, null);
-	}
-
-	public SemanticCheck(ModulesFile modulesFile, PropertiesFile propertiesFile)
-	{
-		setModulesFile(modulesFile);
-		setPropertiesFile(propertiesFile);
-	}
-
-	public void setModulesFile(ModulesFile modulesFile)
+	public ModulesFileSemanticCheck(ModulesFile modulesFile)
 	{
 		this.modulesFile = modulesFile;
 	}
 
-	public void setPropertiesFile(PropertiesFile propertiesFile)
-	{
-		this.propertiesFile = propertiesFile;
-	}
-
-	public void visitPre(ModulesFile e) throws PrismLangException
-	{
-		// Register the fact we are entering a model
-		inModulesFile = e;
-	}
-	
 	public void visitPost(ModulesFile e) throws PrismLangException
 	{
 		int i, j, n, n2;
 		Module m;
 		Vector<String> v;
 
-		// Register the fact we are leaving a model
-		inModulesFile = null;
-		
 		// Check for use of init...endinit _and_ var initial values
 		if (e.getInitialStates() != null) {
 			n = e.getNumGlobals();
@@ -210,7 +177,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPre(Module e) throws PrismLangException
 	{
 		// Register the fact we are entering a module
-		inModule = e;
+		//inModule = e;
 	}
 
 	public Object visit(Module e) throws PrismLangException
@@ -237,7 +204,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPost(Module e) throws PrismLangException
 	{
 		// Register the fact we are leaving a module
-		inModule = null;
+		//inModule = null;
 	}
 
 	public Object visit(Command e) throws PrismLangException
@@ -255,7 +222,7 @@ public class SemanticCheck extends ASTTraverse
 	public void visitPre(Update e) throws PrismLangException
 	{
 		// Register the fact we are entering an update
-		inUpdate = e;
+		//inUpdate = e;
 	}
 
 	public void visitPost(Update e) throws PrismLangException
@@ -264,23 +231,21 @@ public class SemanticCheck extends ASTTraverse
 		String s, var;
 		Command c;
 		Module m;
-		ModulesFile mf;
 		boolean isLocal, isGlobal;
 
 		// Register the fact we are leaving an update
-		inUpdate = null;
+		//inUpdate = null;
 
 		// Determine containing command/module/model
 		// (mf should coincide with the stored modulesFile)
 		c = e.getParent().getParent();
 		m = c.getParent();
-		mf = m.getParent();
 		n = e.getNumElements();
 		for (i = 0; i < n; i++) {
 			// Check that the update is allowed to modify this variable
 			var = e.getVar(i);
 			isLocal = m.isLocalVariable(var);
-			isGlobal = isLocal ? false : mf.isGlobalVariable(var);
+			isGlobal = isLocal ? false : modulesFile.isGlobalVariable(var);
 			if (!isLocal && !isGlobal) {
 				s = "Module \"" + m.getName() + "\" is not allowed to modify variable \"" + var + "\"";
 				throw new PrismLangException(s, e.getVarIdent(i));
@@ -360,64 +325,6 @@ public class SemanticCheck extends ASTTraverse
 		}
 	}
 
-	public void visitPost(ExpressionTemporal e) throws PrismLangException
-	{
-		int op = e.getOperator();
-		Expression operand1 = e.getOperand1();
-		Expression operand2 = e.getOperand2();
-		Expression lBound = e.getLowerBound();
-		Expression uBound = e.getUpperBound();
-		if (lBound != null && !lBound.isConstant()) {
-			throw new PrismLangException("Lower bound in " + e.getOperatorSymbol() + " operator is not constant", lBound);
-		}
-		if (uBound != null && !uBound.isConstant()) {
-			throw new PrismLangException("Upper bound in " + e.getOperatorSymbol() + " operator is not constant", uBound);
-		}
-		// Other checks (which parser should never allow to occur anyway)
-		if (op == ExpressionTemporal.P_X && (operand1 != null || operand2 == null || lBound != null || uBound != null)) {
-			throw new PrismLangException("Cannot attach bounds to " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == ExpressionTemporal.R_C && (operand1 != null || operand2 != null || lBound != null)) {
-			// NB: upper bound is optional (e.g. multi-objective allows R...[C] operator)
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == ExpressionTemporal.R_I && (operand1 != null || operand2 != null || lBound != null || uBound == null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-		if (op == ExpressionTemporal.R_S && (operand1 != null || operand2 != null || lBound != null || uBound != null)) {
-			throw new PrismLangException("Badly formed " + e.getOperatorSymbol() + " operator", e);
-		}
-	}
-
-	public void visitPost(ExpressionFunc e) throws PrismLangException
-	{
-		// Check function name is valid
-		if (e.getNameCode() == -1) {
-			throw new PrismLangException("Unknown function \"" + e.getName() + "\"", e);
-		}
-		// Check num arguments
-		if (e.getNumOperands() < e.getMinArity()) {
-			throw new PrismLangException("Not enough arguments to \"" + e.getName() + "\" function", e);
-		}
-		if (e.getMaxArity() != -1 && e.getNumOperands() > e.getMaxArity()) {
-			throw new PrismLangException("Too many arguments to \"" + e.getName() + "\" function", e);
-		}
-	}
-
-	public void visitPost(ExpressionIdent e) throws PrismLangException
-	{
-		// By the time the expression is checked, this should
-		// have been converted to an ExpressionVar/ExpressionConstant/...
-		throw new PrismLangException("Undeclared identifier", e);
-	}
-
-	public void visitPost(ExpressionFormula e) throws PrismLangException
-	{
-		// This should have been defined or expanded by now
-		if (e.getDefinition() == null)
-			throw new PrismLangException("Unexpanded formula", e);
-	}
-
 	public void visitPost(ExpressionVar e) throws PrismLangException
 	{
 		// For PTAs, references to variables in modules have to be local
@@ -429,75 +336,17 @@ public class SemanticCheck extends ASTTraverse
 		}*/
 		// Clock references, in models, can only appear in invariants and guards
 		// (Note: type checking has not been done, but we know types for ExpressionVars)
-		if (e.getType() instanceof TypeClock && inModulesFile != null) {
+		if (e.getType() instanceof TypeClock) {
 			if (inInvariant == null && inGuard == null) {
 				throw new PrismLangException("Reference to a clock variable cannot appear here", e);
 			}
 		}
 	}
 
-	public void visitPost(ExpressionProb e) throws PrismLangException
-	{
-		if (e.getModifier() != null) {
-			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for P operator");
-		}
-		if (e.getProb() != null && !e.getProb().isConstant()) {
-			throw new PrismLangException("P operator probability bound is not constant", e.getProb());
-		}
-	}
-
-	public void visitPost(ExpressionReward e) throws PrismLangException
-	{
-		if (e.getModifier() != null) {
-			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for R operator");
-		}
-		if (e.getRewardStructIndex() != null) {
-			if (e.getRewardStructIndex() instanceof Expression) {
-				Expression rsi = (Expression) e.getRewardStructIndex();
-				if (!(rsi.isConstant())) {
-					throw new PrismLangException("R operator reward struct index is not constant", rsi);
-				}
-			} else if (e.getRewardStructIndex() instanceof String) {
-				String s = (String) e.getRewardStructIndex();
-				if (modulesFile != null && modulesFile.getRewardStructIndex(s) == -1) {
-					throw new PrismLangException("R operator reward struct index \"" + s + "\" does not exist", e);
-				}
-			}
-		}
-		if (e.getRewardStructIndexDiv() != null) {
-			if (e.getRewardStructIndexDiv() instanceof Expression) {
-				Expression rsi = (Expression) e.getRewardStructIndexDiv();
-				if (!(rsi.isConstant())) {
-					throw new PrismLangException("R operator reward struct index is not constant", rsi);
-				}
-			} else if (e.getRewardStructIndexDiv() instanceof String) {
-				String s = (String) e.getRewardStructIndexDiv();
-				if (modulesFile != null && modulesFile.getRewardStructIndex(s) == -1) {
-					throw new PrismLangException("R operator reward struct index \"" + s + "\" does not exist", e);
-				}
-			}
-		}
-		if (e.getReward() != null && !e.getReward().isConstant()) {
-			throw new PrismLangException("R operator reward bound is not constant", e.getReward());
-		}
-	}
-
-	public void visitPost(ExpressionSS e) throws PrismLangException
-	{
-		if (e.getModifier() != null) {
-			throw new PrismLangException("Modifier \"" + e.getModifier() + "\" not supported for S operator");
-		}
-		if (e.getProb() != null && !e.getProb().isConstant()) {
-			throw new PrismLangException("S operator probability bound is not constant", e.getProb());
-		}
-	}
-
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
 		LabelList labelList;
-		if (propertiesFile != null)
-			labelList = propertiesFile.getCombinedLabelList();
-		else if (modulesFile != null)
+		if (modulesFile != null)
 			labelList = modulesFile.getLabelList();
 		else
 			throw new PrismLangException("Undeclared label", e);
@@ -508,14 +357,6 @@ public class SemanticCheck extends ASTTraverse
 		// Otherwise check list
 		if (labelList == null || labelList.getLabelIndex(name) == -1) {
 			throw new PrismLangException("Undeclared label", e);
-		}
-	}
-
-	public void visitPost(ExpressionFilter e) throws PrismLangException
-	{
-		// Check filter type is valid
-		if (e.getOperatorType() == null) {
-			throw new PrismLangException("Unknown filter type \"" + e.getOperatorName() + "\"", e);
 		}
 	}
 }
