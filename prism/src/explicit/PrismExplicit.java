@@ -31,6 +31,7 @@ import java.io.*;
 import parser.ast.*;
 import parser.type.TypeBool;
 import prism.*;
+import simulator.ModulesFileModelGenerator;
 import simulator.SimulatorEngine;
 import explicit.Model;
 import explicit.StateModelChecker;
@@ -54,7 +55,7 @@ public class PrismExplicit extends PrismComponent
 	 * @param modulesFile Model to build
 	 * @param simEngine PRISM simulator engine (for model exploration)
 	 */
-	public Model buildModel(ModulesFile modulesFile, SimulatorEngine simEngine) throws PrismException
+	public Model buildModel(ModulesFile modulesFile, ModelGenerator simEngine) throws PrismException
 	{
 		long l; // timer
 		Model modelExpl;
@@ -67,11 +68,11 @@ public class PrismExplicit extends PrismComponent
 		mainLog.print("\nBuilding model...\n");
 
 		// create translator
-		constructModel = new ConstructModel(this, simEngine);
+		constructModel = new ConstructModel(this);
 
 		// build model
 		l = System.currentTimeMillis();
-		modelExpl = constructModel.constructModel(modulesFile, false, true);
+		modelExpl = constructModel.constructModel(simEngine);
 		l = System.currentTimeMillis() - l;
 
 		mainLog.println("\nTime for model construction: " + l / 1000.0 + " seconds.");
@@ -426,7 +427,7 @@ public class PrismExplicit extends PrismComponent
 			PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File(args[1]));
 			propertiesFile.setUndefinedConstants(null);
 			PrismExplicit pe = new PrismExplicit(prism.getMainLog(), prism.getSettings());
-			Model modelExpl = pe.buildModel(modulesFile, prism.getSimulator());
+			Model modelExpl = pe.buildModel(modulesFile, new ModulesFileModelGenerator(modulesFile, prism));
 			pe.modelCheck(modelExpl, modulesFile, propertiesFile, propertiesFile.getProperty(0));
 		} catch (PrismException e) {
 			System.out.println(e);

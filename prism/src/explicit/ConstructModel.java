@@ -29,97 +29,127 @@ package explicit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import parser.State;
 import parser.Values;
 import parser.VarList;
-import parser.ast.Expression;
-import parser.ast.ModulesFile;
+import prism.ModelGenerator;
 import prism.ModelType;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLog;
-import prism.PrismPrintStreamLog;
 import prism.PrismNotSupportedException;
+import prism.PrismPrintStreamLog;
 import prism.ProgressDisplay;
 import prism.UndefinedConstants;
-import simulator.SimulatorEngine;
 
+/**
+ * Class to perform explicit-state reachability and model construction.
+ * The information about the model to be built is provided via a {@link prism.ModelGenerator} interface.
+ * To build a PRISM model, use {@link simulator.ModulesFileModelGenerator}.
+ */
 public class ConstructModel extends PrismComponent
 {
-	// The simulator engine
-	protected SimulatorEngine engine;
+	// The model generator
+	protected ModelGenerator modelGen;
 
 	// Options:
-	// Find deadlocks during model construction?
-	protected boolean findDeadlocks = true;
-	// Automatically fix deadlocks?
-	protected boolean fixDeadlocks = true;
 
-	// Details of built model
+	/** Find deadlocks during model construction? */
+	protected boolean findDeadlocks = true;
+	/** Automatically fix deadlocks? */
+	protected boolean fixDeadlocks = true;
+	/** Build a sparse representation, if possible?
+	 *  (e.g. MDPSparse rather than MDPSimple data structure) */
+	protected boolean buildSparse = true;
+	/** Should actions be attached to distributions (and used to distinguish them)? */
+	protected boolean distinguishActions = true;
+	/** Should labels be processed and attached to the model? */
+	protected boolean attachLabels = true; 
+
+	// Details of built model:
+
+	/** Reachable states */
 	protected List<State> statesList;
 
-	public ConstructModel(PrismComponent parent, SimulatorEngine engine) throws PrismException
+	public ConstructModel(PrismComponent parent) throws PrismException
 	{
 		super(parent);
-		this.engine = engine;
 	}
 
+	/**
+	 * Get the list of states associated with the last model construction performed.  
+	 */
 	public List<State> getStatesList()
 	{
 		return statesList;
 	}
 
-	public void setFixDeadlocks(boolean b)
-	{
-		fixDeadlocks = b;
-	}
-
 	/**
-	 * Build the set of reachable states for a PRISM model language description and return.
-	 * @param modulesFile The PRISM model
+	 * Automatically fix deadlocks, if needed?
+	 * (by adding self-loops in those states)
 	 */
-	public List<State> computeReachableStates(ModulesFile modulesFile) throws PrismException
+	public void setFixDeadlocks(boolean fixDeadlocks)
 	{
-		constructModel(modulesFile, true, false);
-		return statesList;
+		this.fixDeadlocks = fixDeadlocks;
 	}
 
 	/**
-	 * Construct an explicit-state model from a PRISM model language description and return.
-	 * @param modulesFile The PRISM model
+	 * Build a sparse representation, if possible?
+	 * (e.g. MDPSparse rather than MDPSimple data structure)
 	 */
-	public Model constructModel(ModulesFile modulesFile) throws PrismException
+	public void setBuildSparse(boolean buildSparse)
 	{
-		return constructModel(modulesFile, false, true);
+		this.buildSparse = buildSparse;
 	}
 
 	/**
-	 * Construct an explicit-state model from a PRISM model language description and return.
+	 * Should actions be attached to distributions (and used to distinguish them)?
+	 */
+	public void setDistinguishActions(boolean distinguishActions)
+	{
+		this.distinguishActions = distinguishActions;
+	}
+
+	/**
+	 * Should labels be processed and attached to the model?
+	 */
+	public void setAttachLabels(boolean attachLabels)
+	{
+		this.attachLabels = attachLabels;
+	}
+
+	/**
+	 * Build the set of reachable states for a model and return it.
+	 * @param modelGen The ModelGenerator interface providing the model 
+	 */
+	public List<State> computeReachableStates(ModelGenerator modelGen) throws PrismException
+	{
+		constructModel(modelGen, true);
+		return getStatesList();
+	}
+
+	/**
+	 * Construct an explicit-state model and return it.
+	 * @param modelGen The ModelGenerator interface providing the model 
+	 */
+	public Model constructModel(ModelGenerator modelGen) throws PrismException
+	{
+		return constructModel(modelGen, false);
+	}
+
+	/**
+	 * Construct an explicit-state model and return it.
 	 * If {@code justReach} is true, no model is built and null is returned;
 	 * the set of reachable states can be obtained with {@link #getStatesList()}.
-	 * @param modulesFile The PRISM model
+	 * @param modelGen The ModelGenerator interface providing the model 
 	 * @param justReach If true, just build the reachable state set, not the model
-	 * @param buildSparse Build a sparse version of the model (if possible)?
 	 */
-	public Model constructModel(ModulesFile modulesFile, boolean justReach, boolean buildSparse) throws PrismException
-	{
-		return constructModel(modulesFile, justReach, buildSparse, true);
-	}
-
-	/**
-	 * Construct an explicit-state model from a PRISM model language description and return.
-	 * If {@code justReach} is true, no model is built and null is returned;
-	 * the set of reachable states can be obtained with {@link #getStatesList()}.
-	 * @param modulesFile The PRISM model
-	 * @param justReach If true, just build the reachable state set, not the model
-	 * @param buildSparse Build a sparse version of the model (if possible)?
-	 * @param distinguishActions True if actions should be attached to distributions (and used to distinguish them)
-	 */
-	public Model constructModel(ModulesFile modulesFile, boolean justReach, boolean buildSparse, boolean distinguishActions) throws PrismException
+	public Model constructModel(ModelGenerator modelGen, boolean justReach) throws PrismException
 	{
 		// Model info
 		ModelType modelType;
@@ -140,11 +170,11 @@ public class ConstructModel extends PrismComponent
 		long timer;
 
 		// Get model info
-		modelType = modulesFile.getModelType();
+		modelType = modelGen.getModelType();
 		
 		// Display a warning if there are unbounded vars
-		VarList varList = modulesFile.createVarList();
-		if (modulesFile.containsUnboundedVariables())
+		VarList varList = modelGen.createVarList();
+		if (modelGen.containsUnboundedVariables())
 			mainLog.printWarning("Model contains one or more unbounded variables: model construction may not terminate");
 
 		// Starting reachability...
@@ -153,9 +183,6 @@ public class ConstructModel extends PrismComponent
 		ProgressDisplay progress = new ProgressDisplay(mainLog);
 		progress.start();
 		timer = System.currentTimeMillis();
-
-		// Initialise simulator for this model
-		engine.createNewOnTheFlyPath(modulesFile);
 
 		// Create model storage
 		if (!justReach) {
@@ -187,25 +214,9 @@ public class ConstructModel extends PrismComponent
 		// Initialise states storage
 		states = new IndexedSet<State>(true);
 		explore = new LinkedList<State>();
-		// Add initial state(s) to 'explore'
-		// Easy (normal) case: just one initial state
-		if (modulesFile.getInitialStates() == null) {
-			state = modulesFile.getDefaultInitialState();
-			explore.add(state);
-		}
-		// Otherwise, there may be multiple initial states
-		// For now, we handle this is in a very inefficient way
-		else {
-			Expression init = modulesFile.getInitialStates();
-			List<State> allPossStates = varList.getAllStates();
-			for (State possState : allPossStates) {
-				if (init.evaluateBoolean(modulesFile.getConstantValues(), possState)) {
-					explore.add(possState);
-				}
-			}
-		}
-		// Copy initial state(s) to 'states' and to the model
-		for (State initState : explore) {
+		// Add initial state(s) to 'explore', 'states' and to the model
+		for (State initState : modelGen.getInitialStates()) {
+			explore.add(initState);
 			states.add(initState);
 			if (!justReach) {
 				modelSimple.addState();
@@ -219,19 +230,19 @@ public class ConstructModel extends PrismComponent
 			// (they are stored in order found so know index is src+1)
 			state = explore.removeFirst();
 			src++;
-			// Use simulator to explore all choices/transitions from this state
-			engine.initialisePath(state);
+			// Explore all choices/transitions from this state
+			modelGen.exploreState(state);
 			// Look at each outgoing choice in turn
-			nc = engine.getNumChoices();
+			nc = modelGen.getNumChoices();
 			for (i = 0; i < nc; i++) {
 				// For nondet models, collect transitions in a Distribution
 				if (!justReach && modelType.nondeterministic()) {
 					distr = new Distribution();
 				}
 				// Look at each transition in the choice
-				nt = engine.getNumTransitions(i);
+				nt = modelGen.getNumTransitions(i);
 				for (j = 0; j < nt; j++) {
-					stateNew = engine.computeTransitionTarget(i, j);
+					stateNew = modelGen.computeTransitionTarget(i, j);
 					// Is this a new state?
 					if (states.add(stateNew)) {
 						// If so, add to the explore list
@@ -247,14 +258,14 @@ public class ConstructModel extends PrismComponent
 					if (!justReach) {
 						switch (modelType) {
 						case DTMC:
-							dtmc.addToProbability(src, dest, engine.getTransitionProbability(i, j));
+							dtmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
 							break;
 						case CTMC:
-							ctmc.addToProbability(src, dest, engine.getTransitionProbability(i, j));
+							ctmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
 							break;
 						case MDP:
 						case CTMDP:
-							distr.add(dest, engine.getTransitionProbability(i, j));
+							distr.add(dest, modelGen.getTransitionProbability(i, j));
 							break;
 						case STPG:
 						case SMG:
@@ -267,13 +278,13 @@ public class ConstructModel extends PrismComponent
 				if (!justReach) {
 					if (modelType == ModelType.MDP) {
 						if (distinguishActions) {
-							mdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
+							mdp.addActionLabelledChoice(src, distr, modelGen.getTransitionAction(i, 0));
 						} else {
 							mdp.addChoice(src, distr);
 						}
 					} else if (modelType == ModelType.CTMDP) {
 						if (distinguishActions) {
-							ctmdp.addActionLabelledChoice(src, distr, engine.getTransitionAction(i, 0));
+							ctmdp.addActionLabelledChoice(src, distr, modelGen.getTransitionAction(i, 0));
 						} else {
 							ctmdp.addChoice(src, distr);
 						}
@@ -339,14 +350,44 @@ public class ConstructModel extends PrismComponent
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			model.setStatesList(statesList);
-			model.setConstantValues(new Values(modulesFile.getConstantValues()));
+			model.setConstantValues(new Values(modelGen.getConstantValues()));
 			//mainLog.println("Model: " + model);
 		}
 
 		// Discard permutation
 		permut = null;
 
+		if (attachLabels)
+			attachLabels(modelGen, model);
+		
 		return model;
+	}
+
+	private void attachLabels(ModelGenerator modelGen, ModelExplicit model) throws PrismException
+	{
+		// Get state info
+		List <State> statesList = model.getStatesList();
+		int numStates = statesList.size();
+		// Create storage for labels
+		int numLabels = modelGen.getNumLabels();
+		BitSet bitsets[] = new BitSet[numLabels];
+		for (int j = 0; j < numLabels; j++) {
+			bitsets[j] = new BitSet();
+		}
+		// Construct bitsets for labels
+		for (int i = 0; i < numStates; i++) {
+			State state = statesList.get(i);
+			modelGen.exploreState(state);
+			for (int j = 0; j < numLabels; j++) {
+				if (modelGen.isLabelTrue(j)) {
+					bitsets[j].set(i);
+				}
+			}
+		}
+		// Attach labels/bitsets
+		for (int j = 0; j < numLabels; j++) {
+			model.addLabel(modelGen.getLabelName(j), bitsets[j]);
+		}
 	}
 
 	/**
@@ -358,13 +399,14 @@ public class ConstructModel extends PrismComponent
 			// Simple example: parse a PRISM file from a file, construct the model and export to a .tra file
 			PrismLog mainLog = new PrismPrintStreamLog(System.out);
 			Prism prism = new Prism(mainLog, mainLog);
-			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
+			parser.ast.ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
 			UndefinedConstants undefinedConstants = new UndefinedConstants(modulesFile, null);
 			if (args.length > 2)
 				undefinedConstants.defineUsingConstSwitch(args[2]);
 			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
-			ConstructModel constructModel = new ConstructModel(prism, prism.getSimulator());
-			Model model = constructModel.constructModel(modulesFile);
+			ConstructModel constructModel = new ConstructModel(prism);
+			simulator.ModulesFileModelGenerator modelGen = new simulator.ModulesFileModelGenerator(modulesFile, constructModel);
+			Model model = constructModel.constructModel(modelGen);
 			model.exportToPrismExplicitTra(args[1]);
 		} catch (FileNotFoundException e) {
 			System.out.println("Error: " + e.getMessage());
