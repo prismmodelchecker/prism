@@ -488,21 +488,6 @@ public class VarList
 	}
 
 	/**
-	 * Does the variable list contain any variables with unbounded range (e.g. "clock: or "int")?
-	 */
-	public boolean containsUnboundedVariables()
-	{
-		int n = getNumVars();
-		for (int i = 0; i < n; i++) {
-			DeclarationType declType = getDeclaration(i).getDeclType();
-			if (declType instanceof DeclarationClock || declType instanceof DeclarationIntUnbounded) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	/**
 	 * Clone this list.
 	 */
 	public Object clone()

@@ -558,6 +558,18 @@ public class ModulesFile extends ASTElement
 		return false;
 	}
 
+	public boolean containsUnboundedVariables()
+	{
+		int n = getNumVars();
+		for (int i = 0; i < n; i++) {
+			DeclarationType declType = getVarDeclaration(i).getDeclType();
+			if (declType instanceof DeclarationClock || declType instanceof DeclarationIntUnbounded) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Method to "tidy up" after parsing (must be called)
 	 * (do some checks and extract some information)

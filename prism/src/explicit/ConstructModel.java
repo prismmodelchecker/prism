@@ -144,7 +144,7 @@ public class ConstructModel extends PrismComponent
 		
 		// Display a warning if there are unbounded vars
 		VarList varList = modulesFile.createVarList();
-		if (varList.containsUnboundedVariables())
+		if (modulesFile.containsUnboundedVariables())
 			mainLog.printWarning("Model contains one or more unbounded variables: model construction may not terminate");
 
 		// Starting reachability...
