@@ -40,8 +40,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import prism.Result;
-import simulator.PrismModelExplorer;
-import simulator.SimulatorEngine;
+import simulator.ModulesFileModelGenerator;
 
 /**
  * CTMC model checker based on fast adaptive uniformisation.
@@ -52,8 +51,6 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 	private ModulesFile modulesFile;
 	// Properties file
 	private PropertiesFile propertiesFile;
-	// Simulator engine
-	private SimulatorEngine engine;
 	// Constants from model
 	private Values constantValues;
 	// Labels from the model
@@ -64,12 +61,11 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 	/**
 	 * Constructor.
 	 */
-	public FastAdaptiveUniformisationModelChecker(PrismComponent parent, ModulesFile modulesFile, PropertiesFile propertiesFile, SimulatorEngine engine) throws PrismException
+	public FastAdaptiveUniformisationModelChecker(PrismComponent parent, ModulesFile modulesFile, PropertiesFile propertiesFile) throws PrismException
 	{
 		super(parent);
 		this.modulesFile = modulesFile;
 		this.propertiesFile = propertiesFile;
-		this.engine = engine;
 
 		// Get combined constant values from model/properties
 		constantValues = new Values();
@@ -160,8 +156,8 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		}
 
 		mainLog.println("Starting transient probability computation using fast adaptive uniformisation...");
-		PrismModelExplorer modelExplorer = new PrismModelExplorer(engine, modulesFile);
-		FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
+		ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(modulesFile, this);
+		FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 		fau.setConstantValues(constantValues);
 
 		Expression op1 = exprTemp.getOperand1();
@@ -228,8 +224,8 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 	private Result checkExpressionReward(ExpressionReward expr) throws PrismException
 	{
 		mainLog.println("Starting transient probability computation using fast adaptive uniformisation...");
-		PrismModelExplorer modelExplorer = new PrismModelExplorer(engine, modulesFile);
-		FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
+		ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(modulesFile, this);
+		FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 		ExpressionTemporal temporal = (ExpressionTemporal) expr.getExpression();
 		switch (temporal.getOperator()) {
 		case ExpressionTemporal.R_I:

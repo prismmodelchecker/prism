@@ -408,7 +408,7 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	}
 
 	/** model exploration component to generate new states */
-	private ModelExplorer modelExplorer;
+	private ModelGenerator modelGen;
 	/** probability allowed to drop birth process */
 	private double epsilon;
 	/** probability threshold when to drop states in discrete-time process */
@@ -463,11 +463,11 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	/**
 	 * Constructor.
 	 */
-	public FastAdaptiveUniformisation(PrismComponent parent, ModelExplorer modelExplorer) throws PrismException
+	public FastAdaptiveUniformisation(PrismComponent parent, ModelGenerator modelGen) throws PrismException
 	{
 		super(parent);
 		
-		this.modelExplorer = modelExplorer;
+		this.modelGen = modelGen;
 		maxNumStates = 0;
 
 		epsilon = settings.getDouble(PrismSettings.PRISM_FAU_EPSILON);
@@ -562,8 +562,8 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 			for (Map.Entry<State,StateProp> statePair : states.entrySet()) {
 				State state = statePair.getKey();
 				StateProp prop = statePair.getValue();
-				modelExplorer.queryState(state);
-				specialLabels.setLabel(0, modelExplorer.getNumTransitions() == 0 ? Expression.True() : Expression.False());
+				modelGen.exploreState(state);
+				specialLabels.setLabel(0, modelGen.getNumTransitions() == 0 ? Expression.True() : Expression.False());
 				specialLabels.setLabel(1, initStates.contains(state) ? Expression.True() : Expression.False());
 				Expression evSink = sink.deepCopy();
 				evSink = (Expression) evSink.expandLabels(specialLabels);
@@ -666,6 +666,9 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	 */
 	public StateValues doTransient(double time, StateValues initDist) throws PrismException
 	{
+		if (!modelGen.hasSingleInitialState())
+			throw new PrismException("Fast adaptive uniformisation does not yet support models with multiple initial states");
+		
 		mainLog.println("\nComputing probabilities (fast adaptive uniformisation)...");
 		
 		if (initDist == null) {
@@ -675,7 +678,7 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 			initDist.valuesD = new double[1];
 			initDist.statesList = new ArrayList<State>();
 			initDist.valuesD[0] = 1.0;
-			initDist.statesList.add(modelExplorer.getDefaultInitialState());
+			initDist.statesList.add(modelGen.getInitialState());
 		}
 		
 		/* prepare fast adaptive uniformisation */
@@ -773,8 +776,8 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 			for (Map.Entry<State,StateProp> statePair : states.entrySet()) {
 				State state = statePair.getKey();
 				StateProp prop = statePair.getValue();
-				modelExplorer.queryState(state);
-				specialLabels.setLabel(0, modelExplorer.getNumTransitions() == 0 ? Expression.True() : Expression.False());
+				modelGen.exploreState(state);
+				specialLabels.setLabel(0, modelGen.getNumTransitions() == 0 ? Expression.True() : Expression.False());
 				specialLabels.setLabel(1, initStates.contains(state) ? Expression.True() : Expression.False());
 				Expression evTarget = target.deepCopy();
 				evTarget = (Expression) evTarget.expandLabels(specialLabels);
@@ -1079,7 +1082,7 @@ public final class FastAdaptiveUniformisation extends PrismComponent
     private void prepareInitialDistribution() throws PrismException
     {
     	initStates = new HashSet<State>();
-		State initState = modelExplorer.getDefaultInitialState();
+		State initState = modelGen.getInitialState();
 		initStates.add(initState);
 		addToModel(initState);
 		computeStateRatesAndRewards(initState);
@@ -1121,8 +1124,8 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 		for (Map.Entry<State,StateProp> statePair : states.entrySet()) {
 			State state = statePair.getKey();
 			StateProp prop = statePair.getValue();
-			modelExplorer.queryState(state);
-			specialLabels.setLabel(0, modelExplorer.getNumTransitions() == 0 ? Expression.True() : Expression.False());
+			modelGen.exploreState(state);
+			specialLabels.setLabel(0, modelGen.getNumTransitions() == 0 ? Expression.True() : Expression.False());
 			specialLabels.setLabel(1, initStates.contains(state) ? Expression.True() : Expression.False());
 			Expression evSink = sink.deepCopy();
 			evSink = (Expression) evSink.expandLabels(specialLabels);
@@ -1161,8 +1164,8 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	{
 		double[] succRates;
 		StateProp[] succStates;
-		modelExplorer.queryState(state);
-		specialLabels.setLabel(0, modelExplorer.getNumTransitions() == 0 ? Expression.True() : Expression.False());
+		modelGen.exploreState(state);
+		specialLabels.setLabel(0, modelGen.getNumTransitions() == 0 ? Expression.True() : Expression.False());
 		specialLabels.setLabel(1, initStates.contains(state) ? Expression.True() : Expression.False());
 		Expression evSink = sink.deepCopy();
 		evSink = (Expression) evSink.expandLabels(specialLabels);
@@ -1172,21 +1175,24 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 			succRates[0] = 1.0;
 			succStates[0] = states.get(state);
 		} else {
-			int nt = modelExplorer.getNumTransitions();
-			succRates = new double[nt];
-			succStates = new StateProp[nt];
-			for (int i = 0; i < nt; i++) {
-				State succState = modelExplorer.computeTransitionTarget(i);
-				StateProp succProp = states.get(succState);
-				if (null == succProp) {
-					addToModel(succState);
-					modelExplorer.queryState(state);
-					succProp = states.get(succState);
+			int nc = modelGen.getNumChoices();
+			succRates = new double[nc];
+			succStates = new StateProp[nc];
+			for (int i = 0; i < nc; i++) {
+				int nt = modelGen.getNumTransitions(i);
+				for (int j = 0; j < nt; j++) {
+					State succState = modelGen.computeTransitionTarget(i, j);
+					StateProp succProp = states.get(succState);
+					if (null == succProp) {
+						addToModel(succState);
+						modelGen.exploreState(state);
+						succProp = states.get(succState);
+					}
+					succRates[i] = modelGen.getTransitionProbability(i, j);
+					succStates[i] = succProp;
 				}
-				succRates[i] = modelExplorer.getTransitionProbability(i);
-				succStates[i] = succProp;
 			}
-			if (nt == 0) {
+			if (nc == 0) {
 				succRates = new double[1];
 				succStates = new StateProp[1];
 				succRates[0] = 1.0;
@@ -1248,10 +1254,10 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 		if (!isRewardAnalysis()) {
 			return 0.0;
 		}
-		int numTransitions = 0;
+		int numChoices = 0;
 		if (AnalysisType.REW_CUMUL == analysisType) {
-			modelExplorer.queryState(state);
-			numTransitions = modelExplorer.getNumTransitions();
+			modelGen.exploreState(state);
+			numChoices = modelGen.getNumChoices();
 		}
 		double sumReward = 0.0;
 		int numStateItems = rewStruct.getNumItems();
@@ -1262,13 +1268,16 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 				String action = rewStruct.getSynch(i);
 				if (action != null) {
 					if (AnalysisType.REW_CUMUL == analysisType) {
-						for (int j = 0; j < numTransitions; j++) {
-							String tAction = modelExplorer.getTransitionAction(j);
-							if (tAction == null) {
-								tAction = "";
-							}
-							if (tAction.equals(action)) {
-								sumReward += reward * modelExplorer.getTransitionProbability(j);
+						for (int j = 0; j < numChoices; j++) {
+							int numTransitions = modelGen.getNumTransitions(j);
+							for (int k = 0; k < numTransitions; k++) {
+								String tAction = modelGen.getTransitionAction(j, k).toString();
+								if (tAction == null) {
+									tAction = "";
+								}
+								if (tAction.equals(action)) {
+									sumReward += reward * modelGen.getTransitionProbability(j, k);
+								}
 							}
 						}
 					}

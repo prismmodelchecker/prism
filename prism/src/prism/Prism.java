@@ -60,7 +60,6 @@ import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
 import simulator.ModulesFileModelGenerator;
-import simulator.PrismModelExplorer;
 import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import sparse.PrismSparse;
@@ -2762,7 +2761,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// For fast adaptive uniformisation
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
 			FastAdaptiveUniformisationModelChecker fauMC;
-			fauMC = new FastAdaptiveUniformisationModelChecker(this, currentModulesFile, propertiesFile, getSimulator());
+			fauMC = new FastAdaptiveUniformisationModelChecker(this, currentModulesFile, propertiesFile);
 			return fauMC.check(prop.getExpression());
 		}
 		// Auto-switch engine if required
@@ -3305,8 +3304,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// FAU
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
-			PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
-			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
+			ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(currentModulesFile, this);
+			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 			fau.setConstantValues(currentModulesFile.getConstantValues());
 			probsExpl = fau.doTransient(time, fileIn, currentModel);
 		}
@@ -3412,8 +3411,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// FAU
 			if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
-				PrismModelExplorer modelExplorer = new PrismModelExplorer(getSimulator(), currentModulesFile);
-				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, modelExplorer);
+				ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(currentModulesFile, this);
+				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 				fau.setConstantValues(currentModulesFile.getConstantValues());
 				if (i == 0) {
 					probsExpl = fau.doTransient(timeDouble, fileIn, currentModel);
