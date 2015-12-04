@@ -2169,9 +2169,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Build model, if necessary
 		buildModelIfRequired();
 
+		// Check again (in case engine was switched)
+		if (getExplicit())
+			throw new PrismNotSupportedException("Export to Dot file not yet supported by explicit engine");
+		
+		// Export to dot file
 		mainLog.println("\nExporting to dot file \"" + file + "\"...");
-
-		// export to dot file
 		JDD.ExportDDToDotFileLabelled(currentModel.getTrans(), file.getPath(), currentModel.getDDVarNames());
 	}
 
