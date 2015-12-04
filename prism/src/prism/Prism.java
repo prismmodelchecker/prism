@@ -48,10 +48,8 @@ import parser.ExplicitFiles2ModulesFile;
 import parser.PrismParser;
 import parser.State;
 import parser.Values;
-import parser.ast.ConstantList;
 import parser.ast.Expression;
 import parser.ast.ForLoop;
-import parser.ast.FormulaList;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
@@ -248,7 +246,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 
 	private enum ModelSource {
-		PRISM_MODEL, EXPLICIT_FILES, BUILT_MODEL
+		PRISM_MODEL, MODEL_GENERATOR, EXPLICIT_FILES, BUILT_MODEL
 	}
 
 	// Info about currently loaded model, if any
@@ -256,8 +254,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private ModelSource currentModelSource = ModelSource.PRISM_MODEL;
 	// Model type
 	private ModelType currentModelType = null;
-	// PRISM model (null if none loaded, or built model given directly)
+	// PRISM model (null if none loaded)
 	private ModulesFile currentModulesFile = null;
+	// Model generator (null if none loaded)
+	private ModelGenerator currentModelGenerator = null;
 	// Constants to be defined for PRISM model
 	private Values currentDefinedMFConstants = null;
 	// Built model storage - symbolic or explicit - at most one is non-null
@@ -1507,26 +1507,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Parse a PRISM properties file. Typically, you need to pass in the corresponding PRISM model
-	 * (for access to constants, etc.) but if left null, a blank one is created automatically.
-	 * @param mf Accompanying ModulesFile (null if not needed)
+	 * Parse a PRISM properties file. Typically, you need to pass in some info about the corresponding model 
+	 * (for access to constants, etc.). This is in the form of a ModelInfo object (e.g. a ModulesFile). If not required, this can be null.
+	 * @param modelInfo Accompanying model info (null if not needed)
 	 * @param file File to read in
 	 */
-	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file) throws FileNotFoundException, PrismLangException
+	public PropertiesFile parsePropertiesFile(ModelInfo modelInfo, File file) throws FileNotFoundException, PrismLangException
 	{
-		return parsePropertiesFile(mf, file, true);
+		return parsePropertiesFile(modelInfo, file, true);
 	}
 
 	/**
-	 * Parse a PRISM properties file. Typically, you need to pass in the corresponding PRISM model
-	 * (for access to constants, etc.) but if left null, a blank one is created automatically.
+	 * Parse a PRISM properties file. Typically, you need to pass in some info about the corresponding model 
+	 * (for access to constants, etc.). This is in the form of a ModelInfo object (e.g. a ModulesFile). If not required, this can be null.
 	 * You can also choose whether to do "tidy", i.e. post-parse checks and processing
 	 * (this must be done at some point but may want to postpone to allow parsing of files with errors). 
-	 * @param mf Accompanying ModulesFile (null if not needed)
+	 * @param modelInfo Accompanying model info (null if not needed)
 	 * @param file File to read in
 	 * @param tidy Whether or not to do "tidy" (post-parse checks and processing)
 	 */
-	public PropertiesFile parsePropertiesFile(ModulesFile mf, File file, boolean tidy) throws FileNotFoundException, PrismLangException
+	public PropertiesFile parsePropertiesFile(ModelInfo modelInfo, File file, boolean tidy) throws FileNotFoundException, PrismLangException
 	{
 		FileInputStream strProperties;
 		PrismParser prismParser;
@@ -1535,20 +1535,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// open file
 		strProperties = new FileInputStream(file);
 
-		// if null modules file passed, create a blank one
-		if (mf == null) {
-			mf = new ModulesFile();
-			mf.setFormulaList(new FormulaList());
-			mf.setConstantList(new ConstantList());
-		}
-
 		try {
 			// obtain exclusive access to the prism parser
 			// (don't forget to release it afterwards)
 			prismParser = getPrismParser();
 			try {
 				// parse file
-				propertiesFile = prismParser.parsePropertiesFile(mf, strProperties);
+				propertiesFile = prismParser.parsePropertiesFile(modelInfo, strProperties);
 			} finally {
 				// release prism parser
 				releasePrismParser();
@@ -1564,22 +1557,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Parse a PRISM properties file from a string. Typically, you need to pass in the corresponding PRISM model
-	 * (for access to constants, etc.) but if left null, a blank one is created automatically.
-	 * @param mf Accompanying ModulesFile (null if not needed)
+	 * Parse a PRISM properties file form a string. Typically, you need to pass in some info about the corresponding model 
+	 * (for access to constants, etc.). This is in the form of a ModelInfo object (e.g. a ModulesFile). If not required, this can be null.
+	 * @param modelInfo Accompanying model info (null if not needed)
 	 * @param s String to parse
 	 */
-	public PropertiesFile parsePropertiesString(ModulesFile mf, String s) throws PrismLangException
+	public PropertiesFile parsePropertiesString(ModelInfo modelInfo, String s) throws PrismLangException
 	{
 		PrismParser prismParser;
 		PropertiesFile propertiesFile = null;
-
-		// if null modules file passed, create a blank one
-		if (mf == null) {
-			mf = new ModulesFile();
-			mf.setFormulaList(new FormulaList());
-			mf.setConstantList(new ConstantList());
-		}
 
 		try {
 			// obtain exclusive access to the prism parser
@@ -1587,7 +1573,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			prismParser = getPrismParser();
 			try {
 				// parse string
-				propertiesFile = prismParser.parsePropertiesFile(mf, new ByteArrayInputStream(s.getBytes()));
+				propertiesFile = prismParser.parsePropertiesFile(modelInfo, new ByteArrayInputStream(s.getBytes()));
 			} finally {
 				// release prism parser
 				releasePrismParser();
@@ -1661,11 +1647,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Pass in null to clear storage of the current PRISM model.
 	 * @param modulesFile The PRISM model
 	 */
-	public void loadPRISMModel(ModulesFile modulesFile)
+	public void loadPRISMModel(ModulesFile modulesFile) throws PrismException
 	{
 		currentModelSource = ModelSource.PRISM_MODEL;
 		// Store PRISM model
 		currentModulesFile = modulesFile;
+		// Create a model generator for the PRISM model if appropriate - we will use that where possible
+		if (currentModulesFile.getModelType() != ModelType.PTA) {
+			currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
+		}
 		// Clear any existing built model(s)
 		clearBuiltModel();
 		// Reset dependent info
@@ -1702,11 +1692,37 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Load a model generator, which will be stored and used for subsequent model checking etc.
+	 * Some model constants can still be undefined at this stage.
+	 * Pass in null to clear storage of the current model.
+	 * @param modelGen The model generator
+	 */
+	public void loadModelGenerator(ModelGenerator modelGen)
+	{
+		currentModelSource = ModelSource.MODEL_GENERATOR;
+		// Store model generator
+		currentModelGenerator = modelGen;
+		// Clear any existing built model(s)
+		clearBuiltModel();
+		// Reset dependent info
+		currentModelType = currentModelGenerator == null ? null : currentModelGenerator.getModelType();
+		currentDefinedMFConstants = null;
+		currentModel = null;
+		currentModelExpl = null;
+
+		// Print basic model info
+		mainLog.println("\nGenerator:   " + currentModelGenerator.getClass().getName());
+		mainLog.println("Type:        " + currentModelGenerator.getModelType());
+		// TODO: print more info 
+		//mainLog.println();
+	}
+	
+	/**
 	 * Set (some or all) undefined constants for the currently loaded PRISM model
 	 * (assuming they have changed since the last time this was called).
 	 * @param definedMFConstants The constant values
 	 */
-	public void setPRISMModelConstants(Values definedMFConstants) throws PrismLangException
+	public void setPRISMModelConstants(Values definedMFConstants) throws PrismException
 	{
 		if (currentDefinedMFConstants == null && definedMFConstants == null)
 			return;
@@ -1717,7 +1733,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Store constants here and in ModulesFile
 		currentDefinedMFConstants = definedMFConstants;
-		currentModulesFile.setSomeUndefinedConstants(definedMFConstants);
+		if (currentModulesFile != null) {
+			currentModulesFile.setSomeUndefinedConstants(definedMFConstants);
+		}
+		if (currentModelGenerator != null) {
+			currentModelGenerator.setSomeUndefinedConstants(definedMFConstants);
+		}
 		// Reset dependent info
 		currentModel = null;
 		currentModelExpl = null;
@@ -1897,9 +1918,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 
 		try {
-			if (currentModulesFile == null)
-				throw new PrismException("There is no currently loaded PRISM model to build");
-
 			if (currentModelType == ModelType.PTA) {
 				throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
 			}
@@ -1912,6 +1930,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			l = System.currentTimeMillis();
 			switch (currentModelSource) {
 			case PRISM_MODEL:
+				if (currentModulesFile == null)
+					throw new PrismException("There is no currently loaded PRISM model to build");
 				if (!getExplicit()) {
 					Modules2MTBDD mod2mtbdd = new Modules2MTBDD(this, currentModulesFile);
 					currentModel = mod2mtbdd.translate();
@@ -1919,9 +1939,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				} else {
 					ConstructModel constructModel = new ConstructModel(this);
 					constructModel.setFixDeadlocks(getFixDeadlocks());
-					currentModelExpl = constructModel.constructModel(new ModulesFileModelGenerator(currentModulesFile, this));
+					currentModelExpl = constructModel.constructModel(currentModelGenerator);
 					currentModel = null;
 				}
+				// if (...) ... currentModel = buildModelExplicit(currentModulesFile);
+				break;
+			case MODEL_GENERATOR:
+				if (currentModelGenerator == null)
+					throw new PrismException("There is no currently loaded model generator to build");
+				if (!getExplicit()) {
+					mainLog.printWarning("Switching to explicit engine to use model generator");
+					setEngine(Prism.EXPLICIT);
+				}
+				ConstructModel constructModel = new ConstructModel(this);
+				constructModel.setFixDeadlocks(getFixDeadlocks());
+				currentModelExpl = constructModel.constructModel(currentModelGenerator);
+				currentModel = null;
 				// if (...) ... currentModel = buildModelExplicit(currentModulesFile);
 				break;
 			case EXPLICIT_FILES:

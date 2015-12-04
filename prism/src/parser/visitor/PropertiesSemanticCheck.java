@@ -38,6 +38,7 @@ import parser.ast.FormulaList;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
+import prism.ModelInfo;
 import prism.PrismLangException;
 
 /**
@@ -48,6 +49,7 @@ import prism.PrismLangException;
 public class PropertiesSemanticCheck extends SemanticCheck
 {
 	private PropertiesFile propertiesFile;
+	private ModelInfo modelInfo;
 	private ModulesFile modulesFile;
 
 	public PropertiesSemanticCheck(PropertiesFile propertiesFile)
@@ -55,10 +57,10 @@ public class PropertiesSemanticCheck extends SemanticCheck
 		this(propertiesFile, null);
 	}
 
-	public PropertiesSemanticCheck(PropertiesFile propertiesFile, ModulesFile modulesFile)
+	public PropertiesSemanticCheck(PropertiesFile propertiesFile, ModelInfo modelInfo)
 	{
 		setPropertiesFile(propertiesFile);
-		setModulesFile(modulesFile);
+		setModelInfo(modelInfo);
 	}
 
 	public void setPropertiesFile(PropertiesFile propertiesFile)
@@ -66,9 +68,14 @@ public class PropertiesSemanticCheck extends SemanticCheck
 		this.propertiesFile = propertiesFile;
 	}
 
-	public void setModulesFile(ModulesFile modulesFile)
+	public void setModelInfo(ModelInfo modelInfo)
 	{
-		this.modulesFile = modulesFile;
+		this.modelInfo = modelInfo;
+		if (modelInfo instanceof ModulesFile) {
+			this.modulesFile = (ModulesFile) modelInfo;
+		} else {
+			this.modulesFile = null;
+		}
 	}
 
 	public Object visit(FormulaList e) throws PrismLangException
@@ -191,21 +198,20 @@ public class PropertiesSemanticCheck extends SemanticCheck
 
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
-		LabelList labelList;
-		if (propertiesFile != null)
-			labelList = propertiesFile.getCombinedLabelList();
-		else if (modulesFile != null)
-			labelList = modulesFile.getLabelList();
-		else
-			throw new PrismLangException("Undeclared label", e);
 		String name = e.getName();
 		// Allow special cases
 		if ("deadlock".equals(name) || "init".equals(name))
 			return;
-		// Otherwise check list
-		if (labelList == null || labelList.getLabelIndex(name) == -1) {
-			throw new PrismLangException("Undeclared label", e);
+		// Otherwise check if it exists
+		if (modelInfo != null && modelInfo.getLabelIndex(name) != -1) { 
+			return;
+		} else if (propertiesFile != null) {
+			LabelList labelList = propertiesFile.getCombinedLabelList();
+			if (labelList != null && labelList.getLabelIndex(name) != -1) {
+				return;
+			}
 		}
+		throw new PrismLangException("Undeclared label", e);
 	}
 
 	public void visitPost(ExpressionFilter e) throws PrismLangException

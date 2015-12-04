@@ -30,6 +30,7 @@ import java.util.*;
 
 import parser.*;
 import parser.visitor.*;
+import prism.ModelInfo;
 import prism.PrismLangException;
 import prism.PrismUtils;
 
@@ -39,6 +40,7 @@ public class PropertiesFile extends ASTElement
 {
 	// Associated ModulesFile (for constants, ...)
 	private ModulesFile modulesFile;
+	private ModelInfo modelInfo;
 
 	// Components
 	private FormulaList formulaList;
@@ -55,9 +57,9 @@ public class PropertiesFile extends ASTElement
 
 	// Constructor
 
-	public PropertiesFile(ModulesFile mf)
+	public PropertiesFile(ModelInfo modelInfo)
 	{
-		setModulesFile(mf);
+		setModelInfo(modelInfo);
 		formulaList = new FormulaList();
 		labelList = new LabelList();
 		combinedLabelList = new LabelList();
@@ -70,9 +72,19 @@ public class PropertiesFile extends ASTElement
 	// Set methods
 
 	/** Attach to a ModulesFile (so can access labels/constants etc.) */
-	public void setModulesFile(ModulesFile mf)
+	public void setModelInfo(ModelInfo modelInfo)
 	{
-		this.modulesFile = mf;
+		// Store ModelInfo
+		this.modelInfo = modelInfo;
+		// If the ModelInfo is not a ModulesFile, we need to create a balnk one
+		if (modelInfo instanceof ModulesFile) {
+			this.modulesFile = (ModulesFile) modelInfo;
+		} else {
+			ModulesFile mf = new ModulesFile();
+			mf.setFormulaList(new FormulaList());
+			mf.setConstantList(new ConstantList());
+			this.modulesFile = mf;
+		}
 	}
 
 	public void setFormulaList(FormulaList fl)
@@ -447,7 +459,7 @@ public class PropertiesFile extends ASTElement
 	 */
 	private void doSemanticChecks() throws PrismLangException
 	{
-		PropertiesSemanticCheck visitor = new PropertiesSemanticCheck(this, modulesFile);
+		PropertiesSemanticCheck visitor = new PropertiesSemanticCheck(this, modelInfo);
 		accept(visitor);
 	}
 	
@@ -612,7 +624,7 @@ public class PropertiesFile extends ASTElement
 	public ASTElement deepCopy()
 	{
 		int i, n;
-		PropertiesFile ret = new PropertiesFile(modulesFile);
+		PropertiesFile ret = new PropertiesFile(modelInfo);
 		// Copy ASTElement stuff
 		ret.setPosition(this);
 		// Deep copy main components

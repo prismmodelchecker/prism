@@ -605,8 +605,12 @@ public class PrismCL implements PrismModelListener
 		}
 
 		// Load model into PRISM (if not done already)
-		if (!importtrans) {
-			prism.loadPRISMModel(modulesFile);
+		try {
+			if (!importtrans) {
+				prism.loadPRISMModel(modulesFile);
+			}
+		} catch (PrismException e) {
+			errorAndExit(e.getMessage());
 		}
 	}
 

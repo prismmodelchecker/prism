@@ -7,6 +7,7 @@ import jltl2ba.SimpleLTL;
 import parser.BooleanUtils;
 import parser.ast.*;
 import parser.type.*;
+import prism.ModelInfo;
 import parser.visitor.*;
 import prism.ModelType;
 import prism.PrismLangException;
