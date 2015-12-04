@@ -71,7 +71,7 @@ public class PropertiesFile extends ASTElement
 
 	// Set methods
 
-	/** Attach to a ModulesFile (so can access labels/constants etc.) */
+	/** Attach model information (so can access labels/constants etc.) */
 	public void setModelInfo(ModelInfo modelInfo)
 	{
 		// Store ModelInfo
