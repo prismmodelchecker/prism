@@ -26,10 +26,12 @@
 
 package parser.visitor;
 
-import java.util.Vector;
+import java.util.List;
 
-import parser.ast.*;
-import parser.type.*;
+import parser.ast.ExpressionIdent;
+import parser.ast.ExpressionVar;
+import parser.ast.Update;
+import parser.type.Type;
 import prism.PrismLangException;
 
 /**
@@ -38,10 +40,10 @@ import prism.PrismLangException;
  */
 public class FindAllVars extends ASTTraverseModify
 {
-	private Vector<String> varIdents;
-	private Vector<Type> varTypes;
+	private List<String> varIdents;
+	private List<Type> varTypes;
 	
-	public FindAllVars(Vector<String> varIdents, Vector<Type> varTypes)
+	public FindAllVars(List<String> varIdents, List<Type> varTypes)
 	{
 		this.varIdents = varIdents;
 		this.varTypes = varTypes;
@@ -63,7 +65,7 @@ public class FindAllVars extends ASTTraverseModify
 				throw new PrismLangException(s, e.getVarIdent(i));
 			}
 			// Store the type
-			e.setType(i, varTypes.elementAt(j));
+			e.setType(i, varTypes.get(j));
 			// And store the variable index
 			e.setVarIndex(i, j);
 		}
@@ -76,7 +78,7 @@ public class FindAllVars extends ASTTraverseModify
 		i = varIdents.indexOf(e.getName());
 		if (i != -1) {
 			// If so, replace it with an ExpressionVar object
-			ExpressionVar expr = new ExpressionVar(e.getName(), varTypes.elementAt(i));
+			ExpressionVar expr = new ExpressionVar(e.getName(), varTypes.get(i));
 			expr.setPosition(e);
 			// Store variable index
 			expr.setIndex(i);

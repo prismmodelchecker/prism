@@ -311,7 +311,7 @@ public abstract class ASTElement
 	 * Find all references to variables, replace any identifier objects with variable objects,
 	 * check variables exist and store their index (as defined by the containing ModuleFile).
 	 */
-	public ASTElement findAllVars(Vector<String> varIdents, Vector<Type> varTypes) throws PrismLangException
+	public ASTElement findAllVars(List<String> varIdents, List<Type> varTypes) throws PrismLangException
 	{
 		FindAllVars visitor = new FindAllVars(varIdents, varTypes);
 		return (ASTElement) accept(visitor);

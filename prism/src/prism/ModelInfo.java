@@ -27,6 +27,10 @@
 
 package prism;
 
+import java.util.List;
+
+import parser.type.Type;
+
 /**
  * Interface for classes that provide some basic (syntactic) information about a probabilistic model.
  */
@@ -41,6 +45,31 @@ public interface ModelInfo
 	 * Does the model contain unbounded variables?
 	 */
 	public boolean containsUnboundedVariables();
+
+	/**
+	 * Get the number of variables in the model. 
+	 */
+	public int getNumVars();
+	
+	/**
+	 * Get the names of all the variables in the model.
+	 */
+	public List<String> getVarNames();
+	
+	/**
+	 * Get the types of all the variables in the model.
+	 */
+	public List<Type> getVarTypes();
+
+	/**
+	 * Get the name of the {@code i}th variable in the model.
+	 */
+	//public String getVarName(int i) throws PrismException;
+
+	/**
+	 * Get the type of the {@code i}th variable in the model.
+	 */
+	//public Type getVarType(int i) throws PrismException;
 
 	/**
 	 * Get the number of labels (atomic propositions) defined for the model. 

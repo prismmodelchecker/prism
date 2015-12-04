@@ -10,6 +10,7 @@ import parser.ast.Expression;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.RewardStruct;
+import parser.type.Type;
 import prism.DefaultModelGenerator;
 import prism.ModelType;
 import prism.PrismComponent;
@@ -124,6 +125,24 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 		return mfConstants;
 	}
 	
+	@Override
+	public int getNumVars()
+	{
+		return modulesFile.getNumVars();
+	}
+	
+	@Override
+	public List<String> getVarNames()
+	{
+		return modulesFile.getVarNames();
+	}
+
+	@Override
+	public List<Type> getVarTypes()
+	{
+		return modulesFile.getVarTypes();
+	}
+
 	@Override
 	public int getNumLabels()
 	{

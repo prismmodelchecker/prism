@@ -32,6 +32,7 @@ import java.util.List;
 
 import parser.State;
 import parser.Values;
+import parser.type.Type;
 
 /**
  * Default implementation of the {@link ModelGenerator} interface
@@ -62,6 +63,15 @@ public abstract class DefaultModelGenerator implements ModelGenerator
 		// Empty values
 		return new Values();
 	}
+	
+	@Override
+	public abstract int getNumVars();
+	
+	@Override
+	public abstract List<String> getVarNames();
+	
+	@Override
+	public abstract List<Type> getVarTypes();
 	
 	@Override
 	public int getNumLabels()
