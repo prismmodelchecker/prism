@@ -33,62 +33,38 @@ import prism.PrismLangException;
 
 public class ExpressionFilter extends Expression
 {
+	/**
+	 * Types of filter, for expressions of the form "filter(op, prop, states)",
+	 * with filter states "states" being optional (denoting "true").
+	 */ 
 	public enum FilterOperator {
-		/**
-		 * minimum value of prop over all filter states
-		 */
+		/** Minimum value of prop over all filter states */
 		MIN,
-		/**
-		 * maximum value of prop over all filter states
-		 */
+		/** Maximum value of prop over all filter states */
 		MAX,
-		/**
-		 * true for the filter states that yield the minimum value of prop
-		 */
+		/** True for the filter states that yield the minimum value of prop */
 		ARGMIN,
-		/**
-		 * true for the filter states that yield the maximum value of prop
-		 */
+		/** True for the filter states that yield the maximum value of prop */
 		ARGMAX,
-		/**
-		 * number of filter states for which prop is true
-		 */
+		/** Number of filter states for which prop is true */
 		COUNT,
-		/**
-		 * sum of the value of prop for all filter states
-		 */
+		/** Sum of the value of prop for all filter states */
 		SUM,
-		/**
-		 * average of the value of prop over all filter states
-		 */
+		/** Average of the value of prop over all filter states */
 		AVG,
-		/**
-		 * value of prop for the first (lowest-indexed) filter state
-		 */
+		/** Value of prop for the first (lowest-indexed) filter state */
 		FIRST,
-		/**
-		 * range (interval) of values of prop over all filter states
-		 */
+		/** Range (interval) of values of prop over all filter states */
 		RANGE,
-		/**
-		 * true iff prop is true for all filter states
-		 */
+		/** True iff prop is true for all filter states */
 		FORALL,
-		/**
-		 * true iff prop is true for some filter states
-		 */
+		/** True iff prop is true for some filter states */
 		EXISTS,
-		/**
-		 * print the (non-zero) values to the log
-		 */
+		/** Print the (non-zero) values to the log */
 		PRINT,
-		/**
-		 * print all (including zero) values to the log
-		 */
+		/** Print all (including zero) values to the log */
 		PRINTALL,
-		/**
-		 * value for the single filter state (if there is more than one, this is an error)
-		 */
+		/** Value for the single filter state (if there is more than one, this is an error) */
 		STATE;
 	};
 
