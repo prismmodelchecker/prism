@@ -33,9 +33,63 @@ import prism.PrismLangException;
 
 public class ExpressionFilter extends Expression
 {
-	// Enums for  types of filter
 	public enum FilterOperator {
-		MIN, MAX, ARGMIN, ARGMAX, COUNT, SUM, AVG, FIRST, RANGE, FORALL, EXISTS, PRINT, PRINTALL, STATE;
+		/**
+		 * minimum value of prop over all filter states
+		 */
+		MIN,
+		/**
+		 * maximum value of prop over all filter states
+		 */
+		MAX,
+		/**
+		 * true for the filter states that yield the minimum value of prop
+		 */
+		ARGMIN,
+		/**
+		 * true for the filter states that yield the maximum value of prop
+		 */
+		ARGMAX,
+		/**
+		 * number of filter states for which prop is true
+		 */
+		COUNT,
+		/**
+		 * sum of the value of prop for all filter states
+		 */
+		SUM,
+		/**
+		 * average of the value of prop over all filter states
+		 */
+		AVG,
+		/**
+		 * value of prop for the first (lowest-indexed) filter state
+		 */
+		FIRST,
+		/**
+		 * range (interval) of values of prop over all filter states
+		 */
+		RANGE,
+		/**
+		 * true iff prop is true for all filter states
+		 */
+		FORALL,
+		/**
+		 * true iff prop is true for some filter states
+		 */
+		EXISTS,
+		/**
+		 * print the (non-zero) values to the log
+		 */
+		PRINT,
+		/**
+		 * print all (including zero) values to the log
+		 */
+		PRINTALL,
+		/**
+		 * value for the single filter state (if there is more than one, this is an error)
+		 */
+		STATE;
 	};
 
 	// Operator used in filter
