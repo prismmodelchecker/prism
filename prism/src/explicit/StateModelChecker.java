@@ -826,9 +826,17 @@ public class StateModelChecker extends PrismComponent
 		// Remember whether filter is for the initial state and, if so, whether there's just one
 		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
 		boolean filterInitSingle = filterInit & model.getNumInitialStates() == 1;
+		// Print out number of states satisfying filter
+		if (!filterInit) {
+			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
+		}
+		// Possibly optimise filter
+		FilterOperator op = expr.getOperatorType();
+		if (op == FilterOperator.FIRST) {
+			bsFilter.clear(bsFilter.nextSetBit(0) + 1, bsFilter.length());
+		}
 
 		// For some types of filter, store info that may be used to optimise model checking
-		FilterOperator op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
 			// Check filter satisfied by exactly one state
 			if (bsFilter.cardinality() != 1) {
@@ -844,17 +852,8 @@ public class StateModelChecker extends PrismComponent
 		} else {
 			currentFilter = null;
 		}
-		if (op == FilterOperator.FIRST) {
-			// only first state is of interest
-			bsFilter.clear(bsFilter.nextSetBit(0) + 1, bsFilter.length());
-		}
-
 		// Check operand recursively, using bsFilter as statesOfInterest
 		StateValues vals = checkExpression(model, expr.getOperand(), bsFilter);
-
-		// Print out number of states satisfying filter
-		if (!filterInit)
-			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
 
 		// Compute result according to filter type
 		StateValues resVals = null;
