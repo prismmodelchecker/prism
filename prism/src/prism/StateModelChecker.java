@@ -1011,43 +1011,27 @@ public class StateModelChecker implements ModelChecker
 
 	protected StateValues checkExpressionFilter(ExpressionFilter expr) throws PrismException
 	{
-		// Filter info
-		Expression filter;
-		FilterOperator op;
-		String filterStatesString;
-		StateListMTBDD statesFilter;
-		boolean filterInit, filterInitSingle, filterTrue;
-		JDDNode ddFilter = null;
-		// Result info
-		StateValues vals = null, resVals = null;
-		JDDNode ddMatch = null, dd;
-		StateListMTBDD states;
-		double d = 0.0, d2 = 0.0;
-		boolean b = false;
-		String resultExpl = null;
-		Object resObj = null;
-
 		// Translate filter
-		filter = expr.getFilter();
+		Expression filter = expr.getFilter();
 		// Create default filter (true) if none given
 		if (filter == null)
 			filter = Expression.True();
 		// Remember whether filter is "true"
-		filterTrue = Expression.isTrue(filter);
+		boolean filterTrue = Expression.isTrue(filter);
 		// Store some more info
-		filterStatesString = filterTrue ? "all states" : "states satisfying filter";
-		ddFilter = checkExpressionDD(filter);
-		statesFilter = new StateListMTBDD(ddFilter, model);
+		String filterStatesString = filterTrue ? "all states" : "states satisfying filter";
+		JDDNode ddFilter = checkExpressionDD(filter);
+		StateListMTBDD statesFilter = new StateListMTBDD(ddFilter, model);
 		// Check if filter state set is empty; we treat this as an error
 		if (ddFilter.equals(JDD.ZERO)) {
 			throw new PrismException("Filter satisfies no states");
 		}
 		// Remember whether filter is for the initial state and, if so, whether there's just one
-		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
-		filterInitSingle = filterInit & model.getNumStartStates() == 1;
+		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
+		boolean filterInitSingle = filterInit & model.getNumStartStates() == 1;
 
 		// For some types of filter, store info that may be used to optimise model checking
-		op = expr.getOperatorType();
+		FilterOperator op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
@@ -1058,6 +1042,7 @@ public class StateModelChecker implements ModelChecker
 			currentFilter = null;
 		}
 
+		StateValues vals = null;
 		try {
 			// Check operand recursively
 			vals = checkExpression(expr.getOperand());
@@ -1072,6 +1057,13 @@ public class StateModelChecker implements ModelChecker
 
 		// Compute result according to filter type
 		op = expr.getOperatorType();
+		StateValues resVals = null;
+		JDDNode ddMatch = null, dd = null;
+		StateListMTBDD states;
+		double d = 0.0, d2 = 0.0;
+		boolean b = false;
+		String resultExpl = null;
+		Object resObj = null;
 		switch (op) {
 		case PRINT:
 		case PRINTALL:

@@ -491,7 +491,6 @@ final public class ParamModelChecker extends PrismComponent
 
 	protected RegionValues checkExpressionFilter(ParamModel model, ExpressionFilter expr, BitSet needStates) throws PrismException
 	{
-		RegionValues resVals = null;
 		Expression filter = expr.getFilter();
 		if (filter == null) {
 			filter = Expression.True();
@@ -521,6 +520,7 @@ final public class ParamModelChecker extends PrismComponent
 			
 		// Compute result according to filter type
 		FilterOperator op = expr.getOperatorType();
+		RegionValues resVals = null;
 		switch (op) {
 		case PRINT:
 			// Format of print-out depends on type

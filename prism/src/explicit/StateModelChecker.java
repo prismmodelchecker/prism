@@ -806,44 +806,29 @@ public class StateModelChecker extends PrismComponent
 
 	protected StateValues checkExpressionFilter(Model model, ExpressionFilter expr, BitSet statesOfInterest) throws PrismException
 	{
-		// Filter info
-		Expression filter;
-		FilterOperator op;
-		String filterStatesString;
-		boolean filterInit, filterInitSingle, filterTrue;
-		BitSet bsFilter = null;
-		// Result info
-		StateValues vals = null, resVals = null;
-		BitSet bsMatch = null, bs;
-		StateValues states;
-		boolean b = false;
-		int count = 0;
-		String resultExpl = null;
-		Object resObj = null;
-
 		// Translate filter
-		filter = expr.getFilter();
+		Expression filter = expr.getFilter();
 		// Create default filter (true) if none given
 		if (filter == null)
 			filter = Expression.True();
 		// Remember whether filter is "true"
-		filterTrue = Expression.isTrue(filter);
+		boolean filterTrue = Expression.isTrue(filter);
 		// Store some more info
-		filterStatesString = filterTrue ? "all states" : "states satisfying filter";
+		String filterStatesString = filterTrue ? "all states" : "states satisfying filter";
 
 		// get the BitSet of states matching the filter, without taking statesOfInterest into account
-		bsFilter = checkExpression(model, filter, null).getBitSet();
+		BitSet bsFilter = checkExpression(model, filter, null).getBitSet();
 
 		// Check if filter state set is empty; we treat this as an error
 		if (bsFilter.isEmpty()) {
 			throw new PrismException("Filter satisfies no states");
 		}
 		// Remember whether filter is for the initial state and, if so, whether there's just one
-		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
-		filterInitSingle = filterInit & model.getNumInitialStates() == 1;
+		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
+		boolean filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 
 		// For some types of filter, store info that may be used to optimise model checking
-		op = expr.getOperatorType();
+		FilterOperator op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, bsFilter.nextSetBit(0));
 		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
@@ -855,13 +840,18 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Check operand recursively, using bsFilter as statesOfInterest
-		vals = checkExpression(model, expr.getOperand(), bsFilter);
+		StateValues vals = checkExpression(model, expr.getOperand(), bsFilter);
 
 		// Print out number of states satisfying filter
 		if (!filterInit)
 			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
 
 		// Compute result according to filter type
+		StateValues resVals = null;
+		BitSet bsMatch = null, bs = null;
+		boolean b = false;
+		String resultExpl = null;
+		Object resObj = null;
 		switch (op) {
 		case PRINT:
 		case PRINTALL:
@@ -944,7 +934,7 @@ public class StateModelChecker extends PrismComponent
 			break;
 		case COUNT:
 			// Compute count
-			count = vals.countOverBitSet(bsFilter);
+			int count = vals.countOverBitSet(bsFilter);
 			// Store as object/vector
 			resObj = new Integer(count);
 			resVals = new StateValues(expr.getType(), resObj, model);
@@ -1070,7 +1060,7 @@ public class StateModelChecker extends PrismComponent
 
 		// For some operators, print out some matching states
 		if (bsMatch != null) {
-			states = StateValues.createFromBitSet(bsMatch, model);
+			StateValues states = StateValues.createFromBitSet(bsMatch, model);
 			mainLog.print("\nThere are " + bsMatch.cardinality() + " states with ");
 			mainLog.print((expr.getType() instanceof TypeDouble ? "(approximately) " : "") + "this value");
 			boolean verbose = verbosity > 0; // TODO
