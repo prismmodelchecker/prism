@@ -108,6 +108,7 @@ public class ExpressionFilter extends Expression
 
 	public void setOperator(String opName)
 	{
+		this.opName = opName;
 		for (FilterOperator op : FilterOperator.values()) {
 			if (opName.equalsIgnoreCase(op.name())) {
 				opType = op;
