@@ -844,6 +844,10 @@ public class StateModelChecker extends PrismComponent
 		} else {
 			currentFilter = null;
 		}
+		if (op == FilterOperator.FIRST) {
+			// only first state is of interest
+			bsFilter.clear(bsFilter.nextSetBit(0) + 1, bsFilter.length());
+		}
 
 		// Check operand recursively, using bsFilter as statesOfInterest
 		StateValues vals = checkExpression(model, expr.getOperand(), bsFilter);

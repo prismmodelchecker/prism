@@ -511,6 +511,10 @@ final public class ParamModelChecker extends PrismComponent
 			s += " (but \"" + filter + "\" is true in " + bsFilter.cardinality() + " states)";
 			throw new PrismException(s);
 		}
+		if (op == FilterOperator.FIRST) {
+			// only first state is of interest
+			bsFilter.clear(bsFilter.nextSetBit(0) + 1, bsFilter.length());
+		}
 		RegionValues vals = checkExpression(model, expr.getOperand(), bsFilter);
 
 		// Check if filter state set is empty; we treat this as an error
