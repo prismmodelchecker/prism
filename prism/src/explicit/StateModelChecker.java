@@ -830,6 +830,12 @@ public class StateModelChecker extends PrismComponent
 		// For some types of filter, store info that may be used to optimise model checking
 		FilterOperator op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
+			// Check filter satisfied by exactly one state
+			if (bsFilter.cardinality() != 1) {
+				String s = "Filter should be satisfied in exactly 1 state";
+				s += " (but \"" + filter + "\" is true in " + bsFilter.cardinality() + " states)";
+				throw new PrismException(s);
+			}
 			currentFilter = new Filter(Filter.FilterOperator.STATE, bsFilter.nextSetBit(0));
 		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, bsFilter.nextSetBit(0));
@@ -1035,12 +1041,6 @@ public class StateModelChecker extends PrismComponent
 			mainLog.println("\n" + resultExpl);
 			break;
 		case STATE:
-			// Check filter satisfied by exactly one state
-			if (bsFilter.cardinality() != 1) {
-				String s = "Filter should be satisfied in exactly 1 state";
-				s += " (but \"" + filter + "\" is true in " + bsFilter.cardinality() + " states)";
-				throw new PrismException(s);
-			}
 			// Find first (only) value
 			// Store as object/vector
 			resObj = vals.firstFromBitSet(bsFilter);

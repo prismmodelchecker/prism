@@ -1033,6 +1033,12 @@ public class StateModelChecker implements ModelChecker
 		// For some types of filter, store info that may be used to optimise model checking
 		FilterOperator op = expr.getOperatorType();
 		if (op == FilterOperator.STATE) {
+			// Check filter satisfied by exactly one state
+			if (statesFilter.size() != 1) {
+				String s = "Filter should be satisfied in exactly 1 state";
+				s += " (but \"" + filter + "\" is true in " + statesFilter.size() + " states)";
+				throw new PrismException(s);
+			}
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
@@ -1288,12 +1294,6 @@ public class StateModelChecker implements ModelChecker
 			JDD.Deref(dd);
 			break;
 		case STATE:
-			// Check filter satisfied by exactly one state
-			if (statesFilter.size() != 1) {
-				String s = "Filter should be satisfied in exactly 1 state";
-				s += " (but \"" + filter + "\" is true in " + statesFilter.size() + " states)";
-				throw new PrismException(s);
-			}
 			// Results of type void are handled differently
 			if (expr.getType() instanceof TypeVoid) {
 				// Extract result from StateValuesVoid object 

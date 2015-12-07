@@ -504,6 +504,13 @@ final public class ParamModelChecker extends PrismComponent
 			throw new PrismException("currently, parameter-dependent filters are not supported");
 		}
 		BitSet bsFilter = rvFilter.getStateValues().toBitSet();
+		// Check filter satisfied by exactly one state
+		FilterOperator op = expr.getOperatorType();
+		if (op == FilterOperator.STATE && bsFilter.cardinality() != 1) {
+			String s = "Filter should be satisfied in exactly 1 state";
+			s += " (but \"" + filter + "\" is true in " + bsFilter.cardinality() + " states)";
+			throw new PrismException(s);
+		}
 		RegionValues vals = checkExpression(model, expr.getOperand(), bsFilter);
 
 		// Check if filter state set is empty; we treat this as an error
@@ -519,7 +526,6 @@ final public class ParamModelChecker extends PrismComponent
 		}
 			
 		// Compute result according to filter type
-		FilterOperator op = expr.getOperatorType();
 		RegionValues resVals = null;
 		switch (op) {
 		case PRINT:
@@ -564,12 +570,6 @@ final public class ParamModelChecker extends PrismComponent
 			resVals = vals.op(Region.EXISTS, bsFilter);
 			break;
 		case STATE:
-			// Check filter satisfied by exactly one state
-			if (bsFilter.cardinality() != 1) {
-				String s = "Filter should be satisfied in exactly 1 state";
-				s += " (but \"" + filter + "\" is true in " + bsFilter.cardinality() + " states)";
-				throw new PrismException(s);
-			}
 			resVals = vals.op(Region.FIRST, bsFilter);
 			break;
 		default:
