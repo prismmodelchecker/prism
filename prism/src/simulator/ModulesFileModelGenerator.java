@@ -106,12 +106,6 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	}
 	
 	@Override
-	public boolean containsUnboundedVariables()
-	{
-		return modulesFile.containsUnboundedVariables();
-	}
-	
-	@Override
 	public void setSomeUndefinedConstants(Values someValues) throws PrismException
 	{
 		modulesFile.setSomeUndefinedConstants(someValues);
@@ -123,6 +117,12 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	public Values getConstantValues()
 	{
 		return mfConstants;
+	}
+	
+	@Override
+	public boolean containsUnboundedVariables()
+	{
+		return modulesFile.containsUnboundedVariables();
 	}
 	
 	@Override
@@ -167,12 +167,24 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 		return varList;
 	}
 	
-	//@Override
+	@Override
 	public int getNumRewardStructs()
 	{
 		return modulesFile.getNumRewardStructs();
 	}
 	
+	@Override
+	public int getRewardStructIndex(String name)
+	{
+		return modulesFile.getRewardStructIndex(name);
+	}
+	
+	@Override
+	public RewardStruct getRewardStruct(int i)
+	{
+		return modulesFile.getRewardStruct(i);
+	}
+
 	@Override
 	public boolean hasSingleInitialState() throws PrismException
 	{

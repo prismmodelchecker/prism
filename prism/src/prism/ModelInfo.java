@@ -29,6 +29,8 @@ package prism;
 
 import java.util.List;
 
+import parser.Values;
+import parser.ast.RewardStruct;
 import parser.type.Type;
 
 /**
@@ -40,6 +42,21 @@ public interface ModelInfo
 	 * Get the type of probabilistic model.
 	 */
 	public ModelType getModelType();
+
+	/**
+	 * Set values for *some* undefined constants.
+	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 */
+	public void setSomeUndefinedConstants(Values someValues) throws PrismException;
+
+	/**
+	 * Get access to the values for all constants in the model, including the 
+	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
+	 * Until they are set for the first time, this method returns null.  
+	 */
+	public Values getConstantValues();
 
 	/**
 	 * Does the model contain unbounded variables?
@@ -85,4 +102,23 @@ public interface ModelInfo
 	 * Get the index of the label with name {@code label}. Returns -1 if none exists.
 	 */
 	public int getLabelIndex(String label);
+	
+	/**
+	 * Get the number of reward structures in the model.
+	 */
+	public int getNumRewardStructs();
+	
+	/**
+	 * Get the index of a module by its name
+	 * (indexed from 0, not from 1 like at the user (property language) level).
+	 * Returns -1 if name does not exist.
+	 */
+	public int getRewardStructIndex(String name);
+
+	/**
+	 * Get a reward structure by its index
+	 * (indexed from 0, not from 1 like at the user (property language) level).
+	 * Returns null if index is out of range.
+	 */
+	public RewardStruct getRewardStruct(int i);
 }

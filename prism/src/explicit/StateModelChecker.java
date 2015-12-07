@@ -61,6 +61,7 @@ import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTTraverseModify;
 import prism.Filter;
+import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
 import prism.PrismComponent;
@@ -107,8 +108,9 @@ public class StateModelChecker extends PrismComponent
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
-	// Model file (for reward structures, etc.)
+	// Model info (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
+	protected ModelInfo modelInfo = null;
 
 	// Properties file (for labels, constants, etc.)
 	protected PropertiesFile propertiesFile = null;
@@ -186,7 +188,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public void inheritSettings(StateModelChecker other)
 	{
-		setModulesFileAndPropertiesFile(other.modulesFile, other.propertiesFile);
+		setModulesFileAndPropertiesFile(other.modelInfo, other.propertiesFile);
 		setLog(other.getLog());
 		setVerbosity(other.getVerbosity());
 		setExportTarget(other.getExportTarget());
@@ -345,14 +347,17 @@ public class StateModelChecker extends PrismComponent
 	 * Set the attached model file (for e.g. reward structures when model checking)
 	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
-	public void setModulesFileAndPropertiesFile(ModulesFile modulesFile, PropertiesFile propertiesFile)
+	public void setModulesFileAndPropertiesFile(ModelInfo modelInfo, PropertiesFile propertiesFile)
 	{
-		this.modulesFile = modulesFile;
+		this.modelInfo = modelInfo;
+		if (modelInfo instanceof ModulesFile) {
+			this.modulesFile = (ModulesFile) modelInfo;
+		}
 		this.propertiesFile = propertiesFile;
 		// Get combined constant values from model/properties
 		constantValues = new Values();
-		if (modulesFile != null)
-			constantValues.addValues(modulesFile.getConstantValues());
+		if (modelInfo != null)
+			constantValues.addValues(modelInfo.getConstantValues());
 		if (propertiesFile != null)
 			constantValues.addValues(propertiesFile.getConstantValues());
 	}

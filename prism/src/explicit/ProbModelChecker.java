@@ -849,7 +849,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 
 		// Build rewards
-		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);
+		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modelInfo, constantValues);
 		mainLog.println("Building reward structure...");
 		Rewards rewards = constructRewards(model, rewStruct);
 

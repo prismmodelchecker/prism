@@ -30,7 +30,6 @@ package prism;
 import java.util.List;
 
 import parser.State;
-import parser.Values;
 import parser.VarList;
 
 /**
@@ -40,21 +39,6 @@ import parser.VarList;
  */
 public interface ModelGenerator extends ModelInfo
 {
-	/**
-	 * Set values for *some* undefined constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
-	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}.
-	 */
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException;
-
-	/**
-	 * Get access to the values for all constants in the model, including the 
-	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
-	 * Until they are set for the first time, this method returns null.  
-	 */
-	public Values getConstantValues();
-
 	/**
 	 * Does the model have a single initial state?
 	 */

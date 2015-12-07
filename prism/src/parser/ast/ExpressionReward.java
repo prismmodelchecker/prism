@@ -29,6 +29,7 @@ package parser.ast;
 import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
+import prism.ModelInfo;
 import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -110,15 +111,15 @@ public class ExpressionReward extends ExpressionQuant
 	 * Throws an exception (with explanatory message) if it cannot be found.
 	 * This means that, the method always returns a valid index if it finishes.
 	 */
-	public int getRewardStructIndexByIndexObject(ModulesFile modulesFile, Values constantValues) throws PrismException
+	public int getRewardStructIndexByIndexObject(ModelInfo modelInfo, Values constantValues) throws PrismException
 	{
 		int rewStruct = -1;
 		Object rsi = rewardStructIndex;
 		// Recall: the index is an Object which is either an Integer, denoting the index (starting from 0) directly,
 		// or an expression, which can be evaluated (possibly using the passed in constants) to an index. 
-		if (modulesFile == null)
-			throw new PrismException("No model file to obtain reward structures");
-		if (modulesFile.getNumRewardStructs() == 0)
+		if (modelInfo == null)
+			throw new PrismException("No model info to obtain reward structures");
+		if (modelInfo.getNumRewardStructs() == 0)
 			throw new PrismException("Model has no rewards specified");
 		// No index specified - use the first one
 		if (rsi == null) {
@@ -132,7 +133,7 @@ public class ExpressionReward extends ExpressionQuant
 		}
 		// String - name of reward structure
 		else if (rsi instanceof String) {
-			rewStruct = modulesFile.getRewardStructIndex((String) rsi);
+			rewStruct = modelInfo.getRewardStructIndex((String) rsi);
 		}
 		if (rewStruct == -1) {
 			throw new PrismException("Invalid reward structure index \"" + rsi + "\"");
@@ -144,10 +145,10 @@ public class ExpressionReward extends ExpressionQuant
 	 * Get the reward structure (from a model) corresponding to the index of this R operator.
 	 * Throws an exception (with explanatory message) if it cannot be found.
 	 */
-	public RewardStruct getRewardStructByIndexObject(ModulesFile modulesFile, Values constantValues) throws PrismException
+	public RewardStruct getRewardStructByIndexObject(ModelInfo modelInfo, Values constantValues) throws PrismException
 	{
-		int rewardStructIndex = getRewardStructIndexByIndexObject(modulesFile, constantValues);
-		return modulesFile.getRewardStruct(rewardStructIndex);
+		int rewardStructIndex = getRewardStructIndexByIndexObject(modelInfo, constantValues);
+		return modelInfo.getRewardStruct(rewardStructIndex);
 	}
 	
 	/**
