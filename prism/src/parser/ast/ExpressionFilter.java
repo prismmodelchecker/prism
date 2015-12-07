@@ -108,38 +108,24 @@ public class ExpressionFilter extends Expression
 
 	public void setOperator(String opName)
 	{
-		this.opName = opName;
-		if (opName.equals("min"))
-			opType = FilterOperator.MIN;
-		else if (opName.equals("max"))
-			opType = FilterOperator.MAX;
-		else if (opName.equals("argmin"))
-			opType = FilterOperator.ARGMIN;
-		else if (opName.equals("argmax"))
-			opType = FilterOperator.ARGMAX;
-		else if (opName.equals("count"))
-			opType = FilterOperator.COUNT;
-		else if (opName.equals("sum") || opName.equals("+"))
+		for (FilterOperator op : FilterOperator.values()) {
+			if (opName.equalsIgnoreCase(op.name())) {
+				opType = op;
+				return;
+			}
+		}
+		// handle shorthands
+		if ("+".equals(opName)) {
 			opType = FilterOperator.SUM;
-		else if (opName.equals("avg"))
-			opType = FilterOperator.AVG;
-		else if (opName.equals("first"))
-			opType = FilterOperator.FIRST;
-		else if (opName.equals("range"))
-			opType = FilterOperator.RANGE;
-		else if (opName.equals("forall") || opName.equals("&"))
+		} else if ("&".equals(opName)) {
 			opType = FilterOperator.FORALL;
-		else if (opName.equals("exists") || opName.equals("|"))
+		} else if ("|".equals(opName)) {
 			opType = FilterOperator.EXISTS;
-		else if (opName.equals("print"))
-			opType = FilterOperator.PRINT;
-		else if (opName.equals("printall"))
-			opType = FilterOperator.PRINTALL;
-		else if (opName.equals("state"))
-			opType = FilterOperator.STATE;
-		else opType = null;
+		} else {
+			opType = null;
+		}
 	}
-	
+
 	public void setOperand(Expression operand)
 	{
 		this.operand = operand;
