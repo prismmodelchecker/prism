@@ -74,16 +74,18 @@ public class PropertiesFile extends ASTElement
 	/** Attach model information (so can access labels/constants etc.) */
 	public void setModelInfo(ModelInfo modelInfo)
 	{
-		// Store ModelInfo
-		this.modelInfo = modelInfo;
-		// If the ModelInfo is not a ModulesFile, we need to create a balnk one
-		if (modelInfo instanceof ModulesFile) {
-			this.modulesFile = (ModulesFile) modelInfo;
+		// Store ModelInfo. Need a ModulesFile too for now. Create a dummy one if needed.
+		if (modelInfo  == null) {
+			this.modelInfo = this.modulesFile = new ModulesFile();
+			this.modulesFile.setFormulaList(new FormulaList());
+			this.modulesFile.setConstantList(new ConstantList());
+		} else if (modelInfo instanceof ModulesFile) {
+			this.modelInfo = this.modulesFile = (ModulesFile) modelInfo;
 		} else {
-			ModulesFile mf = new ModulesFile();
-			mf.setFormulaList(new FormulaList());
-			mf.setConstantList(new ConstantList());
-			this.modulesFile = mf;
+			this.modelInfo = modelInfo;
+			this.modulesFile = new ModulesFile();
+			this.modulesFile.setFormulaList(new FormulaList());
+			this.modulesFile.setConstantList(new ConstantList());
 		}
 	}
 
@@ -295,7 +297,7 @@ public class PropertiesFile extends ASTElement
 		findAllPropRefs(null, this);
 		// Check property references for cyclic dependencies
 		findCyclesInPropertyReferences();
-		
+
 		// Various semantic checks 
 		doSemanticChecks();
 		// Type checking
@@ -462,7 +464,7 @@ public class PropertiesFile extends ASTElement
 		PropertiesSemanticCheck visitor = new PropertiesSemanticCheck(this, modelInfo);
 		accept(visitor);
 	}
-	
+
 	/**
 	 * Get a list of all undefined constants in the properties files
 	 * ("const int x;" rather than "const int x = 1;") 
