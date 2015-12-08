@@ -39,33 +39,37 @@ public class ExpressionFilter extends Expression
 	 */ 
 	public enum FilterOperator {
 		/** Minimum value of prop over all filter states */
-		MIN,
+		MIN ("min"),
 		/** Maximum value of prop over all filter states */
-		MAX,
+		MAX ("max"),
 		/** True for the filter states that yield the minimum value of prop */
-		ARGMIN,
+		ARGMIN ("argmin"),
 		/** True for the filter states that yield the maximum value of prop */
-		ARGMAX,
+		ARGMAX ("argmax"),
 		/** Number of filter states for which prop is true */
-		COUNT,
+		COUNT ("count"),
 		/** Sum of the value of prop for all filter states */
-		SUM,
+		SUM ("sum"),
 		/** Average of the value of prop over all filter states */
-		AVG,
+		AVG ("avg"),
 		/** Value of prop for the first (lowest-indexed) filter state */
-		FIRST,
+		FIRST ("first"),
 		/** Range (interval) of values of prop over all filter states */
-		RANGE,
+		RANGE ("range"),
 		/** True iff prop is true for all filter states */
-		FORALL,
+		FORALL ("forall"),
 		/** True iff prop is true for some filter states */
-		EXISTS,
+		EXISTS ("exists"),
 		/** Print the (non-zero) values to the log */
-		PRINT,
+		PRINT ("print"),
 		/** Print all (including zero) values to the log */
-		PRINTALL,
+		PRINTALL ("printall"),
 		/** Value for the single filter state (if there is more than one, this is an error) */
-		STATE;
+		STATE ("state");
+		public final String keyword;
+		FilterOperator(final String keyword) {
+			this.keyword = keyword;
+		}
 	};
 
 	// Operator used in filter
@@ -110,7 +114,7 @@ public class ExpressionFilter extends Expression
 	{
 		this.opName = opName;
 		for (FilterOperator op : FilterOperator.values()) {
-			if (opName.equalsIgnoreCase(op.name())) {
+			if (op.keyword.equals(opName)) {
 				opType = op;
 				return;
 			}
