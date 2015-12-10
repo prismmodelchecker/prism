@@ -731,7 +731,8 @@ public abstract class Expression extends ASTElement
 	public static boolean containsTemporalTimeBounds(Expression expr)
 	{
 		try {
-			expr.accept(new ASTTraverse()
+			// check for time bounds, don't recurse into P/R/SS subformulas
+			expr.accept(new ExpressionTraverseNonNested()
 			{
 				public void visitPre(ExpressionTemporal e) throws PrismLangException
 				{
