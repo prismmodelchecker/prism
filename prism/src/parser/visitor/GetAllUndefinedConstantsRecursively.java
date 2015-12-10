@@ -77,7 +77,7 @@ public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 	public void visitPost(ExpressionLabel e) throws PrismLangException
 	{
 		// Ignore special cases of labels (no constants there)
-		if (e.getName().equals("deadlock") || e.getName().equals("init")) {
+		if (e.isDeadlockLabel() || e.isInitLabel()) {
 			return;
 		}
 		// Look up this label in the label list, if possible

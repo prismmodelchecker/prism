@@ -746,14 +746,14 @@ public class StateModelChecker extends PrismComponent
 		int i;
 
 		// treat special cases
-		if (expr.getName().equals("deadlock")) {
+		if (expr.isDeadlockLabel()) {
 			int numStates = model.getNumStates();
 			BitSet bs = new BitSet(numStates);
 			for (i = 0; i < numStates; i++) {
 				bs.set(i, model.isDeadlockState(i));
 			}
 			return StateValues.createFromBitSet(bs, model);
-		} else if (expr.getName().equals("init")) {
+		} else if (expr.isInitLabel()) {
 			int numStates = model.getNumStates();
 			BitSet bs = new BitSet(numStates);
 			for (i = 0; i < numStates; i++) {
@@ -824,7 +824,7 @@ public class StateModelChecker extends PrismComponent
 			throw new PrismException("Filter satisfies no states");
 		}
 		// Remember whether filter is for the initial state and, if so, whether there's just one
-		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
+		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
 		boolean filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 		// Print out number of states satisfying filter
 		if (!filterInit) {

@@ -345,9 +345,9 @@ public class PTAModelChecker extends PrismComponent
 		// (note: currently not used - these are expanded earlier)
 		if (expr instanceof ExpressionLabel) {
 			ExpressionLabel exprLabel = (ExpressionLabel) expr;
-			if (exprLabel.getName().equals("deadlock"))
+			if (exprLabel.isDeadlockLabel())
 				throw new PrismException("The \"deadlock\" label is not yet supported for PTAs");
-			if (exprLabel.getName().equals("init"))
+			if (exprLabel.isInitLabel())
 				throw new PrismException("The \"init\" label is not yet supported for PTAs");
 			i = labelList.getLabelIndex(exprLabel.getName());
 			if (i == -1)

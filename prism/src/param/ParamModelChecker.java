@@ -449,14 +449,14 @@ final public class ParamModelChecker extends PrismComponent
 		int i;
 		
 		// treat special cases
-		if (expr.getName().equals("deadlock")) {
+		if (expr.isDeadlockLabel()) {
 			int numStates = model.getNumStates();
 			StateValues stateValues = new StateValues(numStates, model.getFirstInitialState());
 			for (i = 0; i < numStates; i++) {
 				stateValues.setStateValue(i, model.isDeadlockState(i));
 			}
 			return regionFactory.completeCover(stateValues);
-		} else if (expr.getName().equals("init")) {
+		} else if (expr.isInitLabel()) {
 			int numStates = model.getNumStates();
 			StateValues stateValues = new StateValues(numStates, model.getFirstInitialState());
 			for (i = 0; i < numStates; i++) {
@@ -523,7 +523,7 @@ final public class ParamModelChecker extends PrismComponent
 		}
 		
 		// Remember whether filter is for the initial state and, if so, whether there's just one
-		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
+		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
 		// Print out number of states satisfying filter
 		if (!filterInit) {
 			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
@@ -603,7 +603,7 @@ final public class ParamModelChecker extends PrismComponent
 
 		/*
 		// Remember whether filter is for the initial state and, if so, whether there's just one
-		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
+		filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
 		filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 		// Print out number of states satisfying filter
 		if (!filterInit)

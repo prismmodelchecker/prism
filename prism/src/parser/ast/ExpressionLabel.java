@@ -48,6 +48,22 @@ public class ExpressionLabel extends Expression
 		return name;
 	}
 
+	/**
+	 * Is this the special "init" label?
+	 */
+	public boolean isInitLabel()
+	{
+		return getName().equals("init");
+	}
+
+	/**
+	 * Is this the special "deadlock" label?
+	 */
+	public boolean isDeadlockLabel()
+	{
+		return getName().equals("deadlock");
+	}
+
 	// Methods required for Expression:
 	
 	@Override

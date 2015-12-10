@@ -974,11 +974,11 @@ public class StateModelChecker implements ModelChecker
 		int i;
 
 		// treat special cases
-		if (expr.getName().equals("deadlock")) {
+		if (expr.isDeadlockLabel()) {
 			dd = model.getDeadlocks();
 			JDD.Ref(dd);
 			return new StateValuesMTBDD(dd, model);
-		} else if (expr.getName().equals("init")) {
+		} else if (expr.isInitLabel()) {
 			dd = start;
 			JDD.Ref(dd);
 			return new StateValuesMTBDD(dd, model);
@@ -1027,7 +1027,7 @@ public class StateModelChecker implements ModelChecker
 			throw new PrismException("Filter satisfies no states");
 		}
 		// Remember whether filter is for the initial state and, if so, whether there's just one
-		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).getName().equals("init"));
+		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
 		boolean filterInitSingle = filterInit & model.getNumStartStates() == 1;
 
 		// For some types of filter, store info that may be used to optimise model checking
