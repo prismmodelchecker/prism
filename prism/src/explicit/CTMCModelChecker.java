@@ -561,6 +561,28 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute expected total rewards.
+	 * @param ctmc The CTMC
+	 * @param mcRewards The rewards
+	 * @param target Target states
+	 */
+	public ModelCheckerResult computeTotalRewards(CTMC ctmc, MCRewards mcRewards) throws PrismException
+	{
+		int i, n;
+		// Build embedded DTMC
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		// Convert rewards
+		n = ctmc.getNumStates();
+		StateRewardsArray rewEmb = new StateRewardsArray(n);
+		for (i = 0; i < n; i++) {
+			rewEmb.setStateReward(i, mcRewards.getStateReward(i) / ctmc.getExitRate(i));
+		}
+		// Do computation on DTMC
+		return createDTMCModelChecker().computeTotalRewards(dtmcEmb, rewEmb);
+	}
+
+	/**
 	 * Perform instantaneous reward computation.
 	 * Compute, for each state of {@ctmc}, the expected rewards at time {@code t}
 	 * when starting in this state and using reward structure {@code mcRewards}.

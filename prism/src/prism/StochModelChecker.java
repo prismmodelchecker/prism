@@ -553,6 +553,39 @@ public class StochModelChecker extends ProbModelChecker
 		return rewards;
 	}
 
+	// compute total rewards
+
+	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr) throws PrismException
+	{
+		JDDNode diags, emb, srNew;
+		StateValues rewards = null;
+
+		// Compute embedded Markov chain
+		JDD.Ref(tr);
+		diags = JDD.SumAbstract(tr, allDDColVars);
+		JDD.Ref(tr);
+		JDD.Ref(diags);
+		emb = JDD.Apply(JDD.DIVIDE, trans, diags);
+		mainLog.println("\nDiagonals vector: " + JDD.GetInfoString(diags, allDDRowVars.n()));
+		mainLog.println("Embedded Markov chain: " + JDD.GetInfoString(emb, allDDRowVars.n() * 2));
+
+		// Convert rewards
+		JDD.Ref(sr);
+		JDD.Ref(diags);
+		srNew = JDD.Apply(JDD.DIVIDE, sr, diags);
+
+		// And then use superclass (ProbModelChecker)
+		// to compute rewards
+		rewards = super.computeTotalRewards(emb, tr01, srNew, trr);
+
+		// derefs
+		JDD.Deref(diags);
+		JDD.Deref(emb);
+		JDD.Deref(srNew);
+
+		return rewards;
+	}
+	
 	// compute rewards for reach reward
 
 	protected StateValues computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
@@ -576,7 +609,7 @@ public class StochModelChecker extends ProbModelChecker
 		srNew = JDD.Apply(JDD.DIVIDE, sr, diags);
 
 		// And then use superclass (ProbModelChecker)
-		// to compute probabilities
+		// to compute rewards
 		rewards = super.computeReachRewards(emb, tr01, srNew, trr, b);
 
 		// derefs
