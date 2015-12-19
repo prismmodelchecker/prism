@@ -28,6 +28,7 @@ package prism;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportdot = false;
 	private boolean exporttransdot = false;
 	private boolean exporttransdotstates = false;
+	private boolean exportmodeldotview = false;
 	private boolean exportsccs = false;
 	private boolean exportbsccs = false;
 	private boolean exportmecs = false;
@@ -771,6 +773,23 @@ public class PrismCL implements PrismModelListener
 			}
 		}
 
+		// export transition matrix graph to dot file and view it
+		if (exportmodeldotview) {
+			try {
+				File dotFile = File.createTempFile("prism-dot-", ".dot", null);
+				File dotPdfFile = File.createTempFile("prism-dot-", ".dot.pdf", null);
+				prism.exportTransToFile(exportordered, Prism.EXPORT_DOT_STATES, dotFile);
+				(new ProcessBuilder(new String[]{ "dot", "-Tpdf", "-o", dotPdfFile.getPath(), dotFile.getPath()})).start().waitFor();
+				(new ProcessBuilder(new String[]{ "open",dotPdfFile.getPath()})).start();
+			}
+			// in case of error, report it and proceed
+			catch (IOException | InterruptedException e) {
+				error("Problem generating dot file: " + e.getMessage());
+			} catch (PrismException e) {
+				error(e.getMessage());
+			}
+		}
+
 		// export labels/states
 		if (exportlabels) {
 			try {
@@ -1331,6 +1350,10 @@ public class PrismCL implements PrismModelListener
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
+				}
+				// export transition matrix graph to dot file and view it
+				else if (sw.equals("exportmodeldotview")) {
+					exportmodeldotview = true;
 				}
 				// export transition matrix MTBDD to dot file
 				else if (sw.equals("exportdot")) {
