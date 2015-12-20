@@ -402,8 +402,6 @@ public class Property extends ASTElement
 			} while(m.find());
 
 			List<Point> liResult = ((TileList) result).getRealPoints();
-			System.out.println("a: " + liExpected.toString());
-			System.out.println("b: " + liResult.toString());
 
 			if (liResult.size() != liExpected.size())
 				throw new PrismException("The expected Pareto curve and the computed Pareto curve have a different number of points.");
