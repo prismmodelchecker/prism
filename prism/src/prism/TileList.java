@@ -148,27 +148,27 @@ public class TileList
 	@Override
 	public String toString()
 	{
+		List<Point> li = getPoints();
+
 		String s = "[";
 		boolean first = true;
-		for (int j = 0; j < this.list.size(); j++) {
-			Tile t = this.list.get(j);
-			for (Point p : t.cornerPoints) {
-				// We want to print the user-readable values if possible
-				if (this.opsAndBoundsList != null) {
-					p = p.toRealProperties(this.opsAndBoundsList);
-				}
-				if (first)
-					first = false;
-				else
-					s += ",\n";
-				s += "(";
-				for (int i = 0; i < p.getDimension(); i++) {
-					if (i > 0)
-						s += ",";
-					s += p.getCoord(i);
-				}
-				s += ")";
+
+		for (Point p : li) {
+			// We want to print the user-readable values if possible
+			if (this.opsAndBoundsList != null) {
+				p = p.toRealProperties(this.opsAndBoundsList);
 			}
+			if (first)
+				first = false;
+			else
+				s += ",";
+			s += "(";
+			for (int i = 0; i < p.getDimension(); i++) {
+				if (i > 0)
+					s += ",";
+				s += p.getCoord(i);
+			}
+			s += ")";
 		}
 		s += "]";
 		return s;
@@ -243,7 +243,7 @@ public class TileList
 	/**
 	 * Returns the points that form the tiles of this
 	 * TileList. The implementation is rather inefficient and is intended
-	 * only for debugging pusposes.
+	 * only for debugging purposes.
 	 */
 	public List<Point> getPoints()
 	{
@@ -252,6 +252,24 @@ public class TileList
 			for (Point p : t.cornerPoints)
 				if (!a.contains(p))
 					a.add(p);
+		}
+		return a;
+	}
+
+	/**
+	 * Returns the points that form the actual Pareto curve (modifying the points from tiles
+	 * according to the operator bound changes).
+	 * The implementation is rather inefficient and is intended
+	 * only for debugging purposes.
+	 */
+	public List<Point> getRealPoints()
+	{
+		List<Point> a = this.getPoints();
+		if (this.opsAndBoundsList != null) {
+			for (int i = 0; i < a.size(); i++) {
+				Point p = a.get(i).toRealProperties(this.opsAndBoundsList);
+				a.set(i,p);
+			}
 		}
 		return a;
 	}

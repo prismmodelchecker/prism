@@ -27,6 +27,8 @@
 package parser.ast;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +40,8 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
+import prism.Point;
+import prism.TileList;
 
 /**
  * PRISM property, i.e. a PRISM expression plus other (optional info) such as name, comment, etc.
@@ -379,6 +383,62 @@ public class Property extends ASTElement
 			// Compare results
 			if (!rationalRes.equals(rationalExp))
 				throw new PrismException("Wrong result (expected " + rationalExp + ", got " + rationalRes + ")");
+		}
+		else if (type instanceof TypeVoid && result instanceof TileList) { //Pareto curve
+
+			//Create the list of points from the expected results
+			List<Point> liExpected = new ArrayList<Point>();
+			Pattern p = Pattern.compile("\\(([^,]*),([^)]*)\\)");
+			Matcher m = p.matcher(strExpected);
+			if (!m.find()) {
+				throw new PrismException("The expected result does not contain any points, or does not have the required format.");
+			}
+			
+			do {
+				double x = Double.parseDouble(m.group(1));
+				double y = Double.parseDouble(m.group(2));
+				Point point = new Point(new double[] {x,y});
+				liExpected.add(point);
+			} while(m.find());
+
+			List<Point> liResult = ((TileList) result).getRealPoints();
+			System.out.println("a: " + liExpected.toString());
+			System.out.println("b: " + liResult.toString());
+
+			if (liResult.size() != liExpected.size())
+				throw new PrismException("The expected Pareto curve and the computed Pareto curve have a different number of points.");
+
+			//check if we can find a matching point for every point on the expected Pareto curve
+			for(Point point : liExpected) {
+				boolean foundClose = false;
+				for(Point point2 : liResult) {
+					if (point2.isCloseTo(point)) {
+						foundClose = true;
+						break;
+					}
+				}
+				if (!foundClose)
+				{
+					throw new PrismException("The point " + point + " in the expected Pareto curve has no match among the points in the computed Pareto curve.");
+				}
+			}
+
+			//check if we can find a matching point for every point on the computed Pareto curve
+			//(we did check if both lists have the same number of points, but that does
+			//not rule out the possibility of two very similar points contained in one list)
+			for(Point point : liResult) {
+				boolean foundClose = false;
+				for(Point point2 : liExpected) {
+					if (point2.isCloseTo(point)) {
+						foundClose = true;
+						break;
+					}
+				}
+				if (!foundClose)
+				{
+					throw new PrismException("The point " + point + " in the computed Pareto curve has no match among the points in the expected Pareto curve");
+				}
+			}
 		}
 		
 		// Unknown type
