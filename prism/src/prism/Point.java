@@ -149,6 +149,25 @@ public class Point
 	}
 
 	/**
+ 	 * Determines if this point is pointwise smaller than {@code p+SMALL_NUMBER}.
+ 	 * 
+ 	 */
+	public boolean isCoveredBy(Point p)
+	{
+		if (p.getDimension() != this.getDimension())
+			return false;
+
+		for (int i = 0; i < this.getDimension(); i++) {
+			if (p.getCoord(i) + SMALL_NUMBER - this.getCoord(i) < 0)
+				return false;
+		}
+		//System.err.println("comparing " + this + " and " + second + " with the result " + (x == second.getX() && y == second.getY()));
+		return true;
+	}
+
+	
+
+	/**
 	 * Returns the point in which the coordinates are reweighted so that the
 	 * norm of the point is equal to 1.
 	 * @return

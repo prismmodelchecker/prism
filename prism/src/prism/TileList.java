@@ -148,30 +148,8 @@ public class TileList
 	@Override
 	public String toString()
 	{
-		List<Point> li = getPoints();
-
-		String s = "[";
-		boolean first = true;
-
-		for (Point p : li) {
-			// We want to print the user-readable values if possible
-			if (this.opsAndBoundsList != null) {
-				p = p.toRealProperties(this.opsAndBoundsList);
-			}
-			if (first)
-				first = false;
-			else
-				s += ",";
-			s += "(";
-			for (int i = 0; i < p.getDimension(); i++) {
-				if (i > 0)
-					s += ",";
-				s += p.getCoord(i);
-			}
-			s += ")";
-		}
-		s += "]";
-		return s;
+		List<Point> li = getRealPoints();
+		return li.toString();
 	}
 
 	/**
@@ -257,6 +235,42 @@ public class TileList
 	}
 
 	/**
+	 * Returns the points that form the tiles of this
+	 * TileList, omitting the points that are covered by other points.
+	 * The implementation is rather inefficient and is intended
+	 * only for debugging purposes.
+	 */
+	public List<Point> getPointsWithoutCovered()
+	{
+		List<Point> a = getPoints();
+
+		boolean changed;
+		do {
+			changed = false;
+			for (int i = 0; i < a.size(); i++) {
+				boolean covered = false;
+				for (int j = 0; j < a.size(); j++) {
+					if (i==j)
+						continue;
+					if (a.get(i).isCoveredBy(a.get(j))) {
+						covered = true;
+						break;
+					}
+				}
+				if (covered) {
+					a.remove(i);
+					changed = true;
+					break;
+				}
+			}
+			
+		
+		} while(changed);
+		
+		return a;
+	}
+
+	/**
 	 * Returns the points that form the actual Pareto curve (modifying the points from tiles
 	 * according to the operator bound changes).
 	 * The implementation is rather inefficient and is intended
@@ -264,7 +278,7 @@ public class TileList
 	 */
 	public List<Point> getRealPoints()
 	{
-		List<Point> a = this.getPoints();
+		List<Point> a = this.getPointsWithoutCovered();
 		if (this.opsAndBoundsList != null) {
 			for (int i = 0; i < a.size(); i++) {
 				Point p = a.get(i).toRealProperties(this.opsAndBoundsList);

@@ -253,20 +253,19 @@ public class Tile
 		double[][] d = new double [dim][dim];
 		double[] b = new double [dim];
 		
-		for (int j = 0; j < dim; j++) {
+		Point pFixed = t.cornerPoints.get(dim-1);
+		for (int j = 0; j < dim-1; j++) {
 			Point p = t.cornerPoints.get(j);
-			//Zero points are problem, we change them while preserving the hyperplane.
-			if (p.isZero()) {
-				for (int i = 0; i < dim; i++) {
-					d[j][i] = t.cornerPoints.get(nonzeroIndex).getCoord(i);
-				}
-			} else {
-				for (int i = 0; i < dim; i++) {
-					d[j][i] = p.getCoord(i);
-				}
+			for (int i = 0; i < dim; i++) {
+				d[j][i] = p.getCoord(i) - pFixed.getCoord(i);
 			}
-			b[j] = 1;
+			b[j] = 0;
 		}
+
+		for (int i = 0; i < dim; i++) {
+			d[dim-1][i] = 1;
+		}
+		b[dim-1] = 1;
 		
 		double[] ret = MultiObjUtils.solveEqns(d, b);
 		double[] pointCoords = new double[dim];

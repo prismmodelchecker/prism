@@ -742,6 +742,7 @@ public class MultiObjModelChecker extends PrismComponent
 	protected TileList generateParetoCurve(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, final JDDNode st, JDDNode[] targets,
 			List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
+		//TODO this method does not work for more than 2 objectives
 		int numberOfPoints = 0;
 		int rewardStepBounds[] = new int[rewards.size()];
 		for (int i = 0; i < rewardStepBounds.length; i++)
