@@ -1981,6 +1981,8 @@ public class ProbModelChecker extends NonProbModelChecker
 				JDD.Deref(notInBSCCs);
 			if (solnProbs != null)
 				solnProbs.clear();
+			if (initDist != null)
+				initDist.clear();
 			throw e;
 		}
 
@@ -1993,6 +1995,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		if (start != notInBSCCs)
 			JDD.Deref(notInBSCCs);
+		if (initDist != null)
+			initDist.clear();
 
 		return solnProbs;
 	}
