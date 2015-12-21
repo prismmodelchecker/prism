@@ -606,7 +606,7 @@ public class MultiObjModelChecker extends PrismComponent
 			no = JDD.Constant(0);
 			bottomec = PrismMTBDD.Prob0A(model.getTrans01(), model.getReach(), model.getAllDDRowVars(), model.getAllDDColVars(), model.getAllDDNondetVars(),
 					model.getReach(), yes);
-			List<JDDNode> becs = mcLtl.findBottomEndComponents(model, bottomec);
+			List<JDDNode> becs = mcLtl.findMECStates(model, bottomec);
 			JDD.Deref(bottomec);
 			bottomec = JDD.Constant(0);
 			for (JDDNode ec : becs)

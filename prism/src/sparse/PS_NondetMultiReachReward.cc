@@ -170,13 +170,13 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 
     // Display some info about the rewards
     PS_PrintToMainLog(env, "\n%d Rewards:\n", num_rewards);
-    //bool disable_selfloop = true;
+    bool disable_selfloop = true;
     for (i = 0; i < num_rewards; i++) {
       PS_PrintToMainLog(env, "#%d: ", i);
       switch (relopsReward[i]) {
-      case 3: PS_PrintToMainLog(env, "Rmax=?\n"); /*disable_selfloop = false;*/ break;
+      case 3: PS_PrintToMainLog(env, "Rmax=?\n"); disable_selfloop = false; break;
       case 8: PS_PrintToMainLog(env, "Rmin=?\n"); break;
-      case 4: PS_PrintToMainLog(env, "R>=%g\n", boundsReward[i]); /*disable_selfloop = false;*/ break;
+      case 4: PS_PrintToMainLog(env, "R>=%g\n", boundsReward[i]); disable_selfloop = false; break;
       case 9: PS_PrintToMainLog(env, "R<=%g\n", boundsReward[i]); break;
       }
     }
@@ -194,11 +194,13 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
 
     // For efficiency, remove any probability 1 self-loops from the model.
     // For multi-objective, we always do maximum reachability, so these do not matter.
-    Cudd_Ref(a);
-    loops = DD_And(ddman, DD_Equals(ddman, a, 1.0), DD_Identity(ddman, rvars, cvars, num_rvars));
-    loops = DD_ThereExists(ddman, loops, cvars, num_rvars);
-    Cudd_Ref(loops);
-    a = DD_ITE(ddman, loops, DD_Constant(ddman, 0), a);
+    if (!disable_selfloop) {
+	    Cudd_Ref(a);
+	    loops = DD_And(ddman, DD_Equals(ddman, a, 1.0), DD_Identity(ddman, rvars, cvars, num_rvars));
+	    loops = DD_ThereExists(ddman, loops, cvars, num_rvars);
+	    Cudd_Ref(loops);
+	    a = DD_ITE(ddman, loops, DD_Constant(ddman, 0), a);
+    }
     
     // Get number of states
     n = odd->eoff + odd->toff;
@@ -589,7 +591,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     // Set objective function for LP
     PS_PrintToMainLog(env, "Setting objective...\n");
     isMax = true;
-    if(relops[0] == 0) {
+    if(num_targets > 0 && relops[0] == 0) {
       x = 0;
       for(i=0; i<n; i++)
         if(yes_vecs[0][i]> 0) {
