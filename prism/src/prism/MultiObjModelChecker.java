@@ -930,7 +930,7 @@ public class MultiObjModelChecker extends PrismComponent
 		PrismNative.setExportAdv(exportAdvSetting);
 
 		if (verbose)
-			mainLog.println("Points for initial tile: " + pointsForInitialTile);
+			mainLog.println("Points for the initial tile: " + pointsForInitialTile);
 
 		Tile initialTile = new Tile(pointsForInitialTile);
 		TileList tileList = new TileList(initialTile, opsAndBounds, tolerance);
@@ -1017,8 +1017,10 @@ public class MultiObjModelChecker extends PrismComponent
 				mainLog.println("Exported Pareto curve. To see it, run\n etc/scripts/prism-pareto.py " + paretoFile);
 			}
 
-			mainLog.println("Computed " + tileList.getNumberOfDifferentPoints() + " points altogether:\n");
-			mainLog.println(tileList.getPoints().toString());
+			if (verbose) {
+				mainLog.print("Computed " + tileList.getNumberOfDifferentPoints() + " points altogether: ");
+				mainLog.println(tileList.getPoints().toString());
+			}
 
 			return tileList;
 		}
