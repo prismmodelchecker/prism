@@ -1087,7 +1087,7 @@ public class MultiObjModelChecker extends PrismComponent
 		//create a sparse matrix for transitions
 		JDDNode a = JDD.Apply(JDD.TIMES, modelProduct.getTrans(), modelProduct.getReach());
 
-		if (!min) {
+		if (!min && dimReward == 0) {
 			JDD.Ref(a);
 			JDDNode tmp = JDD.And(JDD.Equals(a, 1.0), JDD.Identity(modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars()));
 			a = JDD.ITE(tmp, JDD.Constant(0), a);
