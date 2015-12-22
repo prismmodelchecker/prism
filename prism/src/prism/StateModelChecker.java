@@ -41,7 +41,7 @@ import parser.type.*;
 
 // Base class for model checkers - does state-based evaluations (no temporal/probabilistic)
 
-public class StateModelChecker implements ModelChecker
+public class StateModelChecker extends PrismComponent implements ModelChecker
 {
 	// PRISM stuff
 	protected Prism prism;
@@ -90,6 +90,9 @@ public class StateModelChecker implements ModelChecker
 
 	public StateModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
 	{
+		// Initialise PrismComponent
+		super(prism);
+
 		// Initialise
 		this.prism = prism;
 		mainLog = prism.getMainLog();
