@@ -31,11 +31,11 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import parser.ast.ModulesFile;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
+import prism.ModelInfo;
 import prism.PrismLangException;
 
 /**
@@ -80,17 +80,17 @@ public class Values //implements Comparable
 	
 	/**
 	 * Construct a new Values object by copying existing State object.
-	 * Need access to a ModulesFile for variable names.
+	 * Need access to model info for variable names.
 	 * @param s State object to copy.
-	 * @param mf Corresponding ModulesFile (for variable info/ordering)
+	 * @param modelInfo Corresponding modelInfo (for variable info/ordering)
 	 */
-	public Values(State s, ModulesFile mf)
+	public Values(State s, ModelInfo modelInfo)
 	{
 		this();
 		int i, n;
 		n = s.varValues.length;
 		for (i = 0; i < n; i++) {
-			addValue(mf.getVarName(i), s.varValues[i]);
+			addValue(modelInfo.getVarName(i), s.varValues[i]);
 		}
 	}
 	
