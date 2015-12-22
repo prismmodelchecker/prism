@@ -133,6 +133,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
 	{
+		// Initialise PrismComponent
+		super(prism);
+
 		// Initialise
 		this.prism = prism;
 		mainLog = prism.getMainLog();
