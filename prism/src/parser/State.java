@@ -26,14 +26,15 @@
 
 package parser;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
-import parser.ast.ModulesFile;
+import prism.ModelInfo;
 import prism.PrismLangException;
 
 /**
  * Class to store a model state, i.e. a mapping from variables to values.
- * Stores as an array of Objects, where indexing is defined by the ModulesFile. 
+ * Stores as an array of Objects, where indexing is defined by a model. 
  */
 public class State implements Comparable<State>
 {
@@ -75,16 +76,16 @@ public class State implements Comparable<State>
 
 	/**
 	 * Construct by copying existing Values object.
-	 * Need access to a ModulesFile in case variables are not ordered correctly.
+	 * Need access to model info in case variables are not ordered correctly.
 	 * Throws an exception if any variables are undefined. 
 	 * @param v Values object to copy.
-	 * @param mf Corresponding ModulesFile (for variable info/ordering)
+	 * @param modelInfo Model info (for variable info/ordering)
 	 */
-	public State(Values v, ModulesFile mf) throws PrismLangException
+	public State(Values v, ModelInfo modelInfo) throws PrismLangException
 	{
 		int i, j, n;
 		n = v.getNumValues();
-		if (n != mf.getNumVars()) {
+		if (n != modelInfo.getNumVars()) {
 			throw new PrismLangException("Wrong number of variables in state");
 		}
 		varValues = new Object[n];
@@ -92,7 +93,7 @@ public class State implements Comparable<State>
 			varValues[i] = null;
 		}
 		for (i = 0; i < n; i++) {
-			j = mf.getVarIndex(v.getName(i));
+			j = modelInfo.getVarIndex(v.getName(i));
 			if (j == -1) {
 				throw new PrismLangException("Unknown variable " + v.getName(i) + " in state");
 			}
@@ -289,9 +290,9 @@ public class State implements Comparable<State>
 
 	/**
 	 * Get string representation, e.g. "(a=0,b=true,c=5)", 
-	 * with variables names (taken from a ModulesFile). 
+	 * with variables names (taken from model info). 
 	 */
-	public String toString(ModulesFile mf)
+	public String toString(ModelInfo modelInfo)
 	{
 		int i, n;
 		String s = "(";
@@ -299,7 +300,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += mf.getVarName(i) + "=" + varValues[i];
+			s += modelInfo.getVarName(i) + "=" + varValues[i];
 		}
 		s += ")";
 		return s;
