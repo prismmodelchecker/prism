@@ -263,10 +263,10 @@ public class MultiObjModelChecker extends PrismComponent
 					for (int i = 0; i < opsAndBounds.probSize(); i++) {
 						if (opsAndBounds.getProbOperator(i) != Operator.P_MAX) {
 							tmpOpsAndBounds.add(opsAndBounds.getOpRelOpBound(i), opsAndBounds.getProbOperator(i), opsAndBounds.getProbBound(i),
-									opsAndBounds.getProbStepBound(i));
+									opsAndBounds.getProbStepBound(i), i);
 						}
 					}
-					tmpOpsAndBounds.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1);
+					tmpOpsAndBounds.add(new OpRelOpBound("R", RelOp.MAX, -1.0), Operator.R_MAX, -1.0, -1, opsAndBounds.probSize());
 
 					ArrayList<JDDNode> tmprewards = new ArrayList<JDDNode>(1);
 					tmprewards.add(rtarget);

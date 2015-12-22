@@ -482,7 +482,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		List<JDDNode> transRewardsList = new ArrayList<JDDNode>();
 		List<Expression> pathFormulas = new ArrayList<Expression>(numObjectives);
 		for (int i = 0; i < numObjectives; i++) {
-			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), opsAndBounds, transRewardsList, pathFormulas);
+			extractInfoFromMultiObjectiveOperand((ExpressionQuant) exprs.get(i), opsAndBounds, transRewardsList, pathFormulas, i);
 		}
 
 		//currently we do 1 numerical subject to booleans, or multiple numericals only 
@@ -667,14 +667,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (value instanceof TileList) {
 			if (opsAndBounds.numberOfNumerical() == 2) {			
 				synchronized(TileList.getStoredTileLists()) {
-					//in multi-obj result probs go first, so we have to swap order if needed
-					if (exprs.get(0) instanceof ExpressionReward && exprs.get(1) instanceof ExpressionProb) {
-						TileList.storedFormulasX.add(exprs.get(1));
-						TileList.storedFormulasY.add(exprs.get(0));
-					} else {
-						TileList.storedFormulasX.add(exprs.get(0));
-						TileList.storedFormulasY.add(exprs.get(1));
-					}
+					TileList.storedFormulasX.add(exprs.get(0));
+					TileList.storedFormulasY.add(exprs.get(1));
+
 					TileList.storedFormulas.add(exprs);
 					TileList.storedTileLists.add((TileList) value);
 				}
@@ -702,9 +697,10 @@ public class NondetModelChecker extends NonProbModelChecker
 	 * @param opsAndBounds Where to add info about ops/bounds
 	 * @param transRewardsList Where to add the transition rewards (R operators only)
 	 * @param pathFormulas Where to store the path formulas (for P operators; null for R operators)
+	 * @param origPosition The position (starting from 0) at which this operand occured in the call of multi(...)
 	 */
 	protected void extractInfoFromMultiObjectiveOperand(ExpressionQuant exprQuant, OpsAndBoundsList opsAndBounds, List<JDDNode> transRewardsList,
-			List<Expression> pathFormulas) throws PrismException
+			List<Expression> pathFormulas, int origPosition) throws PrismException
 	{
 		ExpressionProb exprProb = null;
 		ExpressionReward exprReward = null;
@@ -797,7 +793,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			p = 1 - p;
 		}
 		// Store bound
-		opsAndBounds.add(opInfo, op, p, stepBound);
+		opsAndBounds.add(opInfo, op, p, stepBound, origPosition);
 
 		// Finally, extract path formulas
 		if (exprProb != null) {
@@ -817,7 +813,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			acceptingStates = JDD.Or(acceptingStates, set);
 		targetDDs.add(acceptingStates);
 		OpRelOpBound opInfo = new OpRelOpBound("P", RelOp.GEQ, 0.0);
-		opsAndBounds.add(opInfo, Operator.P_GE, 0.0, -1);
+		opsAndBounds.add(opInfo, Operator.P_GE, 0.0, -1, -1);
 	}
 
 	//Prints info about the product model in multi-objective
