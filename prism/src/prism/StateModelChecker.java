@@ -331,7 +331,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 * It is always possible to convert between these two forms but this will not always be
 	 * efficient. In particular, we want to avoid creating: (a) explicit vectors for very large
 	 * models where the vector can only be feasibly stored as an MTBDD; (b) and symbolic
-	 * vectors for irregular vectors which ar small enough to be stored explicitly but would
+	 * vectors for irregular vectors which are small enough to be stored explicitly but would
 	 * blow up as an MTBDD.
 	 * 
 	 * Various schemes (and user preferences/configurations) are possible. Currently:
