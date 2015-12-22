@@ -2392,6 +2392,7 @@ public class PrismCL implements PrismModelListener
 		}
 		// Normal case: just display error message, but don't exit
 		mainLog.println("\nError: " + s + ".");
+		mainLog.flush();
 	}
 
 	/**
@@ -2401,6 +2402,7 @@ public class PrismCL implements PrismModelListener
 	{
 		prism.closeDown(false);
 		mainLog.println("\nError: " + s + ".");
+		mainLog.flush();
 		System.exit(1);
 	}
 
