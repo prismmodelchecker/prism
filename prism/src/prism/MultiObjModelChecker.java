@@ -666,6 +666,11 @@ public class MultiObjModelChecker extends PrismComponent
 			// Do computation
 			// Linear programming
 			if (method == Prism.MDP_MULTI_LP) {
+
+				if (opsAndBounds.numberOfStepBounded() > 0) {
+					throw new PrismNotSupportedException("Step-bounded objectives are not currently supported with linear programming");
+				}
+
 				if (opsAndBounds.rewardSize() > 0) {
 					if (hasconflictobjectives) {
 						value = PrismSparse.NondetMultiReachReward1(model.getTrans(), model.getTransActions(), model.getSynchs(), model.getODD(),
