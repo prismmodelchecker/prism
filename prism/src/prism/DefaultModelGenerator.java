@@ -70,7 +70,19 @@ public abstract class DefaultModelGenerator implements ModelGenerator
 	
 	@Override
 	public abstract List<String> getVarNames();
-	
+
+	@Override
+	public int getVarIndex(String name)
+	{
+		return getVarNames().indexOf(name);
+	}
+
+	@Override
+	public String getVarName(int i)
+	{
+		return getVarNames().get(i);
+	}
+
 	@Override
 	public abstract List<Type> getVarTypes();
 	

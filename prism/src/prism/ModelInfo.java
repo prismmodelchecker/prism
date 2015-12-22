@@ -79,9 +79,15 @@ public interface ModelInfo
 	public List<Type> getVarTypes();
 
 	/**
+	 * Look up the index of a variable in the model by name.
+	 * Returns -1 if there is no such variable.
+	 */
+	public int getVarIndex(String name);
+
+	/**
 	 * Get the name of the {@code i}th variable in the model.
 	 */
-	//public String getVarName(int i) throws PrismException;
+	public String getVarName(int i);
 
 	/**
 	 * Get the type of the {@code i}th variable in the model.
