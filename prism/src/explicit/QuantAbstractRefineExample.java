@@ -320,7 +320,7 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 		try {
 			// Load/parse a PRISM model description
 			PrismLog mainLog = new PrismPrintStreamLog(System.out);
-			Prism prism = new Prism(mainLog, mainLog);
+			Prism prism = new Prism(mainLog);
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
 			UndefinedConstants undefinedConstants = new UndefinedConstants(modulesFile, null);
 			undefinedConstants.defineUsingConstSwitch("");

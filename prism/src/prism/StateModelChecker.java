@@ -45,7 +45,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 {
 	// PRISM stuff
 	protected Prism prism;
-	protected PrismLog techLog;
 
 	// Properties file
 	protected PropertiesFile propertiesFile;
@@ -94,7 +93,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// Initialise
 		this.prism = prism;
-		techLog = prism.getTechLog();
 		model = m;
 		propertiesFile = pf;
 		constantValues = new Values();
@@ -136,7 +134,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// Initialise
 		this.prism = prism;
-		techLog = prism.getTechLog();
 		this.varList = varList;
 		this.varDDRowVars = varDDRowVars;
 		this.constantValues = constantValues;

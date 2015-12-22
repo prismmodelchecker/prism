@@ -220,12 +220,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private int reachMethod = REACH_BFS;
 
 	//------------------------------------------------------------------------------
-	// Logs
-	//------------------------------------------------------------------------------
-
-	private PrismLog techLog; // log for technical/diagnostic output
-
-	//------------------------------------------------------------------------------
 	// Parsers/translators/model checkers/simulators/etc.
 	//------------------------------------------------------------------------------
 
@@ -285,26 +279,23 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public Prism(PrismLog mainLog)
 	{
-		this(mainLog, mainLog);
-	}
-
-	/**
-	 * Construct a new Prism object.
-	 * @param mainLog PrismLog where messages and model checking output will be sent.
-	 * @param techLog PrismLog for output of detailed technical info (not really used).
-	 */
-	public Prism(PrismLog mainLog, PrismLog techLog)
-	{
-		// set up logs
+		// set up log
 		this.mainLog = mainLog;
-		this.techLog = techLog;
-
 		// set up some default options
 		settings = new PrismSettings();
 		// add this Prism object as a results listener
 		settings.addSettingsListener(this);
 		// create list of model listeners
 		modelListeners = new ArrayList<PrismModelListener>();
+	}
+
+	/**
+	 * Construct a new Prism object.
+	 * @deprecated ({@code techLog} is no longer used, use the {@link #prism.Prism(PrismLog)} constructor instead).
+	 */
+	public Prism(PrismLog mainLog, PrismLog techLog)
+	{
+		this(mainLog);
 	}
 
 	/**
@@ -352,23 +343,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// store new log
 		mainLog = l;
 		// pass to other components
+		JDD.SetOutputStream(mainLog.getFilePointer());
 		PrismMTBDD.setMainLog(mainLog);
 		PrismSparse.setMainLog(mainLog);
 		PrismHybrid.setMainLog(mainLog);
-	}
-
-	/**
-	 * Set the PrismLog for output of detailed technical info (not really used).
-	 */
-	public void setTechLog(PrismLog l)
-	{
-		// store new log
-		techLog = l;
-		// pass to other components
-		JDD.SetOutputStream(techLog.getFilePointer());
-		PrismMTBDD.setTechLog(techLog);
-		PrismSparse.setTechLog(techLog);
-		PrismHybrid.setTechLog(techLog);
 	}
 
 	// Set methods for main prism settings
@@ -685,11 +663,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public PrismLog getMainLog()
 	{
 		return mainLog;
-	}
-
-	public PrismLog getTechLog()
-	{
-		return techLog;
 	}
 
 	public PrismSettings getSettings()
@@ -1313,13 +1286,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		long cuddMaxMem = PrismUtils.convertMemoryStringtoKB(getCUDDMaxMem());
 		JDD.InitialiseCUDD(cuddMaxMem, getCUDDEpsilon());
 		cuddStarted = true;
-		JDD.SetOutputStream(techLog.getFilePointer());
+		JDD.SetOutputStream(mainLog.getFilePointer());
 
 		// initialise libraries/engines
 		PrismNative.initialise(this);
-		PrismMTBDD.initialise(mainLog, techLog);
-		PrismSparse.initialise(mainLog, techLog);
-		PrismHybrid.initialise(mainLog, techLog);
+		PrismMTBDD.initialise(mainLog, mainLog);
+		PrismSparse.initialise(mainLog, mainLog);
+		PrismHybrid.initialise(mainLog, mainLog);
 
 		// set cudd manager in other packages
 		DoubleVector.setCUDDManager();

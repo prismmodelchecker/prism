@@ -43,7 +43,6 @@ public class ExplicitModel2MTBDD
 
 	// logs
 	private PrismLog mainLog; // main log
-	private PrismLog techLog; // tech log
 
 	// Explicit-state model
 	private explicit.Model modelExpl;
@@ -100,7 +99,6 @@ public class ExplicitModel2MTBDD
 	{
 		this.prism = prism;
 		mainLog = prism.getMainLog();
-		techLog = prism.getTechLog();
 	}
 
 	// Build model

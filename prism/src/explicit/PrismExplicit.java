@@ -430,7 +430,7 @@ public class PrismExplicit extends PrismComponent
 		Prism prism;
 		try {
 			PrismLog mainLog = new PrismFileLog("stdout");
-			prism = new Prism(mainLog, mainLog);
+			prism = new Prism(mainLog);
 			//prism.initialise();
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
 			modulesFile.setUndefinedConstants(null);
@@ -454,7 +454,7 @@ public class PrismExplicit extends PrismComponent
 		Prism prism;
 		try {
 			PrismLog log = new PrismFileLog("stdout");
-			prism = new Prism(log, log);
+			prism = new Prism(log);
 			prism.initialise();
 			prism.setDoProbChecks(false);
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));

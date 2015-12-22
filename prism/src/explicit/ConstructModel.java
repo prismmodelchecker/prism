@@ -395,7 +395,7 @@ public class ConstructModel extends PrismComponent
 		try {
 			// Simple example: parse a PRISM file from a file, construct the model and export to a .tra file
 			PrismLog mainLog = new PrismPrintStreamLog(System.out);
-			Prism prism = new Prism(mainLog, mainLog);
+			Prism prism = new Prism(mainLog);
 			parser.ast.ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
 			UndefinedConstants undefinedConstants = new UndefinedConstants(modulesFile, null);
 			if (args.length > 2)

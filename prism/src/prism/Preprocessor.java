@@ -461,9 +461,7 @@ public class Preprocessor
 	public static void main(String[] args)
 	{
 		if (args.length < 1) return;
-		PrismLog pl1 = new PrismFileLog("stdout");
-		PrismLog pl2 = new PrismFileLog("stdout");
-		Prism p = new Prism(pl1, pl2);
+		Prism p = new Prism(new PrismFileLog("stdout"));
 		try {
 			Preprocessor pp = new Preprocessor(p, new File(args[0]));
 			pp.setParameters(args);

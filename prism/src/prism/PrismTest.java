@@ -55,7 +55,7 @@ public class PrismTest
 			
 			// Init
 			mainLog = new PrismFileLog("stdout");
-			prism = new Prism(mainLog, mainLog);
+			prism = new Prism(mainLog);
 			prism.initialise();
 			
 			// Parse/load model 1

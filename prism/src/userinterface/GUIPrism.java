@@ -250,7 +250,7 @@ public class GUIPrism extends JFrame
 	private void setupPrism() throws PrismException
 	{
 		theLog = new userinterface.log.GUIWindowLog();
-		prism = new Prism(theLog, new PrismFileLog("stdout"));
+		prism = new Prism(theLog);
 		prism.loadUserSettingsFile();
 		prism.initialise();
 	}

@@ -46,7 +46,6 @@ public class Modules2MTBDD
 	
 	// logs
 	private PrismLog mainLog;		// main log
-	private PrismLog techLog;		// tech log
 
 	// ModulesFile object to store syntax tree from parser
 	private ModulesFile modulesFile;
@@ -161,7 +160,6 @@ public class Modules2MTBDD
 	{
 		prism = p;
 		mainLog = p.getMainLog();
-		techLog = p.getTechLog();
 		modulesFile = mf;
 		// get symmetry reduction info
 		String s = prism.getSettings().getString(PrismSettings.PRISM_SYMM_RED_PARAMS);
