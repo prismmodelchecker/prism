@@ -1653,7 +1653,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Store PRISM model
 		currentModulesFile = modulesFile;
 		// Create a model generator for the PRISM model if appropriate - we will use that where possible
-		if (currentModulesFile.getModelType() != ModelType.PTA) {
+		if (currentModulesFile.getModelType() != ModelType.PTA && currentModulesFile.getSystemDefn() == null) {
 			currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
 		}
 		// Clear any existing built model(s)
