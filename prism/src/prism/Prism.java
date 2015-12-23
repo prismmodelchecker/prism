@@ -2832,6 +2832,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				currentModulesFile = dc.getNewModulesFile();
 				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues());
 				currentModelType = ModelType.MDP;
+				currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
 				clearBuiltModel();
 				currentModel = null;
 				currentModelExpl = null;
