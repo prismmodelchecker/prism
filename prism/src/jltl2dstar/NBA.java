@@ -21,7 +21,10 @@
 package jltl2dstar;
 
 import java.util.*;
+
 import prism.PrismException;
+import prism.PrismNotSupportedException;
+
 import java.io.PrintStream;
 
 import jltl2ba.APElement;
@@ -231,6 +234,28 @@ public class NBA implements Iterable<NBA_State> {
 		product_nba.setStartState(product_nba.get(start_1 * nba_2.size() + start_2));
 	  
 		return product_nba;
+	}
+
+	/**
+	 * Print automaton to a PrintStream in a specified format ("dot", "txt", "lbtt" or "hoa").
+	 */
+	public void print(PrintStream out, String type) throws PrismException
+	{
+		switch (type) {
+		case "txt":
+			print(out);
+			break;
+		case "dot":
+			print_dot(out);
+			break;
+		case "lbtt":
+			print_lbtt(out);
+		case "hoa":
+			print_hoa(out);
+			break;
+		default:
+			throw new PrismNotSupportedException("Can not print NBA in '"+type+"' format");
+		}
 	}
 
 	/**
