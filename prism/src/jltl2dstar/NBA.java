@@ -303,8 +303,8 @@ public class NBA implements Iterable<NBA_State> {
 					out.println(to);
 				}
 			}
-			out.println("--END--");
 		}
+		out.println("--END--");
 	}
 
 	// public void print_dot(std::ostream& out);
