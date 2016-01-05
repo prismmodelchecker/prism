@@ -113,7 +113,13 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 		setLocation(getX()+(noOpen*50), getY()+(noOpen*50));
 		
 		super.show();
-		
+
+		// Request that the initial focus is placed on the property text field
+		// when the dialog is shown.
+		// This is not guaranteed to work, but if it does then it's
+		// convenient for the user...
+		if (propertyText != null)  // should exist, but be careful nonetheless
+			propertyText.requestFocusInWindow();
 	}
 	
 	public void dispose()
