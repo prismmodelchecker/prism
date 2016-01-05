@@ -2346,7 +2346,7 @@ public class PrismCL implements PrismModelListener
 	 */
 	private void printListOfKeywords()
 	{
-		List<String> list = Prism.getListOfKeyords();
+		List<String> list = Prism.getListOfKeywords();
 		mainLog.print("PRISM keywords:");
 		for (String s : list) {
 			mainLog.print(" " + s);

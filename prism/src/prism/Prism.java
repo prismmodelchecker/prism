@@ -1254,7 +1254,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Get access to the list of all PRISM language keywords.
 	 */
-	public static List<String> getListOfKeyords()
+	public static List<String> getListOfKeywords()
 	{
 		return PrismParser.getListOfKeywords();
 	}
