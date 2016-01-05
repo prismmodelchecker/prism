@@ -36,6 +36,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -1376,9 +1377,22 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					int index = propList.locationToIndex(e.getPoint());
 
 					if (index != -1) {
-						propList.setSelectedIndex(index);
+						// locationToIndex provides the index to the "nearest"
+						// property. We check here if the cursor is actually on
+						// the property.
+						Rectangle bounds = propList.getCellBounds(index, index);
+						if (bounds != null && bounds.contains(e.getPoint())) {
+							// Cursor is on the property: select and open editor
+							propList.setSelectedIndex(index);
+							a_editProperty();
+						} else {
+							// Cursor is not on the property: open new property editor
+							a_newProperty();
+						}
+					} else {
+						// there is no property yet, open new property editor
+						a_newProperty();
 					}
-					a_editProperty();
 				}
 			}
 		}
