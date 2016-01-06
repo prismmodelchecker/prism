@@ -93,7 +93,7 @@ public class AcceptanceReach implements AcceptanceOmega
 	{
 		AcceptanceRabin rabin = new AcceptanceRabin();
 		BitSet allStates = new BitSet();
-		allStates.set(0, numStates-1);
+		allStates.set(0, numStates);
 		rabin.add(new AcceptanceRabin.RabinPair((BitSet) goalStates.clone(), allStates));
 		return rabin;
 	}
