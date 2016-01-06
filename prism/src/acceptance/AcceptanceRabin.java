@@ -183,16 +183,16 @@ public class AcceptanceRabin
 	 */
 	public AcceptanceStreett complementToStreett()
 	{
-		AcceptanceStreett accRabin = new AcceptanceStreett();
+		AcceptanceStreett accStreett = new AcceptanceStreett();
 
 		for (RabinPair accPairRabin : this) {
 			BitSet R = (BitSet) accPairRabin.getK().clone();
 			BitSet G = (BitSet) accPairRabin.getL().clone();
 			AcceptanceStreett.StreettPair accPairStreett = new AcceptanceStreett.StreettPair(R, G);
-			accRabin.add(accPairStreett);
+			accStreett.add(accPairStreett);
 		}
 
-		return accRabin;
+		return accStreett;
 	}
 
 	@Override
