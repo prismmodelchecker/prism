@@ -195,11 +195,20 @@ public class AcceptanceRabin
 		return accStreett;
 	}
 
+	/** Complement this acceptance condition, return as AcceptanceGeneric. */
+	public AcceptanceGeneric complementToGeneric()
+	{
+		return toAcceptanceGeneric().complementToGeneric();
+	}
+
 	@Override
 	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
 			return complementToStreett();
+		}
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return complementToGeneric();
 		}
 		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to a supported acceptance type");
 	}

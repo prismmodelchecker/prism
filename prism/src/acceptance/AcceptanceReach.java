@@ -115,6 +115,12 @@ public class AcceptanceReach implements AcceptanceOmega
 		return streett;
 	}
 
+	/** Complement this acceptance condition, return as AcceptanceGeneric. */
+	public AcceptanceGeneric complementToGeneric()
+	{
+		return toAcceptanceGeneric().complementToGeneric();
+	}
+
 	@Override
 	public AcceptanceOmega complement(int numStates, AcceptanceType... allowedAcceptance) throws PrismException
 	{
@@ -123,7 +129,7 @@ public class AcceptanceReach implements AcceptanceOmega
 		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
 			return complementToStreett(numStates);
 		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
-			return new AcceptanceGeneric(AcceptanceGeneric.ElementType.FIN, (BitSet) goalStates.clone());
+			return complementToGeneric();
 		}
 		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to a supported acceptance type");
 	}
