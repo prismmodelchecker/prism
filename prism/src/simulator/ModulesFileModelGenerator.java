@@ -23,6 +23,9 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	protected PrismComponent parent;
 	
 	// PRISM model info
+	/** The original modules file (might have unresolved constants) */
+	private ModulesFile originalModulesFile;
+	/** The modules file used for generating (has no unresolved constants after {@code initialise}) */
 	private ModulesFile modulesFile;
 	private ModelType modelType;
 	private Values mfConstants;
@@ -68,6 +71,7 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 		
 		// Store basic model info
 		this.modulesFile = modulesFile;
+		this.originalModulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
 		
 		// If there are no constants to define, go ahead and initialise;
@@ -79,12 +83,12 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	}
 	
 	/**
-	 * Initialise the class ready for model exploration
+	 * (Re-)Initialise the class ready for model exploration
 	 * (can only be done once any constants needed have been provided)
 	 */
 	private void initialise() throws PrismLangException
 	{
-		// Evaluate constants and optimise (a copy of) the model for analysis
+		// Evaluate constants on (a copy) of the modules file, insert constant values and optimize arithmetic expressions
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
 
 		// Get info
@@ -108,6 +112,13 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	@Override
 	public void setSomeUndefinedConstants(Values someValues) throws PrismException
 	{
+		// We start again with a copy of the original modules file
+		// and set the constants in the copy.
+		// As {@code initialise()} can replace references to constants
+		// with the concrete values in modulesFile, this ensures that we
+		// start again at a place where references to constants have not
+		// yet been replaced.
+		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
 		modulesFile.setSomeUndefinedConstants(someValues);
 		mfConstants = modulesFile.getConstantValues();
 		initialise();
