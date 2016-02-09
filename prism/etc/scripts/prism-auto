@@ -272,7 +272,7 @@ def getExpectedOutFilesFromArgs(args):
                     fullName = base + str(i) + '.' + ext
                     foundFile = True
             if not foundFile:
-                print '\033[93m' + "Warning: There is no file of the form " + base + "[number]." + ext + " to compare against -- will skip" + '\033[0m'
+                print('\033[93m' + "Warning: There is no file of the form " + base + "[number]." + ext + " to compare against -- will skip" + '\033[0m')
     return resultFiles
 
 # Create a valid name for a log file based on a list of benchmark arguments
@@ -324,9 +324,9 @@ def runPrism(args, dir=""):
                     prismArgs += ['>', logFile]
             if options.test:
                 prismArgs += ['|', 'grep "Testing result:"']
-        print ' '.join(prismArgs)
+        print(' '.join(prismArgs))
         return
-    print ' '.join(prismArgs)
+    print(' '.join(prismArgs))
     if options.logDir:
         logFile = os.path.join(options.logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
@@ -351,8 +351,8 @@ def runPrism(args, dir=""):
         for line in open(logFile, 'r').readlines():
             if re.match('Error:', line):
                 printTestResult(line)
-        print "To see log file, run:"
-        print "edit " + logFile
+        print("To see log file, run:")
+        print("edit " + logFile)
         if not options.testAll:
             sys.exit(1)
 
@@ -361,19 +361,19 @@ def runPrism(args, dir=""):
 def printTestResult(msg):
     msg = str.rstrip(msg)
     if not isColourEnabled():
-        print msg;
+        print(msg);
         return
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
-        print '\033[31m' + msg + '\033[0m'
+        print('\033[31m' + msg + '\033[0m')
     elif 'PASS' in msg:
-        print '\033[32m' + msg + '\033[0m'
+        print('\033[32m' + msg + '\033[0m')
     elif 'SKIPPED' in msg:
-        print '\033[90m' + msg + '\033[0m'
+        print('\033[90m' + msg + '\033[0m')
     elif 'UNSUPPORTED' in msg or 'Warning:' in msg:
-        print '\033[33m' + msg + '\033[0m'
+        print('\033[33m' + msg + '\033[0m')
     else:
-        print msg
+        print(msg)
 
 # Is printing of colour coded messages enabled?
 
@@ -394,7 +394,7 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
     result = True
     # Check for equality with out files
     for outFile in outFiles:
-    	msg = "Testing export " + os.path.basename(outFile) + ": "
+        msg = "Testing export " + os.path.basename(outFile) + ": "
         expFile = prependToFile(exportPrefix, outFile)
         if os.path.isfile(expFile):
             if options.noExportTests:
@@ -406,8 +406,8 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
                 os.remove(expFile)
             else:
                 msg = msg + "FAIL (" + os.path.basename(expFile) + " does not match)"
-                print "To see difference, run:"
-                print "diff " + outFile + " " + expFile
+                print("To see difference, run:")
+                print("diff " + outFile + " " + expFile)
                 result = False
         else:
             if options.noExportTests:
@@ -628,7 +628,7 @@ def benchmarkPropListFile(propListFile):
 #==================================================================================================
 
 def printUsage():
-    print "Usage: prism-auto ..."
+    print("Usage: prism-auto ...")
 
 def signal_handler(signal, frame):
     if options.nailgun:
@@ -665,7 +665,7 @@ if len(args) < 1:
 if options.debug:
     logging.basicConfig(level=logging.DEBUG)
 if options.logDir and not os.path.isdir(options.logDir):
-    print "Log directory \"" + options.logDir + "\" does not exist"
+    print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
     os.system(options.prismExec + " -ng &")
@@ -676,6 +676,6 @@ for arg in args:
     elif os.path.isfile(arg):
         benchmarkFile(arg)
     else:
-        print "Error: File/directory " + arg + " does not exist"
+        print("Error: File/directory " + arg + " does not exist")
 if options.nailgun:
     subprocess.Popen([options.ngprism, "stop"]).wait()
