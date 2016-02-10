@@ -201,6 +201,41 @@ public abstract class ModelExplicit implements Model
 		labels.put(name, states);
 	}
 
+	/**
+	 * Add a label with corresponding state set, ensuring a unique, non-existing label.
+	 * The label will be either "X" or "X_i" where X is the content of the {@code prefix} argument
+	 * and i is a non-negative integer.
+	 * <br>
+	 * Note that a stored label takes preference over the on-the-fly calculation
+	 * of an ExpressionLabel, cf. {@link explicit.StateModelChecker#checkExpressionLabel}
+	 *
+	 * @param prefix the prefix for the unique label
+	 * @param labelStates the BitSet with the state set for the label
+	 * @return the generated unique label
+	 */
+	public String addUniqueLabel(String prefix, BitSet labelStates)
+	{
+		String label;
+		if (!hasLabel(prefix)) {
+			label = prefix;
+		} else {
+			int i = 0;
+			while (true) {
+				if (!hasLabel(prefix+"_"+i)) {
+					label = prefix+"_"+i;
+					break;
+				}
+				if (i == Integer.MAX_VALUE)
+					throw new UnsupportedOperationException("Integer overflow trying to add unique label");
+
+				i++;
+			}
+		}
+
+		addLabel(label, labelStates);
+		return label;
+	}
+
 	// Accessors (for Model interface)
 
 	@Override
