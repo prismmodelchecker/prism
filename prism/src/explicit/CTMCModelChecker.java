@@ -54,16 +54,35 @@ public class CTMCModelChecker extends ProbModelChecker
 	@Override
 	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		// Construct embedded DTMC and do computation on that
+		if (!(model instanceof ModelExplicit)) {
+			// needs a ModelExplicit to allow attaching labels in the handleMaximalStateFormulas step
+			throw new PrismNotSupportedException("Need CTMC with ModelExplicit for LTL checking");
+		}
+		// we first handle the sub-formulas by computing their satisfaction sets,
+		// attaching them as labels to the model and modifying the formula
+		// appropriately
+		expr = handleMaximalStateFormulas((ModelExplicit) model, expr);
+
+		// Now, we construct embedded DTMC and do the plain LTL computation on that
 		mainLog.println("Building embedded DTMC...");
 		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax, statesOfInterest);
 	}
-	
+
 	@Override
 	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		// Construct embedded DTMC (and convert rewards for it) and do computation on that
+		if (!(model instanceof ModelExplicit)) {
+			// needs a ModelExplicit to allow attaching labels in the handleMaximalStateFormulas step
+			throw new PrismNotSupportedException("Need CTMC with ModelExplicit for cosafety LTL reward checking");
+		}
+		// we first handle the sub-formulas by computing their satisfaction sets,
+		// attaching them as labels to the model and modifying the formula
+		// appropriately
+		expr = handleMaximalStateFormulas((ModelExplicit) model, expr);
+
+		// Construct embedded DTMC (and convert rewards for it) and do remaining computation
+		// on that with the "pure" cosafety LTL formula
 		mainLog.println("Building embedded DTMC...");
 		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
 		int n = model.getNumStates();
@@ -73,7 +92,7 @@ public class CTMCModelChecker extends ProbModelChecker
 		}
 		return createDTMCModelChecker().checkRewardCoSafeLTL(dtmcEmb, rewEmb, expr, minMax, statesOfInterest);
 	}
-	
+
 	@Override
 	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
