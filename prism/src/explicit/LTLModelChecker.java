@@ -143,9 +143,9 @@ public class LTLModelChecker extends PrismComponent
 	 * replace them with ExpressionLabel objects L0, L1, etc. Expression passed in is modified directly, but the result
 	 * is also returned. As an optimisation, expressions that results in true/false for all states are converted to an
 	 * actual true/false, and duplicate results (or their negations) reuse the same label. BitSets giving the states which
-	 * satisfy each label are put into the vector labelDDs, which should be empty when this function is called.
+	 * satisfy each label are put into the vector labelBS, which should be empty when this function is called.
 	 */
-	public Expression checkMaximalStateFormulas(ProbModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
+	public Expression checkMaximalStateFormulas(StateModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
 	{
 		// A state formula
 		if (expr.getType() instanceof TypeBool) {
