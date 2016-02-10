@@ -161,6 +161,30 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return 1;
 	}
 
+	@Override
+	public BitSet getLabelStates(String name)
+	{
+		return ctmc.getLabelStates(name);
+	}
+
+	@Override
+	public boolean hasLabel(String name)
+	{
+		return ctmc.hasLabel(name);
+	}
+
+	@Override
+	public Set<String> getLabels()
+	{
+		return ctmc.getLabels();
+	}
+
+	@Override
+	public void addLabel(String name, BitSet states)
+	{
+		throw new RuntimeException("Can not add label to DTMCEmbeddedSimple");
+	}
+
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
 		// No deadlocks by definition
