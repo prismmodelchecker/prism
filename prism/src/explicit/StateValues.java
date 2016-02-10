@@ -469,6 +469,18 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Complement the (boolean) vector.
+	 */
+	public void complement() throws PrismException
+	{
+		if (!(type instanceof TypeBool)) {
+			throw new PrismException("Can only complement Boolean vectors");
+		}
+
+		valuesB.flip(0, size);
+	}
+	
+	/**
 	 * Modify the vector by applying 'equals' with operand {@code sv}.
 	 */
 	public void equals(StateValues sv) throws PrismException
