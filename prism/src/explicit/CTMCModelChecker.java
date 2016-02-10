@@ -836,7 +836,59 @@ public class CTMCModelChecker extends ProbModelChecker
 		mcDTMC.inheritSettings(this);
 		return mcDTMC;
 	}
-	
+
+	// ------------------ CTL model checking ------------------------------------------------
+	//
+	// For CTL model checking, the actual computation happens in the
+	// embedded DTMC (due to the possibility of a zero exit rate turning
+	// into a self-loop.
+	// So, we don't override the check... methods (so that recursive computation
+	// of the subformulas happens in the CTMCModelChecker), but override the
+	// compute... methods to use a DTMCModelChecker for the computations instead
+
+	@Override
+	public BitSet computeExistsNext(Model model, BitSet target, BitSet statesOfInterest) throws PrismException
+	{
+		// Construct embedded DTMC and do CTL computation on that
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		return createDTMCModelChecker().computeExistsNext(dtmcEmb, target, statesOfInterest);
+	}
+
+	@Override
+	public BitSet computeForAllNext(Model model, BitSet target, BitSet statesOfInterest) throws PrismException
+	{
+		// Construct embedded DTMC and do CTL computation on that
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		return createDTMCModelChecker().computeForAllNext(dtmcEmb, target, statesOfInterest);
+	}
+
+	@Override
+	public BitSet computeExistsUntil(Model model, BitSet A, BitSet B) throws PrismException
+	{
+		// Construct embedded DTMC and do CTL computation on that
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		return createDTMCModelChecker().computeExistsUntil(dtmcEmb, A, B);
+	}
+
+	public BitSet computeExistsGlobally(Model model, BitSet A) throws PrismException
+	{
+		// Construct embedded DTMC and do CTL computation on that
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		return createDTMCModelChecker().computeExistsGlobally(dtmcEmb, A);
+	}
+
+	public BitSet computeExistsRelease(Model model, BitSet A, BitSet B) throws PrismException
+	{
+		// Construct embedded DTMC and do CTL computation on that
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		return createDTMCModelChecker().computeExistsRelease(dtmcEmb, A, B);
+	}
+
 	/**
 	 * Simple test program.
 	 */
