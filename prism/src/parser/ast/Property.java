@@ -260,13 +260,10 @@ public class Property extends ASTElement
 		}
 
 		// Check for exceptions
-		if (result instanceof PrismNotSupportedException) {
-			// not supported -> handle in caller
-			throw (PrismNotSupportedException)result;
-		}
 		if (result instanceof Exception) {
 			String errMsg = ((Exception) result).getMessage();
 			if (strExpected.startsWith("Error")) {
+				// handle expected errors
 				if (strExpected.startsWith("Error:")) {
 					String words[] = strExpected.substring(6).split(",");
 					for (String word : words) {
@@ -279,6 +276,10 @@ public class Property extends ASTElement
 					}
 				}
 				return true;
+			}
+			if (result instanceof PrismNotSupportedException) {
+				// not supported -> handle in caller
+				throw (PrismNotSupportedException)result;
 			}
 			throw new PrismException("Unexpected error: " + errMsg);
 		} else if (strExpected.startsWith("Error")) {
