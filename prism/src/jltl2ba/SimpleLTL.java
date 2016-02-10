@@ -30,11 +30,10 @@ package jltl2ba;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import common.PlainObjectReference;
 import jltl2dstar.APMonom;
 import jltl2dstar.NBA;
 import prism.PrismException;
@@ -911,7 +910,9 @@ public class SimpleLTL {
 	 */
 	public boolean isTree()
 	{
-		HashSet<PlainObjectReference<SimpleLTL>> seen = new HashSet<PlainObjectReference<SimpleLTL>>();
+		// use an IdentityHashMap with (formula,formula) pairs indicating that formula
+		// has already been seen (due to lack of IdentityHashSet)
+		IdentityHashMap<SimpleLTL, SimpleLTL> seen = new IdentityHashMap<SimpleLTL, SimpleLTL>();
 		return isTree(seen);
 	}
 
@@ -921,13 +922,12 @@ public class SimpleLTL {
 	 *
 	 * The already seen SimpleLTL subtrees are tracked in {@code seen}.
 	 */
-	private boolean isTree(HashSet<PlainObjectReference<SimpleLTL>> seen)
+	private boolean isTree(IdentityHashMap<SimpleLTL,SimpleLTL> seen)
 	{
-		PlainObjectReference<SimpleLTL> ref = new PlainObjectReference<SimpleLTL>(this);
-		if (seen.contains(ref)) {
+		if (seen.containsKey(this)) {
 			return false;
 		}
-		seen.add(ref);
+		seen.put(this, this);
 
 		if (left != null && !left.isTree(seen)) {
 			// left child exists and is not a tree
@@ -1355,7 +1355,7 @@ public class SimpleLTL {
 
 	/** Print a DOT representation of the syntax tree of this SimpleLTL formula */
 	public void toDot(PrintStream out) {
-		HashMap<PlainObjectReference<SimpleLTL>, String> map = new HashMap<PlainObjectReference<SimpleLTL>, String>();
+		IdentityHashMap<SimpleLTL, String> map = new IdentityHashMap<SimpleLTL, String>();
 
 		out.println("digraph {");
 		toDot(out, map);
@@ -1368,15 +1368,15 @@ public class SimpleLTL {
 	 * @param out the output print stream
 	 * @param seen a map storing an identifier for each subformula that has already been seen / printed
 	 */
-	private String toDot(PrintStream out, HashMap<PlainObjectReference<SimpleLTL>, String> seen)
+	private String toDot(PrintStream out, IdentityHashMap<SimpleLTL, String> seen)
 	{
-		PlainObjectReference<SimpleLTL> ref = new PlainObjectReference<SimpleLTL>(this);
-		if (seen.containsKey(ref)) {
-			return seen.get(ref);
+		String id = seen.get(this);
+		if (id != null) {
+			return id;
 		}
 
-		String id = Integer.toString(seen.size());
-		seen.put(ref, id);
+		id = Integer.toString(seen.size());
+		seen.put(this, id);
 		out.println(id + " [label=\""+toStringLBT()+"\"]");
 
 		switch (kind) {
