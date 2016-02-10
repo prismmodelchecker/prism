@@ -101,7 +101,7 @@ public class PredecessorRelation
 	 */
 	public Iterator<Integer> getPredecessorsIterator(int s)
 	{
-		return pre.get(s).iterator();
+		return getPre(s).iterator();
 	}
 
 	/**
