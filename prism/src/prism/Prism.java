@@ -1910,6 +1910,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					currentModel = mod2mtbdd.translate();
 					currentModelExpl = null;
 				} else {
+					if (currentModulesFile.getSystemDefn() != null) {
+						throw new PrismNotSupportedException("Explicit engine does not currently support the system...endsystem construct");
+					}
 					ConstructModel constructModel = new ConstructModel(this);
 					constructModel.setFixDeadlocks(getFixDeadlocks());
 					currentModelExpl = constructModel.constructModel(currentModelGenerator);
