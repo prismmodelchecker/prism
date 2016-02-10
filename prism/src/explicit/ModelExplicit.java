@@ -296,6 +296,12 @@ public abstract class ModelExplicit implements Model
 	}
 
 	@Override
+	public boolean hasLabel(String name)
+	{
+		return labels.containsKey(name);
+	}
+
+	@Override
 	public Set<String> getLabels()
 	{
 		return labels.keySet();

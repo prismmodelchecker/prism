@@ -133,7 +133,10 @@ public interface Model
 	 * Returns an empty set if there are no labels.
 	 */
 	public Set<String> getLabels();
-	
+
+	/** Returns true if a label with the given name is attached to this model */
+	public boolean hasLabel(String name);
+
 	/**
 	 * Get the total number of transitions in the model.
 	 */

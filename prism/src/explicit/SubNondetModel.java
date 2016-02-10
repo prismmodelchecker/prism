@@ -199,6 +199,12 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
+	public boolean hasLabel(String name)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public int getNumTransitions()
 	{
 		return numTransitions;
