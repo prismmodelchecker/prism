@@ -101,7 +101,7 @@ public class NonProbModelChecker extends StateModelChecker
 
 		// Check whether this is a simple path formula (i.e. CTL, not LTL)
 		if (!expr.isSimplePathFormula()) {
-			throw new PrismException("(Non-probabilistic) LTL model checking is not supported");
+			throw new PrismNotSupportedException("(Non-probabilistic) LTL model checking is not supported");
 		}
 
 		// Negation/parentheses
@@ -123,12 +123,12 @@ public class NonProbModelChecker extends StateModelChecker
 		else if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			if (exprTemp.hasBounds()) {
-				throw new PrismException("Model checking of bounded CTL operators is not supported");
+				throw new PrismNotSupportedException("Model checking of bounded CTL operators is not supported");
 			}
 			// Next (EX)
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
 				// TODO
-				throw new PrismException("CTL model checking of the E X operator is not yet supported");
+				throw new PrismNotSupportedException("CTL model checking of the E X operator is not yet supported");
 			}
 			// Until (EU)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
@@ -159,7 +159,7 @@ public class NonProbModelChecker extends StateModelChecker
 
 		// Check whether this is a simple path formula (i.e. CTL, not LTL)
 		if (!expr.isSimplePathFormula()) {
-			throw new PrismException("(Non-probabilistic) LTL model checking is not supported");
+			throw new PrismNotSupportedException("(Non-probabilistic) LTL model checking is not supported");
 		}
 
 		// Negation/parentheses
@@ -181,16 +181,16 @@ public class NonProbModelChecker extends StateModelChecker
 		else if (expr instanceof ExpressionTemporal) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			if (exprTemp.hasBounds()) {
-				throw new PrismException("Model checking of bounded CTL operators is not supported");
+				throw new PrismNotSupportedException("Model checking of bounded CTL operators is not supported");
 			}
 			// Next (AX)
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
 				// TODO
-				throw new PrismException("CTL model checking of the A X operator is not yet supported");
+				throw new PrismNotSupportedException("CTL model checking of the A X operator is not yet supported");
 			}
 			// Until (AU)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
-				throw new PrismException("CTL model checking of the A U operator is not yet supported");
+				throw new PrismNotSupportedException("CTL model checking of the A U operator is not yet supported");
 			}
 			// Eventually (AF)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_F) {
