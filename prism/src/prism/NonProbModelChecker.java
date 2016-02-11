@@ -104,6 +104,10 @@ public class NonProbModelChecker extends StateModelChecker
 			throw new PrismNotSupportedException("(Non-probabilistic) LTL model checking is not supported");
 		}
 
+		if (prism.getFairness()) {
+			throw new PrismNotSupportedException("Non-probabilistic CTL model checking is not supported with fairness");
+		}
+
 		// Negation/parentheses
 		if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp exprUnary = (ExpressionUnaryOp) expr;
@@ -160,6 +164,10 @@ public class NonProbModelChecker extends StateModelChecker
 		// Check whether this is a simple path formula (i.e. CTL, not LTL)
 		if (!expr.isSimplePathFormula()) {
 			throw new PrismNotSupportedException("(Non-probabilistic) LTL model checking is not supported");
+		}
+
+		if (prism.getFairness()) {
+			throw new PrismNotSupportedException("Non-probabilistic CTL model checking is not supported with fairness");
 		}
 
 		// Negation/parentheses
