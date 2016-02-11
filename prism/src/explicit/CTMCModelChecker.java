@@ -54,6 +54,10 @@ public class CTMCModelChecker extends ProbModelChecker
 	@Override
 	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismNotSupportedException("LTL formulas with time bounds not supported for CTMCs");
+		}
+
 		if (!(model instanceof ModelExplicit)) {
 			// needs a ModelExplicit to allow attaching labels in the handleMaximalStateFormulas step
 			throw new PrismNotSupportedException("Need CTMC with ModelExplicit for LTL checking");
@@ -72,6 +76,10 @@ public class CTMCModelChecker extends ProbModelChecker
 	@Override
 	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismNotSupportedException("LTL formulas with time bounds not supported for CTMCs");
+		}
+
 		if (!(model instanceof ModelExplicit)) {
 			// needs a ModelExplicit to allow attaching labels in the handleMaximalStateFormulas step
 			throw new PrismNotSupportedException("Need CTMC with ModelExplicit for cosafety LTL reward checking");
