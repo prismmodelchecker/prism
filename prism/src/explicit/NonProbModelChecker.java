@@ -29,7 +29,10 @@ package explicit;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.Vector;
 
+import automata.LTL2NBA;
+import jltl2dstar.NBA;
 import common.IterableBitSet;
 import common.IterableStateSet;
 import parser.ast.Expression;
@@ -40,6 +43,7 @@ import parser.ast.ExpressionUnaryOp;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 
 /**
  * Explicit-state, non-probabilistic model checker.
@@ -87,12 +91,13 @@ public class NonProbModelChecker extends StateModelChecker
 	 */
 	protected StateValues checkExpressionExists(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
 	{
-		// Check whether this is a simple path formula (i.e. CTL, not LTL)
-		if (!expr.isSimplePathFormula()) {
-			throw new PrismNotSupportedException("(Non-probabilistic) LTL model checking is not supported");
+		// Check whether we have to use LTL path formula handling
+		if (getSettings().getBoolean(PrismSettings.PRISM_PATH_VIA_AUTOMATA)
+		    || !expr.isSimplePathFormula() ) {
+			return checkExistsLTL(model, expr, statesOfInterest);
 		}
 
-		// convert to either
+		// We have a simple path formula, convert to either
 		// (1) a U b
 		// (2) !(a U b)
 		// (3) X a
@@ -339,7 +344,7 @@ public class NonProbModelChecker extends StateModelChecker
 			}
 			count[s]=i;
 		}
-
+		
 		while (!E.isEmpty()) {
 			// get the first element of E
 			int t = E.nextSetBit(0);
@@ -443,6 +448,93 @@ public class NonProbModelChecker extends StateModelChecker
 		}
 
 		return T;
+	}
+
+	/**
+	 * Compute the set of states satisfying E[ phi ] for an LTL formula phi.
+	 * The LTL formula can have nested P or R operators, as well as nested CTL formulas.
+	 * @param model the model
+	 * @param expr the LTL formula
+	 * @param statesofInterest the states of interest
+	 * @return a boolean StateValues, with {@code true} for all states satisfying E[ phi ]
+	 */
+	protected StateValues checkExistsLTL(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismNotSupportedException("Time-bounded operators not supported in LTL: " + expr);
+		}
+
+		LTLModelChecker ltlMC = new LTLModelChecker(this);
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		expr = ltlMC.checkMaximalStateFormulas(this, model, expr, labelBS);
+
+		// We are doing existential LTL checking:
+		//  - Construct an NBA for the LTL formula
+		//  - Construct product M' = M x NBA
+		//  - Search for an accepting lasso in M', i.e., a reachable cycle
+		//    that visits F infinitely often
+
+		mainLog.println("Non-probabilistic LTL model checking for E[ " +expr + " ]");
+		mainLog.print("Constructing NBA...");
+		mainLog.flush();
+		LTL2NBA ltl2nba = new LTL2NBA(this);
+		NBA nba = ltl2nba.convertLTLFormulaToNBA(expr, this.getConstantValues());
+		mainLog.println(" NBA has " + nba.size() + " states");
+
+		// If we only care about a few states in the model,
+		// it would make sense to do a nested DFS and construct the product on the fly.
+		// But for now it's easier to rely on the existing infrastructure,
+		// construct the full product and just compute the SCCs.
+		mainLog.print("Constructing " + model.getModelType()+ "-NBA product as LTS...");
+		mainLog.flush();
+		LTSNBAProduct product = LTSNBAProduct.doProduct(model, nba, statesOfInterest, labelBS);
+		mainLog.println(" "+product.getProductModel().infoString()+", "+product.getAcceptingStates().cardinality()+" states accepting");
+
+		// Note: As the NBA is not guaranteed to be complete, the product may contain
+		// terminal states. The SCC computer can correctly deal with that.
+
+		if (product.getAcceptingStates().isEmpty()) {
+			mainLog.print("None of the states in the product are accepting, skipping further computations");
+			// If there are no accepting states, there is no accepting run, return all-false result
+			// Note: In the dual case, where all states are accepting, we nevertheless have to do the
+			// SCC analysis below, as there is no guarantee that there is actually a cycle (i.e., when
+			// eventually all runs reach terminal states in the product)
+			return StateValues.createFromBitSet(new BitSet(), model);
+		}
+
+		mainLog.print("Searching for non-trivial, accepting SCCs in product LTS...");
+		mainLog.flush();
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, product.getProductModel());
+		sccComputer.computeSCCs();
+
+		// We determine the SCCs that intersect F, as those are guaranteed to
+		// have at least one accepting cycle. This crucially relies on the fact
+		// that the SCC computer returns only non-trivial SCCs.
+		int accepting = 0;
+		int sccs = 0;
+		BitSet acceptingSCCs = new BitSet();
+		for (BitSet scc : sccComputer.getSCCs()) {
+			sccs++;
+			if (scc.intersects(product.getAcceptingStates())) {
+				acceptingSCCs.or(scc);
+				accepting++;
+			}
+		}
+		mainLog.println(" "+accepting+" of "+sccs+" non-trivial SCCs are accepting");
+
+		BitSet allStates = new BitSet();
+		allStates.set(0, product.getProductModel().getNumStates());
+
+		// compute the set of states that can reach an accepting cycle,
+		// i.e., satisfy E[ true U acceptingSCCs ], using the CTL checker
+		mainLog.println("Computing reachability of accepting SCCs...");
+		BitSet resultProduct = computeExistsUntil(product.getProductModel(), allStates, acceptingSCCs);
+		StateValues svProduct = StateValues.createFromBitSet(resultProduct, product.getProductModel());
+
+		// we project to the original model
+		StateValues result = product.projectToOriginalModel(svProduct);
+
+		return result;
 	}
 
 }

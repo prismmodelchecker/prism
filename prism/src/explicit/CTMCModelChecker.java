@@ -102,6 +102,28 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	@Override
+	protected StateValues checkExistsLTL(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		if (Expression.containsTemporalTimeBounds(expr)) {
+			throw new PrismNotSupportedException("LTL formulas with time bounds not supported for CTMCs");
+		}
+
+		if (!(model instanceof ModelExplicit)) {
+			// needs a ModelExplicit to allow attaching labels in the handleMaximalStateFormulas step
+			throw new PrismNotSupportedException("Need CTMC with ModelExplicit for LTL checking");
+		}
+		// we first handle the sub-formulas by computing their satisfaction sets,
+		// attaching them as labels to the model and modifying the formula
+		// appropriately
+		expr = handleMaximalStateFormulas((ModelExplicit) model, expr);
+
+		// Now, we construct embedded DTMC and do the plain E[ LTL ] computation on that
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		return createDTMCModelChecker().checkExistsLTL(dtmcEmb, expr, statesOfInterest);
+	}
+
+	@Override
 	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		double lTime, uTime; // time bounds
