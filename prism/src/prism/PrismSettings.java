@@ -106,6 +106,7 @@ public class PrismSettings implements Observer
 	public static final String PRISM_TRANSIENT_METHOD				= "prism.transientMethod";
 	public static final String PRISM_AR_OPTIONS					= "prism.arOptions";
 	public static final String PRISM_PATH_VIA_AUTOMATA				= "prism.pathViaAutomata";
+	public static final String PRISM_NO_DA_SIMPLIFY				= "prism.noDaSimplify";
 	public static final String PRISM_EXPORT_ADV					= "prism.exportAdv";
 	public static final String PRISM_EXPORT_ADV_FILENAME			= "prism.exportAdvFilename";
 	
@@ -272,6 +273,9 @@ public class PrismSettings implements Observer
 																			"Various options passed to the asbtraction-refinement engine (e.g. for PTA model checking)." },
 			{ BOOLEAN_TYPE,		PRISM_PATH_VIA_AUTOMATA,				"All path formulas via automata",			"4.2.1",			new Boolean(false),									"",
 																			"Handle all path formulas via automata constructions." },
+			{ BOOLEAN_TYPE,		PRISM_NO_DA_SIMPLIFY,				"Do not simplify deterministic automata",			"4.3",			new Boolean(false),									"",
+																			"Do not attempt to simplify deterministic automata, acceptance conditions (for debugging)." },
+
 			// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
 			{ INTEGER_TYPE,		PRISM_MULTI_MAX_POINTS,					"Max. multi-objective corner points",			"4.0.3",			new Integer(50),															"0,",																						
 																			"Maximum number of corner points to explore if (value iteration based) multi-objective model checking does not converge." },
@@ -1110,6 +1114,11 @@ public class PrismSettings implements Observer
 		else if (sw.equals("pathviaautomata")) {
 			set(PRISM_PATH_VIA_AUTOMATA, true);
 		}
+		// Don't simplify deterministic automata
+		else if (sw.equals("nodasimplify")) {
+			set(PRISM_NO_DA_SIMPLIFY, true);
+		}
+
 		
 		// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
 		
@@ -1611,6 +1620,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-symm <string> ................. Symmetry reduction options string");
 		mainLog.println("-aroptions <string> ............ Abstraction-refinement engine options string");
 		mainLog.println("-pathviaautomata ............... Handle all path formulas via automata constructions");
+		mainLog.println("-nodasimplify .................. Do not attempt to simplify deterministic automata, acceptance conditions");
 		mainLog.println("-exportadv <file> .............. Export an adversary from MDP model checking (as a DTMC)");
 		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
 		mainLog.println("-ltl2datool <exec> ............. Run executable <exec> to convert LTL formulas to deterministic automata");
