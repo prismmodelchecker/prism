@@ -31,6 +31,7 @@ package acceptance;
  * An omega-regular acceptance type.
  */
 public enum AcceptanceType {
+	BUCHI,
 	RABIN,
  	STREETT,
  	REACH,
