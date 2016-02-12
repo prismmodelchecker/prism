@@ -906,7 +906,7 @@ public class LTLModelChecker extends PrismComponent
 	{
 		
 		if (fairness) {
-			throw new PrismException("Accepting end-component computation for generalized Rabin is currently not supported with fairness");
+			throw new PrismNotSupportedException("Accepting end-component computation for generalized Rabin is currently not supported with fairness");
 		}
 
 		JDDNode allAcceptingStates;
