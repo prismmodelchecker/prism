@@ -97,12 +97,12 @@ public class LTL2DA extends PrismComponent
 			useExternal = false;
 		}
 
-		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.RABIN) && !useExternal) {
-			// If we may construct a Rabin automaton, check the library first
+		if (!useExternal) {
 			try {
-				result = LTL2RabinLibrary.getDRAforLTL(ltl, constants);
+				// checking the library first
+				result = LTL2RabinLibrary.getDAforLTL(ltl, constants, allowedAcceptance);
 				if (result != null) {
-					getLog().println("Taking deterministic Rabin automaton from library...");
+					getLog().println("Taking "+result.getAutomataType()+" from library...");
 				}
 			} catch (Exception e) {
 				if (containsTemporalBounds) {
@@ -118,13 +118,16 @@ public class LTL2DA extends PrismComponent
 			}
 		}
 
-		// TODO (JK): support generation of DSA for simple path formula with time bound
-		if (result == null && !containsTemporalBounds) {
-			if (useExternal) {
-				result = convertLTLFormulaToDAWithExternalTool(ltl, constants, allowedAcceptance);
+		if (result == null) {
+			if (!containsTemporalBounds) {
+				if (useExternal) {
+					result = convertLTLFormulaToDAWithExternalTool(ltl, constants, allowedAcceptance);
+				} else {
+					// use jltl2dstar LTL2DA
+					result = LTL2Rabin.ltl2da(ltl.convertForJltl2ba(), allowedAcceptance);
+				}
 			} else {
-				// use jltl2dstar LTL2DA
-				result = LTL2Rabin.ltl2da(ltl.convertForJltl2ba(), allowedAcceptance);
+				throw new PrismNotSupportedException("Could not convert LTL formula to deterministic automaton, formula had time-bounds");
 			}
 		}
 

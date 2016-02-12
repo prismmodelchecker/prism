@@ -30,8 +30,10 @@ package automata;
 import java.io.*;
 import java.util.*;
 
+import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabin.RabinPair;
+import acceptance.AcceptanceType;
 import parser.Values;
 import parser.ast.*;
 import parser.visitor.ASTTraverse;
@@ -71,6 +73,45 @@ public class LTL2RabinLibrary
 		//dras.put("(G \"L0\")&(G F \"L1\")", "5 states (start 4), 2 labels: 0-{1}->2 0-{0, 1}->0 0-{}->2 0-{0}->1 1-{1}->2 1-{0, 1}->3 1-{}->2 1-{0}->4 2-{1}->2 2-{0, 1}->2 2-{}->2 2-{0}->2 3-{1}->2 3-{0, 1}->0 3-{}->2 3-{0}->1 4-{1}->2 4-{0, 1}->3 4-{}->2 4-{0}->4; 1 acceptance pairs: ({2},{0, 1})");
 		//dras.put("(G (\"L0\"=>(F \"L1\")))&(F G \"L2\")", "7 states (start 3), 3 labels: 0-{1, 2}->1 0-{0, 1, 2}->1 0-{2}->0 0-{0, 2}->0 0-{1}->3 0-{0, 1}->3 0-{}->4 0-{0}->4 1-{1, 2}->6 1-{0, 1, 2}->6 1-{2}->6 1-{0, 2}->5 1-{1}->3 1-{0, 1}->3 1-{}->3 1-{0}->4 2-{1, 2}->1 2-{0, 1, 2}->1 2-{2}->1 2-{0, 2}->0 2-{1}->3 2-{0, 1}->3 2-{}->3 2-{0}->4 3-{1, 2}->2 3-{0, 1, 2}->2 3-{2}->2 3-{0, 2}->4 3-{1}->3 3-{0, 1}->3 3-{}->3 3-{0}->4 4-{1, 2}->2 4-{0, 1, 2}->2 4-{2}->4 4-{0, 2}->4 4-{1}->3 4-{0, 1}->3 4-{}->4 4-{0}->4 5-{1, 2}->1 5-{0, 1, 2}->1 5-{2}->0 5-{0, 2}->0 5-{1}->3 5-{0, 1}->3 5-{}->4 5-{0}->4 6-{1, 2}->6 6-{0, 1, 2}->6 6-{2}->6 6-{0, 2}->5 6-{1}->3 6-{0, 1}->3 6-{}->3 6-{0}->4; 1 acceptance pairs: ({2, 3, 4},{5, 6})");
 		//dras.put("!((G \"L0\")&(G F \"L1\"))", "4 states (start 3), 2 labels: 0-{1}->1 0-{0, 1}->3 0-{}->1 0-{0}->0 1-{1}->1 1-{0, 1}->1 1-{}->1 1-{0}->1 2-{1}->1 2-{0, 1}->3 2-{}->1 2-{0}->0 3-{1}->1 3-{0, 1}->3 3-{}->1 3-{0}->2; 2 acceptance pairs: ({},{1}) ({1, 2, 3},{0})"); 
+	}
+
+	/**
+	 * Attempts to convert an LTL formula into a deterministic omega-automaton (with
+	 * one of the allowed acceptance conditions) by direct translation methods of the library:
+	 *
+	 * Relies on getDRAForLTL, with appropriate pre/post-processing for acceptance types
+	 * that are not Rabin.
+	 *
+	 * Return {@code null} if the automaton can not be constructed using the library.
+	 * <br> The LTL formula is represented as a PRISM Expression,
+	 * in which atomic propositions are represented by ExpressionLabel objects.
+	 * @param ltl the LTL formula
+	 * @param constants values for constants in the formula (may be {@code null})
+	 */
+	public static DA<BitSet, ? extends AcceptanceOmega> getDAforLTL(Expression ltl, Values constants, AcceptanceType... allowedAcceptance) throws PrismException {
+		// first try Rabin ...
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.RABIN)) {
+			return getDRAforLTL(ltl, constants);
+		}
+
+		// ..., then Streett (via negation and complementation at the acceptance level)
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
+			Expression negatedLtl = Expression.Not(ltl);
+			DA<BitSet, AcceptanceRabin> da = getDRAforLTL(negatedLtl, constants);
+			if (da != null) {
+				DA.switchAcceptance(da, da.getAcceptance().complementToStreett());
+				return da;
+			}
+		}
+
+		// ..., and then generic acceptance
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			DA<BitSet, AcceptanceRabin> da = getDRAforLTL(ltl, constants);
+			DA.switchAcceptance(da, da.getAcceptance().toAcceptanceGeneric());
+			return da;
+		}
+
+		return null;
 	}
 
 	/**
