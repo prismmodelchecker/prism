@@ -29,7 +29,7 @@ import jltl2ba.MyBitSet.MyBitSetIterator;
 
 
 /** @file
- * Provides class NBA_State for storing a state of a nondeterministic B�chi automaton.
+ * Provides class NBA_State for storing a state of a nondeterministic Büchi automaton.
  */
 
 /**

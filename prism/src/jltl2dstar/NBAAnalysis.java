@@ -21,7 +21,7 @@
 package jltl2dstar;
 
 /** @file
- * Provides class NBAAnalysis for performing analysis on non-deterministic B�chi automata.
+ * Provides class NBAAnalysis for performing analysis on non-deterministic Büchi automata.
  */
 
 import java.util.*;

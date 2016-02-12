@@ -29,18 +29,18 @@ import jltl2ba.APSet;
 
 /** @file 
  * Provides class DBA2DRA, which can convert a 
- * deterministic B�chi automaton to a deterministic Rabin
+ * deterministic Büchi automaton to a deterministic Rabin
  * automaton.
  */
 
 /**
- * Provides conversion from deterministic B�chi to 
+ * Provides conversion from deterministic Büchi to 
  * deterministic Rabin.
  */
 public class DBA2DRA {
 	/**
-	 * Convert a deterministic B�chi automaton
-	 * (a nondeterministic B�chi automaton NBA, where every transition
+	 * Convert a deterministic Büchi automaton
+	 * (a nondeterministic Büchi automaton NBA, where every transition
 	 * has at most one target state) to an equivalent deterministic 
 	 * Rabin automaton.
 	 * <p>

@@ -33,11 +33,11 @@ import jltl2ba.MyBitSet;
 
 
 /** @file
- * Provides class NBA to store a nondeterministic B�chi automaton.
+ * Provides class NBA to store a nondeterministic Büchi automaton.
  */
 
 /**
- * A nondeterministic B�chi automaton.
+ * A nondeterministic Büchi automaton.
  * See class DA for description of template parameters.
  */
 
