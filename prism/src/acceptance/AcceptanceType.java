@@ -87,4 +87,10 @@ public enum AcceptanceType {
 		}
 		return false;
 	}
+
+	/** Return an array containing all the acceptance types */
+	public static AcceptanceType[] allTypes()
+	{
+		return values();
+	}
 }
