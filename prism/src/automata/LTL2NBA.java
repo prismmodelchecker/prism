@@ -26,10 +26,6 @@
 
 package automata;
 
-import jltl2ba.APSet;
-import jltl2ba.Alternating;
-import jltl2ba.Buchi;
-import jltl2ba.Generalized;
 import jltl2ba.SimpleLTL;
 import jltl2dstar.NBA;
 import parser.Values;
@@ -61,24 +57,8 @@ public class LTL2NBA extends PrismComponent
 			throw new PrismNotSupportedException("LTL with time bounds currently not supported for LTL model checking.");
 		}
 
-		SimpleLTL ltlSimple = ltl.convertForJltl2ba();
-		APSet apset = ltlSimple.getAPs();
-
-		Alternating a = new Alternating(ltlSimple, apset);
-		// a.print(System.out);
-		Generalized g = new Generalized(a);
-		// g.print(System.out, apset);
-		Buchi b = new Buchi(g);
-		// b.print_spin(System.out, apset);
-		NBA nba = b.toNBA(apset);
-		// nba.print(System.out);
-		
-		// jltl2ba should never produce disjoint NBA,
-		// i.e., where some states are not reachable
-		// from the intial state, so we want to fail
-		// later if the NBA is discovered to be disjoint:
-		nba.setFailIfDisjoint(true);
-
-		return nba;
+		// convert to jltl2ba LTL, simplify formula
+		SimpleLTL ltlSimple = ltl.convertForJltl2ba().simplify();
+		return ltlSimple.toNBA();
 	}
 }
