@@ -365,14 +365,14 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 				s += " " + i + "-" + e.label + "->" + e.dest;
 			}
 		}
-		s += "; " + acceptance.getTypeName() + " acceptance: ";
+		s += "; " + acceptance.getType() + " acceptance: ";
 		s += acceptance;
 		return s;
 	}
 
 	public String getAutomataType()
 	{
-		return "D"+acceptance.getTypeAbbreviated()+"A";
+		return "D"+acceptance.getType().getNameAbbreviated()+"A";
 	}
 
 	/**

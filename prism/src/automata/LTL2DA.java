@@ -282,7 +282,7 @@ public class LTL2DA extends PrismComponent
 			DA.switchAcceptance(result, acceptance.toAcceptanceGeneric());
 			return result;
 		} else {
-			throw new PrismException("The external LTL->DA tool returned an automaton with " + acceptance.getTypeName()
+			throw new PrismException("The external LTL->DA tool returned an automaton with " + acceptance.getType()
 					+ " acceptance, which is not yet supported for model checking this model / property");
 		}
 	}

@@ -633,7 +633,7 @@ public class LTLModelChecker extends PrismComponent
 		} else if (acceptance instanceof AcceptanceGenRabin) {
 			return findAcceptingECStatesForGeneralizedRabin(model, (AcceptanceGenRabin) acceptance);
 		}
-		throw new PrismNotSupportedException("Computing end components for acceptance type '"+acceptance.getTypeName()+"' currently not supported (explicit engine).");
+		throw new PrismNotSupportedException("Computing end components for acceptance type '"+acceptance.getType()+"' currently not supported (explicit engine).");
 	}
 
 	/**
