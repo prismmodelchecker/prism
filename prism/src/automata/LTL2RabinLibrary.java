@@ -115,24 +115,29 @@ public class LTL2RabinLibrary
 		String draString = dras.get(ltl2.toString());
 		if (draString != null)
 			return createDRAFromString(draString, labels);
-		
-		
+
 		// handle simple until formula with time bounds
 		if (Expression.containsTemporalTimeBounds(ltl)) {
+			if (!ltl.isSimplePathFormula()) {
+				throw new PrismNotSupportedException("Unsupported LTL formula with time bounds: "+ltl);
+			}
+
+			ltl = Expression.convertSimplePathFormulaToCanonicalForm(ltl);
 			boolean negated = false;
-			
+
 			if (ltl instanceof ExpressionUnaryOp &&
 			    ((ExpressionUnaryOp)ltl).getOperator() == ExpressionUnaryOp.NOT) {
 				// negated
 				negated = true;
 				ltl = ((ExpressionUnaryOp)ltl).getOperand();
 			}
-			
+
 			if (ltl instanceof ExpressionTemporal &&
 			    ((ExpressionTemporal)ltl).getOperator() == ExpressionTemporal.P_U) {
 				return constructDRAForSimpleUntilFormula((ExpressionTemporal)ltl, constants, negated);				
 			} else {
-				throw new PrismNotSupportedException("Unsupported LTL formula with time bounds: "+ltl);
+				// should not be reached
+				throw new PrismException("Implementation error");
 			}
 		}
 		
