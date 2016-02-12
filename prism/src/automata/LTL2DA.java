@@ -132,7 +132,7 @@ public class LTL2DA extends PrismComponent
 			throw new PrismNotSupportedException("Could not convert LTL formula to deterministic automaton");
 		}
 
-		result = DASimplifyAcceptance.simplifyAcceptance(result, allowedAcceptance);
+		result = DASimplifyAcceptance.simplifyAcceptance(this, result, allowedAcceptance);
 
 		return result;
 	}
