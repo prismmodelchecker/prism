@@ -150,7 +150,7 @@ public class AcceptanceBuchi implements AcceptanceOmega
 		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
 			return complementToGeneric();
 		}
-		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to a supported acceptance type");
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to a supported acceptance type");
 	}
 
 	@Override
@@ -207,15 +207,17 @@ public class AcceptanceBuchi implements AcceptanceOmega
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeAbbreviated()
 	{
-		return "B";
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeName()
 	{
-		return "Buchi";
+		return getType().getName();
 	}
 
 	@Override

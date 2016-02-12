@@ -51,6 +51,7 @@ public interface AcceptanceOmegaDD
 	/** Returns the type of this acceptance condition as a String,
 	 * i.e., "R" for Rabin
 	 */
+	@Deprecated
 	public String getTypeAbbreviated();
 
 	/**
@@ -61,5 +62,6 @@ public interface AcceptanceOmegaDD
 	void clear();
 
 	/** Returns a full name for this acceptance condition */
+	@Deprecated
 	public String getTypeName();
 }

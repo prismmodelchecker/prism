@@ -154,13 +154,15 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeAbbreviated() {
-		return "";
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeName() {
-		return "generic";
+		return getType().getName();
 	}
 
 	@Override

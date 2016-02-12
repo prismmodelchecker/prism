@@ -225,13 +225,15 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeAbbreviated() {
-		return "";
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeName() {
-		return "generic";
+		return getType().getName();
 	}
 
 	@Override
@@ -287,7 +289,7 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
 			return this.complementToGeneric();
 		}
-		throw new PrismNotSupportedException("Can not complement " + getTypeName() + " acceptance to required acceptance type");
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to required acceptance type");
 	}
 
 	@Override

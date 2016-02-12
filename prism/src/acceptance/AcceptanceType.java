@@ -31,12 +31,48 @@ package acceptance;
  * An omega-regular acceptance type.
  */
 public enum AcceptanceType {
-	BUCHI,
-	RABIN,
- 	STREETT,
- 	REACH,
-	GENERALIZED_RABIN,
- 	GENERIC;
+	/** Büchi acceptance */
+	BUCHI("Buchi", "B"),
+	/** Rabin acceptance */
+	RABIN("Rabin", "R"),
+	/** Streett acceptance */
+ 	STREETT("Streett", "S"),
+ 	/** Finite acceptance (goal states) */
+ 	REACH("Finite", "F"),
+ 	/** Generalized Rabin acceptance */
+	GENERALIZED_RABIN("generalized-Rabin", "GR"),
+	/** Generic acceptance, i.e., a boolean formula over Inf and Fin as in HOA format */
+ 	GENERIC("generic", "");   // abbreviation for generic is empty, results in DA
+
+	/** The long form name */
+	private final String typeName;
+	/** The abbreviated name */
+	private final String typeNameAbbreviated;
+
+	private AcceptanceType(String typeName, String typeNameAbbreviated)
+	{
+		this.typeName = typeName;
+		this.typeNameAbbreviated = typeNameAbbreviated;
+	}
+
+	/** Returns the long form name for this acceptance type */
+	public String getName()
+	{
+		return typeName;
+	}
+
+	/** Returns the abbreviated form of the name for this acceptance type */
+	public String getNameAbbreviated()
+	{
+		return typeNameAbbreviated;
+	}
+
+	@Override
+	public String toString()
+	{
+		// the long form name
+		return getName();
+	}
 
 	/**
 	 * Check whether an array of AcceptanceTypes contains a specific element.

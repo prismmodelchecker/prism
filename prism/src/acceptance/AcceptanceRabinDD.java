@@ -29,7 +29,6 @@ package acceptance;
 import java.util.ArrayList;
 
 import common.IterableBitSet;
-
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -241,14 +240,14 @@ public class AcceptanceRabinDD
 	}
 
 	@Override
-	public String getTypeAbbreviated()
-	{
-		return "R";
+	@Deprecated
+	public String getTypeAbbreviated() {
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
-	public String getTypeName()
-	{
-		return "Rabin";
+	@Deprecated
+	public String getTypeName() {
+		return getType().getName();
 	}
 }

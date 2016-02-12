@@ -239,14 +239,14 @@ public class AcceptanceStreettDD
 	}
 
 	@Override
-	public String getTypeAbbreviated()
-	{
-		return "S";
+	@Deprecated
+	public String getTypeAbbreviated() {
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
-	public String getTypeName()
-	{
-		return "Streett";
+	@Deprecated
+	public String getTypeName() {
+		return getType().getName();
 	}
 }

@@ -105,15 +105,17 @@ public class AcceptanceBuchiDD implements AcceptanceOmegaDD
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeAbbreviated()
 	{
-		return "B";
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
+	@Deprecated
 	public String getTypeName()
 	{
-		return "Buchi";
+		return getType().getName();
 	}
 
 	@Override

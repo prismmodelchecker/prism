@@ -105,15 +105,15 @@ public class AcceptanceReachDD implements AcceptanceOmegaDD
 	}
 
 	@Override
-	public String getTypeAbbreviated()
-	{
-		return "F";
+	@Deprecated
+	public String getTypeAbbreviated() {
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
-	public String getTypeName()
-	{
-		return "Finite";
+	@Deprecated
+	public String getTypeName() {
+		return getType().getName();
 	}
 
 	@Override

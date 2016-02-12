@@ -60,11 +60,18 @@ public interface AcceptanceOmega extends Cloneable
 	public AcceptanceType getType();
 
 	/** Returns the type of this acceptance condition as a String,
-	 * i.e., "R" for Rabin
+	 * i.e., "R" for Rabin.
+	 * <br>
+	 * Deprecated, use {@code getType().getNameAbbreviated()}
 	 */
+	@Deprecated
 	public String getTypeAbbreviated();
 
-	/** Returns a full name for this acceptance condition */
+	/** Returns a full name for this acceptance condition
+	 * <br>
+	 * Deprecated, use {@code getType()} in String context or {@code getType().getName()}
+	 */
+	@Deprecated
 	public String getTypeName();
 
 	/** Print the appropriate Acceptance (and potentially acc-name) header */

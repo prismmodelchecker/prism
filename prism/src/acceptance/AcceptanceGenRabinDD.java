@@ -213,14 +213,14 @@ public class AcceptanceGenRabinDD
 	}
 
 	@Override
-	public String getTypeAbbreviated()
-	{
-		return "GR";
+	@Deprecated
+	public String getTypeAbbreviated() {
+		return getType().getNameAbbreviated();
 	}
 
 	@Override
-	public String getTypeName()
-	{
-		return "Generalized Rabin";
+	@Deprecated
+	public String getTypeName() {
+		return getType().getName();
 	}
 }
