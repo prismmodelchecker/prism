@@ -37,6 +37,7 @@ import prism.PrismLog;
 import common.IterableBitSet;
 import common.IterableStateSet;
 import jltl2ba.APElement;
+import jltl2ba.APSet;
 import jltl2dstar.NBA;
 import jltl2dstar.NBA_State;
 
@@ -213,6 +214,8 @@ public class LTSNBAProduct extends Product<Model>
 				acceptingStates.set(id);
 			}
 		}
+		
+		final APSet nbaAPSet = nba.getAPSet();
 
 		while (!todo.isEmpty()) {
 			int fromId = todo.pop();
@@ -222,13 +225,9 @@ public class LTSNBAProduct extends Product<Model>
 			ProductState from = productIdToProductState.get(fromId);
 
 			// construct edge label from the labeling of the model state
-			APElement label = new APElement(labelBS.size());
-			for (int ap=0; ap < labelBS.size(); ap++) {
-				if (labelBS.get(ap).get(from.getModelState())) {
-					label.set(ap);
-				} else {
-					label.clear(ap);
-				}
+			APElement label = new APElement(nbaAPSet.size());
+			for (int k = 0; k < nbaAPSet.size(); k++) {
+				label.set(k, labelBS.get(Integer.parseInt(nbaAPSet.getAP(k).substring(1))).get(from.getModelState()));
 			}
 
 			// the current state in the NBA
