@@ -110,7 +110,7 @@ public class LTLModelChecker extends PrismComponent
 	/**
 	 * Create a new LTLModelChecker, inherit basic state from parent (unless null).
 	 */
-	public LTLModelChecker(PrismComponent parent) throws PrismException
+	public LTLModelChecker(PrismComponent parent)
 	{
 		super(parent);
 	}
