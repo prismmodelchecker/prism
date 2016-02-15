@@ -131,8 +131,7 @@ public class NonProbModelChecker extends StateModelChecker
 			}
 			// Next (EX)
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				// TODO
-				throw new PrismNotSupportedException("CTL model checking of the E X operator is not yet supported");
+				res = checkNext(exprTemp, false);
 			}
 			// Until (EU)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
@@ -193,16 +192,24 @@ public class NonProbModelChecker extends StateModelChecker
 			}
 			// Next (AX)
 			if (exprTemp.getOperator() == ExpressionTemporal.P_X) {
-				// TODO
-				throw new PrismNotSupportedException("CTL model checking of the A X operator is not yet supported");
+				res = checkNext(exprTemp, true);
 			}
 			// Until (AU)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
-				throw new PrismNotSupportedException("CTL model checking of the A U operator is not yet supported");
+				// Reduce to ENF (i.e. phi1 AU phi2 == !E[!phi2 U !phi1&!phi2] & !EG !phi2)
+				Expression notPhi1 = Expression.Not(exprTemp.getOperand1().deepCopy());
+				Expression notPhi2 = Expression.Not(exprTemp.getOperand2().deepCopy());
+				Expression notBoth = Expression.And(notPhi1.deepCopy(), notPhi2.deepCopy());
+				Expression lhs = new ExpressionTemporal(ExpressionTemporal.P_U, notPhi2, notBoth);
+				lhs = Expression.Not(new ExpressionExists(lhs));
+				Expression rhs = new ExpressionTemporal(ExpressionTemporal.P_G, null, notPhi2);
+				rhs = Expression.Not(new ExpressionExists(rhs));
+				Expression enf = Expression.And(lhs, rhs);
+				res = checkExpressionExists(enf);
 			}
 			// Eventually (AF)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_F) {
-				// Reduce to EG (AF phi = !AG !phi)
+				// Reduce to EG (i.e. AF phi == !EG !phi)
 				ExpressionTemporal exprCopy = (ExpressionTemporal) exprTemp.deepCopy();
 				exprCopy.setOperator(ExpressionTemporal.P_G);
 				exprCopy.setOperand2(Expression.Not(exprCopy.getOperand2()));
@@ -219,6 +226,41 @@ public class NonProbModelChecker extends StateModelChecker
 			throw new PrismException("Unrecognised path operator in E operator");
 
 		return res;
+	}
+
+	/**
+	 * Model check a CTL exists/forall next (EX/AX) operator.
+	 */
+	protected StateValues checkNext(ExpressionTemporal expr, boolean forall) throws PrismException
+	{
+		JDDNode b, transRel, pre;
+
+		// Model check operand first
+		b = checkExpressionDD(expr.getOperand2());
+
+		// Get transition relation
+		if (model.getModelType() == ModelType.MDP) {
+			JDD.Ref(trans01);
+			transRel = JDD.ThereExists(trans01, ((NondetModel) model).getAllDDNondetVars());
+		} else {
+			JDD.Ref(trans01);
+			transRel = trans01;
+		}
+
+		// Find predecessors
+		JDD.Ref(b);
+		JDD.Ref(transRel);
+		if (forall) {
+			pre = JDD.ForAll(JDD.Implies(transRel, JDD.PermuteVariables(b, allDDRowVars, allDDColVars)), allDDColVars);
+		} else {
+			pre = JDD.ThereExists(JDD.And(JDD.PermuteVariables(b, allDDRowVars, allDDColVars), transRel), allDDColVars);
+		}
+
+		// Derefs
+		JDD.Deref(b);
+		JDD.Deref(transRel);
+
+		return new StateValuesMTBDD(pre, model);
 	}
 
 	/**
