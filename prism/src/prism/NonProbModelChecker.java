@@ -205,7 +205,7 @@ public class NonProbModelChecker extends StateModelChecker
 				Expression rhs = new ExpressionTemporal(ExpressionTemporal.P_G, null, notPhi2);
 				rhs = Expression.Not(new ExpressionExists(rhs));
 				Expression enf = Expression.And(lhs, rhs);
-				res = checkExpressionExists(enf);
+				res = checkExpression(enf);
 			}
 			// Eventually (AF)
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_F) {
