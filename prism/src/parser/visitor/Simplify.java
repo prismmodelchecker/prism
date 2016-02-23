@@ -166,6 +166,26 @@ public class Simplify extends ASTTraverseModify
 		return e;
 	}
 
+	public Object visit(ExpressionITE e) throws PrismLangException
+	{
+		// Apply recursively
+		e.setOperand1((Expression) (e.getOperand1().accept(this)));
+		e.setOperand2((Expression) (e.getOperand2().accept(this)));
+		e.setOperand3((Expression) (e.getOperand3().accept(this)));
+
+		// If 'if' operand is true, replace with 'then' part
+		if (Expression.isTrue(e.getOperand1())) {
+			return e.getOperand2();
+		}
+
+		// If 'if' operand is false, replace with 'else' part
+		if (Expression.isFalse(e.getOperand1())) {
+			return e.getOperand3();
+		}
+
+		return e;
+	}
+
 	public Object visit(ExpressionFunc e) throws PrismLangException
 	{
 		int i, n;
