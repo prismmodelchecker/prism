@@ -606,7 +606,15 @@ public class Modules2PTA extends PrismComponent
 									updateNew.addElement(update.getVarIdent(k), update.getExpression(k));
 								}
 							}
-							updatesNew.addUpdate(updates.getProbability(j), updateNew);
+							// we translate the probability as well, as it may reference states
+							Expression probNew = updates.getProbability(j);
+							if (probNew != null) {
+								// if probability expression is null, it implicitly encodes probability 1,
+								// so we don't have to change anything
+								probNew = probNew.deepCopy();
+								probNew = (Expression) probNew.evaluatePartially(state, varMap).simplify();
+							}
+							updatesNew.addUpdate(probNew, updateNew);
 						}
 						// Add new stuff to new module
 						commandNew.setUpdates(updatesNew);
