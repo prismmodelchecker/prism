@@ -18,7 +18,7 @@ mkdir bin bin/$PLATFORM >/dev/null 2>&1
 echo '#include <stdio.h>'>>/tmp/isnan.c
 echo '#include <stdlib.h>'>>/tmp/isnan.c
 echo '#include <math.h>'>>/tmp/isnan.c
-echo 'main(){isnan(0);}'>>/tmp/isnan.c
+echo 'main(){isnan(0.0);}'>>/tmp/isnan.c
 $c /tmp/isnan.c -o /tmp/isnan $math >/dev/null 2>&1
 if [ $? = 0 ]
 then NOISNAN=
