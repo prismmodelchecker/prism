@@ -448,14 +448,52 @@ public class JDD
 	 * Operands are processed from left-to-right.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>all arguments</i> ]
 	 */
-	public static JDDNode Times(JDDNode... nodes) {
-		if (nodes.length <= 1) {
-			throw new IllegalArgumentException("JDD.Times needs at least two arguments.");
+	public static JDDNode Times(JDDNode node, JDDNode... nodes) {
+		JDDNode result = node;
+		for (JDDNode n : nodes) {
+			result = Apply(JDD.TIMES, result, n);
 		}
 
-		JDDNode result = nodes[0];
-		for (int i = 1; i<nodes.length; i++) {
-			result = Apply(JDD.TIMES, result, nodes[i]);
+		return result;
+	}
+
+	/**
+	 * Multi-operand Apply(JDD.PLUS) (addition) operation.
+	 * Operands are processed from left-to-right.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>all arguments</i> ]
+	 */
+	public static JDDNode Plus(JDDNode node, JDDNode... nodes) {
+		JDDNode result = node;
+		for (JDDNode n : nodes) {
+			result = Apply(JDD.PLUS, result, n);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Multi-operand Apply(JDD.MAX) (maximum) operation.
+	 * Operands are processed from left-to-right.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>all arguments</i> ]
+	 */
+	public static JDDNode Max(JDDNode node, JDDNode... nodes) {
+		JDDNode result = node;
+		for (JDDNode n : nodes) {
+			result = Apply(JDD.MAX, result, n);
+		}
+
+		return result;
+	}
+
+	/**
+	 * Multi-operand Apply(JDD.MIN) (minimum) operation.
+	 * Operands are processed from left-to-right.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>all arguments</i> ]
+	 */
+	public static JDDNode Min(JDDNode node, JDDNode... nodes) {
+		JDDNode result = node;
+		for (JDDNode n : nodes) {
+			result = Apply(JDD.MIN, result, n);
 		}
 
 		return result;
