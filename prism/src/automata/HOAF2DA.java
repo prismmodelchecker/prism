@@ -420,6 +420,7 @@ public class HOAF2DA implements HOAConsumer {
 			for (int index : accSignature) {
 				if (index >= acceptanceSets.size()) {
 					// acceptance set index not used in acceptance condition, ignore
+					continue;
 				}
 				BitSet accSet = acceptanceSets.get(index);
 				if (accSet == null) {
