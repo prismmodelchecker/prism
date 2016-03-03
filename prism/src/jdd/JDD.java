@@ -299,6 +299,18 @@ public class JDD
 	}
 
 	/**
+	 * Dereference dds, multi-argument variant.
+	 * The dds have to be non-{@code null}.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>all argument dds</i> ]
+	 */
+	public static void Deref(JDDNode... dds)
+	{
+		for (JDDNode d : dds) {
+			JDD.Deref(d);
+		}
+	}
+
+	/**
 	 * print cudd cache info
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
