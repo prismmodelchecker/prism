@@ -1181,10 +1181,19 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Returns all end components in candidateStates under fairness assumptions
-	 * 
-	 * @param candidateStates Set of candidate states S x H_i (dereferenced after calling this function)
-	 * @return S referenced BDD with the maximal stable set in c
+	 * Returns all end components in candidateStates under the fairness
+	 * assumption that all non-deterministic choices are treated fairly,
+	 * i.e., for each state that is visited infinitely often,
+	 * all non-deterministic choices are taken infinitely often as well.
+	 *
+	 * Iteratively removes all states from candidateStates that have any outgoing
+	 * transitions outside of candidateStates. The remaining states are those
+	 * states in candidateStates that will stay in candidateStates,
+	 * no matter which transition is taken.
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>candidateStates</i> ]
+	 * @param candidateStates Set of candidate states
+	 * @return subset of candidateStates that will never leave candidateStates (under fairness)
 	 */
 	private JDDNode findFairECs(NondetModel model, JDDNode candidateStates)
 	{
@@ -1216,9 +1225,11 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Return the set of states that reach nodes through edges
-	 * Refs: result
-	 * Derefs: nodes, edges
+	 * Return the set of states that reach nodes through edges.
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: nodes, edges ]
+	 * @param nodes set of target states (BDD)
+	 * @param edges the edge relation to consider (BDD)
 	 */
 	private JDDNode backwardSet(NondetModel model, JDDNode nodes, JDDNode edges)
 	{
@@ -1238,7 +1249,9 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Return the preimage of nodes in edges Refs: result Derefs: edges, nodes
+	 * Return the preimage of nodes in edges
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: nodes, edges ]
 	 */
 	// FIXME: Refactor this out (duplicated in SCCComputers)
 	private JDDNode preimage(NondetModel model, JDDNode nodes, JDDNode edges)
@@ -1255,6 +1268,8 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Find (states of) all maximal end components (MECs) contained within {@code states}.
+	 *
+	 * <br>[ REFS: <i>results</i>, DEREFS: <i>none</i> ]
 	 * @param states BDD of the set of containing states
 	 * @return a vector of (referenced) BDDs representing the ECs
 	 */
@@ -1269,6 +1284,8 @@ public class LTLModelChecker extends PrismComponent
 	 * Find (states of) all accepting maximal end components (MECs) contained within {@code states},
 	 * where acceptance is defined as those which intersect with {@code filter}.
 	 * (If {@code filter} is null, the acceptance condition is trivially satisfied.)
+	 *
+	 * <br>[ REFS: <i>results</i>, DEREFS: <i>none</i> ]
 	 * @param states BDD of the set of containing states
 	 * @param filter BDD for the set of accepting states
 	 * @return a vector of (referenced) BDDs representing the ECs
