@@ -872,7 +872,9 @@ public class LTLModelChecker extends PrismComponent
 				// Find states in the model for which there are no transitions leaving !L_i
 				// (this will allow us to reduce the problem to finding MECs, not ECs)
 				// TODO: I don't think this next step is needed,
-				// since the ECComputer restricts the model in this way anyway
+				// since the ECComputer restricts the model in this way anyway.
+				// However, for fairness, the restriction of the candidateStates
+				// to statesLi_not has to happen for correctness.
 				JDD.Ref(model.getTrans01());
 				JDD.Ref(statesLi_not);
 				candidateStates = JDD.Apply(JDD.TIMES, model.getTrans01(), statesLi_not);
