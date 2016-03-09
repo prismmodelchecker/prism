@@ -795,6 +795,31 @@ public class LTLModelChecker extends PrismComponent
 				acceptanceVector_L_not = statesLnot.get(i);
 				acceptanceVector_K = statesK.get(i);
 				for (JDDNode ec : allecs) {
+					if (fairness) {
+						// The goal states in this EC, have to be visited infinitely often
+						JDDNode goal = JDD.And(ec.copy(), acceptanceVector_K.copy());
+						// The safe states in this EC, only they may be visited
+						JDDNode safeStates = JDD.And(ec.copy(), acceptanceVector_L_not.copy());
+
+						// Compute the backward set for goal in this EC
+						JDDNode ecEdges = model.getTransReln().copy();
+						// we only care about the outgoing edges of safe states
+						ecEdges = JDD.And(ecEdges, safeStates.copy());
+						JDDNode canReachGoal = backwardSet(model, goal, ecEdges);
+
+						// The good states are those that are safe and can reach goal
+						JDDNode goodStates = JDD.And(safeStates, canReachGoal);
+
+						// Find accepting states under fairness:
+						// Those states in goodStates where *all* outgoing transitions
+						// remain in goodStates, forever.
+						acceptingStates = findFairECs(model, goodStates);
+
+						allAcceptingStates = JDD.Or(allAcceptingStates, acceptingStates);
+
+						// look at next EC
+						continue;
+					}
 					// build bdd of accepting states (under L_i) in the product model
 					List<JDDNode> ecs;
 					JDD.Ref(ec);
