@@ -50,6 +50,7 @@ import jltl2ba.APElement;
 import jltl2ba.APSet;
 import jltl2dstar.APMonom;
 import jltl2dstar.APMonom2APElements;
+import acceptance.AcceptanceBuchi;
 import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceGenRabin.GenRabinPair;
 import acceptance.AcceptanceGeneric;
@@ -283,6 +284,8 @@ public class HOAF2DA implements HOAConsumer {
 				return prepareAcceptanceGenRabin();
 			} else if (accName.equals("Streett")) {
 				return prepareAcceptanceStreett();
+			} else if (accName.equals("Buchi")) {
+				return prepareAcceptanceBuchi();
 			}
 		}
 
@@ -339,6 +342,23 @@ public class HOAF2DA implements HOAConsumer {
 		}
 
 		throw new UnsupportedOperationException("Unknown operator in acceptance condition: "+expr);
+	}
+
+	/**
+	 * Prepare a Buchi acceptance condition from the acc-name header.
+	 */
+	private AcceptanceBuchi prepareAcceptanceBuchi() throws HOAConsumerException
+	{
+		if (extraInfo.size() != 0) {
+			throw new HOAConsumerException("Invalid acc-name: Buchi header");
+		}
+
+		acceptanceSets = new ArrayList<BitSet>(1);
+		BitSet acceptingStates = new BitSet();
+		AcceptanceBuchi acceptanceBuchi = new AcceptanceBuchi(acceptingStates);
+		acceptanceSets.add(acceptingStates);  // Inf(0)
+
+		return acceptanceBuchi;
 	}
 
 	/**
