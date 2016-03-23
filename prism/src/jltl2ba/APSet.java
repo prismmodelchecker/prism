@@ -28,6 +28,7 @@ import java.io.PrintStream;
 
 /**
  * Class representing a set of atomic propositions (AP).
+ * The APs are ordered, in insertion order.
  */
 public class APSet implements Iterable<String> {
 	
@@ -119,15 +120,36 @@ public class APSet implements Iterable<String> {
     		canonical.addAP("p" + i);
     	return canonical;
 	}
-	
+
+	/** Returns an iterator over the atomic propositions in this set */
 	public Iterator<String> iterator()
 	{
 		return vector.iterator();
 	}
-	
+
+	/**
+	 * Returns an Iterator over the APElements induced by this AP set,
+	 * i.e., all possible subsets for the AP set.
+	 */
 	public Iterator<APElement> elementIterator()
 	{
 		return new APElementIterator(vector.size());
+	}
+
+	/**
+	 * Returns an Iterable over the APElements induced by this AP set,
+	 * i.e., all possible subsets for the AP set.
+	 */
+	public Iterable<APElement> elements()
+	{
+		return new Iterable<APElement>() {
+			@Override
+			public Iterator<APElement> iterator()
+			{
+				return elementIterator();
+			}
+
+		};
 	}
 	
 	public void print(PrintStream out) {
