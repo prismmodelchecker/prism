@@ -22,6 +22,8 @@
 
 package jltl2ba;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 import java.util.Iterator;
 import java.io.PrintStream;
@@ -81,6 +83,15 @@ public class APSet implements Iterable<String>
 	public boolean hasAP(String s)
 	{
 		return vector.contains(s);
+	}
+
+	/**
+	 * Returns an (unmodifiable) List view of this AP set.
+	 * To modify this APSet, use the {@code addAP} method.
+	 */
+	public List<String> asList()
+	{
+		return Collections.unmodifiableList(vector);
 	}
 
 	/**
