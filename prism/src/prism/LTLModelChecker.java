@@ -33,6 +33,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Vector;
 
+import acceptance.AcceptanceBuchiDD;
 import acceptance.AcceptanceGenRabinDD;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
@@ -735,6 +736,8 @@ public class LTLModelChecker extends PrismComponent
 			throws PrismException
 	{
 		switch (acceptance.getType()) {
+		case BUCHI:
+			return findAcceptingECStatesForBuchi((AcceptanceBuchiDD) acceptance, model, fairness);
 		case RABIN:
 			return findAcceptingECStatesForRabin((AcceptanceRabinDD) acceptance, model, daDDRowVars, daDDColVars, fairness);
 		case GENERALIZED_RABIN:
@@ -742,6 +745,35 @@ public class LTLModelChecker extends PrismComponent
 		default:
 			throw new PrismNotSupportedException("Computing the accepting EC states for "+acceptance.getTypeName()+" acceptance is not yet implemented (symbolic engine)");
 		}
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Büchi acceptance condition.
+	 * @param acceptance the Büchi acceptance condition
+	 * @param model The model
+	 * @param fairness Consider fairness?
+	 * @return A referenced BDD for the union of all states in accepting MECs
+	 */
+	public JDDNode findAcceptingECStatesForBuchi(AcceptanceBuchiDD acceptance, NondetModel model, boolean fairness) throws PrismException
+	{
+		JDDNode acceptingStates = null;
+
+		// Normal case (no fairness): find accepting MECs
+		if (!fairness) {
+			List<JDDNode> ecs = findMECStates(model, model.getReach().copy());
+			acceptingStates = filteredUnion(ecs, acceptance.getAcceptingStates());
+		}
+		// For case of fairness...
+		else {
+			// Compute the backward set of F, i.e., all states that can reach F
+			JDDNode edges = model.getTransReln().copy();
+			JDDNode filterStates = backwardSet(model, acceptance.getAcceptingStates(), edges);
+			// Find the accepting states under fairness: the fair ECs that
+			// can stay in filterStates, as those can infinitely often visit F
+			acceptingStates = findFairECs(model, filterStates);
+		}
+
+		return acceptingStates;
 	}
 
 	/**

@@ -56,6 +56,7 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
+import acceptance.AcceptanceBuchi;
 import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
@@ -618,7 +619,9 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public BitSet findAcceptingECStates(NondetModel model, AcceptanceOmega acceptance) throws PrismException
 	{
-		if (acceptance instanceof AcceptanceRabin) {
+		if (acceptance instanceof AcceptanceBuchi) {
+			return findAcceptingECStatesForBuchi(model, (AcceptanceBuchi) acceptance);
+		} else if (acceptance instanceof AcceptanceRabin) {
 			return findAcceptingECStatesForRabin(model, (AcceptanceRabin) acceptance);
 		} else if (acceptance instanceof AcceptanceStreett) {
 			return findAcceptingECStatesForStreett(model, (AcceptanceStreett) acceptance);
@@ -626,6 +629,33 @@ public class LTLModelChecker extends PrismComponent
 			return findAcceptingECStatesForGeneralizedRabin(model, (AcceptanceGenRabin) acceptance);
 		}
 		throw new PrismNotSupportedException("Computing end components for acceptance type '"+acceptance.getType()+"' currently not supported (explicit engine).");
+	}
+
+	/**
+	 * Find the set of states in accepting end components (ECs) in a nondeterministic model wrt a Büchi acceptance condition.
+	 * @param model The model
+	 * @param acceptance The acceptance condition
+	 */
+	public BitSet findAcceptingECStatesForBuchi(NondetModel model, AcceptanceBuchi acceptance) throws PrismException
+	{
+		BitSet allAcceptingStates = new BitSet();
+
+		if (acceptance.getAcceptingStates().isEmpty()) {
+			return allAcceptingStates;
+		}
+
+		// Compute accepting maximum end components (MECs)
+		ECComputer ecComputer = ECComputer.createECComputer(this, model);
+		ecComputer.computeMECStates();
+		List<BitSet> mecs = ecComputer.getMECStates();
+		// Union of accepting MEC states
+		for (BitSet mec : mecs) {
+			if (mec.intersects(acceptance.getAcceptingStates())) {
+				allAcceptingStates.or(mec);
+			}
+		}
+
+		return allAcceptingStates;
 	}
 
 	/**
