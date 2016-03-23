@@ -30,95 +30,103 @@ import java.io.PrintStream;
  * Class representing a set of atomic propositions (AP).
  * The APs are ordered, in insertion order.
  */
-public class APSet implements Iterable<String> {
-	
+public class APSet implements Iterable<String>
+{
+
 	private Vector<String> vector;
-	
+
 	/**
 	 * Constructor.
 	 */
-	public APSet() {
+	public APSet()
+	{
 		vector = new Vector<String>();
 	}
 
-  /**
-   * Adds a new AP to the set.
-   * @param name the name of the AP
-   * @return the index of the added AP
-   */
-	public int addAP(String name) {
+	/**
+	 * Adds a new AP to the set.
+	 * @param name the name of the AP
+	 * @return the index of the added AP
+	 */
+	public int addAP(String name)
+	{
 		int i = vector.indexOf(name);
-		
+
 		if (i == -1) {
 			vector.add(name);
 			return vector.size() - 1;
-		}
-		else return i;
+		} else
+			return i;
 	}
 
-  /**
-   * Gets the name of a certain AP.
-   * @param index index of the AP
-   * @return string-ref with the name
-   */
-	public String getAP(int index) {
+	/**
+	 * Gets the name of a certain AP.
+	 * @param index index of the AP
+	 * @return string-ref with the name
+	 */
+	public String getAP(int index)
+	{
 		return vector.elementAt(index);
 	}
-	
-  /**
-   * Searches for an existing AP in the APSet and returns the index.
-   * @return the index of the AP, or -1 if not found.
-   */
-	public int indexOf(String s) {
+
+	/**
+	 * Searches for an existing AP in the APSet and returns the index.
+	 * @return the index of the AP, or -1 if not found.
+	 */
+	public int indexOf(String s)
+	{
 		return vector.indexOf(s);
 	}
-	
-	public boolean hasAP(String s) {
+
+	public boolean hasAP(String s)
+	{
 		return vector.contains(s);
 	}
 
-  /**
-   * Get the size of this set
-   * @return the number of APs in this set.
-   */
-	public int size() {
+	/**
+	 * Get the size of this set
+	 * @return the number of APs in this set.
+	 */
+	public int size()
+	{
 		return vector.size();
 	}
 
-  /**
-   * Get the size of the powerset 2^APSet
-   * @return the size of 2^AP
-   */
-	public int powersetSize() {
-		return (1<<size());
+	/**
+	 * Get the size of the powerset 2^APSet
+	 * @return the size of 2^AP
+	 */
+	public int powersetSize()
+	{
+		return (1 << size());
 	}
 
-  /** 
-   * Equality check.
-   * @param other the other APSet
-   * @return <b>true</b> if this and the other APSet are equal
-   */
-	public boolean equals(APSet other) 
+	/**
+	 * Equality check.
+	 * @param other the other APSet
+	 * @return <b>true</b> if this and the other APSet are equal
+	 */
+	public boolean equals(APSet other)
 	{
 		return this.vector.equals(other.vector);
 	}
-	
+
 	public boolean equals(Object other)
 	{
 		return ((other instanceof APSet) && this.equals((APSet) other));
 	}
 
-  /**
-   * Create a new APSet with the same number of 
-   * atomic propositions, but named 'p0', 'p1', 'p2', ...
-   * The caller takes ownership of the memory of the created APSet.
-   * @return APSet* to newly created APSet
-   */
-	public APSet createCanonical() {
+	/**
+	 * Create a new APSet with the same number of
+	 * atomic propositions, but named 'p0', 'p1', 'p2', ...
+	 * @return the newly created APSet
+	 */
+	public APSet createCanonical()
+	{
 		APSet canonical = new APSet();
-    	for (int i=0; i < size(); i++)
-    		canonical.addAP("p" + i);
-    	return canonical;
+		for (int i = 0; i < size(); i++)
+			canonical.addAP("p" + i);
+		return canonical;
 	}
 
 	/** Returns an iterator over the atomic propositions in this set */
@@ -142,7 +150,8 @@ public class APSet implements Iterable<String> {
 	 */
 	public Iterable<APElement> elements()
 	{
-		return new Iterable<APElement>() {
+		return new Iterable<APElement>()
+		{
 			@Override
 			public Iterator<APElement> iterator()
 			{
@@ -151,27 +160,32 @@ public class APSet implements Iterable<String> {
 
 		};
 	}
-	
-	public void print(PrintStream out) {
+
+	/** Print this AP set */
+	public void print(PrintStream out)
+	{
 		for (int i = 0; i < size(); i++) {
 			out.println(i + ": " + getAP(i));
 		}
 	}
 
 	/** Print this APSet as a HOA AP: header */
-	public void print_hoa(PrintStream out) {
+	public void print_hoa(PrintStream out)
+	{
 		out.print("AP: ");
 		out.print(size());
 		for (String ap : this) {
 			// TODO(JK): proper quoting
-			out.print(" \""+ap+"\"");
+			out.print(" \"" + ap + "\"");
 		}
 		out.println();
 	}
 
-	public String toString() {
+	@Override
+	public String toString()
+	{
 		String rv = "{";
-		for (Iterator<String> it = this.iterator(); it.hasNext(); ) {
+		for (Iterator<String> it = this.iterator(); it.hasNext();) {
 			rv = rv + it.next();
 			if (it.hasNext()) {
 				rv = rv + ",";
