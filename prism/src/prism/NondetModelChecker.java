@@ -1169,6 +1169,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		
 		// Convert LTL formula to deterministic automaton (DA)
 		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.BUCHI,
 				AcceptanceType.RABIN,
 				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH

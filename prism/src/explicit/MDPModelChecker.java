@@ -86,6 +86,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Build product of MDP and automaton
 		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.BUCHI,
 				AcceptanceType.RABIN,
 				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
