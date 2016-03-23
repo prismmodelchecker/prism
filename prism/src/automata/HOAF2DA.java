@@ -56,6 +56,8 @@ import acceptance.AcceptanceGeneric;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceRabin.RabinPair;
+import acceptance.AcceptanceStreett;
+import acceptance.AcceptanceStreett.StreettPair;
 
 /**
  * A HOAConsumer for jhoafparser that constructs a prism.DA from the parsed automaton.
@@ -279,6 +281,8 @@ public class HOAF2DA implements HOAConsumer {
 				return prepareAcceptanceRabin();
 			} else if (accName.equals("generalized-Rabin")) {
 				return prepareAcceptanceGenRabin();
+			} else if (accName.equals("Streett")) {
+				return prepareAcceptanceStreett();
 			}
 		}
 
@@ -361,6 +365,32 @@ public class HOAF2DA implements HOAConsumer {
 		}
 
 		return acceptanceRabin;
+	}
+
+	/**
+	 * Prepare a Streett acceptance condition from the acc-name header.
+	 */
+	private AcceptanceStreett prepareAcceptanceStreett() throws HOAConsumerException
+	{
+		if (extraInfo.size() != 1 ||
+		    !(extraInfo.get(0) instanceof Integer)) {
+			throw new HOAConsumerException("Invalid acc-name: Streett header");
+		}
+
+		int numberOfPairs = (Integer)extraInfo.get(0);
+		AcceptanceStreett acceptanceStreett = new AcceptanceStreett();
+		acceptanceSets = new ArrayList<BitSet>(numberOfPairs*2);
+		for (int i = 0; i< numberOfPairs; i++) {
+			BitSet R = new BitSet();
+			BitSet G = new BitSet();
+
+			acceptanceSets.add(R);   // 2*i
+			acceptanceSets.add(G);   // 2*i+1
+
+			acceptanceStreett.add(new StreettPair(R,G));
+		}
+
+		return acceptanceStreett;
 	}
 
 	/**
