@@ -482,7 +482,7 @@ public class SimulatorEngine extends PrismComponent
 	{
 		updater.calculateTransitions(state, transitionList);
 		transitionListBuilt = true;
-		transitionListState = null;
+		transitionListState = state;
 	}
 
 	// ------------------------------------------------------------------------------
