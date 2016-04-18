@@ -101,6 +101,8 @@ public class StateModelChecker extends PrismComponent
 	protected String exportProductTransFilename = null;
 	protected boolean exportProductStates = false;
 	protected String exportProductStatesFilename = null;
+	protected boolean exportProductVector = false;
+	protected String exportProductVectorFilename = null;
 	
 	// Store the final results vector after model checking?
 	protected boolean storeVector = false;
@@ -200,6 +202,8 @@ public class StateModelChecker extends PrismComponent
 		setExportProductTransFilename(other.getExportProductTransFilename());
 		setExportProductStates(other.getExportProductStates());
 		setExportProductStatesFilename(other.getExportProductStatesFilename());
+		setExportProductVector(other.getExportProductVector());
+		setExportProductVectorFilename(other.getExportProductVectorFilename());
 		setStoreVector(other.getStoreVector());
 		setGenStrat(other.getGenStrat());
 		setDoBisim(other.getDoBisim());
@@ -251,6 +255,16 @@ public class StateModelChecker extends PrismComponent
 	public void setExportProductStatesFilename(String s)
 	{
 		exportProductStatesFilename = s;
+	}
+
+	public void setExportProductVector(boolean b)
+	{
+		exportProductVector = b;
+	}
+
+	public void setExportProductVectorFilename(String s)
+	{
+		exportProductVectorFilename = s;
 	}
 
 	/**
@@ -312,6 +326,16 @@ public class StateModelChecker extends PrismComponent
 	public String getExportProductStatesFilename()
 	{
 		return exportProductStatesFilename;
+	}
+
+	public boolean getExportProductVector()
+	{
+		return exportProductVector;
+	}
+
+	public String getExportProductVectorFilename()
+	{
+		return exportProductVectorFilename;
 	}
 
 	/**

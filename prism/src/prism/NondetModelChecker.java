@@ -1224,6 +1224,14 @@ public class NondetModelChecker extends NonProbModelChecker
 			probsProduct.subtractFromOne();
 		}
 
+		// Output vector over product, if required
+		if (prism.getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + prism.getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(prism.getExportProductVectorFilename());
+				probsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+		
 		// Convert probability vector to original model
 		// First, filter over DRA start states
 		startMask = mcLtl.buildStartMask(da, labelDDs, daDDRowVars);

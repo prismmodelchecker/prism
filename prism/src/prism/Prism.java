@@ -191,6 +191,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	protected String exportProductTransFilename = null;
 	protected boolean exportProductStates = false;
 	protected String exportProductStatesFilename = null;
+	protected boolean exportProductVector = false;
+	protected String exportProductVectorFilename = null;
 	// Store the final results vector after model checking?
 	protected boolean storeVector = false;
 	// Generate/store a strategy during model checking?
@@ -568,6 +570,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		exportProductStatesFilename = s;
 	}
 
+	public void setExportProductVector(boolean b) throws PrismException
+	{
+		exportProductVector = b;
+	}
+
+	public void setExportProductVectorFilename(String s) throws PrismException
+	{
+		exportProductVectorFilename = s;
+	}
+
 	/**
 	 * Specify whether or not to store the final results vector after model checking.
 	 */
@@ -881,6 +893,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public String getExportProductStatesFilename()
 	{
 		return exportProductStatesFilename;
+	}
+
+	public boolean getExportProductVector()
+	{
+		return exportProductVector;
+	}
+
+	public String getExportProductVectorFilename()
+	{
+		return exportProductVectorFilename;
 	}
 
 	/**
@@ -3625,6 +3647,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setExportProductTransFilename(exportProductTransFilename);
 		mc.setExportProductStates(exportProductStates);
 		mc.setExportProductStatesFilename(exportProductStatesFilename);
+		mc.setExportProductVector(exportProductVector);
+		mc.setExportProductVectorFilename(exportProductVectorFilename);
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
 		mc.setDoBisim(doBisim);

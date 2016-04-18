@@ -114,6 +114,14 @@ public class DTMCModelChecker extends ProbModelChecker
 		mcProduct.inheritSettings(this);
 		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs(product.getProductModel(), acc).soln, product.getProductModel());
 
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				probsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+		
 		// Mapping probabilities in the original model
 		probs = product.projectToOriginalModel(probsProduct);
 		probsProduct.clear();
@@ -176,6 +184,14 @@ public class DTMCModelChecker extends ProbModelChecker
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc).soln, product.getProductModel());
+		
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				rewardsProduct.print(out, false, false, false, false);
+				out.close();
+		}
 		
 		// Mapping rewards in the original model
 		rewards = product.projectToOriginalModel(rewardsProduct);

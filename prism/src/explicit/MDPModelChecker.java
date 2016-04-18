@@ -131,6 +131,14 @@ public class MDPModelChecker extends ProbModelChecker
 			probsProduct.plusConstant(1.0);
 		}
 
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				probsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+		
 		// Mapping probabilities in the original model
 		probs = product.projectToOriginalModel(probsProduct);
 		probsProduct.clear();
@@ -195,6 +203,14 @@ public class MDPModelChecker extends ProbModelChecker
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc, minMax.isMin()).soln, product.getProductModel());
+		
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				rewardsProduct.print(out, false, false, false, false);
+				out.close();
+		}
 		
 		// Mapping rewards in the original model
 		rewards = product.projectToOriginalModel(rewardsProduct);
