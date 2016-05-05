@@ -15,7 +15,13 @@ fi;
 
 # Command to launch Java
 if [ "$PRISM_JAVA" = "" ]; then
-	PRISM_JAVA=java
+	# On OS X, we want to avoiding calling java from the /usr/bin link
+	# since it causes problems with dynamic linking (DYLD_LIBRARY_PATH)
+	if [ -x /usr/libexec/java_home ]; then
+		PRISM_JAVA=`/usr/libexec/java_home`"/bin/java"
+	else
+		PRISM_JAVA=java
+	fi
 fi
 
 # If there is a -javamaxmem switch, use it for PRISM_JAVAMAXMEM
