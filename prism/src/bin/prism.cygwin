@@ -67,5 +67,9 @@ if [ "$PRISM_HEADLESS" = "" ]; then
 	PRISM_HEADLESS=true
 fi
 
+# Convert paths to Windows form
+PRISM_CLASSPATH_WIN=`cygpath -wp $"$PRISM_CLASSPATH"`
+JAVA_LIBRARY_PATH_WIN=`cygpath -wp "$JAVA_LIBRARY_PATH"`
+
 # Run PRISM through Java
-"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=`cygpath -wp $JAVA_LIBRARY_PATH` -classpath `cygpath -wp $"$PRISM_CLASSPATH"` $PRISM_MAINCLASS "$@"
+"$PRISM_JAVA" $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH_WIN" -classpath "$PRISM_CLASSPATH_WIN" $PRISM_MAINCLASS "$@"
