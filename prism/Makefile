@@ -445,7 +445,7 @@ dist_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; fi
 
 # Unless already present, copy cudd/examples/doc to this dir
-# By default, cudd/examples from svn trunk and doc from ~/prism-doc; other options commented out below
+# By default, cudd/examples from svn trunk and doc from ~/prism/prism-doc; other options commented out below
 dist_copy:
 	@if [ -e cudd ]; then \
 	  echo "Warning: Not copying cudd since directory already exists"; \
@@ -462,10 +462,10 @@ dist_copy:
 	@if [ -e doc ]; then \
 	  echo "Warning: Not copying manual since directory doc already exists"; \
 	else \
-	  echo "Installing manual from ~/prism-doc..."; \
+	  echo "Installing manual from ~/prism/prism-doc..."; \
 	  mkdir doc; \
-	  (SRC_DIST_DIR=`/bin/pwd`; cd ~/prism-doc; tar cf - manual | tar xf - -C "$$SRC_DIST_DIR"/doc); \
-	  cp ~/prism-doc/manual.pdf doc; \
+	  (SRC_DIST_DIR=`/bin/pwd`; cd ~/prism/prism-doc; tar cf - manual | tar xf - -C "$$SRC_DIST_DIR"/doc); \
+	  cp ~/prism/prism-doc/manual.pdf doc; \
 	fi
 
 dist_bin_copy:
