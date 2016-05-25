@@ -19,7 +19,9 @@ Recent changes: (up to svn rev 10687)
 Version 4.3.1 (first released 26/5/2015)
 -----------------------------------------------------------------------------
 
-* Bug fix for launch scripts on OS X (especially El Capitan)
+* Bug fixes:
+- launch scripts on OS X (especially El Capitan)
+- lpsolve compile fix for recent Linux distributions
 
 -----------------------------------------------------------------------------
 Version 4.3 (first released 14/7/2015)
