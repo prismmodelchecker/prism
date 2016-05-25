@@ -355,7 +355,7 @@ public class PrismParser
 	 */
 	public int getTabSize()
 	{
-		return SimpleCharStream.getTabSize(0);
+		return SimpleCharStream.getTabSize();
 	}
 	
 	/**
