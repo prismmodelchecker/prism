@@ -1,6 +1,6 @@
 This file contains details of the changes in each new version of PRISM.
 
-Recent changes: (up to svn rev 10687)
+Recent changes: (up to svn rev 10893)
 
 * Timeout feature (-timeout switch)
 * Built-in support for Nailgun client/server
