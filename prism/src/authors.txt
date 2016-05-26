@@ -1,0 +1,11 @@
+dxp = Dave Parker <dave.x.parker@gmail.com>
+jklein = Joachim Klein <klein@tcs.inf.tu-dresden.de>
+vojta = Vojtech Forejt <forejtv@gmail.com>
+gxn = Gethin Norman <gethin.norman@glasgow.ac.uk>
+emhahn = Ernst Moritz Hahn <emhahn@cs.ox.ac.uk>
+fritsd = Frits Dannenberg <frits.dannenberg@cs.ox.ac.uk>
+mujma = Mateusz Ujma <mateusz.ujma@cs.ox.ac.uk>
+mxk = Mark Kattenbelt <mark.kattenbelt@comlab.ox.ac.uk>
+nishan = Nishan Kamaleson <nxk249@bham.ac.uk>
+lukeh = Luke Herbert <herbert.luke@gmail.com>
+(no author) = Dave Parker <dave.x.parker@gmail.com>
