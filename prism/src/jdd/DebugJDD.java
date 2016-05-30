@@ -327,10 +327,15 @@ public class DebugJDD
 			}
 		}
 
+		// clean-up data structures
+		nodes.clear();
+		javaRefs.clear();
+		// reset ID counter
+		DebugJDDNode.nextId = 0;
+		
 		if (warningsAreFatal) {
 			throw new RuntimeException("DebugJDD: Leaked references");
 		}
-
 	}
 
 	/** Get the CUDD reference count for the pointer of the JDDNode */
