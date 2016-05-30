@@ -274,9 +274,11 @@ public class JDD
 		if (ptr == 0) {
 			throw new CuddOutOfMemoryException();
 		}
-		if (DebugJDD.debugEnabled)
-			DebugJDD.increment(dd);
-		DD_Ref(ptr);
+		if (DebugJDD.debugEnabled) {
+			DebugJDD.Ref(dd);
+		} else {
+			DD_Ref(ptr);
+		}
 	}
 	
 	/**
@@ -293,9 +295,11 @@ public class JDD
 		if (ptr == 0) {
 			throw new CuddOutOfMemoryException();
 		}
-		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
-		DD_Deref(ptr);
+		if (DebugJDD.debugEnabled) {
+			DebugJDD.Deref(dd);
+		} else {
+			DD_Deref(ptr);
+		}
 	}
 
 	/**
@@ -376,7 +380,7 @@ public class JDD
 	public static JDDNode Not(JDDNode dd)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_Not(dd.ptr()));
 	}
 	
@@ -387,8 +391,8 @@ public class JDD
 	public static JDDNode Or(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
 		}
 		return ptrToNode(DD_Or(dd1.ptr(), dd2.ptr()));
 	}
@@ -424,8 +428,8 @@ public class JDD
 	public static JDDNode And(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
 		}
 			
 		return ptrToNode(DD_And(dd1.ptr(), dd2.ptr()));
@@ -462,8 +466,8 @@ public class JDD
 	public static JDDNode Xor(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
 		}
 		return ptrToNode(DD_Xor(dd1.ptr(), dd2.ptr()));
 	}
@@ -475,8 +479,8 @@ public class JDD
 	public static JDDNode Implies(JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
 		}
 		return ptrToNode(DD_Implies(dd1.ptr(), dd2.ptr()));
 	}
@@ -497,8 +501,8 @@ public class JDD
 	public static JDDNode Apply(int op, JDDNode dd1, JDDNode dd2)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
 		}
 		return ptrToNode(DD_Apply(op, dd1.ptr(), dd2.ptr()));
 	}
@@ -566,7 +570,7 @@ public class JDD
 	public static JDDNode MonadicApply(int op, JDDNode dd)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_MonadicApply(op, dd.ptr()));
 	}
 	
@@ -577,8 +581,8 @@ public class JDD
 	public static JDDNode Restrict(JDDNode dd, JDDNode cube)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd);
-			DebugJDD.decrement(cube);
+			DebugJDD.DD_Method_Argument(dd);
+			DebugJDD.DD_Method_Argument(cube);
 		}
 		return ptrToNode(DD_Restrict(dd.ptr(), cube.ptr()));
 	}
@@ -590,9 +594,9 @@ public class JDD
 	public static JDDNode ITE(JDDNode dd1, JDDNode dd2, JDDNode dd3)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
-			DebugJDD.decrement(dd3);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
+			DebugJDD.DD_Method_Argument(dd3);
 		}
 		return ptrToNode(DD_ITE(dd1.ptr(), dd2.ptr(), dd3.ptr()));
 	}
@@ -640,7 +644,7 @@ public class JDD
 	public static JDDNode PermuteVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_PermuteVariables(dd.ptr(), old_vars.array(), new_vars.array(), old_vars.n()));
 	}
 
@@ -651,7 +655,7 @@ public class JDD
 	public static JDDNode SwapVariables(JDDNode dd, JDDVars old_vars, JDDVars new_vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_SwapVariables(dd.ptr(), old_vars.array(), new_vars.array(), old_vars.n()));
 	}
 
@@ -709,7 +713,7 @@ public class JDD
 	public static JDDNode ThereExists(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_ThereExists(dd.ptr(), vars.array(), vars.n()));
 	}
 	
@@ -720,7 +724,7 @@ public class JDD
 	public static JDDNode ForAll(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_ForAll(dd.ptr(), vars.array(), vars.n()));
 	}
 	
@@ -731,7 +735,7 @@ public class JDD
 	public static JDDNode SumAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_SumAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
@@ -742,7 +746,7 @@ public class JDD
 	public static JDDNode ProductAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_ProductAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
@@ -753,7 +757,7 @@ public class JDD
 	public static JDDNode MinAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_MinAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
@@ -764,7 +768,7 @@ public class JDD
 	public static JDDNode MaxAbstract(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_MaxAbstract(dd.ptr(), vars.array(), vars.n()));
 	}
 	
@@ -777,7 +781,7 @@ public class JDD
 	public static JDDNode GreaterThan(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_GreaterThan(dd.ptr(), threshold));
 	}
 	
@@ -788,7 +792,7 @@ public class JDD
 	public static JDDNode GreaterThanEquals(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_GreaterThanEquals(dd.ptr(), threshold));
 	}
 	
@@ -799,7 +803,7 @@ public class JDD
 	public static JDDNode LessThan(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_LessThan(dd.ptr(), threshold));
 	}
 	
@@ -810,7 +814,7 @@ public class JDD
 	public static JDDNode LessThanEquals(JDDNode dd, double threshold)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_LessThanEquals(dd.ptr(), threshold));
 	}
 	
@@ -821,7 +825,7 @@ public class JDD
 	public static JDDNode Equals(JDDNode dd, double value)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_Equals(dd.ptr(), value));
 	}
 	
@@ -832,7 +836,7 @@ public class JDD
 	public static JDDNode Interval(JDDNode dd, double lower, double upper)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_Interval(dd.ptr(), lower, upper));
 	}
 	
@@ -843,7 +847,7 @@ public class JDD
 	public static JDDNode RoundOff(JDDNode dd, int places)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_RoundOff(dd.ptr(), places));
 	}
 	
@@ -887,7 +891,7 @@ public class JDD
 	public static JDDNode RestrictToFirst(JDDNode dd, JDDVars vars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_RestrictToFirst(dd.ptr(), vars.array(), vars.n()));
 	}
 
@@ -1154,7 +1158,7 @@ public class JDD
 	public static JDDNode SetVectorElement(JDDNode dd, JDDVars vars, long index, double value)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_SetVectorElement(dd.ptr(), vars.array(), vars.n(), index, value));
 	}
 	
@@ -1165,7 +1169,7 @@ public class JDD
 	public static JDDNode SetMatrixElement(JDDNode dd, JDDVars rvars, JDDVars cvars, long rindex, long cindex, double value)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_SetMatrixElement(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), rindex, cindex, value));
 	}
 	
@@ -1176,7 +1180,7 @@ public class JDD
 	public static JDDNode Set3DMatrixElement(JDDNode dd, JDDVars rvars, JDDVars cvars, JDDVars lvars, long rindex, long cindex, long lindex, double value)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_Set3DMatrixElement(dd.ptr(), rvars.array(), rvars.n(), cvars.array(), cvars.n(), lvars.array(), lvars.n(), rindex, cindex, lindex, value));
 	}
 	
@@ -1207,7 +1211,7 @@ public class JDD
 	public static JDDNode Transpose(JDDNode dd, JDDVars rvars, JDDVars cvars)
 	{
 		if (DebugJDD.debugEnabled)
-			DebugJDD.decrement(dd);
+			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_Transpose(dd.ptr(), rvars.array(), cvars.array(), rvars.n()));
 	}
 	
@@ -1218,8 +1222,8 @@ public class JDD
 	public static JDDNode MatrixMultiply(JDDNode dd1, JDDNode dd2, JDDVars vars, int method)
 	{
 		if (DebugJDD.debugEnabled) {
-			DebugJDD.decrement(dd1);
-			DebugJDD.decrement(dd2);
+			DebugJDD.DD_Method_Argument(dd1);
+			DebugJDD.DD_Method_Argument(dd2);
 		}
 		return ptrToNode(DD_MatrixMultiply(dd1.ptr(), dd2.ptr(), vars.array(), vars.n(), method));
 	}
@@ -1553,9 +1557,10 @@ public class JDD
 			throw new CuddOutOfMemoryException();
 		}
 		if (DebugJDD.debugEnabled) {
-			return new DebugJDD.DebugJDDNode(ptr, true);
+			return DebugJDD.ptrToNode(ptr);
+		} else {
+			return new JDDNode(ptr);
 		}
-		return new JDDNode(ptr);
 	}
 
 	/**

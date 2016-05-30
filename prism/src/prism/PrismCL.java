@@ -1127,8 +1127,22 @@ public class PrismCL implements PrismModelListener
 					test = true;
 					testExitsOnFail = false;
 				}
+
+				// DD Debugging options
 				else if (sw.equals("dddebug")) {
 					jdd.DebugJDD.enable();
+				}
+				else if (sw.equals("ddtraceall")) {
+					jdd.DebugJDD.traceAll = true;
+				}
+				else if (sw.equals("ddtracefollowcopies")) {
+					jdd.DebugJDD.traceFollowCopies = true;
+				}
+				else if (sw.equals("dddebugwarnfatal")) {
+					jdd.DebugJDD.warningsAreFatal = true;
+				}
+				else if (sw.equals("dddebugwarnoff")) {
+					jdd.DebugJDD.warningsOff = true;
 				}
 				else if (sw.equals("ddtrace")) {
 					if (i < args.length - 1) {

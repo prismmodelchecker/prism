@@ -141,14 +141,13 @@ public class JDDNode
 	 */
 	public JDDNode copy()
 	{
-		JDDNode result;
 		if (DebugJDD.debugEnabled) {
-			result = new DebugJDD.DebugJDDNode(ptr, false);
+			return DebugJDD.Copy(this);
 		} else {
-			result = new JDDNode(ptr());
+			JDDNode result = new JDDNode(ptr());
+			JDD.Ref(result);
+			return result;
 		}
-		JDD.Ref(result);
-		return result;
 	}
 }
 
