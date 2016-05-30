@@ -1021,10 +1021,8 @@ public class LTLModelChecker extends PrismComponent
 				if (candidateStates.equals(ec)) {
 					//mainLog.println(" ------------- ec is not modified ------------- ");
 					ecs = new Vector<JDDNode>();
-					//JDDNode ec1 = ec;
-					//JDD.Ref(ec);
-					ecs.add(ec);
-					//JDD.Deref(candidateStates);
+					ecs.add(ec.copy());
+					JDD.Deref(candidateStates);
 				} else if (candidateStates.equals(JDD.ZERO)) {
 					//mainLog.println(" ------------- ec is ZERO ------------- ");
 					JDD.Deref(candidateStates);
