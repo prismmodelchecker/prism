@@ -45,8 +45,8 @@ public class JDD
 	private static native void DD_SetCUDDMaxMem(long max_mem);
 	private static native void DD_SetCUDDEpsilon(double epsilon);
 	private static native void DD_CloseDownCUDD(boolean check);
-	private static native void DD_Ref(long dd);
-	private static native void DD_Deref(long dd);
+	static native void DD_Ref(long dd);
+	static native void DD_Deref(long dd);
 	private static native void DD_PrintCacheInfo();
 	private static native boolean DD_GetErrorFlag();
 	// dd_basics
