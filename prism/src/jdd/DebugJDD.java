@@ -509,8 +509,8 @@ public class DebugJDD
 			throw new RuntimeException("DebugJDD: Trying to copy a JDDNode with non-positive CUDD ref count:\n " + dNode.toStringVerbose());
 		}
 
-		DebugJDDNode result = new DebugJDD.DebugJDDNode(dNode.ptr(), false);
-		JDD.Ref(result);
+		DebugJDDNode result = new DebugJDD.DebugJDDNode(dNode.ptr(), true);
+		JDD.DD_Ref(result.ptr());
 
 		if (isTraced(dNode)) {
 			trace("Copy to "+result.getID(), dNode);
