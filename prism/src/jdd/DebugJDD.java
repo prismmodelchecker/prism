@@ -523,7 +523,7 @@ public class DebugJDD
 		}
 
 		if (isTraced(result)) {
-			trace("Copied", result);
+			trace("Copied from " +dNode.getID(), result);
 		}
 
 		return result;
