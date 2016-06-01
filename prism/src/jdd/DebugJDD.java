@@ -37,6 +37,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismLog;
+
 
 /**
  * Framework for debugging JDDNode and CUDD reference counting.
@@ -595,6 +600,204 @@ public class DebugJDD
 
 		if (isTraced(dNode)) {
 			trace("Deref (as method argument)", dNode);
+		}
+	}
+
+	/* --------------------- TESTING --------------------------------------------
+	 *
+	 * The methods below provide simple test cases that can be executed from
+	 * the command line to study the behaviour of the debugging functionality
+	 * and of the tracing mechanism.
+	 */
+
+	private static void test_1()
+	{
+		// test case: missing dereference
+		JDDNode const2 = JDD.Constant(2.0);
+	}
+
+	private static void test_2()
+	{
+		// test case: additional dereference
+		JDDNode const2 = JDD.Constant(2.0);
+		JDD.Deref(const2);
+		JDD.Deref(const2);
+	}
+
+	private static void test_3()
+	{
+		// test case: use of a JDDNode with 0 references
+		JDDNode const2 = JDD.Constant(2.0);
+		JDD.Deref(const2);
+		JDDNode t = JDD.ITE(JDD.Constant(1), const2, JDD.Constant(0));
+		JDD.Deref(t);
+	}
+
+	private static void test_4()
+	{
+		// test case: use of a JDDNode with 0 references, but which has other
+		// Java references
+		JDDNode const2 = JDD.Constant(2.0);
+		JDDNode copy = const2.copy();
+		JDD.Deref(const2);
+		JDDNode t = JDD.ITE(JDD.Constant(1), const2, JDD.Constant(0));
+		JDD.Deref(t);
+	}
+
+	private static void test_5()
+	{
+		// test case: more complex example with no problems
+		// can be used with -ddtraceall to look at tracing
+		JDDNode v = JDD.Var(0);
+		JDDVars vars = new JDDVars();
+		vars.addVar(v);
+
+		JDDNode t = JDD.ITE(v.copy(), JDD.Constant(2.0), JDD.Constant(1.0));
+		JDDNode c = JDD.Constant(2.0);
+
+		t = JDD.Times(t, c);
+		t = JDD.SumAbstract(t, vars);
+
+		JDD.Deref(t);
+		vars.derefAll();
+	}
+	
+	private static void usage()
+	{
+		System.out.println("\nUsage: PRISM_MAINCLASS=jdd.DebugJDD prism [arguments] [test cases]");
+		System.out.println("\nExample: PRISM_MAINCLASS=jdd.DebugJDD prism -dddebug 1 4");
+		System.out.println("   Run test cases 1 and 4, with debugging enabled");
+		System.out.println("\nArguments:");
+		System.out.println(" -dddebug                 Enabled JDD debugging");
+		System.out.println(" -ddtraceall              Trace all JDD nodes");
+		System.out.println(" -ddtracefollowcopies     Trace copies of traced JDD nodes as well");
+		System.out.println(" -dddebugwarnfatal        Treat warnings as errors");
+		System.out.println(" -dddebugwarnoff          Turn off warnings");
+		System.out.println(" -ddtrace n               Trace JDDNode with ID=n");
+		System.out.println("\nFor the test cases, look at the source code in jdd/DebugJDD.java");
+	}
+	
+	private static void errorAndExit(String error)
+	{
+		System.out.println(error);
+		usage();
+		System.exit(1);
+	}
+
+	/** Command-line entry point */
+	public static void main(String[] args)
+	{
+		System.out.println("PRISM [jdd.DebugJDD test bed / demonstrator]");
+		System.out.println("============================================\n");
+
+		ArrayList<String> testCases = new ArrayList<String>();
+
+		// Parse the arguments
+		for (int i = 0; i < args.length; i++) {
+
+			// if is a switch...
+			if (args[i].length() > 0 && args[i].charAt(0) == '-') {
+
+				// Remove "-"
+				String sw = args[i].substring(1);
+				if (sw.length() == 0) {
+					errorAndExit("Invalid empty switch");
+				}
+				// Remove optional second "-" (i.e. we allow switches of the form --sw too)
+				if (sw.charAt(0) == '-')
+					sw = sw.substring(1);
+
+				// DD Debugging options
+				if (sw.equals("dddebug")) {
+					jdd.DebugJDD.enable();
+				}
+				else if (sw.equals("ddtraceall")) {
+					jdd.DebugJDD.traceAll = true;
+				}
+				else if (sw.equals("ddtracefollowcopies")) {
+					jdd.DebugJDD.traceFollowCopies = true;
+				}
+				else if (sw.equals("dddebugwarnfatal")) {
+					jdd.DebugJDD.warningsAreFatal = true;
+				}
+				else if (sw.equals("dddebugwarnoff")) {
+					jdd.DebugJDD.warningsOff = true;
+				}
+				else if (sw.equals("ddtrace")) {
+					if (i < args.length - 1) {
+						String idString = args[++i];
+						try {
+							int id = Integer.parseInt(idString);
+							jdd.DebugJDD.enableTracingForID(id);
+						} catch (NumberFormatException e) {
+							errorAndExit("The -" + sw + " switch requires an integer argument (JDDNode ID)");
+						}
+					} else {
+						errorAndExit("The -" + sw + " switch requires an additional argument (JDDNode ID)");
+					}
+				}
+				else {
+					errorAndExit("Unknown switch: -" + sw);
+				}
+			} else {
+				// not a switch, assume is a test case
+				testCases.add(args[i]);
+			}
+		}
+
+		try {
+			// initialise Prism/CUDD
+			PrismLog mainLog = new PrismFileLog("stdout");
+
+			mainLog.println("\n[Initializing PRISM]\n");
+
+			// create prism object(s)
+			Prism prism = new Prism(mainLog);
+
+			prism.initialise();
+
+			int i = 1;
+			for (String testCase : testCases) {
+				mainLog.print("\n[Running test case " + testCase);
+				if (testCases.size() > 1) {
+					mainLog.print(" (" + i + "/" + testCases.size() + ")");
+				}
+				mainLog.println("]\n");
+				i++;
+
+				switch (testCase) {
+				case "1":
+					test_1();
+					break;
+				case "2":
+					test_2();
+					break;
+				case "3":
+					test_3();
+					break;
+				case "4":
+					test_4();
+					break;
+				case "5":
+					test_5();
+					break;
+
+				default:
+					errorAndExit("Unknown test case: " + testCase);
+				}
+			}
+
+			mainLog.println("\n[Closing down PRISM/CUDD]\n");
+			
+			// clear up and close down
+			prism.closeDown(true);
+
+			mainLog.println();
+			// Close logs (in case they are files)
+			mainLog.close();
+		} catch (PrismException e) {
+			e.printStackTrace();
+			System.exit(1);
 		}
 	}
 
