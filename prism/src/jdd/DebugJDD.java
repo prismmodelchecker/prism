@@ -42,7 +42,6 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
 
-
 /**
  * Framework for debugging JDDNode and CUDD reference counting.
  * <br>
@@ -82,6 +81,7 @@ import prism.PrismLog;
 public class DebugJDD
 {
 	private static native int DebugJDD_GetRefCount(long dd);
+
 	private static native long[] DebugJDD_GetExternalRefCounts();
 
 	static {
@@ -97,7 +97,8 @@ public class DebugJDD
 	 * A DebugJDDNode extends a JDDNode with additional information
 	 * useful for tracking refs/derefs and tracing.
 	 */
-	protected static class DebugJDDNode extends JDDNode {
+	protected static class DebugJDDNode extends JDDNode
+	{
 
 		/** A static counter that is used to provide a unique ID for each JDDNode */
 		private static long nextId = 0;
@@ -186,16 +187,17 @@ public class DebugJDD
 
 		public String toStringVerbose()
 		{
-			return "ID = " + getID() +
-			       ", CUDD ptr = " + ptrAsHex() +
-			       ", refs for this JDDNode = " + getNodeRefs() +
-			       ", refs from Java = " + getJavaRefCount(ptr()) +
-			       ", refs from CUDD (including internal MTBDD refs) = "+DebugJDD_GetRefCount(ptr());
+			return "ID = " + getID()
+			       + ", CUDD ptr = " + ptrAsHex()
+			       + ", refs for this JDDNode = " + getNodeRefs()
+			       + ", refs from Java = " + getJavaRefCount(ptr())
+			       + ", refs from CUDD (including internal MTBDD refs) = "
+			       + DebugJDD_GetRefCount(ptr());
 		}
 
 		public String ptrAsHex()
 		{
-			return "0x"+Long.toHexString(ptr());
+			return "0x" + Long.toHexString(ptr());
 		}
 	}
 
@@ -233,7 +235,6 @@ public class DebugJDD
 	 */
 	public static boolean warningsOff = false;
 
-
 	/**
 	 * Map from DebugJDDNode IDs to DebugJDDNode.
 	 * LinkedHashMap to ensure that iterating over the map returns the
@@ -260,8 +261,8 @@ public class DebugJDD
 			traceIDs = new HashSet<Long>();
 		}
 		traceIDs.add(id);
-		System.out.println("DebugJDD: Enable tracing for ID "+id);
-		enable();  // tracing implies debugging
+		System.out.println("DebugJDD: Enable tracing for ID " + id);
+		enable(); // tracing implies debugging
 	}
 
 	/** Returns true if this node should be traced */
@@ -282,7 +283,7 @@ public class DebugJDD
 	{
 		if (nodes.put(node.getID(), node) != null) {
 			// implementation error, should not happen
-			throw new RuntimeException("DebugJDD: Internal error, adding the same JDDNode multiple times, ID="+node.getID());
+			throw new RuntimeException("DebugJDD: Internal error, adding the same JDDNode multiple times, ID=" + node.getID());
 		}
 	}
 
@@ -318,16 +319,17 @@ public class DebugJDD
 				}
 			}
 
-			System.out.println("DdNode ptr=0x" + Long.toHexString(ptr)+", "+nodeInfo(ptr)+" has "+extRef.getValue()+" remaining external references.");
+			System.out.println("DdNode ptr=0x" + Long.toHexString(ptr)
+			                   + ", " + nodeInfo(ptr) + " has " + extRef.getValue() + " remaining external references.");
 			if (posRewNodes.size() > 0) {
 				System.out.println(" Candidates:");
 				for (DebugJDDNode node : posRewNodes) {
-					System.out.println("  ID="+node.getID()+" with "+node.getNodeRefs()+" references  (" + node.toStringVerbose() + ")");
+					System.out.println("  ID=" + node.getID() + " with " + node.getNodeRefs() + " references  (" + node.toStringVerbose() + ")");
 				}
 			} else {
 				System.out.println(" No candidates, here are all JDDNodes for that DdNode:");
 				for (DebugJDDNode node : matchingNodes) {
-					System.out.println("  ID="+node.getID()+" with "+node.getNodeRefs()+" references  (" + node.toStringVerbose() + ")");
+					System.out.println("  ID=" + node.getID() + " with " + node.getNodeRefs() + " references  (" + node.toStringVerbose() + ")");
 				}
 			}
 		}
@@ -337,21 +339,24 @@ public class DebugJDD
 		javaRefs.clear();
 		// reset ID counter
 		DebugJDDNode.nextId = 0;
-		
+
 		if (warningsAreFatal) {
 			throw new RuntimeException("DebugJDD: Leaked references");
 		}
 	}
 
 	/** Get the CUDD reference count for the pointer of the JDDNode */
-	public static int getRefCount(JDDNode n) {
+	public static int getRefCount(JDDNode n)
+	{
 		return DebugJDD_GetRefCount(n.ptr());
 	}
 
 	/** Get the number of DebugJDDNodes that reference the pointer */
-	public static int getJavaRefCount(long ptr) {
+	public static int getJavaRefCount(long ptr)
+	{
 		Integer jrefs = javaRefs.get(ptr);
-		if (jrefs == null) return 0;
+		if (jrefs == null)
+			return 0;
 		return jrefs;
 	}
 
@@ -361,10 +366,10 @@ public class DebugJDD
 		Map<Long, Integer> result = new TreeMap<Long, Integer>();
 		// Array consists of (pointer, count) pairs
 		long[] externalRefCounts = DebugJDD_GetExternalRefCounts();
-		int i=0;
-		while (i<externalRefCounts.length) {
+		int i = 0;
+		while (i < externalRefCounts.length) {
 			long node = externalRefCounts[i++];
-			int count = (int)externalRefCounts[i++];
+			int count = (int) externalRefCounts[i++];
 			result.put(node, count);
 
 		}
@@ -376,16 +381,18 @@ public class DebugJDD
 	private static String nodeInfo(long ptr)
 	{
 		if (JDDNode.DDN_IsConstant(ptr)) {
-			return "constant("+JDDNode.DDN_GetValue(ptr)+"), CUDD refs="+DebugJDD_GetRefCount(ptr);
+			return "constant(" + JDDNode.DDN_GetValue(ptr) + "), CUDD refs=" + DebugJDD_GetRefCount(ptr);
 		} else {
-			return "var("+JDDNode.DDN_GetIndex(ptr)+"), CUDD refs="+DebugJDD_GetRefCount(ptr);
+			return "var(" + JDDNode.DDN_GetIndex(ptr) + "), CUDD refs=" + DebugJDD_GetRefCount(ptr);
 		}
 	}
 
 	/** Log information about the action performed on the DebugJDDNode */
 	private static void trace(String action, DebugJDDNode dNode)
 	{
-		System.out.println("\ntrace("+action+", ID="+dNode.getID()+") => " + dNode.getNodeRefs() + " refs for this JDDNode\n " + dNode.toStringVerbose());
+		System.out.println("\ntrace(" + action
+		                   + ", ID=" + dNode.getID() + ") => " + dNode.getNodeRefs()
+		                   + " refs for this JDDNode\n " + dNode.toStringVerbose());
 		printStack(0);
 	}
 
@@ -518,7 +525,7 @@ public class DebugJDD
 		JDD.DD_Ref(result.ptr());
 
 		if (isTraced(dNode)) {
-			trace("Copy to "+result.getID(), dNode);
+			trace("Copy to " + result.getID(), dNode);
 		}
 
 		if (!traceAll && traceFollowCopies && isTraced(dNode)) {
@@ -528,7 +535,7 @@ public class DebugJDD
 		}
 
 		if (isTraced(result)) {
-			trace("Copied from " +dNode.getID(), result);
+			trace("Copied from " + dNode.getID(), result);
 		}
 
 		return result;
@@ -661,7 +668,7 @@ public class DebugJDD
 		JDD.Deref(t);
 		vars.derefAll();
 	}
-	
+
 	private static void usage()
 	{
 		System.out.println("\nUsage: PRISM_MAINCLASS=jdd.DebugJDD prism [arguments] [test cases]");
@@ -676,7 +683,7 @@ public class DebugJDD
 		System.out.println(" -ddtrace n               Trace JDDNode with ID=n");
 		System.out.println("\nFor the test cases, look at the source code in jdd/DebugJDD.java");
 	}
-	
+
 	private static void errorAndExit(String error)
 	{
 		System.out.println(error);
@@ -710,20 +717,15 @@ public class DebugJDD
 				// DD Debugging options
 				if (sw.equals("dddebug")) {
 					jdd.DebugJDD.enable();
-				}
-				else if (sw.equals("ddtraceall")) {
+				} else if (sw.equals("ddtraceall")) {
 					jdd.DebugJDD.traceAll = true;
-				}
-				else if (sw.equals("ddtracefollowcopies")) {
+				} else if (sw.equals("ddtracefollowcopies")) {
 					jdd.DebugJDD.traceFollowCopies = true;
-				}
-				else if (sw.equals("dddebugwarnfatal")) {
+				} else if (sw.equals("dddebugwarnfatal")) {
 					jdd.DebugJDD.warningsAreFatal = true;
-				}
-				else if (sw.equals("dddebugwarnoff")) {
+				} else if (sw.equals("dddebugwarnoff")) {
 					jdd.DebugJDD.warningsOff = true;
-				}
-				else if (sw.equals("ddtrace")) {
+				} else if (sw.equals("ddtrace")) {
 					if (i < args.length - 1) {
 						String idString = args[++i];
 						try {
@@ -735,8 +737,7 @@ public class DebugJDD
 					} else {
 						errorAndExit("The -" + sw + " switch requires an additional argument (JDDNode ID)");
 					}
-				}
-				else {
+				} else {
 					errorAndExit("Unknown switch: -" + sw);
 				}
 			} else {
@@ -788,7 +789,7 @@ public class DebugJDD
 			}
 
 			mainLog.println("\n[Closing down PRISM/CUDD]\n");
-			
+
 			// clear up and close down
 			prism.closeDown(true);
 
