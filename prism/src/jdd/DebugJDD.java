@@ -307,23 +307,23 @@ public class DebugJDD
 		for (Entry<Long, Integer> extRef : externalRefCounts.entrySet()) {
 			long ptr = extRef.getKey();
 			List<DebugJDDNode> matchingNodes = new ArrayList<DebugJDDNode>();
-			List<DebugJDDNode> posRewNodes = new ArrayList<DebugJDDNode>();
+			List<DebugJDDNode> posRefNodes = new ArrayList<DebugJDDNode>();
 			for (DebugJDDNode node : nodes.values()) {
 				if (node.ptr() == ptr) {
 					// node matches
 					matchingNodes.add(node);
 					// node still has positive reference count
 					if (node.getNodeRefs() > 0) {
-						posRewNodes.add(node);
+						posRefNodes.add(node);
 					}
 				}
 			}
 
 			System.out.println("DdNode ptr=0x" + Long.toHexString(ptr)
 			                   + ", " + nodeInfo(ptr) + " has " + extRef.getValue() + " remaining external references.");
-			if (posRewNodes.size() > 0) {
+			if (posRefNodes.size() > 0) {
 				System.out.println(" Candidates:");
-				for (DebugJDDNode node : posRewNodes) {
+				for (DebugJDDNode node : posRefNodes) {
 					System.out.println("  ID=" + node.getID() + " with " + node.getNodeRefs() + " references  (" + node.toStringVerbose() + ")");
 				}
 			} else {
