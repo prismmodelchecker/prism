@@ -750,6 +750,7 @@ public class DebugJDD
 	 * and of the tracing mechanism.
 	 */
 
+	@SuppressWarnings("unused")
 	private static void test_1()
 	{
 		// test case: missing dereference
@@ -773,6 +774,7 @@ public class DebugJDD
 		JDD.Deref(t);
 	}
 
+	@SuppressWarnings("unused")
 	private static void test_4()
 	{
 		// test case: use of a JDDNode with 0 references, but which has other
