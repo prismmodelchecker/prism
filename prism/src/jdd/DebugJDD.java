@@ -71,12 +71,14 @@ import prism.PrismLog;
  * JDDNode.getElse(), a different handling applies. As these are
  * generally only used for traversing an MTBDD and are not referenced
  * (beyond the internal CUDD references that are there due to the
- * fact that they are internal nodes of some MTBDD), they are not
- * wrapped in a DebugJDDNode. They are not fully functional and
- * should never be used for JDD.Ref, JDD.Deref, JDDNode.copy() or
- * as the argument of a JDD method, except to compare for equality,
+ * fact that they are internal nodes of some MTBDD), they are
+ * wrapped in a "light-weight" variant of DebugJDDNode called
+ * DebugJDDNodeLight. They are not fully functional and
+ * should never be used for JDD.Ref, JDD.Deref or as the argument
+ * of a JDD method, except to compare for equality,
  * getting the variable index, getThen() and getElse() and obtaining
- * constant value of a terminal node.
+ * constant value of a terminal node. You can also call copy() on
+ * them to obtain a "proper" node.
  */
 public class DebugJDD
 {
@@ -198,6 +200,26 @@ public class DebugJDD
 		public String ptrAsHex()
 		{
 			return "0x" + Long.toHexString(ptr());
+		}
+	}
+
+	
+	/**
+	 * A "light-weight" DebugJDDNode, for marking JDDNodes
+	 * that have been obtained by a call from getThen()/getElse()
+	 * and thus don't take part in the usual reference counting
+	 * scheme.
+	 */
+	protected static class DebugJDDNodeLight extends JDDNode {
+		/**
+		 * Constructor, with DdNode* ptr.
+		 * <br>
+		 * @param ptr the DdNode pointer in CUDD
+		 */
+		public DebugJDDNodeLight(long ptr)
+		{
+			// instantiate underlying JDDNode
+			super(ptr);
 		}
 	}
 
@@ -434,11 +456,16 @@ public class DebugJDD
 	 */
 	protected static void Ref(JDDNode node)
 	{
-		if (!(node instanceof DebugJDDNode)) {
-			// ref of a node that is not wrapped in a DebugJDDNode
-			//  -> probably came from JDDNode.getThen()/getElse(), should not be refed
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to Ref a plain JDDNode (obtained from getThen()/getElse()?)");
+		if (node instanceof DebugJDDNodeLight) {
+			throw new RuntimeException("DebugJDD: Illegal operation, trying to reference a light-weight JDDNode (obtained from getThen()/getElse()) directly. Use copy() instead");			
 		}
+
+		if (!(node instanceof DebugJDDNode)) {
+			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
+			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+		}
+
 		DebugJDDNode dNode = (DebugJDDNode) node;
 
 		// increment reference in DebugJDD
@@ -459,11 +486,16 @@ public class DebugJDD
 	 */
 	protected static void Deref(JDDNode node)
 	{
-		if (!(node instanceof DebugJDDNode)) {
-			// deref of a node that is not wrapped in a DebugJDDNode
-			//  -> probably came from JDDNode.getThen()/getElse(), should not be derefed
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to Deref a plain JDDNode (obtained from getThen()/getElse()?)");
+		if (node instanceof DebugJDDNodeLight) {
+			throw new RuntimeException("DebugJDD: Illegal operation, trying to dereference a light-weight JDDNode (obtained from getThen()/getElse()) directly");			
 		}
+
+		if (!(node instanceof DebugJDDNode)) {
+			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
+			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+		}
+
 		DebugJDDNode dNode = (DebugJDDNode) node;
 		if (dNode.getNodeRefs() <= 0 && getJavaRefCount(node.ptr()) > 0) {
 			// This is only a warning as currently there are places
@@ -505,10 +537,21 @@ public class DebugJDD
 	 */
 	protected static JDDNode Copy(JDDNode node)
 	{
+		if (node instanceof DebugJDDNodeLight) {
+			// copy from a light-weight node (result of getThen()/getElse())
+			DebugJDDNode result = new DebugJDD.DebugJDDNode(node.ptr(), true);
+			JDD.DD_Ref(result.ptr());
+
+			if (isTraced(result)) {
+				trace("Copied from light-weight node", result);
+			}
+			return result;
+		}
+
 		if (!(node instanceof DebugJDDNode)) {
-			// copy of a node that is not wrapped in a DebugJDDNode
-			//  -> probably came from JDDNode.getThen()/getElse(), should not be copied
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to copy a plain JDDNode (obtained from getThen()/getElse()?)");
+			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
+			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		DebugJDDNode dNode = (DebugJDDNode) node;
@@ -558,21 +601,12 @@ public class DebugJDD
 	}
 
 	/**
-	 * DebugJDD handling of passing JDDNodes as arguments to the
-	 * DD_* layer, where they will be ultimately dereferenced.
-	 * <br>
-	 * As the actual dereferencing in CUDD will only happen
-	 * after the given MTBDD method is finished, we only
-	 * decrement the reference counter on the DebugJDD side.
+	 * Common checks for the case where a DebugJDDNode is used (passed as a method
+	 * argument or with getThen(), getElse() or getValue()).
+	 * @throws RuntimeException in case of a problem
 	 */
-	protected static void DD_Method_Argument(JDDNode node)
+	private static void useNode(DebugJDDNode node)
 	{
-		if (!(node instanceof DebugJDDNode)) {
-			// using a node that is not wrapped in a DebugJDDNode in a DD_* method call
-			//  -> probably came from JDDNode.getThen()/getElse(), should not be used like this
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to use a plain JDDNode (obtained from getThen()/getElse()?) in a method call");
-		}
-
 		DebugJDDNode dNode = (DebugJDDNode) node;
 		if (dNode.getNodeRefs() <= 0 && getJavaRefCount(node.ptr()) > 0) {
 			// This is only a warning as currently there are places
@@ -596,6 +630,30 @@ public class DebugJDD
 		if (cuddRefCount <= 0) {
 			throw new RuntimeException("DebugJDD: Trying to use a JDDNode with a non-positive CUDD ref count in a method call:\n " + dNode.toStringVerbose());
 		}
+	}
+
+	/**
+	 * DebugJDD handling of passing JDDNodes as arguments to the
+	 * DD_* layer, where they will be ultimately dereferenced.
+	 * <br>
+	 * As the actual dereferencing in CUDD will only happen
+	 * after the given MTBDD method is finished, we only
+	 * decrement the reference counter on the DebugJDD side.
+	 */
+	protected static void DD_Method_Argument(JDDNode node)
+	{
+		if (node instanceof DebugJDDNodeLight) {
+			throw new RuntimeException("DebugJDD: Illegal operation, trying to use a light-weight JDDNode (obtained from getThen()/getElse()) in a method call");			
+		}
+		if (!(node instanceof DebugJDDNode)) {
+			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
+			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+		}
+
+		DebugJDDNode dNode = (DebugJDDNode) node;
+		// do standard "use node" checks
+		useNode(dNode);
 
 		// decrement reference in DebugJDD
 		dNode.decRef();
@@ -607,6 +665,81 @@ public class DebugJDD
 
 		if (isTraced(dNode)) {
 			trace("Deref (as method argument)", dNode);
+		}
+	}
+
+	/**
+	 * DebugJDD handling of JDDNode.getThen().
+	 * Returns a DebugJDDNodeLight wrapper around the result.
+	 */
+	protected static JDDNode nodeGetThen(JDDNode node)
+	{
+		if (node instanceof DebugJDDNode) {
+			DebugJDDNode dNode = (DebugJDDNode) node;
+			useNode(dNode);
+		} else if (node instanceof DebugJDDNodeLight) {
+			// nothing to do
+		} else {
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+		}
+
+		long ptr = JDDNode.DDN_GetThen(node.ptr());
+		if (ptr == 0) {
+			if (node.isConstant()) {
+				throw new RuntimeException("Trying to access the 'then' child of a constant MTBDD node");
+			} else {
+				throw new RuntimeException("getThen: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
+			}
+		}
+ 		return new DebugJDDNodeLight(ptr);
+	}
+
+	/**
+	 * DebugJDD handling of JDDNode.getElse().
+	 * Returns a DebugJDDNodeLight wrapper around the result.
+	 */
+	protected static JDDNode nodeGetElse(JDDNode node)
+	{
+		if (node instanceof DebugJDDNode) {
+			DebugJDDNode dNode = (DebugJDDNode) node;
+			useNode(dNode);
+		} else if (node instanceof DebugJDDNodeLight) {
+			// nothing to do
+		} else {
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+		}
+
+		long ptr = JDDNode.DDN_GetElse(node.ptr());
+		if (ptr == 0) {
+			if (node.isConstant()) {
+				throw new RuntimeException("Trying to access the 'else' child of a constant MTBDD node");
+			} else {
+				throw new RuntimeException("getElse: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
+			}
+		}
+ 		return new DebugJDDNodeLight(ptr);
+	}
+
+	/**
+	 * DebugJDD handling of JDDNode.getValue().
+	 * Performs check to ensure that the reference counting
+	 * is fine and that the node is actually a constant node.
+	 */
+	protected static double nodeGetValue(JDDNode node)
+	{
+		if (node instanceof DebugJDDNode) {
+			DebugJDDNode dNode = (DebugJDDNode) node;
+			useNode(dNode);
+		} else if (node instanceof DebugJDDNodeLight) {
+			// nothing to do
+		} else {
+			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+		}
+
+		if (node.isConstant()) {
+			return JDDNode.DDN_GetValue(node.ptr());
+		} else {
+			throw new RuntimeException("Trying to get value of MTBDD node, but is not a constant node");
 		}
 	}
 

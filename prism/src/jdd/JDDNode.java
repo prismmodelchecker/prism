@@ -76,7 +76,10 @@ public class JDDNode
 	}
 
 	public double getValue()
-	{	
+	{
+		if (DebugJDD.debugEnabled) {
+			return DebugJDD.nodeGetValue(this);
+		}
 		return DDN_GetValue(ptr);
 	}
 
@@ -85,10 +88,18 @@ public class JDDNode
 	 * <br>
 	 * This method does NOT increase the reference count of the returned
 	 * node, it is therefore illegal to call JDD.Deref on the result.
+	 * Additionally, it is recommended to not use the returned node
+	 * as the argument to the JDD methods or call JDD.Ref on it.
+	 * Instead, if you need to obtain a "proper" node, call copy()
+	 * on the returned node.
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public JDDNode getThen()
 	{
+		if (DebugJDD.debugEnabled) {
+			return DebugJDD.nodeGetThen(this);
+		}
+
 		long thenPtr = DDN_GetThen(ptr);
 		if (thenPtr == 0) {
 			if (isConstant()) {
@@ -97,7 +108,6 @@ public class JDDNode
 				throw new RuntimeException("getThen: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
 			}
 		}
-		// just return the node, even if DebugJDD is enabled
 		return new JDDNode(thenPtr);
 	}
 
@@ -106,10 +116,18 @@ public class JDDNode
 	 * <br>
 	 * This method does NOT increase the reference count of the returned
 	 * node, it is therefore illegal to call JDD.Deref on the result.
+	 * Additionally, it is recommended to not use the returned node
+	 * as the argument to the JDD methods or call JDD.Ref on it.
+	 * Instead, if you need to obtain a "proper" node, call copy()
+	 * on the returned node.
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public JDDNode getElse()
 	{
+		if (DebugJDD.debugEnabled) {
+			return DebugJDD.nodeGetElse(this);
+		}
+
 		long elsePtr = DDN_GetElse(ptr);
 		if (elsePtr == 0) {
 			if (isConstant()) {
@@ -118,7 +136,6 @@ public class JDDNode
 				throw new RuntimeException("getElse: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
 			}
 		}
-		// just return the node, even if DebugJDD is enabled
 		return new JDDNode(elsePtr);
 	}
 
