@@ -804,6 +804,69 @@ public class DebugJDD
 		vars.derefAll();
 	}
 
+	@SuppressWarnings("unused")
+	private static void test_6()
+	{
+		// test case: getThen of a constant
+		JDDNode const2 = JDD.Constant(2);
+		JDDNode t = const2.getThen();
+	}
+
+	@SuppressWarnings("unused")
+	private static void test_7()
+	{
+		// test case: getElse of a constant
+		JDDNode const2 = JDD.Constant(2);
+		JDDNode t = const2.getElse();
+	}
+
+	@SuppressWarnings("unused")
+	private static void test_8()
+	{
+		// test case: getValue of an internal node
+		JDDNode v = JDD.Var(0);
+		double value = v.getValue();
+	}
+
+	private static void test_9()
+	{
+		// test case: use of a light-weight node as a
+		// method argument
+		JDDNode v = JDD.Var(0);
+		JDDNode result = JDD.Apply(JDD.MAX, v.getThen(), v.getElse());
+		JDD.Deref(result);
+	}
+
+	private static void test_10()
+	{
+		// test case: deref of a light-weight node as a
+		// method argument
+		JDDNode v = JDD.Var(0);
+		JDD.Deref(v.getThen());
+		JDD.Deref(v);
+	}
+
+	private static void test_11()
+	{
+		// test case: ref of a light-weight node as a
+		// method argument
+		JDDNode v = JDD.Var(0);
+		JDDNode t = v.getThen();
+		JDD.Ref(t);
+		JDD.Deref(t);
+		JDD.Deref(v);
+	}
+
+	private static void test_12()
+	{
+		// test case: proper use of a light-weight node as a
+		// method argument by using copy()
+		JDDNode v = JDD.Var(0);
+		JDDNode result = JDD.Apply(JDD.MAX, v.getThen().copy(), v.getElse().copy());
+		JDD.Deref(result);
+		JDD.Deref(v);
+	}
+
 	private static void usage()
 	{
 		System.out.println("\nUsage: PRISM_MAINCLASS=jdd.DebugJDD prism [arguments] [test cases]");
@@ -916,6 +979,27 @@ public class DebugJDD
 					break;
 				case "5":
 					test_5();
+					break;
+				case "6":
+					test_6();
+					break;
+				case "7":
+					test_7();
+					break;
+				case "8":
+					test_8();
+					break;
+				case "9":
+					test_9();
+					break;
+				case "10":
+					test_10();
+					break;
+				case "11":
+					test_11();
+					break;
+				case "12":
+					test_12();
 					break;
 
 				default:
