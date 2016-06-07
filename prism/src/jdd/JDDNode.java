@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	* Christian von Essen <christian.vonessen@imag.fr> (VERIMAG)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -88,12 +89,16 @@ public class JDDNode
 	 */
 	public JDDNode getThen()
 	{
-		assert !this.isConstant();
-
+		long thenPtr = DDN_GetThen(ptr);
+		if (thenPtr == 0) {
+			if (isConstant()) {
+				throw new RuntimeException("Trying to access the 'then' child of a constant MTBDD node");
+			} else {
+				throw new RuntimeException("getThen: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
+			}
+		}
 		// just return the node, even if DebugJDD is enabled
-		// DDN_GetThen will return NULL if the current node is a
-		// constant, raising an Exception in the JDDNode constructor
-		return new JDDNode(DDN_GetThen(ptr));
+		return new JDDNode(thenPtr);
 	}
 
 	/**
@@ -105,15 +110,19 @@ public class JDDNode
 	 */
 	public JDDNode getElse()
 	{
-		assert !this.isConstant();
-
+		long elsePtr = DDN_GetElse(ptr);
+		if (elsePtr == 0) {
+			if (isConstant()) {
+				throw new RuntimeException("Trying to access the 'else' child of a constant MTBDD node");
+			} else {
+				throw new RuntimeException("getElse: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
+			}
+		}
 		// just return the node, even if DebugJDD is enabled
-		// DDN_GetElse will return NULL if the current node is a
-		// constant, raising an Exception in the JDDNode constructor
- 		return new JDDNode(DDN_GetElse(ptr));
+		return new JDDNode(elsePtr);
 	}
 
-	public boolean equals(Object o)        
+	public boolean equals(Object o)
 	{
 		return (o instanceof JDDNode) && (((JDDNode) o).ptr == ptr);
 	}
