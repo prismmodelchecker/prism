@@ -1474,6 +1474,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			// For a DFA, just collect the accept states
 			mainLog.println("\nSkipping end component detection since DRA is a DFA...");
 			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
+			JDD.Ref(modelProduct.getReach());
+			acc = JDD.And(acc, modelProduct.getReach());
 		} else {
 			// Usually, we have to detect end components in the product
 			mainLog.println("\nFinding accepting end components...");
