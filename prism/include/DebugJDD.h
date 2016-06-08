@@ -27,6 +27,17 @@ JNIEXPORT jlongArray JNICALL Java_jdd_DebugJDD_DebugJDD_1GetExternalRefCounts
 }
 #endif
 #endif
+/* Header for class jdd_DebugJDD_DebugJDDNodeLight */
+
+#ifndef _Included_jdd_DebugJDD_DebugJDDNodeLight
+#define _Included_jdd_DebugJDD_DebugJDDNodeLight
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
 /* Header for class jdd_DebugJDD_DebugJDDNode */
 
 #ifndef _Included_jdd_DebugJDD_DebugJDDNode
