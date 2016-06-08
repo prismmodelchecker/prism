@@ -978,7 +978,7 @@ public class JDD
 	}
 
 	/**
-	 * Returns {@true} if the {@code dd} is is a single satisfying
+	 * Returns {@true} if {@code dd} is a single satisfying
 	 * assignment to the variables in {@code vars}.
 	 * <br>
 	 * This is the case if there is a single path to the ONE constant
