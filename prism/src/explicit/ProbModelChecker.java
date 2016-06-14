@@ -553,7 +553,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * @param model The model
 	 * @param expr The P operator expression
 	 * @param forAll Are we checking "for all strategies" (true) or "there exists a strategy" (false)? [irrelevant for numerical (=?) queries] 
-	 * @param coalition If relevant, info about which set of players this P operator refers to
+	 * @param coalition If relevant, info about which set of players this P operator refers to (null if irrelevant)
 	 * @param statesOfInterest the states of interest, see checkExpression()
 	 */
 	protected StateValues checkExpressionProb(Model model, ExpressionProb expr, boolean forAll, Coalition coalition, BitSet statesOfInterest) throws PrismException
