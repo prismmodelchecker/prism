@@ -237,8 +237,7 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	@Override
 	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
 	{
-		throw new RuntimeException("Not implemented yet");
-		//return mdp.mvMultRewSingle(s, adv[s], vect);
+		return strat.isChoiceDefined(s) ? mdp.mvMultRewSingle(s, strat.getChoiceIndex(s), vect, mcRewards) : 0;
 	}
 
 	@Override
