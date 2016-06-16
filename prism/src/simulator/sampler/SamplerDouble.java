@@ -4,6 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
 //	* Vincent Nimal <vincent.nimal@comlab.ox.ac.uk> (University of Oxford)
+//	* Marcin Copik <mcopik@gmail.com>
 //	
 //------------------------------------------------------------------------------
 //	
@@ -36,13 +37,29 @@ import prism.PrismLangException;
  */
 public abstract class SamplerDouble extends Sampler
 {
-	// Value of current path
+	/** Value of current path */
 	protected double value;
+	
 	// Stats over all paths
-	protected double valueSum;
-	protected double valueSumSq;
+	
+	/** Number of samples so far */
 	protected int numSamples;
+	/** Sum of values (used to compute mean) */
+	protected double valueSum;
+	/** Correction value used when tracking variance */
+	protected double correctionTerm;
+	/** Sum of values, each shifted by the correction term (see below) */
+	protected double valueSumShifted;
+	/** Sum of squares of values, each shifted by the correction term (see below) */
+	protected double valueSumShiftedSq;
 
+	/**
+	 * NB: In order to improve the numerical stability for the computation of variance,
+	 * we stored a shifted version of the mean, using a correction term that is an
+	 * estimate of the mean (for which, we just use the first value sampled). 
+	 * Source: "Algorithms for Computing the Sample Variance: Analysis and Recommendations", T.F. Chan et al.
+	 */
+	
 	@Override
 	public void reset()
 	{
@@ -54,7 +71,8 @@ public abstract class SamplerDouble extends Sampler
 	public void resetStats()
 	{
 		valueSum = 0.0;
-		valueSumSq = 0.0;
+		valueSumShifted = 0.0;
+		valueSumShiftedSq = 0.0;
 		numSamples = 0;
 	}
 
@@ -64,8 +82,11 @@ public abstract class SamplerDouble extends Sampler
 	@Override
 	public void updateStats()
 	{
+		if (numSamples == 0)
+			correctionTerm = value;
 		valueSum += value;
-		valueSumSq += value * value;
+		valueSumShifted += value - correctionTerm;
+		valueSumShiftedSq += Math.pow(value - correctionTerm, 2);
 		numSamples++;
 	}
 
@@ -84,31 +105,33 @@ public abstract class SamplerDouble extends Sampler
 	@Override
 	public double getVariance()
 	{
-		// Estimator to the variance (see p.24 of Vincent Nimal's MSc thesis)
+		// Return estimator to the variance
 		if (numSamples <= 1) {
 			return 0.0;
 		} else {
-			double mean = valueSum / numSamples;
-			return (valueSumSq - numSamples * mean * mean) / (numSamples - 1.0);
+			double meanShifted = valueSumShifted / numSamples;
+			return (valueSumShiftedSq - numSamples * meanShifted * meanShifted) / (numSamples - 1.0);
 		}
 		
-		// An alternative, below, would be to use the empirical mean
-		// (this is not equivalent (or unbiased) but, asymptotically, is the same)
-		//double mean = valueSum / numSamples;
-		//return (valueSumSq / numSamples) - (mean * mean);
+		// Note:
+		// * As explained at the top of this class, variance is computed using
+		//   a shifted version of the mean to improve numerical stability
+		// * We divide by numSamples -1. An alternative would be to use the empirical mean, i.e. dividing by numSamples. 
+		//   This is not equivalent (or unbiased) but, asymptotically, is the same.
+		//   See p.24 of: Vincent Nimal, "Statistical Approaches for Probabilistic Model Checking", MSc Thesis
 	}
 
 	@Override
 	public double getLikelihoodRatio(double p1, double p0) throws PrismException
 	{
-		// See Sec 6.3 of Vincent Nimal's MSc thesis for details
+		// For details, see Sec 6.3 of: Vincent Nimal, "Statistical Approaches for Probabilistic Model Checking", MSc Thesis
 		// (in which mu1=p1 and mu0=p0)
 		if (numSamples <= 1)
 			return 0.0;
-		if (valueSumSq == 0)
+		if (valueSumShiftedSq == 0)
 			throw new PrismException("Cannot compute likelihood ratio with null variance");
 		// Compute maximum likelihood estimator of variance
-		double MLE = valueSumSq / numSamples - (valueSum * valueSum) / numSamples / numSamples;
+		double MLE = valueSumShiftedSq / numSamples - (valueSumShifted * valueSumShifted) / numSamples / numSamples;
 		double lr = (-1 / (2 * MLE)) * (numSamples * (p1 * p1 - p0 * p0) - 2 * valueSum * (p1 - p0));
 		if (Double.isNaN(lr)) {
 			throw new PrismException("Error computing likelihood ratio");
