@@ -235,6 +235,11 @@ public abstract class Sampler
 			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
 
 		// Construct sampler based on type
+		if (!(expr.getExpression() instanceof ExpressionTemporal) ||
+		    !(expr.isSimplePathFormula())) {
+			// catch co-safety reward specifications
+			throw new PrismException("Can't create sampler for property \"" + expr + "\"");
+		}
 		ExpressionTemporal exprTemp = (ExpressionTemporal) expr.getExpression();
 		switch (exprTemp.getOperator()) {
 		case ExpressionTemporal.R_C:
