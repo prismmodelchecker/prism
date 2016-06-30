@@ -457,6 +457,14 @@ JNIEXPORT jlong JNICALL Java_jdd_JDD_DD_1RestrictToFirst
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_IsZeroOneMTBDD
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1IsZeroOneMTBDD
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_GetNumNodes
  * Signature: (J)I
  */

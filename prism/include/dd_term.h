@@ -43,5 +43,7 @@ bool DD_EqualSupNormRel(DdManager *ddman, DdNode *dd1, DdNode *dd2, double epsil
 double DD_FindMin(DdManager *ddman, DdNode *dd);
 double DD_FindMax(DdManager *ddman, DdNode *dd);
 DdNode *DD_RestrictToFirst(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars);
+bool DD_IsZeroOneMTBDD(DdManager *ddman, DdNode *dd);
+
 
 //------------------------------------------------------------------------------

@@ -440,6 +440,15 @@ JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1RestrictToFirst(JNIEnv *
 	return ptr_to_jlong(DD_RestrictToFirst(ddman, jlong_to_DdNode(dd), jlong_to_DdNode_array(vars), num_vars));
 }
 
+//------------------------------------------------------------------------------
+
+
+JNIEXPORT jboolean JNICALL Java_jdd_JDD_DD_1IsZeroOneMTBDD(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
+{
+	return DD_IsZeroOneMTBDD(ddman, jlong_to_DdNode(dd));
+}
+
+
 //==============================================================================
 //
 //	Wrapper functions for dd_info

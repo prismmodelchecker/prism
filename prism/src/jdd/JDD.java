@@ -91,6 +91,7 @@ public class JDD
 	private static native double DD_FindMin(long dd);
 	private static native double DD_FindMax(long dd);
 	private static native long DD_RestrictToFirst(long dd, long vars, int num_vars);
+	private static native boolean DD_IsZeroOneMTBDD(long dd);
 	// dd_info
 	private static native int DD_GetNumNodes(long dd);
 	private static native int DD_GetNumTerminals(long dd);
@@ -861,7 +862,16 @@ public class JDD
 		checkForCuddError();
 		return rv;
 	}
-	
+
+	/**
+	 * returns true if dd is a 0/1-MTBDD, i.e., all terminal nodes are either 0 or 1
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
+	public static boolean IsZeroOneMTBDD(JDDNode dd)
+	{
+		return DD_IsZeroOneMTBDD(dd.ptr());
+	}
+
 	/**
 	 * returns minimum terminal in dd
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]

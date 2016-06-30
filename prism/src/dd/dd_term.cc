@@ -264,6 +264,33 @@ DdNode *dd
 	return Cudd_V(v);
 }
 
+
+//------------------------------------------------------------------------------
+
+bool DD_IsZeroOneMTBDD
+(
+DdManager *ddman,
+DdNode *dd
+)
+{
+	DdGen *gen;
+	DdNode *node;
+	bool rv = true;
+
+	Cudd_ForeachNode(ddman, dd, gen, node) {
+		if (Cudd_IsConstant(node)) {
+			if (node != Cudd_ReadOne(ddman) && node != Cudd_ReadZero(ddman)) {
+				rv = false;
+				// we could break here, as it's clear that we are done
+				// however, it looks like CUDD would then not free the
+				// DdGen* gen
+			}
+		}
+	}
+
+	return rv;
+}
+
 //------------------------------------------------------------------------------
 
 DdNode *DD_RestrictToFirst
