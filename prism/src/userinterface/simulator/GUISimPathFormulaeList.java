@@ -82,7 +82,13 @@ public class GUISimPathFormulaeList extends JList
 	{
 		try {
 			//String str = prop.getExpression().toString();
-			String str = prop.toString();
+			String str;
+			if (prop instanceof ExpressionProb) {
+				// for a P expression, only display the inner path formula
+				str = ((ExpressionProb)prop).getExpression().toString();
+			} else {
+				str = prop.toString();
+			}
 			for (int i = 0; i < listModel.getSize(); i++) {
 				if (listModel.getElementAt(i).toString().equals(str))
 					return;// if this already is in here, do not add it
