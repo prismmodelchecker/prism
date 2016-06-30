@@ -116,7 +116,9 @@ public class PrismSettings implements Observer
 	
 	public static final String PRISM_LTL2DA_TOOL					= "prism.ltl2daTool";
 	public static final String PRISM_LTL2DA_SYNTAX					= "prism.ltl2daSyntax";
-	
+
+	public static final	String PRISM_JDD_SANITY_CHECKS					= "prism.ddsanity";
+
 	public static final	String PRISM_PARAM_ENABLED					= "prism.param.enabled";
 	public static final	String PRISM_PARAM_PRECISION				= "prism.param.precision";
 	public static final	String PRISM_PARAM_SPLIT					= "prism.param.split";
@@ -317,6 +319,10 @@ public class PrismSettings implements Observer
 
 			{ CHOICE_TYPE,		PRISM_LTL2DA_SYNTAX,					"LTL syntax for external LTL->DA tool",		"4.2.1",			"LBT",		"LBT,Spin,Spot,Rabinizer",
 																			"The syntax for LTL formulas passed to the external LTL->DA tool."},
+
+			// DEBUG / SANITY CHECK OPTIONS:
+			{ BOOLEAN_TYPE,		PRISM_JDD_SANITY_CHECKS,					"Do BDD sanity checks",			"4.3.1",			new Boolean(false),		"",
+																			"Perform internal sanity checks during computations (can cause significant slow-down)." },
 
 			// PARAMETRIC MODEL CHECKING
 			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			new Boolean(false),															"",
@@ -1317,6 +1323,11 @@ public class PrismSettings implements Observer
 			}
 		}
 
+		// DEBUGGING / SANITY CHECKS
+		else if (sw.equals("ddsanity")) {
+			set(PRISM_JDD_SANITY_CHECKS, true);
+		}
+
 		// PARAMETRIC MODEL CHECKING:
 		
 		else if (sw.equals("param")) {
@@ -1646,6 +1657,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-gsmax <n> (or sormax <n>) ..... Set memory limit (KB) for hybrid GS/SOR [default: 1024]");
 		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package, e.g. 125k, 50m, 4g [default: 1g]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
+		mainLog.println("-ddsanity ...................... Enable internal sanity checks (causes slow-down)");
 		mainLog.println();
 		mainLog.println("PARAMETRIC MODEL CHECKING OPTIONS:");
 		mainLog.println("-param <vals> .................. Do parametric model checking with parameters (and ranges) <vals>");
