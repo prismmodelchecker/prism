@@ -133,66 +133,239 @@ public class PrismMTBDD
 	// reachability based stuff
 	//------------------------------------------------------------------------------
 
-	// reachability
 	private static native long PM_Reachability(long trans01, long rv, int nrv, long cv, int ncv, long start);
+	/**
+	 * Reachability computation, computes the set Post*(start).
+	 * <br>
+	 * Note: For non-deterministic models, take the transition matrix
+	 * with the non-deterministic choices removed, i.e., getTransReln().
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the model (over rows, cols)
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param start the starting states for the reachability computation
+	 * @return the set of states that can be reached from start
+	 */
 	public static JDDNode Reachability(JDDNode trans01, JDDVars rows, JDDVars cols, JDDNode start)
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols);
+
+			jdd.SanityJDD.checkIsStateSet(start, rows);
+		}
+
 		long ptr = PM_Reachability(trans01.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), start.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
-	
-	// pctl until probability 1 precomputation (probabilistic/dtmc)
+
 	private static native long PM_Prob1(long trans01, long reach, long rv, int nrv, long cv, int ncv, long b1, long b2, long no);
-	public static JDDNode Prob1(JDDNode trans01, JDDNode reach,JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2, JDDNode no)// throws PrismException
+	/**
+	 * PCTL until probability 1 precomputation (probabilistic/dtmc)
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the DTMC (trans01, over rows, cols)
+	 * @param reach the set of reachable states in the DTMC
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param b1 the set of b1 states (needs to be contained in reach)
+	 * @param b2 the set of b2 states (needs to be contained in reach)
+	 * @param no the set of states with 'P[ b1 U b2 ] = 0'
+	 * @return the set of states with 'P[ b1 U b2 ] = 1'
+	 */
+	public static JDDNode Prob1(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2, JDDNode no)// throws PrismException
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols);
+
+			jdd.SanityJDD.checkIsStateSet(reach, rows);
+
+			jdd.SanityJDD.checkIsStateSet(b1, rows);
+			jdd.SanityJDD.checkIsContainedIn(b1, reach);
+
+			jdd.SanityJDD.checkIsStateSet(b2, rows);
+			jdd.SanityJDD.checkIsContainedIn(b2, reach);
+
+			jdd.SanityJDD.checkIsStateSet(no, rows);
+			jdd.SanityJDD.checkIsContainedIn(no, reach);
+		}
+
 		long ptr = PM_Prob1(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr(), no.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
-	
-	// pctl until probability 0 precomputation (probabilistic/dtmc)
+
 	private static native long PM_Prob0(long trans01, long reach, long rv, int nrv, long cv, int ncv, long b1, long b2);
+	/**
+	 * PCTL until probability 0 precomputation (probabilistic/dtmc)
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the DTMC (trans01, over rows, cols)
+	 * @param reach the set of reachable states in the DTMC
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param b1 the set of b1 states (needs to be contained in reach)
+	 * @param b2 the set of b2 states (needs to be contained in reach)
+	 * @return the set of states with 'P[ b1 U b2 ] = 0'
+	 */
 	public static JDDNode Prob0(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDNode b1, JDDNode b2)// throws PrismException
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols);
+
+			jdd.SanityJDD.checkIsStateSet(reach, rows);
+
+			jdd.SanityJDD.checkIsStateSet(b1, rows);
+			jdd.SanityJDD.checkIsContainedIn(b1, reach);
+
+			jdd.SanityJDD.checkIsStateSet(b2, rows);
+			jdd.SanityJDD.checkIsContainedIn(b2, reach);
+		}
+
 		long ptr = PM_Prob0(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), b1.ptr(), b2.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
-	
-	// pctl until probability 1 precomputation - there exists (nondeterministic/mdp)
+
 	private static native long PM_Prob1E(long trans01, long reach, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long b1, long b2, long no);
+	/**
+	 * PCTL until probability 1 precomputation - there exists (nondeterministic/mdp).
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the MDP (trans01, over rows, cols, nd)
+	 * @param reach the set of reachable states in the MDP
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param nd the nondeterministic choice variables of the model
+	 * @param b1 the set of b1 states (needs to be contained in reach)
+	 * @param b2 the set of b2 states (needs to be contained in reach)
+	 * @param no the set of states with 'for all strategies P[ b1 U b2 ] = 0' (needs to be contained in reach)
+	 * @return the set of states with 'there exists a strategy with P[ b1 U b2 ] = 1'
+	 */
 	public static JDDNode Prob1E(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2, JDDNode no)// throws PrismException
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols, nd);
+
+			jdd.SanityJDD.checkIsStateSet(reach, rows);
+
+			jdd.SanityJDD.checkIsStateSet(b1, rows);
+			jdd.SanityJDD.checkIsContainedIn(b1, reach);
+
+			jdd.SanityJDD.checkIsStateSet(b2, rows);
+			jdd.SanityJDD.checkIsContainedIn(b2, reach);
+
+			jdd.SanityJDD.checkIsStateSet(no, rows);
+			jdd.SanityJDD.checkIsContainedIn(no, reach);
+		}
+
 		long ptr = PM_Prob1E(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr(), no.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
-	
-	// pctl until probability 1 precomputation - for all (nondeterministic/mdp)
+
 	private static native long PM_Prob1A(long trans01, long reach, long mask, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long no, long b2);
+	/**
+	 * PCTL until probability 1 precomputation - for all (nondeterministic/mdp).
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the MDP (trans01, over rows, cols, nd)
+	 * @param reach the set of reachable states in the model
+	 * @param nondetMask nondetMask of the model
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param nd the nondeterministic choice variables of the model
+	 * @param no the set of states with 'there exists a strategy for P[ b1 U b2 ] = 0' (needs to be contained in reach)
+	 * @param b2 the set of b2 states (needs to be contained in reach)
+	 * @return the set of states with 'for all strategies P[ b1 U b2 ] = 1'
+	 */
 	public static JDDNode Prob1A(JDDNode trans01, JDDNode reach, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode no, JDDNode b2)// throws PrismException
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols, nd);
+
+			jdd.SanityJDD.checkIsDDOverVars(nondetMask, rows, nd);
+
+			jdd.SanityJDD.checkIsStateSet(reach, rows);
+
+			jdd.SanityJDD.checkIsStateSet(b2, rows);
+			jdd.SanityJDD.checkIsContainedIn(b2, reach);
+
+			jdd.SanityJDD.checkIsStateSet(no, rows);
+			jdd.SanityJDD.checkIsContainedIn(no, reach);
+		}
 		long ptr = PM_Prob1A(trans01.ptr(), reach.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), no.ptr(), b2.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
-	
-	// pctl until probability 0 precomputation - there exists (nondeterministic/mdp)
+
 	private static native long PM_Prob0E(long trans01, long reach, long mask, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long b1, long b2);
+	/**
+	 * PCTL until probability 0 precomputation - there exists (nondeterministic/mdp).
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the MDP (trans01, over rows, cols, nd)
+	 * @param reach the set of reachable states in the model
+	 * @param nondetMask nondetMask of the model
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param nd the nondeterministic choice variables of the model
+	 * @param b1 the set of b1 states (needs to be contained in reach)
+	 * @param b2 the set of b2 states (needs to be contained in reach)
+	 * @return the set of states with 'there exists a strategy with P[ b1 U b2 ] = 0'
+	 */
 	public static JDDNode Prob0E(JDDNode trans01, JDDNode reach, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2)// throws PrismException
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols, nd);
+
+			jdd.SanityJDD.checkIsDDOverVars(nondetMask, rows, nd);
+
+			jdd.SanityJDD.checkIsStateSet(reach, rows);
+
+			jdd.SanityJDD.checkIsStateSet(b1, rows);
+			jdd.SanityJDD.checkIsContainedIn(b1, reach);
+
+			jdd.SanityJDD.checkIsStateSet(b2, rows);
+			jdd.SanityJDD.checkIsContainedIn(b2, reach);
+		}
+
 		long ptr = PM_Prob0E(trans01.ptr(), reach.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
-	
-	// pctl until probability 0 precomputation - for all (nondeterministic/mdp)
+
 	private static native long PM_Prob0A(long trans01, long reach, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long b1, long b2);
+	/**
+	 * PCTL until probability 0 precomputation - for all (nondeterministic/mdp).
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param trans01 the 0/1-transition matrix of the MDP (trans01, over rows, cols, nd)
+	 * @param reach the set of reachable states in the model
+	 * @param rows the row variables of the model
+	 * @param cols the col variables of the model
+	 * @param nd the nondeterministic choice variables of the model
+	 * @param b1 the set of b1 states (needs to be contained in reach)
+	 * @param b2 the set of b2 states (needs to be contained in reach)
+	 * @return the set of states with 'for all strategies P[ b1 U b2 ] = 0'
+	 */
 	public static JDDNode Prob0A(JDDNode trans01, JDDNode reach, JDDVars rows, JDDVars cols, JDDVars nd, JDDNode b1, JDDNode b2)// throws PrismException
 	{
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsZeroOneMTBDD(trans01);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, rows, cols, nd);
+
+			jdd.SanityJDD.checkIsStateSet(reach, rows);
+
+			jdd.SanityJDD.checkIsStateSet(b1, rows);
+			jdd.SanityJDD.checkIsContainedIn(b1, reach);
+
+			jdd.SanityJDD.checkIsStateSet(b2, rows);
+			jdd.SanityJDD.checkIsContainedIn(b2, reach);
+		}
+
 		long ptr = PM_Prob0A(trans01.ptr(), reach.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nd.array(), nd.n(), b1.ptr(), b2.ptr());
-		//if (ptr == 0) throw new PrismException(getErrorMessage());
 		return JDD.ptrToNode(ptr);
 	}
 	
