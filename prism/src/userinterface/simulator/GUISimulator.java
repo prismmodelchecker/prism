@@ -40,6 +40,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -393,8 +394,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 			// if necessary, get values for undefined constants from user
-			// (for now, just get contants needed for properties file labels)
-			// TODO: also get constants for any (path) props we need, when this is re-enabled
+			// (for now, just get constants needed for properties file labels)
+			// TODO: find a way to also get constants for any (path) props we need
+			//       (for path formulae display)
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
@@ -861,24 +863,40 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 
-		// TODO: fix and re-enable this (note: should use passed in properties file)
-		// (and make sure user is queried for any necessary undefined constants too) 
-		// Path formulas
+		// Path formulae
+		// TODO: Currently, path formulae containing undefined property constants
+		// are ignored. It would be better if the user is queried
+		// for any necessary undefined constants, too.
 		GUISimPathFormulaeList thePathFormulaeList = (GUISimPathFormulaeList) pathFormulaeList;
 		thePathFormulaeList.clearList();
-		if (1 == 2)
-			if (pathActive) {
-				// Go through the property list from the Properties tab of GUI
-				GUIPropertiesList gpl = guiProp.getPropList();
-				for (int i = 0; i < gpl.getNumProperties(); i++) {
-					GUIProperty gp = gpl.getProperty(i);
-					// For properties which are simulate-able...
-					if (gp.isValidForSimulation()) {
-						// Add them to the list
-						thePathFormulaeList.addProperty(gp.getProperty(), propertiesFile);
+		if (pathActive) {
+			// Go through the property list from the Properties tab of GUI
+			GUIPropertiesList gpl = guiProp.getPropList();
+			for (int i = 0; i < gpl.getNumProperties(); i++) {
+				GUIProperty gp = gpl.getProperty(i);
+
+				// obtain constants in property
+				Vector<String> propertyConstants = gp.getProperty().getAllConstants();
+				boolean allConstantsDefined = true;
+				for (String propertyConstant : propertyConstants) {
+					if (!parsedModel.isDefinedConstant(propertyConstant) &&
+					    !propertiesFile.isDefinedConstant(propertyConstant)) {
+						// we found one that has not been defined in the model
+						// or the property file
+						allConstantsDefined = false;
+						break;
 					}
 				}
+
+				// If the property has no unresolved constants
+				// and is simulate-able...
+				if (allConstantsDefined &&
+				    gp.isValidForSimulation()) {
+					// Add them to the list
+					thePathFormulaeList.addProperty(gp.getProperty(), propertiesFile);
+				}
 			}
+		}
 	}
 
 	//METHODS TO IMPLEMENT THE GUIPLUGIN INTERFACE
