@@ -89,6 +89,7 @@ public class JDD
 	private static native long DD_RoundOff(long dd, int places);
 	private static native boolean DD_EqualSupNorm(long dd1, long dd2, double epsilon);
 	private static native double DD_FindMin(long dd);
+	private static native double DD_FindMinPositive(long dd);
 	private static native double DD_FindMax(long dd);
 	private static native long DD_RestrictToFirst(long dd, long vars, int num_vars);
 	private static native boolean DD_IsZeroOneMTBDD(long dd);
@@ -921,7 +922,20 @@ public class JDD
 		checkForCuddError();
 		return rv;
 	}
-	
+
+	/**
+	 * Returns minimal positive terminal in dd, i.e.,
+	 * the smallest constant greater than zero.
+	 * If there is none, returns +infinity.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
+	public static double FindMinPositive(JDDNode dd)
+	{
+		double rv = DD_FindMinPositive(dd.ptr());
+		checkForCuddError();
+		return rv;
+	}
+
 	/**
 	 * returns maximum terminal in dd
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]

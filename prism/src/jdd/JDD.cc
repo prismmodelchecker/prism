@@ -426,6 +426,14 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMin(JNIEnv *env, jclass cls, jlon
 //------------------------------------------------------------------------------
 
 
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMinPositive(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
+{
+	return DD_FindMinPositive(ddman, jlong_to_DdNode(dd));
+}
+
+//------------------------------------------------------------------------------
+
+
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_FindMax(ddman, jlong_to_DdNode(dd));

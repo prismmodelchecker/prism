@@ -441,6 +441,14 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMin
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_FindMinPositive
+ * Signature: (J)D
+ */
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMinPositive
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_FindMax
  * Signature: (J)D
  */
