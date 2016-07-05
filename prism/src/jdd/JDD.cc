@@ -28,7 +28,6 @@
 #include "JDD.h"
 #include "JDDNode.h"
 #include "JDDVars.h"
-#include "DebugJDD.h"
 #include "jnipointer.h"
 
 #include <stdio.h>
@@ -881,14 +880,14 @@ JNIEXPORT jint JNICALL Java_jdd_JDDVars_DDV_1GetIndex(JNIEnv *env, jobject obj, 
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jint JNICALL Java_jdd_DebugJDD_DebugJDD_1GetRefCount(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
+JNIEXPORT jint JNICALL Java_jdd_JDD_DebugJDD_1GetRefCount(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return (jlong_to_DdNode(dd))->ref;
 }
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlongArray JNICALL Java_jdd_DebugJDD_DebugJDD_1GetExternalRefCounts(JNIEnv *env, jclass cls)
+JNIEXPORT jlongArray JNICALL Java_jdd_JDD_DebugJDD_1GetExternalRefCounts(JNIEnv *env, jclass cls)
 {
 	// get external reference counts and return as a long[] Java array
 	// the entries of the array will be alternating ptr / count values

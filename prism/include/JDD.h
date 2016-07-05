@@ -679,6 +679,22 @@ JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToMatlabFile
 JNIEXPORT void JNICALL Java_jdd_JDD_DD_1ExportMatrixToSpyFile
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jint, jstring);
 
+/*
+ * Class:     jdd_JDD
+ * Method:    DebugJDD_GetRefCount
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_jdd_JDD_DebugJDD_1GetRefCount
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     jdd_JDD
+ * Method:    DebugJDD_GetExternalRefCounts
+ * Signature: ()[J
+ */
+JNIEXPORT jlongArray JNICALL Java_jdd_JDD_DebugJDD_1GetExternalRefCounts
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

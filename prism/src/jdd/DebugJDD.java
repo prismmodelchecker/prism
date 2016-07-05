@@ -82,19 +82,6 @@ import prism.PrismLog;
  */
 public class DebugJDD
 {
-	private static native int DebugJDD_GetRefCount(long dd);
-
-	private static native long[] DebugJDD_GetExternalRefCounts();
-
-	static {
-		try {
-			System.loadLibrary("jdd");
-		} catch (UnsatisfiedLinkError e) {
-			System.out.println(e);
-			System.exit(1);
-		}
-	}
-
 	/**
 	 * A DebugJDDNode extends a JDDNode with additional information
 	 * useful for tracking refs/derefs and tracing.
@@ -172,7 +159,7 @@ public class DebugJDD
 				throw new RuntimeException("DebugJDD: The number of Java references is negative for\n " + toStringVerbose());
 			}
 			// (2) There are more Java references than CUDD references
-			if (jrefs > DebugJDD_GetRefCount(ptr())) {
+			if (jrefs > JDD.DebugJDD_GetRefCount(ptr())) {
 				throw new RuntimeException("DebugJDD: More Java refs than CUDD refs for\n " + toStringVerbose());
 			}
 			// (3) This node has more refs than there are Java refs in total
@@ -194,7 +181,7 @@ public class DebugJDD
 			       + ", refs for this JDDNode = " + getNodeRefs()
 			       + ", refs from Java = " + getJavaRefCount(ptr())
 			       + ", refs from CUDD (including internal MTBDD refs) = "
-			       + DebugJDD_GetRefCount(ptr());
+			       + JDD.DebugJDD_GetRefCount(ptr());
 		}
 
 		public String ptrAsHex()
@@ -370,7 +357,7 @@ public class DebugJDD
 	/** Get the CUDD reference count for the pointer of the JDDNode */
 	public static int getRefCount(JDDNode n)
 	{
-		return DebugJDD_GetRefCount(n.ptr());
+		return JDD.DebugJDD_GetRefCount(n.ptr());
 	}
 
 	/** Get the number of DebugJDDNodes that reference the pointer */
@@ -387,7 +374,7 @@ public class DebugJDD
 	{
 		Map<Long, Integer> result = new TreeMap<Long, Integer>();
 		// Array consists of (pointer, count) pairs
-		long[] externalRefCounts = DebugJDD_GetExternalRefCounts();
+		long[] externalRefCounts = JDD.DebugJDD_GetExternalRefCounts();
 		int i = 0;
 		while (i < externalRefCounts.length) {
 			long node = externalRefCounts[i++];
@@ -403,9 +390,9 @@ public class DebugJDD
 	private static String nodeInfo(long ptr)
 	{
 		if (JDDNode.DDN_IsConstant(ptr)) {
-			return "constant(" + JDDNode.DDN_GetValue(ptr) + "), CUDD refs=" + DebugJDD_GetRefCount(ptr);
+			return "constant(" + JDDNode.DDN_GetValue(ptr) + "), CUDD refs=" + JDD.DebugJDD_GetRefCount(ptr);
 		} else {
-			return "var(" + JDDNode.DDN_GetIndex(ptr) + "), CUDD refs=" + DebugJDD_GetRefCount(ptr);
+			return "var(" + JDDNode.DDN_GetIndex(ptr) + "), CUDD refs=" + JDD.DebugJDD_GetRefCount(ptr);
 		}
 	}
 
@@ -515,7 +502,7 @@ public class DebugJDD
 			throw new RuntimeException("DebugJDD: Trying to Deref a JDDNode with non-positive Java ref count:\n " + dNode.toStringVerbose());
 		}
 
-		int cuddRefCount = DebugJDD_GetRefCount(node.ptr());
+		int cuddRefCount = JDD.DebugJDD_GetRefCount(node.ptr());
 		if (cuddRefCount <= 0) {
 			throw new RuntimeException("DebugJDD: Trying to Deref a JDDNode with a non-positive CUDD ref count\n " + dNode.toStringVerbose());
 		}
@@ -626,7 +613,7 @@ public class DebugJDD
 			throw new RuntimeException("DebugJDD: Trying to use a JDDNode with non-positive Java ref count in a method call:\n " + dNode.toStringVerbose());
 		}
 
-		int cuddRefCount = DebugJDD_GetRefCount(node.ptr());
+		int cuddRefCount = JDD.DebugJDD_GetRefCount(node.ptr());
 		if (cuddRefCount <= 0) {
 			throw new RuntimeException("DebugJDD: Trying to use a JDDNode with a non-positive CUDD ref count in a method call:\n " + dNode.toStringVerbose());
 		}

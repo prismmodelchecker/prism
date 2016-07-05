@@ -123,6 +123,10 @@ public class JDD
 	private static native void DD_ExportMatrixToMatlabFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, String name, String filename);
 	private static native void DD_ExportMatrixToSpyFile(long dd, long rvars, int num_rvars, long cvars, int num_cvars, int depth, String filename);
 
+	// helpers for DebugJDD, package visibility
+	static native int DebugJDD_GetRefCount(long dd);
+	static native long[] DebugJDD_GetExternalRefCounts();
+
 	/**
 	 * An exception indicating that CUDD ran out of memory or that another internal error
 	 * occurred.

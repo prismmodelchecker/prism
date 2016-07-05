@@ -33,7 +33,7 @@ O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o)
 
 default: all
 
-all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDD.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDNode.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDVars.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/DebugJDD.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)jdd$(LIBSUFFIX)
+all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDD.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDNode.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDVars.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)jdd$(LIBSUFFIX)
 
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
@@ -58,12 +58,6 @@ $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDNode.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THI
 
 $(PRISM_DIR_REL)/$(INCLUDE_DIR)/JDDVars.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/JDDVars.class
 	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).JDDVars; touch $@)
-	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
-	  (dos2unix $@) \
-	fi; 
-
-$(PRISM_DIR_REL)/$(INCLUDE_DIR)/DebugJDD.h: $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/DebugJDD.class
-	($(JAVAH) -classpath $(PRISM_DIR_REL)/$(CLASSES_DIR) -jni -o $@ $(THIS_DIR).DebugJDD; touch $@)
 	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
 	  (dos2unix $@) \
 	fi; 
