@@ -473,6 +473,19 @@ public class ProbModel implements Model
 		this.transRewards[i] = transRewards;
 	}
 
+	/**
+	 * Reset state rewards DD for reward with index i.
+	 *
+	 * <br>[ STORES: stateRewards, DEREFS: <i>old state reward DD</i> ]
+	 */
+	public void resetStateRewards(int i, JDDNode stateRewards)
+	{
+		if (this.stateRewards[i] != null) {
+			JDD.Deref(this.stateRewards[i]);
+		}
+		this.stateRewards[i] = stateRewards;
+	}
+
 	// do reachability
 
 	public void doReachability()
