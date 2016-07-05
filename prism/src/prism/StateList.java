@@ -29,6 +29,7 @@ package prism;
 import java.util.List;
 
 import jdd.*;
+import parser.State;
 import parser.Values;
 
 /**
@@ -94,6 +95,12 @@ public interface StateList
 	 */
 	Values getFirstAsValues() throws PrismException;
 	
+	/**
+	 * Get the index of a state in the list, specified as a State object.
+	 * Returns -1 if the state is not on the list or there is a problem with the lookup. 
+	 */
+	int getIndexOfState(State state);
+
 	/**
 	 * Free any memory associated with storing this list of states.
 	 */

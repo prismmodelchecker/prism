@@ -30,6 +30,7 @@ import java.util.*;
 
 import jdd.*;
 import odd.*;
+import parser.State;
 import parser.Values;
 import parser.VarList;
 import parser.type.*;
@@ -372,6 +373,51 @@ public class StateListMTBDD implements StateList
 		return values;
 	}
 
+	@Override
+	public int getIndexOfState(State state)
+	{
+		// Traverse BDD/ODD, top to bottom, computing index
+		JDDNode ptr = states;
+		ODDNode o = odd;
+		int level = 0;
+		int index = 0;
+		// Iterate through variables
+		int n = varList.getNumVars();
+		for (int i = 0; i < n; i++) {
+			int valInt = -1;
+			try {
+				valInt = varList.encodeToInt(i, state.varValues[i]); 
+			} catch (PrismLangException e) {
+				// Problem looking up variable - bail out 
+				return -1;
+			}
+			// Iterate through bits for this variable
+			int n2 = varSizes[i];
+			for (int j = 0; j < n2; j++) {
+				// Traverse BDD (need to double check state is in the set)
+				if (ptr.equals(JDD.ZERO)) {
+					return -1;
+				} else if (ptr.getIndex() > vars.getVarIndex(level)) {
+					// ptr = ptr;
+				} else if ((valInt & (1 << (n2-1-j))) == 0) {
+					ptr = ptr.getElse();
+				} else {
+					ptr.getThen();					
+				}
+				level++;
+				// Traverse ODD (to get index)
+				if ((valInt & (1 << (n2-1-j))) == 0) {
+					o = o.getElse();
+				} else {
+					o.getThen();	
+					index += o.getEOff();
+				}
+				
+			}
+		}
+		return index;
+	}
+	
 	@Override
 	public void clear()
 	{
