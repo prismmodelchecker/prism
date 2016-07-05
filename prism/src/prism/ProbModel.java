@@ -447,9 +447,12 @@ public class ProbModel implements Model
 	}
 
 	/**
-	 * Reset transition matrix DD
+	 * Reset transition matrix DD.
+	 * Note: Update reachable states and call {@code filterReachableStates}
+	 * afterwards to update related information (trans01, odd, etc).
+	 *
+	 * <br>[ STORES: trans, DEREFS: <i>old transition matrix DD</i> ]
 	 */
-
 	public void resetTrans(JDDNode trans)
 	{
 		if (this.trans != null)
@@ -458,9 +461,10 @@ public class ProbModel implements Model
 	}
 
 	/**
-	 * Reset transition rewards DDs
+	 * Reset transition rewards DD for reward with index i.
+	 *
+	 * <br>[ STORES: transRewards, DEREFS: <i>old trans reward DD</i> ]
 	 */
-
 	public void resetTransRewards(int i, JDDNode transRewards)
 	{
 		if (this.transRewards[i] != null) {
