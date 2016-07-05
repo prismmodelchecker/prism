@@ -33,11 +33,13 @@ package jdd;
  * can be costly and can lead to a significant slow-down, the
  * sanity checks should only be enabled for debugging purposes.
  * <br>
- * The sanity checks are enabled by setting the
+ * The sanity checks are globally enabled by setting the
  * {@code static boolean enabled} to true.
  * <br>
  * In your code, check this variable before calling one
- * of the check methods.
+ * of the check methods. However, the methods themselves
+ * do not check the {@code enabled} flag and can therefore
+ * also be used when the global sanity check is disabled.
  */
 public class SanityJDD
 {
@@ -54,9 +56,6 @@ public class SanityJDD
 	 */
 	public static void checkIsContainedIn(JDDNode a, JDDNode b)
 	{
-		if (!enabled)
-			return;
-
 		checkIsZeroOneMTBDD(a);
 		checkIsZeroOneMTBDD(b);
 
@@ -74,9 +73,6 @@ public class SanityJDD
 	 */
 	public static void checkIsZeroOneMTBDD(JDDNode node)
 	{
-		if (!enabled)
-			return;
-
 		if (!JDD.IsZeroOneMTBDD(node)) {
 			error("MTBDD is not a 0/1-MTBDD");
 		}
@@ -95,9 +91,6 @@ public class SanityJDD
 	 */
 	public static void checkVarsAreSorted(JDDVars vars)
 	{
-		if (!enabled)
-			return;
-
 		int lastIndex = -1;
 		for (JDDNode var : vars) {
 			int index = var.getIndex();
@@ -117,9 +110,6 @@ public class SanityJDD
 	 */
 	public static void checkIsDDOverVars(JDDNode node, JDDVars... allowedVars)
 	{
-		if (!enabled)
-			return;
-
 		JDDNode cube = null;
 		JDDNode support = null;
 		JDDNode combined = null;
@@ -160,9 +150,6 @@ public class SanityJDD
 	 */
 	public static void checkIsStateSet(JDDNode node, JDDVars vars)
 	{
-		if (!enabled)
-			return;
-
 		checkIsZeroOneMTBDD(node);
 		checkIsDDOverVars(node, vars);
 	}
@@ -170,9 +157,6 @@ public class SanityJDD
 	/** Generic check method, raise error with the given message if value is false */
 	public static void check(boolean value, String message)
 	{
-		if (!enabled)
-			return;
-
 		if (!value) {
 			error(message);
 		}
