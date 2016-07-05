@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -34,49 +34,55 @@ import parser.Values;
 import parser.VarList;
 import parser.type.*;
 
-// list of states (mtbdd)
-
+/**
+ * Stores a list of states as a BDD (or as a 0-1 MTBDD).
+ */
 public class StateListMTBDD implements StateList
 {
-	// states vector mtbdd
-	JDDNode states;
+	// States list, as a (0-1) MTBDD
+	protected JDDNode states;
 	
-	// info from model
-	JDDVars vars;
-	int numVars;
-	ODDNode odd;
-	VarList varList;
-	double size;
+	// Info needed from model
+	protected JDDVars vars;
+	protected int numVars;
+	protected ODDNode odd;
+	protected VarList varList;
+	protected double size;
 	
 	// stuff to keep track of variable values in print method
-	int[] varSizes;
-	int[] varValues;
-	int currentVar;
-	int currentVarLevel;
+	protected int[] varSizes;
+	protected int[] varValues;
+	protected int currentVar;
+	protected int currentVarLevel;
 	
 	// stuff to control printing limit
-	boolean limit;
-	int numToPrint;
-	int count;
+	protected boolean limit;
+	protected int numToPrint;
+	protected int count;
 	
 	// log for output from print method
-	PrismLog outputLog;
+	protected PrismLog outputLog;
 	
 	// string array when exporting
-	List<String> strList;
+	protected List<String> strList;
 	
 	// output format
-	enum OutputFormat { NORMAL, MATLAB, DOT, STRINGS };
-	OutputFormat outputFormat = OutputFormat.NORMAL;
+	protected enum OutputFormat { NORMAL, MATLAB, DOT, STRINGS };
+	protected OutputFormat outputFormat = OutputFormat.NORMAL;
 	
 	// Constructors
 
-	public StateListMTBDD(JDDNode s, Model model)
+	/**
+	 * Create a states list from a BDD and the associated model.
+	 * @param states The list of states
+	 * @param model The model
+	 */
+	public StateListMTBDD(JDDNode states, Model model)
 	{
 		int i;
 		
-		// store states vector mtbdd
-		states = s;
+		// store states list bdd
+		this.states = states;
 		
 		// get info from model
 		vars = model.getAllDDRowVars();
@@ -95,14 +101,21 @@ public class StateListMTBDD implements StateList
 		varValues = new int[varList.getNumVars()];
 	}
 
-	public StateListMTBDD(JDDNode s, JDDVars vars, ODDNode odd, VarList varList)
+	/**
+	 * Create a states list from a BDD and the associated info about variables/indexing.
+	 * @param states The list of states
+	 * @param vars BDD variables used to represent states
+	 * @param odd ODD storing state indexing info
+	 * @param varList Information about (language-level) variables
+	 */
+	public StateListMTBDD(JDDNode states, JDDVars vars, ODDNode odd, VarList varList)
 	{
 		int i;
 
 		// store states vector mtbdd
-		states = s;
+		this.states = states;
 
-		// get info from model
+		// store variable/indexing info
 		this.vars = vars;
 		this.numVars = vars.n();
 		this.odd = odd;
@@ -119,20 +132,19 @@ public class StateListMTBDD implements StateList
 		varValues = new int[varList.getNumVars()];
 	}
 
-	// return size (number of states in list)
-	
+	@Override
 	public int size()
 	{
 		return (size > Integer.MAX_VALUE) ? -1 : (int)Math.round(size);
 	}
 	
+	@Override
 	public String sizeString()
 	{
 		return (size > Long.MAX_VALUE) ? "" + size : "" + Math.round(size);
 	}
 
-	// print/export whole list
-	
+	@Override
 	public void print(PrismLog log)
 	{
 		outputFormat = OutputFormat.NORMAL;
@@ -142,31 +154,8 @@ public class StateListMTBDD implements StateList
 		if (count == 0)
 			outputLog.println("(none)");
 	}
-	public void printMatlab(PrismLog log)
-	{
-		outputFormat = OutputFormat.MATLAB;
-		limit = false;
-		outputLog = log;
-		doPrint();
-	}
-	public void printDot(PrismLog log)
-	{
-		outputFormat = OutputFormat.DOT;
-		limit = false;
-		outputLog = log;
-		doPrint();
-	}
-	public List<String> exportToStringList()
-	{
-		strList = new ArrayList<String>((int)size);
-		outputFormat = OutputFormat.STRINGS;
-		limit = false;
-		doPrint();
-		return strList;
-	}
 	
-	// print first n states of list
-	
+	@Override
 	public void print(PrismLog log, int n)
 	{
 		outputFormat = OutputFormat.NORMAL;
@@ -178,6 +167,16 @@ public class StateListMTBDD implements StateList
 			outputLog.println("(none)");
 	}
 	
+	@Override
+	public void printMatlab(PrismLog log)
+	{
+		outputFormat = OutputFormat.MATLAB;
+		limit = false;
+		outputLog = log;
+		doPrint();
+	}
+	
+	@Override
 	public void printMatlab(PrismLog log, int n)
 	{
 		outputFormat = OutputFormat.MATLAB;
@@ -187,9 +186,29 @@ public class StateListMTBDD implements StateList
 		doPrint();
 	}
 	
-	// printing method
+	@Override
+	public void printDot(PrismLog log)
+	{
+		outputFormat = OutputFormat.DOT;
+		limit = false;
+		outputLog = log;
+		doPrint();
+	}
 	
-	public void doPrint()
+	@Override
+	public List<String> exportToStringList()
+	{
+		strList = new ArrayList<String>((int)size);
+		outputFormat = OutputFormat.STRINGS;
+		limit = false;
+		doPrint();
+		return strList;
+	}
+	
+	/**
+	 * Implementation of printing.
+	 */
+	private void doPrint()
 	{
 		int i;
 		
@@ -203,14 +222,12 @@ public class StateListMTBDD implements StateList
 		//log.println();
 	}
 
-	// recursive bit of print
-	// (nb: traversal of mtbdd/odd is quite simple,
-	//  tricky bit is keeping track of variable values
-	//  throughout traversal - we want to be efficient
-	//  and not compute the values from scratch each
-	//  time, but we also want to avoid passing arrays
-	//  into the resursive method)
-	
+	/**
+	 * Main recursive part of state printing.
+	 * NB: Traversal of the MTBDD/ODD is quite simple; the  tricky bit is keeping track of variable values
+	 * throughout traversal - we want to be efficient and not compute the values from scratch each
+	 * time, but we also want to avoid passing arrays into the recursive method.
+	 */
 	private void printRec(JDDNode dd, int level, ODDNode o, long n)
 	{
 		int i, j;
@@ -230,6 +247,7 @@ public class StateListMTBDD implements StateList
 			case NORMAL: outputLog.print(n + ":("); break;
 			case MATLAB: break;
 			case DOT: outputLog.print(n + " [label=\"" + n + "\\n("); break;
+			case STRINGS: break;
 			}
 			j = varList.getNumVars();
 			varsString = "";
@@ -275,42 +293,37 @@ public class StateListMTBDD implements StateList
 		varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
 	}
 
-	/**
-	 * Check for (partial) state inclusion - state(s) given by BDD
-	 */
-	public boolean includes(JDDNode state)
+	@Override
+	public boolean includes(JDDNode set)
 	{
 		JDDNode tmp;
 		boolean incl;
 		
 		JDD.Ref(states);
-		JDD.Ref(state);
-		tmp = JDD.And(states, state);
+		JDD.Ref(set);
+		tmp = JDD.And(states, set);
 		incl = !tmp.equals(JDD.ZERO);
 		JDD.Deref(tmp);
 		
 		return incl;	
 	}
 
-	/**
-	 * Check for (full) state inclusion - state(s) given by BDD
-	 */
-	public boolean includesAll(JDDNode state)
+	@Override
+	public boolean includesAll(JDDNode set)
 	{
 		JDDNode tmp;
 		boolean incl;
 		
 		JDD.Ref(states);
-		JDD.Ref(state);
-		tmp = JDD.And(states, state);
-		incl = tmp.equals(state);
+		JDD.Ref(set);
+		tmp = JDD.And(states, set);
+		incl = tmp.equals(set);
 		JDD.Deref(tmp);
 		
 		return incl;	
 	}
 
-	// get first state as Values object
-	
+	@Override
 	public Values getFirstAsValues() throws PrismException
 	{
 		Values values;
@@ -359,11 +372,9 @@ public class StateListMTBDD implements StateList
 		return values;
 	}
 
-	// clear
-	
+	@Override
 	public void clear()
 	{
 		JDD.Deref(states);
 	}
 }
-
