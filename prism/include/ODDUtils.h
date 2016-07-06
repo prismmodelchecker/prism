@@ -25,6 +25,14 @@ JNIEXPORT jlong JNICALL Java_odd_ODDUtils_ODD_1BuildODD
 
 /*
  * Class:     odd_ODDUtils
+ * Method:    ODD_ClearODD
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1ClearODD
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     odd_ODDUtils
  * Method:    ODD_GetNumODDNodes
  * Signature: ()I
  */

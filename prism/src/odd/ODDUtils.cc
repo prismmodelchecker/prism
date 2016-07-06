@@ -65,6 +65,18 @@ jint num_vars
 }
 
 //------------------------------------------------------------------------------
+// clear odd
+//------------------------------------------------------------------------------
+JNIEXPORT void JNICALL Java_odd_ODDUtils_ODD_1ClearODD
+(
+JNIEnv *env,
+jclass cls,
+jlong __jlongpointer odd)
+{
+	clear_odd(jlong_to_ODDNode(odd));
+}
+
+//------------------------------------------------------------------------------
 
 JNIEXPORT jint JNICALL Java_odd_ODDUtils_ODD_1GetNumODDNodes
 (

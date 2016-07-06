@@ -68,11 +68,29 @@ public class ODDUtils
 	 */
 	public static ODDNode BuildODD(JDDNode dd, JDDVars vars)
 	{
+		if (jdd.SanityJDD.enabled) {
+			// ODD construction requires the JDDVars to be in ascending order
+			jdd.SanityJDD.checkVarsAreSorted(vars);
+		}
+
 		return new ODDNode(
 			ODD_BuildODD(dd.ptr(), vars.array(), vars.n())
 		);
 	}
-	
+
+	private static native void ODD_ClearODD(long ptr);
+	/**
+	 * Clear the ODD with root node {@code odd}.
+	 *<br>
+	 * Note: {@code odd} has to be an ODDNode previously returned by a
+	 * call to the {@code BuildODD} method. Any other odd will
+	 * lead to unexpected behaviour, possibly including crash, etc.
+	 */
+	public static void ClearODD(ODDNode odd)
+	{
+		ODD_ClearODD(odd.ptr());
+	}
+
 	private static native int ODD_GetNumODDNodes();
 	/**
 	 *  Get the number of nodes in the ODD just built.

@@ -3,6 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -42,24 +43,50 @@ ODDNode *build_odd(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars)
 	ODDNode **tables;
 	ODDNode *res;
 
-	// build tables to store odd nodes
+	// build tables to store odd nodes during construction
 	tables = new ODDNode*[num_vars+1];
 	for (i = 0; i < num_vars+1; i++) {
 		tables[i] = NULL;
 	}
-	
+
 	// reset node counter
 	num_odd_nodes = 0;
-	
+
 	// call recursive bit
 	res = build_odd_rec(ddman, dd, 0, vars, num_vars, tables);
-	
+
+	// At this point, all the allocated ODDNodes for this ODD are
+	// chained by linked lists (ODD->next), one for each non-empty tables[i].
+	// To facilitate deallocation later on, we chain all these
+	// individual linked lists together.
+	// By construction, the root node (res) is the only node in
+	// the top-most, non-empty table and is thus at the
+	// start of the resulting chain.
+
+	// The current end of the linked list
+	ODDNode *last = NULL;
+	for (i = 0; i < num_vars+1; i++) {
+		if (tables[i] != NULL) {
+			// non-empty tables slot
+			if (last != NULL) {
+				// chain the first node in this tables slot to
+				// the last one above
+				last->next = tables[i];
+			}
+			// search for last node in this tables slot
+			last = tables[i];
+			while (last->next != NULL) {
+				last = last->next;
+			}
+		}
+	}
+
 	// add offsets to odd
 	add_offsets(ddman, res, 0, num_vars);
 
 	// free memory
 	delete tables;
-	
+
 	return res;
 }
 
@@ -131,6 +158,22 @@ long add_offsets(DdManager *ddman, ODDNode *odd, int level, int num_vars)
 	}
 	
 	return odd->eoff + odd->toff;
+}
+
+//------------------------------------------------------------------------------
+
+void clear_odd(ODDNode *odd) {
+	// We assume that odd is the root node of an ODD, i.e.,
+	// was returned previously from a build_odd call.
+	// It is thus the first element of the linked list
+	// (with ODDNode->next pointers) that references all the
+	// allocated ODDNodes of this ODD and we can simply
+	// delete each ODDNode in turn.
+	while (odd != NULL) {
+		ODDNode *next = odd->next;
+		delete odd;
+		odd = next;
+	}
 }
 
 //------------------------------------------------------------------------------
