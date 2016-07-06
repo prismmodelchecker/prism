@@ -213,7 +213,10 @@ public class NondetModel extends ProbModel
 		// work out number of reachable states
 		numStates = JDD.GetNumMinterms(reach, allDDRowVars.n());
 
-		// build odd
+		// build odd, clear old one
+		if (odd != null) {
+			ODDUtils.ClearODD(odd);
+		}
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}
 
