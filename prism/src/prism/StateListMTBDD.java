@@ -409,8 +409,8 @@ public class StateListMTBDD implements StateList
 				if ((valInt & (1 << (n2-1-j))) == 0) {
 					o = o.getElse();
 				} else {
-					o.getThen();	
 					index += o.getEOff();
+					o = o.getThen();	
 				}
 				
 			}
