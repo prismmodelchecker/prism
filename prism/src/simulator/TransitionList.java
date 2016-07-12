@@ -206,6 +206,16 @@ public class TransitionList
 	}
 
 	/**
+	 * Get the index of the action/module of a choice, specified by its index.
+	 * (-i for independent in ith module, i for synchronous on ith action)
+	 * (in both cases, modules/actions are 1-indexed)
+	 */
+	public int getChoiceModuleOrActionIndex(int index)
+	{
+		return getChoice(index).getModuleOrActionIndex();
+	}
+
+	/**
 	 * Get the probability/rate of a transition, specified by its index.
 	 */
 	public double getTransitionProbability(int index)

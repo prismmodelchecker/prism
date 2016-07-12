@@ -283,6 +283,14 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	}
 
 	@Override
+	public String getChoiceAction(int index) throws PrismException
+	{
+		TransitionList transitions = getTransitionList();
+		int a = transitions.getChoiceModuleOrActionIndex(index);
+		return a < 0 ? null : modulesFile.getSynch(a - 1);
+	}
+
+	@Override
 	public double getTransitionProbability(int index, int offset) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();

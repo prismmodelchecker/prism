@@ -275,13 +275,13 @@ public class ConstructModel extends PrismComponent
 				if (!justReach) {
 					if (modelType == ModelType.MDP) {
 						if (distinguishActions) {
-							mdp.addActionLabelledChoice(src, distr, modelGen.getTransitionAction(i, 0));
+							mdp.addActionLabelledChoice(src, distr, modelGen.getChoiceAction(i));
 						} else {
 							mdp.addChoice(src, distr);
 						}
 					} else if (modelType == ModelType.CTMDP) {
 						if (distinguishActions) {
-							ctmdp.addActionLabelledChoice(src, distr, modelGen.getTransitionAction(i, 0));
+							ctmdp.addActionLabelledChoice(src, distr, modelGen.getChoiceAction(i));
 						} else {
 							ctmdp.addChoice(src, distr);
 						}
