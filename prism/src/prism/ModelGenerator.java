@@ -107,6 +107,16 @@ public interface ModelGenerator extends ModelInfo
 	public Object getTransitionAction(int i, int offset) throws PrismException;
 
 	/**
+	 * Get the action label of a choice, specified by its index.
+	 * The label can be any Object, but will often be treated as a string, so it should at least
+	 * have a meaningful toString() method implemented. Absence of an action label is denoted by null.
+	 * Note: If the model has different actions for different transitions within a choice
+	 * (as can be the case for Markov chains), this method returns the action for the first transition.
+	 * So, this method is essentially equivalent to {@code getTransitionAction(i, 0)}. 
+	 */
+	public Object getChoiceAction(int i) throws PrismException;
+
+	/**
 	 * Get the probability/rate of a transition within a choice, specified by its index/offset.
 	 * @param i Index of the nondeterministic choice
 	 * @param offset Index of the transition within the choice
