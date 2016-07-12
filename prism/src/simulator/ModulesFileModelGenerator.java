@@ -268,17 +268,17 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	}
 
 	@Override
+	public String getTransitionAction(int index) throws PrismException
+	{
+		int a = getTransitionList().getTransitionModuleOrActionIndex(index);
+		return a < 0 ? null : modulesFile.getSynch(a - 1);
+	}
+
+	@Override
 	public String getTransitionAction(int index, int offset) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
 		int a = transitions.getTransitionModuleOrActionIndex(transitions.getTotalIndexOfTransition(index, offset));
-		return a < 0 ? null : modulesFile.getSynch(a - 1);
-	}
-
-	//@Override
-	public String getTransitionAction(int index) throws PrismException
-	{
-		int a = getTransitionList().getTransitionModuleOrActionIndex(index);
 		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
 
