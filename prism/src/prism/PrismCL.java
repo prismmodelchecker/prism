@@ -29,6 +29,8 @@ package prism;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -211,6 +213,15 @@ public class PrismCL implements PrismModelListener
 				mainLog.println(st);
 			}
 			errorAndExit(e.getMessage() + ".\nTip: Try using the -cuddmaxmem switch to increase the memory available to CUDD");
+		} catch (Exception e) {
+			// We catch Exceptions here ourself to ensure that we actually exit
+			// In the presence of thread pools (e.g., in the JAS library when using -exact),
+			// the main thread dying does not necessarily quit the program...
+			StringWriter sw = new StringWriter();
+			sw.append("\n");
+			e.printStackTrace(new PrintWriter(sw));
+			mainLog.print(sw.toString());
+			errorAndExit("Caught unhandled exception, aborting...");
 		}
 	}
 
