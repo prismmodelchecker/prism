@@ -1045,7 +1045,7 @@ public class JDD
 	 * assignment to the variables in {@code vars}.
 	 * <br>
 	 * This is the case if there is a single path to the ONE constant
-	 * and all variables of {@code vars} occur on the path.
+	 * and exactly the variables of {@code vars} occur on the path.
 	 * @param dd the DD
 	 * @param vars the variables
 	 */
@@ -1055,12 +1055,14 @@ public class JDD
 			SanityJDD.checkIsZeroOneMTBDD(dd);
 			SanityJDD.checkVarsAreSorted(vars);
 		}
-		
-		int i=0;
-		while (!dd.isConstant()) {
-			int index = dd.getIndex();
-			if (vars.getVar(i).getIndex() != index)
+
+		for (int i = 0; i < vars.n(); i++) {
+			if (dd.isConstant())
 				return false;
+
+			if (vars.getVar(i).getIndex() != dd.getIndex())
+				return false;
+
 			JDDNode t = dd.getThen();
 			JDDNode e = dd.getElse();
 
@@ -1072,7 +1074,6 @@ public class JDD
 				// then or else have to be ZERO
 				return false;
 			}
-			i++;
 		}
 
 		return dd.equals(JDD.ONE);
