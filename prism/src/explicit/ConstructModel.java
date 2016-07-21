@@ -204,6 +204,7 @@ public class ConstructModel extends PrismComponent
 			case STPG:
 			case SMG:
 			case PTA:
+			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 		}
@@ -267,6 +268,7 @@ public class ConstructModel extends PrismComponent
 						case STPG:
 						case SMG:
 						case PTA:
+						case LTS:
 							throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 						}
 					}
@@ -344,6 +346,7 @@ public class ConstructModel extends PrismComponent
 			case STPG:
 			case SMG:
 			case PTA:
+			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			model.setStatesList(statesList);
