@@ -54,6 +54,7 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import parser.type.TypeBool;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -3055,16 +3056,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
 		Result result = mc.check(modelExpl, prop.getExpression());
 
-		// Convert result of parametric model checking to just a rational
+		// Convert result of parametric model checking to a single value,
+		// either boolean for boolean properties or a rational for numeric properties
 		// There should be just one region since no parameters are used
 		RegionValues regVals = (RegionValues) result.getResult();
 		if (regVals.getNumRegions() != 1)
 			throw new PrismException("Unexpected result from paramteric model checker");
-		param.Function func = regVals.getResult(0).getInitStateValueAsFunction();
-		// Evaluate the function at an arbitrary point (should not depend on parameter values)
-		BigRational rat = func.evaluate(new param.Point(new BigRational[] { new BigRational(0) }));
-		// Restore in result object
-		result.setResult(rat);
+
+		if (prop.getType().equals(TypeBool.getInstance())) {
+			// boolean result
+			boolean boolResult = regVals.getResult(0).getInitStateValueAsBoolean();
+			// Restore in result object
+			result.setResult(boolResult);
+		} else {
+			// numeric result
+			param.Function func = regVals.getResult(0).getInitStateValueAsFunction();
+			// Evaluate the function at an arbitrary point (should not depend on parameter values)
+			BigRational rat = func.evaluate(new param.Point(new BigRational[] { new BigRational(0) }));
+			// Restore in result object
+			result.setResult(rat);
+		}
 
 		// Print result to log
 		String resultString = "Result";
