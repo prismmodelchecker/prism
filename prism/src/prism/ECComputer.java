@@ -86,6 +86,12 @@ public abstract class ECComputer extends PrismComponent
 		this.allDDColVars = allDDColVars;
 		this.allDDNondetVars = allDDNondetVars;
 		sumRoundOff = settings.getDouble(PrismSettings.PRISM_SUM_ROUND_OFF);
+
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsDDOverVars(trans, allDDRowVars, allDDColVars, allDDNondetVars);
+			jdd.SanityJDD.checkIsDDOverVars(trans01, allDDRowVars, allDDColVars, allDDNondetVars);
+			jdd.SanityJDD.checkIsDDOverVars(reach, allDDRowVars);
+		}
 	}
 
 	/**
