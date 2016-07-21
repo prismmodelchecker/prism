@@ -104,6 +104,11 @@ public abstract class SCCComputer extends PrismComponent
 		this.reach = reach;
 		this.allDDRowVars = allDDRowVars;
 		this.allDDColVars = allDDColVars;
+
+		if (jdd.SanityJDD.enabled) {
+			jdd.SanityJDD.checkIsDDOverVars(trans01, allDDRowVars, allDDColVars);
+			jdd.SanityJDD.checkIsDDOverVars(reach, allDDRowVars);
+		}
 	}
 
 	/**
