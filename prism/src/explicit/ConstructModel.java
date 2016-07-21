@@ -354,7 +354,7 @@ public class ConstructModel extends PrismComponent
 		// Discard permutation
 		permut = null;
 
-		if (attachLabels)
+		if (!justReach && attachLabels)
 			attachLabels(modelGen, model);
 		
 		return model;
