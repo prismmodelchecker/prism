@@ -95,7 +95,7 @@ jlong __jlongpointer in
 	iters = 0;
 	PM_PrintToMainLog(env, "\nStarting iterations...\n");
 	
-	// note that we ignore max_iters as we know how any iterations _should_ be performed
+	// note that we ignore max_iters as we know how many iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
 		
 		// matrix-vector multiply
