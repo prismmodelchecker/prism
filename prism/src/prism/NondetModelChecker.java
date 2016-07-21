@@ -1924,13 +1924,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		try {
 			switch (engine) {
 			case Prism.MTBDD:
-				throw new PrismException("MTBDD engine does not yet support this type of property (use the sparse engine instead)");
+				throw new PrismNotSupportedException("MTBDD engine does not yet support this type of property (use the sparse engine instead)");
 			case Prism.SPARSE:
 				rewardsDV = PrismSparse.NondetCumulReward(tr, sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, time, min);
 				rewards = new StateValuesDV(rewardsDV, model);
 				break;
 			case Prism.HYBRID:
-				throw new PrismException("Hybrid engine does not yet support this type of property (use the sparse engine instead)");
+				throw new PrismNotSupportedException("Hybrid engine does not yet support this type of property (use the sparse engine instead)");
 			default:
 				throw new PrismException("Unknown engine");
 			}
