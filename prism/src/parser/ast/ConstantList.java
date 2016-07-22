@@ -49,10 +49,26 @@ public class ConstantList extends ASTElement
 	// This is to just to provide positional info.
 	private Vector<ExpressionIdent> nameIdents = new Vector<ExpressionIdent>();
 	
-	// Constructor
-	
+	/** Constructor */
 	public ConstantList()
 	{
+	}
+
+	/** Constructor from a Values object, i.e., a list of name=value tuples */
+	public ConstantList(Values constValues) throws PrismLangException
+	{
+		for (int i = 0; i < constValues.getNumValues(); i++) {
+			Type type = constValues.getType(i);
+			if (type.equals(TypeBool.getInstance()) ||
+			    type.equals(TypeInt.getInstance()) ||
+			    type.equals(TypeDouble.getInstance())) {
+				addConstant(new ExpressionIdent(constValues.getName(i)),
+				            new ExpressionLiteral(type, constValues.getValue(i)),
+				            type);
+			} else {
+				throw new PrismLangException("Unsupported type for constant " + constValues.getName(i));
+			}
+		}
 	}
 
 	// Set methods
