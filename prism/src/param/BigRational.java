@@ -797,4 +797,35 @@ public final class BigRational implements Comparable<BigRational>
 	{
 		return isNaN() || isInf() || isMInf();
 	}
+
+	/**
+	 * Returns true if this value equals 1 or false if this value
+	 * equals 0. In all other cases, a PrismLangException is thrown.
+	 */
+	public boolean toBoolean() throws PrismLangException
+	{
+		if (isOne())
+			return true;
+		if (isZero())
+			return false;
+		throw new PrismLangException("Conversion from BigRational to Boolean not possible, invalid value: " + this);
+	}
+
+	/**
+	 * Returns the int representation of this value,
+	 * if this value is an integer and if the integer can
+	 * be represented by an int variable.
+	 * In all other cases, a PrismLangException is thrown.
+	 */
+	public int toInt() throws PrismLangException
+	{
+		if (!isInteger()) {
+			throw new PrismLangException("Can not convert fractional number to int");
+		}
+		int value = getNum().intValue();
+		if (!getNum().equals(new BigInteger(Integer.toString(value)))) {
+			throw new PrismLangException("Can not convert BigInteger to int, value out of range");
+		}
+		return value;
+	}
 }
