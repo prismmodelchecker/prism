@@ -775,6 +775,18 @@ public final class BigRational implements Comparable<BigRational>
 	}
 
 	/**
+	 * Returns true iff this object represents an integer, i.e.,
+	 * is not not-a-number, positive, or negative infinity and
+	 * the denominator is 1.
+	 *
+	 * @return true iff this object represents an integer
+	 */
+	public boolean isInteger()
+	{
+		return isRational() && getDen().equals(ONE);
+	}
+
+	/**
 	 * Returns true iff this value represents a special number.
 	 * This is the case if this is either not-a-number, positive or
 	 * negative infinity.
