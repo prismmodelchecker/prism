@@ -1588,7 +1588,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Parse a single PRISM expression from a string.
 	 * @param s String to parse
 	 */
-	public Expression parseSingleExpressionString(String s) throws PrismLangException
+	public static Expression parseSingleExpressionString(String s) throws PrismLangException
 	{
 		PrismParser prismParser;
 		Expression expr;
