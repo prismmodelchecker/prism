@@ -236,6 +236,31 @@ public final class BigRational implements Comparable<BigRational>
 		}
 	}
 
+	/**
+	 * Construct a BigRational from the given object.
+	 * Throws an IllegalArgumentException if there is no
+	 * known conversion.
+	 */
+	public static BigRational from(Object value)
+	{
+		if (value instanceof BigRational) {
+			BigRational v = (BigRational)value;
+			return new BigRational(v.num, v.den);
+		} else if (value instanceof Integer) {
+			return new BigRational((int) value);
+		} else if (value instanceof Long) {
+			return new BigRational((long) value);
+		} else if (value instanceof Boolean) {
+			boolean v = (Boolean)value;
+			return new BigRational(v ? 1 : 0);
+		} else if (value instanceof Double) {
+			// TODO: ? might be imprecise, perhaps there
+			// is a way to get the full precision?
+			return new BigRational(((Double)value).toString());
+		}
+		throw new IllegalArgumentException("Can not convert from " + value.getClass() + " to BigRational");
+	}
+
 	// helper functions
 
 	/**
