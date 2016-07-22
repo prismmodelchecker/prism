@@ -30,7 +30,7 @@ import java.math.BigInteger;
 
 /**
  * Provides a class to store big rational numbers.
- * Nominator and denominator of a number stored using this class are not
+ * Numerator and denominator of a number stored using this class are not
  * necessarily coprime. However, cancellation is applied by default.
  * The special values infinity (INF), minus infinity (MINF) and not a number
  * (NAN)are provided. For them, the usual rules apply (INF * INF = INF,
