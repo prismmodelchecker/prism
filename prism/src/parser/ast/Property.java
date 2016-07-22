@@ -324,8 +324,8 @@ public class Property extends ASTElement
 				throw new PrismException("Wrong result (expected " + (simple ? "" : strExpected + " = ") + boolExp + ", got " + boolRes + ")");
 		}
 
-		// Integer-valued properties
-		else if (type instanceof TypeInt) {
+		// Integer-valued properties (non-exact mode)
+		else if (type instanceof TypeInt && !(result instanceof BigRational)) {
 			// Parse expected result
 			int intExp;
 			boolean simple = true;  // is the expectation string a simple expression?
@@ -401,8 +401,8 @@ public class Property extends ASTElement
 			}
 		}
 
-		// Double-valued properties (exact mode)
-		else if (type instanceof TypeDouble && result instanceof BigRational) {
+		// Double- and Int-valued properties (exact mode)
+		else if ((type instanceof TypeDouble || type instanceof TypeInt) && result instanceof BigRational) {
 			// Parse expected result
 			BigRational rationalRes = (BigRational) result;
 			BigRational rationalExp = null;
