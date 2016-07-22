@@ -28,6 +28,8 @@ package param;
 
 import java.math.BigInteger;
 
+import prism.PrismLangException;
+
 /**
  * Provides a class to store big rational numbers.
  * Numerator and denominator of a number stored using this class are not
@@ -632,6 +634,51 @@ public final class BigRational implements Comparable<BigRational>
 			return new BigRational(num.negate(), den);
 		} else {
 			return this;
+		}
+	}
+
+	/**
+	 * Return ceil(value), i.e., the smallest integer >= value.
+	 * @throws PrismLangException for special values (NaN, infinity)
+	 */
+	public BigRational ceil() throws PrismLangException
+	{
+		if (isSpecial()) {
+			throw new PrismLangException("Can not compute ceil of " + this);
+		}
+
+		BigInteger[] divideAndRemainder = getNum().divideAndRemainder(getDen());
+
+		switch (divideAndRemainder[1].compareTo(BigInteger.ZERO)) {
+		case 0:   // no remainder
+		case -1:  // negative remainder: value was negative, so we ignore the remainder
+			return new BigRational(divideAndRemainder[0]);
+		case 1:   // positive remainder: return next-largest integer
+			return new BigRational(divideAndRemainder[0].add(BigInteger.ONE));
+		default:
+			throw new IllegalStateException("Should not be reached");
+		}
+	}
+
+	/**
+	 * Return floor(value), i.e., the largest integer <= value.
+	 * @throws PrismLangException for special values (NaN, infinity)
+	 */
+	public BigRational floor() throws PrismLangException
+	{
+		if (isSpecial()) {
+			throw new PrismLangException("Can not compute floor of " + this);
+		}
+
+		BigInteger[] divideAndRemainder = getNum().divideAndRemainder(getDen());
+		switch (divideAndRemainder[1].compareTo(BigInteger.ZERO)) {
+		case 0:   // no remainder
+		case 1:   // positive remainder: value was positive, so we ignore the remainder
+			return new BigRational(divideAndRemainder[0]);
+		case -1:  // negative remainder: value was negative, return next-smallest integer
+			return new BigRational(divideAndRemainder[0].subtract(BigInteger.ONE));
+		default:
+			throw new IllegalStateException("Should not be reached");
 		}
 	}
 
