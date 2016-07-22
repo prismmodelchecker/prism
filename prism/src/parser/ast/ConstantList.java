@@ -42,24 +42,19 @@ import parser.type.*;
 public class ConstantList extends ASTElement
 {
 	// Name/expression/type triples to define constants
-	private Vector<String> names;
-	private Vector<Expression> constants; // these can be null, i.e. undefined
-	private Vector<Type> types;
+	private Vector<String> names = new Vector<String>();
+	private Vector<Expression> constants = new Vector<Expression>(); // these can be null, i.e. undefined
+	private Vector<Type> types = new Vector<Type>();
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private Vector<ExpressionIdent> nameIdents;
+	private Vector<ExpressionIdent> nameIdents = new Vector<ExpressionIdent>();
 	
 	// Constructor
 	
 	public ConstantList()
 	{
-		// initialise
-		names = new Vector<String>();
-		constants = new Vector<Expression>();
-		types = new Vector<Type>();
-		nameIdents = new Vector<ExpressionIdent>();
 	}
-	
+
 	// Set methods
 	
 	public void addConstant(ExpressionIdent n, Expression c, Type t)
