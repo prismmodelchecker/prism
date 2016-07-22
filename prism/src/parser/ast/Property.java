@@ -190,7 +190,9 @@ public class Property extends ASTElement
 				// Found it...
 				if (allMatch) {
 					strExpected = matcher.group(3);
-					continue;
+					// we return the expected answer for the first RESULT that matches
+					// the constants
+					break;
 				}
 			}
 		}
