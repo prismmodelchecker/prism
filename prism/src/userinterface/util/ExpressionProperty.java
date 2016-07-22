@@ -82,7 +82,7 @@ public class ExpressionProperty extends SingleProperty
 			if (pr == null)
 				throw new PrismLangException("");
 			if (!expression.equals("")) {
-				pr.parseSingleExpressionString(expression);
+				Prism.parseSingleExpressionString(expression);
 			}
 			valid = true;
 		} catch (PrismLangException e) {

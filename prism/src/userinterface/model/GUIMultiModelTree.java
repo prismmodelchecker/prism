@@ -76,6 +76,7 @@ import parser.type.TypeClock;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import prism.ModelType;
+import prism.Prism;
 import prism.PrismException;
 import userinterface.GUIPrism;
 
@@ -179,9 +180,9 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addIntegerGlobal()
 	{
 		try {
-			Expression init = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
-			Expression min = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
-			Expression max = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
+			Expression init = Prism.parseSingleExpressionString("0");
+			Expression min = Prism.parseSingleExpressionString("0");
+			Expression max = Prism.parseSingleExpressionString("0");
 
 			GlobalNode newNode = new GlobalNode("g" + globCounter, init, min, max, true);
 			editableDeclarations.add(newNode);
@@ -201,9 +202,9 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addIntegerGlobal(String name, String mins, String maxs, String inits) throws PrismException
 	{
 		try {
-			Expression init = handler.getGUIPlugin().getPrism().parseSingleExpressionString(inits);
-			Expression min = handler.getGUIPlugin().getPrism().parseSingleExpressionString(mins);
-			Expression max = handler.getGUIPlugin().getPrism().parseSingleExpressionString(maxs);
+			Expression init = Prism.parseSingleExpressionString(inits);
+			Expression min = Prism.parseSingleExpressionString(mins);
+			Expression max = Prism.parseSingleExpressionString(maxs);
 
 			GlobalNode newNode = new GlobalNode(name, init, min, max, true);
 			editableDeclarations.add(newNode);
@@ -221,7 +222,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addBooleanGlobal()
 	{
 		try {
-			Expression init = handler.getGUIPlugin().getPrism().parseSingleExpressionString("false");
+			Expression init = Prism.parseSingleExpressionString("false");
 			GlobalBoolNode newNode = new GlobalBoolNode("g" + globCounter, init, true);
 			editableDeclarations.add(newNode);
 			declarations.addDeclaration(newNode);
@@ -239,7 +240,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addBooleanGlobal(String name, String inits) throws PrismException
 	{
 		try {
-			Expression init = handler.getGUIPlugin().getPrism().parseSingleExpressionString(inits);
+			Expression init = Prism.parseSingleExpressionString(inits);
 			GlobalBoolNode newNode = new GlobalBoolNode(name, init, true);
 			editableDeclarations.add(newNode);
 			declarations.addDeclaration(newNode);
@@ -257,7 +258,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addIntegerConstant()
 	{
 		try {
-			Expression value = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
+			Expression value = Prism.parseSingleExpressionString("0");
 			IntegerConstantNode newNode = new IntegerConstantNode("c" + consCount, value, true);
 			editableConstants.add(newNode);
 			constants.addConstant(newNode);
@@ -278,7 +279,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			if (val == null)
 				value = null;
 			else
-				value = handler.getGUIPlugin().getPrism().parseSingleExpressionString(val);
+				value = Prism.parseSingleExpressionString(val);
 			IntegerConstantNode newNode = new IntegerConstantNode(name, value, true);
 			editableConstants.add(newNode);
 			constants.addConstant(newNode);
@@ -294,7 +295,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addBooleanConstant()
 	{
 		try {
-			Expression value = handler.getGUIPlugin().getPrism().parseSingleExpressionString("false");
+			Expression value = Prism.parseSingleExpressionString("false");
 			BoolConstantNode newNode = new BoolConstantNode("c" + consCount, value, true);
 			editableConstants.add(newNode);
 			constants.addConstant(newNode);
@@ -315,7 +316,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			if (val == null)
 				value = null;
 			else
-				value = handler.getGUIPlugin().getPrism().parseSingleExpressionString(val);
+				value = Prism.parseSingleExpressionString(val);
 			BoolConstantNode newNode = new BoolConstantNode(name, value, true);
 			editableConstants.add(newNode);
 			constants.addConstant(newNode);
@@ -331,7 +332,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addDoubleConstant()
 	{
 		try {
-			Expression value = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0.0");
+			Expression value = Prism.parseSingleExpressionString("0.0");
 			DoubleConstantNode newNode = new DoubleConstantNode("c" + consCount, value, true);
 			editableConstants.add(newNode);
 			constants.addConstant(newNode);
@@ -352,7 +353,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			if (val == null)
 				value = null;
 			else
-				value = handler.getGUIPlugin().getPrism().parseSingleExpressionString(val);
+				value = Prism.parseSingleExpressionString(val);
 			DoubleConstantNode newNode = new DoubleConstantNode(name, value, true);
 			editableConstants.add(newNode);
 			constants.addConstant(newNode);
@@ -382,7 +383,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			return;
 
 		try {
-			Expression exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(s);
+			Expression exp = Prism.parseSingleExpressionString(s);
 			if (exp instanceof ExpressionIdent) {
 				m.setName(s);
 				theModel.nodeChanged(m);
@@ -412,7 +413,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			return;
 
 		try {
-			Expression exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(s);
+			Expression exp = Prism.parseSingleExpressionString(s);
 			if (exp instanceof ExpressionIdent) {
 				d.setName(s);
 				theModel.nodeChanged(d);
@@ -458,9 +459,9 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 		try {
 			Expression init;
 			if (var != null)
-				init = handler.getGUIPlugin().getPrism().parseSingleExpressionString(var.init);
+				init = Prism.parseSingleExpressionString(var.init);
 			else
-				init = handler.getGUIPlugin().getPrism().parseSingleExpressionString("false");
+				init = Prism.parseSingleExpressionString("false");
 
 			BoolNode newNode = new BoolNode(var.name, init, true);
 			m.add(newNode);
@@ -478,7 +479,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addLocalBoolean(ModuleNode m)
 	{
 		try {
-			Expression init = handler.getGUIPlugin().getPrism().parseSingleExpressionString("false");
+			Expression init = Prism.parseSingleExpressionString("false");
 
 			BoolNode newNode = new BoolNode("v" + varCount, init, true);
 			m.add(newNode);
@@ -498,11 +499,11 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 		try {
 			Expression init;
 			if (var.init == null)
-				init = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
+				init = Prism.parseSingleExpressionString("0");
 			else
-				init = handler.getGUIPlugin().getPrism().parseSingleExpressionString(var.init);
-			Expression min = handler.getGUIPlugin().getPrism().parseSingleExpressionString(var.min);
-			Expression max = handler.getGUIPlugin().getPrism().parseSingleExpressionString(var.max);
+				init = Prism.parseSingleExpressionString(var.init);
+			Expression min = Prism.parseSingleExpressionString(var.min);
+			Expression max = Prism.parseSingleExpressionString(var.max);
 
 			VarNode newNode = new VarNode(var.name, init, min, max, true);
 			m.addVariable(newNode);
@@ -518,9 +519,9 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 	public void a_addLocalInteger(ModuleNode m)
 	{
 		try {
-			Expression init = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
-			Expression min = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
-			Expression max = handler.getGUIPlugin().getPrism().parseSingleExpressionString("0");
+			Expression init = Prism.parseSingleExpressionString("0");
+			Expression min = Prism.parseSingleExpressionString("0");
+			Expression max = Prism.parseSingleExpressionString("0");
 
 			VarNode newNode = new VarNode("v" + varCount, init, min, max, true);
 			m.addVariable(newNode);
@@ -549,7 +550,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			if (s.equals("")) {
 				en.setValue(null);
 			} else {
-				Expression exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(s);
+				Expression exp = Prism.parseSingleExpressionString(s);
 				en.setValue(exp);
 			}
 			theModel.nodeChanged(en);
@@ -2496,7 +2497,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			Expression exp;
 			String str = getText();
 			try {
-				exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
+				exp = Prism.parseSingleExpressionString(str);
 			} catch (PrismException e) {
 				return false;
 			}
@@ -2671,7 +2672,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			Expression exp;
 			String str = getText();
 			try {
-				exp = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
+				exp = Prism.parseSingleExpressionString(str);
 			} catch (PrismException e) {
 				return false;
 			}
@@ -2757,9 +2758,9 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 		{
 			super(LOCAL_INTEGER, name, editable);
 			try {
-				Expression e_init = handler.getGUIPlugin().getPrism().parseSingleExpressionString(init);
-				Expression e_min = handler.getGUIPlugin().getPrism().parseSingleExpressionString(min);
-				Expression e_max = handler.getGUIPlugin().getPrism().parseSingleExpressionString(max);
+				Expression e_init = Prism.parseSingleExpressionString(init);
+				Expression e_min = Prism.parseSingleExpressionString(min);
+				Expression e_max = Prism.parseSingleExpressionString(max);
 				super.add(new ExpressionNode("min: ", e_min, editable));
 				super.add(new ExpressionNode("max: ", e_max, editable));
 				super.add(new ExpressionNode("init: ", e_init, editable));
@@ -3228,7 +3229,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			String str = getText();
 
 			try {
-				Expression s = handler.getGUIPlugin().getPrism().parseSingleExpressionString(str);
+				Expression s = Prism.parseSingleExpressionString(str);
 				exp = s;
 			} catch (Exception e) {
 				handler.getGUIPlugin().message("Error: Syntax Error");

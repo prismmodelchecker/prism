@@ -324,7 +324,7 @@ public class Preprocessor
 			// if so, get expression for value definition
 			s = s.substring(1).trim();
 			// parse expression, do some checks
-			expr = prism.parseSingleExpressionString(s);
+			expr = Prism.parseSingleExpressionString(s);
 			expr = (Expression) expr.findAllVars(varNames, varTypes);
 			expr.typeCheck();
 			expr.semanticCheck();
@@ -473,7 +473,7 @@ public class Preprocessor
 		}
 
 		// parse expression, do some checks
-		expr = prism.parseSingleExpressionString(s);
+		expr = Prism.parseSingleExpressionString(s);
 		expr = (Expression) expr.findAllVars(varNames, varTypes);
 		expr.typeCheck();
 		expr.semanticCheck();

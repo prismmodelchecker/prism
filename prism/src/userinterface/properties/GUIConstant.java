@@ -54,11 +54,11 @@ class GUIConstant
 		// See if constant definition is parseable
 		try {
 			// Check name is a valid identifier
-			try { expr = parent.getPrism().parseSingleExpressionString(name); }
+			try { expr = Prism.parseSingleExpressionString(name); }
 			catch (PrismLangException e) { throw new PrismException("Invalid constant name \""+name+"\""); }
 			if (expr == null || !(expr instanceof ExpressionIdent)) throw new PrismException("Invalid constant name \""+name+"\"");
 			// Check (non-empty) constant definition is valid (single) expression
-			try { if (!("".equals(constant))) parent.getPrism().parseSingleExpressionString(constant); }
+			try { if (!("".equals(constant))) Prism.parseSingleExpressionString(constant); }
 			catch (PrismLangException e) { throw new PrismException("Invalid expression \""+constant+"\""); }
 		}
 		catch (PrismException e) {
