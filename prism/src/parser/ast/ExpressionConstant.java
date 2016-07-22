@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -83,7 +84,17 @@ public class ExpressionConstant extends Expression
 			throw new PrismLangException("Could not evaluate constant", this);
 		return res;
 	}
-	
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		Object res = ec.getConstantValue(name);
+		if (res == null)
+			throw new PrismLangException("Could not evaluate constant", this);
+
+		return BigRational.from(res);
+	}
+
 	@Override
 	public boolean returnsSingleValue()
 	{

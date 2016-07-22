@@ -27,6 +27,7 @@
 package parser.ast;
 
 import jltl2ba.SimpleLTL;
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.ModelType;
@@ -54,6 +55,12 @@ public abstract class Expression extends ASTElement
 	 * Note: assumes that type checking has been done already.
 	 */
 	public abstract Object evaluate(EvaluateContext ec) throws PrismLangException;
+
+	/**
+	 * Evaluate this expression exactly, return the result as a BigRational.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public abstract BigRational evaluateExact(EvaluateContext ec) throws PrismLangException;
 
 	/**
 	  * Get "name" of the result of this expression (used for y-axis of any graphs plotted)
@@ -529,6 +536,89 @@ public abstract class Expression extends ASTElement
 	public boolean evaluateBoolean(Values constantValues, State substate, int[] varMap) throws PrismLangException
 	{
 		return evaluateBoolean(new EvaluateContextSubstate(constantValues, substate, varMap));
+	}
+
+	
+	/**
+	 * Evaluate this expression exactly to a BigRational, using no constant or variable values.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Note: assumes that type checking has been done already.
+	 */
+	public BigRational evaluateExact() throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextValues(null, null));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for constants (but not variables).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Constant values are supplied as a Values object.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public BigRational evaluateExact(Values constantValues) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextValues(constantValues, null));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for constants/variables.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Each set of values is supplied as a Values object.
+	 * Note: assumes that type checking has been done already.
+	 */
+	public BigRational evaluateExact(Values constantValues, Values varValues) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextValues(constantValues, varValues));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for variables (but not constants).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
+	 */
+	public BigRational evaluateExact(State state) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextState(state));
+	}
+
+	/**
+	 * Evaluate this expression as an integer, based on values for constants/variables.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Constant values are supplied as a Values object.
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public BigRational evaluateExact(Values constantValues, State state) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for some variables (but not constants).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that constants have been evaluated and type checking has been done.
+	 */
+	public BigRational evaluateExact(State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextSubstate(substate, varMap));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for constants and some variables.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 * Constant values are supplied as a Values object.
+	 * Variable values are supplied as a State object, indexed over a subset of all variables,
+	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
+	 * If any variables required for evaluation are missing, this will fail with an exception.
+	 * Note: assumes that type checking has been done.
+	 */
+	public BigRational evaluateExact(Values constantValues, State substate, int[] varMap) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextSubstate(constantValues, substate, varMap));
 	}
 
 	// Static constructors for convenience

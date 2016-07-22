@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
@@ -107,6 +108,12 @@ public class ExpressionProb extends ExpressionQuant
 	
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate a P operator without a model");
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a P operator without a model");
 	}

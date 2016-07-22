@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
@@ -198,6 +199,46 @@ public class ExpressionBinaryOp extends Expression
 		}
 		throw new PrismLangException("Unknown binary operator", this);
 	}
+	
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		BigRational v1 = operand1.evaluateExact(ec);
+		BigRational v2 = operand2.evaluateExact(ec);
+
+		switch (op) {
+		case IMPLIES:
+			return BigRational.from(!v1.toBoolean() || v2.toBoolean());
+		case IFF:
+			return BigRational.from(v1.toBoolean() == v2.toBoolean());
+		case OR:
+			return BigRational.from(v1.toBoolean() || v2.toBoolean());
+		case AND:
+			return BigRational.from(v1.toBoolean() && v2.toBoolean());
+		case EQ:
+			return BigRational.from(v1.equals(v2));
+		case NE:
+			return BigRational.from(!v1.equals(v2));
+		case GT:
+			return BigRational.from(v1.compareTo(v2) > 0);
+		case GE:
+			return BigRational.from(v1.equals(v2) || v1.compareTo(v2) > 0);
+		case LT:
+			return BigRational.from(v1.compareTo(v2) < 0);
+		case LE:
+			return BigRational.from(v1.equals(v2) || v1.compareTo(v2) < 0);
+		case PLUS:
+			return v1.add(v2);
+		case MINUS:
+			return v1.subtract(v2);
+		case TIMES:
+			return v1.multiply(v2);
+		case DIVIDE:
+			return v1.divide(v2);
+		}
+		throw new PrismLangException("Unknown binary operator", this);
+	}
+
 
 	@Override
 	public boolean returnsSingleValue()

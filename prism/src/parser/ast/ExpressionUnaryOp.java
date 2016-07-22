@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -114,6 +115,20 @@ public class ExpressionUnaryOp extends Expression
 			}
 		case PARENTH:
 			return operand.evaluate(ec);
+		}
+		throw new PrismLangException("Unknown unary operator", this);
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		switch (op) {
+		case NOT:
+			return BigRational.from(!operand.evaluateExact(ec).toBoolean());
+		case MINUS:
+			return operand.evaluateExact().negate();
+		case PARENTH:
+			return operand.evaluateExact(ec);
 		}
 		throw new PrismLangException("Unknown unary operator", this);
 	}

@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -92,6 +93,12 @@ public class ExpressionLiteral extends Expression
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		return value;
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		return BigRational.from(value);
 	}
 
 	@Override

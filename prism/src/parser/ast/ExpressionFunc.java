@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -190,6 +191,29 @@ public class ExpressionFunc extends Expression
 		throw new PrismLangException("Unknown function \"" + name + "\"", this);
 	}
 
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		switch (code) {
+		case MIN:
+			return evaluateMinExact(ec);
+		case MAX:
+			return evaluateMaxExact(ec);
+		case FLOOR:
+			return evaluateFloorExact(ec);
+		case CEIL:
+			return evaluateCeilExact(ec);
+		case POW:
+			return evaluatePowExact(ec);
+		case MOD:
+			return evaluateModExact(ec);
+		case LOG:
+			return evaluateLogExact(ec);
+		}
+		throw new PrismLangException("Unknown function \"" + name + "\"", this);
+	}
+
+	
 	private Object evaluateMin(EvaluateContext ec) throws PrismLangException
 	{
 		int i, j, n, iMin;
@@ -214,6 +238,17 @@ public class ExpressionFunc extends Expression
 		}
 	}
 
+	private BigRational evaluateMinExact(EvaluateContext ec) throws PrismLangException
+	{
+		BigRational min;
+	
+		min = getOperand(0).evaluateExact(ec);
+		for (int i = 1, n = getNumOperands(); i < n; i++) {
+			min = min.min(getOperand(i).evaluateExact(ec));
+		}
+		return min;
+	}
+
 	private Object evaluateMax(EvaluateContext ec) throws PrismLangException
 	{
 		int i, j, n, iMax;
@@ -236,6 +271,17 @@ public class ExpressionFunc extends Expression
 			}
 			return new Double(dMax);
 		}
+	}
+
+	private BigRational evaluateMaxExact(EvaluateContext ec) throws PrismLangException
+	{
+		BigRational max;
+
+		max = getOperand(0).evaluateExact(ec);
+		for (int i = 1, n = getNumOperands(); i < n; i++) {
+			max = max.max(getOperand(i).evaluateExact(ec));
+		}
+		return max;
 	}
 
 	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
@@ -276,6 +322,16 @@ public class ExpressionFunc extends Expression
 		return (int) d;
 	}
 
+	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).ceil();
+	}
+
+	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).floor();
+	}
+
 	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
 	{
 		try {
@@ -307,6 +363,19 @@ public class ExpressionFunc extends Expression
 		return Math.pow(base, exp);
 	}
 
+	public BigRational evaluatePowExact(EvaluateContext ec) throws PrismLangException
+	{
+		BigRational base = getOperand(0).evaluateExact(ec);
+		BigRational exp = getOperand(1).evaluateExact(ec);
+
+		try {
+			int expInt = exp.toInt();
+			return base.pow(expInt);
+		} catch (PrismLangException e) {
+			throw new PrismLangException("Can not compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
+		}
+	}
+
 	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
 	{
 		try {
@@ -326,7 +395,18 @@ public class ExpressionFunc extends Expression
 		int rem = i % j;
 		return (rem < 0) ? rem + j : rem;
 	}
-	
+
+	public BigRational evaluateModExact(EvaluateContext ec) throws PrismLangException
+	{
+		BigRational a = getOperand(0).evaluateExact(ec);
+		BigRational b = getOperand(1).evaluateExact(ec);
+
+		if (!a.isInteger() && !b.isInteger()) {
+			throw new PrismLangException("Can not compute mod for non-integer arguments", this);
+		}
+		return new BigRational(a.getNum().mod(b.getNum()));
+	}
+
 	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
 	{
 		try {
@@ -340,6 +420,11 @@ public class ExpressionFunc extends Expression
 	public static double evaluateLog(double x, double b) throws PrismLangException
 	{
 		return PrismUtils.log(x, b);
+	}
+
+	public BigRational evaluateLogExact(EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Currently, can not compute log exactly", this);
 	}
 
 	@Override

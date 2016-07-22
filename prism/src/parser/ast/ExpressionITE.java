@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -98,6 +99,12 @@ public class ExpressionITE extends Expression
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
 		return operand1.evaluateBoolean(ec) ? operand2.evaluate(ec) : operand3.evaluate(ec);
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		return operand1.evaluateExact(ec).toBoolean() ? operand2.evaluateExact(ec) : operand3.evaluateExact(ec);
 	}
 
 	@Override

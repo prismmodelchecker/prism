@@ -29,6 +29,7 @@ package parser.ast;
 import java.util.ArrayList;
 import java.util.List;
 
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
@@ -169,6 +170,12 @@ public class ExpressionStrategy extends Expression
 
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate a " + getOperatorString() + " operator without a model");
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a " + getOperatorString() + " operator without a model");
 	}

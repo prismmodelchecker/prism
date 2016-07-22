@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -93,7 +94,16 @@ public class ExpressionVar extends Expression
 			throw new PrismLangException("Could not evaluate variable", this);
 		return res;
 	}
-	
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		Object res = ec.getVarValue(name, index);
+		if (res == null)
+			throw new PrismLangException("Could not evaluate variable", this);
+		return BigRational.from(res);
+	}
+
 	@Override
 	public boolean returnsSingleValue()
 	{
