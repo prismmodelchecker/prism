@@ -215,6 +215,10 @@ public class PTAModelChecker extends PrismComponent
 			// Get time bound info (is always of form <=T or <T)
 			timeBound = exprTemp.getUpperBound().evaluateInt(constantValues);
 			timeBoundStrict = exprTemp.upperBoundIsStrict();
+			// Check for non-allowed time bounds (negative)
+			if (timeBound < (timeBoundStrict ? 1 : 0)) {
+				throw new PrismLangException("Negative bound in " + exprTemp);
+			}
 			// Modify PTA to include time bound; get new target
 			targetLocs = buildTimeBoundIntoPta(pta, targetLocs, timeBound, timeBoundStrict);
 			mainLog.println("New PTA: " + pta.infoString());
