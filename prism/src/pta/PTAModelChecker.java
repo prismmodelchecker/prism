@@ -290,8 +290,12 @@ public class PTAModelChecker extends PrismComponent
 			}
 		}
 		// Re-generate set of target locations
+		// (newly added target location, plus initial location (always 0) is this is a target)
 		targetLocsNew = new BitSet(pta.getNumLocations());
 		targetLocsNew.set(newTargetLoc);
+		if (targetLocs.get(0)) {
+			targetLocsNew.set(0);
+		}
 
 		return targetLocsNew;
 	}
