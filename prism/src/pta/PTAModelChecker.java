@@ -309,6 +309,12 @@ public class PTAModelChecker extends PrismComponent
 	 */
 	private double computeProbabilisticReachability(BitSet targetLocs, boolean min) throws PrismException
 	{
+		// Catch the special case where the initial state is already a target - just return 1.0 directly
+		if (targetLocs.get(0)) {
+			mainLog.println("Skipping numerical computation since initial state is a target...");
+			return 1.0;
+		}
+		
 		// Determine which method to use for computation
 		String ptaMethod = settings.getString(PrismSettings.PRISM_PTA_METHOD);
 
