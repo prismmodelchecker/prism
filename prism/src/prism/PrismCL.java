@@ -1871,6 +1871,9 @@ public class PrismCL implements PrismModelListener
 			} else if (ext.equals("lab")) {
 				exportlabels = true;
 				exportLabelsFilename = basename.equals("stdout") ? "stdout" : basename + ".lab";
+			} else if (ext.equals("dot")) {
+				exporttransdotstates = true;
+				exportTransDotStatesFilename = basename.equals("stdout") ? "stdout" : basename + ".dot";
 			}
 			// Unknown extension
 			else {
@@ -2085,6 +2088,8 @@ public class PrismCL implements PrismModelListener
 				exportStatesFilename = exportStatesFilename.replaceFirst("modelFileBasename", modelFileBasename);
 			if (exportlabels)
 				exportLabelsFilename = exportLabelsFilename.replaceFirst("modelFileBasename", modelFileBasename);
+			if (exporttransdotstates)
+				exportTransDotStatesFilename = exportTransDotStatesFilename.replaceFirst("modelFileBasename", modelFileBasename);
 		}
 	}
 
@@ -2346,8 +2351,8 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Export the built model to file(s) (or to the screen if <file>=\"stdout\").");
 			mainLog.println("Use a list of file extensions to indicate which files should be generated, e.g.:");
 			mainLog.println("\n -exportmodel out.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab");
-			mainLog.println("Use extension .all to export all and .rew to export both .srew/.trew, e.g.:");
+			mainLog.println("Possible extensions are: .tra, .srew, .trew, .sta, .lab, .dot");
+			mainLog.println("Use extension .all to export all (except .dot) and .rew to export both .srew/.trew, e.g.:");
 			mainLog.println("\n -exportmodel out.all\n");
 			mainLog.println("Omit the file basename to use the basename of the model file, e.g.:");
 			mainLog.println("\n -exportmodel .all\n");
