@@ -2,6 +2,7 @@
 //	
 //	Copyright (c) 2013-
 //	Authors:
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	* Hongyang Qu <hongyang.qu@cc.ox.ac.uk> (University of Oxford)
 //	* Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
 //	
@@ -44,22 +45,32 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 
-/**
- * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
- */
 public class SymbolicEngine
 {
+	// Info on model being explored
 	protected ModulesFile modulesFile;
 	protected ModelType modelType;
 	protected int numModules;
-	protected int numSynchs;
+	// Synchronising action info
 	protected Vector<String> synchs;
-	protected List<List<List<Updates>>> updateLists;
-	protected BitSet enabledSynchs;
-	protected BitSet enabledModules[];
+	protected int numSynchs;
 	protected int synchModuleCounts[];
+	
+	// Temporary storage:
 
-	public SymbolicEngine(ModulesFile modulesFile) {
+	// Element i,j of updateLists is a list of the updates from module i labelled with action j
+	// (where j=0 denotes independent, otherwise 1-indexed action label)
+	protected List<List<List<Updates>>> updateLists;
+	// Bit j of enabledSynchs is set iff action j is currently enabled
+	// (where j=0 denotes independent, otherwise 1-indexed action label)
+	protected BitSet enabledSynchs;
+	// Element j of enabledModules is a BitSet showing modules which enable action j
+	// (where j=0 denotes independent, otherwise 1-indexed action label)
+	protected BitSet enabledModules[];
+
+	public SymbolicEngine(ModulesFile modulesFile)
+	{
+		// Get info from model
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
 		numModules = modulesFile.getNumModules();
@@ -83,6 +94,7 @@ public class SymbolicEngine
 			}
 		}
 
+		// Build lists/bitsets for later use
 		updateLists = new ArrayList<List<List<Updates>>>(numModules);
 		for (int i = 0; i < numModules; i++) {
 			updateLists.add(new ArrayList<List<Updates>>(numSynchs + 1));
@@ -94,25 +106,6 @@ public class SymbolicEngine
 		enabledModules = new BitSet[numSynchs + 1];
 		for (int j = 0; j < numSynchs + 1; j++) {
 			enabledModules[j] = new BitSet(numModules);
-		}
-	}
-	
-	private void calculateUpdatesForModule(int m, State state) throws PrismLangException
-	{
-		Module module;
-		Command command;
-		int i, j, n;
-
-		module = modulesFile.getModule(m);
-		n = module.getNumCommands();
-		for (i = 0; i < n; i++) {
-			command = module.getCommand(i);
-			if (command.getGuard().evaluateBoolean(state)) {
-				j = command.getSynchIndex();
-				updateLists.get(m).get(j).add(command.getUpdates());
-				enabledSynchs.set(j);
-				enabledModules[j].set(m);
-			}
 		}
 	}
 	
@@ -137,40 +130,6 @@ public class SymbolicEngine
 		} else {
 			return false;	   
 		}
-	}
-	
-	/**
-	 * Create a new Choice object (currently ChoiceListFlexi) based on an Updates object
-	 * and a (global) state. Check for negative probabilities/rates.
-	 * @param moduleOrActionIndex Module/action for the choice, encoded as an integer (see Choice)
-	 * @param ups The Updates object 
-	 * @param state Global state
-	 */
-	private ChoiceListFlexi processUpdatesAndCreateNewChoice(int moduleOrActionIndex, Updates ups, State state) throws PrismLangException
-	{
-		ChoiceListFlexi ch;
-		List<Update> list;
-		int i, n;
-		Expression p;
-
-		// Create choice and add all info
-		ch = new ChoiceListFlexi();
-		ch.setModuleOrActionIndex(moduleOrActionIndex);
-		n = ups.getNumUpdates();
-		for (i = 0; i < n; i++) {
-			// Compute probability/rate
-			p = getProbabilityInState(ups, i, state);
-			int[] varMap = new int[state.varValues.length];
-			for (int var = 0; var < varMap.length; var++) {
-				varMap[var] = var;
-			}
-			p = (Expression) p.deepCopy().evaluatePartially(state, varMap);
-			list = new ArrayList<Update>();
-			list.add(ups.getUpdate(i));
-			ch.add(p, list);
-		}
-
-		return ch;
 	}
 	
 	public TransitionList calculateTransitions(State state) throws PrismException
@@ -269,6 +228,67 @@ public class SymbolicEngine
 		
 		//System.out.println(transitionList);
 		return transitionList;
+	}
+	
+	// Private helpers
+	
+	/**
+	 * Determine the enabled updates for the 'm'th module from (global) state 'state'.
+	 * Update information in updateLists, enabledSynchs and enabledModules.
+	 * @param m The module index
+	 * @param state State from which to explore
+	 */
+	protected void calculateUpdatesForModule(int m, State state) throws PrismLangException
+	{
+		Module module;
+		Command command;
+		int i, j, n;
+
+		module = modulesFile.getModule(m);
+		n = module.getNumCommands();
+		for (i = 0; i < n; i++) {
+			command = module.getCommand(i);
+			if (command.getGuard().evaluateBoolean(state)) {
+				j = command.getSynchIndex();
+				updateLists.get(m).get(j).add(command.getUpdates());
+				enabledSynchs.set(j);
+				enabledModules[j].set(m);
+			}
+		}
+	}
+
+	/**
+	 * Create a new Choice object (currently ChoiceListFlexi) based on an Updates object
+	 * and a (global) state. Check for negative probabilities/rates.
+	 * @param moduleOrActionIndex Module/action for the choice, encoded as an integer (see Choice)
+	 * @param ups The Updates object 
+	 * @param state Global state
+	 */
+	private ChoiceListFlexi processUpdatesAndCreateNewChoice(int moduleOrActionIndex, Updates ups, State state) throws PrismLangException
+	{
+		ChoiceListFlexi ch;
+		List<Update> list;
+		int i, n;
+		Expression p;
+
+		// Create choice and add all info
+		ch = new ChoiceListFlexi();
+		ch.setModuleOrActionIndex(moduleOrActionIndex);
+		n = ups.getNumUpdates();
+		for (i = 0; i < n; i++) {
+			// Compute probability/rate
+			p = getProbabilityInState(ups, i, state);
+			int[] varMap = new int[state.varValues.length];
+			for (int var = 0; var < varMap.length; var++) {
+				varMap[var] = var;
+			}
+			p = (Expression) p.deepCopy().evaluatePartially(state, varMap);
+			list = new ArrayList<Update>();
+			list.add(ups.getUpdate(i));
+			ch.add(p, list);
+		}
+
+		return ch;
 	}
 	
 	/**
