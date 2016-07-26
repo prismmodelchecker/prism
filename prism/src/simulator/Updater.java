@@ -85,9 +85,6 @@ public class Updater extends PrismComponent
 	
 	public Updater(ModulesFile modulesFile, VarList varList, PrismComponent parent)
 	{
-		int i, j;
-		String s;
-
 		// Store some settings
 		doProbChecks = parent.getSettings().getBoolean(PrismSettings.PRISM_DO_PROB_CHECKS);
 		sumRoundOff = parent.getSettings().getDouble(PrismSettings.PRISM_SUM_ROUND_OFF);
@@ -104,15 +101,15 @@ public class Updater extends PrismComponent
 		// Compute count of number of modules using each synch action
 		// First, compute and cache the synch actions for each of the modules
 		List<HashSet<String>> synchsPerModule = new ArrayList<HashSet<String>>(numModules);
-		for (i = 0; i < numModules; i++) {
+		for (int i = 0; i < numModules; i++) {
 			synchsPerModule.add(new HashSet<String>(modulesFile.getModule(i).getAllSynchs()));
 		}
 		// Second, do the counting
 		synchModuleCounts = new int[numSynchs];
-		for (j = 0; j < numSynchs; j++) {
+		for (int j = 0; j < numSynchs; j++) {
 			synchModuleCounts[j] = 0;
-			s = synchs.get(j);
-			for (i = 0; i < numModules; i++) {
+			String s = synchs.get(j);
+			for (int i = 0; i < numModules; i++) {
 				if (synchsPerModule.get(i).contains(s))
 					synchModuleCounts[j]++;
 			}
@@ -120,15 +117,15 @@ public class Updater extends PrismComponent
 
 		// Build lists/bitsets for later use
 		updateLists = new ArrayList<List<List<Updates>>>(numModules);
-		for (i = 0; i < numModules; i++) {
+		for (int i = 0; i < numModules; i++) {
 			updateLists.add(new ArrayList<List<Updates>>(numSynchs + 1));
-			for (j = 0; j < numSynchs + 1; j++) {
+			for (int j = 0; j < numSynchs + 1; j++) {
 				updateLists.get(i).add(new ArrayList<Updates>());
 			}
 		}
 		enabledSynchs = new BitSet(numSynchs + 1);
 		enabledModules = new BitSet[numSynchs + 1];
-		for (j = 0; j < numSynchs + 1; j++) {
+		for (int j = 0; j < numSynchs + 1; j++) {
 			enabledModules[j] = new BitSet(numModules);
 		}
 	}
