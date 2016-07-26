@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,11 +26,25 @@
 
 package simulator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Vector;
 
-import parser.*;
-import parser.ast.*;
-import prism.*;
+import parser.State;
+import parser.VarList;
+import parser.ast.Command;
+import parser.ast.Module;
+import parser.ast.ModulesFile;
+import parser.ast.RewardStruct;
+import parser.ast.Update;
+import parser.ast.Updates;
+import prism.ModelType;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismSettings;
 
 public class Updater extends PrismComponent
 {
