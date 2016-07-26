@@ -54,7 +54,7 @@ public class Updater extends PrismComponent
 	// The precision to which we check probabilities sum to 1
 	protected double sumRoundOff = 1e-5;
 	
-	// Model to which the path corresponds
+	// Info on model being explored
 	protected ModulesFile modulesFile;
 	protected ModelType modelType;
 	protected int numModules;
