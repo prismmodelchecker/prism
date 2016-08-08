@@ -27,6 +27,7 @@
 package automata;
 
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -214,9 +215,7 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	@Override
 	public Iterator<Integer> getSuccessorsIterator(int s, int i)
 	{
-		Set<Integer> succs = new HashSet<Integer>();
-		succs.add(da.getEdgeDest(s, i));
-		return succs.iterator();
+		return Collections.singleton(da.getEdgeDest(s, i)).iterator();
 	}
 
 	@Override
