@@ -242,6 +242,10 @@ public class PrismCL implements PrismModelListener
 		// Sort out properties to check
 		sortProperties();
 
+		if (param && numPropertiesToCheck == 0) {
+			errorAndExit("Parametric model checking requires at least one property to check");
+		}
+
 		// process info about undefined constants
 		try {
 			// first, see which constants are undefined
