@@ -122,8 +122,38 @@ public class ConstantList extends ASTElement
 	}
 
 	/**
+	 * Remove the constant with the given name.
+	 * @param name the name of the constant
+	 * @param ignoreNonexistent if true, don't throw an exception if the constant does not exist
+	 * @throws PrismLangException if the constant does not exist (if not ignoreNonexistent)
+	 */
+	public void removeConstant(String name, boolean ignoreNonexistent) throws PrismLangException
+	{
+		int constantIndex = getConstantIndex(name);
+		if (constantIndex == -1) {
+			if (ignoreNonexistent) {
+				return;
+			}
+			throw new PrismLangException("Can not remove nonexistent constant: " + name);
+		}
+		removeConstant(constantIndex);
+	}
+
+	/**
+	 * Remove the constant with the given index.
+	 * @param i the index
+	 */
+	public void removeConstant(int i)
+	{
+		names.remove(i);
+		constants.remove(i);
+		types.remove(i);
+		nameIdents.remove(i);
+	}
+
+	/**
 	 * Find cyclic dependencies.
-	*/
+	 */
 	public void findCycles() throws PrismLangException
 	{
 		// Create boolean matrix of dependencies
