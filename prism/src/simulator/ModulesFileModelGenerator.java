@@ -1,8 +1,11 @@
 package simulator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import parser.EvaluateContextMutableState;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -250,27 +253,31 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 			return getInitialStates().get(0);
 		}
 	}
-	
+
 	@Override
 	public List<State> getInitialStates() throws PrismException
 	{
-		List<State> initStates = new ArrayList<State>();
-		// Easy (normal) case: just one initial state
 		if (modulesFile.getInitialStates() == null) {
+			// Easy (normal) case: just one initial state
 			State state = modulesFile.getDefaultInitialState();
-			initStates.add(state);
+			return Collections.singletonList(state);
 		}
 		// Otherwise, there may be multiple initial states
-		// For now, we handle this is in a very inefficient way
-		else {
-			Expression init = modulesFile.getInitialStates();
-			List<State> allPossStates = varList.getAllStates();
-			for (State possState : allPossStates) {
-				if (init.evaluateBoolean(modulesFile.getConstantValues(), possState)) {
-					initStates.add(possState);
-				}
+		// For now, we handle this in a very inefficient way
+		Expression init             = modulesFile.getInitialStates();
+		Values constants            = modulesFile.getConstantValues();
+		ArrayList<State> initStates = new ArrayList<State>();
+		// We reuse the evaluation context to avoid thrashing the gc
+		EvaluateContextMutableState context = new EvaluateContextMutableState(constants, new State(0));
+		for (Object[] assignment : varList.getAllAssignments()) {
+			// loop instead of filter function to handle PrismException
+			context.setVariables(assignment);
+			if (init.evaluateBoolean(context)) {
+				// create new state only for init states
+				initStates.add(new State(Arrays.copyOf(assignment, assignment.length)));
 			}
 		}
+		initStates.trimToSize();
 		return initStates;
 	}
 
