@@ -199,6 +199,10 @@ def possibleNameClash(fullName):
 
 def expandName(dir, option):
     splitOption = option.split(':')
+    # if the filename is 'stdout' (recognized as special by PRISM),
+    # we don't expand and simply return the input
+    if splitOption[0] == "stdout":
+        return option
     fullName = os.path.join(dir, splitOption[0])
     return fullName + (":" + splitOption[1] if len(splitOption) > 1 else '')
 
@@ -207,6 +211,10 @@ def expandName(dir, option):
 
 def prependToFile(prefix, option):
     splitOption = option.split(':')
+    # if the filename is 'stdout' (recognized as special by PRISM),
+    # we don't expand and simply return the input
+    if splitOption[0] == "stdout":
+        return option
     fullName = os.path.join(os.path.dirname(splitOption[0]), 'tmp.' + os.path.basename(splitOption[0]))
     return fullName + (":" + splitOption[1] if len(splitOption) > 1 else '')
 
