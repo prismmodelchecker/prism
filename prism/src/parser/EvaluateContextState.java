@@ -33,8 +33,8 @@ package parser;
  */
 public class EvaluateContextState implements EvaluateContext
 {
-	private Values constantValues;
-	private Object[] varValues;
+	protected Values constantValues;
+	protected Object[] varValues;
 
 	public EvaluateContextState(State state)
 	{
