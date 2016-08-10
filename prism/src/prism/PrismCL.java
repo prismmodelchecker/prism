@@ -213,6 +213,10 @@ public class PrismCL implements PrismModelListener
 				mainLog.println(st);
 			}
 			errorAndExit(e.getMessage() + ".\nTip: Try using the -cuddmaxmem switch to increase the memory available to CUDD");
+		} catch (com.martiansoftware.nailgun.NGExitException e) {
+			// we don't want to catch the nailgun exception below,
+			// so we catch it and rethrow
+			throw e;
 		} catch (Exception e) {
 			// We catch Exceptions here ourself to ensure that we actually exit
 			// In the presence of thread pools (e.g., in the JAS library when using -exact),
