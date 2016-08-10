@@ -376,7 +376,7 @@ def printTestResult(msg):
         print('\033[31m' + msg + '\033[0m')
     elif 'PASS' in msg:
         print('\033[32m' + msg + '\033[0m')
-    elif 'SKIPPED' in msg:
+    elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
         print('\033[90m' + msg + '\033[0m')
     elif 'UNSUPPORTED' in msg or 'Warning:' in msg:
         print('\033[33m' + msg + '\033[0m')
