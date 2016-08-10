@@ -3617,6 +3617,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Close down CUDD/JDD
 		if (cuddStarted) {
 			JDD.CloseDownCUDD(check);
+			// reset CUDD status
+			cuddStarted = false;
 		}
 	}
 
