@@ -176,7 +176,14 @@ public class Property extends ASTElement
 					// Make sure constant/value is in constValues list and matches
 					String constName = pair[0].trim();
 					String constVal = pair[1].trim();
-					Object constValToMatch = constValues.getValueOf(constName);
+
+					Object constValToMatch;
+					if (constValues.getIndexOf(constName) == -1) {
+						// there is no constant of that name, might be a parametric constant
+						constValToMatch = null;
+					} else {
+						constValToMatch = constValues.getValueOf(constName);
+					}
 					if (constValToMatch == null)
 						match = false;
 					// Check doubles numerically
@@ -185,6 +192,7 @@ public class Property extends ASTElement
 					// Otherwise just check for exact string match for now
 					else
 						match = constValToMatch.toString().equals(constVal);
+
 					// We need all constants to match
 					allMatch &= match;
 				}
