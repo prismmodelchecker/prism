@@ -783,7 +783,7 @@ public final class BigRational implements Comparable<BigRational>
 	 */
 	public boolean isInteger()
 	{
-		return isRational() && getDen().equals(ONE);
+		return isRational() && getDen().equals(BigInteger.ONE);
 	}
 
 	/**
