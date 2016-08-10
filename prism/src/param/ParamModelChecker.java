@@ -101,9 +101,6 @@ import explicit.Model;
  */
 final public class ParamModelChecker extends PrismComponent
 {
-	// Log for output (default to System.out)
-	private PrismLog mainLog = new PrismPrintStreamLog(System.out);
-
 	// Model file (for reward structures, etc.)
 	private ModulesFile modulesFile = null;
 
