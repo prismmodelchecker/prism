@@ -35,6 +35,8 @@ import parser.ast.ConstantList;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionFunc;
+import parser.ast.ExpressionITE;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ModulesFile;
@@ -147,6 +149,41 @@ public final class ModelBuilder extends PrismComponent
 			case ExpressionUnaryOp.PARENTH:
 				return f;
 			default:
+				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+			}
+		} else if (expr instanceof ExpressionITE){
+			ExpressionITE iteExpr = (ExpressionITE) expr;
+			// ITE expressions where the if-expression does not
+			// depend on a parametric constant are supported
+			if (iteExpr.getOperand1().isConstant()) {
+				try {
+					// non-parametric constants and state variable values have
+					// been already partially expanded, so if this evaluation
+					// succeeds there are no parametric constants involved
+					boolean ifValue = iteExpr.getOperand1().evaluateBoolean();
+					if (ifValue) {
+						return expr2function(factory, iteExpr.getOperand2());
+					} else {
+						return expr2function(factory, iteExpr.getOperand3());
+					}
+				} catch (PrismException e) {
+					// Most likely, a parametric constant occurred.
+					// Do nothing here, exception is thrown below
+				}
+			}
+			throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+		} else if (expr instanceof ExpressionFunc) {
+			// functions (min, max, floor, ...) are supported if
+			// they don't refer to parametric constants in their arguments
+			// and can be exactly evaluated
+			try {
+				// non-parametric constants and state variable values have
+				// been already partially expanded, so if this evaluation
+				// succeeds there are no parametric constants involved
+				BigRational value = expr.evaluateExact();
+				return factory.fromBigRational(value);
+			} catch (PrismException e) {
+				// Most likely, a parametric constant occurred.
 				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else {
