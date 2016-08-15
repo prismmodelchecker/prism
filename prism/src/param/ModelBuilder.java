@@ -268,6 +268,8 @@ public final class ModelBuilder extends PrismComponent
 		ParamModel modelExpl = constructModel(modulesFile);
 		time = System.currentTimeMillis() - time;
 
+		mainLog.print("\n"+modelExpl.infoStringTable());
+		
 		mainLog.println("\nTime for model construction: " + time / 1000.0 + " seconds.");
 		model = modelExpl;
 	}
