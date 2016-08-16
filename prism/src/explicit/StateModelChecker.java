@@ -1024,11 +1024,7 @@ public class StateModelChecker extends PrismComponent
 		case FORALL:
 			// Get access to BitSet for this
 			bs = vals.getBitSet();
-			// Print some info to log
-			mainLog.print("\nNumber of states satisfying " + expr.getOperand() + ": ");
-			mainLog.print(bs.cardinality());
-			mainLog.println(bs.cardinality() == model.getNumStates() ? " (all in model)" : "");
-			// Check "for all" over filter
+state			// Check "for all" over filter
 			b = vals.forallOverBitSet(bsFilter);
 			// Store as object/vector
 			resObj = new Boolean(b);

@@ -1233,11 +1233,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		case FORALL:
 			// Get access to BDD for this
 			dd = vals.convertToStateValuesMTBDD().getJDDNode();
-			// Print some info to log
-			mainLog.print("\nNumber of states satisfying " + expr.getOperand() + ": ");
-			states = new StateListMTBDD(dd, model);
-			mainLog.print(states.sizeString());
-			mainLog.println(states.includesAll(reach) ? " (all in model)" : "");
 			// Check "for all" over filter, store result
 			JDD.Ref(ddFilter);
 			dd = JDD.And(dd, ddFilter);
