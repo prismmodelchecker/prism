@@ -863,8 +863,7 @@ final public class ParamModelChecker extends PrismComponent
 		relOp = expr.getRelOp();
 		pb = expr.getProb();
 		if (pb != null) {
-			// TODO check whether actually evaluated as such
-			p = modelBuilder.expr2function(functionFactory, pb).asBigRational();
+			p = pb.evaluateExact(constantValues);
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
@@ -973,8 +972,7 @@ final public class ParamModelChecker extends PrismComponent
 		RelOp relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {
-			// TODO check whether actually evaluated as such, take constantValues into account
-			r = modelBuilder.expr2function(functionFactory, rb).asBigRational();
+			r = rb.evaluateExact(constantValues);
 			if (r.compareTo(0) == -1)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
@@ -1108,8 +1106,7 @@ final public class ParamModelChecker extends PrismComponent
 		relOp = expr.getRelOp();
 		pb = expr.getProb();
 		if (pb != null) {
-			// TODO check whether actually evaluated as such
-			p = modelBuilder.expr2function(functionFactory, pb).asBigRational();
+			p = pb.evaluateExact(constantValues);
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
