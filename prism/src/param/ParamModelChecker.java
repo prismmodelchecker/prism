@@ -245,7 +245,7 @@ final public class ParamModelChecker extends PrismComponent
 		// Store result
 		result = new Result();
 		vals.clearExceptInit();
-		result.setResult(vals);
+		result.setResult(new ParamResult(vals, modelBuilder, functionFactory));
 		
 		/* // Output plot to tex file
 		if (paramLower.length == 2) {

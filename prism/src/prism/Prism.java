@@ -43,6 +43,7 @@ import odd.ODDUtils;
 import param.BigRational;
 import param.ModelBuilder;
 import param.ParamModelChecker;
+import param.ParamResult;
 import param.RegionValues;
 import parser.ExplicitFiles2ModulesFile;
 import parser.PrismParser;
@@ -3059,23 +3060,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Convert result of parametric model checking to a single value,
 		// either boolean for boolean properties or a rational for numeric properties
 		// There should be just one region since no parameters are used
-		RegionValues regVals = (RegionValues) result.getResult();
-		if (regVals.getNumRegions() != 1)
-			throw new PrismException("Unexpected result from paramteric model checker");
-
-		if (prop.getType().equals(TypeBool.getInstance())) {
-			// boolean result
-			boolean boolResult = regVals.getResult(0).getInitStateValueAsBoolean();
-			// Restore in result object
-			result.setResult(boolResult);
-		} else {
-			// numeric result
-			param.Function func = regVals.getResult(0).getInitStateValueAsFunction();
-			// Evaluate the function at an arbitrary point (should not depend on parameter values)
-			BigRational rat = func.evaluate(new param.Point(new BigRational[] { new BigRational(0) }));
-			// Restore in result object
-			result.setResult(rat);
-		}
+		ParamResult paramResult = (ParamResult) result.getResult();
+		result.setResult(paramResult.getSimpleResult(prop.getType()));
 
 		// Print result to log
 		String resultString = "Result";

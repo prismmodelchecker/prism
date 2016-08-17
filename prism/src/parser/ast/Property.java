@@ -33,6 +33,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import param.BigRational;
+import param.ParamResult;
 import parser.Values;
 import parser.type.*;
 import parser.visitor.*;
@@ -299,6 +300,11 @@ public class Property extends ASTElement
 
 		// Check expected/actual result
 		Type type = expr.getType();
+
+		if (result instanceof param.ParamResult) {
+			ParamResult paramResult = (param.ParamResult)result;
+			return paramResult.test(type, strExpected, constValues);
+		}
 
 		// Boolean-valued properties
 		if (type instanceof TypeBool) {
