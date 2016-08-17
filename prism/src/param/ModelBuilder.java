@@ -26,6 +26,7 @@
 
 package param;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -222,6 +223,15 @@ public final class ModelBuilder extends PrismComponent
 			this.lower[param] = new BigRational(lower[param]);
 			this.upper[param] = new BigRational(upper[param]);
 		}
+	}
+
+	/**
+	 * Get the parameter names as a list of strings.
+	 * @return the parameter names
+	 */
+	public List<String> getParameterNames()
+	{
+		return Arrays.asList(paramNames);
 	}
 
 	/**
