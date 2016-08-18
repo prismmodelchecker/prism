@@ -334,6 +334,29 @@ class DagFunctionFactory extends FunctionFactory {
 		return op == zero;
 	}
 
+	/**
+	 * Returns true if the tree rooted in {@code op}
+	 * is guaranteed to represent a constant value.
+	 */
+	public boolean isConstant(DagOperator op) {
+		if (op instanceof Number) {
+			return true;
+		} else if (op instanceof Variable) {
+			return false;
+		} else if (op instanceof Negate) {
+			Negate opNegate = (Negate) op;
+			return isConstant(opNegate.getWhat());
+		} else if (op instanceof Add) {
+			Add opAdd = (Add) op;
+			return isConstant(opAdd.getOp1()) && isConstant(opAdd.getOp2());
+		} else if (op instanceof Multiply) {
+			Multiply opMultiply = (Multiply) op;
+			return isConstant(opMultiply.getOp1()) && isConstant(opMultiply.getOp2());
+		} else {
+			throw new RuntimeException("invalid operator");
+		}
+	}
+
 	public String toString(DagFunction op) {
 		return "(" + op.getNum().toString() + ")/(" + op.getDen().toString() + ")";
 	}

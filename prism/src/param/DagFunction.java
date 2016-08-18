@@ -170,4 +170,13 @@ public class DagFunction extends Function {
 	public int getType() {
 		return type;
 	}
+
+	@Override
+	public boolean isConstant()
+	{
+		if (type != NORMAL)
+			return true;
+
+		return dagFactory.isConstant(num) && dagFactory.isConstant(den);
+	}
 }

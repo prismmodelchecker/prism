@@ -156,4 +156,10 @@ final class CachedFunction extends Function {
 	public boolean isZero() {
 		return factory.isZero(this);
 	}
+
+	@Override
+	public boolean isConstant()
+	{
+		return factory.isConstant(this);
+	}
 }

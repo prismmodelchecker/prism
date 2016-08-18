@@ -175,6 +175,12 @@ public abstract class Function extends StateValue
 	abstract boolean isZero();
 
 	/**
+	 * Returns true iff this function is guaranteed to return a constant value.
+	 * @return true iff this function is guaranteed to return a constant value
+	 */
+	abstract public boolean isConstant();
+
+	/**
 	 * Multiplies {@code byNumber} with this function.
 	 * 
 	 * @param number to multiply with this function

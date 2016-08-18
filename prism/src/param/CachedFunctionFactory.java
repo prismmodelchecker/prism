@@ -320,6 +320,11 @@ final class CachedFunctionFactory extends FunctionFactory {
 		return function.isZero();
 	}
 
+	public boolean isConstant(CachedFunction cached) {
+		Function function = getFunctionFromCache(cached);
+		return function.isConstant();
+	}
+
 	@Override
 	Function getNaN() {
 		return makeUnique(context.getNaN());
