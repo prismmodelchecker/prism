@@ -1,0 +1,31 @@
+# general patterns to ignore
+# Emacs backup files
+*~
+# OS X system files
+.DS_Store
+
+
+# build artefacts by pattern:
+*.o
+*.a
+*.class
+*.dylib
+*.jnilib
+*.so
+*.dll
+
+# build artefact directories:
+prism/bin/
+prism/classes/
+prism/obj/
+
+# generated JAR files:
+prism/lib/lpsolve55j.jar
+
+# generated CUDD headers:
+cudd/include/*.h
+
+# Eclipse project file (should not be versioned)
+prism/\.project
+# Eclipse project custom settings directory
+prism/\.settings/
