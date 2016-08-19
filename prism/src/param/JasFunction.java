@@ -351,6 +351,12 @@ final class JasFunction extends Function {
 		if (type != NORMAL)
 			return true;
 
+		// special handling for ZERO, as jas.isConstant() returns false
+		// for zero...
+		if (jas.isZERO()) {
+			return true;
+		}
+
 		return jas.isConstant();
 	}
 
