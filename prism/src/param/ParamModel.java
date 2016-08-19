@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.TreeSet;
 
 import parser.Values;
@@ -139,6 +140,58 @@ final class ParamModel extends ModelExplicit
 	public boolean someSuccessorsInSet(int s, BitSet set)
 	{
 		throw new UnsupportedOperationException();
+	}
+
+	/**
+	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
+	 * <br>
+	 * For DTMC/CTMCs, there is only a single choice.
+	 */
+	public Iterator<Entry<Integer, Function>> getTransitionsIterator(final int s, final int i)
+	{
+		return new Iterator<Entry<Integer, Function>>()
+		{
+			final int start = choiceBegin(stateBegin(s) + i);
+			int col = start;
+			final int end = choiceBegin(stateBegin(s) + i + 1);
+
+			@Override
+			public boolean hasNext()
+			{
+				return col < end;
+			}
+
+			@Override
+			public Entry<Integer, Function> next()
+			{
+				assert (col < end);
+				final int i = col;
+				col++;
+				return new Entry<Integer, Function>()
+				{
+					int key = cols[i];
+					Function value = nonZeros[i];
+
+					@Override
+					public Integer getKey()
+					{
+						return key;
+					}
+
+					@Override
+					public Function getValue()
+					{
+						return value;
+					}
+
+					@Override
+					public Function setValue(Function arg0)
+					{
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+		};
 	}
 
 	@Override
