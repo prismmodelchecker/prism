@@ -322,7 +322,7 @@ public final class ModelBuilder extends PrismComponent
 
 		while (!explore.isEmpty()) {
 			state = explore.removeFirst();
-			TransitionList tranlist = engine.calculateTransitions(state);
+			TransitionList tranlist = engine.calculateTransitions(state, true);  // Suppress warnings
 			int numChoices = tranlist.getNumChoices();
 			if (isNonDet) {
 				numTotalChoices += numChoices;
@@ -394,7 +394,7 @@ public final class ModelBuilder extends PrismComponent
 		model.addInitialState(permut[0]);
 		int stateNr = 0;
 		for (State state : statesList) {
-			TransitionList tranlist = engine.calculateTransitions(state);
+			TransitionList tranlist = engine.calculateTransitions(state, false);
 			int numChoices = tranlist.getNumChoices();
 
 			boolean computeSumOut = !isNonDet;

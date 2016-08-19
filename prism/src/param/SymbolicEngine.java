@@ -70,6 +70,9 @@ public class SymbolicEngine
 	protected ModelBuilder modelBuilder;
 	protected FunctionFactory functionFactory;
 
+	//  flag that suppresses warnings during calculateTransitions
+	private boolean noWarnings = false;
+
 	public SymbolicEngine(ModulesFile modulesFile, ModelBuilder modelBuilder, FunctionFactory functionFactory)
 	{
 		this.modelBuilder = modelBuilder;
@@ -137,11 +140,13 @@ public class SymbolicEngine
 		}
 	}
 	
-	public TransitionList calculateTransitions(State state) throws PrismException
+	public TransitionList calculateTransitions(State state, boolean noWarnings) throws PrismException
 	{
 		List<ChoiceListFlexi> chs;
 		int i, j, k, l, n, count;
 		TransitionList transitionList = new TransitionList();
+
+		this.noWarnings = noWarnings;
 
 		// Clear lists/bitsets
 		transitionList.clear();
@@ -295,6 +300,8 @@ public class SymbolicEngine
 				Function pFn = modelBuilder.expr2function(functionFactory, p);
 				if (pFn.isZero()) {
 					// function for probability / rate is zero, don't add the corresponding transition
+					if (!noWarnings)
+						modelBuilder.getLog().printWarning("Update has zero " + (modelType.continuousTime() ? "rate" : "probability") + " (" + p + (p.hasPosition() ? ", " + p.getBeginString() : "") +")");
 					continue;
 				}
 				ch.add(pFn, list);
