@@ -236,34 +236,44 @@ final class ParamModel extends ModelExplicit
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public void exportToDotFile(String filename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark)
-	{
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	protected void exportTransitionsToDotFile(int i, PrismLog out)
 	{
-		throw new UnsupportedOperationException();
+		int numChoices = getNumChoices(i);
+		for (int j = 0; j < numChoices; j++) {
+			// action = getAction(i, j);
+			String nij = null;
+			if (modelType.nondeterministic()) {
+				nij = "n" + i + "_" + j;
+				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
+				out.print("\" ];\n");
+				out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
+			}
+
+			Iterator<Entry<Integer, Function>> it = getTransitionsIterator(i, j);
+			while (it.hasNext()) {
+				Entry<Integer, Function> e = it.next();
+
+				// Note: For CTMCs, param stores the embedded DTMC, so we output that
+
+				if (!modelType.nondeterministic()) {
+					out.print(i + " -> " + e.getKey() + " ");
+				} else {
+					out.print(nij + " -> " + e.getKey() + " ");
+				}
+
+				String value;
+				if (e.getValue().isConstant()) {
+					value = e.getValue().asBigRational().toString();
+				} else {
+					value = e.getValue().toString();
+				}
+
+				
+				out.print("[ label=\"" + value + "\" ];\n");
+			}
+		}
 	}
 	
 	@Override
