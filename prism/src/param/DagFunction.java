@@ -134,7 +134,17 @@ public class DagFunction extends Function {
 
 	@Override
 	public BigRational asBigRational() {
-		return dagFactory.asBigRational(this);
+		switch (type) {
+		case NORMAL:
+			return dagFactory.asBigRational(this);
+		case NAN:
+			return BigRational.NAN;
+		case INF:
+			return BigRational.INF;
+		case MINF:
+			return BigRational.MINF;
+		}
+		throw new RuntimeException("Illegal type");
 	}
 
 	@Override

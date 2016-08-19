@@ -221,6 +221,18 @@ class DagFunctionFactory extends FunctionFactory {
 	
 	@Override
 	Function fromBigRational(BigRational bigRat) {
+		if (bigRat.isSpecial()) {
+			if (bigRat.isNaN()) {
+				return getNaN();
+			} else if (bigRat.isInf()) {
+				return getInf();
+			} else if (bigRat.isMInf()) {
+				return getMInf();
+			} else {
+				throw new RuntimeException("Unknown special value");
+			}
+		}
+		// normal:
 		bigRat = bigRat.cancel();
 		DagOperator num = new Number(bigRat.getNum());
 		num = makeUnique(num);
