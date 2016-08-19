@@ -3721,7 +3721,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 
 	/**
-	 * Old API: 
+	 * @deprecated
 	 * Load a PRISM model, build it, store for later use and return.
 	 * Reachability and model construction are done symbolically, i.e. using (MT)BDDs.
 	 * It is assumed that all constants in the PRISM model file have been defined by now.  
@@ -3735,7 +3735,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its transition matrix to a Spy file.
 	 * @param model The model
 	 * @param file File to export to
@@ -3747,7 +3747,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export the MTBDD for its transition matrix to a Dot file.
 	 * @param model The model
 	 * @param file File to export to
@@ -3759,7 +3759,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its transition matrix to a file
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
@@ -3779,7 +3779,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its transition matrix to a file (or to the log)
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
@@ -3800,7 +3800,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its state rewards to a file
 	 * @param model The model
 	 * @param exportType Type of export; one of: <ul>
@@ -3817,7 +3817,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its transition rewards to a file
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
@@ -3836,7 +3836,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its bottom strongly connected components (BSCCs) to a file
 	 * @param model The model
 	 * @param exportType Type of export; one of: <ul>
@@ -3852,7 +3852,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export the states satisfying labels from it and a properties file to a file
 	 * The PropertiesFile should correspond to the model. 
 	 * @param model The model
@@ -3872,7 +3872,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model and export its states to a file
 	 * @param model The model
 	 * @param exportType Type of export; one of: <ul>
@@ -3888,7 +3888,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a (built) model, perform model checking of a property on it and return result.
 	 * @param model The model to check
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
@@ -3901,7 +3901,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load a PRISM PTA model, perform model checking of a property on it and return result.
 	 * @param modulesFile The corresponding (parsed) PRISM model (for the labels)
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
@@ -3914,7 +3914,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 */
 	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
@@ -3924,7 +3924,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 */
 	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, State initialState,
 			long maxPathLength, SimulationMethod simMethod) throws PrismException
@@ -3934,7 +3934,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 */
 	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants,
 			ResultsCollection results, Expression propertyToCheck, State initialState, long maxPathLength, SimulationMethod simMethod) throws PrismException,
@@ -3945,7 +3945,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load (built) model and compute steady-state probabilities (DTMCs/CTMCs only).
 	 * Output probability distribution to log. 
 	 */
@@ -3955,7 +3955,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load (built) model and compute steady-state probabilities (DTMCs/CTMCs only).
 	 * Output probability distribution to a file (or, if file is null, to log). 
 	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
@@ -3967,7 +3967,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load (built) model and compute transient probabilities (DTMCs/CTMCs only).
 	 * Output probability distribution to log. 
 	 */
@@ -3977,7 +3977,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Old API:
+	 * @deprecated
 	 * Load (built) model and compute transient probabilities (DTMCs/CTMCs only).
 	 * Output probability distribution to a file (or, if file is null, to log). 
 	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
