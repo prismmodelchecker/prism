@@ -293,6 +293,10 @@ public class SymbolicEngine
 
 			try {
 				Function pFn = modelBuilder.expr2function(functionFactory, p);
+				if (pFn.isZero()) {
+					// function for probability / rate is zero, don't add the corresponding transition
+					continue;
+				}
 				ch.add(pFn, list);
 			} catch (PrismException e) {
 				throw new PrismLangException(e.getMessage());
