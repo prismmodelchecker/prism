@@ -2752,6 +2752,24 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Perform model checking of a property on the currently loaded model and return result.
+	 * Here, the property is passed as a string and parsed first. Usually, you would use the other
+	 * model checking methods which assume you have already parsed the property separately.
+	 * This is just a simplified method for convenience. The property string can in fact be a whole
+	 * properties file, e.g. you can define labels/constants/etc. too, but an exception will be
+	 * thrown if there is more than one property present.    
+	 * @param propertyString The property (in fact properties file) to check as a string
+	 */
+	public Result modelCheck(String propertyString) throws PrismException
+	{
+		PropertiesFile propertiesFile = parsePropertiesString(currentModelGenerator, propertyString);
+		if (propertiesFile.getNumProperties() != 1) {
+			throw new PrismException("There should be exactly one property to check (there are " + propertiesFile.getNumProperties() + ")");
+		}
+		return modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
+	}
+
+	/**
+	 * Perform model checking of a property on the currently loaded model and return result.
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
 	 * @param expr The property to check
 	 */
