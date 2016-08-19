@@ -202,7 +202,7 @@ public class TransitionList
 	/**
 	 * Get the probability/rate of a transition, specified by its index.
 	 */
-	public Expression getTransitionProbability(int index)
+	public Function getTransitionProbability(int index)
 	{
 		return getChoiceOfTransition(index).getProbability(transitionOffsets.get(index));
 	}
@@ -256,10 +256,8 @@ public class TransitionList
 	public boolean isDeterministic()
 	{
 		if(numTransitions == 1) {
-			Expression e = getChoice(0).getProbability(0);
-			if(Expression.isDouble(e)) {
-				return (Double)((ExpressionLiteral)e).getValue() == 1.0;
-			}
+			Function e = getChoice(0).getProbability(0);
+			return e.isOne();
 		}
 		return false;
 	}

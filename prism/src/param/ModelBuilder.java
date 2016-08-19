@@ -378,7 +378,7 @@ public final class ModelBuilder extends PrismComponent
 		if (modelType != ModelType.DTMC && modelType != ModelType.CTMC && modelType != ModelType.MDP) {
 			throw new PrismNotSupportedException("Unsupported model type: " + modelType);
 		}
-		SymbolicEngine engine = new SymbolicEngine(modulesFile);
+		SymbolicEngine engine = new SymbolicEngine(modulesFile, this, functionFactory);
 
 		if (modulesFile.getInitialStates() != null) {
 			throw new PrismNotSupportedException("Explicit model construction does not support multiple initial states");
@@ -410,8 +410,7 @@ public final class ModelBuilder extends PrismComponent
 				Function sumOutForChoice = functionFactory.getZero();
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
 					ChoiceListFlexi succ = tranlist.getChoice(choiceNr);
-					Expression probExpr = succ.getProbability(succNr);
-					Function probFunc = expr2function(functionFactory, probExpr);
+					Function probFunc = succ.getProbability(succNr);
 					if (computeSumOut)
 						sumOut = sumOut.add(probFunc);
 					if (checkChoiceSumEqualsOne)
@@ -443,12 +442,12 @@ public final class ModelBuilder extends PrismComponent
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
 					ChoiceListFlexi succ = tranlist.getChoice(choiceNr);
 					State stateNew = succ.computeTarget(succNr, state);
-					Expression probExpr = succ.getProbability(succNr);
+					Function probFn = succ.getProbability(succNr);
 					// divide by sumOut
 					// for DTMC, this normalises over the choices
 					// for CTMC this builds the embedded DTMC
 					// for MDP this does nothing (sumOut is set to 1)
-					Function probFn = expr2function(functionFactory, probExpr).divide(sumOut);
+					probFn = probFn.divide(sumOut);
 					model.addTransition(permut[states.get(stateNew)], probFn, action);
 				}
 				if (isNonDet) {

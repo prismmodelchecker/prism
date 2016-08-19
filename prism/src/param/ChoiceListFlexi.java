@@ -48,7 +48,7 @@ public class ChoiceListFlexi //implements Choice
 	// Probabilities/rates are already evaluated, target states are not
 	// but are just stored as lists of updates (for efficiency)
 	protected List<List<Update>> updates;
-	protected List<Expression> probability;
+	protected List<Function> probability;
 
 	/**
 	 * Create empty choice.
@@ -56,7 +56,7 @@ public class ChoiceListFlexi //implements Choice
 	public ChoiceListFlexi()
 	{
 		updates = new ArrayList<List<Update>>();
-		probability = new ArrayList<Expression>();
+		probability = new ArrayList<Function>();
 	}
 
 	/**
@@ -74,8 +74,8 @@ public class ChoiceListFlexi //implements Choice
 				listNew.add(up);
 			}
 		}
-		probability = new ArrayList<Expression>(ch.size());
-		for (Expression p : ch.probability) {
+		probability = new ArrayList<Function>(ch.size());
+		for (Function p : ch.probability) {
 			probability.add(p);
 		}
 	}
@@ -97,7 +97,7 @@ public class ChoiceListFlexi //implements Choice
 	 * @param probability Probability (or rate) of the transition
 	 * @param ups List of Update objects defining transition
 	 */
-	public void add(Expression probability, List<Update> ups)
+	public void add(Function probability, List<Update> ups)
 	{
 		this.updates.add(ups);
 		this.probability.add(probability);
@@ -122,7 +122,7 @@ public class ChoiceListFlexi //implements Choice
 	{
 		List<Update> list;
 		int i, j, n, n2;
-		Expression pi;
+		Function pi;
 
 		n = ch.size();
 		n2 = size();
@@ -139,7 +139,7 @@ public class ChoiceListFlexi //implements Choice
 				for (Update u : ch.updates.get(i)) {
 					list.add(u);
 				}
-				add((Expression)Expression.Times(pi, getProbability(j)).simplify(), list);
+				add(pi.multiply(getProbability(j)), list);
 			}
 		}
 		// Modify elements of current choice to get (0,j) elements of product
@@ -148,7 +148,7 @@ public class ChoiceListFlexi //implements Choice
 			for (Update u : ch.updates.get(0)) {
 				updates.get(j).add(u);
 			}
-			probability.set(j, (Expression)Expression.Times(pi, getProbability(j)).simplify());
+			probability.set(j, pi.multiply(getProbability(j)));
 		}
 	}
 
@@ -223,7 +223,7 @@ public class ChoiceListFlexi //implements Choice
 			up.update(currentState, newState);
 	}
 
-	public Expression getProbability(int i)
+	public Function getProbability(int i)
 	{
 		return probability.get(i);
 	}
