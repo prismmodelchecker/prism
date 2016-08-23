@@ -112,7 +112,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
-		probsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachProbs(product.getProductModel(), acc).soln, product.getProductModel());
+		ModelCheckerResult res = mcProduct.computeReachProbs(product.getProductModel(), acc); 
+		probsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -183,7 +184,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.println("\nComputing reachability probabilities...");
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
-		rewardsProduct = StateValues.createFromDoubleArray(mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc).soln, product.getProductModel());
+		ModelCheckerResult res = mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc);
+		rewardsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
 		
 		// Output vector over product, if required
 		if (getExportProductVector()) {
