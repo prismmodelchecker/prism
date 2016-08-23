@@ -2044,7 +2044,7 @@ public class PrismCL implements PrismModelListener
 
 		// make sure a model file is specified
 		if (modelFilename == null) {
-			mainLog.println("Usage: prism [options] <model-file> [<properties-file>] [more-options]");
+			mainLog.println("Usage: " + Prism.getCommandLineName() + " [options] <model-file> [<properties-file>] [more-options]");
 			mainLog.println("\nFor more information, type: prism -help");
 			exit();
 		}

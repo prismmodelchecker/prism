@@ -647,6 +647,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Get the name of the command-line version of this tool.
+	 * ("prism" by default, extensions might override) 
+	 */
+	public static String getCommandLineName()
+	{
+		return "prism";
+	}
+
+	/**
 	 * Get current version number, as a string. 
 	 */
 	public static String getVersion()
