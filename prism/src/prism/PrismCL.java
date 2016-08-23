@@ -2254,7 +2254,7 @@ public class PrismCL implements PrismModelListener
 	 */
 	private void printHelp()
 	{
-		mainLog.println("Usage: prism <model-file> [<properties-file>] [options]");
+		mainLog.println("Usage: " + Prism.getCommandLineName() + " [options] <model-file> [<properties-file>] [more-options]");
 		mainLog.println();
 		mainLog.println("Options:");
 		mainLog.println("========");
