@@ -1985,6 +1985,17 @@ public class PrismCL implements PrismModelListener
 				else
 					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"type\" option of -exportstrat");
 			}
+			else if (opt.startsWith("reach")) {
+				if (!opt.startsWith("reach="))
+					throw new PrismException("No value provided for \"reach\" option of -exportstrat");
+				String optVal = opt.substring(6);
+				if (optVal.equals("true"))
+					prism.setRestrictStratToReach(true);
+				else if (optVal.equals("false"))
+					prism.setRestrictStratToReach(false);
+				else
+					throw new PrismException("Unknown value \"" + optVal + "\" provided for \"reach\" option of -exportstrat");
+			}
 			// Unknown option
 			else {
 				throw new PrismException("Unknown option \"" + opt + "\" for -exportstrat switch");
