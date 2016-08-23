@@ -70,15 +70,7 @@ public class PEPA2Prism extends PrismLanguageTranslator
 		try {
 			prismModelString = pepa.compiler.Main.compile("" + modelFile);
 		} catch (pepa.compiler.InternalError e) {
-			if (modelFile != null) {
-				modelFile.delete();
-				modelFile = null;
-			}
 			throw new PrismException("Could not import PEPA model:\n" + e.getMessage());
-		}
-		if (modelFile != null) {
-			modelFile.delete();
-			modelFile = null;
 		}
 		return prismModelString;
 	}
