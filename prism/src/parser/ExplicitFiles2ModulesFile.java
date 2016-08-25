@@ -97,7 +97,6 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 	 */
 	private ModulesFile createVarInfoFromStatesFile(File statesFile) throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[];
 		int i, j, lineNum = 0;
 		Module m;
@@ -112,9 +111,8 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 		Type varTypes[];
 		ModulesFile modulesFile;
 
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(statesFile));
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
 			// read first line and extract var names
 			s = in.readLine();
 			lineNum = 1;
@@ -182,8 +180,6 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 						varMaxs[i]++;
 				}
 			}
-			// close file
-			in.close();
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
 		} catch (NumberFormatException e) {
@@ -217,7 +213,6 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 	 */
 	private ModulesFile createVarInfoFromTransFile(File transFile) throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[];
 		int lineNum = 0;
 		Module m;
@@ -225,9 +220,8 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 		DeclarationType dt;
 		ModulesFile modulesFile;
 
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(transFile));
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			// read first line and extract num states
 			s = in.readLine();
 			lineNum = 1;
@@ -238,8 +232,6 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 			if (ss.length < 2)
 				throw new PrismException("");
 			numStates = Integer.parseInt(ss[0]);
-			// close file
-			in.close();
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (NumberFormatException e) {
