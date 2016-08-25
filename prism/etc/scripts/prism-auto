@@ -640,7 +640,10 @@ def printUsage():
 
 def signal_handler(signal, frame):
     if options.nailgun:
-        subprocess.Popen([options.ngprism, "stop"]).wait()
+		if options.echo or options.echoFull:
+			print(options.ngprism + "stop")
+		else:
+			subprocess.Popen([options.ngprism, " stop"]).wait()
     sys.exit(1)
 
 # Main program
@@ -676,8 +679,11 @@ if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
-    os.system(options.prismExec + " -ng &")
-    time.sleep(0.5)
+	if options.echo or options.echoFull:
+		print(options.prismExec + " -ng &")
+	else:
+	    os.system(options.prismExec + " -ng &")
+    	time.sleep(0.5)
 for arg in args:
     if os.path.isdir(arg):
         benchmarkDir(arg)
@@ -686,4 +692,7 @@ for arg in args:
     else:
         print("Error: File/directory " + arg + " does not exist")
 if options.nailgun:
-    subprocess.Popen([options.ngprism, "stop"]).wait()
+	if options.echo or options.echoFull:
+		print(options.ngprism + " stop")
+	else:
+		subprocess.Popen([options.ngprism, "stop"]).wait()
