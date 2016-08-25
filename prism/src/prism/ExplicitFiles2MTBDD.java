@@ -131,19 +131,17 @@ public class ExplicitFiles2MTBDD
 		return buildModel();
 	}
 
-	// read info about reachable state space from file and store explicitly
-
+	/** read info about reachable state space from file and store explicitly */
 	private void readStatesFromFile() throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[];
 		int i, j, lineNum = 0;
 
 		// create arrays for explicit state storage
 		statesArray = new int[numStates][];
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(statesFile));
+
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
 			// skip first line
 			in.readLine();
 			lineNum = 1;
@@ -173,8 +171,6 @@ public class ExplicitFiles2MTBDD
 				s = in.readLine();
 				lineNum++;
 			}
-			// close file
-			in.close();
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
 		} catch (PrismException e) {
@@ -182,8 +178,7 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	// build model
-
+	/** build model */
 	private Model buildModel() throws PrismException
 	{
 		Model model = null;
@@ -315,17 +310,14 @@ public class ExplicitFiles2MTBDD
 		return model;
 	}
 
-	// for an mdp, compute max number of choices in a state (from transitions file)
-
+	/** for an mdp, compute max number of choices in a state (from transitions file) */
 	private void computeMaxChoicesFromFile() throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[];
 		int j, lineNum = 0;
 
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(transFile));
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			// skip first line
 			in.readLine();
 			lineNum = 1;
@@ -346,8 +338,6 @@ public class ExplicitFiles2MTBDD
 				s = in.readLine();
 				lineNum++;
 			}
-			// close file
-			in.close();
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (NumberFormatException e) {
@@ -357,9 +347,10 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	// allocate DD vars for system
-	// i.e. decide on variable ordering and request variables from CUDD
-
+	/**
+	 * allocate DD vars for system
+	 * i.e. decide on variable ordering and request variables from CUDD
+	 */
 	private void allocateDDVars()
 	{
 		JDDNode v, vr, vc;
@@ -416,9 +407,10 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	// sort out DD variables and the arrays they are stored in
-	// (more than one copy of most variables is stored)
-
+	/**
+	 * sort out DD variables and the arrays they are stored in
+	 * (more than one copy of most variables is stored)
+	 */
 	private void sortDDVars()
 	{
 		int i;
@@ -462,8 +454,7 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	// sort DDs for identities
-
+	/** sort DDs for identities */
 	private void sortIdentities()
 	{
 		int i, j;
@@ -492,13 +483,12 @@ public class ExplicitFiles2MTBDD
 		moduleIdentities[0] = id;
 	}
 
-	// Sort DDs for ranges
-
+	/** Sort DDs for ranges */
 	private void sortRanges()
 	{
 		int i;
 
-		// initialise raneg for whole system
+		// initialise range for whole system
 		range = JDD.Constant(1);
 
 		// variable ranges		
@@ -522,17 +512,15 @@ public class ExplicitFiles2MTBDD
 		moduleRangeDDs[0] = JDD.SumAbstract(moduleIdentities[0], moduleDDColVars[0]);
 	}
 
-	// construct transition matrix from file
-
+	/** Construct transition matrix from file */
 	private void buildTrans() throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[], a;
 		int i, j, r, c, k = 0, lineNum = 0;
 		double d;
 		JDDNode elem, tmp;
 
-		// initailise action list
+		// initialise action list
 		synchs = new Vector<String>();
 
 		// initialise mtbdds
@@ -545,9 +533,8 @@ public class ExplicitFiles2MTBDD
 			transActions = JDD.Constant(0);
 		}
 
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(transFile));
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
 			// skip first line
 			in.readLine();
 			lineNum = 1;
@@ -650,8 +637,6 @@ public class ExplicitFiles2MTBDD
 				s = in.readLine();
 				lineNum++;
 			}
-			// close file
-			in.close();
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
 		} catch (NumberFormatException e) {
@@ -661,8 +646,7 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	// calculate dd for initial state
-
+	/** calculate dd for initial state */
 	private void buildInit() throws PrismException
 	{
 		BufferedReader in;
@@ -740,11 +724,10 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	// read info about state rewards from states file
 
+	/** Read info about state rewards from states file */
 	private void computeStateRewards() throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[];
 		int i, j, lineNum = 0;
 		double d;
@@ -756,9 +739,8 @@ public class ExplicitFiles2MTBDD
 		if (statesFile == null)
 			return;
 
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(statesFile));
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
 			// skip first line
 			in.readLine();
 			lineNum = 1;
@@ -798,8 +780,6 @@ public class ExplicitFiles2MTBDD
 				s = in.readLine();
 				lineNum++;
 			}
-			// close file
-			in.close();
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
 		} catch (NumberFormatException e) {
