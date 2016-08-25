@@ -1295,18 +1295,16 @@ public class StateModelChecker extends PrismComponent
 	 * (Actually, it returns a map from label name Strings to BitSets.)
 	 * (Note: the size of the BitSet may be smaller than the number of states.) 
 	 */
-	public Map<String, BitSet> loadLabelsFile(String filename) throws PrismException
+	public static Map<String, BitSet> loadLabelsFile(String filename) throws PrismException
 	{
-		BufferedReader in;
 		ArrayList<String> labels;
 		BitSet bitsets[];
 		Map<String, BitSet> res;
 		String s, ss[];
 		int i, j, k;
 
-		try {
-			// Open file
-			in = new BufferedReader(new FileReader(new File(filename)));
+		// open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
 			// Parse first line to get label list
 			s = in.readLine();
 			if (s == null) {
@@ -1352,8 +1350,6 @@ public class StateModelChecker extends PrismComponent
 				// Prepare for next iter
 				s = in.readLine();
 			}
-			// Close file
-			in.close();
 			// Build BitSet map
 			res = new HashMap<String, BitSet>();
 			for (i = 0; i < labels.size(); i++) {
