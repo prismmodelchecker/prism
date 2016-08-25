@@ -274,64 +274,99 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	@Override
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		BufferedReader in;
-		Distribution distr;
-		String s, ss[];
-		int i, j, k, iLast, kLast, n, lineNum = 0;
-		double prob;
+		// we want to accurately store the model as it appears
+		// in the file, so we allow dupes
+		allowDupes = true;
 
-		try {
-			// Open file
-			in = new BufferedReader(new FileReader(new File(filename)));
+		int lineNum = 0;
+		// Open file for reading, automatic close
+		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
 			// Parse first line to get num states
-			s = in.readLine();
+			String info = in.readLine();
 			lineNum = 1;
-			if (s == null) {
-				in.close();
+			if (info == null) {
 				throw new PrismException("Missing first line of .tra file");
 			}
-			ss = s.split(" ");
-			n = Integer.parseInt(ss[0]);
+			String[] infos = info.split(" ");
+			if (infos.length < 3) {
+				throw new PrismException("First line of .tra file must read #states, #choices, #transitions");
+			}
+			int n = Integer.parseInt(infos[0]);
+			int expectedNumChoices = Integer.parseInt(infos[1]);
+			int expectedNumTransitions = Integer.parseInt(infos[2]);
+
+			int emptyDistributions = 0;
+			
 			// Initialise
 			initialise(n);
 			// Go though list of transitions in file
-			iLast = -1;
-			kLast = -1;
-			distr = null;
-			s = in.readLine();
+			String s = in.readLine();
 			lineNum++;
 			while (s != null) {
 				s = s.trim();
 				if (s.length() > 0) {
-					ss = s.split(" ");
-					i = Integer.parseInt(ss[0]);
-					k = Integer.parseInt(ss[1]);
-					j = Integer.parseInt(ss[2]);
-					prob = Double.parseDouble(ss[3]);
-					// For a new state or distribution
-					if (i != iLast || k != kLast) {
-						// Add any previous distribution to the last state, create new one
-						if (distr != null) {
-							addChoice(iLast, distr);
-						}
-						distr = new Distribution();
+					String[] transition = s.split(" ");
+					int source = Integer.parseInt(transition[0]);
+					int choice = Integer.parseInt(transition[1]);
+					int target = Integer.parseInt(transition[2]);
+					double prob = Double.parseDouble(transition[3]);
+
+					if (source < 0 || source >= numStates) {
+						throw new PrismException("Problem in .tra file (line " + lineNum + "): illegal source state index " + source);
 					}
-					// Add transition to the current distribution
-					distr.add(j, prob);
-					// Prepare for next iter
-					iLast = i;
-					kLast = k;
+					if (target < 0 || target >= numStates) {
+						throw new PrismException("Problem in .tra file (line " + lineNum + "): illegal target state index " + target);
+					}
+
+					// ensure distributions for all choices up to choice (inclusive) exist
+					// this potentially creates empty distributions that are never defined
+					// so we keep track of the number of distributions that are still empty
+					// and provide an error message if there are still empty distributions
+					// after having read the full .tra file
+					while (choice >= getNumChoices(source)) {
+						addChoice(source, new Distribution());
+						emptyDistributions++;
+					}
+
+					if (trans.get(source).get(choice).isEmpty()) {
+						// was empty distribution, becomes non-empty below
+						emptyDistributions--;
+					}
+					// add transition
+					if (! trans.get(source).get(choice).add(target, prob)) {
+						numTransitions++;
+					} else {
+						throw new PrismException("Problem in .tra file (line " + lineNum + "): redefinition of probability for " + source + " " + choice + " " + target);
+					}
+
+					// add action
+					if (transition.length > 4) {
+						String action = transition[4];
+						Object oldAction = getAction(source, choice);
+						if (oldAction != null && !action.equals(oldAction)) {
+							throw new PrismException("Problem in .tra file (line " + lineNum + "):"
+							                       + "inconsistent action label for " + source + ", " + choice + ": "
+									               + oldAction + " and " + action);
+						}
+						setAction(source, choice, action);
+					}
 				}
 				s = in.readLine();
 				lineNum++;
 			}
-			// Add previous distribution to the last state
-			addChoice(iLast, distr);
-			// Close file
-			in.close();
+			// check integrity
+			if (getNumChoices() != expectedNumChoices) {
+				throw new PrismException("Problem in .tra file: unexpected number of choices: " + getNumChoices());
+			}
+			if (getNumTransitions() != expectedNumTransitions) {
+				throw new PrismException("Problem in .tra file: unexpected number of transitions: " + getNumTransitions());
+			}
+			assert(emptyDistributions >= 0);
+			if (emptyDistributions > 0) {
+				throw new PrismException("Problem in .tra file: there are " + emptyDistributions + " empty distribution, are there gaps in the choice indices?");
+			}
 		} catch (IOException e) {
-			System.out.println(e);
-			System.exit(1);
+			throw new PrismException("File I/O error reading from \"" + filename + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
 			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
