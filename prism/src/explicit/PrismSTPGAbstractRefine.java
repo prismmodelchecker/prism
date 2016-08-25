@@ -95,6 +95,7 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 		}
 		modelConcrete.buildFromPrismExplicit(traFile);
+		modelConcrete.addInitialState(0);
 		if (buildEmbeddedDtmc) {
 			// TODO: do more efficiently (straight from tra file?)
 			mainLog.println("Concrete " + "CTMC" + ": " + modelConcrete.infoString());

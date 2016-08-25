@@ -172,8 +172,6 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		} catch (NumberFormatException e) {
 			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
-		// Set initial state (assume 0)
-		initialStates.add(0);
 	}
 
 	// Mutators (other)
