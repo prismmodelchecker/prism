@@ -39,6 +39,7 @@ import explicit.CTMCModelChecker;
 import explicit.ConstructModel;
 import explicit.DTMC;
 import explicit.DTMCModelChecker;
+import explicit.ExplicitFiles2Model;
 import explicit.FastAdaptiveUniformisation;
 import explicit.FastAdaptiveUniformisationModelChecker;
 import hybrid.PrismHybrid;
@@ -1987,7 +1988,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile,
 							explicitFilesNumStates);
 				} else {
-					throw new PrismNotSupportedException("Explicit import not yet supported for explicit engine");
+					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile, explicitFilesNumStates);
 				}
 				break;
 			default:
