@@ -1834,7 +1834,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Construct ModulesFile
 		ExplicitFiles2ModulesFile ef2mf = new ExplicitFiles2ModulesFile(this);
-		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, typeOverride);
+		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, typeOverride);
 		// Store explicit files info for later
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;

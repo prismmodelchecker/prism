@@ -30,12 +30,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import parser.ast.Declaration;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationInt;
 import parser.ast.DeclarationType;
 import parser.ast.Expression;
+import parser.ast.ExpressionIdent;
+import parser.ast.ExpressionLiteral;
+import parser.ast.LabelList;
 import parser.ast.Module;
 import parser.ast.ModulesFile;
 import parser.type.Type;
@@ -70,10 +75,14 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 	}
 
 	/**
-	 * Build a ModulesFile corresponding to the passed in states/transitions files.
+	 * Build a ModulesFile corresponding to the passed in states/transitions/labels files.
 	 * If {@code typeOverride} is null, we assume model is an MDP.
+	 *
+	 * @param statesFile states file (may be {@code null})
+	 * @param transFile transitions file
+	 * @param labelsFile labels file (may be {@code null})
 	 */
-	public ModulesFile buildModulesFile(File statesFile, File transFile, ModelType typeOverride) throws PrismException
+	public ModulesFile buildModulesFile(File statesFile, File transFile, File labelsFile, ModelType typeOverride) throws PrismException
 	{
 		ModulesFile modulesFile;
 		ModelType modelType;
@@ -83,6 +92,12 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 			modulesFile = createVarInfoFromStatesFile(statesFile);
 		} else {
 			modulesFile = createVarInfoFromTransFile(transFile);
+		}
+
+		// Generate and store a label list from the labelsFile, if available.
+		// This way, expressions can refer to the labels later on.
+		if (labelsFile != null) {
+			modulesFile.setLabelList(createLabelListFromLabelsFile(labelsFile));
 		}
 
 		// Set model type: if no preference stated, assume default of MDP
@@ -251,4 +266,51 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 
 		return modulesFile;
 	}
+	
+
+	/**
+	 * Create a LabelList from a labels file, i.e., a label definition per
+	 * label that is encountered in the file.
+	 * <br>
+	 * In the label definitions, the label expression is set to "false",
+	 * the actual information about the states belonging to the label
+	 * is later on directly stored in the model.
+	 * <br>
+	 * The "init" and "deadlock" labels are skipped, as they have special
+	 * meaning and are implicitly defined for all models.
+	 */
+	private LabelList createLabelListFromLabelsFile(File labelsFile) throws PrismException
+	{
+		LabelList list = new LabelList();
+
+		try (BufferedReader in = new BufferedReader(new FileReader(labelsFile))) {
+			// read first line (label names)
+			String labelNames = in.readLine();
+			// split
+			Pattern label = Pattern.compile("(\\d+)=\"([^\"]+)\"\\s*");
+			Matcher matcher = label.matcher(labelNames);
+			while (matcher.find()) {
+				String labelName = matcher.group(2);
+
+				if (labelName.equals("init") || labelName.equals("deadlock")) {
+					// "init" and "deadlock" are special labels that exist
+					// in every model, so we don't need to add them to the ModulesFile
+					continue;
+				}
+
+				// TODO: Check that label name is valid identifier
+
+				if (list.getLabelIndex(labelName) != -1) {
+					throw new PrismException("duplicate label \"" + labelName + "\"");
+				}
+
+				Expression falseExpression = new ExpressionLiteral(TypeBool.getInstance(), false);
+				list.addLabel(new ExpressionIdent(labelName), falseExpression);
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
+		}
+		return list;
+	}
+
 }
