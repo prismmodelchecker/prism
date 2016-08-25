@@ -28,6 +28,7 @@ package prism;
 
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import jdd.*;
 import odd.*;
@@ -84,6 +85,12 @@ public class ProbModel implements Model
 	protected JDDVars allDDColVars; // all dd vars (cols)
 	// names for all dd vars used
 	protected Vector<String> ddVarNames;
+
+	/**
+	 * A map from label to state set, optionally storing a state set
+	 * for a given label directly in the model.
+	 */
+	protected Map<String, JDDNode> labelsDD = new TreeMap<String, JDDNode>();
 
 	protected ODDNode odd; // odd
 
@@ -353,6 +360,18 @@ public class ProbModel implements Model
 		return allDDColVars;
 	}
 
+	@Override
+	public JDDNode getLabelDD(String label)
+	{
+		return labelsDD.get(label);
+	}
+
+	@Override
+	public Set<String> getLabels()
+	{
+		return Collections.unmodifiableSet(labelsDD.keySet());
+	}
+
 	// additional useful methods to do with dd vars
 	public int getNumDDRowVars()
 	{
@@ -444,6 +463,13 @@ public class ProbModel implements Model
 	{
 		this.synchs = synchs;
 		this.numSynchs = synchs.size();
+	}
+
+	@Override
+	public void addLabelDD(String label, JDDNode labelDD)
+	{
+		JDDNode old = labelsDD.put(label, labelDD);
+		if (old != null) JDD.Deref(old);
 	}
 
 	/**
@@ -904,6 +930,11 @@ public class ProbModel implements Model
 	 */
 	public void clear()
 	{
+		for (Entry<String, JDDNode> labelDD : labelsDD.entrySet()) {
+			JDD.Deref(labelDD.getValue());
+		}
+		labelsDD.clear();
+
 		if (varDDRowVars != null)
 			JDDVars.derefAllArray(varDDRowVars);
 		if (varDDColVars != null)
@@ -941,4 +972,5 @@ public class ProbModel implements Model
 			odd = null;
 		}
 	}
+
 }
