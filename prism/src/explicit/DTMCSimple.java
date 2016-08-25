@@ -136,19 +136,16 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	@Override
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
-		BufferedReader in;
 		String s, ss[];
 		int i, j, n, lineNum = 0;
 		double prob;
 
-		try {
-			// Open file
-			in = new BufferedReader(new FileReader(new File(filename)));
+		// Open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(new File(filename)))) {
 			// Parse first line to get num states
 			s = in.readLine();
 			lineNum = 1;
 			if (s == null) {
-				in.close();
 				throw new PrismException("Missing first line of .tra file");
 			}
 			ss = s.split(" ");
@@ -170,11 +167,8 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 				s = in.readLine();
 				lineNum++;
 			}
-			// Close file
-			in.close();
 		} catch (IOException e) {
-			System.out.println(e);
-			System.exit(1);
+			throw new PrismException("File I/O error reading from \"" + filename + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
 			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
