@@ -356,7 +356,7 @@ public class ExplicitFiles2MTBDD
 				lineNum++;
 			}
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		} catch (PrismException e) {
@@ -655,7 +655,7 @@ public class ExplicitFiles2MTBDD
 				lineNum++;
 			}
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + transFile + "\"");
+			throw new PrismException("File I/O error reading from \"" + transFile + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error detected at line " + lineNum + " of transition matrix file \"" + transFile + "\"");
 		} catch (PrismException e) {
@@ -793,7 +793,7 @@ public class ExplicitFiles2MTBDD
 				lineNum++;
 			}
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + statesFile + "\"");
+			throw new PrismException("File I/O error reading from \"" + statesFile + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
 		}
