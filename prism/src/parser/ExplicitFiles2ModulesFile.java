@@ -42,28 +42,22 @@ import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeInt;
 import prism.ModelType;
-import prism.Prism;
+import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismLog;
 
 /**
  * Class to build a (partial) ModulesFile corresponding to imported explicit-state file storage of a model.
  * Basically, the ModulesFile just stores the model type and variable info.
  * The number of states in the model is also extracted.
  */
-public class ExplicitFiles2ModulesFile
+public class ExplicitFiles2ModulesFile extends PrismComponent
 {
-	// Prism stuff
-	private Prism prism;
-	private PrismLog mainLog;
-
 	// Num states
 	private int numStates = 0;
 
-	public ExplicitFiles2ModulesFile(Prism prism)
+	public ExplicitFiles2ModulesFile(PrismComponent parent)
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(parent);
 	}
 
 	/**
