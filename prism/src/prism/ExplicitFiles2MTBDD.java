@@ -30,8 +30,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.BitSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Vector;
+import java.util.Map.Entry;
 
+import common.IterableStateSet;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -100,6 +105,7 @@ public class ExplicitFiles2MTBDD
 	private Vector<JDDNode> transPerAction; // dds for transition action labels (D/CTMCs)
 
 	private int maxNumChoices = 0;
+	private LinkedHashMap<String, JDDNode> labelsDD;
 
 	public ExplicitFiles2MTBDD(Prism prism)
 	{
@@ -229,6 +235,9 @@ public class ExplicitFiles2MTBDD
 		// 		mainLog.println();
 		// 		JDD.Deref(tmp);
 
+		// load labels
+		loadLabels();
+
 		// calculate dd for initial state
 		buildInit();
 
@@ -286,6 +295,9 @@ public class ExplicitFiles2MTBDD
 		// find any deadlocks
 		model.findDeadlocks(prism.getFixDeadlocks());
 
+		// attach labels (might overwrite deadlock state information)
+		attachLabels(model);
+
 		// deref spare dds
 		JDD.Deref(moduleIdentities[0]);
 		JDD.Deref(moduleRangeDDs[0]);
@@ -304,6 +316,11 @@ public class ExplicitFiles2MTBDD
 			}
 			for (i = 0; i < ddChoiceVars.length; i++) {
 				JDD.Deref(ddChoiceVars[i]);
+			}
+		}
+		if (labelsDD != null) {
+			for (JDDNode d : labelsDD.values()) {
+				JDD.Deref(d);
 			}
 		}
 
@@ -649,81 +666,76 @@ public class ExplicitFiles2MTBDD
 	/** calculate dd for initial state */
 	private void buildInit() throws PrismException
 	{
-		BufferedReader in;
-		String s, s1, s2, ss[];
-		int i, r, lineNum = 0, count = 0;
-		JDDNode tmp;
-
-		// If no labels file provided, just use state 0 (i.e. min value for each var) 
-		if (labelsFile == null) {
+		// If no labels are provided, just use state 0 (i.e. min value for each var) 
+		if (labelsDD == null) {
 			start = JDD.Constant(1);
-			for (i = 0; i < numVars; i++) {
-				tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], 0, 1);
+			for (int i = 0; i < numVars; i++) {
+				JDDNode tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], 0, 1);
 				start = JDD.And(start, tmp);
 			}
 		}
-		// Otherwise, construct from labels file 
+		// Otherwise, construct from the labels
 		else {
-			start = JDD.Constant(0);
-			try {
-				// open file for reading
-				in = new BufferedReader(new FileReader(labelsFile));
-				// read first line (label names) and ignore
-				in.readLine();
-				lineNum = 1;
-				// read remaining lines
-				s = in.readLine();
-				lineNum++;
-				while (s != null) {
-					// skip blank lines
-					s = s.trim();
-					if (s.length() > 0) {
-						// split string
-						ss = s.split(":");
-						s1 = ss[0].trim();
-						s2 = ss[1].trim();
-						// search right hand part for 0 (which is index of "init" label)
-						ss = s2.split(" ");
-						for (i = 0; i < ss.length; i++) {
-							if (ss[i].trim().equals("0")) {
-								count++;
-								r = Integer.parseInt(s1);
-								// set element in init states bdd
-								// case where we don't have a state list...
-								if (statesFile == null) {
-									tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], r, 1);
-								}
-								// case where we do have a state list...
-								else {
-									tmp = JDD.Constant(1);
-									for (i = 0; i < numVars; i++) {
-										tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[r][i], 1));
-									}
-								}
-								// add it into bdd
-								JDD.Ref(tmp);
-								start = JDD.Or(start, tmp);
-								JDD.Deref(tmp);
-							}
-						}
-					}
-					// read next line
-					s = in.readLine();
-					lineNum++;
-				}
-				// close file
-				in.close();
-			} catch (IOException e) {
-				throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
-			} catch (NumberFormatException e) {
-				throw new PrismException("Error detected at line " + lineNum + " of labels file \"" + labelsFile + "\"");
-			}
-			if (count < 1) {
+			start = labelsDD.get("init");
+			if (start == null || start.equals(JDD.ZERO)) {
 				throw new PrismException("No initial states found in labels file");
 			}
 		}
 	}
 
+	/** Load label information form label file (if exists) */
+	private void loadLabels() throws PrismException
+	{
+		if (labelsFile == null) {
+			return;
+		}
+
+		// we construct BitSets for the labels
+		Map<String, BitSet> labels = explicit.StateModelChecker.loadLabelsFile(labelsFile.getAbsolutePath());
+		labelsDD = new LinkedHashMap<>();
+
+		for (Entry<String, BitSet> e : labels.entrySet()) {
+			// compute dd
+
+			JDDNode labelStatesDD = JDD.Constant(0);
+
+			for (int state : new IterableStateSet(e.getValue(), numStates)) {
+				JDDNode tmp;
+				// case where we don't have a state list...
+				if (statesFile == null) {
+					tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], state, 1);
+				}
+				// case where we do have a state list...
+				else {
+					tmp = JDD.Constant(1);
+					for (int i = 0; i < numVars; i++) {
+						tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], statesArray[state][i], 1));
+					}
+				}
+
+				// add it into bdd
+				labelStatesDD = JDD.Or(labelStatesDD, tmp);
+			}
+
+			// store the dd
+			labelsDD.put(e.getKey(), labelStatesDD);
+		}
+	}
+
+	/** Attach the computed label information to the model */
+	private void attachLabels(Model model) throws PrismNotSupportedException
+	{
+		if (labelsDD == null)
+			return;
+
+		for (Entry<String, JDDNode> e : labelsDD.entrySet()) {
+			if (e.equals("init")) {
+				// handled in buildInit()
+				continue;
+			}
+			model.addLabelDD(e.getKey(), e.getValue().copy());
+		}
+	}
 
 	/** Read info about state rewards from states file */
 	private void computeStateRewards() throws PrismException
