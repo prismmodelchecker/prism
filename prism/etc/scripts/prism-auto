@@ -362,7 +362,7 @@ def runPrism(args, dir=""):
         print("To see log file, run:")
         print("edit " + logFile)
         if not options.testAll:
-            sys.exit(1)
+            closeDown(1)
 
 # Print a testing-related message, colour coding if needed
 
@@ -468,7 +468,7 @@ def benchmark(file, args, dir=""):
         # print "Out files to verify exports against: " + ' '.join(outFiles)
         allEqual = verifyAndCleanupExports(outFiles, exportPrefix)
         if (not allEqual) and (not options.testAll):
-            sys.exit(1)
+            closeDown(1)
 
 # Execute benchmarking based on a directory
 # Unless requested not to (via -n/--non-recursive), the directory is searched recursively.
@@ -639,12 +639,17 @@ def printUsage():
     print("Usage: prism-auto ...")
 
 def signal_handler(signal, frame):
+    closeDown(1)
+
+# Close down neatly, stopping nailgun if needed
+
+def closeDown(exitCode):
     if options.nailgun:
-		if options.echo or options.echoFull:
-			print(options.ngprism + "stop")
-		else:
-			subprocess.Popen([options.ngprism, " stop"]).wait()
-    sys.exit(1)
+        if options.echo or options.echoFull:
+            print(options.ngprism + " stop")
+        else:
+            subprocess.Popen([options.ngprism, "stop"]).wait()
+    sys.exit(exitCode)
 
 # Main program
 
@@ -679,11 +684,11 @@ if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
-	if options.echo or options.echoFull:
-		print(options.prismExec + " -ng &")
-	else:
-	    os.system(options.prismExec + " -ng &")
-    	time.sleep(0.5)
+    if options.echo or options.echoFull:
+        print(options.prismExec + " -ng &")
+    else:
+        os.system(options.prismExec + " -ng &")
+        time.sleep(0.5)
 for arg in args:
     if os.path.isdir(arg):
         benchmarkDir(arg)
@@ -691,8 +696,4 @@ for arg in args:
         benchmarkFile(arg)
     else:
         print("Error: File/directory " + arg + " does not exist")
-if options.nailgun:
-	if options.echo or options.echoFull:
-		print(options.ngprism + " stop")
-	else:
-		subprocess.Popen([options.ngprism, "stop"]).wait()
+closeDown(0)
