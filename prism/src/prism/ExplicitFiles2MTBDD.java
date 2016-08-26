@@ -57,6 +57,7 @@ public class ExplicitFiles2MTBDD
 	private File statesFile;
 	private File transFile;
 	private File labelsFile;
+	private File stateRewardsFile;
 
 	// Model info
 	private ModulesFile modulesFile;
@@ -118,11 +119,12 @@ public class ExplicitFiles2MTBDD
 	 * Variable info and model type is taken from {@code modulesFile}.
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, ModulesFile modulesFile, int numStates) throws PrismException
+	public Model build(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModulesFile modulesFile, int numStates) throws PrismException
 	{
 		this.statesFile = statesFile;
 		this.transFile = transFile;
 		this.labelsFile = labelsFile;
+		this.stateRewardsFile = stateRewardsFile;
 		this.modulesFile = modulesFile;
 		modelType = modulesFile.getModelType();
 		varList = modulesFile.createVarList();
@@ -737,7 +739,7 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	/** Read info about state rewards from states file */
+	/** Read info about state rewards from a .srew file */
 	private void computeStateRewards() throws PrismException
 	{
 		String s, ss[];
@@ -748,11 +750,11 @@ public class ExplicitFiles2MTBDD
 		// initialise mtbdd
 		stateRewards = JDD.Constant(0);
 
-		if (statesFile == null)
+		if (stateRewardsFile == null)
 			return;
 
 		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
+		try (BufferedReader in = new BufferedReader(new FileReader(stateRewardsFile))) {
 			// skip first line
 			in.readLine();
 			lineNum = 1;
@@ -763,39 +765,39 @@ public class ExplicitFiles2MTBDD
 				// skip blank lines
 				s = s.trim();
 				if (s.length() > 0) {
-					// split into two/three parts
-					ss = s.split(":");
-					// determine which state this line describes
+					// split into two parts
+					ss = s.split(" ");
+					if (ss.length != 2)
+						throw new PrismException("");
+					// determine which state this line refers to
 					i = Integer.parseInt(ss[0]);
-					// if there is a state reward...
-					ss = ss[1].split("=");
-					if (ss.length == 2) {
-						// determine value
-						d = Double.parseDouble(ss[1]);
-						// construct element of vector mtbdd
-						// case where we don't have a state list...
-						if (statesFile == null) {
-							tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
-						}
-						// case where we do have a state list...
-						else {
-							tmp = JDD.Constant(1);
-							for (j = 0; j < numVars; j++) {
-								tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
-							}
-						}
-						// add it into mtbdd for state rewards
-						stateRewards = JDD.Apply(JDD.PLUS, stateRewards, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
+					// determine reward value
+					d = Double.parseDouble(ss[1]);
+					// construct element of vector mtbdd
+					// case where we don't have a state list...
+					if (statesFile == null) {
+						tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[0], i, 1.0);
 					}
+					// case where we do have a state list...
+					else {
+						tmp = JDD.Constant(1);
+						for (j = 0; j < numVars; j++) {
+							tmp = JDD.Apply(JDD.TIMES, tmp, JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[j], statesArray[i][j], 1));
+						}
+					}
+					// add it into mtbdd for state rewards
+					stateRewards = JDD.Apply(JDD.PLUS, stateRewards, JDD.Apply(JDD.TIMES, JDD.Constant(d), tmp));
 				}
 				// read next line
 				s = in.readLine();
 				lineNum++;
 			}
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + statesFile + "\": " + e.getMessage());
+			throw new PrismException("File I/O error reading from \"" + stateRewardsFile + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of states file \"" + statesFile + "\"");
+			throw new PrismException("Error detected at line " + lineNum + " of state rewards file \"" + stateRewardsFile + "\"");
+		} catch (PrismException e) {
+			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of state rewards file \"" + stateRewardsFile + "\"");
 		}
 	}
 }

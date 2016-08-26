@@ -65,6 +65,7 @@ public class PrismCL implements PrismModelListener
 	private boolean importtrans = false;
 	private boolean importstates = false;
 	private boolean importlabels = false;
+	private boolean importstaterewards = false;
 	private boolean importinitdist = false;
 	private boolean steadystate = false;
 	private boolean dotransient = false;
@@ -122,6 +123,7 @@ public class PrismCL implements PrismModelListener
 	private String modelFilename = null;
 	private String importStatesFilename = null;
 	private String importLabelsFilename = null;
+	private String importStateRewardsFilename = null;
 	private String importInitDistFilename = null;
 	private String propertiesFilename = null;
 	private String exportTransFilename = null;
@@ -548,7 +550,7 @@ public class PrismCL implements PrismModelListener
 	private void doParsing()
 	{
 		int i;
-		File sf = null, lf = null;
+		File sf = null, lf = null, srf = null;
 
 		// parse model
 
@@ -572,8 +574,12 @@ public class PrismCL implements PrismModelListener
 					mainLog.print(", \"" + importLabelsFilename + "\"");
 					lf = new File(importLabelsFilename);
 				}
+				if (importstaterewards) {
+					mainLog.print(", \"" + importStateRewardsFilename + "\"");
+					srf = new File(importStateRewardsFilename);
+				}
 				mainLog.println("...");
-				modulesFile = prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, typeOverride);
+				modulesFile = prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, typeOverride);
 			} else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.parseModelFile(new File(modelFilename), typeOverride);
@@ -1247,6 +1253,15 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
+				// import state rewards for explicit model import
+				else if (sw.equals("importstaterewards")) {
+					if (i < args.length - 1) {
+						importstaterewards = true;
+						importStateRewardsFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// import initial distribution e.g. for transient probability distribution
 				else if (sw.equals("importinitdist")) {
 					if (i < args.length - 1) {
@@ -1807,6 +1822,10 @@ public class PrismCL implements PrismModelListener
 				importStatesFilename = basename + ".sta";
 				importlabels = true;
 				importLabelsFilename = basename + ".lab";
+				if (new File(basename + ".srew").exists()) {
+					importstaterewards = true;
+					importStateRewardsFilename = basename + ".srew";
+				}
 			} else if (ext.equals("tra")) {
 				importtrans = true;
 				modelFilename = basename + ".tra";
@@ -1819,6 +1838,9 @@ public class PrismCL implements PrismModelListener
 			} else if (ext.equals("lab")) {
 				importlabels = true;
 				importLabelsFilename = basename + ".lab";
+			} else if (ext.equals("srew")) {
+				importstaterewards = true;
+				importStateRewardsFilename = basename + ".srew";
 			}
 			// Unknown extension
 			else {
@@ -2291,6 +2313,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
+		mainLog.println("-importstaterewards <file>...... Import the state rewards directly from a text file");
 		mainLog.println("-importinitdist <file>.......... Specify the initial probability distribution for transient analysis");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
@@ -2375,7 +2398,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Import the model directly from text file(s).");
 			mainLog.println("Use a list of file extensions to indicate which files should be read, e.g.:");
 			mainLog.println("\n -importmodel in.tra,sta\n");
-			mainLog.println("Possible extensions are: .tra, .sta, .lab");
+			mainLog.println("Possible extensions are: .tra, .sta, .lab, .srew");
 			mainLog.println("Use extension .all to import all, e.g.:");
 			mainLog.println("\n -importmodel in.all\n");
 		}

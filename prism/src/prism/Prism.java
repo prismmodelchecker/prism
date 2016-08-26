@@ -267,6 +267,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private File explicitFilesStatesFile = null;
 	private File explicitFilesTransFile = null;
 	private File explicitFilesLabelsFile = null;
+	private File explicitFilesStateRewardsFile = null;
 	private int explicitFilesNumStates = -1;
 
 	// Has the CUDD library been initialised yet?
@@ -1825,9 +1826,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param statesFile File containing a list of states (optional, can be null)
 	 * @param transFile File containing the list of transitions (required)
 	 * @param labelsFile File containing label definitions (optional, can be null)
+	 * @param stateRewardsFile File containing state reward definitions (optional, can be null)
 	 * @param typeOverride Type of model to be built (optional, use null if not required)
 	 */
-	public ModulesFile loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, ModelType typeOverride) throws PrismException
+	public ModulesFile loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
 	{
 		currentModelSource = ModelSource.EXPLICIT_FILES;
 		// Clear any existing built model(s)
@@ -1839,6 +1841,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
 		explicitFilesLabelsFile = labelsFile;
+		explicitFilesStateRewardsFile = stateRewardsFile;
 		explicitFilesNumStates = ef2mf.getNumStates();
 		// Reset dependent info
 		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
@@ -1985,8 +1988,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
 					expf2mtbdd = new ExplicitFiles2MTBDD(this);
-					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile,
-							explicitFilesNumStates);
+					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, explicitFilesStateRewardsFile,
+							currentModulesFile, explicitFilesNumStates);
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile, explicitFilesNumStates);
 				}
