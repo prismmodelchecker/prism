@@ -28,6 +28,7 @@ package explicit;
 
 import java.util.*;
 
+import common.IterableStateSet;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -95,7 +96,6 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			throw new PrismNotSupportedException("Cannot handle model type " + modelType);
 		}
 		modelConcrete.buildFromPrismExplicit(traFile);
-		modelConcrete.addInitialState(0);
 		if (buildEmbeddedDtmc) {
 			// TODO: do more efficiently (straight from tra file?)
 			mainLog.println("Concrete " + "CTMC" + ": " + modelConcrete.infoString());
@@ -123,6 +123,11 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 		targetConcrete = labels.get(targetLabel);
 		if (targetConcrete == null)
 			throw new PrismException("Unknown label \"" + targetLabel + "\"");
+
+		// set the initial states from the set initialConcrete
+		for (int state : new IterableStateSet(initialConcrete, modelConcrete.getNumStates())) {
+			modelConcrete.addInitialState(state);
+		}
 
 		// If the 'exact' flag is set, just do model checking on the concrete model (no abstraction)
 		if (exact) {
