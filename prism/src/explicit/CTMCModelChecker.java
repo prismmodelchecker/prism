@@ -935,7 +935,7 @@ public class CTMCModelChecker extends ProbModelChecker
 			ctmc.buildFromPrismExplicit(args[0]);
 			ctmc.addInitialState(0);
 			//System.out.println(ctmc);
-			labels = mc.loadLabelsFile(args[1]);
+			labels = StateModelChecker.loadLabelsFile(args[1]);
 			//System.out.println(labels);
 			target = labels.get(args[2]);
 			if (target == null)

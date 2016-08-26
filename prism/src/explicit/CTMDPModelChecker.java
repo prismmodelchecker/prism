@@ -286,7 +286,7 @@ public class CTMDPModelChecker extends ProbModelChecker
 			ctmdp.buildFromPrismExplicit(args[0]);
 			ctmdp.addInitialState(0);
 			System.out.println(ctmdp);
-			labels = mc.loadLabelsFile(args[1]);
+			labels = StateModelChecker.loadLabelsFile(args[1]);
 			System.out.println(labels);
 			target = labels.get(args[2]);
 			if (target == null)

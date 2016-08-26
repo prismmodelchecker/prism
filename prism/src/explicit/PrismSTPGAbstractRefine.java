@@ -116,8 +116,9 @@ public class PrismSTPGAbstractRefine extends QuantAbstractRefine
 			}
 		}
 
+		new StateModelChecker(null);
 		// Get initial/target (concrete) states
-		labels = new StateModelChecker(null).loadLabelsFile(labFile);
+		labels = StateModelChecker.loadLabelsFile(labFile);
 		initialConcrete = labels.get("init");
 		targetConcrete = labels.get(targetLabel);
 		if (targetConcrete == null)

@@ -920,7 +920,7 @@ public class STPGModelChecker extends ProbModelChecker
 			stpg.buildFromPrismExplicit(args[0]);
 			stpg.addInitialState(0);
 			//System.out.println(stpg);
-			labels = mc.loadLabelsFile(args[1]);
+			labels = StateModelChecker.loadLabelsFile(args[1]);
 			//System.out.println(labels);
 			target = labels.get(args[2]);
 			if (target == null)

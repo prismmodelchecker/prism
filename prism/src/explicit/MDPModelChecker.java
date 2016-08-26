@@ -1756,7 +1756,7 @@ public class MDPModelChecker extends ProbModelChecker
 			mdp.buildFromPrismExplicit(args[0]);
 			mdp.addInitialState(0);
 			//System.out.println(mdp);
-			labels = mc.loadLabelsFile(args[1]);
+			labels = StateModelChecker.loadLabelsFile(args[1]);
 			//System.out.println(labels);
 			init = labels.get("init");
 			target = labels.get(args[2]);
