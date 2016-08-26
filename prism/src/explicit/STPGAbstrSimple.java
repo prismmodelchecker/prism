@@ -227,8 +227,6 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		} catch (NumberFormatException e) {
 			throw new PrismException("Problem in .tra file (line " + lineNum + ") for " + getModelType());
 		}
-		// Set initial state (assume 0)
-		initialStates.add(0);
 	}
 
 	// Mutators (other)

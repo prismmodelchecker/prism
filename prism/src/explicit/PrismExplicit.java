@@ -464,6 +464,7 @@ public class PrismExplicit extends PrismComponent
 			prism.exportLabelsToFile(null, Prism.EXPORT_PLAIN, new File("tmp.lab"));
 			DTMCSimple modelExplicit = new DTMCSimple();
 			modelExplicit.buildFromPrismExplicit("tmp.tra");
+			modelExplicit.addInitialState(0);
 			PrismExplicit pe = new PrismExplicit(prism.getMainLog(), prism.getSettings());
 			pe.modelCheck(modelExplicit, null, propertiesFile, propertiesFile.getProperty(0));
 		} catch (PrismException e) {

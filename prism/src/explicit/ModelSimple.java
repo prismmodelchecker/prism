@@ -44,6 +44,8 @@ public interface ModelSimple extends Model
 
 	/**
 	 * Build (anew) from a list of transitions exported explicitly by PRISM (i.e. a .tra file).
+	 * Note that initial states are not configured (since this info is not in the file),
+	 * so this needs to be done separately (using {@link #addInitialState(int)}.
 	 */
 	public abstract void buildFromPrismExplicit(String filename) throws PrismException;
 
