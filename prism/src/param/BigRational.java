@@ -53,7 +53,7 @@ public final class BigRational implements Comparable<BigRational>
 	/** the BigRational "1" */
 	final static BigRational ONE = new BigRational(BigInteger.ONE);
 	/** the BigRational "-1" */
-	final static BigRational MONE = new BigRational(BigInteger.ONE);
+	final static BigRational MONE = new BigRational(BigInteger.ONE).negate();
 	/** the BigRational "0" */
 	final static BigRational ZERO = new BigRational(BigInteger.ZERO);
 	/** the BigRational "infinity" */
