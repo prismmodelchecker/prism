@@ -278,6 +278,10 @@ public class LTL2DA extends PrismComponent
 			throw new PrismException(e.getMessage());
 		}
 
+		if (!getSettings().getBoolean(PrismSettings.PRISM_NO_DA_SIMPLIFY)) {
+			result = DASimplifyAcceptance.simplifyAcceptance(this, result, allowedAcceptance);
+		}
+
 		AcceptanceOmega acceptance = result.getAcceptance();
 		if (AcceptanceType.contains(allowedAcceptance, acceptance.getType())) {
 			return result;
