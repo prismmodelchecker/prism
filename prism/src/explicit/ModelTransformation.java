@@ -37,7 +37,7 @@ public interface ModelTransformation<OriginalModel extends Model, TransformedMod
 	public OriginalModel getOriginalModel();
 
 	/** Get the transformed model. */
-	public TransformedModel getTransformedModel() throws PrismException;
+	public TransformedModel getTransformedModel();
 
 	/**
 	 * Take a {@code StateValues} object for the transformed model and
