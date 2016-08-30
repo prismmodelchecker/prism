@@ -22,6 +22,7 @@ package jltl2dstar;
 
 import java.util.*;
 
+import common.IterableBitSet;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 
@@ -151,6 +152,20 @@ public class NBA implements Iterable<NBA_State> {
 	public MyBitSet getFinalStates()
 	{
 		return _final_states;
+	}
+
+	/**
+	 * Get the set of successor states for the given set of from states
+	 * and the element of the alphabet.
+	 */
+	public MyBitSet getSuccessors(MyBitSet fromStates, APElement elem)
+	{
+		MyBitSet result = new MyBitSet(fromStates.size());
+		for (int s : IterableBitSet.getSetBits(fromStates)) {
+			// for each state s, do union of successors for elem.
+			result.or(get(s).getEdge(elem));
+		}
+		return result;
 	}
 
 	// public MyBitSet calculateFinalTrueLoops(SCCs sccs);
