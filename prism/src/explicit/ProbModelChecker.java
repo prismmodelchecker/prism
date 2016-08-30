@@ -875,12 +875,26 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Construct rewards from a reward structure and a model.
+	 * Construct rewards from a (non-negative) reward structure and a model.
 	 */
 	protected Rewards constructRewards(Model model, RewardStruct rewStruct) throws PrismException
 	{
+		return constructRewards(model, rewStruct, false);
+	}
+
+	/**
+	 * Construct rewards from a reward structure and a model.
+	 * <br>
+	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
+	 */
+	protected Rewards constructRewards(Model model, RewardStruct rewStruct, boolean allowNegativeRewards) throws PrismException
+	{
 		Rewards rewards;
 		ConstructRewards constructRewards = new ConstructRewards(mainLog);
+
+		if (allowNegativeRewards)
+			constructRewards.allowNegativeRewards();
+
 		switch (model.getModelType()) {
 		case CTMC:
 		case DTMC:
@@ -894,7 +908,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		return rewards;
 	}
-	
+
 	/**
 	 * Compute rewards for the contents of an R operator.
 	 */
