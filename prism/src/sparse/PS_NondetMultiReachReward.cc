@@ -225,8 +225,10 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
         Cudd_Ref(trans_actions);
         Cudd_Ref(maybe_yes);
         tmp = DD_Apply(ddman, APPLY_TIMES, trans_actions, maybe_yes);
-        Cudd_Ref(loops);
-        tmp = DD_ITE(ddman, loops, DD_Constant(ddman, 0), tmp);
+        if (!disable_selfloop) {
+            Cudd_Ref(loops);
+            tmp = DD_ITE(ddman, loops, DD_Constant(ddman, 0), tmp);
+        }
         // then convert to a vector of integer indices
         build_nd_action_vector(ddman, a, tmp, ndsm, rvars, cvars, num_rvars, ndvars, num_ndvars, odd);
         Cudd_RecursiveDeref(ddman, tmp);
