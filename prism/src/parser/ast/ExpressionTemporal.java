@@ -486,6 +486,45 @@ public class ExpressionTemporal extends Expression
 		return isFinally(e) && isGlobally(((ExpressionTemporal) e).getOperand2());
 	}
 
+
+	// ---- static constructors for building temporal expressions -----------------
+
+	/** Construct a ExpressionTemporal for "X expr" */
+	public static ExpressionTemporal Next(Expression expr)
+	{
+		return new ExpressionTemporal(P_X, null, expr);
+	}
+
+	/** Construct a ExpressionTemporal for "F expr" */
+	public static ExpressionTemporal Finally(Expression expr)
+	{
+		return new ExpressionTemporal(P_F, null, expr);
+	}
+
+	/** Construct a ExpressionTemporal for "G expr" */
+	public static ExpressionTemporal Globally(Expression expr)
+	{
+		return new ExpressionTemporal(P_G, null, expr);
+	}
+
+	/** Construct a ExpressionTemporal for "expr1 U expr2" */
+	public static ExpressionTemporal Globally(Expression expr1, Expression expr2)
+	{
+		return new ExpressionTemporal(P_U, expr1, expr2);
+	}
+
+	/** Construct a ExpressionTemporal for "expr1 W expr2" */
+	public static ExpressionTemporal WeakUntil(Expression expr1, Expression expr2)
+	{
+		return new ExpressionTemporal(P_W, expr1, expr2);
+	}
+
+	/** Construct a ExpressionTemporal for "expr1 R expr2" */
+	public static ExpressionTemporal Release(Expression expr1, Expression expr2)
+	{
+		return new ExpressionTemporal(P_R, expr1, expr2);
+	}
+
 }
 
 //------------------------------------------------------------------------------
