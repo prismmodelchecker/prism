@@ -47,11 +47,15 @@ public class ExpressionTemporal extends Expression
 	// Operator symbols
 	public static final String opSymbols[] = { "", "X", "U", "F", "G", "W", "R", "", "", "", "", "C", "I", "F", "S" };
 
-	// Operator
+	/** Operator, one of the operator constants above */
 	protected int op = 0;
+
 	// Up to two operands (either may be null)
-	protected Expression operand1 = null; // LHS of operator
-	protected Expression operand2 = null; // RHS of operator
+	/** LHS of operator, null for unary operators */
+	protected Expression operand1 = null;
+	/** RHS of operator, null for nullary operators (e.g., S) */
+	protected Expression operand2 = null;
+
 	// Optional (time) bounds
 	protected Expression lBound = null; // None if null, i.e. zero
 	protected Expression uBound = null; // None if null, i.e. infinity
@@ -63,10 +67,17 @@ public class ExpressionTemporal extends Expression
 
 	// Constructors
 
+	/** Constructor */
 	public ExpressionTemporal()
 	{
 	}
 
+	/**
+	 * Constructor.
+	 * @param op the temporal operator (see constants at ExpressionTemporal)
+	 * @param operand1 the LHS operand ({@code null} for unary operators)
+	 * @param operand2 the RHS operand
+	 */
 	public ExpressionTemporal(int op, Expression operand1, Expression operand2)
 	{
 		this.op = op;
@@ -76,16 +87,19 @@ public class ExpressionTemporal extends Expression
 
 	// Set methods
 
+	/** Set the operator to i */
 	public void setOperator(int i)
 	{
 		op = i;
 	}
 
+	/** Set the LHS operand to e1 */
 	public void setOperand1(Expression e1)
 	{
 		operand1 = e1;
 	}
 
+	/** Set the RHS operand to e2 */
 	public void setOperand2(Expression e2)
 	{
 		operand2 = e2;
@@ -143,6 +157,7 @@ public class ExpressionTemporal extends Expression
 
 	// Get methods
 
+	/** Set the operator */
 	public int getOperator()
 	{
 		return op;
@@ -153,22 +168,25 @@ public class ExpressionTemporal extends Expression
 		return opSymbols[op];
 	}
 
+	/** Get the LHS operand (should be {@code null} for unary operators) */
 	public Expression getOperand1()
 	{
 		return operand1;
 	}
 
+	/** Get the RHS operand */
 	public Expression getOperand2()
 	{
 		return operand2;
 	}
 
+	/* Get the number of stored operands */
 	public int getNumOperands()
 	{
-		if (operand1 == null)
+		if (operand2 == null)
 			return 0;
 		else
-			return (operand2 == null) ? 1 : 2;
+			return (operand1 == null) ? 1 : 2;
 	}
 
 	public boolean hasBounds()
