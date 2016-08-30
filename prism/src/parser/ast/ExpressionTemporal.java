@@ -399,6 +399,75 @@ public class ExpressionTemporal extends Expression
 		}
 		throw new PrismLangException("Cannot convert " + getOperatorSymbol() + " to until form");
 	}
+
+	// ---- convenience methods for distinguishing top-level temporal operators -----------------
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal with the next step (X) top-level operator.
+	 */
+	public static boolean isNext(Expression e)
+	{
+		return (e instanceof ExpressionTemporal) && ((ExpressionTemporal) e).getOperator() == P_X;
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal with the Until (U) top-level operator.
+	 */
+	public static boolean isUntil(Expression e)
+	{
+		return (e instanceof ExpressionTemporal) && ((ExpressionTemporal) e).getOperator() == P_U;
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal with the Weak Until (W) top-level operator.
+	 */
+	public static boolean isWeakUntil(Expression e)
+	{
+		return (e instanceof ExpressionTemporal) && ((ExpressionTemporal) e).getOperator() == P_W;
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal with the Release (R) top-level operator.
+	 */
+	public static boolean isRelease(Expression e)
+	{
+		return (e instanceof ExpressionTemporal) && ((ExpressionTemporal) e).getOperator() == P_R;
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal with the finally / eventually (F) top-level operator.
+	 */
+	public static boolean isFinally(Expression e)
+	{
+		return (e instanceof ExpressionTemporal) && ((ExpressionTemporal) e).getOperator() == P_F;
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal with the globally / always (G) top-level operator.
+	 */
+	public static boolean isGlobally(Expression e)
+	{
+		return (e instanceof ExpressionTemporal) && ((ExpressionTemporal) e).getOperator() == P_G;
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal
+	 * with a globally finally / always eventually (G followed by F) top-level operator pair.
+	 */
+	public static boolean isGloballyFinally(Expression e)
+	{
+		return isGlobally(e) && isFinally(((ExpressionTemporal) e).getOperand2());
+	}
+
+	/**
+	 * Returns true if the given expression is an ExpressionTemporal
+	 * with a finally globally / eventually always (F followed by G) top-level operator pair.
+	 */
+	public static boolean isFinallyGlobally(Expression e)
+	{
+		return isFinally(e) && isGlobally(((ExpressionTemporal) e).getOperand2());
+	}
+
 }
 
 //------------------------------------------------------------------------------
