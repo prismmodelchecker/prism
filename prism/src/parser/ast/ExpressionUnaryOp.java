@@ -65,6 +65,20 @@ public class ExpressionUnaryOp extends Expression
 		op = i;
 	}
 
+	/**
+	 * Set the operator from the operator symbol.
+	 */
+	public void setOperator(String s) throws PrismLangException
+	{
+		for (int i = 1; i < opSymbols.length; i++) {
+			if (opSymbols[i].equals(s)) {
+				setOperator(i);
+				return;
+			}
+		}
+		throw new PrismLangException("Unknown unary operator '" + s + "'");
+	}
+
 	public void setOperand(Expression e)
 	{
 		operand = e;

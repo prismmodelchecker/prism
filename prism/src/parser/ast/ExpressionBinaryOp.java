@@ -82,6 +82,20 @@ public class ExpressionBinaryOp extends Expression
 		op = i;
 	}
 
+	/**
+	 * Set the operator from the operator symbol.
+	 */
+	public void setOperator(String s) throws PrismLangException
+	{
+		for (int i = 1; i < opSymbols.length; i++) {
+			if (opSymbols[i].equals(s)) {
+				setOperator(i);
+				return;
+			}
+		}
+		throw new PrismLangException("Unknown binary operator '" + s + "'");
+	}
+
 	public void setOperand1(Expression e1)
 	{
 		operand1 = e1;
