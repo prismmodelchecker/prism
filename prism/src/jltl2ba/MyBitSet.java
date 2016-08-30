@@ -110,7 +110,15 @@ public class MyBitSet extends BitSet implements Comparable<BitSet>, Iterable<Int
 		tmp2.andNot(this);
 		return (tmp1.length() - tmp2.length());
 	}
-	
+
+	@Override
+	public MyBitSet clone()
+	{
+		MyBitSet result = new MyBitSet(_size);
+		result.or(this);
+		return result;
+	}
+
 	public void increment() {
 		int i = this.nextClearBit(0);
 		this.clear(0,i);
