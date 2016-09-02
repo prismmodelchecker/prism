@@ -180,11 +180,11 @@ public class CTMCModelChecker extends ProbModelChecker
 				// check for special case of lTime == 0, this is actually an unbounded until
 				if (lTime == 0) {
 					// compute probs
-					res = createDTMCModelChecker().computeUntilProbs((DTMC) model, b1, b2);
+					res = computeUntilProbs((CTMC)model, b1, b2);
 					probs = StateValues.createFromDoubleArray(res.soln, model);
 				} else {
 					// compute unbounded until probs
-					tmpRes = createDTMCModelChecker().computeUntilProbs((DTMC) model, b1, b2);
+					tmpRes = computeUntilProbs((CTMC)model, b1, b2);
 					// compute bounded until probs
 					res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
 					probs = StateValues.createFromDoubleArray(res.soln, model);
