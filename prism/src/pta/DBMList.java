@@ -559,7 +559,7 @@ public class DBMList extends NCZone
 		int numClocks = 7;
 		int i, j, x, y, db;
 		Random generator = new Random();
-		PTA pta = new PTA();
+		PTA pta = new PTA(Collections.emptyList());
 		for (i = 0; i < numClocks; i++) {
 			pta.addClock("" + i);
 		}

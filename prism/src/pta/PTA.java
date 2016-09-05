@@ -50,14 +50,18 @@ public class PTA
 	protected int numTransitions;
 	protected ArrayList<ArrayList<Transition>> transitions;
 	// Alphabet
-	protected Set<String> alphabet;
+	protected List<String> alphabet;
 	// Maximum clock constraint value
 	protected int cMax;
 
 	/**
-	 * Constructor
+	 * Constructor: build an empty PTA.
+	 * 
+	 * @param alphabet The set of (non-tau) actions that can label transitions.
+	 * This is *syntactically* defined, e.g., in PRISM it's the list of all actions appearing in commands,
+	 * but may be a strict superset of the actions that actually label transitions.
 	 */
-	public PTA()
+	public PTA(List<String> alphabet)
 	{
 		numClocks = 0;
 		clockNames = new ArrayList<String>();
@@ -67,7 +71,7 @@ public class PTA
 		locationNameVars = null;
 		numTransitions = 0;
 		transitions = new ArrayList<ArrayList<Transition>>();
-		alphabet = new LinkedHashSet<String>();
+		this.alphabet = alphabet;
 		cMax = 0;
 	}
 
@@ -143,8 +147,6 @@ public class PTA
 	{
 		if (action == null)
 			action = "";
-		else
-			alphabet.add(action);
 		Transition transition = new Transition(this, loc, action);
 		ArrayList<Transition> list = transitions.get(loc);
 		list.add(transition);
@@ -158,7 +160,6 @@ public class PTA
 	public void addTransition(Transition transition)
 	{
 		transition.setParent(this);
-		alphabet.add(transition.getAction());
 		ArrayList<Transition> list = transitions.get(transition.getSource());
 		list.add(transition);
 		numTransitions++;
@@ -267,7 +268,7 @@ public class PTA
 		return cMax;
 	}
 
-	public Set<String> getAlphabet()
+	public List<String> getAlphabet()
 	{
 		return alphabet;
 	}
@@ -417,7 +418,7 @@ public class PTA
 		PTA pta;
 		Transition t;
 		Edge e;
-		pta = new PTA();
+		pta = new PTA(Collections.emptyList());
 		int x = pta.addClock("x");
 		int y = pta.addClock("y");
 		pta.addLocation(); // L0

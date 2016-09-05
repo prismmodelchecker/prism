@@ -52,34 +52,23 @@ public class PTAParallel
 	 */
 	public PTA compose(PTA pta1, PTA pta2)
 	{
-		Set<String> alpha1, alpha2, alpha1only, alpha2only, sync;
 		Transition transition;
 		Edge edge;
 		double prob;
 		IndexPair state;
 		int src, dest;
 
-		// Store PTAs locally and create new one to store parallel composition
+		// Store PTAs locally
 		this.pta1 = pta1;
 		this.pta2 = pta2;
-		par = new PTA();
 
-		// New set of clocks is union of sets for two PTAs
-		for (String s : pta1.clockNames) {
-			par.getOrAddClock(s);
-		}
-		for (String s : pta2.clockNames) {
-			par.getOrAddClock(s);
-		}
-
-		// Get alphabets, compute intersection etc.
-		alpha1 = pta1.getAlphabet();
-		alpha2 = pta2.getAlphabet();
-		//System.out.println("alpha1: " + alpha1);
-		//System.out.println("alpha2: " + alpha2);
-		sync = new LinkedHashSet<String>();
-		alpha1only = new LinkedHashSet<String>();
-		alpha2only = new LinkedHashSet<String>();
+		// Get alphabets, compute intersection, union etc.
+		List<String> alpha1 = pta1.getAlphabet();
+		List<String> alpha2 = pta2.getAlphabet();
+		LinkedHashSet<String> sync = new LinkedHashSet<String>();
+		LinkedHashSet<String> alpha1only = new LinkedHashSet<String>();
+		LinkedHashSet<String> alpha2only = new LinkedHashSet<String>();
+		List<String> alphaUnion = new ArrayList<String>(pta1.getAlphabet());
 		for (String a : alpha1) {
 			if (!("".equals(a)) && alpha2.contains(a)) {
 				sync.add(a);
@@ -90,14 +79,23 @@ public class PTAParallel
 		for (String a : alpha2) {
 			if (!alpha1.contains(a)) {
 				alpha2only.add(a);
+				alphaUnion.add(a);
 			}
 		}
 		// Explicitly add tau to action lists
 		alpha1only.add("");
 		alpha2only.add("");
-		//System.out.println("alpha1only: " + alpha1only);
-		//System.out.println("alpha2only: " + alpha2only);
-		//System.out.println("sync: " + sync);
+
+		// Create new PTA to store parallel composition
+		par = new PTA(alphaUnion);
+
+		// New set of clocks is union of sets for two PTAs
+		for (String s : pta1.clockNames) {
+			par.getOrAddClock(s);
+		}
+		for (String s : pta2.clockNames) {
+			par.getOrAddClock(s);
+		}
 
 		// Initialise states storage
 		states = new IndexedSet<IndexPair>();

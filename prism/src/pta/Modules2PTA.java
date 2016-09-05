@@ -195,7 +195,7 @@ public class Modules2PTA extends PrismComponent
 		}
 
 		// Create new PTA and add a clock for each clock variable
-		pta = new PTA();
+		pta = new PTA(new ArrayList<String>(module.getAllSynchs()));
 		for (String clockName : clocks)
 			pta.addClock(clockName);
 
@@ -546,6 +546,9 @@ public class Modules2PTA extends PrismComponent
 
 		// Create a new module
 		moduleNew = new Module(module.getName());
+		
+		// Preserve alphabet of old module (might change if some commands are not enabled)
+		moduleNew.setAlphabet(module.getAllSynchs());
 
 		// Create invariant - will be constructed below
 		invarNew = null;

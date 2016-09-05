@@ -46,6 +46,8 @@ public class Module extends ASTElement
 	private ModulesFile parent;
 	// Base module (if was constructed through renaming; null if not)
 	private String baseModule;
+	// Alphabet (if defined explicitly rather than deduced from syntax)
+	private Vector<String> alphabet;
 
 	// Constructor
 	
@@ -111,6 +113,16 @@ public class Module extends ASTElement
 	public void setBaseModule(String b)
 	{
 		baseModule = b;
+	}
+	
+	/**
+	 * Optionally, define the alphabet (of actions that can label transitions) for this module.
+	 * Normally, this is deduced syntactically (as the set of actions appearing in commands)
+	 * but you can override this if you want. Pass null to un-override;
+	 */
+	public void setAlphabet(List<String> alphabet)
+	{
+		this.alphabet = (alphabet == null) ? null : new Vector<String>(alphabet); 
 	}
 	
 	// Get methods
@@ -195,9 +207,15 @@ public class Module extends ASTElement
 	 * Get the set of synchronising actions of this module, i.e. its alphabet.
 	 * Note that the definition of alphabet is syntactic: existence of an a-labelled command in this
 	 * module ensures that a is in the alphabet, regardless of whether the guard is true.
+	 * The alphabet for a module can also be overridden using {@link #setAlphabet(List)}
 	 */
 	public Vector<String> getAllSynchs()
 	{
+		// If overridden, use this
+		if (alphabet != null) {
+			return alphabet;
+		}
+		// Otherwise, deduce syntactically
 		int i, n;
 		String s;
 		Vector<String> allSynchs = new Vector<String>();
