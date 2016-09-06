@@ -37,6 +37,7 @@ import parser.State;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.RewardStruct;
+import prism.ModelGenerator;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
@@ -200,6 +201,83 @@ public class ConstructRewards
 			}
 			return rewSimple;
 		}
+	}
+
+	/**
+	 * Construct the rewards for a model from a model generator. 
+	 * @param model The model
+	 * @param modelGen The ModelGenerator defining the rewards
+	 * @param r The index of the reward structure to build
+	 */
+	public Rewards buildRewardStructure(Model model, ModelGenerator modelGen, int r) throws PrismException
+	{
+		switch (model.getModelType()) {
+		case DTMC:
+		case CTMC:
+			return buildMCRewardStructure((DTMC) model, modelGen, r);
+		case MDP:
+			return buildMDPRewardStructure((MDP) model, modelGen, r);
+		default:
+			throw new PrismNotSupportedException("Cannot build rewards for " + model.getModelType() + "s");
+		}
+	}
+
+	/**
+	 * Construct the rewards for a Markov chain (DTMC or CTMC) from a model generator. 
+	 * @param mc The DTMC or CTMC
+	 * @param modelGen The ModelGenerator defining the rewards
+	 * @param r The index of the reward structure to build
+	 */
+	public MCRewards buildMCRewardStructure(DTMC mc, ModelGenerator modelGen, int r) throws PrismException
+	{
+		int numStates = mc.getNumStates();
+		List<State> statesList = mc.getStatesList();
+		StateRewardsArray rewSA = new StateRewardsArray(numStates);
+		for (int j = 0; j < numStates; j++) {
+			State state = statesList.get(j);
+			// State rewards
+			double rew = modelGen.getStateReward(r, state);
+			if (Double.isNaN(rew))
+				throw new PrismException("Reward structure evaluates to NaN at state " + state);
+			if (!allowNegative && rew < 0)
+				throw new PrismException("Reward structure evaluates to " + rew + " at state " + state +", negative rewards not allowed");
+			rewSA.addToStateReward(j, rew);
+		}
+		return rewSA;
+	}
+
+	/**
+	 * Construct the rewards for an MDP from a model generator. 
+	 * @param mdp The MDP
+	 * @param modelGen The ModelGenerator defining the rewards
+	 * @param r The index of the reward structure to build
+	 */
+	public MDPRewards buildMDPRewardStructure(MDP mdp, ModelGenerator modelGen, int r) throws PrismException
+	{
+		int numStates = mdp.getNumStates();
+		List<State> statesList = mdp.getStatesList();
+		MDPRewardsSimple rewSimple = new MDPRewardsSimple(numStates);
+		for (int j = 0; j < numStates; j++) {
+			State state = statesList.get(j);
+			// State rewards
+			double rew = modelGen.getStateReward(r, state);
+			if (Double.isNaN(rew))
+				throw new PrismException("Reward structure evaluates to NaN at state " + state);
+			if (!allowNegative && rew < 0)
+				throw new PrismException("Reward structure evaluates to " + rew + " at state " + state +", negative rewards not allowed");
+			rewSimple.addToStateReward(j, rew);
+			// State-action rewards
+			int numChoices = mdp.getNumChoices(j);
+			for (int k = 0; k < numChoices; k++) {
+				rew = modelGen.getStateActionReward(r, state, mdp.getAction(j, k));
+				if (Double.isNaN(rew))
+					throw new PrismException("Reward structure evaluates to NaN at state " + state);
+				if (!allowNegative && rew < 0)
+					throw new PrismException("Reward structure evaluates to " + rew + " at state " + state +", negative rewards not allowed");
+				rewSimple.addToTransitionReward(j, k, rew);
+			}
+		}
+		return rewSimple;
 	}
 
 	/**

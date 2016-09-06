@@ -231,7 +231,7 @@ public class PrismExplicit extends PrismComponent
 		}
 
 		// Do model checking
-		mc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile);
+		mc.setModulesFileAndPropertiesFile(modulesFile, propertiesFile, null);
 		result = mc.check(model, expr);
 
 		// Return result

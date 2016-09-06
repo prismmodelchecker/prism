@@ -251,6 +251,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private ModelSource currentModelSource = ModelSource.PRISM_MODEL;
 	// Model type
 	private ModelType currentModelType = null;
+	// Model info
+	private ModelInfo currentModelInfo = null;
 	// PRISM model (null if none loaded)
 	private ModulesFile currentModulesFile = null;
 	// Model generator (null if none loaded)
@@ -1683,6 +1685,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Reset dependent info
 		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
+		currentModelInfo = currentModulesFile;
 		currentDefinedMFConstants = null;
 		currentModel = null;
 		currentModelExpl = null;
@@ -1729,6 +1732,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Reset dependent info
 		currentModelType = currentModelGenerator == null ? null : currentModelGenerator.getModelType();
+		currentModelInfo = currentModelGenerator;
 		currentDefinedMFConstants = null;
 		currentModel = null;
 		currentModelExpl = null;
@@ -1796,6 +1800,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		currentModel = model;
 		// Reset dependent info
 		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
+		currentModelInfo = currentModulesFile;
 		currentDefinedMFConstants = null;
 		currentModelExpl = null;
 	}
@@ -1845,6 +1850,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicitFilesNumStates = ef2mf.getNumStates();
 		// Reset dependent info
 		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
+		currentModelInfo = currentModulesFile;
 		currentDefinedMFConstants = null;
 		currentModel = null;
 		currentModelExpl = null;
@@ -1976,14 +1982,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				if (currentModelGenerator == null)
 					throw new PrismException("There is no currently loaded model generator to build");
 				if (!getExplicit()) {
-					mainLog.printWarning("Switching to explicit engine to use model generator");
-					setEngine(Prism.EXPLICIT);
+					ModelGenerator2MTBDD modelGen2mtbdd = new ModelGenerator2MTBDD(this);
+					currentModel = modelGen2mtbdd.build(currentModelGenerator);
+					currentModelExpl = null;
+				} else {
+					ConstructModel constructModel = new ConstructModel(this);
+					constructModel.setFixDeadlocks(getFixDeadlocks());
+					currentModelExpl = constructModel.constructModel(currentModelGenerator);
+					currentModel = null;
 				}
-				ConstructModel constructModel = new ConstructModel(this);
-				constructModel.setFixDeadlocks(getFixDeadlocks());
-				currentModelExpl = constructModel.constructModel(currentModelGenerator);
-				currentModel = null;
-				// if (...) ... currentModel = buildModelExplicit(currentModulesFile);
 				break;
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
@@ -2085,13 +2092,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		} else {
 			if (currentModelExpl.getNumDeadlockStates() > 0) {
 				int dl = currentModelExpl.getFirstDeadlockState();
-				String dls = currentModelExpl.getStatesList().get(dl).toString(currentModulesFile);
+				String dls = currentModelExpl.getStatesList().get(dl).toString(currentModelInfo);
 				throw new PrismException("Timelock in PTA, e.g. in state " + dls);
 			}
 		}
 
 		/*// Create new model checker object and do model checking
-		PropertiesFile pf = parsePropertiesString(currentModulesFile, "filter(exists,!\"invariants\"); E[F!\"invariants\"]");
+		PropertiesFile pf = parsePropertiesString(currentModelInfo, "filter(exists,!\"invariants\"); E[F!\"invariants\"]");
 		if (!getExplicit()) {
 			ModelChecker mc = new NondetModelChecker(this, currentModel, pf);
 			if (((Boolean) mc.check(pf.getProperty(0)).getResult()).booleanValue()) {
@@ -2456,9 +2463,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (exportType == EXPORT_MATLAB)
 			tmpLog.print("% ");
 		tmpLog.print("Variables: (");
-		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
-			tmpLog.print(currentModulesFile.getVarName(i));
-			if (i < currentModulesFile.getNumVars() - 1)
+		for (i = 0; i < currentModelInfo.getNumVars(); i++) {
+			tmpLog.print(currentModelInfo.getVarName(i));
+			if (i < currentModelInfo.getNumVars() - 1)
 				tmpLog.print(",");
 		}
 		tmpLog.println(")");
@@ -2550,9 +2557,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (exportType == EXPORT_MATLAB)
 			tmpLog.print("% ");
 		tmpLog.print("Variables: (");
-		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
-			tmpLog.print(currentModulesFile.getVarName(i));
-			if (i < currentModulesFile.getNumVars() - 1)
+		for (i = 0; i < currentModelInfo.getNumVars(); i++) {
+			tmpLog.print(currentModelInfo.getVarName(i));
+			if (i < currentModelInfo.getNumVars() - 1)
 				tmpLog.print(",");
 		}
 		tmpLog.println(")");
@@ -2640,9 +2647,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (exportType == EXPORT_MATLAB)
 			tmpLog.print("% ");
 		tmpLog.print("Variables: (");
-		for (i = 0; i < currentModulesFile.getNumVars(); i++) {
-			tmpLog.print(currentModulesFile.getVarName(i));
-			if (i < currentModulesFile.getNumVars() - 1)
+		for (i = 0; i < currentModelInfo.getNumVars(); i++) {
+			tmpLog.print(currentModelInfo.getVarName(i));
+			if (i < currentModelInfo.getNumVars() - 1)
 				tmpLog.print(",");
 		}
 		tmpLog.println(")");
@@ -2695,18 +2702,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportLabelsToFile(PropertiesFile propertiesFile, int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		int numLabels;
-		LabelList ll;
-
-		// Get label list and size
-		if (propertiesFile == null) {
-			ll = currentModulesFile.getLabelList();
-			numLabels = ll.size();
-		} else {
-			ll = propertiesFile.getCombinedLabelList();
-			numLabels = ll.size();
-		}
-
 		// Build model, if necessary
 		buildModelIfRequired();
 
@@ -2715,12 +2710,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
-		// Collect labels to export
+		// Collect names of labels to export
 		List<String> labelNames = new ArrayList<String>();
 		labelNames.add("init");
 		labelNames.add("deadlock");
-		for (int i = 0; i < numLabels; i++) {
-			labelNames.add(ll.getLabelName(i));
+		labelNames.addAll(currentModelInfo.getLabelNames());
+		if (propertiesFile != null) {
+			LabelList ll = propertiesFile.getCombinedLabelList();
+			int numLabels = ll.size();
+			for (int i = 0; i < numLabels; i++) {
+				labelNames.add(ll.getLabelName(i));
+			}
 		}
 
 		// Export
@@ -2769,7 +2769,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!getExplicit()) {
 			currentModel.exportStates(exportType, tmpLog);
 		} else {
-			currentModelExpl.exportStates(exportType, currentModulesFile.createVarList(), tmpLog);
+			currentModelExpl.exportStates(exportType, currentModelInfo.createVarList(), tmpLog);
 		}
 
 		// Tidy up
@@ -3662,7 +3662,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Create a dummy properties file if none exist
 		// (the symbolic model checkers rely on this to store e.g. model labels)
 		if (propertiesFile == null) {
-			propertiesFile = parsePropertiesString(currentModulesFile, "");
+			propertiesFile = parsePropertiesString(currentModelInfo, "");
 		}
 		// Create model checker
 		StateModelChecker mc = StateModelChecker.createModelChecker(currentModelType, this, currentModel, propertiesFile);
@@ -3680,11 +3680,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		// Create model checker
 		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType, this);
-		if (currentModulesFile != null) {
-			mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
-		} else {
-			mc.setModulesFileAndPropertiesFile(currentModelGenerator, propertiesFile);
-		}
+		mc.setModulesFileAndPropertiesFile(currentModelInfo, propertiesFile, currentModelGenerator);
 		// Pass any additional local settings
 		mc.setExportTarget(exportTarget);
 		mc.setExportTargetFilename(exportTargetFilename);

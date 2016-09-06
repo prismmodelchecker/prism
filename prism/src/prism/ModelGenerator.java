@@ -143,10 +143,18 @@ public interface ModelGenerator extends ModelInfo
 	public boolean isLabelTrue(int i) throws PrismException;
 	
 	/**
-	 * Get the state reward for state {@code state} using the reward structure with index {@code index}.
+	 * Get the state reward of the {@code r}th reward structure for state {@code state}.
+	 * @param r The index of the reward structure to use
+	 * @param state The state in which to evaluate the rewards 
 	 */
-	public double getStateReward(int index, State state) throws PrismException;
+	public double getStateReward(int r, State state) throws PrismException;
 	
-	// TODO: can we remove this?
-	public VarList createVarList();
+	/**
+	 * Get the state-action reward of the {@code r}th reward structure for state {@code state}
+	 * and action {@code action{.
+	 * @param r The index of the reward structure to use
+	 * @param state The state in which to evaluate the rewards 
+	 * @param action The outgoing action label 
+	 */
+	public double getStateActionReward(int r, State state, Object action) throws PrismException;
 }

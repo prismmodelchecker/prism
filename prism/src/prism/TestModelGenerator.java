@@ -86,19 +86,9 @@ public class TestModelGenerator extends DefaultModelGenerator
 	}
 	
 	@Override
-	public String getLabelName(int i) throws PrismException
+	public List<String> getLabelNames()
 	{
-		if (i == 0) {
-			return "goal";
-		} else {
-			throw new PrismException("Label number \"" + i + "\" not defined");
-		}
-	}
-
-	@Override
-	public int getLabelIndex(String label)
-	{
-		return ("goal".equals(label)) ? 0 : -1;
+		return Arrays.asList("goal");
 	}
 	
 	@Override

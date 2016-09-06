@@ -28,6 +28,7 @@
 package prism;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import parser.State;
@@ -93,32 +94,47 @@ public abstract class DefaultModelGenerator implements ModelGenerator
 	}
 	
 	@Override
-	public String getLabelName(int i) throws PrismException
-	{
-		throw new PrismException("Label number \"" + i + "\" not defined");
-	}
+	public abstract List<String> getLabelNames();
 	
 	@Override
-	public int getLabelIndex(String label)
+	public int getLabelIndex(String name)
 	{
-		return -1;
+		return getLabelNames().indexOf(name);
 	}
-	
+
+	@Override
+	public String getLabelName(int i) throws PrismException
+	{
+		try {
+			return getLabelNames().get(i);
+		} catch (IndexOutOfBoundsException e) {
+			throw new PrismException("Label number \"" + i + "\" not defined");
+		}
+	}
+
 	@Override
 	public int getNumRewardStructs()
 	{
-		return 0;
+		return getRewardStructNames().size();
+	}
+	
+	@Override
+	public List<String> getRewardStructNames()
+	{
+		// No reward structures by default
+		return Collections.emptyList();
 	}
 	
 	@Override
 	public int getRewardStructIndex(String name)
 	{
-		return -1;
+		return getRewardStructNames().indexOf(name);
 	}
 	
 	@Override
 	public RewardStruct getRewardStruct(int i)
 	{
+		// No reward structures by default
 		return null;
 	}
 	
@@ -204,6 +220,12 @@ public abstract class DefaultModelGenerator implements ModelGenerator
 
 	@Override
 	public double getStateReward(int index, State state) throws PrismException
+	{
+		return 0.0;
+	}
+
+	@Override
+	public double getStateActionReward(int r, State state, Object action) throws PrismException
 	{
 		return 0.0;
 	}

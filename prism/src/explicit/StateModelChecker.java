@@ -64,6 +64,7 @@ import parser.type.TypeInt;
 import parser.visitor.ASTTraverseModify;
 import parser.visitor.ReplaceLabels;
 import prism.Filter;
+import prism.ModelGenerator;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
@@ -116,6 +117,7 @@ public class StateModelChecker extends PrismComponent
 	// Model info (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 	protected ModelInfo modelInfo = null;
+	protected ModelGenerator modelGen = null;
 
 	// Properties file (for labels, constants, etc.)
 	protected PropertiesFile propertiesFile = null;
@@ -193,7 +195,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public void inheritSettings(StateModelChecker other)
 	{
-		setModulesFileAndPropertiesFile(other.modelInfo, other.propertiesFile);
+		setModulesFileAndPropertiesFile(other.modelInfo, other.propertiesFile, other.modelGen);
 		setLog(other.getLog());
 		setVerbosity(other.getVerbosity());
 		setExportTarget(other.getExportTarget());
@@ -374,13 +376,14 @@ public class StateModelChecker extends PrismComponent
 	 * Set the attached model file (for e.g. reward structures when model checking)
 	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
-	public void setModulesFileAndPropertiesFile(ModelInfo modelInfo, PropertiesFile propertiesFile)
+	public void setModulesFileAndPropertiesFile(ModelInfo modelInfo, PropertiesFile propertiesFile, ModelGenerator modelGen)
 	{
 		this.modelInfo = modelInfo;
 		if (modelInfo instanceof ModulesFile) {
 			this.modulesFile = (ModulesFile) modelInfo;
 		}
 		this.propertiesFile = propertiesFile;
+		this.modelGen = modelGen;
 		// Get combined constant values from model/properties
 		constantValues = new Values();
 		if (modelInfo != null)

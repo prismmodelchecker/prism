@@ -30,6 +30,7 @@ package prism;
 import java.util.List;
 
 import parser.Values;
+import parser.VarList;
 import parser.ast.RewardStruct;
 import parser.type.Type;
 
@@ -100,6 +101,11 @@ public interface ModelInfo
 	public int getNumLabels();
 	
 	/**
+	 * Get the names of all the labels in the model.
+	 */
+	public List<String> getLabelNames();
+	
+	/**
 	 * Get the name of the {@code i}th label of the model.
 	 */
 	public String getLabelName(int i) throws PrismException;
@@ -115,6 +121,11 @@ public interface ModelInfo
 	public int getNumRewardStructs();
 	
 	/**
+	 * Get a list of the names of the reward structures in the model.
+	 */
+	public List<String> getRewardStructNames();
+	
+	/**
 	 * Get the index of a module by its name
 	 * (indexed from 0, not from 1 like at the user (property language) level).
 	 * Returns -1 if name does not exist.
@@ -127,4 +138,7 @@ public interface ModelInfo
 	 * Returns null if index is out of range.
 	 */
 	public RewardStruct getRewardStruct(int i);
+	
+	// TODO: can we remove this?
+	public VarList createVarList() throws PrismException;
 }
