@@ -851,8 +851,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Build rewards
 		int r = expr.getRewardStructIndexByIndexObject(modelInfo, constantValues);
 		mainLog.println("Building reward structure...");
-		ConstructRewards constructRewards = new ConstructRewards(mainLog);
-		Rewards rewards = constructRewards.buildRewardStructure(model, modelGen, r);
+		Rewards rewards = constructRewards(model, r);
 
 		// Compute rewards
 		StateValues rews = checkRewardFormula(model, rewards, expr.getExpression(), minMax, statesOfInterest);
@@ -876,8 +875,38 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Construct rewards from a (non-negative) reward structure and a model.
+	 * Construct rewards for the reward structure with index r of the model generator and a model.
+	 * Ensures non-negative rewards.
+	 * <br>
+	 * Note: Relies on the stored ModelGenerator for constructing the reward structure.
 	 */
+	protected Rewards constructRewards(Model model, int r) throws PrismException
+	{
+		return constructRewards(model, r, false);
+	}
+
+	/**
+	 * Construct rewards for the reward structure with index r of the model generator and a model.
+	 * <br>
+	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
+	 * <br>
+	 * Note: Relies on the stored ModelGenerator for constructing the reward structure.
+	 */
+	protected Rewards constructRewards(Model model, int r, boolean allowNegativeRewards) throws PrismException
+	{
+		ConstructRewards constructRewards = new ConstructRewards(mainLog);
+		if (allowNegativeRewards)
+			constructRewards.allowNegativeRewards();
+		return constructRewards.buildRewardStructure(model, modelGen, r);
+	}
+
+	/**
+	 * Construct rewards from a (non-negative) reward structure and a model.
+	 * <br>
+	 * Note: Deprecated, use the methods with reward structure index r instead
+	 * to allow construction from model generators.
+	 */
+	@Deprecated
 	protected Rewards constructRewards(Model model, RewardStruct rewStruct) throws PrismException
 	{
 		return constructRewards(model, rewStruct, false);
@@ -887,7 +916,11 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * Construct rewards from a reward structure and a model.
 	 * <br>
 	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
+	 * <br>
+	 * Note: Deprecated, use the methods with reward structure index r instead
+	 * to allow construction from model generators.
 	 */
+	@Deprecated
 	protected Rewards constructRewards(Model model, RewardStruct rewStruct, boolean allowNegativeRewards) throws PrismException
 	{
 		Rewards rewards;
