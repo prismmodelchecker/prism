@@ -321,7 +321,7 @@ public class Property extends ASTElement
 				Expression expectedExpr = null;
 				try {
 					expectedExpr = Prism.parseSingleExpressionString(strExpected);
-					expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
 					expectedExpr.typeCheck();
 					boolExp = expectedExpr.evaluateBoolean(constValues);
 					simple = false;  // complex expression
@@ -350,7 +350,7 @@ public class Property extends ASTElement
 				Expression expectedExpr = null;
 				try {
 					expectedExpr = Prism.parseSingleExpressionString(strExpected);
-					expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
 					expectedExpr.typeCheck();
 					intExp = expectedExpr.evaluateInt(constValues);
 					simple = false;  // complex expression
@@ -393,7 +393,7 @@ public class Property extends ASTElement
 				Expression expectedExpr = null;
 				try {
 					expectedExpr = Prism.parseSingleExpressionString(strExpected);
-					expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
 					expectedExpr.typeCheck();
 					doubleExp = expectedExpr.evaluateDouble(constValues);
 					simple = false;  // complex expression
