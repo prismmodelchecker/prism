@@ -57,7 +57,7 @@ $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
 # Don't build ngprism on Windows/Cygwin for now
 $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE): ngprism.c
 	@if [ "$(EXE)" = "" ]; then \
-	  $(C) $(LDFLAGS) $(CPPFLAGS) -o $@ $<; \
+	  $(C) $(LDFLAGS) $(CFLAGS) -o $@ $<; \
 	else \
 	  touch $@; \
 	fi;
