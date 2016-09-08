@@ -347,7 +347,7 @@ jlong _strat				// strategy storage
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// close file to store adversary (if required)
 	if (export_adv_enabled != EXPORT_ADV_NONE) {

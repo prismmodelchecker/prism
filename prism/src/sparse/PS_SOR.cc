@@ -301,7 +301,7 @@ jboolean forwards	// forwards or backwards?
 	PS_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
