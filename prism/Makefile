@@ -533,6 +533,7 @@ clean: checks
 	done; \
 	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
 	rm -f lib/*jnilib; \
+	rm -f lib/prism.jar; \
 	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
 
 celan: clean
