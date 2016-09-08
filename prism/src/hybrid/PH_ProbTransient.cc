@@ -206,7 +206,7 @@ jint time		// time
 	
 	// free memory
 	if (hddm) delete hddm;
-	if (soln2) delete soln2;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

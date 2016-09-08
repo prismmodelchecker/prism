@@ -230,7 +230,7 @@ jint bound		// time bound
 	if (hddm) delete hddm;
 	if (yes_vec) delete[] yes_vec;
 	if (yes_dist) delete yes_dist;
-	if (soln2) delete soln2;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

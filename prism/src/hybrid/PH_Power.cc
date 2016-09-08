@@ -229,7 +229,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	PH_PrintToMainLog(env, "\nPower method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete soln; soln = NULL; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	if (!done) { delete[] soln; soln = NULL; PH_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
@@ -243,7 +243,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	if (hddm) delete hddm;
 	if (b_vec) delete[] b_vec;
 	if (b_dist) delete b_dist;
-	if (soln2) delete soln2;
+	if (soln2) delete[] soln2;
 	
 	return ptr_to_jlong(soln);
 }

@@ -266,8 +266,8 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	if (hddms) delete hddms;
 	if (yes_vec) delete[] yes_vec;
 	if (yes_dist) delete yes_dist;
-	if (soln2) delete soln2;
-	if (soln3) delete soln3;
+	if (soln2) delete[] soln2;
+	if (soln3) delete[] soln3;
 	
 	return ptr_to_jlong(soln);
 }
