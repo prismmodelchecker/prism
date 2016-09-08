@@ -65,6 +65,7 @@ import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
 import simulator.ModulesFileModelGenerator;
+import simulator.ModulesFileModelGeneratorSymbolic;
 import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import sparse.PrismSparse;
@@ -3092,7 +3093,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		String[] paramUpperBounds = new String[] { "1" };
 		// And execute parameteric model checking
 		param.ModelBuilder builder = new ModelBuilder(this);
-		builder.setModulesFile(currentModulesFile);
+		builder.setModelGenerator(new ModulesFileModelGeneratorSymbolic(currentModulesFile, this));
 		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		builder.build();
 		explicit.Model modelExpl = builder.getModel();
@@ -3151,7 +3152,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("Property constants: " + definedPFConstants);
 
 		param.ModelBuilder builder = new ModelBuilder(this);
-		builder.setModulesFile(currentModulesFile);
+		builder.setModelGenerator(new ModulesFileModelGeneratorSymbolic(currentModulesFile, this));
 		builder.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		builder.build();
 		explicit.Model modelExpl = builder.getModel();

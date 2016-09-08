@@ -34,7 +34,7 @@ import java.util.HashMap;
  * @see Function
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-abstract class FunctionFactory {
+public abstract class FunctionFactory {
 	/** names of parameters */
 	protected String[] parameterNames;
 	/** lower bounds of parameters */
