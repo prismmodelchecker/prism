@@ -3,6 +3,7 @@
 //	Copyright (c) 2013-
 //	Authors:
 //	* Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -31,8 +32,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import explicit.IndexedSet;
+import explicit.StateStorage;
 import parser.State;
-import parser.ast.ConstantList;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
@@ -40,24 +42,16 @@ import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionITE;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
-import parser.ast.ModulesFile;
-import parser.visitor.ASTTraverseModify;
 import prism.ModelGeneratorSymbolic;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
-import prism.PrismSettings;
-import simulator.ModulesFileModelGenerator;
 import prism.PrismNotSupportedException;
-import explicit.IndexedSet;
-import explicit.StateStorage;
+import prism.PrismSettings;
 
 /**
  * Class to construct a parametric Markov model.
- * 
- * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
- * @see ParamModel
  */
 public final class ModelBuilder extends PrismComponent
 {
