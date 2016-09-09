@@ -57,8 +57,6 @@ public final class ModelBuilder extends PrismComponent
 {
 	/** the ModelGeneratorSymbolic interface providing the model to be transformed to a {@code ParamModel} */
 	private ModelGeneratorSymbolic modelGenSym;
-	/** parametric model constructed */
-	private ParamModel model;
 	/** function factory used in the constructed parametric model */
 	private FunctionFactory functionFactory;
 	/** names of parameters */
@@ -187,37 +185,6 @@ public final class ModelBuilder extends PrismComponent
 		}
 	}
 
-	// setters and getters
-
-	/**
-	 * Set generator of model to be transformed to parametric Markov model.
-	 */
-	public void setModelGenerator(ModelGeneratorSymbolic modelGenSym) throws PrismException
-	{
-		this.modelGenSym = modelGenSym;
-	}
-
-	/**
-	 * Set parameter informations.
-	 * Obviously, all of {@code paramNames}, {@code lower}, {@code} upper
-	 * must have the same length, and {@code lower} bounds of parameters must
-	 * not be higher than {@code upper} bounds.
-	 * 
-	 * @param paramNames names of parameters
-	 * @param lower lower bounds of parameters
-	 * @param upper upper bounds of parameters
-	 */
-	public void setParameters(String[] paramNames, String[] lower, String[] upper)
-	{
-		this.paramNames = paramNames;
-		this.lower = new BigRational[lower.length];
-		this.upper = new BigRational[upper.length];
-		for (int param = 0; param < lower.length; param++) {
-			this.lower[param] = new BigRational(lower[param]);
-			this.upper[param] = new BigRational(upper[param]);
-		}
-	}
-
 	/**
 	 * Get the parameter names as a list of strings.
 	 * @return the parameter names
@@ -228,14 +195,32 @@ public final class ModelBuilder extends PrismComponent
 	}
 
 	/**
-	 * Construct parametric Markov model.
-	 * For this to work, module file, PRISM log, etc. must have been set
-	 * beforehand.
-	 * 
-	 * @throws PrismException in case the model cannot be constructed
+	 * Construct a parametric model and return it.
+	 * All of {@code paramNames}, {@code lower}, {@code} upper must have the same length,
+	 * and {@code lower} bounds of parameters must not be higher than {@code upper} bounds.
+	 * @param modelGenSym The ModelGeneratorSymbolic interface providing the model 
+	 * @param paramNames names of parameters
+	 * @param lowerStr lower bounds of parameters
+	 * @param upperStr upper bounds of parameters
 	 */
-	public void build() throws PrismException
+	public ParamModel constructModel(ModelGeneratorSymbolic modelGenSym, String[] paramNames, String[] lowerStr, String[] upperStr) throws PrismException
 	{
+		// No model construction for PTAs
+		if (modelGenSym.getModelType() == ModelType.PTA) {
+			throw new PrismNotSupportedException("You cannot build a PTA model explicitly, only perform model checking");
+		}
+
+		// Store model generator and parameter info
+		this.modelGenSym = modelGenSym;
+		this.paramNames = paramNames;
+		lower = new BigRational[lowerStr.length];
+		upper = new BigRational[upperStr.length];
+		for (int param = 0; param < lowerStr.length; param++) {
+			lower[param] = new BigRational(lowerStr[param]);
+			upper[param] = new BigRational(upperStr[param]);
+		}
+		
+		// Create function factory
 		if (functionType.equals("JAS")) {
 			functionFactory = new JasFunctionFactory(paramNames, lower, upper);
 		} else if (functionType.equals("JAS-cached")) {
@@ -243,18 +228,9 @@ public final class ModelBuilder extends PrismComponent
 		} else if (functionType.equals("DAG")) {
 			functionFactory = new DagFunctionFactory(paramNames, lower, upper, dagMaxError, false);
 		}
-		long time;
-
+		// And pass it to the model generator
 		modelGenSym.setSymbolic(this, functionFactory);
 		
-		if (modelGenSym.getModelType() == ModelType.PTA) {
-			throw new PrismNotSupportedException("You cannot build a PTA model explicitly, only perform model checking");
-		}
-
-		mainLog.print("\nBuilding model...\n");
-
-		// build model
-		time = System.currentTimeMillis();
 		// First, set values for any constants in the model
 		// (but do this *symbolically* - partly because some constants are parameters and therefore unknown,
 		// but also to keep values like 1/3 as expressions rather than being converted to doubles,
@@ -270,23 +246,16 @@ public final class ModelBuilder extends PrismComponent
 				return (expr != null) ? expr.deepCopy() : e;
 			}
 		});*/
-		ParamModel modelExpl = constructModel(modelGenSym);
-		time = System.currentTimeMillis() - time;
-
-		mainLog.print("\n"+modelExpl.infoStringTable());
 		
+		// Build/return model
+		mainLog.print("\nBuilding model...\n");
+		long time = System.currentTimeMillis();
+		ParamModel modelExpl = doModelConstruction(modelGenSym);
+		time = System.currentTimeMillis() - time;
+		mainLog.print("\n"+modelExpl.infoStringTable());
 		mainLog.println("\nTime for model construction: " + time / 1000.0 + " seconds.");
-		model = modelExpl;
-	}
-
-	/**
-	 * Returns the constructed parametric Markov model.
-	 * 
-	 * @return constructed parametric Markov model
-	 */
-	public explicit.Model getModel()
-	{
-		return model;
+		
+		return modelExpl;
 	}
 
 	/**
@@ -353,7 +322,7 @@ public final class ModelBuilder extends PrismComponent
 	 * @return parametric model constructed
 	 * @throws PrismException thrown if model cannot be constructed
 	 */
-	private ParamModel constructModel(ModelGeneratorSymbolic modelGenSym) throws PrismException
+	private ParamModel doModelConstruction(ModelGeneratorSymbolic modelGenSym) throws PrismException
 	{
 		ModelType modelType;
 

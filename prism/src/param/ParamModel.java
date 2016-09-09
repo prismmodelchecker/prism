@@ -46,7 +46,7 @@ import explicit.ModelExplicit;
  * This turned out the be the most convenient way to implement model checking
  * for parametric models.
  */
-final class ParamModel extends ModelExplicit
+public final class ParamModel extends ModelExplicit
 {
 	/** total number of nondeterministic choices over all states */
 	private int numTotalChoices;
