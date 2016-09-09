@@ -643,26 +643,29 @@ public class NondetModelChecker extends NonProbModelChecker
 			modelProduct.trans01 = tmptrans01;
 		}
 
-		// Do multi-objective computation
-		Object value = mcMo.computeMultiReachProbs(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
-				conflictformulae > 1);
-		
-		// Deref, clean up
-		if (ddStateIndex != null)
-			JDD.Deref(ddStateIndex);
-		if (modelProduct != null && modelProduct != model)
-			modelProduct.clear();
-		for (int i = 0; i < numObjectives; i++) {
-			if (opsAndBounds.isProbabilityObjective(i)) {
-				draDDRowVars[i].derefAll();
-				draDDColVars[i].derefAll();
+		Object value;
+		try {
+			// Do multi-objective computation
+			value = mcMo.computeMultiReachProbs(modelProduct, mcLtl, transRewardsListProduct, modelProduct.getStart(), targetDDs, multitargetDDs, multitargetIDs, opsAndBounds,
+			                                    conflictformulae > 1);
+		} finally {
+			// Deref, clean up
+			if (ddStateIndex != null)
+				JDD.Deref(ddStateIndex);
+			if (modelProduct != null && modelProduct != model)
+				modelProduct.clear();
+			for (int i = 0; i < numObjectives; i++) {
+				if (opsAndBounds.isProbabilityObjective(i)) {
+					draDDRowVars[i].derefAll();
+					draDDColVars[i].derefAll();
+				}
 			}
-		}
-		for (JDDNode t : targetDDs)
-			JDD.Deref(t);
-		if (multitargetDDs != null)
-			for (JDDNode t : multitargetDDs)
+			for (JDDNode t : targetDDs)
 				JDD.Deref(t);
+			if (multitargetDDs != null)
+				for (JDDNode t : multitargetDDs)
+					JDD.Deref(t);
+		}
 
 		if (value instanceof TileList) {
 			if (opsAndBounds.numberOfNumerical() == 2) {			
