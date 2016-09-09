@@ -126,8 +126,12 @@ public final class BigRational implements Comparable<BigRational>
 		}
 		if (cancel) {
 			if (num.equals(BigInteger.ZERO)) {
-				num = BigInteger.ZERO;
-				den = BigInteger.ONE;
+				if (!den.equals(BigInteger.ZERO)) {
+					// not NaN (= 0/0), so this is a real zero:
+					// normalise by setting denominator to 1
+					num = BigInteger.ZERO;
+					den = BigInteger.ONE;
+				}
 			} else {
 				BigInteger gcd = num.gcd(den);
 				num = num.divide(gcd);
