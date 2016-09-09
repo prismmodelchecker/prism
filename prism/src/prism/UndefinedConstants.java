@@ -27,6 +27,8 @@
 package prism;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
@@ -240,14 +242,24 @@ public class UndefinedConstants
 
 	/**
 	 * Remove some constants. This is used if you decide that you do not want to treat
-	 * some constants as undefined once you have created the UndefinedConstants object.  
-	 * @return how many constants were actually removed.  
+	 * some constants as undefined once you have created the UndefinedConstants object.
+	 * @return how many constants were actually removed.
 	 */
 	public int removeConstants(String constNames[])
 	{
-		int removed = 0, n = constNames.length;
-		for (int i = 0; i < n; i++) {
-			if (removeConstant(constNames[i]))
+		return removeConstants(Arrays.asList(constNames));
+	}
+
+	/**
+	 * Remove some constants. This is used if you decide that you do not want to treat
+	 * some constants as undefined once you have created the UndefinedConstants object.
+	 * @return how many constants were actually removed.
+	 */
+	public int removeConstants(Collection<String> constNames)
+	{
+		int removed = 0;
+		for (String name : constNames) {
+			if (removeConstant(name))
 				removed++;
 		}
 		return removed;
