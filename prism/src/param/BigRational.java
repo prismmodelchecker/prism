@@ -263,6 +263,8 @@ public final class BigRational implements Comparable<BigRational>
 			// TODO: ? might be imprecise, perhaps there
 			// is a way to get the full precision?
 			return new BigRational(((Double)value).toString());
+		} else if (value instanceof String) {
+			return new BigRational((String)value);
 		}
 		throw new IllegalArgumentException("Can not convert from " + value.getClass() + " to BigRational");
 	}
