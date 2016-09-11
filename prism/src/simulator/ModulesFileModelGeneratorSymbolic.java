@@ -462,4 +462,10 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 		}
 		return constantList.getConstant(i);
 	}
+
+	@Override
+	public boolean rewardStructHasTransitionRewards(int i)
+	{
+		return modulesFile.rewardStructHasTransitionRewards(i);
+	}
 }

@@ -414,4 +414,10 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 		}
 		return transitionList;
 	}
+
+	@Override
+	public boolean rewardStructHasTransitionRewards(int i)
+	{
+		return modulesFile.rewardStructHasTransitionRewards(i);
+	}
 }

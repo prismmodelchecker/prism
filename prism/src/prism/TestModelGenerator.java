@@ -165,6 +165,12 @@ public class TestModelGenerator extends DefaultModelGenerator
 	}
 
 	@Override
+	public boolean rewardStructHasTransitionRewards(int i)
+	{
+		return false;
+	}
+
+	@Override
 	public VarList createVarList()
 	{
 		VarList varList = new VarList();

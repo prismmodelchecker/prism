@@ -1183,6 +1183,13 @@ public class ModulesFile extends ASTElement implements ModelInfo
 		findAllVars(varNames, varTypes);
 	}
 
+	@Override
+	public boolean rewardStructHasTransitionRewards(int i)
+	{
+		RewardStruct rewStr = getRewardStruct(i);
+		return rewStr.getNumTransItems() > 0;
+	}
+
 	/**
 	 * Create a VarList object storing information about all variables in this model.
 	 * Assumes that values for constants have been provided for the model.

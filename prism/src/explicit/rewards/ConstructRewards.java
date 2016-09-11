@@ -230,6 +230,11 @@ public class ConstructRewards
 	 */
 	public MCRewards buildMCRewardStructure(DTMC mc, ModelGenerator modelGen, int r) throws PrismException
 	{
+		if (modelGen.rewardStructHasTransitionRewards(r)) {
+			// TODO
+			throw new PrismNotSupportedException("Explicit engine does not yet handle transition rewards for D/CTMCs");
+		}
+
 		int numStates = mc.getNumStates();
 		List<State> statesList = mc.getStatesList();
 		StateRewardsArray rewSA = new StateRewardsArray(numStates);

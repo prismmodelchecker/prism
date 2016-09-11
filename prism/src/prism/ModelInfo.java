@@ -138,7 +138,14 @@ public interface ModelInfo
 	 * Returns null if index is out of range.
 	 */
 	public RewardStruct getRewardStruct(int i);
-	
+
+	/**
+	 * Returns true if the reward structure with index i
+	 * (indexed from 0, not from 1 like at the user (property language) level)
+	 * defines transition rewards.
+	 */
+	public boolean rewardStructHasTransitionRewards(int i);
+
 	// TODO: can we remove this?
 	public VarList createVarList() throws PrismException;
 }
