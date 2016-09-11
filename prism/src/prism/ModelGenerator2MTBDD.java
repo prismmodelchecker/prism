@@ -125,7 +125,7 @@ public class ModelGenerator2MTBDD
 
 		// for an mdp, compute the max number of choices in a state
 		if (modelType == ModelType.MDP)
-			maxNumChoices = 1; // TODO: un-hard-code
+			maxNumChoices = 32; // TODO: un-hard-code
 
 		// allocate dd variables
 		allocateDDVars();
