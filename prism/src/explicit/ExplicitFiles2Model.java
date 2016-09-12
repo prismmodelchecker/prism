@@ -2,7 +2,8 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//  * Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Dave parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham) 
 //	
 //------------------------------------------------------------------------------
 //	
@@ -42,18 +43,41 @@ import parser.ast.ModulesFile;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 
 /**
  * Class to convert explicit-state file storage of a model to a model of the explicit engine.
  */
 public class ExplicitFiles2Model extends PrismComponent
 {
+	// Should deadlocks be fixed (by adding a self-loop) when detected?
+	private boolean fixdl;
+	
 	/** Constructor */
 	public ExplicitFiles2Model(PrismComponent parent)
 	{
 		super(parent);
+		if (settings != null) {
+			setFixDeadlocks(settings.getBoolean(PrismSettings.PRISM_FIX_DEADLOCKS));
+		}
 	}
 
+	/**
+	 * Are deadlocks fixed (by adding a self-loop) when detected?
+	 */
+	public boolean getFixDeadlocks()
+	{
+		return fixdl;
+	}
+
+	/**
+	 * Should deadlocks be fixed (by adding a self-loop) when detected?
+	 */
+	public void setFixDeadlocks(boolean fixdl)
+	{
+		this.fixdl = fixdl;
+	}
+	
 	/**
 	 * Build a Model corresponding to the passed in states/transitions/labels files.
 	 * Variable info and model type is taken from {@code modulesFile}.
@@ -112,6 +136,8 @@ public class ExplicitFiles2Model extends PrismComponent
 			throw new PrismException("Imported model has no initial states");
 		}
 
+		model.findDeadlocks(fixdl);
+		
 		if (statesFile != null) {
 			loadStates(model, statesFile, modulesFile);
 		} else {
@@ -131,8 +157,8 @@ public class ExplicitFiles2Model extends PrismComponent
 
 	/**
 	 * Load the label information and attach to the model.
-	 * The "init" label states become the initial states of the model
-	 * and the "deadlock" label states become the deadlock states of the model.
+	 * The "init" label states become the initial states of the model.
+	 * The "deadlock" label is ignored - this info is recomputed.
 	 */
 	private void loadLabels(ModelExplicit model, File labelsFile) throws PrismException
 	{
@@ -144,9 +170,7 @@ public class ExplicitFiles2Model extends PrismComponent
 					model.addInitialState(state);
 				}
 			} else if (e.getKey().equals("deadlock")) {
-				for (int state : new IterableStateSet(e.getValue(), model.getNumStates())) {
-					model.addDeadlockState(state);
-				}
+				// Do nothing
 			} else {
 				model.addLabel(e.getKey(), e.getValue());
 			}
