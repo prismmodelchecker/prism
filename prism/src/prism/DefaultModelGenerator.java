@@ -138,6 +138,13 @@ public abstract class DefaultModelGenerator implements ModelGenerator
 		return null;
 	}
 	
+	@Override
+	public boolean rewardStructHasTransitionRewards(int i)
+	{
+		// By default, assume that any reward structures that do exist may have transition rewards
+		return true;
+	}
+	
 	// Methods for ModelGenerator interface
 	
 	public boolean hasSingleInitialState() throws PrismException

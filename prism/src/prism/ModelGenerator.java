@@ -30,7 +30,6 @@ package prism;
 import java.util.List;
 
 import parser.State;
-import parser.VarList;
 
 /**
  * Interface for classes that generate a probabilistic model:
@@ -143,15 +142,19 @@ public interface ModelGenerator extends ModelInfo
 	public boolean isLabelTrue(int i) throws PrismException;
 	
 	/**
-	 * Get the state reward of the {@code r}th reward structure for state {@code state}.
+	 * Get the state reward of the {@code r}th reward structure for state {@code state}
+	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
 	 * @param r The index of the reward structure to use
 	 * @param state The state in which to evaluate the rewards 
 	 */
 	public double getStateReward(int r, State state) throws PrismException;
 	
 	/**
-	 * Get the state-action reward of the {@code r}th reward structure for state {@code state}
-	 * and action {@code action{.
+	 * Get the state-action reward of the {@code r}th reward structure for state {@code state} and action {@code action}
+	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
+	 * If a reward structure has no transition rewards, you can indicate this by implementing
+	 * the method {@link #rewardStructHasTransitionRewards(int)}, which may improve efficiency
+	 * and/or allow use of algorithms/implementations that do not support transition rewards rewards.
 	 * @param r The index of the reward structure to use
 	 * @param state The state in which to evaluate the rewards 
 	 * @param action The outgoing action label 
