@@ -3,7 +3,7 @@
 //	Copyright (c) 2016-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
-//	* Dave parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham) 
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham) 
 //	
 //------------------------------------------------------------------------------
 //	
