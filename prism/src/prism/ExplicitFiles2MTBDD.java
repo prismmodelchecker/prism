@@ -297,7 +297,7 @@ public class ExplicitFiles2MTBDD
 		// find any deadlocks
 		model.findDeadlocks(prism.getFixDeadlocks());
 
-		// attach labels (might overwrite deadlock state information)
+		// attach labels
 		attachLabels(model);
 
 		// deref spare dds
@@ -733,6 +733,10 @@ public class ExplicitFiles2MTBDD
 		for (Entry<String, JDDNode> e : labelsDD.entrySet()) {
 			if (e.equals("init")) {
 				// handled in buildInit()
+				continue;
+			}
+			if (e.equals("deadlock")) {
+				// ignored (info is recomputed)
 				continue;
 			}
 			model.addLabelDD(e.getKey(), e.getValue().copy());
