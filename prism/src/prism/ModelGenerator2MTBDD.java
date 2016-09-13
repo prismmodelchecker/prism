@@ -51,6 +51,7 @@ public class ModelGenerator2MTBDD
 	// Model info
 	private ModelType modelType;
 	private VarList varList;
+	private int numLabels;
 	private int numVars;
 	private int numRewardStructs;
 	private String[] rewardStructNames;
@@ -89,6 +90,8 @@ public class ModelGenerator2MTBDD
 	private Vector<String> synchs; // list of action names
 	private JDDNode transActions; // dd for transition action labels (MDPs)
 	private Vector<JDDNode> transPerAction; // dds for transition action labels (D/CTMCs)
+	// labels
+	private JDDNode[] labelsArray;
 	// rewards
 	private JDDNode[] stateRewardsArray;
 	private JDDNode[] transRewardsArray;
@@ -109,6 +112,7 @@ public class ModelGenerator2MTBDD
 		this.modelGen = modelGen;
 		modelType = modelGen.getModelType();
 		varList = modelGen.createVarList();
+		numLabels = modelGen.getNumLabels();
 		numVars = varList.getNumVars();
 		numRewardStructs = modelGen.getNumRewardStructs();
 		rewardStructNames = modelGen.getRewardStructNames().toArray(new String[0]);
@@ -166,9 +170,6 @@ public class ModelGenerator2MTBDD
 		// 		mainLog.println();
 		// 		JDD.Deref(tmp);
 
-		// load labels
-		//loadLabels();
-
 		int numModules = 1; // just one module
 		String moduleNames[] = new String[] { "M" };
 		Values constantValues = modelGen.getConstantValues();
@@ -206,6 +207,11 @@ public class ModelGenerator2MTBDD
 		// find any deadlocks
 		model.findDeadlocks(prism.getFixDeadlocks());
 
+		// attach labels
+		for (int l = 0; l < numLabels; l++) {
+			model.addLabelDD(modelGen.getLabelName(l), labelsArray[l]);
+		}
+		
 		// deref spare dds
 		JDD.Deref(moduleIdentities[0]);
 		JDD.Deref(moduleRangeDDs[0]);
@@ -412,7 +418,11 @@ public class ModelGenerator2MTBDD
 			transActions = JDD.Constant(0);
 		}
 		start = JDD.Constant(0); 
-		reach = JDD.Constant(0); 
+		reach = JDD.Constant(0);
+		labelsArray = new JDDNode[numLabels];
+		for (int l = 0; l < numLabels; l++) {
+			labelsArray[l] = JDD.Constant(0);
+		}
 		stateRewardsArray = new JDDNode[numRewardStructs];
 		transRewardsArray = new JDDNode[numRewardStructs];
 		for (int r = 0; r < numRewardStructs; r++) {
@@ -514,6 +524,12 @@ public class ModelGenerator2MTBDD
 				
 				// Print some progress info occasionally
 				// TODO progress.updateIfReady(src + 1);
+			}
+			
+			for (int l = 0; l < numLabels; l++) {
+				if (modelGen.isLabelTrue(l)) {
+					labelsArray[l] = JDD.Or(labelsArray[l], ddState.copy());
+				}
 			}
 			
 			// Add state rewards
