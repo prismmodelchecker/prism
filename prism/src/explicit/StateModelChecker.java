@@ -1189,7 +1189,7 @@ public class StateModelChecker extends PrismComponent
 			String currentLabel = "L"+i;
 			// Attach satisfaction set for Li to the model, record necessary
 			// label renaming
-			String newLabel = model.addUniqueLabel("phi", labelBS.get(i));
+			String newLabel = model.addUniqueLabel("phi", labelBS.get(i), getDefinedLabelNames());
 			labelReplacements.put(currentLabel, newLabel);
 		}
 		// rename the labels

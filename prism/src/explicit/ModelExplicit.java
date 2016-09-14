@@ -208,30 +208,38 @@ public abstract class ModelExplicit implements Model
 	 * The label will be either "X" or "X_i" where X is the content of the {@code prefix} argument
 	 * and i is a non-negative integer.
 	 * <br>
-	 * Note that a stored label takes preference over the on-the-fly calculation
+	 * Optionally, a set of defined label names can be passed so that those labels
+	 * can be avoided. This can be obtained from the model checker via {@code getDefinedLabelNames()}.
+	 * <br>
+	 * Note that a stored label takes precedence over the on-the-fly calculation
 	 * of an ExpressionLabel, cf. {@link explicit.StateModelChecker#checkExpressionLabel}
 	 *
 	 * @param prefix the prefix for the unique label
 	 * @param labelStates the BitSet with the state set for the label
+	 * @param definedLabelNames set of names (optional, may be {@code null}) to check for existing labels
 	 * @return the generated unique label
 	 */
-	public String addUniqueLabel(String prefix, BitSet labelStates)
+	public String addUniqueLabel(String prefix, BitSet labelStates, Set<String> definedLabelNames)
 	{
 		String label;
-		if (!hasLabel(prefix)) {
-			label = prefix;
-		} else {
-			int i = 0;
-			while (true) {
-				if (!hasLabel(prefix+"_"+i)) {
-					label = prefix+"_"+i;
-					break;
-				}
-				if (i == Integer.MAX_VALUE)
-					throw new UnsupportedOperationException("Integer overflow trying to add unique label");
-
-				i++;
+		int i = 0;
+		label = prefix;  // first, try without appending _i
+		while (true) {
+			boolean labelOk = !hasLabel(label);  // not directly attached to model
+			if (definedLabelNames != null) {
+				labelOk &= !definedLabelNames.contains(label);  // not defined
 			}
+
+			if (labelOk) {
+				break;
+			}
+
+			// prepare next label to try
+			label = prefix+"_"+i;
+			if (i == Integer.MAX_VALUE)
+				throw new UnsupportedOperationException("Integer overflow trying to add unique label");
+
+			i++;
 		}
 
 		addLabel(label, labelStates);
