@@ -473,6 +473,50 @@ public class ProbModel implements Model
 	}
 
 	/**
+	 * Add a label with corresponding state set, ensuring a unique, non-existing label.
+	 * The label will be either "X" or "X_i" where X is the content of the {@code prefix} argument
+	 * and i is a non-negative integer.
+	 * <br>
+	 * Optionally, a set of defined label names can be passed so that those labels
+	 * can be avoided. This can be obtained from the model checker via {@code getDefinedLabelNames()}.
+	 * <br>
+	 * Note that a stored label takes precedence over the on-the-fly calculation
+	 * of an ExpressionLabel, cf. {@link explicit.StateModelChecker#checkExpressionLabel}
+	 * <br>[ STORES: labelDD, deref on later call to clear() ]
+	 *
+	 * @param prefix the prefix for the unique label
+	 * @param labelDD the JDDNode with the state set for the label
+	 * @param definedLabelNames set of names (optional, may be {@code null}) to check for existing labels
+	 * @return the generated unique label
+	 */
+	public String addUniqueLabelDD(String prefix, JDDNode labelDD, Set<String> definedLabelNames)
+	{
+		String label;
+		int i = 0;
+		label = prefix;  // first, try without appending _i
+		while (true) {
+			boolean labelOk = !hasLabelDD(label);  // not directly attached to model
+			if (definedLabelNames != null) {
+				labelOk &= !definedLabelNames.contains(label);  // not defined
+			}
+
+			if (labelOk) {
+				break;
+			}
+
+			// prepare next label to try
+			label = prefix+"_"+i;
+			if (i == Integer.MAX_VALUE)
+				throw new UnsupportedOperationException("Integer overflow trying to add unique label");
+
+			i++;
+		}
+
+		addLabelDD(label, labelDD);
+		return label;
+	}
+
+	/**
 	 * Reset transition matrix DD.
 	 * Note: Update reachable states and call {@code filterReachableStates}
 	 * afterwards to update related information (trans01, odd, etc).
