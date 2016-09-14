@@ -215,22 +215,14 @@ public class ModelGenerator2MTBDD
 		// deref spare dds
 		JDD.Deref(moduleIdentities[0]);
 		JDD.Deref(moduleRangeDDs[0]);
-		for (i = 0; i < numVars; i++) {
-			JDD.Deref(varIdentities[i]);
-			JDD.Deref(varRangeDDs[i]);
-			JDD.Deref(varColRangeDDs[i]);
-		}
+		JDD.DerefArray(varIdentities, numVars);
+		JDD.DerefArray(varRangeDDs, numVars);
+		JDD.DerefArray(varColRangeDDs, numVars);
 		JDD.Deref(range);
 		if (modelType == ModelType.MDP) {
-			for (i = 0; i < ddSynchVars.length; i++) {
-				JDD.Deref(ddSynchVars[i]);
-			}
-			for (i = 0; i < ddSchedVars.length; i++) {
-				JDD.Deref(ddSchedVars[i]);
-			}
-			for (i = 0; i < ddChoiceVars.length; i++) {
-				JDD.Deref(ddChoiceVars[i]);
-			}
+			JDD.DerefArray(ddSynchVars, ddSynchVars.length);
+			JDD.DerefArray(ddSchedVars, ddSchedVars.length);
+			JDD.DerefArray(ddChoiceVars, ddChoiceVars.length);
 		}
 
 		return model;
@@ -335,10 +327,8 @@ public class ModelGenerator2MTBDD
 		if (modelType == ModelType.MDP) {
 			for (i = 0; i < ddChoiceVars.length; i++) {
 				// add to list
-				JDD.Ref(ddChoiceVars[i]);
-				JDD.Ref(ddChoiceVars[i]);
-				allDDChoiceVars.addVar(ddChoiceVars[i]);
-				allDDNondetVars.addVar(ddChoiceVars[i]);
+				allDDChoiceVars.addVar(ddChoiceVars[i].copy());
+				allDDNondetVars.addVar(ddChoiceVars[i].copy());
 			}
 		}
 	}
@@ -365,8 +355,7 @@ public class ModelGenerator2MTBDD
 		id = JDD.Constant(1);
 		for (j = 0; j < numVars; j++) {
 			if (varList.getModule(j) == 0) {
-				JDD.Ref(varIdentities[j]);
-				id = JDD.Apply(JDD.TIMES, id, varIdentities[j]);
+				id = JDD.Apply(JDD.TIMES, id, varIdentities[j].copy());
 			}
 		}
 		moduleIdentities[0] = id;
@@ -385,20 +374,16 @@ public class ModelGenerator2MTBDD
 		varColRangeDDs = new JDDNode[numVars];
 		for (i = 0; i < numVars; i++) {
 			// obtain range dd by abstracting from identity matrix
-			JDD.Ref(varIdentities[i]);
-			varRangeDDs[i] = JDD.SumAbstract(varIdentities[i], varDDColVars[i]);
+			varRangeDDs[i] = JDD.SumAbstract(varIdentities[i].copy(), varDDColVars[i]);
 			// obtain range dd by abstracting from identity matrix
-			JDD.Ref(varIdentities[i]);
-			varColRangeDDs[i] = JDD.SumAbstract(varIdentities[i], varDDRowVars[i]);
+			varColRangeDDs[i] = JDD.SumAbstract(varIdentities[i].copy(), varDDRowVars[i]);
 			// build up range for whole system as we go
-			JDD.Ref(varRangeDDs[i]);
-			range = JDD.Apply(JDD.TIMES, range, varRangeDDs[i]);
+			range = JDD.Apply(JDD.TIMES, range, varRangeDDs[i].copy());
 		}
 		// module ranges
 		moduleRangeDDs = new JDDNode[1];
 		// obtain range dd by abstracting from identity matrix
-		JDD.Ref(moduleIdentities[0]);
-		moduleRangeDDs[0] = JDD.SumAbstract(moduleIdentities[0], moduleDDColVars[0]);
+		moduleRangeDDs[0] = JDD.SumAbstract(moduleIdentities[0].copy(), moduleDDColVars[0]);
 	}
 
 	/** Construct transition matrix and rewards */
@@ -474,8 +459,7 @@ public class ModelGenerator2MTBDD
 						elem = JDD.Apply(JDD.TIMES, elem, JDD.SetVectorElement(JDD.Constant(0), allDDChoiceVars, i, 1));
 					}
 					// add it into mtbdds for transition matrix and transition rewards
-					JDD.Ref(elem);
-					trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
+					trans = JDD.Apply(JDD.PLUS, trans, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem.copy()));
 					// look up action name
 					int k;
 					if (!(a == null || "".equals(a))) {
@@ -499,14 +483,12 @@ public class ModelGenerator2MTBDD
 							transPerAction.add(tmp);
 						}
 						// add element to matrix
-						JDD.Ref(elem);
-						tmp = JDD.Apply(JDD.PLUS, tmp, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem));
+						tmp = JDD.Apply(JDD.PLUS, tmp, JDD.Apply(JDD.TIMES, JDD.Constant(d), elem.copy()));
 						transPerAction.set(k, tmp);
 					}
 					/// ...for mdps...
 					else {
-						JDD.Ref(elem);
-						tmp = JDD.ThereExists(elem, allDDColVars);
+						tmp = JDD.ThereExists(elem.copy(), allDDColVars);
 						// use max here because we see multiple transitions for a sinlge choice
 						transActions = JDD.Apply(JDD.MAX, transActions, JDD.Apply(JDD.TIMES, JDD.Constant(j), tmp));
 					}
