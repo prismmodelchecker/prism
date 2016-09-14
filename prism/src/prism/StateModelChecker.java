@@ -989,8 +989,10 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			return new StateValuesMTBDD(dd.copy(), model);
 		} else {
 			// get expression associated with label
-			ll = propertiesFile.getCombinedLabelList();
-			i = ll.getLabelIndex(expr.getName());
+			ll = getLabelList();
+			i = -1;
+			if (ll != null)
+				i = ll.getLabelIndex(expr.getName());
 			if (i == -1)
 				throw new PrismException("Unknown label \"" + expr.getName() + "\" in property");
 			// check recursively

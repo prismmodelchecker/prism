@@ -836,18 +836,9 @@ public class StateModelChecker extends PrismComponent
 			if (bs != null) {
 				return StateValues.createFromBitSet((BitSet) bs.clone(), model);
 			}
-			// Failing that, look in the properties file (if possible)
-			if (propertiesFile != null) {
-				ll = propertiesFile.getCombinedLabelList();
-				i = ll.getLabelIndex(expr.getName());
-				if (i != -1) {
-					// check recursively
-					return checkExpression(model, ll.getLabel(i), statesOfInterest);
-				}
-			}
-			// Or just the model file
-			else {
-				ll = modulesFile.getLabelList();
+			// Failing that, look in the label list (from properties file / modules file)
+			ll = getLabelList();
+			if (ll != null) {
 				i = ll.getLabelIndex(expr.getName());
 				if (i != -1) {
 					// check recursively
