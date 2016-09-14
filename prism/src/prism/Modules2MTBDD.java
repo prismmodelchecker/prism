@@ -104,8 +104,9 @@ public class Modules2MTBDD
 	private JDDNode[] ddSynchVars;		// individual dd vars for synchronising actions
 	private JDDNode[] ddSchedVars;		// individual dd vars for scheduling non-det.
 	private JDDNode[] ddChoiceVars;		// individual dd vars for local non-det.
-	// names for all dd vars used
-	private Vector<String> ddVarNames;
+
+	private ModelVariablesDD modelVariables;
+	
 	// flags for keeping track of which variables have been used
 	private boolean[] varsUsed;
 	
@@ -250,18 +251,18 @@ public class Modules2MTBDD
 		
 		// create new Model object to be returned
 		if (modelType == ModelType.DTMC) {
-			model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
+			model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
 						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (modelType == ModelType.MDP) {
 			model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
-						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, ddVarNames,
+						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
 						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
 		else if (modelType == ModelType.CTMC) {
-			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, ddVarNames,
+			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
 						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
 						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		}
@@ -336,11 +337,10 @@ public class Modules2MTBDD
 			
 	private void allocateDDVars()
 	{
-		JDDNode v, vr, vc;
 		int i, j, m, n, last;
-		int ddVarsUsed = 0;
-		ddVarNames = new Vector<String>();
-
+		
+		modelVariables = new ModelVariablesDD();
+		
 		switch (prism.getOrdering()) {
 		
 		case 1:
@@ -377,9 +377,7 @@ public class Modules2MTBDD
 			if (modelType == ModelType.MDP) {
 				// allocate vars
 				for (i = 0; i < numSynchs; i++) {
-					v = JDD.Var(ddVarsUsed++);
-					ddSynchVars[i] = v;
-					ddVarNames.add(synchs.elementAt(i)+".a");
+					ddSynchVars[i] = modelVariables.allocateVariable(synchs.elementAt(i)+".a");
 				}
 			}
 		
@@ -387,9 +385,7 @@ public class Modules2MTBDD
 			if (modelType == ModelType.MDP) {
 				// allocate vars
 				for (i = 0; i < numModules; i++) {
-					v = JDD.Var(ddVarsUsed++);
-					ddSchedVars[i] = v;
-					ddVarNames.add(moduleNames[i] + ".s");
+					ddSchedVars[i] = modelVariables.allocateVariable(moduleNames[i] + ".s");
 				}
 			}
 			
@@ -397,19 +393,15 @@ public class Modules2MTBDD
 			if (modelType == ModelType.MDP) {
 				m = ddChoiceVars.length;
 				for (i = 0; i < m; i++) {
-					v = JDD.Var(ddVarsUsed++);
-					ddChoiceVars[i] = v;
-					ddVarNames.add("l" + i);
+					ddChoiceVars[i] = modelVariables.allocateVariable("l" + i);
 				}
 			}
 			
 			// create a gap in the dd variables
 			// this allows to prepend additionl row/col vars, e.g. for constructing
 			// a product model when doing LTL model checking
-			for (i = 0; i < 20; i++) {
-				ddVarsUsed++;
-				ddVarNames.add("");
-			}
+			modelVariables.preallocateExtraStateVariables(20);
+
 			
 			// allocate dd variables for module variables (i.e. rows/cols)
 			// go through all vars in order (incl. global variables)
@@ -421,14 +413,9 @@ public class Modules2MTBDD
 				// add pairs of variables (row/col)
 				for (j = 0; j < n; j++) {
 					// new dd row variable
-					vr = JDD.Var(ddVarsUsed++);
+					varDDRowVars[i].addVar(modelVariables.allocateVariable(varList.getName(i) + "." + j));
 					// new dd col variable
-					vc = JDD.Var(ddVarsUsed++);
-					varDDRowVars[i].addVar(vr);
-					varDDColVars[i].addVar(vc);
-					// add names to list
-					ddVarNames.add(varList.getName(i) + "." + j);
-					ddVarNames.add(varList.getName(i) + "'." + j);
+					varDDColVars[i].addVar(modelVariables.allocateVariable(varList.getName(i) + "'." + j));
 				}
 			}
 
@@ -465,9 +452,7 @@ public class Modules2MTBDD
 			// allocate synchronizing action variables
 			if (modelType == ModelType.MDP) {
 				for (i = 0; i < numSynchs; i++) {
-					v = JDD.Var(ddVarsUsed++);
-					ddSynchVars[i] = v;
-					ddVarNames.add(synchs.elementAt(i)+".a");
+					ddSynchVars[i] = modelVariables.allocateVariable(synchs.elementAt(i)+".a");
 				}
 			}
 
@@ -475,9 +460,7 @@ public class Modules2MTBDD
 			if (modelType == ModelType.MDP) {
 				m = ddChoiceVars.length;
 				for (i = 0; i < m; i++) {
-					v = JDD.Var(ddVarsUsed++);
-					ddChoiceVars[i] = v;
-					ddVarNames.add("l" + i);
+					ddChoiceVars[i] = modelVariables.allocateVariable("l" + i);
 				}
 			}
 			
@@ -491,9 +474,7 @@ public class Modules2MTBDD
 				if ((modelType == ModelType.MDP) && (last != varList.getModule(i))) {
 					// add scheduling dd var(s) (may do multiple ones here if modules have no vars)
 					for (j = last+1; j <= varList.getModule(i); j++) {
-						v = JDD.Var(ddVarsUsed++);
-						ddSchedVars[j] = v;
-						ddVarNames.add(moduleNames[j] + ".s");
+						ddSchedVars[j] = modelVariables.allocateVariable(moduleNames[j] + ".s");
 					}
 					// change 'last'
 					last = varList.getModule(i);
@@ -504,19 +485,13 @@ public class Modules2MTBDD
 				n = varList.getRangeLogTwo(i);
 				// add pairs of variables (row/col)
 				for (j = 0; j < n; j++) {
-					vr = JDD.Var(ddVarsUsed++);
-					vc = JDD.Var(ddVarsUsed++);
-					varDDRowVars[i].addVar(vr);
-					varDDColVars[i].addVar(vc);
-					ddVarNames.add(varList.getName(i) + "." + j);
-					ddVarNames.add(varList.getName(i) + "'." + j);
+					varDDRowVars[i].addVar(modelVariables.allocateVariable(varList.getName(i) + "." + j));
+					varDDColVars[i].addVar(modelVariables.allocateVariable(varList.getName(i) + "'." + j));
 				}
 			}
 			// add any remaining scheduling dd var(s) (happens if some modules have no vars)
 			if (modelType == ModelType.MDP) for (j = last+1; j <numModules; j++) {
-				v = JDD.Var(ddVarsUsed++);
-				ddSchedVars[j] = v;
-				ddVarNames.add(moduleNames[j] + ".s");
+				ddSchedVars[j] = modelVariables.allocateVariable(moduleNames[j] + ".s");
 			}
 			break;
 			

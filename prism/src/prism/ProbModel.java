@@ -83,8 +83,8 @@ public class ProbModel implements Model
 	protected JDDVars[] moduleDDColVars; // dd vars for each module (cols)
 	protected JDDVars allDDRowVars; // all dd vars (rows)
 	protected JDDVars allDDColVars; // all dd vars (cols)
-	// names for all dd vars used
-	protected Vector<String> ddVarNames;
+
+	protected ModelVariablesDD modelVariables;
 
 	/**
 	 * A map from label to state set, optionally storing a state set
@@ -390,7 +390,13 @@ public class ProbModel implements Model
 
 	public Vector<String> getDDVarNames()
 	{
-		return ddVarNames;
+		return modelVariables.getDDVarNames();
+	}
+
+	@Override
+	public ModelVariablesDD getModelVariables()
+	{
+		return modelVariables;
 	}
 
 	public ODDNode getODD()
@@ -410,7 +416,7 @@ public class ProbModel implements Model
 
 	// constructor
 
-	public ProbModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, Vector<String> ddvn, int nm, String[] mn,
+	public ProbModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, ModelVariablesDD mvdd, int nm, String[] mn,
 			JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		int i;
@@ -424,7 +430,7 @@ public class ProbModel implements Model
 		rewardStructNames = rsn;
 		allDDRowVars = arv;
 		allDDColVars = acv;
-		ddVarNames = ddvn;
+		modelVariables = mvdd;
 		numModules = nm;
 		moduleNames = mn;
 		moduleDDRowVars = mrv;
@@ -753,9 +759,9 @@ public class ProbModel implements Model
 			n = allDDRowVars.getNumVars();
 			for (i = 0; i < n; i++) {
 				j = allDDRowVars.getVarIndex(i);
-				log.print(" " + j + ":" + ddVarNames.get(j));
+				log.print(" " + j + ":" + getDDVarNames().get(j));
 				j = allDDColVars.getVarIndex(i);
-				log.print(" " + j + ":" + ddVarNames.get(j));
+				log.print(" " + j + ":" + getDDVarNames().get(j));
 			}
 			log.println();
 			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans()) + "\n");
@@ -1015,6 +1021,9 @@ public class ProbModel implements Model
 			ODDUtils.ClearODD(odd);
 			odd = null;
 		}
+
+		if (modelVariables != null)
+			modelVariables.clear();
 	}
 
 }

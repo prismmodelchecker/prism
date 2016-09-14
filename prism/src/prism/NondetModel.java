@@ -182,9 +182,9 @@ public class NondetModel extends ProbModel
 	// constructor
 
 	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv,
-			JDDVars andv, Vector<String> ddvn, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+			JDDVars andv, ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
-		super(tr, s, sr, trr, rsn, arv, acv, ddvn, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
+		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
 
 		allDDSynchVars = asyv;
 		allDDSchedVars = asv;
@@ -327,16 +327,16 @@ public class NondetModel extends ProbModel
 			n = allDDNondetVars.getNumVars();
 			for (i = 0; i < n; i++) {
 				j = allDDNondetVars.getVarIndex(i);
-				log.print(" " + j + ":" + ddVarNames.get(j));
+				log.print(" " + j + ":" + getDDVarNames().get(j));
 			}
 			log.println();
 			log.print("DD vars (r/c):");
 			n = allDDRowVars.getNumVars();
 			for (i = 0; i < n; i++) {
 				j = allDDRowVars.getVarIndex(i);
-				log.print(" " + j + ":" + ddVarNames.get(j));
+				log.print(" " + j + ":" + getDDVarNames().get(j));
 				j = allDDColVars.getVarIndex(i);
-				log.print(" " + j + ":" + ddVarNames.get(j));
+				log.print(" " + j + ":" + getDDVarNames().get(j));
 			}
 			log.println();
 			log.print(getTransName() + " terminals: " + JDD.GetTerminalsAndNumbersString(trans, getNumDDVarsInTrans()) + "\n");
@@ -455,6 +455,7 @@ public class NondetModel extends ProbModel
 		if (transReln != null)
 			JDD.Deref(transReln);
 	}
+
 }
 
 //------------------------------------------------------------------------------

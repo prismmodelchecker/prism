@@ -250,19 +250,18 @@ public class LTLModelChecker extends PrismComponent
 		JDDVars varDDColVars[];
 		JDDVars allDDRowVars;
 		JDDVars allDDColVars;
-		Vector<String> ddVarNames;
 		VarList varList;
 		// New (product) model - dds, vars, etc.
 		JDDNode newTrans, newStart;
 		JDDVars newVarDDRowVars[], newVarDDColVars[];
 		JDDVars newAllDDRowVars, newAllDDColVars;
-		Vector<String> newDDVarNames;
+		ModelVariablesDD newModelVariables;
 		VarList newVarList;
 		String daVar;
 		// DA stuff
 		JDDVars daDDRowVars, daDDColVars;
 		// Misc
-		int i, j, n;
+		int i, n;
 		boolean before;
 
 		// Get details of old model (no copy, does not need to be cleaned up)
@@ -270,7 +269,6 @@ public class LTLModelChecker extends PrismComponent
 		varDDColVars = model.getVarDDColVars();
 		allDDRowVars = model.getAllDDRowVars();
 		allDDColVars = model.getAllDDColVars();
-		ddVarNames = model.getDDVarNames();
 		varList = model.getVarList();
 
 		// Create a (new, unique) name for the variable that will represent DA states
@@ -279,33 +277,25 @@ public class LTLModelChecker extends PrismComponent
 			daVar = "_" + daVar;
 		}
 
+		newModelVariables = model.getModelVariables().copy();
+		
 		// See how many new dd vars will be needed for DA
 		// and whether there is room to put them before rather than after the existing vars
 		// (if DA only has one state, we add an extra dummy state)
 		n = (int) Math.ceil(PrismUtils.log2(da.size()));
 		n = Math.max(n, 1);
-		before = true;
-		if (allDDRowVars.getMinVarIndex() - 1 < 2 * n) {
-			before = false;
-		}
-
+		before = newModelVariables.canPrependExtraStateVariable(n);
+		
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
 		// Create the new dd variables
-		newDDVarNames = new Vector<String>();
-		newDDVarNames.addAll(ddVarNames);
-		j = before ? allDDRowVars.getMinVarIndex() - 2 * n : model.getAllDDColVars().getMaxVarIndex() + 1;
+		JDDVars daVars = newModelVariables.allocateExtraStateVariable(n, daVar, before);
+		
 		for (i = 0; i < n; i++) {
-			daDDRowVars.addVar(JDD.Var(j++));
-			daDDColVars.addVar(JDD.Var(j++));
-			if (!before) {
-				newDDVarNames.add("");
-				newDDVarNames.add("");
-			}
-			newDDVarNames.set(j - 2, daVar + "." + i);
-			newDDVarNames.set(j - 1, daVar + "'." + i);
+			daDDRowVars.addVar(daVars.getVar(2*i));
+			daDDColVars.addVar(daVars.getVar(2*i+1));
 		}
-
+		
 		// Create/populate new lists
 		newVarDDRowVars = new JDDVars[varDDRowVars.length + 1];
 		newVarDDColVars = new JDDVars[varDDRowVars.length + 1];
@@ -356,8 +346,8 @@ public class LTLModelChecker extends PrismComponent
 				new JDDNode[0], new JDDNode[0], new String[0],
 				// New list of all row/col vars
 				newAllDDRowVars, newAllDDColVars,
-				// New list of var names
-				newDDVarNames,
+				// New model variables
+				newModelVariables,
 				// Module info (unchanged)
 				model.getNumModules(),
 				model.getModuleNames(),
@@ -440,13 +430,12 @@ public class LTLModelChecker extends PrismComponent
 		JDDVars varDDColVars[];
 		JDDVars allDDRowVars;
 		JDDVars allDDColVars;
-		Vector<String> ddVarNames;
 		VarList varList;
 		// New (product) model - dds, vars, etc.
 		JDDNode newTrans, newStart;
 		JDDVars newVarDDRowVars[], newVarDDColVars[];
 		JDDVars newAllDDRowVars, newAllDDColVars;
-		Vector<String> newDDVarNames;
+		ModelVariablesDD newModelVariables;
 		VarList newVarList;
 		String daVar;
 		// DA stuff
@@ -460,7 +449,6 @@ public class LTLModelChecker extends PrismComponent
 		varDDColVars = model.getVarDDColVars();
 		allDDRowVars = model.getAllDDRowVars();
 		allDDColVars = model.getAllDDColVars();
-		ddVarNames = model.getDDVarNames();
 		varList = model.getVarList();
 
 		// Create a (new, unique) name for the variable that will represent DA states
@@ -469,33 +457,25 @@ public class LTLModelChecker extends PrismComponent
 			daVar = "_" + daVar;
 		}
 
+		newModelVariables = model.getModelVariables().copy();
+		
 		// See how many new dd vars will be needed for DA
 		// and whether there is room to put them before rather than after the existing vars
 		// (if DA only has one state, we add an extra dummy state)
 		n = (int) Math.ceil(PrismUtils.log2(da.size()));
 		n = Math.max(n, 1);
-		before = true;
-		if ((allDDRowVars.getMinVarIndex() - model.getAllDDNondetVars().getMaxVarIndex()) - 1 < 2 * n) {
-			before = false;
-		}
+		before = newModelVariables.canPrependExtraStateVariable(n);
 
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
 		// Create the new dd variables
-		newDDVarNames = new Vector<String>();
-		newDDVarNames.addAll(ddVarNames);
-		j = before ? allDDRowVars.getMinVarIndex() - 2 * n : model.getAllDDColVars().getMaxVarIndex() + 1;
+		JDDVars daVars = newModelVariables.allocateExtraStateVariable(n, daVar, before);
+		
 		for (i = 0; i < n; i++) {
-			daDDRowVars.addVar(JDD.Var(j++));
-			daDDColVars.addVar(JDD.Var(j++));
-			if (!before) {
-				newDDVarNames.add("");
-				newDDVarNames.add("");
-			}
-			newDDVarNames.set(j - 2, daVar + "." + i);
-			newDDVarNames.set(j - 1, daVar + "'." + i);
+			daDDRowVars.addVar(daVars.getVar(2*i));
+			daDDColVars.addVar(daVars.getVar(2*i+1));
 		}
-
+		
 		// Create/populate new lists
 		newVarDDRowVars = new JDDVars[varDDRowVars.length + 1];
 		newVarDDColVars = new JDDVars[varDDRowVars.length + 1];
@@ -553,8 +533,8 @@ public class LTLModelChecker extends PrismComponent
 				model.getAllDDSynchVars().copy(),
 				model.getAllDDChoiceVars().copy(),
 				model.getAllDDNondetVars().copy(),
-				// New list of var names
-				newDDVarNames,
+				// New model variables
+				newModelVariables,
 				// Module info (unchanged)
 				model.getNumModules(),
 				model.getModuleNames(),

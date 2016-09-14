@@ -139,7 +139,10 @@ public interface Model
 	int getNumDDColVars();
 	int getNumDDVarsInTrans();
 	Vector<String> getDDVarNames();
-	
+
+	/** Get the information about the model variables */
+	ModelVariablesDD getModelVariables();
+
 	ODDNode getODD();
 
 	void setSynchs(List<String> synchs);
