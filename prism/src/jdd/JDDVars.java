@@ -84,7 +84,11 @@ public class JDDVars implements Iterable<JDDNode>
 	/**
 	 * Appends the variables of another JDDVars container to this container.
 	 * Does not increase the refcount of the JDDNodes!
+	 * <br>
+	 * This method is deprecated, better use copy() or copyVarsFrom() instead.
+	 * These simplify variable reference count debugging.
 	 */
+	@Deprecated
 	public void addVars(JDDVars ddv)
 	{
 		vars.addAll(ddv.vars);
@@ -207,7 +211,12 @@ public class JDDVars implements Iterable<JDDNode>
 
 	/**
 	 * Increases the refcount of all contained JDDNodes.
+	 * <br>
+	 * This method is deprecated, please use copy() and
+	 * copyVarsFrom() instead.
+	 * This simplifies reference counting debugging.
 	 */
+	@Deprecated
 	public void refAll()
 	{
 		int i;
