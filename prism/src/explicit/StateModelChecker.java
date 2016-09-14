@@ -36,6 +36,8 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import parser.State;
@@ -368,6 +370,44 @@ public class StateModelChecker extends PrismComponent
 	public Values getConstantValues()
 	{
 		return constantValues;
+	}
+
+	/**
+	 * Get the label list (from properties file and modules file, if they are attached).
+	 * @return the label list for the properties/modules file, or {@code null} if not available.
+	 */
+	public LabelList getLabelList()
+	{
+		if (propertiesFile != null) {
+			return propertiesFile.getCombinedLabelList(); // combined list from properties and modules file
+		} else if (modulesFile != null) {
+			return modulesFile.getLabelList();
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * Return the set of label names that are defined
+	 * either by the model (from the model info or modules file)
+	 * or properties file (if attached to the model checker).
+	 */
+	public Set<String> getDefinedLabelNames()
+	{
+		TreeSet<String> definedLabelNames = new TreeSet<String>();
+
+		// labels from the label list
+		LabelList labelList = getLabelList();
+		if (labelList != null) {
+			definedLabelNames.addAll(labelList.getLabelNames());
+		}
+
+		// labels from the model info
+		if (modelInfo != null) {
+			definedLabelNames.addAll(modelInfo.getLabelNames());
+		}
+
+		return definedLabelNames;
 	}
 
 	// Other setters/getters
