@@ -321,6 +321,23 @@ public class JDD
 	}
 
 	/**
+	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
+	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
+	 * @param dds the array of JDDNodes
+	 * @param n the expected length of the array (for detecting problems with refactoring)
+	 */
+	public static void DerefArray(JDDNode[] dds, int n)
+	{
+		if (n != dds.length) {
+			throw new RuntimeException("Mismatch in length of dd array and expected length!");
+		}
+		for (JDDNode dd : dds) {
+			if (dd != null)
+				JDD.Deref(dd);
+		}
+	}
+
+	/**
 	 * print cudd cache info
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
