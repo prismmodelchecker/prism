@@ -341,13 +341,18 @@ def runPrism(args, dir=""):
         prismArgs = prismArgs + ['-mainlog', logFile]
         exitCode = subprocess.Popen(prismArgs).wait()
         #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
-    elif options.test:
+    elif options.test or options.ddWarnings:
         f = tempfile.NamedTemporaryFile(delete=False)
         logFile = f.name
         prismArgs = prismArgs + ['-mainlog', logFile]
         exitCode = subprocess.Popen(prismArgs).wait()
     else:
         exitCode = subprocess.Popen(prismArgs).wait()
+    # Extract DD reference count warnings
+    if options.ddWarnings:
+        for line in open(logFile, 'r').readlines():
+            if re.match('Warning: CUDD reports .* non-zero references', line):
+                printTestResult(line)
     # Extract test results if needed
     if options.test:
         for line in open(logFile, 'r').readlines():
@@ -374,6 +379,8 @@ def printTestResult(msg):
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
         print('\033[31m' + msg + '\033[0m')
+    elif 'Warning:' in msg:
+         print('\033[31;1m' + msg + '\033[0m')
     elif 'PASS' in msg:
         print('\033[32m' + msg + '\033[0m')
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
@@ -673,6 +680,7 @@ parser.add_option("--debug", action="store_true", dest="debug", default=False, h
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 parser.add_option("--models-filename", dest="modelsFilename", metavar="X", default="models", help="Read in list of models/parameters for a directory from file X, if present [default=models]")
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
+parser.add_option("--dd-warnings", action="store_true", dest="ddWarnings", default=False, help="Print the DD reference count warnings")
 parser.add_option("--colour", dest="colourEnabled", metavar="X", type="choice", choices=["yes","no","auto"], default="auto", help="Whether to colour test results: yes, no, auto (yes iff in terminal mode) [default=auto]")
 (options, args) = parser.parse_args()
 if len(args) < 1:
