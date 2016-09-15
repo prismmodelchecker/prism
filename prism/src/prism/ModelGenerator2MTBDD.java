@@ -236,9 +236,8 @@ public class ModelGenerator2MTBDD
 	 */
 	private void allocateDDVars()
 	{
-		JDDNode v, vr, vc;
+		JDDNode vr, vc;
 		int i, j, n;
-		int ddVarsUsed = 0;
 
 		// create arrays/etc. first
 
@@ -261,9 +260,7 @@ public class ModelGenerator2MTBDD
 		// allocate nondeterministic variables
 		if (modelType == ModelType.MDP) {
 			for (i = 0; i < maxNumChoices; i++) {
-				v = JDD.Var(ddVarsUsed++);
-				ddChoiceVars[i] = v;
-				modelVariables.allocateVariable("l" + i);
+				ddChoiceVars[i] = modelVariables.allocateVariable("l" + i);
 			}
 		}
 
@@ -277,14 +274,11 @@ public class ModelGenerator2MTBDD
 			// add pairs of variables (row/col)
 			for (j = 0; j < n; j++) {
 				// new dd row variable
-				vr = JDD.Var(ddVarsUsed++);
+				vr = modelVariables.allocateVariable(varList.getName(i) + "." + j);
 				// new dd col variable
-				vc = JDD.Var(ddVarsUsed++);
+				vc = modelVariables.allocateVariable(varList.getName(i) + "'." + j);
 				varDDRowVars[i].addVar(vr);
 				varDDColVars[i].addVar(vc);
-				// add names to list
-				modelVariables.allocateVariable(varList.getName(i) + "." + j);
-				modelVariables.allocateVariable(varList.getName(i) + "'." + j);
 			}
 		}
 	}
