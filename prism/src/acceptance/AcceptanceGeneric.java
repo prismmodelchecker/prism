@@ -255,6 +255,30 @@ public class AcceptanceGeneric implements AcceptanceOmega {
 		throw new UnsupportedOperationException("Unsupported operator in generic acceptance condition");
 	}
 
+	/**
+	 * Returns a new generic acceptance condition that corresponds to the conjunction
+	 * of this and the other acceptance condition. Both conditions are <b>not</b>
+	 * cloned; take care not to modify the conditions or clone beforehand.
+	 * @param other the other generic acceptance condition
+	 * @return new AcceptanceRabin, conjunction of this and other
+	 */
+	public AcceptanceGeneric and(AcceptanceGeneric other)
+	{
+		return new AcceptanceGeneric(ElementType.AND, this, other);
+	}
+
+	/**
+	 * Returns a new generic acceptance condition that corresponds to the disjunction
+	 * of this and the other acceptance condition. Both conditions are <b>not</b>
+	 * cloned; take care not to modify the conditions or clone beforehand.
+	 * @param other the other generic acceptance condition
+	 * @return new AcceptanceGeneric, disjunction of this and other
+	 */
+	public AcceptanceGeneric or(AcceptanceGeneric other)
+	{
+		return new AcceptanceGeneric(ElementType.OR, this, other);
+	}
+
 	/** Complement this acceptance condition, return as AcceptanceGeneric. */
 	public AcceptanceGeneric complementToGeneric()
 	{
