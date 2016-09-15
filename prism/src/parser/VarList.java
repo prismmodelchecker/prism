@@ -230,6 +230,19 @@ public class VarList
 	}
 
 	/**
+	 * Get the index in this VarList for a given declaration.
+	 */
+	public int getIndexFromDeclaration(Declaration d)
+	{
+		for (int i=0;i<vars.size();i++) {
+			if (vars.get(i).decl == d) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
 	 * Get the name of the ith variable in this list.
 	 */
 	public String getName(int i)
