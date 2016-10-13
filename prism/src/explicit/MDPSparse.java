@@ -41,12 +41,11 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import common.IterableStateSet;
-
+import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
 import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MDPRewards;
 
 /**
  * Sparse matrix (non-mutable) explicit-state representation of an MDP.
@@ -1022,7 +1021,9 @@ public class MDPSparse extends MDPExplicit
 		for (j = l1; j < h1; j++) {
 			diag = 1.0;
 			// Compute sum for this distribution
-			d = mdpRewards.getTransitionReward(s, j - l1);
+			// (note: have to add state rewards in the loop for Jacobi)
+			d = mdpRewards.getStateReward(s);
+			d += mdpRewards.getTransitionReward(s, j - l1);
 			l2 = choiceStarts[j];
 			h2 = choiceStarts[j + 1];
 			for (k = l2; k < h2; k++) {
@@ -1034,6 +1035,10 @@ public class MDPSparse extends MDPExplicit
 			}
 			if (diag > 0)
 				d /= diag;
+			// Catch special case of probability 1 self-loop (Jacobi does it wrong)
+			if (h2 - l2 == 1 && cols[l2] == s) {
+				d = Double.POSITIVE_INFINITY;
+			}
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;
@@ -1043,8 +1048,6 @@ public class MDPSparse extends MDPExplicit
 			}
 			first = false;
 		}
-		// Add state reward (doesn't affect min/max)
-		minmax += mdpRewards.getStateReward(s);
 		// If strategy generation is enabled, store optimal choice
 		if (strat != null & !first) {
 			// For max, only remember strictly better choices
