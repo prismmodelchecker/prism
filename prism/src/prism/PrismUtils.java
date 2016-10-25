@@ -200,8 +200,17 @@ public class PrismUtils
 	public static String formatDouble(double d)
 	{
 		// Use UK locale to avoid . being changed to , in some countries.
-		// To match C's printf, we have to tweak the Java version (strip trailing .000)
-		return String.format(Locale.UK, "%.12g", d).replaceFirst("\\.0+(e|$)", "$1");
+		// To match C's printf, we have to tweak the Java version,
+		// strip trailing zeros after the .
+		String result = String.format(Locale.UK, "%.12g", d);
+		// if there are only zeros after the . (e.g., .000000), strip them including the . 
+		result = result.replaceFirst("\\.0+(e|$)", "$1");
+		// handle .xxxx0000
+		// we first match .xxx until there are only zeros before the end (or e)
+		// as we match reluctantly (using the *?), all trailing zeros are captured
+		// by the 0+ part
+		result = result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
+		return result;
 	}
 
 	/**
@@ -210,10 +219,19 @@ public class PrismUtils
 	public static String formatDouble(int prec, double d)
 	{
 		// Use UK locale to avoid . being changed to , in some countries.
-		// To match C's printf, we have to tweak the Java version (strip trailing .000)
-		return String.format(Locale.UK, "%." + prec + "g", d).replaceFirst("\\.0+(e|$)", "$1");
+		// To match C's printf, we have to tweak the Java version,
+		// strip trailing zeros after the .
+		String result = String.format(Locale.UK, "%." + prec + "g", d);
+		// if there are only zeros after the . (e.g., .000000), strip them including the . 
+		result = result.replaceFirst("\\.0+(e|$)", "$1");
+		// handle .xxxx0000
+		// we first match .xxx until there are only zeros before the end (or e)
+		// as we match reluctantly (using the *?), all trailing zeros are captured
+		// by the 0+ part
+		result = result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
+		return result;
 	}
-	
+
 	/**
 	 * Create a string for a list of objects, with a specified separator,
 	 * e.g. ["a","b","c"], "," -&gt; "a,b,c"
