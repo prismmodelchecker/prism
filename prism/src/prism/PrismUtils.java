@@ -201,7 +201,7 @@ public class PrismUtils
 	{
 		// Use UK locale to avoid . being changed to , in some countries.
 		// To match C's printf, we have to tweak the Java version (strip trailing .000)
-		return String.format(Locale.UK, "%.12g", d).replaceFirst("\\.?0+(e|$)", "$1");
+		return String.format(Locale.UK, "%.12g", d).replaceFirst("\\.0+(e|$)", "$1");
 	}
 
 	/**
@@ -211,7 +211,7 @@ public class PrismUtils
 	{
 		// Use UK locale to avoid . being changed to , in some countries.
 		// To match C's printf, we have to tweak the Java version (strip trailing .000)
-		return String.format(Locale.UK, "%." + prec + "g", d).replaceFirst("\\.?0+(e|$)", "$1");
+		return String.format(Locale.UK, "%." + prec + "g", d).replaceFirst("\\.0+(e|$)", "$1");
 	}
 	
 	/**
