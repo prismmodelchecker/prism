@@ -31,7 +31,7 @@ JNIEXPORT jlong JNICALL Java_prism_NativeIntArray_NIA_1CreateArray
 (JNIEnv * env, jclass cls, jint size)
 {
     int* a = new int[size];
-    return (long) a;
+    return ptr_to_jlong(a);
 }
 
 JNIEXPORT void JNICALL Java_prism_NativeIntArray_NIA_1DeleteArray
