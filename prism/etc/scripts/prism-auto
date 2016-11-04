@@ -11,13 +11,18 @@
 
 # Run "prism-auto -h" for details of further options.
 
-import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging,time
+import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging,time,platform
 from pipes import quote
 from optparse import OptionParser
 
 #==================================================================================================
 # Utility functions
 #==================================================================================================
+
+# returns true if we are running on Windows
+def isWindows():
+    s = platform.system()
+    return s == 'Windows' or re.match('CYGWIN', s) != None
 
 # returns a sorted list of files / directories in dir
 def sortedListDir(dir):
@@ -344,8 +349,17 @@ def runPrism(args, dir=""):
     elif options.test or options.ddWarnings:
         f = tempfile.NamedTemporaryFile(delete=False)
         logFile = f.name
-        prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = subprocess.Popen(prismArgs).wait()
+        if isWindows():
+            # On Windows, PRISM can not open a temporary file created with NamedTemporaryFile.
+            # So, we just pass the file to Popen to capture standard output instead of redirecting
+            # with the -mainlog parameter.
+            # Note: This does not work with nailgun, as this requires the use of -mainlog to
+            # capture PRISM's output.
+            exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
+        else:
+            prismArgs = prismArgs + ['-mainlog', logFile]
+            exitCode = subprocess.Popen(prismArgs).wait()
+        f.close()
     else:
         exitCode = subprocess.Popen(prismArgs).wait()
     # Extract DD reference count warnings
@@ -692,6 +706,9 @@ if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
+    if isWindows():
+        print("Using nailgun on Windows is currently not supported")
+        sys.exit(1)
     if options.echo or options.echoFull:
         print(options.prismExec + " -ng &")
     else:
