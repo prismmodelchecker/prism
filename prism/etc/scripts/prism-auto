@@ -11,7 +11,7 @@
 
 # Run "prism-auto -h" for details of further options.
 
-import os,sys,re,subprocess,signal,tempfile,functools,filecmp,logging,time,platform
+import os,sys,re,subprocess,signal,tempfile,functools,logging,time,platform
 from pipes import quote
 from optparse import OptionParser
 
@@ -23,6 +23,22 @@ from optparse import OptionParser
 def isWindows():
     s = platform.system()
     return s == 'Windows' or re.match('CYGWIN', s) != None
+
+# compare two files (with filenames f1,f2) for equality
+def compareFiles(f1,f2):
+    # We open the files in 'rU' mode (universal newline mode),
+    # which automatically converts all the different newline
+    # encodings to '\n'.
+    # This allow the two files to differ in their
+    # line ending encodings without affecting equality
+    with open(f1, 'rU') as fp1, open(f2, 'rU') as fp2:
+        while True:
+            s1 = fp1.readline()
+            s2 = fp2.readline()
+            if s1 != s2:  # mismatch
+                return False
+            if s1 == '':  # EOF (in both files)
+                return True
 
 # returns a sorted list of files / directories in dir
 def sortedListDir(dir):
@@ -429,7 +445,7 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
             if options.noExportTests:
                 msg = msg + "SKIPPED"
                 os.remove(expFile)
-            elif filecmp.cmp(outFile, expFile):
+            elif compareFiles(outFile, expFile):
                 # If successful, notify and delete exported file
                 msg = msg + "PASS"
                 os.remove(expFile)
