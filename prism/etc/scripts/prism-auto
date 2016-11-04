@@ -334,6 +334,8 @@ def walk(dir, meth):
 # Run PRISM with a given list of command-line args
 
 def runPrism(args, dir=""):
+    # keep track if we need to cleanup the log file after use
+    cleanupLogFile = False
     if options.test:
         if options.testAll: args.append("-testall")
         else: args.append("-test")
@@ -365,6 +367,8 @@ def runPrism(args, dir=""):
     elif options.test or options.ddWarnings:
         f = tempfile.NamedTemporaryFile(delete=False)
         logFile = f.name
+        # we want cleanup when we are done, as this is a real temporary file
+        cleanupLogFile = True
         if isWindows():
             # On Windows, PRISM can not open a temporary file created with NamedTemporaryFile.
             # So, we just pass the file to Popen to capture standard output instead of redirecting
@@ -391,6 +395,9 @@ def runPrism(args, dir=""):
             if options.showWarnings and re.match('Warning:', line):
                 printTestResult(line)
     if options.test and exitCode != 0:
+        # failure, we don't want to cleanup the log (if it was a temporary file)
+        # so that the user can inspect it
+        cleanupLogFile = False
         for line in open(logFile, 'r').readlines():
             if re.match('Error:', line):
                 printTestResult(line)
@@ -398,6 +405,9 @@ def runPrism(args, dir=""):
         print("edit " + logFile)
         if not options.testAll:
             closeDown(1)
+    if cleanupLogFile:
+        # logFile was a temporary file and we'd like to clean it up
+        os.remove(logFile)
 
 # Print a testing-related message, colour coding if needed
 
