@@ -413,7 +413,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// check here for possibility of multiple initial states
 			// (not supported yet) to avoid problems below
 			if (parsedModel.getInitialStates() != null) {
-				throw new PrismException("The simulator does not not yet handle models with multiple states");
+				throw new PrismException("The simulator does not yet handle models with multiple initial states");
 			}
 
 			// do we need to ask for an initial state for simulation?
