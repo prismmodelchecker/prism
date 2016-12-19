@@ -27,6 +27,7 @@
 package parser.ast;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 
 import parser.*;
 import parser.type.*;
@@ -34,8 +35,7 @@ import parser.visitor.*;
 import prism.PrismLangException;
 
 /**
- * Class to store a single update, i.e. a mapping from variables to expressions. 
- * e.g. (s'=1)&amp;(x'=x+1)
+ * Class to store a single update, i.e. a list of assignments of variables to expressions, e.g. (s'=1)&amp;(x'=x+1)
  */
 public class Update extends ASTElement
 {
@@ -65,6 +65,11 @@ public class Update extends ASTElement
 
 	// Set methods
 
+	/**
+	 * Add a variable assignment ({@code v}'={@code e}) to this update.
+	 * @param v The AST element corresponding to the variable being updated
+	 * @param e The expression which will be assigned to the variable
+	 */
 	public void addElement(ExpressionIdent v, Expression e)
 	{
 		vars.add(v.getName());
@@ -74,27 +79,50 @@ public class Update extends ASTElement
 		indices.add(-1); // Index currently unknown
 	}
 
+	/**
+	 * Set the variable {@code v} for the {@code i}th variable assignment of this update.
+	 * @param i The index of the variable assignment within the update
+	 * @param v The AST element corresponding to the variable being updated
+	 */
 	public void setVar(int i, ExpressionIdent v)
 	{
 		vars.set(i, v.getName());
 		varIdents.set(i, v);
 	}
 
+	/**
+	 * Set the expression {@code e} for the {@code i}th variable assignment of this update.
+	 * @param i The index of the variable assignment within the update
+	 * @param e The expression which will be assigned to the variable
+	 */
 	public void setExpression(int i, Expression e)
 	{
 		exprs.set(i, e);
 	}
 
+	/**
+	 * Set the type of the {@code i}th variable assigned to by this update.
+	 * @param i The index of the variable assignment within the update
+	 * @param t The variable's type
+	 */
 	public void setType(int i, Type t)
 	{
 		types.set(i, t);
 	}
 
+	/**
+	 * Set the index (wrt the model) of the {@code i}th variable assigned to by this update.
+	 * @param i The index of the variable assignment within the update
+	 * @param t The index of the variable within the model to which it belongs
+	 */
 	public void setVarIndex(int i, int index)
 	{
 		indices.set(i, index);
 	}
 
+	/**
+	 * Set the {@link parser.ast.Updates} object containing this update.
+	 */
 	public void setParent(Updates u)
 	{
 		parent = u;
@@ -102,36 +130,57 @@ public class Update extends ASTElement
 
 	// Get methods
 
+	/**
+	 * Get the number of variables assigned values by this update.
+	 */
 	public int getNumElements()
 	{
 		return vars.size();
 	}
 
+	/**
+	 * Get the name of the {@code i}th variable in this update.
+	 */
 	public String getVar(int i)
 	{
 		return vars.get(i);
 	}
 
+	/**
+	 * Get the expression used to update the {@code i}th variable in this update.
+	 */
 	public Expression getExpression(int i)
 	{
 		return exprs.get(i);
 	}
 
+	/**
+	 * Get the type of the {@code i}th variable in this update.
+	 */
 	public Type getType(int i)
 	{
 		return types.get(i);
 	}
 
+	/**
+	 * Get the ASTElement corresponding to the {@code i}th variable in this update.
+	 */
 	public ExpressionIdent getVarIdent(int i)
 	{
 		return varIdents.get(i);
 	}
 
+	/**
+	 * Get the index (wrt the model) of the {@code i}th variable in this update.
+	 */
 	public int getVarIndex(int i)
 	{
 		return indices.get(i);
 	}
 
+	/**
+	 * Get the {@link parser.ast.Updates} object containing this update.
+	 */
 	public Updates getParent()
 	{
 		return parent;
@@ -194,7 +243,7 @@ public class Update extends ASTElement
 	/**
 	 * Execute this update, based on variable values specified as a State object.
 	 * Apply changes in variables to a provided copy of the State object.
-	 * (i.e. oldState and newState should be equal when passed in.) 
+	 * (i.e. oldState and newState should be equal when passed in) 
 	 * It is assumed that any constants have already been defined.
 	 * @param oldState Variable values in current state
 	 * @param newState State object to apply changes to
