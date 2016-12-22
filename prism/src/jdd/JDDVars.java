@@ -372,6 +372,21 @@ public class JDDVars implements Iterable<JDDNode>
 		return result;
 	}
 
+	/**
+	 * Constructs a 0/1-ADD that is the conjunction of
+	 * the negated variables, i.e.,
+	 * And(Not(v_1), Not(v_2), ..., Not(v_n))
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public JDDNode allZero()
+	{
+		JDDNode result = JDD.Constant(1);
+		for (JDDNode var : vars) {
+			result = JDD.And(result, JDD.Not(var.copy()));
+		}
+		return result;
+	}
+
 	/** Sort the variables in this container by their variable index. */
 	public void sortByIndex()
 	{
