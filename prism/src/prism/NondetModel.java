@@ -214,6 +214,39 @@ public class NondetModel extends ProbModel
 		setReach(reachable);
 	}
 
+	/**
+	 * Compute and store the set of reachable states,
+	 * where the parameter {@seed} provides an initial set of states
+	 * known to be reachable.
+	 * <br/>
+	 * Starts reachability computation from the union of {@code seed} and {@start}.
+	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
+	 * @param seed set of states (over ddRowVars) that is known to be reachable
+	 */
+	public void doReachability(JDDNode seed)
+	{
+		JDDNode tmp;
+
+		// do sanity check on seed if checking is enabled
+		if (SanityJDD.enabled)
+			SanityJDD.checkIsStateSet(seed, getAllDDRowVars());
+
+		// remove any nondeterminism from the 0/1-transition function
+		JDD.Ref(trans01);
+		tmp = JDD.MaxAbstract(trans01, allDDNondetVars);
+
+		// S = union of initial states and seed. seed is dereferenced here.
+		JDDNode S = JDD.Or(start.copy(), seed);
+
+		// compute reachable states
+		JDDNode reachable = PrismMTBDD.Reachability(tmp, allDDRowVars, allDDColVars, S);
+		JDD.Deref(tmp);
+		JDD.Deref(S);
+
+		// set the reachable states, compute numStates, create the ODD, etc
+		setReach(reachable);
+	}
+
 	// remove non-reachable states from various dds
 	// (and calculate num transitions, etc.)
 	// (and build mask)

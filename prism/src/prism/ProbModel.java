@@ -570,6 +570,27 @@ public class ProbModel implements Model
 		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start));
 	}
 
+	/**
+	 * Compute and store the set of reachable states, where the parameter {@seed}
+	 * provides an initial set of states known to be reachable.
+	 * <br/>
+	 * Starts reachability computation from the union of {@code seed} and {@start}.
+	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
+	 * @param seed set of states (over ddRowVars) that is known to be reachable
+	 */
+	public void doReachability(JDDNode seed)
+	{
+		// do sanity check on seed if checking is enabled
+		if (SanityJDD.enabled)
+			SanityJDD.checkIsStateSet(seed, getAllDDRowVars());
+
+		// S = union of initial states and seed. seed is dereferenced here.
+		JDDNode S = JDD.Or(start.copy(), seed);
+		// compute and store reachable states
+		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, S));
+		JDD.Deref(S);
+	}
+
 	// this method allows you to skip the reachability phase
 	// it is only here for experimental purposes - not general use.
 
