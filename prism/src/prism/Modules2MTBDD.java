@@ -398,7 +398,7 @@ public class Modules2MTBDD
 			}
 			
 			// create a gap in the dd variables
-			// this allows to prepend additionl row/col vars, e.g. for constructing
+			// this allows to prepend additional row/col vars, e.g. for constructing
 			// a product model when doing LTL model checking
 			modelVariables.preallocateExtraStateVariables(20);
 
