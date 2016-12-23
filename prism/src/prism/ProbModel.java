@@ -34,6 +34,9 @@ import jdd.*;
 import odd.*;
 import mtbdd.*;
 import parser.*;
+import parser.ast.Declaration;
+import parser.ast.DeclarationInt;
+import parser.ast.Expression;
 import sparse.*;
 
 /*
@@ -940,6 +943,180 @@ public class ProbModel implements Model
 		}
 
 		return (int) (x + varList.getLow(numVars - 1));
+	}
+
+	/**
+	 * Apply the given model transformation operator to this model
+	 * and return the resulting, transformed model.
+	 * @param transformation the transformation operator
+	 * @return the transformed model (needs to be cleared after use)
+	 */
+	public ProbModel getTransformed(ProbModelTransformationOperator transformation) throws PrismException
+	{
+		// New (transformed) model - dds, vars, etc.
+		JDDNode newTrans, newStart;
+		JDDVars newVarDDRowVars[], newVarDDColVars[];
+		JDDVars newAllDDRowVars, newAllDDColVars;
+		JDDNode newStateRewards[], newTransRewards[];
+		ModelVariablesDD newModelVariables;
+		VarList newVarList;
+		String extraVar;
+		// DRA stuff
+		JDDVars extraDDRowVars, extraDDColVars;
+		// Misc
+		int i, n;
+		boolean before;
+
+		// Create a (new, unique) name for the variable that will represent the extra states
+		extraVar = transformation.getExtraStateVariableName();
+		while (varList.getIndex(extraVar) != -1) {
+			extraVar = "_" + extraVar;
+		}
+
+		newModelVariables = this.getModelVariables().copy();
+
+		// See how many new dd vars will be needed for the extra variables
+		// and whether there is room to put them before rather than after the existing vars
+		n = transformation.getExtraStateVariableCount();
+		before = newModelVariables.canPrependExtraStateVariable(n);
+
+		extraDDRowVars = new JDDVars();
+		extraDDColVars = new JDDVars();
+		// Create the new dd state variables
+		JDDVars draVars = newModelVariables.allocateExtraStateVariable(n, extraVar, before);
+
+		for (i = 0; i < n; i++) {
+			extraDDRowVars.addVar(draVars.getVar(2*i));
+			extraDDColVars.addVar(draVars.getVar(2*i+1));
+		}
+
+		// notify the transformation operator about the allocated state variables
+		transformation.hookExtraStateVariableAllocation(extraDDRowVars.copy(), extraDDColVars.copy());
+
+		// Create/populate new state variable lists
+		if (n==0) {
+			// no additional state vars, we can just copy everything
+			newVarDDRowVars = JDDVars.copyArray(varDDRowVars);
+			newVarDDColVars = JDDVars.copyArray(varDDColVars);
+			newAllDDRowVars = allDDRowVars.copy();
+			newAllDDColVars = allDDColVars.copy();
+			newVarList = (VarList) varList.clone();
+		} else {
+			// insert new variable either before or after the other variables
+			newVarDDRowVars = new JDDVars[varDDRowVars.length + 1];
+			newVarDDColVars = new JDDVars[varDDRowVars.length + 1];
+			newVarDDRowVars[before ? 0 : varDDRowVars.length] = extraDDRowVars.copy();
+			newVarDDColVars[before ? 0 : varDDColVars.length] = extraDDColVars.copy();
+			for (i = 0; i < varDDRowVars.length; i++) {
+				newVarDDRowVars[before ? i + 1 : i] = varDDRowVars[i].copy();
+				newVarDDColVars[before ? i + 1 : i] = varDDColVars[i].copy();
+			}
+			if (before) {
+				newAllDDRowVars = extraDDRowVars.copy();
+				newAllDDColVars = extraDDColVars.copy();
+				newAllDDRowVars.copyVarsFrom(allDDRowVars);
+				newAllDDColVars.copyVarsFrom(allDDColVars);
+			} else {
+				newAllDDRowVars = allDDRowVars.copy();
+				newAllDDColVars = allDDColVars.copy();
+				newAllDDRowVars.copyVarsFrom(extraDDRowVars);
+				newAllDDColVars.copyVarsFrom(extraDDColVars);
+			}
+			newVarList = (VarList) varList.clone();
+			Declaration decl = new Declaration(extraVar, new DeclarationInt(Expression.Int(0), Expression.Int((1 << n) - 1)));
+			newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, this.getConstantValues());
+		}
+
+		// Build transition matrix for transformed model
+		newTrans = transformation.getTransformedTrans();
+
+		if (SanityJDD.enabled) {
+			SanityJDD.checkIsDDOverVars(newTrans, newAllDDRowVars, newAllDDColVars);
+		}
+
+		// Build set of initial states for transformed model
+		newStart = transformation.getTransformedStart();
+
+		if (SanityJDD.enabled) {
+			SanityJDD.checkIsStateSet(newStart, newAllDDRowVars);
+		}
+
+
+		// Build transformed reward information
+		newStateRewards = new JDDNode[stateRewards.length];
+		for (i=0; i < stateRewards.length; i++) {
+			newStateRewards[i] = transformation.getTransformedStateReward(stateRewards[i]);
+
+			if (SanityJDD.enabled) {
+				SanityJDD.checkIsDDOverVars(newStateRewards[i], newAllDDRowVars);
+			}
+		}
+
+		newTransRewards = new JDDNode[transRewards.length];
+		for (i=0; i < transRewards.length; i++) {
+			newTransRewards[i] = transformation.getTransformedTransReward(transRewards[i]);
+
+			if (SanityJDD.enabled) {
+				SanityJDD.checkIsDDOverVars(newTransRewards[i], newAllDDRowVars, newAllDDColVars);
+			}
+		}
+
+
+		// Create a new model model object to store the transformed model
+		ProbModel result = new ProbModel(
+				// New transition matrix/start state
+				newTrans, newStart,
+				// New reward information
+				newStateRewards,
+				newTransRewards,
+				this.rewardStructNames.clone(),
+				// New list of all row/col vars
+				newAllDDRowVars, newAllDDColVars,
+				// New model variables
+				newModelVariables,
+				// Module info (unchanged)
+				this.getNumModules(),
+				this.getModuleNames(),
+				JDDVars.copyArray(this.getModuleDDRowVars()),
+				JDDVars.copyArray(this.getModuleDDColVars()),
+				// New var info
+				newVarList.getNumVars(), newVarList, newVarDDRowVars, newVarDDColVars,
+				// Constants (no change)
+				this.getConstantValues());
+
+		// Do reachability/etc. for the new model
+		JDDNode S;
+		if ( (S = transformation.getReachableStates()) != null) {
+			// the transformation operator knows the reachable state set
+			result.setReach(S);
+		} else if ( (S = transformation.getReachableStateSeed()) != null ) {
+			// the transformation operator knows a seed for the reachability computation
+			result.doReachability(S);
+		} else {
+			// otherwise: do standard reachability
+			result.doReachability();
+		}
+		result.filterReachableStates();
+
+		if (!transformation.deadlocksAreFine()) {
+			result.findDeadlocks(false);
+			if (result.getDeadlockStates().size() > 0) {
+				// Assuming original model has no deadlocks, neither should the transformed model
+				throw new PrismException("Transformed model has deadlock states");
+			}
+		}
+
+		// lift labels attached to the model
+		for (Entry<String, JDDNode> entry : labelsDD.entrySet()) {
+			JDDNode labelStates = entry.getValue();
+			JDDNode transformedLabelStates = transformation.getTransformedLabelStates(labelStates, result.getReach());
+			result.labelsDD.put(entry.getKey(), transformedLabelStates);
+		}
+
+		extraDDRowVars.derefAll();
+		extraDDColVars.derefAll();
+
+		return result;
 	}
 
 	/**
