@@ -463,7 +463,13 @@ public class Modules2MTBDD
 					ddChoiceVars[i] = modelVariables.allocateVariable("l" + i);
 				}
 			}
-			
+
+			// TODO: For the other variable order (-o1, used for sparse/hybrid by default,
+			// see above), we preallocate a certain number of state variables.
+			// For consistency, it would make sense to do the same here. However,
+			// we should first do some testing to see if this negatively impacts
+			// performance.
+
 			// go through all vars in order (incl. global variables)
 			// so overall ordering can be specified by ordering in the input file
 			// use 'last' to detect when starting a new module
