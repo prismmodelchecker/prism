@@ -92,6 +92,8 @@ public class PrismSettings implements Observer
 	
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
+	public static final	String PRISM_DD_EXTRA_STATE_VARS				= "prism.ddExtraStateVars";
+	public static final	String PRISM_DD_EXTRA_ACTION_VARS				= "prism.ddExtraActionVars";
 	public static final	String PRISM_NUM_SB_LEVELS					= "prism.numSBLevels";//"prism.hybridNumLevels";
 	public static final	String PRISM_SB_MAX_MEM						= "prism.SBMaxMem";//"prism.hybridMaxMemory";
 	public static final	String PRISM_NUM_SOR_LEVELS					= "prism.numSORLevels";//"prism.hybridSORLevels";
@@ -307,6 +309,12 @@ public class PrismSettings implements Observer
 																			"Maximum memory available to CUDD (underlying BDD/MTBDD library), e.g. 125k, 50m, 4g. Note: Restart PRISM after changing this." },
 			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"CUDD epsilon",							"2.1",			new Double(1.0E-15),														"0.0,",																						
 																			"Epsilon value used by CUDD (underlying BDD/MTBDD library) for terminal cache comparisons." },
+			{ INTEGER_TYPE,		PRISM_DD_EXTRA_STATE_VARS,				"Extra DD state var allocation",		"4.3.1",			new Integer(20),														"",
+																			"Number of extra DD state variables preallocated for use in model transformation." },
+			{ INTEGER_TYPE,		PRISM_DD_EXTRA_ACTION_VARS,				"Extra DD action var allocation",		"4.3.1",			new Integer(20),														"",
+																			"Number of extra DD action variables preallocated for use in model transformation." },
+
+
 			// ADVERSARIES/COUNTEREXAMPLES:
 			{ CHOICE_TYPE,		PRISM_EXPORT_ADV,						"Adversary export",						"3.3",			"None",																	"None,DTMC,MDP",																
 																			"Type of adversary to generate and export during MDP model checking" },
@@ -1267,6 +1275,32 @@ public class PrismSettings implements Observer
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
+		} else if (sw.equals("ddextrastatevars")) {
+			if (i < args.length - 1) {
+				try {
+					int v = Integer.parseInt(args[++i]);
+					if (v < 0)
+						throw new NumberFormatException("");
+					set(PRISM_DD_EXTRA_STATE_VARS, v);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		} else if (sw.equals("ddextraactionvars")) {
+			if (i < args.length - 1) {
+				try {
+					int v = Integer.parseInt(args[++i]);
+					if (v < 0)
+						throw new NumberFormatException("");
+					set(PRISM_DD_EXTRA_ACTION_VARS, v);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
 		}
 		
 		// ADVERSARIES/COUNTEREXAMPLES:
@@ -1658,6 +1692,8 @@ public class PrismSettings implements Observer
 		mainLog.println("-cuddmaxmem <n> ................ Set max memory for CUDD package, e.g. 125k, 50m, 4g [default: 1g]");
 		mainLog.println("-cuddepsilon <x> ............... Set epsilon value for CUDD package [default: 1e-15]");
 		mainLog.println("-ddsanity ...................... Enable internal sanity checks (causes slow-down)");
+		mainLog.println("-ddextrastatevars <n> .......... Set the number of preallocated state vars [default: 20]");
+		mainLog.println("-ddextraactionvars <n> ......... Set the number of preallocated action vars [default: 20]");
 		mainLog.println();
 		mainLog.println("PARAMETRIC MODEL CHECKING OPTIONS:");
 		mainLog.println("-param <vals> .................. Do parametric model checking with parameters (and ranges) <vals>");

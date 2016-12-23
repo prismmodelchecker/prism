@@ -50,6 +50,8 @@ public class ModelVariablesDD
 
 	/** Storage for the preallocated extra state variables */
 	private JDDVars extraStateVariables = new JDDVars();
+	/** Storage for the preallocated extra action variables */
+	private JDDVars extraActionVariables = new JDDVars();
 
 	/** Constructor */
 	public ModelVariablesDD()
@@ -67,6 +69,7 @@ public class ModelVariablesDD
 		result.ddVarNames = new Vector<String>(ddVarNames);
 		result.ddVariables = ddVariables.copy();
 		result.extraStateVariables = extraStateVariables.copy();
+		result.extraActionVariables = extraActionVariables.copy();
 		result.nextDDVarIndex = nextDDVarIndex;
 
 		return result;
@@ -77,6 +80,7 @@ public class ModelVariablesDD
 	{
 		ddVariables.derefAll();
 		extraStateVariables.derefAll();
+		extraActionVariables.derefAll();
 	}
 
 	/** Return the vector with variable names for a given variable index */
@@ -195,6 +199,47 @@ public class ModelVariablesDD
 		return result;
 	}
 
+	/** Preallocate the given number of action variables */
+	public void preallocateExtraActionVariables(int count)
+	{
+		for (int i=0;i<count;i++) {
+			JDDNode v = allocateVariable("");
+			extraActionVariables.addVar(v);
+		}
+	}
+
+	/**
+	 * Allocate {@code n} action variables.
+	 * <br>
+	 * If there is not enough space in the preallocated variable pool, throws an exception.
+	 * <br>[ REFS: <i>result</i> ]
+	 * @param n number of action variables to allocate
+	 * @param name the name of the variable
+	 * 	 */
+	public JDDVars allocateExtraActionVariable(int n, String name) throws PrismException
+	{
+		JDDVars result = new JDDVars();
+		if (n == 0) return result;
+
+		if (extraActionVariables.getNumVars() < n) {
+			throw new PrismException("Not enough extra action variables preallocated, please increase using -ddextraactionvars switch!");
+		}
+
+		int v = extraActionVariables.getNumVars() - n;
+		for (int i=0; i < n; i++) {
+			// transfer action var from extraActionVariables to result,
+			// no need to ref again
+			JDDNode action_var = extraActionVariables.getVar(v++);
+			result.addVar(action_var);
+			ddVarNames.set(action_var.getIndex(), name+"."+i);
+		}
+
+		// remove variables from extraActionVariables
+		extraActionVariables.removeVars(result);
+
+		return result;
+	}
+
 	/**
 	 * Get the extra state variables.
 	 * This is not a copy.
@@ -203,6 +248,16 @@ public class ModelVariablesDD
 	 */
 	public JDDVars getExtraStateVariables() {
 		return extraStateVariables;
+	}
+
+	/**
+	 * Get the extra action variables.
+	 * This is not a copy.
+	 *
+	 * <br>[ REFs: <i>none</i>, DEREFs: <i>none</i> ]
+	 */
+	public JDDVars getExtraActionVariables() {
+		return extraActionVariables;
 	}
 
 }
