@@ -697,6 +697,95 @@ public class NondetModel extends ProbModel
 		return result;
 	}
 
+	/**
+	 * Apply the given model transformation, specified as a
+	 * ProbModelTransformationOperator, on this model
+	 * and return the resulting, transformed model.
+	 * <br>
+	 * This convenience method does the transformation via a
+	 * NondetModelTransformationOperation that is constructed on-the-fly
+	 * from the given transformation. For this to work properly,
+	 * the getTrans method has to preserve the action information,
+	 * i.e., simply augment the state space in some way.
+	 * <br>
+	 * As an example, a simple product construction with a deterministic
+	 * automaton would work fine, as that does not change the structure
+	 * of the transitions.
+	 *
+	 * @param transformation the transformation operator
+	 * @return the transformed model (needs to be cleared after use)
+	 */
+	public NondetModel getTransformed(final ProbModelTransformationOperator transformation) throws PrismException
+	{
+		NondetModelTransformationOperator ndTransformation = new NondetModelTransformationOperator(this) {
+			@Override
+			public int getExtraStateVariableCount()
+			{
+				return transformation.getExtraStateVariableCount();
+			}
+
+			@Override
+			public int getExtraActionVariableCount()
+			{
+				// we don't change the nondeterministic choices
+				return 0;
+			}
+
+			@Override
+			public JDDNode getTransformedTrans() throws PrismException
+			{
+				// pass through
+				return transformation.getTransformedTrans();
+			}
+
+			@Override
+			public JDDNode getTransformedStart() throws PrismException
+			{
+				// pass through
+				return transformation.getTransformedStart();
+			}
+
+			@Override
+			public String getExtraStateVariableName()
+			{
+				// pass through
+				return transformation.getExtraStateVariableName();
+			}
+
+			@Override
+			public void hookExtraStateVariableAllocation(JDDVars extraRowVars, JDDVars extraColVars)
+			{
+				// pass through
+				transformation.hookExtraStateVariableAllocation(extraRowVars, extraColVars);
+			}
+
+			@Override
+			public void hookExtraActionVariableAllocation(JDDVars extraActionVars)
+			{
+				if (extraActionVars.n() != 0) {
+					throw new RuntimeException("NondetModel.getTransformed(ProbModelTransformation) has not requested action variables");
+				}
+			}
+
+			@Override
+			public JDDNode getTransformedStateReward(JDDNode oldReward) throws PrismException
+			{
+				// pass through
+				return transformation.getTransformedStateReward(oldReward);
+			}
+
+			@Override
+			public JDDNode getTransformedTransReward(JDDNode oldReward) throws PrismException
+			{
+				// pass through
+				return transformation.getTransformedTransReward(oldReward);
+			}
+		};
+
+		// do transformation with the NondetModelTransformationOperator
+		return getTransformed(ndTransformation);
+	}
+
 }
 
 //------------------------------------------------------------------------------
