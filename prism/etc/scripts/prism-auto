@@ -582,7 +582,7 @@ def benchmarkModelFile(modelFile, modelArgs=[], dir=""):
     for args in argLists:
         # Build mode: just build
         if options.build:
-            benchmark(modelFile, modelArgs + args)
+            benchmark(modelFile, modelArgs + args, dir)
         # Otherwise, find properties
         else:
             # Find and benchmark properties
