@@ -40,7 +40,6 @@ import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
-import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
@@ -400,6 +399,29 @@ public class DTMCModelChecker extends ProbModelChecker
 
 	/**
 	 * Compute transient probability distribution (forwards).
+	 * Start from initial state (or uniform distribution over multiple initial states).
+	 */
+	public StateValues doTransient(DTMC dtmc, int k) throws PrismException
+	{
+		return doTransient(dtmc, k, (StateValues) null);
+	}
+
+	/**
+	 * Compute transient probability distribution (forwards).
+	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * @param dtmc The DTMC
+	 * @param k Time step
+	 * @param initDistFile File containing initial distribution
+	 */
+	public StateValues doTransient(DTMC dtmc, int k, File initDistFile) throws PrismException
+	{
+		StateValues initDist = readDistributionFromFile(initDistFile, dtmc);
+		return doTransient(dtmc, k, initDist);
+	}
+
+	/**
+	 * Compute transient probability distribution (forwards).
 	 * Optionally, use the passed in vector initDist as the initial probability distribution (time step 0).
 	 * If null, start from initial state (or uniform distribution over multiple initial states).
 	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
@@ -408,9 +430,11 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * @param k Time step
 	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public StateValues doTransient(DTMC dtmc, int k, double initDist[]) throws PrismException
+	public StateValues doTransient(DTMC dtmc, int k, StateValues initDist) throws PrismException
 	{
-		throw new PrismNotSupportedException("Not implemented yet");
+		StateValues initDistNew = (initDist == null) ? buildInitialDistribution(dtmc) : initDist;
+		ModelCheckerResult res = computeTransientProbs(dtmc, k, initDistNew.getDoubleArray());
+		return StateValues.createFromDoubleArray(res.soln, dtmc);
 	}
 
 	// Numerical computation functions
@@ -1600,7 +1624,44 @@ public class DTMCModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeTransientProbs(DTMC dtmc, int k, double initDist[]) throws PrismException
 	{
-		throw new PrismNotSupportedException("Not implemented yet");
+		ModelCheckerResult res;
+		int n, iters;
+		double soln[], soln2[], tmpsoln[];
+		long timer;
+
+		// Start transient probability computation
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting transient probability computation...");
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Create solution vector(s)
+		// Use the passed in vector, if present
+		soln = initDist;
+		soln2 = new double[n];
+
+		// Start iterations
+		for (iters = 0; iters < k; iters++) {
+			// Matrix-vector multiply
+			dtmc.vmMult(soln, soln2);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+		}
+
+		// Finished transient probability computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Transient probability computation");
+		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		return res;
 	}
 
 	/**

@@ -3382,7 +3382,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		else {
 			buildModelIfRequired();
 			if (currentModelType == ModelType.DTMC) {
-				throw new PrismException("Not implemented yet");
+				DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
+				probsExpl = mcDTMC.doTransient((DTMC) currentModelExpl, (int) time, fileIn);
 			} else if (currentModelType == ModelType.CTMC) {
 				CTMCModelChecker mcCTMC = new CTMCModelChecker(this);
 				probsExpl = mcCTMC.doTransient((CTMC) currentModelExpl, time, fileIn);
@@ -3509,7 +3510,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					}
 					probsExpl = mc.doTransient((CTMC) currentModelExpl, timeDouble - initTimeDouble, initDistExpl);
 				} else {
-					throw new PrismException("Not implemented yet");
+					DTMCModelChecker mc = new DTMCModelChecker(this);
+					if (i == 0) {
+						initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
+						initTimeInt = 0;
+					}
+					probsExpl = mc.doTransient((DTMC) currentModelExpl, timeInt - initTimeInt, initDistExpl);
 				}
 			}
 
