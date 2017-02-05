@@ -33,7 +33,6 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.Rewards;
 import explicit.rewards.StateRewardsArray;
 import parser.ast.*;
-import parser.type.*;
 import prism.*;
 
 /**
@@ -254,25 +253,9 @@ public class CTMCModelChecker extends ProbModelChecker
 	 */
 	public StateValues doTransient(CTMC ctmc, double t, StateValues initDist) throws PrismException
 	{
-		ModelCheckerResult res = null;
-		StateValues initDistNew = null, probs = null;
-
-		// Build initial distribution (if not specified)
-		if (initDist == null) {
-			initDistNew = new StateValues(TypeDouble.getInstance(), new Double(0.0), ctmc);
-			double initVal = 1.0 / ctmc.getNumInitialStates();
-			for (int in : ctmc.getInitialStates()) {
-				initDistNew.setDoubleValue(in, initVal);
-			}
-		} else {
-			initDistNew = initDist;
-		}
-
-		// Compute transient probabilities
-		res = computeTransientProbs(ctmc, t, initDistNew.getDoubleArray());
-		probs = StateValues.createFromDoubleArray(res.soln, ctmc);
-
-		return probs;
+		StateValues initDistNew = (initDist == null) ? buildInitialDistribution(ctmc) : initDist;
+		ModelCheckerResult res = computeTransientProbs(ctmc, t, initDistNew.getDoubleArray());
+		return StateValues.createFromDoubleArray(res.soln, ctmc);
 	}
 
 	// Numerical computation functions
