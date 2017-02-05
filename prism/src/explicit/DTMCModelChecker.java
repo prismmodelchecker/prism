@@ -201,13 +201,21 @@ public class DTMCModelChecker extends ProbModelChecker
 		return rewards;
 	}
 	
-	public ModelCheckerResult computeInstantaneousRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
+	public ModelCheckerResult computeInstantaneousRewards(DTMC dtmc, MCRewards mcRewards, int k, BitSet statesOfInterest) throws PrismException
+	{
+		if (statesOfInterest.cardinality() == 1) {
+			return computeInstantaneousRewardsForwards(dtmc, mcRewards, k, statesOfInterest.nextSetBit(0));
+		} else {
+			return computeInstantaneousRewardsBackwards(dtmc, mcRewards, k);
+		}
+	}
+	
+	public ModelCheckerResult computeInstantaneousRewardsBackwards(DTMC dtmc, MCRewards mcRewards, int k) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[];
 		long timer;
-		int right = (int) t;
 
 		// Store num states
 		n = dtmc.getNumStates();
@@ -225,7 +233,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			soln[i] = mcRewards.getStateReward(i);
 
 		// Start iterations
-		for (iters = 0; iters < right; iters++) {
+		for (iters = 0; iters < k; iters++) {
 			// Matrix-vector multiply
 			dtmc.mvMult(soln, soln2, null, false);
 			// Swap vectors for next iter
@@ -249,6 +257,31 @@ public class DTMCModelChecker extends ProbModelChecker
 		return res;
 	}
 
+	public ModelCheckerResult computeInstantaneousRewardsForwards(DTMC dtmc, MCRewards mcRewards, int k, int stateOfInterest) throws PrismException
+	{
+		// Build a point probability distribution for the required state  
+		double[] initDist = new double[dtmc.getNumStates()];
+		initDist[stateOfInterest] = 1.0;
+		
+		// Compute (forward) transient probabilities
+		ModelCheckerResult res = computeTransientProbs(dtmc, k, initDist);
+		
+		// Compute expected value (from initial state)
+		int n = dtmc.getNumStates();
+		double avg = 0.0;
+		for (int i = 0; i < n; i++) {
+			avg += res.soln[i] *= mcRewards.getStateReward(i);
+		}
+
+		// Reuse vector/result storage
+		for (int i = 0; i < n; i++) {
+			res.soln[i] = 0.0;
+		}
+		res.soln[stateOfInterest] = avg;
+		
+		return res;
+	}
+	
 	public ModelCheckerResult computeCumulativeRewards(DTMC dtmc, MCRewards mcRewards, double t) throws PrismException
 	{
 		ModelCheckerResult res = null;

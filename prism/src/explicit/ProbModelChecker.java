@@ -954,7 +954,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
 			case ExpressionTemporal.R_I:
-				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp, minMax);
+				rewards = checkRewardInstantaneous(model, modelRewards, exprTemp, minMax, statesOfInterest);
 				break;
 			case ExpressionTemporal.R_C:
 				if (exprTemp.hasBounds()) {
@@ -979,18 +979,17 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Compute rewards for an instantaneous reward operator.
 	 */
-	protected StateValues checkRewardInstantaneous(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax) throws PrismException
+	protected StateValues checkRewardInstantaneous(Model model, Rewards modelRewards, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		// Get time bound
-		double t = expr.getUpperBound().evaluateDouble(constantValues);
-
 		// Compute/return the rewards
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			res = ((DTMCModelChecker) this).computeInstantaneousRewards((DTMC) model, (MCRewards) modelRewards, t);
+			int k = expr.getUpperBound().evaluateInt(constantValues);
+			res = ((DTMCModelChecker) this).computeInstantaneousRewards((DTMC) model, (MCRewards) modelRewards, k, statesOfInterest);
 			break;
 		case CTMC:
+			double t = expr.getUpperBound().evaluateDouble(constantValues);
 			res = ((CTMCModelChecker) this).computeInstantaneousRewards((CTMC) model, (MCRewards) modelRewards, t);
 			break;
 		default:
