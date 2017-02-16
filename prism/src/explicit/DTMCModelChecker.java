@@ -368,7 +368,15 @@ public class DTMCModelChecker extends ProbModelChecker
 		mainLog.print("States in non-zero reward BSCCs: " + bsccsNonZero.cardinality());
 		
 		// Find states with infinite reward (those reach a non-zero reward BSCC with prob > 0)
-		BitSet inf = prob0(dtmc, null, bsccsNonZero);
+		BitSet inf;
+		if (preRel) {
+			// prob0 using predecessor relation
+			PredecessorRelation pre = dtmc.getPredecessorRelation(this, true);
+			inf = prob0(dtmc, null, bsccsNonZero, pre);
+		} else {
+			// prob0 using fixed point algorithm
+			inf = prob0(dtmc, null, bsccsNonZero);
+		}
 		inf.flip(0, n);
 		int numInf = inf.cardinality();
 		mainLog.println(", inf=" + numInf + ", maybe=" + (n - numInf));
