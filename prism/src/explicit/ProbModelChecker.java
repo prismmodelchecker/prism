@@ -984,14 +984,21 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Compute/return the rewards
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
-		case DTMC:
+		case DTMC: {
 			int k = expr.getUpperBound().evaluateInt(constantValues);
 			res = ((DTMCModelChecker) this).computeInstantaneousRewards((DTMC) model, (MCRewards) modelRewards, k, statesOfInterest);
 			break;
-		case CTMC:
+		}
+		case CTMC: {
 			double t = expr.getUpperBound().evaluateDouble(constantValues);
 			res = ((CTMCModelChecker) this).computeInstantaneousRewards((CTMC) model, (MCRewards) modelRewards, t);
 			break;
+		}
+		case MDP: {
+			int k = expr.getUpperBound().evaluateInt(constantValues);
+			res = ((MDPModelChecker) this).computeInstantaneousRewards((MDP) model, (MDPRewards) modelRewards, k, minMax.isMin());
+			break;
+		}
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");

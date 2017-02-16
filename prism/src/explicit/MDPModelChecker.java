@@ -1238,6 +1238,61 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute expected instantaneous reward,
+	 * i.e. compute the min/max expected reward of the states after {@code k} steps.
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 * @param k the number of steps
+	 * @param min Min or max rewards (true=min, false=max)
+	 */
+	public ModelCheckerResult computeInstantaneousRewards(MDP mdp, MDPRewards mdpRewards, final int k, boolean min)
+	{
+		ModelCheckerResult res = null;
+		int i, n, iters;
+		double soln[], soln2[], tmpsoln[];
+		long timer;
+
+		// Store num states
+		n = mdp.getNumStates();
+
+		// Start backwards transient computation
+		timer = System.currentTimeMillis();
+		mainLog.println("\nStarting backwards instantaneous rewards computation...");
+
+		// Create solution vector(s)
+		soln = new double[n];
+		soln2 = new double[n];
+
+		// Initialise solution vectors.
+		for (i = 0; i < n; i++)
+			soln[i] = mdpRewards.getStateReward(i);
+
+		// Start iterations
+		for (iters = 0; iters < k; iters++) {
+			// Matrix-vector multiply
+			mdp.mvMultMinMax(soln, min, soln2, null, false, null);
+			// Swap vectors for next iter
+			tmpsoln = soln;
+			soln = soln2;
+			soln2 = tmpsoln;
+		}
+
+		// Finished backwards transient computation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Backwards transient instantaneous rewards computation");
+		mainLog.println(" took " + iters + " iters and " + timer / 1000.0 + " seconds.");
+
+		// Return results
+		res = new ModelCheckerResult();
+		res.soln = soln;
+		res.lastSoln = soln2;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		res.timePre = 0.0;
+		return res;
+	}
+
+	/**
 	 * Compute expected reachability rewards.
 	 * @param mdp The MDP
 	 * @param mdpRewards The rewards
@@ -1776,4 +1831,5 @@ public class MDPModelChecker extends ProbModelChecker
 			System.out.println(e);
 		}
 	}
+
 }
