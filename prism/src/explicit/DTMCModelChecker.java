@@ -1269,7 +1269,14 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Precomputation (not optional)
 		timerProb1 = System.currentTimeMillis();
-		inf = prob1(dtmc, null, target);
+		if (preRel) {
+			// prob1 via predecessor relation
+			PredecessorRelation pre = dtmc.getPredecessorRelation(this, true);
+			inf = prob1(dtmc, null, target, pre);
+		} else {
+			// prob1 via fixed-point algorithm
+			inf = prob1(dtmc, null, target);
+		}
 		inf.flip(0, n);
 		timerProb1 = System.currentTimeMillis() - timerProb1;
 
