@@ -316,6 +316,19 @@ final class BoxRegion extends Region {
 						allDecided = false;
 						break;
 					}
+				} else if (op == Region.NE) {
+					if (op1Val instanceof StateBoolean) {
+						newValues.setStateValue(state, !op1Val.equals(op2Val));
+					} else if (op1Val.equals(op2Val)) {
+						newValues.setStateValue(state, false);
+					} else if (checker.check(region, op1ValFn.subtract(op2ValFn), true)) {
+						newValues.setStateValue(state, true);
+					} else if (checker.check(region, op2ValFn.subtract(op1ValFn), true)) {
+						newValues.setStateValue(state, true);
+					} else {
+						allDecided = false;
+						break;
+					}
 				} else {
 					boolean strict = op == Region.GT || op == Region.LT;
 					Function cmpTrue = (op == Region.LT || op == Region.LE) ? op2ValFn.subtract(op1ValFn) : op1ValFn.subtract(op2ValFn);
