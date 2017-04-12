@@ -1008,6 +1008,26 @@ public class MDPSparse extends MDPExplicit
 	}
 	
 	@Override
+	public double mvMultRewSingle(int s, int i, double[] vect, MDPRewards mdpRewards)
+	{
+		int j, k, l2, h2;
+		double d;
+
+		j = rowStarts[s] + i;
+		// Compute sum for this distribution
+		// TODO: use transition rewards when added to DTMCss
+		// d = mcRewards.getTransitionReward(s);
+		d = 0;
+		l2 = choiceStarts[j];
+		h2 = choiceStarts[j + 1];
+		for (k = l2; k < h2; k++) {
+			d += nonZeros[k] * vect[cols[k]];
+		}
+		d += mdpRewards.getTransitionReward(s,i);
+		return d;
+	}
+	
+	@Override
 	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
 	{
 		int j, k, l1, h1, l2, h2, stratCh = -1;

@@ -947,6 +947,27 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	}
 	
 	@Override
+	public double mvMultRewSingle(int s, int i, double[] vect, MDPRewards mdpRewards)
+	{
+		double d, prob;
+		int k;
+
+		Distribution distr = trans.get(s).get(i);
+		// Compute sum for this distribution
+		// TODO: use transition rewards when added to DTMCss
+		// d = mcRewards.getTransitionReward(s);
+		d = 0;
+		for (Map.Entry<Integer, Double> e : distr) {
+			k = (Integer) e.getKey();
+			prob = (Double) e.getValue();
+			d += prob * vect[k];
+		}
+		d += mdpRewards.getTransitionReward(s, i);
+		
+		return d;
+	}
+	
+	@Override
 	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
 	{
 		int j, k = -1, stratCh = -1;
