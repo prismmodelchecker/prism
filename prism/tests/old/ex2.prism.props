@@ -1,0 +1,11 @@
+// RESULT: 9
+R{"time"}min=? [((F "v3") & (F "v27")) ]
+
+// RESULT: 13
+R{"time"}min=? [(F ("v27" & (F "v14"))) ]
+
+// RESULT: 13
+R{"time"}min=? [(((! "v14") U "v27") & (F "v14")) ]
+
+// RESULT: 6
+R{"time"}min=? [ ((F "v24") | (F "v27")) ]

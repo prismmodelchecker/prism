@@ -1,0 +1,4 @@
+//Pmax=? [ (F "found_mug1")  & (F "found_cup1")]
+
+ijcai(Pmax=? [ (F "found_mug1")  & (F "found_cup1")])
+
