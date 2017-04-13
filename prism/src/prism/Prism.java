@@ -2705,8 +2705,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		List<String> labelNames = new ArrayList<String>();
 		labelNames.add("init");
 		labelNames.add("deadlock");
-		labelNames.addAll(currentModelInfo.getLabelNames());
-		if (propertiesFile != null) {
+		if (propertiesFile == null) {
+			labelNames.addAll(currentModelInfo.getLabelNames());
+		} else {
 			LabelList ll = propertiesFile.getCombinedLabelList();
 			int numLabels = ll.size();
 			for (int i = 0; i < numLabels; i++) {
