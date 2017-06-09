@@ -1,0 +1,1 @@
+partial(R{"time"}min=?[((!"break" & !"bedroom") U (!"break" & "kitchen"))]);

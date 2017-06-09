@@ -1,0 +1,41 @@
+//MDP from the paper Specification Revision for Markov Decision Processes with Optimal Trade-off by M Lahijanian et al. 
+
+mdp 
+
+module world 
+
+       s:[0..3] init 0; 
+       
+       [a0] s=0 -> (s'=0); 
+       [a1] s=0 -> 0.6:(s'=1)+0.4:(s'=3); 
+       [a2] s=0 -> (s'=2); 
+       
+       [a0] s=1 -> (s'=1); 
+
+       [a0] s=2 -> (s'=1); 
+
+       [a0] s=3 -> (s'=3); 
+
+
+endmodule 
+
+
+label "commonroom" = s=0; 
+label "kitchen" = s=1; 
+label "bedroom" = s=2; 
+label "break" = s=3; 
+
+rewards "time"
+
+	[a0] (s=0):1.0;
+	[a1] (s=0):1.0; 
+	[a2] (s=0):1.0; 
+
+	[a0] (s=1):1.0; 
+	
+	[a0] (s=2):1.0;
+
+	[a0] (s=3):1.0;
+
+
+endrewards
