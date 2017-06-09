@@ -172,9 +172,8 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 				while(transitions.hasNext()) {
 					transition = transitions.next();
 					nextState = transition.getKey();
-					rewardValue = rewardValue + transition.getValue()*distsToAcc.get(getAutomatonState(nextState));					
+					rewardValue = rewardValue + transition.getValue()*Math.max(currentStateDistance - distsToAcc.get(getAutomatonState(nextState)), 0.0);
 				}
-				rewardValue = Math.max(currentStateDistance - rewardValue, 0.0);
 				rewSimple.setTransitionReward(productState, i, rewardValue);
 			}
 		}				
