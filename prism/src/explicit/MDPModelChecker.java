@@ -222,7 +222,7 @@ public class MDPModelChecker extends ProbModelChecker
 		rewsProduct = StateValues.createFromDoubleArray(res.solnProg, productMdp);
 		rews = product.projectToOriginalModel(rewsProduct); 
 		double maxRew = rews.getDoubleArray()[model.getFirstInitialState()];
-		mainLog.println("\nFor p = " + maxProb + ", the maximum expected cummulative reward to satisfy specification is " + maxRew);
+		mainLog.println("\nFor p = " + maxProb + ", the maximum expected progression reward is " + maxRew);
 		
 		if (getExportProductVector()) {
 			mainLog.println("\nExporting expected progression reward over product to file \"" + PrismUtils.addCounterSuffixToFilename(getExportProductVectorFilename(), 2) + "\"...");
@@ -234,7 +234,7 @@ public class MDPModelChecker extends ProbModelChecker
 		costsProduct = StateValues.createFromDoubleArray(res.solnCost, productMdp);		
 		costs = product.projectToOriginalModel(costsProduct);	
 		double minCost = costs.getDoubleArray()[model.getFirstInitialState()];
-		mainLog.println("\nFor p = " + maxProb + ", r = " +  + maxRew + " the minimum expected  cummulative cost to satisfy specification is " + minCost);
+		mainLog.println("\nFor p = " + maxProb + ", r = " +  + maxRew + " the minimum expected cummulative cost until no more progression reward can be gathered is " + minCost);
 //		System.out.println("Probability to find objects: " + maxProb);
 //		System.out.println("Expected progression reward: " + maxRew);
 //		System.out.println("Expected time to execute task: " + minCost);
