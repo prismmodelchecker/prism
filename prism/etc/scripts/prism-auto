@@ -16,6 +16,13 @@ from pipes import quote
 from optparse import OptionParser
 
 #==================================================================================================
+# Global variables
+#==================================================================================================
+
+# statistics about test results
+testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0)
+
+#==================================================================================================
 # Utility functions
 #==================================================================================================
 
@@ -413,6 +420,7 @@ def runPrism(args, dir=""):
 
 def printTestResult(msg):
     msg = str.rstrip(msg)
+    countTestResult(msg)
     if not isColourEnabled():
         print(msg);
         return
@@ -429,6 +437,30 @@ def printTestResult(msg):
         print('\033[33m' + msg + '\033[0m')
     else:
         print(msg)
+
+def incrementTestStat(stat):
+    global testStats
+    testStats[stat]+=1
+
+def printTestStatistics():
+    if options.test and not options.echo:
+        print('\nTest results:');
+        print(' Success:     ' + str(testStats['SUCCESS']));
+        print(' Failure:     ' + str(testStats['FAILURE']));
+        print(' Unsupported: ' + str(testStats['UNSUPPORTED']));
+        print(' Skipped:     ' + str(testStats['SKIPPED']));
+
+def countTestResult(msg):
+    if 'Error:' in msg or 'FAIL' in msg:
+        incrementTestStat('FAILURE')
+# ignore warnings
+#    elif 'Warning:' in msg:
+    elif 'PASS' in msg:
+        incrementTestStat('SUCCESS')
+    elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
+        incrementTestStat('SKIPPED')
+    elif 'UNSUPPORTED' in msg:
+        incrementTestStat('UNSUPPORTED')
 
 # Is printing of colour coded messages enabled?
 
@@ -698,6 +730,7 @@ def closeDown(exitCode):
             print(options.ngprism + " stop")
         else:
             subprocess.Popen([options.ngprism, "stop"]).wait()
+    printTestStatistics()
     sys.exit(exitCode)
 
 # Main program
