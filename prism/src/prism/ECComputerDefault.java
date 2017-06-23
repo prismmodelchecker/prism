@@ -111,7 +111,7 @@ public class ECComputerDefault extends ECComputer
 				continue;
 			}
 
-			if (stableSet.equals(candidate) && JDD.GetNumMinterms(stableSet, allDDRowVars.n()) == 1) {
+			if (stableSet.equals(candidate) && JDD.isSingleton(stableSet, allDDRowVars)) {
 				mecs.add(candidate);
 				JDD.Deref(stableSet);
 				continue;
