@@ -673,7 +673,7 @@ public class ExplicitFiles2MTBDD
 		}
 		// Otherwise, construct from the labels
 		else {
-			start = labelsDD.get("init");
+			start = labelsDD.get("init").copy();
 			if (start == null || start.equals(JDD.ZERO)) {
 				throw new PrismException("No initial states found in labels file");
 			}
