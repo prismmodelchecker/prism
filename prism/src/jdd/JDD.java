@@ -1063,6 +1063,10 @@ public class JDD
 	 * <br>
 	 * This is the case if there is a single path to the ONE constant
 	 * and exactly the variables of {@code vars} occur on the path.
+	 * <br>
+	 * <b>Note:</b> The variables in {@code vars} have to sorted
+	 * in increasing index order! Use JDDVars.sortByIndex() to achieve this
+	 * if the ordering is not guaranteed by construction.
 	 * @param dd the DD
 	 * @param vars the variables
 	 */
