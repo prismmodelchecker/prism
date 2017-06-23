@@ -403,7 +403,7 @@ public class Property extends ASTElement
 			}
 			// Parse actual result
 			if (!(result instanceof Double))
-				throw new PrismException("Result is wrong type for (double-valued) property");
+				throw new PrismException("Result is wrong type (" + result.getClass() + ") for (double-valued) property");
 			double doubleRes = ((Double) result).doubleValue();
 			// Compare results
 			if (Double.isNaN(doubleRes)) {
