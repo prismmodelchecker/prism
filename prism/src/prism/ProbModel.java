@@ -837,12 +837,18 @@ public class ProbModel implements Model
 		}
 	}
 
-	// export state rewards vector to a file
+	@Override
+	public void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath());
+	}
 
-	// returns string containing files used if there were more than 1, null otherwise
-
+	@Deprecated
 	public String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
+		// export state rewards vector to a file
+		// returns string containing files used if there were more than 1, null otherwise
+
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no state rewards to export");
 		int i;
@@ -858,12 +864,22 @@ public class ProbModel implements Model
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
 
-	// export transition rewards matrix to a file
+	@Override
+	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException
+	{
+		if (!ordered) {
+			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath());
+		} else {
+			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath());
+		}
+	}
 
-	// returns string containing files used if there were more than 1, null otherwise
-
+	@Deprecated
 	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
+		// export transition rewards matrix to a file
+		// returns string containing files used if there were more than 1, null otherwise
+
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no transition rewards to export");
 		int i;
