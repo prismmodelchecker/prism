@@ -22,6 +22,9 @@ from optparse import OptionParser
 # statistics about test results
 testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0)
 
+# colour coding for test results
+testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 33)
+
 #==================================================================================================
 # Utility functions
 #==================================================================================================
@@ -419,6 +422,7 @@ def runPrism(args, dir=""):
 # Print a testing-related message, colour coding if needed
 
 def printTestResult(msg):
+    global testColours
     msg = str.rstrip(msg)
     countTestResult(msg)
     if not isColourEnabled():
@@ -426,15 +430,15 @@ def printTestResult(msg):
         return
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
-        print('\033[31m' + msg + '\033[0m')
+        print('\033[' + str(testColours['FAILURE']) + 'm' + msg + '\033[0m')
     elif 'Warning:' in msg:
-         print('\033[31;1m' + msg + '\033[0m')
+         print('\033[' + str(testColours['FAILURE']) + ';1m' + msg + '\033[0m')
     elif 'PASS' in msg:
-        print('\033[32m' + msg + '\033[0m')
+        print('\033[' + str(testColours['SUCCESS']) + 'm' + msg + '\033[0m')
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
-        print('\033[90m' + msg + '\033[0m')
+        print('\033[' + str(testColours['SKIPPED']) + 'm' + msg + '\033[0m')
     elif 'UNSUPPORTED' in msg or 'Warning:' in msg:
-        print('\033[33m' + msg + '\033[0m')
+        print('\033[' + str(testColours['UNSUPPORTED']) + 'm' + msg + '\033[0m')
     else:
         print(msg)
 
@@ -445,10 +449,10 @@ def incrementTestStat(stat):
 def printTestStatistics():
     if options.test and not options.echo:
         print('\nTest results:');
-        print(' Success:     ' + str(testStats['SUCCESS']));
-        print(' Failure:     ' + str(testStats['FAILURE']));
-        print(' Unsupported: ' + str(testStats['UNSUPPORTED']));
-        print(' Skipped:     ' + str(testStats['SKIPPED']));
+        print('\033[' + str(testColours['SUCCESS']) + 'm' + ' Success:     ' + str(testStats['SUCCESS'])) + '\033[0m';
+        print('\033[' + str(testColours['FAILURE']) + 'm' + ' Failure:     ' + str(testStats['FAILURE'])) + '\033[0m';
+        print('\033[' + str(testColours['UNSUPPORTED']) + 'm' + ' Unsupported: ' + str(testStats['UNSUPPORTED'])) + '\033[0m';
+        print('\033[' + str(testColours['SKIPPED']) + 'm' + ' Skipped:     ' + str(testStats['SKIPPED'])) + '\033[0m';
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
