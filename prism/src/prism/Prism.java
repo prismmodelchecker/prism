@@ -2872,13 +2872,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return fauMC.check(prop.getExpression());
 		}
 		// Auto-switch engine if required
-		else if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
+		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
 				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
 				engineSwitch = true;
 				lastEngine = getEngine();
 				setEngine(Prism.EXPLICIT);
 			}
+		}
+		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
+			mainLog.printWarning("Switching to explicit engine to allow non-probabilistuc LTL mocel checking.");
+			engineSwitch = true;
+			lastEngine = getEngine();
+			setEngine(Prism.EXPLICIT);
 		}
 		try {
 			// Build model, if necessary
