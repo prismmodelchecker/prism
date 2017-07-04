@@ -23,7 +23,8 @@ from optparse import OptionParser
 testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0)
 
 # colour coding for test results
-testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 33)
+# for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 33, WARNING = '31;1')
 
 #==================================================================================================
 # Utility functions
@@ -337,6 +338,18 @@ def walk(dir, meth):
         if os.path.isdir(nfile):
             walk(nfile,meth)
 
+#
+# Print a message in colour, but only if isColourEnabled() is true.
+# If isColourEnabled is false, print message without colours.
+# The colour parameter is a key for the global testColours dictionary.
+#
+def printColoured(colour, msg):
+    global testColours
+    if isColourEnabled():
+        print('\033[' + str(testColours[colour]) + 'm' + msg + '\033[0m')
+    else:
+        print(msg)
+
 #==================================================================================================
 # Benchmarking
 #==================================================================================================
@@ -430,15 +443,15 @@ def printTestResult(msg):
         return
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
-        print('\033[' + str(testColours['FAILURE']) + 'm' + msg + '\033[0m')
+        printColoured('FAILURE', msg)
     elif 'Warning:' in msg:
-         print('\033[' + str(testColours['FAILURE']) + ';1m' + msg + '\033[0m')
+        printColoured('WARNING', msg)
     elif 'PASS' in msg:
-        print('\033[' + str(testColours['SUCCESS']) + 'm' + msg + '\033[0m')
+        printColoured('SUCCESS', msg)
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
-        print('\033[' + str(testColours['SKIPPED']) + 'm' + msg + '\033[0m')
+        printColoured('SKIPPED', msg)
     elif 'UNSUPPORTED' in msg or 'Warning:' in msg:
-        print('\033[' + str(testColours['UNSUPPORTED']) + 'm' + msg + '\033[0m')
+        printColoured('UNSUPPORTED', msg)
     else:
         print(msg)
 
@@ -448,11 +461,11 @@ def incrementTestStat(stat):
 
 def printTestStatistics():
     if options.test and not options.echo:
-        print('\nTest results:');
-        print('\033[' + str(testColours['SUCCESS']) + 'm' + ' Success:     ' + str(testStats['SUCCESS'])) + '\033[0m';
-        print('\033[' + str(testColours['FAILURE']) + 'm' + ' Failure:     ' + str(testStats['FAILURE'])) + '\033[0m';
-        print('\033[' + str(testColours['UNSUPPORTED']) + 'm' + ' Unsupported: ' + str(testStats['UNSUPPORTED'])) + '\033[0m';
-        print('\033[' + str(testColours['SKIPPED']) + 'm' + ' Skipped:     ' + str(testStats['SKIPPED'])) + '\033[0m';
+        print('\nTest results:')
+        printColoured('SUCCESS',     ' Success:     ' + str(testStats['SUCCESS']))
+        printColoured('FAILURE',     ' Failure:     ' + str(testStats['FAILURE']))
+        printColoured('UNSUPPORTED', ' Unsupported: ' + str(testStats['UNSUPPORTED']))
+        printColoured('SKIPPED',     ' Skipped:     ' + str(testStats['SKIPPED']))
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
