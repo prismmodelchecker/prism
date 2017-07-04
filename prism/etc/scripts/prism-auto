@@ -20,7 +20,7 @@ from optparse import OptionParser
 #==================================================================================================
 
 # statistics about test results
-testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0)
+testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0)
 
 # colour coding for test results
 # for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -462,16 +462,22 @@ def incrementTestStat(stat):
 def printTestStatistics():
     if options.test and not options.echo:
         print('\nTest results:')
-        printColoured('SUCCESS',     ' Success:     ' + str(testStats['SUCCESS']))
-        printColoured('FAILURE',     ' Failure:     ' + str(testStats['FAILURE']))
-        printColoured('UNSUPPORTED', ' Unsupported: ' + str(testStats['UNSUPPORTED']))
-        printColoured('SKIPPED',     ' Skipped:     ' + str(testStats['SKIPPED']))
+        printColoured('SUCCESS',     ' Success:      ' + str(testStats['SUCCESS']))
+        printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
+        printColoured('UNSUPPORTED', ' Unsupported:  ' + str(testStats['UNSUPPORTED']))
+        printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
+        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING']))
+        if (options.ddWarnings):
+            printColoured('WARNING',     '  DD-Warnings: ' + str(testStats['DDWARNING']))
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
         incrementTestStat('FAILURE')
-# ignore warnings
-#    elif 'Warning:' in msg:
+    elif options.ddWarnings and re.match('Warning: CUDD reports .* non-zero references', msg):
+        incrementTestStat('WARNINGS')
+        incrementTestStat('DDWARNINGS')
+    elif 'Warning:' in msg:
+        incrementTestStat('WARNINGS')
     elif 'PASS' in msg:
         incrementTestStat('SUCCESS')
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
