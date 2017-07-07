@@ -35,12 +35,6 @@ public class FileSetting extends Setting
     private static FileRenderer renderer;
     private static FileEditor editor;
     
-    static
-    {
-        renderer = new FileRenderer();
-        editor = new FileEditor();
-    }
-	
 	private static FileSelector defaultSelector()
 	{
 		try {
@@ -106,11 +100,17 @@ public class FileSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+        	editor = new FileEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+        	renderer = new FileRenderer();
+        }
         return renderer;
     }
     

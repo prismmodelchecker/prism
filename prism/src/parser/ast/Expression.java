@@ -837,6 +837,33 @@ public abstract class Expression extends ASTElement
 	}
 	
 	/**
+	 * Test if an expression contains a non-probabilistic LTL formula (i.e., a non-simple path formula). 
+	 */
+	public static boolean containsNonProbLTLFormula(Expression expr)
+	{
+		try {
+			ASTTraverse astt = new ASTTraverse()
+			{
+				public void visitPost(ExpressionForAll e) throws PrismLangException
+				{
+					if (!e.getExpression().isSimplePathFormula())
+						throw new PrismLangException("Found one", e);
+				}
+				
+				public void visitPost(ExpressionExists e) throws PrismLangException
+				{
+					if (!e.getExpression().isSimplePathFormula())
+						throw new PrismLangException("Found one", e);
+				}
+			};
+			expr.accept(astt);
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Test if an expression contains a multi(...) property within 
 	 */
 	public static boolean containsMultiObjective(Expression expr)

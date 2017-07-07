@@ -16,6 +16,17 @@ from pipes import quote
 from optparse import OptionParser
 
 #==================================================================================================
+# Global variables
+#==================================================================================================
+
+# statistics about test results
+testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0)
+
+# colour coding for test results
+# for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
+testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 33, WARNING = '31;1')
+
+#==================================================================================================
 # Utility functions
 #==================================================================================================
 
@@ -327,6 +338,18 @@ def walk(dir, meth):
         if os.path.isdir(nfile):
             walk(nfile,meth)
 
+#
+# Print a message in colour, but only if isColourEnabled() is true.
+# If isColourEnabled is false, print message without colours.
+# The colour parameter is a key for the global testColours dictionary.
+#
+def printColoured(colour, msg):
+    global testColours
+    if isColourEnabled():
+        print('\033[' + str(testColours[colour]) + 'm' + msg + '\033[0m')
+    else:
+        print(msg)
+
 #==================================================================================================
 # Benchmarking
 #==================================================================================================
@@ -412,23 +435,55 @@ def runPrism(args, dir=""):
 # Print a testing-related message, colour coding if needed
 
 def printTestResult(msg):
+    global testColours
     msg = str.rstrip(msg)
+    countTestResult(msg)
     if not isColourEnabled():
         print(msg);
         return
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
-        print('\033[31m' + msg + '\033[0m')
+        printColoured('FAILURE', msg)
     elif 'Warning:' in msg:
-         print('\033[31;1m' + msg + '\033[0m')
+        printColoured('WARNING', msg)
     elif 'PASS' in msg:
-        print('\033[32m' + msg + '\033[0m')
+        printColoured('SUCCESS', msg)
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
-        print('\033[90m' + msg + '\033[0m')
+        printColoured('SKIPPED', msg)
     elif 'UNSUPPORTED' in msg or 'Warning:' in msg:
-        print('\033[33m' + msg + '\033[0m')
+        printColoured('UNSUPPORTED', msg)
     else:
         print(msg)
+
+def incrementTestStat(stat):
+    global testStats
+    testStats[stat]+=1
+
+def printTestStatistics():
+    if options.test and not options.echo:
+        print('\nTest results:')
+        printColoured('SUCCESS',     ' Success:      ' + str(testStats['SUCCESS']))
+        printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
+        printColoured('UNSUPPORTED', ' Unsupported:  ' + str(testStats['UNSUPPORTED']))
+        printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
+        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING']))
+        if (options.ddWarnings):
+            printColoured('WARNING',     '  DD-Warnings: ' + str(testStats['DDWARNING']))
+
+def countTestResult(msg):
+    if 'Error:' in msg or 'FAIL' in msg:
+        incrementTestStat('FAILURE')
+    elif options.ddWarnings and re.match('Warning: CUDD reports .* non-zero references', msg):
+        incrementTestStat('WARNINGS')
+        incrementTestStat('DDWARNINGS')
+    elif 'Warning:' in msg:
+        incrementTestStat('WARNINGS')
+    elif 'PASS' in msg:
+        incrementTestStat('SUCCESS')
+    elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
+        incrementTestStat('SKIPPED')
+    elif 'UNSUPPORTED' in msg:
+        incrementTestStat('UNSUPPORTED')
 
 # Is printing of colour coded messages enabled?
 
@@ -698,6 +753,7 @@ def closeDown(exitCode):
             print(options.ngprism + " stop")
         else:
             subprocess.Popen([options.ngprism, "stop"]).wait()
+    printTestStatistics()
     sys.exit(exitCode)
 
 # Main program

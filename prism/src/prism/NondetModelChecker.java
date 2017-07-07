@@ -725,7 +725,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			// Check there are no state rewards (which are not currently supported), and throw an exception if there are
 			JDDNode stateRewards = getStateRewardsByIndexObject(rs, model, constantValues);
 			if (stateRewards != null && !stateRewards.equals(JDD.ZERO)) {
-				throw new PrismException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
+				throw new PrismNotSupportedException("Multi-objective model checking does not support state rewards; please convert to transition rewards");
 			}
 			// Add transition rewards to list
 			transRewardsList.add(getTransitionRewardsByIndexObject(rs, model, constantValues));
