@@ -81,11 +81,13 @@ jlong __jlongpointer psi	// psi(b2)
 	Cudd_Ref(reach);
 	Cudd_Ref(no);
 	notno = DD_And(ddman, reach, DD_Not(ddman, no));
+	if (notno == NULL) return ptr_to_jlong(NULL);
 	
 	// greatest fixed point loop
 	Cudd_Ref(b2);
 	Cudd_Ref(notno);
 	sol = DD_Or(ddman, b2, notno);
+	if (sol == NULL) return ptr_to_jlong(NULL);
 	
 	done = false;
 	iters = 0;
@@ -96,17 +98,23 @@ jlong __jlongpointer psi	// psi(b2)
 		
 		Cudd_Ref(sol);
 		tmp = DD_SwapVariables(ddman, sol, rvars, cvars, num_rvars);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		Cudd_Ref(trans01);
 		tmp = DD_ForAll(ddman, DD_Implies(ddman, trans01, tmp), cvars, num_cvars);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		
 		Cudd_Ref(mask);
 		tmp = DD_Or(ddman, tmp, mask);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		tmp = DD_ForAll(ddman, tmp, ndvars, num_ndvars);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		
 		Cudd_Ref(notno);
-		tmp = DD_And(ddman, notno, tmp);		
+		tmp = DD_And(ddman, notno, tmp);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		Cudd_Ref(b2);
 		tmp = DD_Or(ddman, b2, tmp);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		
 		if (tmp == sol) {
 			done = true;

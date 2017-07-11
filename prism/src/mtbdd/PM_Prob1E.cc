@@ -82,6 +82,7 @@ jlong __jlongpointer _no	// no
 	Cudd_Ref(reach);
 	Cudd_Ref(no);
 	u = DD_And(ddman, reach, DD_Not(ddman, no));
+	if (u == NULL) return ptr_to_jlong(NULL);
 	//u = DD_Constant(ddman, 1);
 	u_done = false;
 	iters = 0;
@@ -98,21 +99,29 @@ jlong __jlongpointer _no	// no
 				
 			Cudd_Ref(u);
 			tmp = DD_SwapVariables(ddman, u, rvars, cvars, num_rvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(trans01);
 			tmp = DD_ForAll(ddman, DD_Implies(ddman, trans01, tmp), cvars, num_cvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 
 			Cudd_Ref(v);
 			tmp2 = DD_SwapVariables(ddman, v, rvars, cvars, num_rvars);
+			if (tmp2 == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(trans01);
 			tmp2 = DD_ThereExists(ddman, DD_And(ddman, tmp2, trans01), cvars, num_cvars);
+			if (tmp2 == NULL) return ptr_to_jlong(NULL);
 
 			tmp = DD_And(ddman, tmp, tmp2);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			tmp = DD_ThereExists(ddman, tmp, ndvars, num_ndvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 
 			Cudd_Ref(b1);
-			tmp = DD_And(ddman, b1, tmp);		
+			tmp = DD_And(ddman, b1, tmp);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(b2);
 			tmp = DD_Or(ddman, b2, tmp);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			
 			if (tmp == v) {
 				v_done = true;

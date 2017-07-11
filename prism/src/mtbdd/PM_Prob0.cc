@@ -80,14 +80,19 @@ jlong __jlongpointer psi	// psi(b2)
 		
 		Cudd_Ref(sol);
 		tmp = DD_PermuteVariables(ddman, sol, rvars, cvars, num_cvars);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		Cudd_Ref(trans01);
 		tmp = DD_And(ddman, tmp, trans01);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		tmp = DD_ThereExists(ddman, tmp, cvars, num_cvars);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		
 		Cudd_Ref(b1);
-		tmp = DD_And(ddman, b1, tmp);		
+		tmp = DD_And(ddman, b1, tmp);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		Cudd_Ref(b2);
 		tmp = DD_Or(ddman, b2, tmp);
+		if (tmp == NULL) return ptr_to_jlong(NULL);
 		
 		if (tmp == sol) {
 			done = true;
@@ -96,10 +101,12 @@ jlong __jlongpointer psi	// psi(b2)
 		sol = tmp;
 	}
 	sol = DD_PermuteVariables(ddman, sol, cvars, rvars, num_cvars);
+	if (sol == NULL) return ptr_to_jlong(NULL);
 	
 	// actual answer is states NOT reachable
 	Cudd_Ref(reach);
 	sol = DD_And(ddman, reach, DD_Not(ddman, sol));
+	if (sol == NULL) return ptr_to_jlong(NULL);
 
 	// stop clock
 	time_taken = (double)(util_cpu_time() - start1)/1000;
