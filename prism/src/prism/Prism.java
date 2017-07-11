@@ -2881,7 +2881,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 		}
 		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
-			mainLog.printWarning("Switching to explicit engine to allow non-probabilistuc LTL mocel checking.");
+			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL mocel checking.");
 			engineSwitch = true;
 			lastEngine = getEngine();
 			setEngine(Prism.EXPLICIT);
