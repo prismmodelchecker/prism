@@ -76,6 +76,7 @@ jlong __jlongpointer s	// start state
 		iters = 0;
 		Cudd_Ref(init);
 		reach = DD_PermuteVariables(ddman, init, rvars, cvars, num_rvars);
+		if (reach == NULL) return ptr_to_jlong(NULL);
 		
 		while (!done) {
 			iters++;
@@ -89,11 +90,15 @@ jlong __jlongpointer s	// start state
 			// perform iteration
 			Cudd_Ref(reach);
 			tmp = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(trans01);
 			tmp = DD_And(ddman, tmp, trans01);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			tmp = DD_ThereExists(ddman, tmp, rvars, num_rvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(reach);
 			tmp = DD_Or(ddman, reach, tmp);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			// check convergence
 			if (tmp == reach) {
 				done = true;
@@ -107,6 +112,7 @@ jlong __jlongpointer s	// start state
 			}
 		}
 		reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
+		if (reach == NULL) return ptr_to_jlong(NULL);
 	}
 	else {
 		// initialise
@@ -129,15 +135,20 @@ jlong __jlongpointer s	// start state
 			// perform iteration
 			Cudd_Ref(frontier);
 			tmp = DD_PermuteVariables(ddman, frontier, cvars, rvars, num_cvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(trans01);
 			tmp = DD_And(ddman, tmp, trans01);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			tmp = DD_ThereExists(ddman, tmp, rvars, num_rvars);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_Ref(reach);
 			tmp = DD_Or(ddman, reach, tmp);
+			if (tmp == NULL) return ptr_to_jlong(NULL);
 			Cudd_RecursiveDeref(ddman, frontier);
 			Cudd_Ref(tmp);
 			Cudd_Ref(reach);
 			frontier = DD_And(ddman, tmp, DD_Not(ddman, reach));
+			if (frontier) return ptr_to_jlong(NULL);
 			// check convergence
 			if (frontier == Cudd_ReadZero(ddman)) {
 				done = true;
@@ -151,6 +162,7 @@ jlong __jlongpointer s	// start state
 			}
 		}
 		reach = DD_PermuteVariables(ddman, reach, cvars, rvars, num_cvars);
+		if (reach == NULL) return ptr_to_jlong(NULL);
 		Cudd_RecursiveDeref(ddman, frontier);
 	}
 	
