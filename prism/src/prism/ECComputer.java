@@ -176,4 +176,50 @@ public abstract class ECComputer extends PrismComponent
 		return current;
 	}
 
+	/**
+	 * Returns the transition relation of a state set,
+	 * i.e., a 0-1 MTBDD over row and col variables containing
+	 * those pairs (s,t) for which there exists an alpha
+	 * with P(s,alpha,t) > 0 and all alpha-successors of
+	 * s are again in the state set.
+	 *
+	 * <br>[REFS: <i>result</i>, DEREFS: stateSet ]
+	 */
+	public JDDNode getStableTransReln(JDDNode stateSet)
+	{
+		return JDD.ThereExists(getStableTransitions(stateSet), allDDNondetVars);
+	}
+
+	/**
+	 * Get the set of transitions (s,alpha,t) that remain in the state set,
+	 * i.e., with a choice alpha that ensures that the successor states
+	 * are all in the state set again.
+	 *
+	 * Returns a 0/1-MTBDD over row, col and nondet vars.
+	 *
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>stateSet</i> ]
+	 * @param stateSet state set DD over the row variables
+	 */
+	public JDDNode getStableTransitions(JDDNode stateSet) {
+		// trans01 from the state set
+		JDDNode transFromSet = JDD.And(stateSet.copy(), trans01.copy());
+		// ... and back to the state set
+		JDDNode transToSet = JDD.And(transFromSet.copy(), JDD.PermuteVariables(stateSet.copy(), allDDRowVars, allDDColVars));
+		// (s,alpha) pairs that have at least one successor back in the set
+		JDDNode stateActionsToSet = JDD.ThereExists(transToSet, allDDColVars);
+
+		// those transitions where at least one successor remains in set
+		JDDNode candidateTrans = JDD.And(transFromSet, stateActionsToSet);
+		// filter: those transitions where at least one successor goes outside the set
+		JDDNode transSomewhereElse = JDD.And(candidateTrans.copy(), JDD.Not(JDD.PermuteVariables(stateSet.copy(), allDDRowVars, allDDColVars)));
+		// the corresponding (s,alpha) pairs, where a successor is outside the set
+		JDDNode stateActionsBad = JDD.ThereExists(transSomewhereElse, allDDColVars);
+		// restrict to only those transitions where all successors are in the set
+		JDDNode result = JDD.And(candidateTrans, JDD.Not(stateActionsBad));
+
+		JDD.Deref(stateSet);
+
+		return result;
+	}
+
 }
