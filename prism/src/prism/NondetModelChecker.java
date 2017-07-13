@@ -365,7 +365,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	/**
 	 * Model check a multi-objective query (from the contents of a strategy operator).
 	 * Return the result as a StateValues object (usually this gives values for all states,
-	 * but for a multi-objective query, we just give a single value, usually for the initial state).
+	 * but for a multi-objective query, we just give a single value, i.e., the statesOfInterest should be a singleton set).
 	 *
 	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
 	 * @param exprs The list of Expressions specifying the objectives
@@ -482,19 +482,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean hasMaxReward = false;
 		//boolean hasLTLconstraint = false;
 
-		// currently, ignore statesOfInterest
-		// TODO: switch singleton check below to use statesOfInterest 
-		JDD.Deref(statesOfInterest);
-
-		// Make sure we are only expected to compute a value for a single state
-		// Assuming yes, determine index of state of interest and build BDD
-		JDDNode ddStateIndex = null;
-		if (currentFilter == null || !(currentFilter.getOperator() == Filter.FilterOperator.STATE))
+		// Make sure we are only expected to compute a value for a single state,
+		// i.e., that statesOfInterest is a singleton
+		if (!JDD.isSingleton(statesOfInterest, model.getAllDDRowVars())) {
+			JDD.Deref(statesOfInterest);
 			throw new PrismException("Multi-objective model checking can only compute values from a single state");
-		else {
-			int stateIndex = currentFilter.getStateIndex();
-			ddStateIndex = ODDUtils.SingleIndexToDD(stateIndex, odd, allDDRowVars);
 		}
+		JDDNode stateOfInterest = statesOfInterest;
 
 		// Can't do LTL with time-bounded variants of the temporal operators
 		// TODO removed since it is allowed for valiter.
@@ -545,7 +539,7 @@ public class NondetModelChecker extends NonProbModelChecker
 				draDDRowVars[i] = new JDDVars();
 				draDDColVars[i] = new JDDVars();
 				modelNew = mcMo.constructDRAandProductMulti(modelProduct, mcLtl, this, ltl[i], i, dra, opsAndBounds.getOperator(i), pathFormulas.get(i),
-						draDDRowVars[i], draDDColVars[i], ddStateIndex);
+						draDDRowVars[i], draDDColVars[i], stateOfInterest);
 				// Deref old product (unless is the original model)
 				if (i > 0 & !originalmodel)
 					modelProduct.clear();
@@ -678,8 +672,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			                                    conflictformulae > 1);
 		} finally {
 			// Deref, clean up
-			if (ddStateIndex != null)
-				JDD.Deref(ddStateIndex);
+			JDD.Deref(stateOfInterest);
 			if (modelProduct != null && modelProduct != model)
 				modelProduct.clear();
 			for (int i = 0; i < numObjectives; i++) {
