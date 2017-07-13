@@ -355,7 +355,7 @@ void export_adversary_ltl_dot_reward(const char *export_adv_filename, NDSparseMa
 	int headnode_sp;
 	int headnode_len;
 	double *edge_probabilities;
-	unsigned long *edge_labels;
+	const char**edge_labels;
 	int *edge_weight;
 	int *terminate_nodes;
 	//printf("allocated memory for local variables:\n"); 
@@ -369,7 +369,7 @@ void export_adversary_ltl_dot_reward(const char *export_adv_filename, NDSparseMa
 	dot_nodes = new int[n+num_lp_vars][2];
 	dot_edges = new int[nnz+num_lp_vars][2];
 	edge_probabilities = new double[nnz+num_lp_vars];
-	edge_labels = new unsigned long[nnz+num_lp_vars];
+	edge_labels = new const char*[nnz+num_lp_vars];
 	edge_weight = new int[nnz+num_lp_vars];
 	terminate_nodes = new int[n]; // the entry stores the node number for newly added terminate nodes
 	
@@ -453,7 +453,7 @@ void export_adversary_ltl_dot_reward(const char *export_adv_filename, NDSparseMa
 							// add the probability to the edge
 							//edge_probabilities[sp_edges++] = lp_soln[map_var[head_node] + i];
 							//printf("headnode = %d, l1 = %d\n", head_node, l1);
-							edge_labels[sp_edges] = (actions != NULL && actions[l1]>0) ? (unsigned long)(action_names[actions[l1]-1]) : 0;
+							edge_labels[sp_edges] = (actions != NULL && actions[l1]>0) ? action_names[actions[l1]-1] : 0;
 							edge_weight[sp_edges] = back_arr_reals[map_var[head_node] + i] > 0.0 ? 1 : 0;
 							edge_probabilities[sp_edges++] = sum == 1 ? lp_soln[map_var[head_node] + i] :
 								lp_soln[map_var[head_node] + i]/sum;
@@ -507,7 +507,7 @@ void export_adversary_ltl_dot_reward(const char *export_adv_filename, NDSparseMa
 							// add the probability to the edge
 							//edge_probabilities[sp_edges++] = lp_soln[map_var[head_node] + i];
 							//printf("headnode = %d, len = %d, l1 = %d\n", head_node, headnode_len, l1);
-							edge_labels[sp_edges] = (actions != NULL && actions[l1]>0) ? (unsigned long)(action_names[actions[l1]-1]) : 0;
+							edge_labels[sp_edges] = (actions != NULL && actions[l1]>0) ? action_names[actions[l1]-1] : 0;
 							edge_weight[sp_edges] = back_arr_reals[map_var[head_node] + i] > 0.0 ? 1 : 0;
 							edge_probabilities[sp_edges++] = sum == 1 ? lp_soln[map_var[head_node] + i] :
 								lp_soln[map_var[head_node] + i]/sum;
@@ -550,7 +550,7 @@ void export_adversary_ltl_dot_reward(const char *export_adv_filename, NDSparseMa
 			while (fgets(line, sizeof(line), f1) != NULL ) {
 				lb = strchr(line, '(');
 				rb = strchr(line, ')');
-				if(lb != NULL && rb != NULL && ((unsigned long)rb) > ((unsigned long)lb)) {
+				if(lb != NULL && rb != NULL && rb > lb) {
 					*(rb+1) = '\0';
 					strcpy(states[state_sp++], lb); 
 				}
@@ -581,7 +581,7 @@ void export_adversary_ltl_dot_reward(const char *export_adv_filename, NDSparseMa
 			//printf("printing edges %d\n", i); fflush(stdout);
 			if(edge_labels[i])
 				fprintf(f, "		%1d -> %1d [label=\"%g, %s\"%s]\n", dot_edges[i][0],
-								dot_edges[i][1], edge_probabilities[i], (char *)(edge_labels[i]), edge_weight[i] ? style : "");
+								dot_edges[i][1], edge_probabilities[i], edge_labels[i], edge_weight[i] ? style : "");
 			else
 				fprintf(f, "		%1d -> %1d [label=\"%g\"%s]\n", dot_edges[i][0],
 								dot_edges[i][1], edge_probabilities[i], edge_weight[i] ? style : "");
