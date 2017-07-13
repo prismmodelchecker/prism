@@ -426,18 +426,18 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     int *constraints_sp;
     int *constraints_ints;
     double *constraints_reals;
-    unsigned long *constraints_int_ptr;
-    unsigned long *constraints_real_ptr;
+    int **constraints_int_ptr;
+    double **constraints_real_ptr;
     constraints_sp = new int[n];
-    constraints_int_ptr = new unsigned long[n];
-    constraints_real_ptr = new unsigned long[n];
+    constraints_int_ptr = new int*[n];
+    constraints_real_ptr = new double*[n];
     for(i=0; i<n; i++)
       if(maybe_vec[i]> 0 || yes_vec[i]> 0) {
         constraints_ints = new int[arr_ints[i]];
         constraints_reals = new REAL[arr_ints[i]];
         constraints_sp[i] = map_var[i+1]-map_var[i];
-        constraints_int_ptr[i] = (unsigned long)constraints_ints;
-        constraints_real_ptr[i] = (unsigned long)constraints_reals;
+        constraints_int_ptr[i] = constraints_ints;
+        constraints_real_ptr[i] = constraints_reals;
         for(j=0; j<map_var[i+1]-map_var[i]; j++) {
           constraints_ints[j] = map_var[i] + j + 1;
           constraints_reals[j] = 1.0;
@@ -481,8 +481,8 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
             // get the index of the corresponding variable
             i = cols[k];
             if(maybe_vec[i]> 0 || yes_vec[i]> 0) {
-              constraints_ints = (int *)constraints_int_ptr[i];
-              constraints_reals = (double *)constraints_real_ptr[i];
+              constraints_ints = constraints_int_ptr[i];
+              constraints_reals = constraints_real_ptr[i];
               for(k_r=0; k_r<constraints_sp[i]; k_r++)
                 if(constraints_ints[k_r]==map_var[x]+j-l1-count + 1)
                   break;
@@ -516,8 +516,8 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     
     for (i = 0; i < n; i++)
       if (maybe_vec[i]> 0 || yes_vec[i]> 0) {
-        constraints_ints = (int *)constraints_int_ptr[i];
-        constraints_reals = (double *)constraints_real_ptr[i];
+        constraints_ints = constraints_int_ptr[i];
+        constraints_reals = constraints_real_ptr[i];
         add_constraintex(lp, constraints_sp[i], constraints_reals, constraints_ints, EQ, (start_index==i ? 1.0 : 0.0));
         delete[] constraints_ints;
         delete[] constraints_reals;
