@@ -31,6 +31,7 @@
 #include <math.h>
 #include <util.h>
 #include <cudd.h>
+#include <cinttypes>
 #include "dd.h"
 #include "dd_basics.h"
 #include "dd_abstr.h"
@@ -176,8 +177,9 @@ FILE *fp
 	if (!found) {
 		stored[count++] = dd;
 	}
-	
-	fprintf(fp, "%zu\n", (size_t)dd);
+
+	fprintf(fp, "%" PRIuPTR "\n", (uintptr_t)dd);
+
 	return 0;
 }
 
