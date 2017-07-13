@@ -197,7 +197,11 @@ JNIEXPORT jint JNICALL Java_prism_PrismNative_PN_1SetWorkingDirectory(JNIEnv *en
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_prism_PrismNative_PN_1GetStdout(JNIEnv *env, jclass cls)
 {
+#ifdef _WIN32
+	setvbuf(stdout, NULL, _IONBF, 0);
+#else
 	setvbuf(stdout, NULL, _IOLBF, 1024);
+#endif
 	return ptr_to_jlong(stdout);
 }
 
