@@ -118,8 +118,7 @@ public class ECComputerDefault extends ECComputer
 			}
 
 			// Filter bad transitions
-			JDD.Ref(stableSet);
-			JDDNode stableSetTrans = maxStableSetTrans(stableSet);
+			JDDNode stableSetTrans = getStableTransReln(stableSet.copy());
 
 			// Find the maximal SCCs in (stableSet, stableSetTrans)
 			sccComputer = SCCComputer.createSCCComputer(this, stableSet, stableSetTrans, allDDRowVars, allDDColVars);
