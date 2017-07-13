@@ -27,6 +27,7 @@
 package odd;
 
 import jdd.*;
+import prism.PrismException;
 
 public class ODDUtils
 {
@@ -65,17 +66,20 @@ public class ODDUtils
 	private static native long ODD_BuildODD(long dd, long vars, int num_vars);
 	/**
 	 *  Build an ODD.
+	 * @throws PrismException if the ODD could not be constructed
 	 */
-	public static ODDNode BuildODD(JDDNode dd, JDDVars vars)
+	public static ODDNode BuildODD(JDDNode dd, JDDVars vars) throws PrismException
 	{
 		if (jdd.SanityJDD.enabled) {
 			// ODD construction requires the JDDVars to be in ascending order
 			jdd.SanityJDD.checkVarsAreSorted(vars);
 		}
 
-		return new ODDNode(
-			ODD_BuildODD(dd.ptr(), vars.array(), vars.n())
-		);
+		long res = ODD_BuildODD(dd.ptr(), vars.array(), vars.n());
+		if (res == 0) {
+			throw new PrismException("Can not construct ODD for this model, number of states too large: " + JDD.GetNumMintermsString(dd, vars.n()) + " states");
+		}
+		return new ODDNode(res);
 	}
 
 	private static native void ODD_ClearODD(long ptr);

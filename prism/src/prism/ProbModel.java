@@ -567,7 +567,7 @@ public class ProbModel implements Model
 
 	// do reachability
 
-	public void doReachability()
+	public void doReachability() throws PrismException
 	{
 		// compute reachable states
 		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start));
@@ -581,7 +581,7 @@ public class ProbModel implements Model
 	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
 	 * @param seed set of states (over ddRowVars) that is known to be reachable
 	 */
-	public void doReachability(JDDNode seed)
+	public void doReachability(JDDNode seed) throws PrismException
 	{
 		// do sanity check on seed if checking is enabled
 		if (SanityJDD.enabled)
@@ -597,7 +597,7 @@ public class ProbModel implements Model
 	// this method allows you to skip the reachability phase
 	// it is only here for experimental purposes - not general use.
 
-	public void skipReachability()
+	public void skipReachability() throws PrismException
 	{
 		// don't compute reachable states - assume all reachable
 		reach = JDD.Constant(1);
@@ -608,6 +608,7 @@ public class ProbModel implements Model
 		// build odd, clear old one
 		if (odd != null) {
 			ODDUtils.ClearODD(odd);
+			odd = null;
 		}
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}
@@ -616,7 +617,7 @@ public class ProbModel implements Model
 	 * Set reachable states BDD (and compute number of states and ODD)
 	 */
 
-	public void setReach(JDDNode reach)
+	public void setReach(JDDNode reach) throws PrismException
 	{
 		if (this.reach != null)
 			JDD.Deref(this.reach);
@@ -628,6 +629,7 @@ public class ProbModel implements Model
 		// build odd, clear old one
 		if (odd != null) {
 			ODDUtils.ClearODD(odd);
+			odd = null;
 		}
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}

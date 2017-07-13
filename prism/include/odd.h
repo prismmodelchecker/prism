@@ -29,6 +29,8 @@
 
 //------------------------------------------------------------------------------
 
+#include <cstdint>
+
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -51,8 +53,8 @@ struct ODDNode
 	ODDNode *next;
 	ODDNode *e;
 	ODDNode *t;
-	long eoff;
-	long toff;
+	int64_t eoff;
+	int64_t toff;
 };
 
 // function prototypes

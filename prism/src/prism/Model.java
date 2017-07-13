@@ -164,9 +164,9 @@ public interface Model
 
 	void resetTrans(JDDNode trans);
 	void resetTransRewards(int i, JDDNode transRewards);
-	void doReachability();
-	void skipReachability();
-	void setReach(JDDNode reach);
+	void doReachability() throws PrismException;
+	void skipReachability() throws PrismException;
+	void setReach(JDDNode reach) throws PrismException;
 	void setTransActions(JDDNode transActions); // MDPs only
 	void setTransPerAction(JDDNode[] transPerAction); // D/CTMCs only
 	void filterReachableStates();
