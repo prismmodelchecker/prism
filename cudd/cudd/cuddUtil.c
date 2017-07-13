@@ -113,6 +113,8 @@
 #include "util.h"
 #include "cuddInt.h"
 
+#include <stddef.h>
+
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
@@ -2627,7 +2629,7 @@ Cudd_AverageDistance(
     double temeasured, nextmeasured;
     int i, j;
     int slots, nvars;
-    long diff;
+    ptrdiff_t diff;
     DdNode *scan;
     DdNodePtr *nodelist;
     DdNode *sentinel = &(dd->sentinel);
@@ -2650,13 +2652,13 @@ Cudd_AverageDistance(
 	for (j = 0; j < slots; j++) {
 	    scan = nodelist[j];
 	    while (scan != sentinel) {
-		diff = (long) scan - (long) cuddT(scan);
+		diff = (ptrint) scan - (ptrint) cuddT(scan);
 		tesubtotal += (double) ddAbs(diff);
-		diff = (long) scan - (long) Cudd_Regular(cuddE(scan));
+		diff = (ptrint) scan - (ptrint) Cudd_Regular(cuddE(scan));
 		tesubtotal += (double) ddAbs(diff);
 		temeasured += 2.0;
 		if (scan->next != sentinel) {
-		    diff = (long) scan - (long) scan->next;
+		    diff = (ptrint) scan - (ptrint) scan->next;
 		    nextsubtotal += (double) ddAbs(diff);
 		    nextmeasured += 1.0;
 		}
@@ -2675,7 +2677,7 @@ Cudd_AverageDistance(
 	scan = nodelist[j];
 	while (scan != NULL) {
 	    if (scan->next != NULL) {
-		diff = (long) scan - (long) scan->next;
+		diff = (ptrint) scan - (ptrint) scan->next;
 		nextsubtotal += (double) ddAbs(diff);
 		nextmeasured += 1.0;
 	    }
@@ -2843,12 +2845,11 @@ Cudd_Density(
 ******************************************************************************/
 void
 Cudd_OutOfMem(
-  long size /* size of the allocation that failed */)
+  size_t size /* size of the allocation that failed */)
 {
     (void) fflush(stdout);
-    (void) fprintf(stderr, "\nunable to allocate %ld bytes\n", size);
-    return;
-
+    (void) fprintf(stderr, "\nCUDD: unable to allocate %" PRIszt " bytes\n",
+                   size);
 } /* end of Cudd_OutOfMem */
 
 
@@ -3036,13 +3037,8 @@ dp2(
     }
     g = Cudd_Regular(f);
     if (cuddIsConstant(g)) {
-#if SIZEOF_VOID_P == 8
-	(void) fprintf(dd->out,"ID = %c0x%lx\tvalue = %-9g\n", bang(f),
+	(void) fprintf(dd->out,"ID = %c0x%" PRIxPTR "\tvalue = %-9g\n", bang(f),
 		(ptruint) g / (ptruint) sizeof(DdNode),cuddV(g));
-#else
-	(void) fprintf(dd->out,"ID = %c0x%x\tvalue = %-9g\n", bang(f),
-		(ptruint) g / (ptruint) sizeof(DdNode),cuddV(g));
-#endif
 	return(1);
     }
     if (st_is_member(t,(char *) g) == 1) {
@@ -3051,32 +3047,19 @@ dp2(
     if (st_add_direct(t,(char *) g,NULL) == ST_OUT_OF_MEM)
 	return(0);
 #ifdef DD_STATS
-#if SIZEOF_VOID_P == 8
-    (void) fprintf(dd->out,"ID = %c0x%lx\tindex = %d\tr = %d\t", bang(f),
+    (void) fprintf(dd->out,"ID = %c0x%"PRIxPTR"\tindex = %d\tr = %d\t", bang(f),
 		(ptruint) g / (ptruint) sizeof(DdNode), g->index, g->ref);
 #else
-    (void) fprintf(dd->out,"ID = %c0x%x\tindex = %d\tr = %d\t", bang(f),
-		(ptruint) g / (ptruint) sizeof(DdNode),g->index,g->ref);
-#endif
-#else
-#if SIZEOF_VOID_P == 8
-    (void) fprintf(dd->out,"ID = %c0x%lx\tindex = %u\t", bang(f),
+    (void) fprintf(dd->out,"ID = %c0x%" PRIxPTR "\tindex = %u\t", bang(f),
 		(ptruint) g / (ptruint) sizeof(DdNode),g->index);
-#else
-    (void) fprintf(dd->out,"ID = %c0x%x\tindex = %hu\t", bang(f),
-		(ptruint) g / (ptruint) sizeof(DdNode),g->index);
-#endif
 #endif
     n = cuddT(g);
     if (cuddIsConstant(n)) {
 	(void) fprintf(dd->out,"T = %-9g\t",cuddV(n));
 	T = 1;
     } else {
-#if SIZEOF_VOID_P == 8
-	(void) fprintf(dd->out,"T = 0x%lx\t",(ptruint) n / (ptruint) sizeof(DdNode));
-#else
-	(void) fprintf(dd->out,"T = 0x%x\t",(ptruint) n / (ptruint) sizeof(DdNode));
-#endif
+	(void) fprintf(dd->out,"T = 0x%" PRIxPTR "\t",
+                       (ptruint) n / (ptruint) sizeof(DdNode));
 	T = 0;
     }
 
@@ -3086,11 +3069,8 @@ dp2(
 	(void) fprintf(dd->out,"E = %c%-9g\n",bang(n),cuddV(N));
 	E = 1;
     } else {
-#if SIZEOF_VOID_P == 8
-	(void) fprintf(dd->out,"E = %c0x%lx\n", bang(n), (ptruint) N/(ptruint) sizeof(DdNode));
-#else
-	(void) fprintf(dd->out,"E = %c0x%x\n", bang(n), (ptruint) N/(ptruint) sizeof(DdNode));
-#endif
+	(void) fprintf(dd->out,"E = %c0x%" PRIxPTR "\n",
+                       bang(n), (ptruint) N/(ptruint) sizeof(DdNode));
 	E = 0;
     }
     if (E == 0) {

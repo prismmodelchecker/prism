@@ -903,29 +903,13 @@ testIterators(
 	(void) printf("Testing iterator on nodes:\n");
 	Cudd_ForeachNode(dd,M,gen,node) {
 	    if (Cudd_IsConstant(node)) {
-#if SIZEOF_VOID_P == 8
-		(void) printf("ID = 0x%lx\tvalue = %-9g\n",
-			      (ptruint) node /
-			      (ptruint) sizeof(DdNode),
+		(void) printf("ID = 0x%"PRIxPTR"\tvalue = %-9g\n",
+			      (ptruint) node / (ptruint) sizeof(DdNode),
 			      Cudd_V(node));
-#else
-		(void) printf("ID = 0x%x\tvalue = %-9g\n",
-			      (ptruint) node /
-			      (ptruint) sizeof(DdNode),
-			      Cudd_V(node));
-#endif
 	    } else {
-#if SIZEOF_VOID_P == 8
-		(void) printf("ID = 0x%lx\tindex = %u\tr = %u\n",
-			      (ptruint) node /
-			      (ptruint) sizeof(DdNode),
+		(void) printf("ID = 0x%"PRIxPTR"\tindex = %u\tr = %u\n",
+			      (ptruint) node / (ptruint) sizeof(DdNode),
 			      node->index, node->ref);
-#else
-		(void) printf("ID = 0x%x\tindex = %u\tr = %u\n",
-			      (ptruint) node /
-			      (ptruint) sizeof(DdNode),
-			      node->index, node->ref);
-#endif
 	    }
 	}
 	(void) printf("\n");

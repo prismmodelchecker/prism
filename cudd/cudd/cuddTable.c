@@ -486,7 +486,7 @@ cuddInitTable(
     unique->stack[0] = NULL; /* to suppress harmless UMR */
 
 #ifndef DD_NO_DEATH_ROW
-    unique->deathRowDepth = 1 << cuddComputeFloorLog2(unique->looseUpTo >> 2);
+    unique->deathRowDepth = 1U << cuddComputeFloorLog2(unique->looseUpTo >> 2);
     unique->deathRow = ALLOC(DdNodePtr,unique->deathRowDepth);
     if (unique->deathRow == NULL) {
 	FREE(unique->subtables);
@@ -652,7 +652,7 @@ cuddInitTable(
     unique->timeLimit = ~0UL;
 
     /* Initialize statistical counters. */
-    unique->maxmemhard = ~ 0UL;
+    unique->maxmemhard = ~ (size_t) 0;
     unique->garbageCollections = 0;
     unique->GCTime = 0;
     unique->reordTime = 0;
@@ -1154,7 +1154,7 @@ cuddUniqueInter(
     unique->uniqueLookUps++;
 #endif
 
-    if ((0x1ffffUL & (unsigned long) unique->cacheMisses) == 0) {
+    if (((int64_t) 0x1ffff & (int64_t) unique->cacheMisses) == 0) {
         if (util_cpu_time() - unique->startTime > unique->timeLimit) {
             unique->errorCode = CUDD_TIMEOUT_EXPIRED;
             return(NULL);
@@ -2816,7 +2816,7 @@ ddResizeTable(
 
         unique->size = index + 1;
         if (unique->tree != NULL) {
-            unique->tree->size = ddMax(unique->tree->size, unique->size);
+	    unique->tree->size = ddMax(unique->tree->size, (MtrHalfWord) unique->size);
         }
         unique->slots += (index + 1 - oldsize) * numSlots;
         ddFixLimits(unique);

@@ -268,14 +268,14 @@ addDoIthBit(
 {
     DdNode *res, *T, *E;
     DdNode *fv, *fvn;
-    int mask, value;
-    int v;
+    unsigned int mask, value;
+    DdHalfWord v;
 
     statLine(dd);
     /* Check terminal case. */
     if (cuddIsConstant(f)) {
-	mask = 1 << ((int) cuddV(index));
-	value = (int) cuddV(f);
+	mask = 1U << ((unsigned int) cuddV(index));
+	value = (unsigned) (int) cuddV(f);
 	return((value & mask) == 0 ? DD_ZERO(dd) : DD_ONE(dd));
     }
 

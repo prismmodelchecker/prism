@@ -1415,7 +1415,7 @@ double
 Cudd_ReadCacheUsedSlots(
   DdManager * dd)
 {
-    unsigned long used = 0;
+    size_t used = 0;
     int slots = dd->cacheSlots;
     DdCache *cache = dd->cache;
     int i;
@@ -1743,7 +1743,7 @@ double
 Cudd_ReadUsedSlots(
   DdManager * dd)
 {
-    unsigned long used = 0;
+    size_t used = 0;
     int i, j;
     int size = dd->size;
     DdNodePtr *nodelist;
@@ -2915,7 +2915,7 @@ void
 Cudd_TurnOffCountDead(
   DdManager * dd)
 {
-    dd->countDead = ~0;
+    dd->countDead = ~0U;
 
 } /* end of Cudd_TurnOffCountDead */
 
@@ -3238,7 +3238,7 @@ Cudd_SetOrderRandomization(
   SeeAlso     []
 
 ******************************************************************************/
-unsigned long
+size_t
 Cudd_ReadMemoryInUse(
   DdManager * dd)
 {
@@ -3338,7 +3338,8 @@ Cudd_PrintInfo(
     /* Non-modifiable parameters. */
     retval = fprintf(fp,"**** CUDD non-modifiable parameters ****\n");
     if (retval == EOF) return(0);
-    retval = fprintf(fp,"Memory in use: %lu\n", Cudd_ReadMemoryInUse(dd));
+    retval = fprintf(fp,"Memory in use: %" PRIszt "\n",
+                     Cudd_ReadMemoryInUse(dd));
     if (retval == EOF) return(0);
     retval = fprintf(fp,"Peak number of nodes: %ld\n",
 		     Cudd_ReadPeakNodeCount(dd));
@@ -3828,7 +3829,7 @@ Cudd_StdPostReordHook(
   const char *str,
   void *data)
 {
-    unsigned long initialTime = (long) data;
+    unsigned long initialTime = (unsigned long) (ptruint) data;
     int retval;
     unsigned long finalTime = util_cpu_time();
     double totalTimeSec = (double)(finalTime - initialTime) / 1000.0;
@@ -4816,7 +4817,7 @@ fixVarTree(
 {
     treenode->index = treenode->low;
     treenode->low = ((int) treenode->index < size) ?
-	perm[treenode->index] : treenode->index;
+	(MtrHalfWord) perm[treenode->index] : treenode->index;
     if (treenode->child != NULL)
 	fixVarTree(treenode->child, perm, size);
     if (treenode->younger != NULL)

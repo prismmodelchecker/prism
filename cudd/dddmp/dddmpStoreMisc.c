@@ -662,21 +662,11 @@ DddmpCuddDdArrayStorePrefixBody (
       "Error during file store.", failure);
 
     if (Cudd_IsComplement(f[i])) {
-#if SIZEOF_VOID_P == 8
-      retValue = fprintf (fp, "(NOT node%lx))\n",
-        (unsigned long) f[i] / (unsigned long) sizeof(DdNode));
-#else
-      retValue = fprintf (fp, "(NOT node%x))\n",
-        (unsigned) f[i] / (unsigned) sizeof(DdNode));
-#endif
+      retValue = fprintf (fp, "(NOT node%" PRIxPTR "))\n",
+        (ptruint) f[i] / sizeof(DdNode));
     } else {
-#if SIZEOF_VOID_P == 8
-      retValue = fprintf (fp, "node%lx)\n",
-        (unsigned long) f[i] / (unsigned long) sizeof(DdNode));
-#else
-      retValue = fprintf (fp, "node%x)\n",
-        (unsigned) f[i] / (unsigned) sizeof(DdNode));
-#endif
+      retValue = fprintf (fp, "node%" PRIxPTR ")\n",
+        (ptruint) f[i] / sizeof(DdNode));
     }
     Dddmp_CheckAndGotoLabel (retValue==EOF,
       "Error during file store.", failure);
@@ -751,15 +741,8 @@ DddmpCuddDdArrayStorePrefixStep (
 
   /* Check for special case: If constant node, generate constant 1. */
   if (f == DD_ONE (ddMgr)) {
-#if SIZEOF_VOID_P == 8
-    retValue = fprintf (fp,
-      "(OR node%lx vss vdd)\n",
-      (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-    retValue = fprintf (fp,
-      "(OR node%x vss vdd)\n",
-      (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+    retValue = fprintf (fp, "(OR node%" PRIxPTR " vss vdd)\n",
+      (ptruint) f / sizeof(DdNode));
     if (retValue == EOF) {
        return(0);
     } else {
@@ -773,15 +756,8 @@ DddmpCuddDdArrayStorePrefixStep (
    */
 
   if (f == DD_ZERO(ddMgr)) {
-#if SIZEOF_VOID_P == 8
-    retValue = fprintf (fp,
-      "(AND node%lx vss vdd)\n",
-       (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-    retValue = fprintf (fp,
-      "(AND node%x vss vdd)\n",
-      (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+    retValue = fprintf (fp, "(AND node%" PRIxPTR " vss vdd)\n",
+       (ptruint) f / sizeof(DdNode));
    if (retValue == EOF) {
      return(0);
    } else {
@@ -806,13 +782,8 @@ DddmpCuddDdArrayStorePrefixStep (
   }
 
   /* Write multiplexer taking complement arc into account. */
-#if SIZEOF_VOID_P == 8
-  retValue = fprintf (fp, "(OR node%lx (AND ",
-    (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-  retValue = fprintf (fp, "(OR node%x (AND ",
-    (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+  retValue = fprintf (fp, "(OR node%" PRIxPTR " (AND ",
+    (ptruint) f / sizeof(DdNode));
   if (retValue == EOF) {
     return(0);
   }
@@ -826,13 +797,8 @@ DddmpCuddDdArrayStorePrefixStep (
     return(0);
   }
 
-#if SIZEOF_VOID_P == 8
-  retValue = fprintf (fp, "node%lx) (AND (NOT ",
-    (unsigned long) T / (unsigned long) sizeof(DdNode));
-#else
-  retValue = fprintf (fp, "node%x) (AND (NOT ",
-    (unsigned) T / (unsigned) sizeof(DdNode));
-#endif
+  retValue = fprintf (fp, "node%" PRIxPTR ") (AND (NOT ",
+    (ptruint) T / sizeof(DdNode));
   if (retValue == EOF) {
     return(0);
   }
@@ -846,23 +812,13 @@ DddmpCuddDdArrayStorePrefixStep (
     return(0);
   }
 
-#if SIZEOF_VOID_P == 8
   if (Cudd_IsComplement(cuddE(f))) {
-    retValue = fprintf (fp, ") (NOT node%lx)))\n",
-      (unsigned long) E / (unsigned long) sizeof(DdNode));
+    retValue = fprintf (fp, ") (NOT node%" PRIxPTR ")))\n",
+      (ptruint) E / sizeof(DdNode));
   } else {
-    retValue = fprintf (fp, ") node%lx))\n",
-      (unsigned long) E / (unsigned long) sizeof(DdNode));
+    retValue = fprintf (fp, ") node%" PRIxPTR "))\n",
+      (ptruint) E / sizeof(DdNode));
   }
-#else
-  if (Cudd_IsComplement(cuddE(f))) {
-    retValue = fprintf (fp, ") (NOT node%x)))\n",
-      (unsigned) E / (unsigned) sizeof(DdNode));
-  } else {
-    retValue = fprintf (fp, ") node%x))\n",
-      (unsigned) E / (unsigned) sizeof(DdNode));
-  }
-#endif
 
   if (retValue == EOF) {
     return(0);
@@ -1063,23 +1019,11 @@ DddmpCuddDdArrayStoreBlifBody (
 
   for (i = 0; i < n; i++) {
     if (outputNames == NULL) {
-      retValue = fprintf(fp,
-#if SIZEOF_VOID_P == 8
-        ".names node%lx outNode%d\n",
-        (unsigned long) f[i] / (unsigned long) sizeof(DdNode), i);
-#else
-	".names node%x outNode%d\n",
-        (unsigned) f[i] / (unsigned) sizeof(DdNode), i);
-#endif
+      retValue = fprintf(fp, ".names node%" PRIxPTR " outNode%d\n",
+        (ptruint) f[i] / sizeof(DdNode), i);
     } else {
-      retValue = fprintf(fp,
-#if SIZEOF_VOID_P == 8
-        ".names node%lx %s\n",
-        (unsigned long) f[i] / (unsigned long) sizeof(DdNode), outputNames[i]);
-#else
-        ".names node%x %s\n",
-        (unsigned) f[i] / (unsigned) sizeof(DdNode), outputNames[i]);
-#endif
+      retValue = fprintf(fp, ".names node%" PRIxPTR " %s\n",
+        (ptruint) f[i] / sizeof(DdNode), outputNames[i]);
     }
     Dddmp_CheckAndGotoLabel (retValue==EOF,
       "Error during file store.", failure);
@@ -1152,13 +1096,8 @@ DddmpCuddDdArrayStoreBlifStep (
 
   /* Check for special case: If constant node, generate constant 1. */
   if (f == DD_ONE(ddMgr)) {
-#if SIZEOF_VOID_P == 8
-    retValue = fprintf(fp, ".names node%lx\n1\n",
-      (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-    retValue = fprintf(fp, ".names node%x\n1\n",
-      (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+    retValue = fprintf(fp, ".names node%" PRIxPTR "\n1\n",
+      (ptruint) f / sizeof(DdNode));
      if (retValue == EOF) {
        return(0);
      } else {
@@ -1170,13 +1109,8 @@ DddmpCuddDdArrayStoreBlifStep (
   ** with the general case.
   */
   if (f == DD_ZERO(ddMgr)) {
-#if SIZEOF_VOID_P == 8
-    retValue = fprintf(fp, ".names node%lx\n",
-      (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-    retValue = fprintf(fp, ".names node%x\n",
-      (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+    retValue = fprintf(fp, ".names node%" PRIxPTR "\n",
+      (ptruint) f / sizeof(DdNode));
     if (retValue == EOF) {
       return(0);
     } else {
@@ -1205,31 +1139,19 @@ DddmpCuddDdArrayStoreBlifStep (
     return(0);
   }
 
-#if SIZEOF_VOID_P == 8
   if (Cudd_IsComplement(cuddE(f))) {
-    retValue = fprintf(fp," node%lx node%lx node%lx\n11- 1\n0-0 1\n",
-      (unsigned long) T / (unsigned long) sizeof(DdNode),
-      (unsigned long) E / (unsigned long) sizeof(DdNode),
-      (unsigned long) f / (unsigned long) sizeof(DdNode));
+    retValue = fprintf(fp,
+      " node%" PRIxPTR " node%" PRIxPTR " node%" PRIxPTR "\n11- 1\n0-0 1\n",
+      (ptruint) T / sizeof(DdNode),
+      (ptruint) E / sizeof(DdNode),
+      (ptruint) f / sizeof(DdNode));
   } else {
-    retValue = fprintf(fp," node%lx node%lx node%lx\n11- 1\n0-1 1\n",
-      (unsigned long) T / (unsigned long) sizeof(DdNode),
-      (unsigned long) E / (unsigned long) sizeof(DdNode),
-      (unsigned long) f / (unsigned long) sizeof(DdNode));
+    retValue = fprintf(fp,
+      " node%" PRIxPTR " node%" PRIxPTR " node%" PRIxPTR "\n11- 1\n0-1 1\n",
+      (ptruint) T / sizeof(DdNode),
+      (ptruint) E / sizeof(DdNode),
+      (ptruint) f / sizeof(DdNode));
   }
-#else
-  if (Cudd_IsComplement(cuddE(f))) {
-    retValue = fprintf(fp," node%x node%x node%x\n11- 1\n0-0 1\n",
-      (unsigned) T / (unsigned) sizeof(DdNode),
-      (unsigned) E / (unsigned) sizeof(DdNode),
-      (unsigned) f / (unsigned) sizeof(DdNode));
-  } else {
-    retValue = fprintf(fp," node%x node%x node%x\n11- 1\n0-1 1\n",
-      (unsigned) T / (unsigned) sizeof(DdNode),
-      (unsigned) E / (unsigned) sizeof(DdNode),
-      (unsigned) f / (unsigned) sizeof(DdNode));
-  }
-#endif
   if (retValue == EOF) {
     return(0);
   } else {
@@ -1430,21 +1352,11 @@ DddmpCuddDdArrayStoreSmvBody (
       "Error during file store.", failure);
 
     if (Cudd_IsComplement(f[i])) {
-#if SIZEOF_VOID_P == 8
-      retValue = fprintf (fp, "!node%lx\n",
-        (unsigned long) f[i] / (unsigned long) sizeof(DdNode));
-#else
-      retValue = fprintf (fp, "!node%x\n",
-        (unsigned) f[i] / (unsigned) sizeof(DdNode));
-#endif
+      retValue = fprintf (fp, "!node%" PRIxPTR "\n",
+        (ptruint) f[i] / sizeof(DdNode));
     } else {
-#if SIZEOF_VOID_P == 8
-      retValue = fprintf (fp, "node%lx\n",
-        (unsigned long) f[i] / (unsigned long) sizeof(DdNode));
-#else
-      retValue = fprintf (fp, "node%x\n",
-        (unsigned) f[i] / (unsigned) sizeof(DdNode));
-#endif
+      retValue = fprintf (fp, "node%" PRIxPTR "\n",
+        (ptruint) f[i] / sizeof(DdNode));
     }
     Dddmp_CheckAndGotoLabel (retValue==EOF,
       "Error during file store.", failure);
@@ -1519,15 +1431,8 @@ DddmpCuddDdArrayStoreSmvStep (
 
   /* Check for special case: If constant node, generate constant 1. */
   if (f == DD_ONE (ddMgr)) {
-#if SIZEOF_VOID_P == 8
-    retValue = fprintf (fp,
-      "node%lx := 1;\n",
-      (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-    retValue = fprintf (fp,
-      "node%x := 1;\n",
-      (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+    retValue = fprintf (fp, "node%" PRIxPTR " := 1;\n",
+      (ptruint) f / sizeof(DdNode));
     if (retValue == EOF) {
        return(0);
     } else {
@@ -1541,15 +1446,8 @@ DddmpCuddDdArrayStoreSmvStep (
    */
 
   if (f == DD_ZERO(ddMgr)) {
-#if SIZEOF_VOID_P == 8
-    retValue = fprintf (fp,
-      "node%lx := 0;\n",
-       (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-    retValue = fprintf (fp,
-      "node%x := 0;\n",
-      (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+    retValue = fprintf (fp, "node%" PRIxPTR " := 0;\n",
+       (ptruint) f / sizeof(DdNode));
    if (retValue == EOF) {
      return(0);
    } else {
@@ -1574,13 +1472,8 @@ DddmpCuddDdArrayStoreSmvStep (
   }
 
   /* Write multiplexer taking complement arc into account. */
-#if SIZEOF_VOID_P == 8
-  retValue = fprintf (fp, "node%lx := ",
-    (unsigned long) f / (unsigned long) sizeof(DdNode));
-#else
-  retValue = fprintf (fp, "node%x := ",
-    (unsigned) f / (unsigned) sizeof(DdNode));
-#endif
+  retValue = fprintf (fp, "node%" PRIxPTR " := ",
+    (ptruint) f / sizeof(DdNode));
   if (retValue == EOF) {
     return(0);
   }
@@ -1594,13 +1487,8 @@ DddmpCuddDdArrayStoreSmvStep (
     return(0);
   }
 
-#if SIZEOF_VOID_P == 8
-  retValue = fprintf (fp, "& node%lx | ",
-    (unsigned long) T / (unsigned long) sizeof(DdNode));
-#else
-  retValue = fprintf (fp, "& node%x | ",
-    (unsigned) T / (unsigned) sizeof(DdNode));
-#endif
+  retValue = fprintf (fp, "& node%" PRIxPTR " | ",
+    (ptruint) T / sizeof(DdNode));
   if (retValue == EOF) {
     return(0);
   }
@@ -1614,23 +1502,13 @@ DddmpCuddDdArrayStoreSmvStep (
     return(0);
   }
 
-#if SIZEOF_VOID_P == 8
   if (Cudd_IsComplement(cuddE(f))) {
-    retValue = fprintf (fp, "& !node%lx\n",
-      (unsigned long) E / (unsigned long) sizeof(DdNode));
+    retValue = fprintf (fp, "& !node%" PRIxPTR "\n",
+      (ptruint) E / sizeof(DdNode));
   } else {
-    retValue = fprintf (fp, "& node%lx\n",
-      (unsigned long) E / (unsigned long) sizeof(DdNode));
+    retValue = fprintf (fp, "& node%" PRIxPTR "\n",
+      (ptruint) E / sizeof(DdNode));
   }
-#else
-  if (Cudd_IsComplement(cuddE(f))) {
-    retValue = fprintf (fp, "& !node%x\n",
-      (unsigned) E / (unsigned) sizeof(DdNode));
-  } else {
-    retValue = fprintf (fp, "& node%x\n",
-      (unsigned) E / (unsigned) sizeof(DdNode));
-  }
-#endif
 
   if (retValue == EOF) {
     return(0);

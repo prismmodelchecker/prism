@@ -268,7 +268,7 @@ Cudd_zddReduceHeap(
     /* Run hook functions. */
     hook = table->postReorderingHook;
     while (hook != NULL) {
-	int res = (hook->f)(table, "ZDD", (void *)localTime);
+      int res = (hook->f)(table, "ZDD", (void *)(ptruint)localTime);
 	if (res == 0) return(0);
 	hook = hook->next;
     }
