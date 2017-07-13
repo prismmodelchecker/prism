@@ -212,7 +212,7 @@ ifeq ($(OSTYPE),cygwin)
 		CUDD_XCFLAGS = -fPIC -DPIC -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 -fpermissive $(DEBUG) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
 	else
 		C = /usr/bin/i686-w64-mingw32-gcc
@@ -220,7 +220,7 @@ ifeq ($(OSTYPE),cygwin)
 		CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
+		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win32
 	endif
 	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
