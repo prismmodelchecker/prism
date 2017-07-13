@@ -38,7 +38,7 @@ import parser.ast.RelOp;
 public interface StateValues extends StateVector
 {
 	/** Converts to StateValuesDV, destroys (clear) this vector */
-	StateValuesDV convertToStateValuesDV();
+	StateValuesDV convertToStateValuesDV() throws PrismException;
 
 	/** Converts to StateValuesMTBDD, destroys (clear) this vector */
 	StateValuesMTBDD convertToStateValuesMTBDD();

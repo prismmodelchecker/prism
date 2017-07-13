@@ -1252,7 +1252,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * the (single) initial state or equiprobable over multiple initial states.
 	 * The type of storage (MTBDD or double vector) matches the current engine.
 	 */
-	private StateValues buildInitialDistribution()
+	private StateValues buildInitialDistribution() throws PrismException
 	{
 		StateValues dist = null;
 		JDDNode init;

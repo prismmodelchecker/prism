@@ -104,7 +104,7 @@ public class StateValuesMTBDD implements StateValues
 	// CONVERSION METHODS
 	
 	@Override
-	public StateValuesDV convertToStateValuesDV()
+	public StateValuesDV convertToStateValuesDV() throws PrismException
 	{
 		// convert to StateValuesDV, destroy (clear) old vector
 		StateValuesDV res = new StateValuesDV(values, model);

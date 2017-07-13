@@ -105,11 +105,16 @@ public class DoubleVector
 	/**
 	 * Create a new DoubleVector from an existing MTBDD representation of an array.
 	 * <br>[ DEREFS: <i>none</i> ]
+	 * @throws PrismException if number of states is too large (uses Java int based indices)
 	 */
-	public DoubleVector(JDDNode dd, JDDVars vars, ODDNode odd)
+	public DoubleVector(JDDNode dd, JDDVars vars, ODDNode odd) throws PrismException
 	{
+		long numStates = odd.getEOff() + odd.getTOff();
+		if (numStates > Integer.MAX_VALUE) {
+			throw new PrismNotSupportedException("Can not create DoubleVector with more than " + Integer.MAX_VALUE + " states, have " + numStates + " states");
+		}
 		v = DV_ConvertMTBDD(dd.ptr(), vars.array(), vars.n(), odd.ptr());
-		n = (int)(odd.getEOff() + odd.getTOff());
+		n = (int)numStates;
 	}
 	
 	private native long DV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);

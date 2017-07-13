@@ -113,7 +113,7 @@ public class StateValuesDV implements StateValues
 	 * @param dd the double vector
 	 * @param model the underlying model
 	 */
-	public StateValuesDV(JDDNode dd, Model model)
+	public StateValuesDV(JDDNode dd, Model model) throws PrismException
 	{
 		// TODO: Enforce/check that dd is zero for all non-reachable states
 		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model);
