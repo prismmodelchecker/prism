@@ -1297,7 +1297,7 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkRewardTotal(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, boolean min) throws PrismException
 	{
-		StateValues rewards = computeTotalRewards(trans, trans01, stateRewards, transRewards, min);
+		StateValues rewards = computeTotalRewards(trans, trans01, transActions, stateRewards, transRewards, min);
 		return rewards;
 	}
 
@@ -1944,11 +1944,141 @@ public class NondetModelChecker extends NonProbModelChecker
 		return rewards;
 	}
 
-	// compute cumulative rewards
+	// compute total rewards
 
-	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, boolean min) throws PrismException
+	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode tra, JDDNode sr, JDDNode trr, boolean min) throws PrismException
 	{
-		throw new PrismException("Expected total reward (C) is not yet supported for MDPs.");
+		if (min) {
+			throw new PrismNotSupportedException("Expected minimum total reward (C) is not yet supported for MDPs.");
+		} else {
+			// max. We don't know if there are positive ECs, so we can't skip precomputation
+			return computeTotalRewardsMax(tr, tr01, tra, sr, trr, false);
+		}
+	}
+
+	protected StateValues computeTotalRewardsMax(JDDNode tr, JDDNode tr01, JDDNode tra, JDDNode sr, JDDNode trr, boolean noPositiveECs) throws PrismException
+	{
+		JDDNode inf, maybe;
+		JDDNode rewardsMTBDD;
+		DoubleVector rewardsDV;
+		StateValues rewards = null;
+		// Local copy of setting
+		int engine = this.engine;
+
+		// Start expected total reward
+		mainLog.println("\nStarting total expected reward (max)...");
+
+		long timer = System.currentTimeMillis();
+
+		if (noPositiveECs) {
+			// no inf states
+			inf = JDD.Constant(0);
+			maybe = reach.copy();
+		} else {
+			mainLog.println("Precomputation: Find positive end components...");
+
+			long timerPre = System.currentTimeMillis();
+
+			JDDNode posRewStates = JDD.GreaterThan(sr.copy(), 0);
+			JDDNode posRewTrans = JDD.GreaterThan(trr.copy(), 0);
+
+			ECComputer ecComp = new ECComputerDefault(prism, reach, trans, trans01,
+			                                          model.getAllDDRowVars(),
+			                                          model.getAllDDColVars(),
+			                                          model.getAllDDNondetVars());
+			ecComp.computeMECStates();
+
+			JDDNode positiveECs = JDD.Constant(0);
+
+			for (JDDNode ec : ecComp.getMECStates()) {
+				boolean positive = false;
+				if (JDD.AreIntersecting(ec, posRewStates)) {
+					positive = true;
+				} else {
+					// check for positive transition rewards
+					JDDNode ecTrans = ecComp.getStableTransitions(ec.copy());
+					if (JDD.AreIntersecting(ecTrans, posRewTrans)) {
+						positive = true;
+					}
+					JDD.Deref(ecTrans);
+				}
+
+				if (positive) {
+					positiveECs = JDD.Or(positiveECs, ec.copy());
+				}
+				JDD.Deref(ec);
+			}
+
+			JDD.Deref(posRewStates, posRewTrans);
+
+			// inf = Pmax[ <> positiveECs ] > 0
+			//     = ! (Pmax[ <> positiveECs ] = 0)
+			maybe = PrismMTBDD.Prob0A(trans01, reach,  // Pmax[ <> positiveECs ] = 0
+			                          model.getAllDDRowVars(),
+			                          model.getAllDDColVars(),
+			                          model.getAllDDNondetVars(),
+			                          reach,
+			                          positiveECs);
+			inf = JDD.And(reach.copy(), JDD.Not(maybe.copy()));  // !(Pmax[ <> positive ECs ] = 0) = Pmax[ <> positiveECs ] > 0
+
+			JDD.Deref(positiveECs);
+
+			timerPre = System.currentTimeMillis() - timerPre;
+			mainLog.print("Total expected reward precomputation took " + timerPre / 1000.0 + " seconds, ");
+			mainLog.print(JDD.GetNumMintermsString(inf, allDDRowVars.n()) + " infinite states, ");
+			mainLog.println(JDD.GetNumMintermsString(maybe, allDDRowVars.n()) + " states remaining.");
+		}
+
+		// if maybe is empty, we have the rewards already
+		if (maybe.equals(JDD.ZERO)) {
+			rewards = new StateValuesMTBDD(JDD.ITE(inf.copy(), JDD.PlusInfinity(), JDD.Constant(0)), model);
+			JDD.Deref(maybe, inf);
+		}
+		// otherwise we compute the actual rewards
+		else {
+			// compute the rewards
+			mainLog.println("\nComputing remaining total rewards...");
+			// switch engine, if necessary
+			if (engine == Prism.HYBRID) {
+				mainLog.println("Switching engine since hybrid engine does yet support this computation...");
+				engine = Prism.SPARSE;
+			}
+			mainLog.println("Engine: " + Prism.getEngineString(engine));
+			try {
+				switch (engine) {
+				case Prism.MTBDD:
+					rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask,
+					                                            allDDRowVars, allDDColVars, allDDNondetVars,
+					                                            JDD.ZERO,  // goal = empty set
+					                                            inf,
+					                                            maybe,
+					                                            false);  // max
+					rewards = new StateValuesMTBDD(rewardsMTBDD, model);
+					break;
+				case Prism.SPARSE:
+					rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd,
+					                                          allDDRowVars, allDDColVars, allDDNondetVars,
+					                                          JDD.ZERO,  // goal = empty set
+					                                          inf,
+					                                          maybe,
+					                                          false);  // max
+					rewards = new StateValuesDV(rewardsDV, model);
+					break;
+				case Prism.HYBRID:
+					throw new PrismNotSupportedException("Hybrid engine does not yet support this type of property (use sparse or MTBDD engine instead)");
+				default:
+					throw new PrismException("Unknown engine");
+				}
+			} finally {
+				JDD.Deref(inf);
+				JDD.Deref(maybe);
+			}
+		}
+
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Time for total reward computation: " + timer/1000.0 + " seconds.");
+
+		return rewards;
 	}
 
 	// compute rewards for inst reward
