@@ -191,9 +191,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		model.clear();
 	}
 
-	/**
-	 * Model check an expression, process and return the result.
-	 */
+	@Override
 	public Result check(Expression expr) throws PrismException
 	{
 		long timer = 0;
@@ -217,7 +215,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
-		vals = checkExpression(expr);
+		// check expression, statesOfInterest = all reachable states
+		vals = checkExpression(expr, model.getReach().copy());
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
 
@@ -235,28 +234,26 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return result;
 	}
 
-	/**
-	 * Model check an expression and return a vector result values over all states.
-	 */
-	public StateValues checkExpression(Expression expr) throws PrismException
+	@Override
+	public StateValues checkExpression(Expression expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res;
 
 		// If-then-else
 		if (expr instanceof ExpressionITE) {
-			res = checkExpressionITE((ExpressionITE) expr);
+			res = checkExpressionITE((ExpressionITE) expr, statesOfInterest);
 		}
 		// Binary ops
 		else if (expr instanceof ExpressionBinaryOp) {
-			res = checkExpressionBinaryOp((ExpressionBinaryOp) expr);
+			res = checkExpressionBinaryOp((ExpressionBinaryOp) expr, statesOfInterest);
 		}
 		// Unary ops
 		else if (expr instanceof ExpressionUnaryOp) {
-			res = checkExpressionUnaryOp((ExpressionUnaryOp) expr);
+			res = checkExpressionUnaryOp((ExpressionUnaryOp) expr, statesOfInterest);
 		}
 		// Functions
 		else if (expr instanceof ExpressionFunc) {
-			res = checkExpressionFunc((ExpressionFunc) expr);
+			res = checkExpressionFunc((ExpressionFunc) expr, statesOfInterest);
 		}
 		// Identifiers
 		else if (expr instanceof ExpressionIdent) {
@@ -265,38 +262,39 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 		// Literals
 		else if (expr instanceof ExpressionLiteral) {
-			res = checkExpressionLiteral((ExpressionLiteral) expr);
+			res = checkExpressionLiteral((ExpressionLiteral) expr, statesOfInterest);
 		}
 		// Constants
 		else if (expr instanceof ExpressionConstant) {
-			res = checkExpressionConstant((ExpressionConstant) expr);
+			res = checkExpressionConstant((ExpressionConstant) expr, statesOfInterest);
 		}
 		// Formulas
 		else if (expr instanceof ExpressionFormula) {
 			// This should have been defined or expanded by now.
 			if (((ExpressionFormula) expr).getDefinition() != null)
-				return checkExpression(((ExpressionFormula) expr).getDefinition());
+				return checkExpression(((ExpressionFormula) expr).getDefinition(), statesOfInterest);
 			else
 				throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula) expr).getName() + "\"");
 		}
 		// Variables
 		else if (expr instanceof ExpressionVar) {
-			res = checkExpressionVar((ExpressionVar) expr);
+			res = checkExpressionVar((ExpressionVar) expr, statesOfInterest);
 		}
 		// Labels
 		else if (expr instanceof ExpressionLabel) {
-			res = checkExpressionLabel((ExpressionLabel) expr);
+			res = checkExpressionLabel((ExpressionLabel) expr, statesOfInterest);
 		}
 		// Property refs
 		else if (expr instanceof ExpressionProp) {
-			res = checkExpressionProp((ExpressionProp) expr);
+			res = checkExpressionProp((ExpressionProp) expr, statesOfInterest);
 		}
 		// Filter
 		else if (expr instanceof ExpressionFilter) {
-			res = checkExpressionFilter((ExpressionFilter) expr);
+			res = checkExpressionFilter((ExpressionFilter) expr, statesOfInterest);
 		}
 		// Anything else - error
 		else {
+			JDD.Deref(statesOfInterest);
 			throw new PrismException("Couldn't check " + expr.getClass());
 		}
 
@@ -309,11 +307,10 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return res;
 	}
 
-	// Check expression, convert to symbolic form (if not already), return BDD
-
-	public JDDNode checkExpressionDD(Expression expr) throws PrismException
+	@Override
+	public JDDNode checkExpressionDD(Expression expr, JDDNode statesOfInterest) throws PrismException
 	{
-		return checkExpression(expr).convertToStateValuesMTBDD().getJDDNode();
+		return checkExpression(expr, statesOfInterest).convertToStateValuesMTBDD().getJDDNode();
 	}
 
 	// -----------------------------------------------------------------------------------
@@ -348,8 +345,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 * properties, the vector will be stored symbolically since values are Booleans. 
 	 */
 
-	// Check an 'if-then-else'
-	protected StateValues checkExpressionITE(ExpressionITE expr) throws PrismException
+	/**
+	 * Check an 'if-then-else' expression.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionITE(ExpressionITE expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null, res2 = null, res3 = null;
 		JDDNode dd, dd1, dd2, dd3;
@@ -357,15 +358,17 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// Check operands recursively
 		try {
-			res1 = checkExpression(expr.getOperand1());
-			res2 = checkExpression(expr.getOperand2());
-			res3 = checkExpression(expr.getOperand3());
+			res1 = checkExpression(expr.getOperand1(), statesOfInterest.copy());
+			res2 = checkExpression(expr.getOperand2(), statesOfInterest.copy());
+			res3 = checkExpression(expr.getOperand3(), statesOfInterest.copy());
 		} catch (PrismException e) {
 			if (res1 != null)
 				res1.clear();
 			if (res2 != null)
 				res2.clear();
 			throw e;
+		} finally {
+			JDD.Deref(statesOfInterest);
 		}
 
 		// Operand 1 is boolean so should be symbolic
@@ -392,9 +395,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 	}
 
-	// Check a binary operator
-
-	protected StateValues checkExpressionBinaryOp(ExpressionBinaryOp expr) throws PrismException
+	/**
+	 * Check a binary operator.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionBinaryOp(ExpressionBinaryOp expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
@@ -404,17 +410,19 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Optimisations are possible for relational operators
 		// (note dubious use of knowledge that op IDs are consecutive)
 		if (op >= ExpressionBinaryOp.EQ && op <= ExpressionBinaryOp.LE) {
-			return checkExpressionRelOp(op, expr.getOperand1(), expr.getOperand2());
+			return checkExpressionRelOp(op, expr.getOperand1(), expr.getOperand2(), statesOfInterest);
 		}
 
 		// Check operands recursively
 		try {
-			res1 = checkExpression(expr.getOperand1());
-			res2 = checkExpression(expr.getOperand2());
+			res1 = checkExpression(expr.getOperand1(), statesOfInterest.copy());
+			res2 = checkExpression(expr.getOperand2(), statesOfInterest.copy());
 		} catch (PrismException e) {
 			if (res1 != null)
 				res1.clear();
 			throw e;
+		} finally {
+			JDD.Deref(statesOfInterest);
 		}
 
 		// If both operands are symbolic, result will be symbolic
@@ -490,9 +498,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 	}
 
-	// Check a relational operator (=, !=, >, >=, < <=)
-
-	protected StateValues checkExpressionRelOp(int op, Expression expr1, Expression expr2) throws PrismException
+	/**
+	 * Check a relational operator (=, !=, >, >=, < <=).
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionRelOp(int op, Expression expr1, Expression expr2, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null, res2 = null;
 		JDDNode dd, dd1, dd2;
@@ -503,6 +514,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// var relop int
 		if (expr1 instanceof ExpressionVar && expr2.isConstant() && expr2.getType() instanceof TypeInt) {
+			JDD.Deref(statesOfInterest);
+
 			ExpressionVar e1;
 			Expression e2;
 			int i, j, l, h, v;
@@ -553,6 +566,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 		// int relop var
 		else if (expr1.isConstant() && expr1.getType() instanceof TypeInt && expr2 instanceof ExpressionVar) {
+			JDD.Deref(statesOfInterest);
+
 			Expression e1;
 			ExpressionVar e2;
 			int i, j, l, h, v;
@@ -607,12 +622,14 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// just convert both operands to MTBDDs first. Optimisations would be possible here.
 		// Check operands recursively
 		try {
-			res1 = checkExpression(expr1);
-			res2 = checkExpression(expr2);
+			res1 = checkExpression(expr1, statesOfInterest.copy());
+			res2 = checkExpression(expr2, statesOfInterest.copy());
 		} catch (PrismException e) {
 			if (res1 != null)
 				res1.clear();
 			throw e;
+		} finally {
+			JDD.Deref(statesOfInterest);
 		}
 		dd1 = res1.convertToStateValuesMTBDD().getJDDNode();
 		dd2 = res2.convertToStateValuesMTBDD().getJDDNode();
@@ -641,9 +658,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return new StateValuesMTBDD(dd, model);
 	}
 
-	// Check a unary operator
-
-	protected StateValues checkExpressionUnaryOp(ExpressionUnaryOp expr) throws PrismException
+	/**
+	 * Check a unary operator.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionUnaryOp(ExpressionUnaryOp expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null;
 		JDDNode dd, dd1;
@@ -651,7 +671,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		int i, n, op = expr.getOperator();
 
 		// Check operand recursively
-		res1 = checkExpression(expr.getOperand());
+		res1 = checkExpression(expr.getOperand(), statesOfInterest);
 
 		// Parentheses are easy - nothing to do:
 		if (op == ExpressionUnaryOp.PARENTH)
@@ -693,29 +713,39 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 	}
 
-	// Check a 'function'
-
-	protected StateValues checkExpressionFunc(ExpressionFunc expr) throws PrismException
+	/**
+	 * Check a 'function'.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionFunc(ExpressionFunc expr, JDDNode statesOfInterest) throws PrismException
 	{
 		switch (expr.getNameCode()) {
 		case ExpressionFunc.MIN:
 		case ExpressionFunc.MAX:
-			return checkExpressionFuncNary(expr);
+			return checkExpressionFuncNary(expr, statesOfInterest);
 		case ExpressionFunc.FLOOR:
 		case ExpressionFunc.CEIL:
-			return checkExpressionFuncUnary(expr);
+			return checkExpressionFuncUnary(expr, statesOfInterest);
 		case ExpressionFunc.POW:
 		case ExpressionFunc.MOD:
 		case ExpressionFunc.LOG:
-			return checkExpressionFuncBinary(expr);
+			return checkExpressionFuncBinary(expr, statesOfInterest);
 		case ExpressionFunc.MULTI:
+			JDD.Deref(statesOfInterest);
 			throw new PrismException("Multi-objective model checking is not supported for " + model.getModelType() + "s");
 		default:
+			JDD.Deref(statesOfInterest);
 			throw new PrismException("Unrecognised function \"" + expr.getName() + "\"");
 		}
 	}
 
-	protected StateValues checkExpressionFuncUnary(ExpressionFunc expr) throws PrismException
+	/**
+	 * Check a unary 'function'.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionFuncUnary(ExpressionFunc expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null;
 		JDDNode dd1;
@@ -723,7 +753,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		int i, n, op = expr.getNameCode();
 
 		// Check operand recursively
-		res1 = checkExpression(expr.getOperand(0));
+		res1 = checkExpression(expr.getOperand(0), statesOfInterest);
 		// Symbolic
 		if (res1 instanceof StateValuesMTBDD) {
 			dd1 = ((StateValuesMTBDD) res1).getJDDNode();
@@ -759,7 +789,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 	}
 
-	protected StateValues checkExpressionFuncBinary(ExpressionFunc expr) throws PrismException
+	/**
+	 * Check a binary 'function'.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionFuncBinary(ExpressionFunc expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null, res2 = null;
 		JDDNode dd = null, dd1, dd2;
@@ -769,12 +804,14 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// Check operands recursively
 		try {
-			res1 = checkExpression(expr.getOperand(0));
-			res2 = checkExpression(expr.getOperand(1));
+			res1 = checkExpression(expr.getOperand(0), statesOfInterest.copy());
+			res2 = checkExpression(expr.getOperand(1), statesOfInterest.copy());
 		} catch (PrismException e) {
 			if (res1 != null)
 				res1.clear();
 			throw e;
+		} finally {
+			JDD.Deref(statesOfInterest);
 		}
 		// If both operands are symbolic, result will be symbolic
 		if (res1 instanceof StateValuesMTBDD && res2 instanceof StateValuesMTBDD) {
@@ -849,7 +886,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 	}
 
-	protected StateValues checkExpressionFuncNary(ExpressionFunc expr) throws PrismException
+	/**
+	 * Check an n-ary 'function'.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionFuncNary(ExpressionFunc expr, JDDNode statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null, res2 = null;
 		JDDNode dd1, dd2;
@@ -858,17 +900,18 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean symbolic;
 
 		// Check first operand recursively
-		res1 = checkExpression(expr.getOperand(0));
+		res1 = checkExpression(expr.getOperand(0), statesOfInterest.copy());
 		// Go through remaining operands
 		// Switch to explicit as soon as an operand is explicit
 		n = expr.getNumOperands();
 		symbolic = (res1 instanceof StateValuesMTBDD);
 		for (i = 1; i < n; i++) {
 			try {
-				res2 = checkExpression(expr.getOperand(i));
+				res2 = checkExpression(expr.getOperand(i), statesOfInterest.copy());
 			} catch (PrismException e) {
 				if (res2 != null)
 					res2.clear();
+				JDD.Deref(statesOfInterest);
 				throw e;
 			}
 			// Explicit
@@ -906,14 +949,24 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			}
 		}
 
+		JDD.Deref(statesOfInterest);
 		return res1;
 	}
 
-	// Check a literal
-
-	protected StateValues checkExpressionLiteral(ExpressionLiteral expr) throws PrismException
+	/**
+	 * Check a literal.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionLiteral(ExpressionLiteral expr, JDDNode statesOfInterest) throws PrismException
 	{
 		JDDNode dd;
+
+		// it's more efficient to return the constant node
+		// instead of a MTBDD function for ITE(statesOfInterest, value, 0),
+		// so we ignore statesOfInterest
+		JDD.Deref(statesOfInterest);
+
 		try {
 			dd = JDD.Constant(expr.evaluateDouble());
 		} catch (PrismLangException e) {
@@ -922,12 +975,20 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return new StateValuesMTBDD(dd, model);
 	}
 
-	// Check a constant
-
-	protected StateValues checkExpressionConstant(ExpressionConstant expr) throws PrismException
+	/**
+	 * Check a constant.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionConstant(ExpressionConstant expr, JDDNode statesOfInterest) throws PrismException
 	{
 		int i;
 		JDDNode dd;
+
+		// it's more efficient to return the constant node
+		// instead of a MTBDD function for ITE(statesOfInterest, value, 0),
+		// so we ignore statesOfInterest
+		JDD.Deref(statesOfInterest);
 
 		i = constantValues.getIndexOf(expr.getName());
 		if (i == -1)
@@ -941,13 +1002,20 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return new StateValuesMTBDD(dd, model);
 	}
 
-	// Check a variable reference
-
-	protected StateValues checkExpressionVar(ExpressionVar expr) throws PrismException
+	/**
+	 * Check a variable reference.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionVar(ExpressionVar expr, JDDNode statesOfInterest) throws PrismException
 	{
 		String s;
 		int v, l, h, i;
 		JDDNode dd;
+
+		// it's generally more efficient not to restrict to statesOfInterest here
+		// so we ignore statesOfInterest
+		JDD.Deref(statesOfInterest);
 
 		s = expr.getName();
 		// get the variable's index
@@ -967,9 +1035,12 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return new StateValuesMTBDD(dd, model);
 	}
 
-	// Check label
-
-	protected StateValues checkExpressionLabel(ExpressionLabel expr) throws PrismException
+	/**
+	 * Check a label.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionLabel(ExpressionLabel expr, JDDNode statesOfInterest) throws PrismException
 	{
 		LabelList ll;
 		JDDNode dd;
@@ -977,14 +1048,17 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// treat special cases
 		if (expr.isDeadlockLabel()) {
+			JDD.Deref(statesOfInterest);
 			dd = model.getDeadlocks();
 			JDD.Ref(dd);
 			return new StateValuesMTBDD(dd, model);
 		} else if (expr.isInitLabel()) {
+			JDD.Deref(statesOfInterest);
 			dd = start;
 			JDD.Ref(dd);
 			return new StateValuesMTBDD(dd, model);
 		} else if (model.hasLabelDD(expr.getName())) {
+			JDD.Deref(statesOfInterest);
 			dd = model.getLabelDD(expr.getName());
 			return new StateValuesMTBDD(dd.copy(), model);
 		} else {
@@ -996,27 +1070,35 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			if (i == -1)
 				throw new PrismException("Unknown label \"" + expr.getName() + "\" in property");
 			// check recursively
-			return checkExpression(ll.getLabel(i));
+			return checkExpression(ll.getLabel(i), statesOfInterest);
 		}
 	}
 
-	// Check property ref
 
-	protected StateValues checkExpressionProp(ExpressionProp expr) throws PrismException
+	/**
+	 * Check a property reference.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionProp(ExpressionProp expr, JDDNode statesOfInterest) throws PrismException
 	{
 		// Look up property and check recursively
 		Property prop = propertiesFile.lookUpPropertyObjectByName(expr.getName());
 		if (prop != null) {
 			mainLog.println("\nModel checking : " + prop);
-			return checkExpression(prop.getExpression());
+			return checkExpression(prop.getExpression(), statesOfInterest);
 		} else {
+			JDD.Deref(statesOfInterest);
 			throw new PrismException("Unknown property reference " + expr);
 		}
 	}
 
-	// Check filter
-
-	protected StateValues checkExpressionFilter(ExpressionFilter expr) throws PrismException
+	/**
+	 * Check a filter.
+	 * The result will have valid results at least for the states of interest (use model.getReach().copy() for all reachable states)
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	protected StateValues checkExpressionFilter(ExpressionFilter expr, JDDNode statesOfInterest) throws PrismException
 	{
 		// Translate filter
 		Expression filter = expr.getFilter();
@@ -1027,7 +1109,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean filterTrue = Expression.isTrue(filter);
 		// Store some more info
 		String filterStatesString = filterTrue ? "all states" : "states satisfying filter";
-		JDDNode ddFilter = checkExpressionDD(filter);
+		JDDNode ddFilter = checkExpressionDD(filter, statesOfInterest.copy());
 		StateListMTBDD statesFilter = new StateListMTBDD(ddFilter, model);
 		// Check if filter state set is empty; we treat this as an error
 		if (ddFilter.equals(JDD.ZERO)) {
@@ -1057,10 +1139,11 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		StateValues vals = null;
 		try {
-			// Check operand recursively
-			vals = checkExpression(expr.getOperand());
+			// Check operand recursively, using the filter as the states of interest
+			vals = checkExpression(expr.getOperand(), ddFilter.copy());
 		} catch (PrismException e) {
 			JDD.Deref(ddFilter);
+			JDD.Deref(statesOfInterest);
 			throw e;
 		}
 
@@ -1364,6 +1447,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 		// Other derefs
 		JDD.Deref(ddFilter);
+		JDD.Deref(statesOfInterest);
 
 		return resVals;
 	}
@@ -1416,7 +1500,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return transRewards; 
 	}
 
-	/** Get the constant values (both from the modules file and the properties file) */
 	@Override
 	public Values getConstantValues()
 	{
@@ -1466,7 +1549,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		int numLabels = labelNames.size();
 		JDDNode labels[] = new JDDNode[numLabels];
 		for (int i = 0; i < numLabels; i++) {
-			labels[i] = checkExpressionDD(new ExpressionLabel(labelNames.get(i)));
+			labels[i] = checkExpressionDD(new ExpressionLabel(labelNames.get(i)), model.getReach().copy());
 		}
 
 		// Export them using the MTBDD engine

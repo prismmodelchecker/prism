@@ -78,13 +78,15 @@ public class StochModelChecker extends ProbModelChecker
 	// -----------------------------------------------------------------------------------
 
 	// bounded until
-
-	protected StateValues checkProbBoundedUntil(ExpressionTemporal expr) throws PrismException
+	@Override
+	protected StateValues checkProbBoundedUntil(ExpressionTemporal expr, JDDNode statesOfInterest) throws PrismException
 	{
 		double lTime, uTime; // time bounds
 		Expression exprTmp;
 		JDDNode b1, b2, tmp;
 		StateValues tmpProbs = null, probs = null;
+
+		JDD.Deref(statesOfInterest);
 
 		// get info from bounded until
 
@@ -115,10 +117,10 @@ public class StochModelChecker extends ProbModelChecker
 			uTime = -1;
 		}
 
-		// model check operands first
-		b1 = checkExpressionDD(expr.getOperand1());
+		// model check operands first, statesOfInterest = all
+		b1 = checkExpressionDD(expr.getOperand1(), model.getReach().copy());
 		try {
-			b2 = checkExpressionDD(expr.getOperand2());
+			b2 = checkExpressionDD(expr.getOperand2(), model.getReach().copy());
 		} catch (PrismException e) {
 			JDD.Deref(b1);
 			throw e;
@@ -228,12 +230,14 @@ public class StochModelChecker extends ProbModelChecker
 	}
 
 	// cumulative reward
-
-	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
+	@Override
+	protected StateValues checkRewardCumul(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, JDDNode statesOfInterest)
 			throws PrismException
 	{
 		double time; // time
 		StateValues rewards = null;
+
+		JDD.Deref(statesOfInterest);
 
 		// get info from inst reward
 		time = expr.getUpperBound().evaluateDouble(constantValues);
@@ -260,11 +264,14 @@ public class StochModelChecker extends ProbModelChecker
 
 	// inst reward
 
-	protected StateValues checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards)
+	@Override
+	protected StateValues checkRewardInst(ExpressionTemporal expr, JDDNode stateRewards, JDDNode transRewards, JDDNode statesOfInterest)
 			throws PrismException
 	{
 		double time; // time
 		StateValues sr = null, rewards = null;
+
+		JDD.Deref(statesOfInterest);
 
 		// get info from inst reward
 		time = expr.getUpperBound().evaluateDouble(constantValues);
@@ -391,7 +398,7 @@ public class StochModelChecker extends ProbModelChecker
 	// -----------------------------------------------------------------------------------
 
 	// compute probabilities for next
-
+	@Override
 	protected StateValues computeNextProbs(JDDNode tr, JDDNode b)
 	{
 		JDDNode diags, emb;
@@ -491,7 +498,7 @@ public class StochModelChecker extends ProbModelChecker
 	}
 
 	// compute probabilities for until (general case)
-
+	@Override
 	protected StateValues computeUntilProbs(JDDNode tr, JDDNode tr01, JDDNode b1, JDDNode b2) throws PrismException
 	{
 		JDDNode diags, emb;
@@ -555,6 +562,7 @@ public class StochModelChecker extends ProbModelChecker
 
 	// compute total rewards
 
+	@Override
 	protected StateValues computeTotalRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr) throws PrismException
 	{
 		JDDNode diags, emb, srNew;
@@ -587,7 +595,7 @@ public class StochModelChecker extends ProbModelChecker
 	}
 	
 	// compute rewards for reach reward
-
+	@Override
 	protected StateValues computeReachRewards(JDDNode tr, JDDNode tr01, JDDNode sr, JDDNode trr, JDDNode b)
 			throws PrismException
 	{

@@ -104,7 +104,7 @@ public class LTLModelChecker extends PrismComponent
 		// A state formula
 		if (expr.getType() instanceof TypeBool) {
 			// Model check
-			JDDNode dd = mc.checkExpressionDD(expr);
+			JDDNode dd = mc.checkExpressionDD(expr, model.getReach().copy());
 			// Detect special cases (true, false) for optimisation
 			if (dd.equals(JDD.ZERO)) {
 				JDD.Deref(dd);
