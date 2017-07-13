@@ -624,6 +624,11 @@ public class TypeCheck extends ASTTraverse
 				throw new PrismLangException("Type error: Boolean argument not allowed as operand for filter of type \"" + e.getOperatorName() + "\"",
 						e.getOperand());
 			}
+			if (t instanceof TypeVoid) {
+				// e.g., complex results from multi-objective checking
+				throw new PrismLangException("Type error: Void/complex arguments not allowed as operand for filter of type \"" + e.getOperatorName() + "\"",
+						e.getOperand());
+			}
 			break;
 		case COUNT:
 		case FORALL:
@@ -635,8 +640,13 @@ public class TypeCheck extends ASTTraverse
 		case FIRST:
 		case PRINT:
 		case PRINTALL:
+			if (t instanceof TypeVoid) {
+				throw new PrismLangException("Type error: Void/complex arguments not allowed as operand for filter of type \"" + e.getOperatorName() + "\"",
+						e.getOperand());
+			}
+			break;
 		case STATE:
-			// Anything goes
+			// Anything goes, has special handling for TypeVoid (e.g., some multi-objective results)
 			break;
 		default:
 			throw new PrismLangException("Cannot type check filter of unknown type", e);
