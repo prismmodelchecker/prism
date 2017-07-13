@@ -209,7 +209,7 @@ ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
 		C = /usr/bin/x86_64-w64-mingw32-gcc
 		CPP = /usr/bin/x86_64-w64-mingw32-g++
-		CUDD_XCFLAGS = -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 -fpermissive $(DEBUG) -static-libgcc -static-libstdc++
+		CUDD_XCFLAGS = -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 $(DEBUG) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CPPFLAGS = --std=c++11 -DWIN32 $(CUDD_XCFLAGS) $(OPTIMISE)
