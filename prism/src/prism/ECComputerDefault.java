@@ -153,46 +153,6 @@ public class ECComputerDefault extends ECComputer
 	 * i.e. the maximal subset of states which have a choice whose transitions remain in the subset. 
 	 * @param candidateStates BDD for a set of states (over allDDRowVars) (dereferenced after calling this function)
 	 * @return A referenced BDD with the maximal stable set in c
-	 */
-	private JDDNode findMaximalStableSet(JDDNode candidateStates)
-	{
-		// Store two copies to allow check for fixed point 
-		JDDNode current = candidateStates;
-		JDDNode old = JDD.Constant(0);
-		// Fixed point
-		while (!current.equals(old)) {
-			// Remember last set
-			JDD.Deref(old);
-			JDD.Ref(current);
-			old = current;
-			// Find transitions starting in current
-			JDD.Ref(trans01);
-			JDD.Ref(current);
-			JDDNode currTrans = JDD.Apply(JDD.TIMES, trans01, current);
-			// Find transitions starting in current *and* ending in current
-			current = JDD.PermuteVariables(current, allDDRowVars, allDDColVars);
-			JDD.Ref(currTrans);
-			JDDNode currTrans2 = JDD.Apply(JDD.TIMES, currTrans, current);
-			// Find transitions leaving current
-			JDD.Ref(currTrans2);
-			currTrans = JDD.And(currTrans, JDD.Not(currTrans2));
-			// Find choices leaving current
-			currTrans = JDD.ThereExists(currTrans, allDDColVars);
-			// Remove leaving choices
-			currTrans2 = JDD.ThereExists(currTrans2, allDDColVars);
-			currTrans2 = JDD.And(currTrans2, JDD.Not(currTrans));
-			// Keep states with at least one choice
-			current = JDD.ThereExists(currTrans2, allDDNondetVars);
-		}
-		JDD.Deref(old);
-		return current;
-	}
-
-	/**
-	 * Returns the maximal stable set of states contained in {@code candidateStates},
-	 * i.e. the maximal subset of states which have a choice whose transitions remain in the subset. 
-	 * @param candidateStates BDD for a set of states (over allDDRowVars) (dereferenced after calling this function)
-	 * @return A referenced BDD with the maximal stable set in c
 	 * 
 	 * Old version of the code (uses probability sum, which shouldn't be needed).
 	 */
