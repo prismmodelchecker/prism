@@ -28,11 +28,12 @@
 #include "iv.h"
 #include <math.h>
 #include <new>
+#include <cstdint>
 
 // local function prototypes
 
-static void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, long n, int *res);
-static DdNode *integer_vector_to_mtbdd_rec(DdManager *ddman, int *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
+static void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o, int64_t n, int *res);
+static DdNode *integer_vector_to_mtbdd_rec(DdManager *ddman, int *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
 
 //------------------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ EXPORT int *mtbdd_to_integer_vector(DdManager *ddman, DdNode *dd, DdNode **vars,
 
 EXPORT int *mtbdd_to_integer_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, int *res)
 {
-	long i, n;
+	int64_t i, n;
 
 	// determine size
 	n = odd->eoff + odd->toff;
@@ -67,7 +68,7 @@ EXPORT int *mtbdd_to_integer_vector(DdManager *ddman, DdNode *dd, DdNode **vars,
 	return res;
 }
 
-void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, long n, int *res)
+void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o, int64_t n, int *res)
 {
 	DdNode *e, *t;
 
@@ -102,7 +103,7 @@ EXPORT DdNode *integer_vector_to_mtbdd(DdManager *ddman, int *vec, DdNode **vars
 	return integer_vector_to_mtbdd_rec(ddman, vec, vars, num_vars, 0, odd, 0);
 }
 
-DdNode *integer_vector_to_mtbdd_rec(DdManager *ddman, int *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+DdNode *integer_vector_to_mtbdd_rec(DdManager *ddman, int *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	DdNode *e, *t;
 
