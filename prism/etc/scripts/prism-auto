@@ -24,7 +24,7 @@ testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING
 
 # colour coding for test results
 # for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 33, WARNING = '31;1')
+testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 34, WARNING = 33)
 
 #==================================================================================================
 # Utility functions
@@ -463,12 +463,12 @@ def printTestStatistics():
     if options.test and not options.echo:
         print('\nTest results:')
         printColoured('SUCCESS',     ' Success:      ' + str(testStats['SUCCESS']))
-        printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
-        printColoured('UNSUPPORTED', ' Unsupported:  ' + str(testStats['UNSUPPORTED']))
-        printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
         printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING']))
         if (options.ddWarnings):
             printColoured('WARNING',     '  DD-Warnings: ' + str(testStats['DDWARNING']))
+        printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
+        printColoured('UNSUPPORTED', ' Unsupported:  ' + str(testStats['UNSUPPORTED']))
+        printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
