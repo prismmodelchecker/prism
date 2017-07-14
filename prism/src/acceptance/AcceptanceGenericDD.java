@@ -32,6 +32,7 @@ import acceptance.AcceptanceGeneric.ElementType;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismNotSupportedException;
 
 /**
  * A generic acceptance condition (based on JDD state sets).
@@ -204,6 +205,54 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 	@Override
 	public AcceptanceType getType() {
 		return AcceptanceType.GENERIC;
+	}
+
+	@Override
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return this.complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to required acceptance type");
+	}
+
+	/** Complement this acceptance condition, return as AcceptanceGeneric. */
+	@Override
+	public AcceptanceGenericDD complementToGeneric()
+	{
+		// overrides the default implementation in AcceptanceOmegaDD, as it's the base case
+		// that is used there
+
+		switch (kind) {
+		case TRUE:
+			return new AcceptanceGenericDD(false);
+		case FALSE:
+			return new AcceptanceGenericDD(true);
+		case AND:
+			return new AcceptanceGenericDD(ElementType.OR,
+			                               getLeft().complementToGeneric(),
+			                               getRight().complementToGeneric());
+		case OR:
+			return new AcceptanceGenericDD(ElementType.AND,
+			                               getLeft().complementToGeneric(),
+			                               getRight().complementToGeneric());
+		case FIN:
+			return new AcceptanceGenericDD(ElementType.INF, states.copy());
+		case FIN_NOT:
+			return new AcceptanceGenericDD(ElementType.INF_NOT, states.copy());
+		case INF:
+			return new AcceptanceGenericDD(ElementType.FIN, states.copy());
+		case INF_NOT:
+			return new AcceptanceGenericDD(ElementType.FIN_NOT, states.copy());
+		default:
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	@Override
+	public AcceptanceGenericDD toAcceptanceGeneric()
+	{
+		return this.clone();
 	}
 
 	@Override

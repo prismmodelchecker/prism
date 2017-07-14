@@ -27,6 +27,8 @@
 package acceptance;
 
 import jdd.JDDNode;
+import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Generic interface for an omega-regular acceptance condition (BDD-based).
@@ -53,6 +55,36 @@ public interface AcceptanceOmegaDD extends Cloneable
 
 	/** Returns the AcceptanceType of this acceptance condition */
 	public AcceptanceType getType();
+
+	/**
+	 * Complement the acceptance condition if possible.
+	 * <br>
+	 * [ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param allowedAcceptance the allowed acceptance types that may be used for complementing
+	 * @throws PrismNotSupportedException if none of the allowed acceptance types can be used as target for complementing
+	 */
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException;
+
+	/**
+	 * Complement this acceptance condition to an AcceptanceGeneric condition.
+	 * <br>
+	 * Default implementation: toAcceptanceGeneric().complementToGeneric()
+	 * [ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public default AcceptanceGenericDD complementToGeneric()
+	{
+		AcceptanceGenericDD generic = this.toAcceptanceGeneric();
+		AcceptanceGenericDD complemented = generic.complementToGeneric();
+		generic.clear();
+		return complemented;
+	}
+
+	/**
+	 * Convert this acceptance condition to an AcceptanceGeneric condition.
+	 * <br>
+	 * [ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public AcceptanceGenericDD toAcceptanceGeneric();
 
 	/** Returns the type of this acceptance condition as a String,
 	 * i.e., "R" for Rabin

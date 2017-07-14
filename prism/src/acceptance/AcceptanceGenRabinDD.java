@@ -30,10 +30,10 @@ package acceptance;
 import java.util.ArrayList;
 
 import common.IterableBitSet;
-
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismNotSupportedException;
 
 /**
  * A Generalized Rabin acceptance condition (based on JDD state sets)
@@ -135,6 +135,24 @@ public class AcceptanceGenRabinDD
 			return true;
 		}
 
+		public AcceptanceGenericDD toAcceptanceGeneric()
+ 		{
+			AcceptanceGenericDD genericL = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.FIN, L.copy());
+			if (getNumK() == 0) {
+				return genericL;
+			}
+			AcceptanceGenericDD genericKs = null;
+			for (JDDNode K : K_list) {
+				AcceptanceGenericDD genericK = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.INF, K.copy());
+				if (genericKs == null) {
+					genericKs = genericK;
+				} else {
+					genericKs = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.AND, genericKs, genericK);
+				}
+			}
+			return new AcceptanceGenericDD(AcceptanceGeneric.ElementType.AND, genericL, genericKs);
+ 		}
+
 		/** Returns a textual representation of this Rabin pair. */
 		@Override
 		public String toString()
@@ -233,6 +251,33 @@ public class AcceptanceGenRabinDD
 	public AcceptanceType getType()
 	{
 		return AcceptanceType.GENERALIZED_RABIN;
+	}
+
+	@Override
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to a supported acceptance type");
+	}
+
+	@Override
+	public AcceptanceGenericDD toAcceptanceGeneric()
+	{
+		if (size() == 0) {
+			return new AcceptanceGenericDD(false);
+		}
+		AcceptanceGenericDD genericPairs = null;
+		for (GenRabinPairDD pair : this) {
+			AcceptanceGenericDD genericPair = pair.toAcceptanceGeneric();
+			if (genericPairs == null) {
+				genericPairs = genericPair;
+			} else {
+				genericPairs = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.OR, genericPairs, genericPair);
+			}
+		}
+		return genericPairs;
 	}
 
 	@Override

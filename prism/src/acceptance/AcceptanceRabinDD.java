@@ -32,6 +32,7 @@ import common.IterableBitSet;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismNotSupportedException;
 
 /**
  * A Rabin acceptance condition (based on JDD state sets)
@@ -119,6 +120,16 @@ public class AcceptanceRabinDD
 			return false;
 		}
 
+		public AcceptanceGenericDD toAcceptanceGeneric()
+ 		{
+			AcceptanceGenericDD genericL = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.FIN, getL());
+			AcceptanceGenericDD genericK = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.INF, getK());
+
+			//      F G ! "L" & G F "K"
+			// <=>  Fin(L) & Inf(K)
+			return new AcceptanceGenericDD(AcceptanceGeneric.ElementType.AND, genericL, genericK);
+ 		}
+
 		/** Returns a textual representation of this Rabin pair. */
 		@Override
 		public String toString()
@@ -181,19 +192,14 @@ public class AcceptanceRabinDD
 	/**
 	 * Get the Streett acceptance condition that is the dual of this Rabin acceptance condition, i.e.,
 	 * any word that is accepted by this condition is rejected by the returned Streett condition.
+	 * <br>
+	 * Deprecated, use complementToStreett() or complement(...)
 	 * @return the complement Streett acceptance condition
 	 */
+	@Deprecated
 	public AcceptanceStreettDD complement()
 	{
-		AcceptanceStreettDD accStreett = new AcceptanceStreettDD();
-
-		for (RabinPairDD accPairRabin : this) {
-			JDDNode R = accPairRabin.getK();
-			JDDNode G = accPairRabin.getL();
-			AcceptanceStreettDD.StreettPairDD accPairStreett = new AcceptanceStreettDD.StreettPairDD(R, G);
-			accStreett.add(accPairStreett);
-		}
-		return accStreett;
+		return complementToStreett();
 	}
 
 	/**
@@ -245,6 +251,55 @@ public class AcceptanceRabinDD
 	public AcceptanceType getType()
 	{
 		return AcceptanceType.RABIN;
+	}
+
+	@Override
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
+			return complementToStreett();
+		}
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to a supported acceptance type");
+	}
+
+	/**
+	 * Get the Streett acceptance condition that is the dual of this Rabin acceptance condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Streett condition.
+	 * @return the complement Streett acceptance condition
+	 */
+	public AcceptanceStreettDD complementToStreett()
+	{
+		AcceptanceStreettDD accStreett = new AcceptanceStreettDD();
+
+		for (RabinPairDD accPairRabin : this) {
+			JDDNode R = accPairRabin.getK();
+			JDDNode G = accPairRabin.getL();
+			AcceptanceStreettDD.StreettPairDD accPairStreett = new AcceptanceStreettDD.StreettPairDD(R, G);
+			accStreett.add(accPairStreett);
+		}
+
+		return accStreett;
+	}
+
+	@Override
+	public AcceptanceGenericDD toAcceptanceGeneric()
+	{
+		if (size() == 0) {
+			return new AcceptanceGenericDD(false);
+		}
+		AcceptanceGenericDD genericPairs = null;
+		for (RabinPairDD pair : this) {
+			AcceptanceGenericDD genericPair = pair.toAcceptanceGeneric();
+			if (genericPairs == null) {
+				genericPairs = genericPair;
+			} else {
+				genericPairs = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.OR, genericPairs, genericPair);
+			}
+		}
+		return genericPairs;
 	}
 
 	@Override
