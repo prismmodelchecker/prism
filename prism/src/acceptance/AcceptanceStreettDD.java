@@ -83,8 +83,7 @@ public class AcceptanceStreettDD
 		 */
 		public JDDNode getR()
 		{
-			JDD.Ref(R);
-			return R;
+			return R.copy();
 		}
 
 		/** Get a referenced copy of the state set G.
@@ -92,8 +91,7 @@ public class AcceptanceStreettDD
 		 */
 		public JDDNode getG()
 		{
-			JDD.Ref(G);
-			return G;
+			return G.copy();
 		}
 
 		public StreettPairDD clone()

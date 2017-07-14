@@ -82,8 +82,7 @@ public class AcceptanceRabinDD
 		 */
 		public JDDNode getL()
 		{
-			JDD.Ref(L);
-			return L;
+			return L.copy();
 		}
 
 		/** Get a referenced copy of the state set K.
@@ -91,8 +90,7 @@ public class AcceptanceRabinDD
 		 */
 		public JDDNode getK()
 		{
-			JDD.Ref(K);
-			return K;
+			return K.copy();
 		}
 
 		public RabinPairDD clone()

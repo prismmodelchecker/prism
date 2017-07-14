@@ -85,8 +85,7 @@ public class AcceptanceGenRabinDD
 		 */
 		public JDDNode getL()
 		{
-			JDD.Ref(L);
-			return L;
+			return L.copy();
 		}
 
 		/** Get the number of K_j sets */
@@ -100,8 +99,7 @@ public class AcceptanceGenRabinDD
 		 */
 		public JDDNode getK(int j)
 		{
-			JDD.Ref(K_list.get(j));
-			return K_list.get(j);
+			return K_list.get(j).copy();
 		}
 
 		/** Returns true if the bottom strongly connected component
