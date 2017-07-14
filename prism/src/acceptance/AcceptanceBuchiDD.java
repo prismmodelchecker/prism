@@ -93,6 +93,12 @@ public class AcceptanceBuchiDD implements AcceptanceOmegaDD
 	}
 
 	@Override
+	public AcceptanceBuchiDD clone()
+	{
+		return new AcceptanceBuchiDD(acceptingStates.copy());
+	}
+
+	@Override
 	public String getSizeStatistics()
 	{
 		return "one set of accepting states";

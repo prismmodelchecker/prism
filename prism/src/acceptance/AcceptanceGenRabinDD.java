@@ -55,7 +55,7 @@ public class AcceptanceGenRabinDD
 	 * A pair in a Generalized Rabin acceptance condition, i.e., with
 	 *  (F G !"L") & (G F "K_1") & ... & (G F "K_n").
 	 **/
-	public static class GenRabinPairDD {
+	public static class GenRabinPairDD implements Cloneable {
 		/** State set L (should be visited only finitely often) */
 		private JDDNode L;
 
@@ -100,6 +100,16 @@ public class AcceptanceGenRabinDD
 		public JDDNode getK(int j)
 		{
 			return K_list.get(j).copy();
+		}
+
+		@Override
+		public GenRabinPairDD clone()
+		{
+			ArrayList<JDDNode> newK_list = new ArrayList<JDDNode>();
+			for (JDDNode K_j : K_list) {
+				newK_list.add(K_j.copy());
+			}
+			return new GenRabinPairDD(getL(), newK_list);
 		}
 
 		/** Returns true if the bottom strongly connected component
@@ -181,6 +191,16 @@ public class AcceptanceGenRabinDD
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public AcceptanceGenRabinDD clone()
+	{
+		AcceptanceGenRabinDD result = new AcceptanceGenRabinDD();
+		for (GenRabinPairDD pair : this) {
+			result.add(pair.clone());
+		}
+		return result;
 	}
 
 	@Override

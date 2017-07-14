@@ -170,6 +170,17 @@ public class AcceptanceStreettDD
 	}
 
 	@Override
+	public AcceptanceStreettDD clone()
+	{
+		AcceptanceStreettDD result = new AcceptanceStreettDD();
+		for (StreettPairDD pair : this) {
+			result.add(pair.clone());
+		}
+		return result;
+	}
+
+
+	@Override
 	public void clear()
 	{
 		for (StreettPairDD pair : this) {

@@ -31,13 +31,19 @@ import jdd.JDDNode;
 /**
  * Generic interface for an omega-regular acceptance condition (BDD-based).
  */
-public interface AcceptanceOmegaDD
+public interface AcceptanceOmegaDD extends Cloneable
 {
 	/** Returns true if the bottom strongly connected component (BSSC)
 	 *  given by bscc_states is accepting for this acceptance condition.
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 **/
 	public boolean isBSCCAccepting(JDDNode bscc_states);
+
+	/**
+	 * Provides a copy of this acceptance condition.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public AcceptanceOmegaDD clone();
 
 	/**
 	 * Get a string describing the acceptance condition's size,

@@ -176,6 +176,27 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 	}
 
 	@Override
+	public AcceptanceGenericDD clone()
+	{
+		switch(kind) {
+		case TRUE:
+			return new AcceptanceGenericDD(true);
+		case FALSE:
+			return new AcceptanceGenericDD(false);
+		case AND:
+			return new AcceptanceGenericDD(ElementType.AND, left.clone(), right.clone());
+		case OR:
+			return new AcceptanceGenericDD(ElementType.OR, left.clone(), right.clone());
+		case INF:
+		case INF_NOT:
+		case FIN:
+		case FIN_NOT:
+			return new AcceptanceGenericDD(kind, states.copy());
+		}
+		throw new UnsupportedOperationException("Unsupported operatator in generic acceptance condition");
+	}
+
+	@Override
 	public String getSizeStatistics() {
 		return "generic acceptance with " + countAcceptanceSets() + " acceptance sets";
 	}

@@ -93,6 +93,12 @@ public class AcceptanceReachDD implements AcceptanceOmegaDD
 	}
 
 	@Override
+	public AcceptanceReachDD clone()
+	{
+		return new AcceptanceReachDD(goalStates.copy());
+	}
+
+	@Override
 	public String getSizeStatistics()
 	{
 		return "one set of goal states";

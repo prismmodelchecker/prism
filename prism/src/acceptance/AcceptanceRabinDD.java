@@ -168,6 +168,16 @@ public class AcceptanceRabinDD
 		return false;
 	}
 
+	@Override
+	public AcceptanceRabinDD clone()
+	{
+		AcceptanceRabinDD result = new AcceptanceRabinDD();
+		for (RabinPairDD pair : this) {
+			result.add(pair.clone());
+		}
+		return result;
+	}
+
 	/**
 	 * Get the Streett acceptance condition that is the dual of this Rabin acceptance condition, i.e.,
 	 * any word that is accepted by this condition is rejected by the returned Streett condition.
