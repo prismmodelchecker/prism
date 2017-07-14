@@ -80,6 +80,38 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 		throw new UnsupportedOperationException("Unsupported operatator in generic acceptance condition");
 	}
 
+	/**
+	 * Constructor for TRUE or FALSE
+	 * @param value true or false?
+	 */
+	public AcceptanceGenericDD(boolean value) {
+		kind = value ? ElementType.TRUE : ElementType.FALSE;
+	}
+
+	/**
+	 * Constructor for an INF, FIN, INF_NOT or FIN_NOT element.
+	 * <br>[ STORES: <i>states</i> ]
+	 */
+	public AcceptanceGenericDD(ElementType kind, JDDNode states)
+	{
+		this.kind = kind;
+		left = null;
+		right = null;
+		this.states = states;
+	}
+
+	/**
+	 * Constructor for a binary operator (AND/OR).
+	 * <br>[ STORES: <i>left, right operand</i> ]
+	 */
+	public AcceptanceGenericDD(ElementType kind, AcceptanceGenericDD left, AcceptanceGenericDD right)
+	{
+		this.kind = kind;
+		this.left = left;
+		this.right = right;
+		states = null;
+	}
+
 	/** Get the ElementType of this AST element */
 	public ElementType getKind()
 	{

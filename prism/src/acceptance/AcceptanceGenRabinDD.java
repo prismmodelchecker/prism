@@ -137,6 +137,11 @@ public class AcceptanceGenRabinDD
 		}
 	}
 
+	/** Constructor, create empty condition */
+	public AcceptanceGenRabinDD()
+	{
+	}
+
 	/**
 	 * Constructor, from a BitSet-based AcceptanceGenRabin.
 	 *
