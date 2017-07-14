@@ -48,6 +48,14 @@ public interface AcceptanceOmegaDD extends Cloneable
 	public AcceptanceOmegaDD clone();
 
 	/**
+	 * Replaces the BDD functions for all the acceptance sets
+	 * of this acceptance condition with the intersection
+	 * of the current acceptance sets and the function {@code restrict}.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
+	public void intersect(JDDNode restrict);
+
+	/**
 	 * Get a string describing the acceptance condition's size,
 	 * i.e. "x Rabin pairs", etc.
 	 */

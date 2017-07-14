@@ -130,6 +130,18 @@ public class AcceptanceRabinDD
 			return new AcceptanceGenericDD(AcceptanceGeneric.ElementType.AND, genericL, genericK);
  		}
 
+		/**
+		 * Replaces the BDD functions for the acceptance sets
+		 * of this Rabin pair with the intersection
+		 * of the current acceptance sets and the function {@code restrict}.
+		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+		 */
+		public void intersect(JDDNode restrict)
+		{
+			L = JDD.And(L, restrict.copy());
+			K = JDD.And(K, restrict.copy());
+		}
+
 		/** Returns a textual representation of this Rabin pair. */
 		@Override
 		public String toString()
@@ -187,6 +199,14 @@ public class AcceptanceRabinDD
 			result.add(pair.clone());
 		}
 		return result;
+	}
+
+	@Override
+	public void intersect(JDDNode restrict)
+	{
+		for (RabinPairDD pair : this) {
+			pair.intersect(restrict);
+		}
 	}
 
 	/**

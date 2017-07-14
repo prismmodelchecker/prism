@@ -132,6 +132,18 @@ public class AcceptanceStreettDD
 		    return new AcceptanceGenericDD(AcceptanceGeneric.ElementType.OR, genericR, genericG);
                 }
 
+		/**
+		 * Replaces the BDD functions for the acceptance sets
+		 * of this Streett pair with the intersection
+		 * of the current acceptance sets and the function {@code restrict}.
+		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+		 */
+		public void intersect(JDDNode restrict)
+		{
+			R = JDD.And(R, restrict.copy());
+			G = JDD.And(G, restrict.copy());
+		}
+
 		@Override
 		public String toString()
 		{
@@ -190,6 +202,14 @@ public class AcceptanceStreettDD
 		return result;
 	}
 
+
+	@Override
+	public void intersect(JDDNode restrict)
+	{
+		for (StreettPairDD pair : this) {
+			pair.intersect(restrict);
+		}
+	}
 
 	@Override
 	public void clear()

@@ -100,6 +100,12 @@ public class AcceptanceReachDD implements AcceptanceOmegaDD
 	}
 
 	@Override
+	public void intersect(JDDNode restrict)
+	{
+		goalStates = JDD.And(goalStates, restrict.copy());
+	}
+
+	@Override
 	public String getSizeStatistics()
 	{
 		return "one set of goal states";

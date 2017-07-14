@@ -177,6 +177,28 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 	}
 
 	@Override
+	public void intersect(JDDNode restrict)
+	{
+		switch(kind) {
+		case TRUE:
+		case FALSE:
+			return;
+		case AND:
+		case OR:
+			left.intersect(restrict);
+			right.intersect(restrict);
+			return;
+		case INF:
+		case INF_NOT:
+		case FIN:
+		case FIN_NOT:
+			states = JDD.And(states, restrict.copy());
+		}
+		throw new UnsupportedOperationException("Unsupported operator in generic acceptance expression");
+	}
+
+
+	@Override
 	public AcceptanceGenericDD clone()
 	{
 		switch(kind) {
