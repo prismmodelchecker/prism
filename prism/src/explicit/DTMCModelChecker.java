@@ -77,6 +77,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.RABIN,
 				AcceptanceType.REACH,
+				AcceptanceType.BUCHI,
+				AcceptanceType.STREETT,
 				AcceptanceType.GENERIC
 		};
 		product = mcLtl.constructProductMC(this, (DTMC)model, expr, statesOfInterest, allowedAcceptance);
