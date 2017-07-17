@@ -556,8 +556,11 @@ public class ProbModelChecker extends NonProbModelChecker
 		JDD.Deref(statesOfInterest);
 
 		AcceptanceType[] allowedAcceptance = {
-				AcceptanceType.RABIN,
 				AcceptanceType.REACH,
+				AcceptanceType.BUCHI,
+				AcceptanceType.RABIN,
+				AcceptanceType.STREETT,
+				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.GENERIC
 		};
 		mcLtl = new LTLModelChecker(prism);
