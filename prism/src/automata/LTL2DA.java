@@ -342,11 +342,11 @@ public class LTL2DA extends PrismComponent
 			System.out.println("LTL: " + expr);*/
 
 			// Convert to Expression (from LBT format)
-			String ltl = args[0];
+			// String ltl = args[0];
 			SimpleLTL sltl = SimpleLTL.parseFormulaLBT(args[0]);
 			Expression expr = Expression.createFromJltl2ba(sltl);
-			System.out.println("LBT: " + ltl);
-			System.out.println("LTL: " + expr);
+			// System.out.println("LBT: " + ltl);
+			// System.out.println("LTL: " + expr);
 
 			// Build/export DA
 			LTL2DA ltl2da = new LTL2DA(new PrismComponent());
