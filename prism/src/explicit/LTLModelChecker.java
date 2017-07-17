@@ -66,6 +66,7 @@ import automata.DA;
 import automata.LTL2DA;
 
 import common.IterableStateSet;
+import common.StopWatch;
 
 /**
  * LTL model checking functionality
@@ -275,8 +276,10 @@ public class LTLModelChecker extends PrismComponent
 
 		// Build product of model and automaton
 		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
 		LTLProduct<DTMC> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
+		timer.stop("product has " + product.getProductModel().infoString());
 
 		return product;
 	}
@@ -302,8 +305,10 @@ public class LTLModelChecker extends PrismComponent
 
 		// Build product of model and automaton
 		mainLog.println("\nConstructing MDP-"+da.getAutomataType()+" product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
 		LTLProduct<MDP> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
+		timer.stop("product has " + product.getProductModel().infoString());
 
 		return product;
 	}
