@@ -415,9 +415,13 @@ def runPrism(args, dir=""):
         for line in open(logFile, 'r').readlines():
             if re.match('Testing result:', line):
                 printTestResult(line)
-            if options.showWarnings and re.match('Warning:', line):
+            elif options.showWarnings and re.match('Warning:', line):
                 printTestResult(line)
-    if options.test and exitCode != 0:
+            elif options.verboseTest:
+                # in verbose mode, also print the non-matching lines
+                # rstrip to remove newline before printing
+                print(line.rstrip())
+    if options.test and not options.verboseTest and exitCode != 0:
         # failure, we don't want to cleanup the log (if it was a temporary file)
         # so that the user can inspect it
         cleanupLogFile = False
@@ -769,6 +773,7 @@ parser.add_option("-p", "--prog", dest="prismExec", metavar="FILE", default="pri
 parser.add_option("-n", "--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
 parser.add_option("-x", "--extra", action="append", dest="extraArgs", metavar="XXX", default=[], help="Pass extra switches to PRISM")
 parser.add_option("-t", "--test", action="store_true", dest="test", default=False, help="Run in test mode")
+parser.add_option("--verbose-test", action="store_true", dest="verboseTest", default=False, help="Run in verbose test mode (implies --test)")
 parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
 parser.add_option("--nailgun", action="store_true", dest="nailgun", default=False, help="Run PRISM in Nailgun mode")
 parser.add_option("--ngprism", dest="ngprism", metavar="FILE", default="ngprism", help="Specify the location of ngprism (for Nailgun mode)")
@@ -786,6 +791,9 @@ if len(args) < 1:
     sys.exit(1)
 if options.debug:
     logging.basicConfig(level=logging.DEBUG)
+if options.verboseTest:
+    # --verbose-test implies --test
+    vars(options)['test'] = True
 if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
