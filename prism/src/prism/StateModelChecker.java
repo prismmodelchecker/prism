@@ -310,7 +310,10 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	@Override
 	public JDDNode checkExpressionDD(Expression expr, JDDNode statesOfInterest) throws PrismException
 	{
-		return checkExpression(expr, statesOfInterest).convertToStateValuesMTBDD().getJDDNode();
+		StateValuesMTBDD sv = checkExpression(expr, statesOfInterest).convertToStateValuesMTBDD();
+		JDDNode result = sv.getJDDNode().copy();
+		sv.clear();
+		return result;
 	}
 
 	// -----------------------------------------------------------------------------------
