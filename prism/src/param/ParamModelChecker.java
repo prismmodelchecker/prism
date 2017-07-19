@@ -83,6 +83,8 @@ import parser.ast.RewardStruct;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
+import parser.type.TypePathBool;
+import parser.type.TypePathDouble;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -1002,26 +1004,39 @@ final public class ParamModelChecker extends PrismComponent
 	private RegionValues checkRewardFormula(ParamModel model,
 			ParamRewardStruct rew, Expression expr, boolean min, BitSet needStates) throws PrismException {
 		RegionValues rewards = null;
-		
-		if (expr instanceof ExpressionTemporal) {
+
+		if (expr.getType() instanceof TypePathDouble) {
 			ExpressionTemporal exprTemp = (ExpressionTemporal) expr;
 			switch (exprTemp.getOperator()) {
-			case ExpressionTemporal.P_F:
-				rewards = checkRewardReach(model, rew, exprTemp, min, needStates);
-				break;
 			case ExpressionTemporal.R_S:
 				rewards = checkRewardSteady(model, rew, exprTemp, min, needStates);				
 				break;
 			default:
 				throw new PrismNotSupportedException("Parametric engine does not yet handle the " + exprTemp.getOperatorSymbol() + " operator in the R operator");
 			}
+		} else if (expr.getType() instanceof TypePathBool || expr.getType() instanceof TypeBool) {
+			rewards = checkRewardPathFormula(model, rew, expr, min, needStates);
 		}
-		
+
 		if (rewards == null) {
 			throw new PrismException("Unrecognised operator in R operator");
 		}
 		
 		return rewards;
+	}
+
+	/**
+	 * Compute rewards for a path formula in a reward operator.
+	 */
+	private RegionValues checkRewardPathFormula(ParamModel model, ParamRewardStruct rew, Expression expr, boolean min, BitSet needStates) throws PrismException
+	{
+		if (Expression.isReach(expr)) {
+			return checkRewardReach(model, rew, (ExpressionTemporal) expr, min, needStates);
+		} else if (Expression.isCoSafeLTLSyntactic(expr, true)) {
+			throw new PrismNotSupportedException("Parametric engine does not yet support co-safe reward computation");
+		} else {
+			throw new PrismException("R operator contains a path formula that is not syntactically co-safe: " + expr);
+		}
 	}
 
 	private RegionValues checkRewardReach(ParamModel model,
