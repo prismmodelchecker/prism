@@ -187,6 +187,16 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	}
 
 	/**
+	 * Create a model checker (a subclass of this one) for a given model,
+	 * deducing the model type and reusing the PropertiesFile and Prism objects
+	 * of the current model checker.
+	 */
+	public ModelChecker createModelChecker(Model newModel) throws PrismException
+	{
+		return createModelChecker(newModel.getModelType(), prism, newModel, propertiesFile);
+	}
+
+	/**
 	 * Clean up the dummy model created when using the abbreviated constructor
 	 */
 	public void clearDummyModel()
