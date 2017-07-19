@@ -37,10 +37,11 @@ import java.util.Vector;
 
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceOmegaDD;
+import acceptance.AcceptanceReach;
 import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
 import automata.DA;
-import automata.LTL2DA;
+import automata.LTL2WDBA;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -57,6 +58,7 @@ import parser.ast.RelOp;
 import parser.type.TypeBool;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
+import prism.LTLModelChecker.LTLProduct;
 import sparse.PrismSparse;
 import dv.DoubleVector;
 
@@ -561,7 +563,12 @@ public class ProbModelChecker extends NonProbModelChecker
 				AcceptanceType.GENERIC
 		};
 		mcLtl = new LTLModelChecker(prism);
-		da = mcLtl.constructDAForLTLFormula(this, model, expr, labelDDs, allowedAcceptance);
+		try {
+			da = mcLtl.constructDAForLTLFormula(this, model, expr, labelDDs, allowedAcceptance);
+		} catch (Exception e) {
+			JDD.Deref(statesOfInterest);
+			throw e;
+		}
 
 		// Build product of Markov chain and automaton
 		// (note: might be a CTMC - StochModelChecker extends this class)
@@ -956,49 +963,36 @@ public class ProbModelChecker extends NonProbModelChecker
 		LTLModelChecker mcLtl;
 		StateValues rewardsProduct = null, rewards = null;
 		Expression ltl;
-		Vector<JDDNode> labelDDs;
-		DA<BitSet, ? extends AcceptanceOmega> da;
-		ProbModel modelProduct;
+		Vector<JDDNode> labelDDs = new Vector<JDDNode>();
+		LTLProduct<ProbModel> modelProduct;
 		ProbModelChecker mcProduct;
-		JDDNode startMask;
-		JDDVars daDDRowVars, daDDColVars;
-		int i;
 		long l;
 
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
+				JDD.Deref(statesOfInterest);
 				throw new PrismException("DA construction for time-bounded operators not supported for " + model.getModelType()+".");
 			}
 
 			if (!expr.isSimplePathFormula()) {
+				JDD.Deref(statesOfInterest);
 				throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
 			}
 		}
 
 		// Can't do "dfa" properties yet
 		if (expr instanceof ExpressionFunc && ((ExpressionFunc) expr).getName().equals("dfa")) {
+			JDD.Deref(statesOfInterest);
 			throw new PrismException("Model checking for \"dfa\" specifications not supported yet");
 		}
 
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(prism);
 
-		// Model check maximal state formulas
-		labelDDs = new Vector<JDDNode>();
-		ltl = mcLtl.checkMaximalStateFormulas(this, model, expr.deepCopy(), labelDDs);
+		// Model check maximal state formulas and construct DFA, with the special
+		// handling needed for cosafety reward translation
+		DA<BitSet, AcceptanceReach> da = mcLtl.constructDFAForCosafetyRewardLTL(this, model, expr, labelDDs);
 
-		// Convert LTL formula to deterministic automaton (DA)
-		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
-		l = System.currentTimeMillis();
-		LTL2DA ltl2da = new LTL2DA(prism);
-		AcceptanceType[] allowedAcceptance = {
-				AcceptanceType.RABIN,
-				AcceptanceType.REACH
-		};
-		da = ltl2da.convertLTLFormulaToDA(ltl, constantValues, allowedAcceptance);
-		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics()+".");
-		l = System.currentTimeMillis() - l;
-		mainLog.println("Time for deterministic automaton translation: " + l / 1000.0 + " seconds.");
 		// If required, export DA 
 		if (prism.getSettings().getExportPropAut()) {
 			mainLog.println("Exporting DA to file \"" + prism.getSettings().getExportPropAutFilename() + "\"...");
@@ -1009,21 +1003,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		// Build product of Markov chain and automaton
-		// (note: might be a CTMC - StochModelChecker extends this class)
-		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
-		daDDRowVars = new JDDVars();
-		daDDColVars = new JDDVars();
-		l = System.currentTimeMillis();
-		modelProduct = mcLtl.constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
-		l = System.currentTimeMillis() - l;
-		mainLog.println("Time for product construction: " + l / 1000.0 + " seconds.");
-		mainLog.println();
-		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
+		modelProduct = mcLtl.constructProductMC(model, da, labelDDs, statesOfInterest);
 		// Output product, if required
 		if (prism.getExportProductTrans()) {
 			try {
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
+				modelProduct.getProductModel().exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
@@ -1031,56 +1016,35 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (prism.getExportProductStates()) {
 			mainLog.println("\nExporting product state space to file \"" + prism.getExportProductStatesFilename() + "\"...");
 			PrismFileLog out = new PrismFileLog(prism.getExportProductStatesFilename());
-			modelProduct.exportStates(Prism.EXPORT_PLAIN, out);
+			modelProduct.getProductModel().exportStates(Prism.EXPORT_PLAIN, out);
 			out.close();
 		}
 
 		// Adapt reward info to product model
-		JDD.Ref(stateRewards);
-		JDD.Ref(modelProduct.getReach());
-		JDDNode stateRewardsProduct = JDD.Apply(JDD.TIMES, stateRewards, modelProduct.getReach());
-		JDD.Ref(transRewards);
-		JDD.Ref(modelProduct.getTrans01());
-		JDDNode transRewardsProduct = JDD.Apply(JDD.TIMES, transRewards, modelProduct.getTrans01());
+		JDDNode stateRewardsProduct = JDD.Apply(JDD.TIMES, stateRewards.copy(), modelProduct.getProductModel().getReach().copy());
+		JDDNode transRewardsProduct = JDD.Apply(JDD.TIMES, transRewards.copy(), modelProduct.getProductModel().getTrans01().copy());
 		
 		// Find accepting states + compute reachability rewards
-		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
-		JDDNode acc = null;
-		if (acceptance instanceof AcceptanceReachDD) {
-			mainLog.println("\nSkipping BSCC computation since acceptance is defined via goal states...");
-			acc = ((AcceptanceReachDD) acceptance).getGoalStates();
-			JDD.Ref(modelProduct.getReach());
-			acc = JDD.And(acc, modelProduct.getReach());
-		} else {
-			mainLog.println("\nFinding accepting BSCCs...");
-			acc = mcLtl.findAcceptingBSCCs(acceptance, modelProduct);
-		}
-		acceptance.clear();
+		AcceptanceReachDD acceptance = (AcceptanceReachDD) modelProduct.getProductAcceptance();
+		// acc is already restricted to the product model's reachable states
+		JDDNode acc = acceptance.getGoalStates();
+
 		mainLog.println("\nComputing reachability rewards...");
-		mcProduct = createNewModelChecker(prism, modelProduct, null);
-		rewardsProduct = mcProduct.computeReachRewards(modelProduct.getTrans(), modelProduct.getTrans01(), stateRewardsProduct, transRewardsProduct, acc);
+		mcProduct = createNewModelChecker(prism, modelProduct.getProductModel(), null);
+		rewardsProduct = mcProduct.computeReachRewards(modelProduct.getProductModel().getTrans(),
+		                                               modelProduct.getProductModel().getTrans01(),
+		                                               stateRewardsProduct,
+		                                               transRewardsProduct,
+		                                               acc);
 
 		// Convert reward vector to original model
-		// First, filter over DRA start states
-		startMask = mcLtl.buildStartMask(da, labelDDs, daDDRowVars);
-		JDD.Ref(model.getReach());
-		startMask = JDD.And(model.getReach(), startMask);
-		rewardsProduct.filter(startMask);
-		// Then sum over DD vars for the DRA state
-		rewards = rewardsProduct.sumOverDDVars(daDDRowVars, model);
+		rewards = modelProduct.projectToOriginalModel(rewardsProduct);
 
 		// Deref, clean up
 		JDD.Deref(stateRewardsProduct);
 		JDD.Deref(transRewardsProduct);
-		rewardsProduct.clear();
 		modelProduct.clear();
-		for (i = 0; i < labelDDs.size(); i++) {
-			JDD.Deref(labelDDs.get(i));
-		}
 		JDD.Deref(acc);
-		JDD.Deref(startMask);
-		daDDRowVars.derefAll();
-		daDDColVars.derefAll();
 
 		return rewards;
 	}
