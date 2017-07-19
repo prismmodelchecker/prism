@@ -29,7 +29,6 @@ package prism;
 import java.io.File;
 
 import parser.ast.RelOp;
-
 import jdd.JDDNode;
 import jdd.JDDVars;
 
@@ -45,6 +44,12 @@ public class StateValuesVoid implements StateValues
 	public StateValuesVoid(Object value)
 	{
 		this.value = value;
+	}
+
+	@Override
+	public void switchModel(Model newModel)
+	{
+		// nothing to do...
 	}
 
 	@Override

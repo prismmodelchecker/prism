@@ -105,6 +105,12 @@ public class StateValuesMTBDD implements StateValues
 		varValues = new int[varList.getNumVars()];
 	}
 
+	@Override
+	public void switchModel(Model newModel)
+	{
+		setModel(newModel);
+	}
+
 	// CONVERSION METHODS
 	
 	@Override
