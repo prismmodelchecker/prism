@@ -103,7 +103,7 @@ public class MultiObjModelChecker extends PrismComponent
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing MDP-DRA product...");
 
-		NondetModel modelNew = mcLtl.constructProductMDP(dra[i], model, labelDDs, draDDRowVars, draDDColVars, false, i == 0 ? ddStateIndex : model.getStart());
+		NondetModel modelNew = mcLtl.constructProductMDP(dra[i], model, labelDDs, draDDRowVars, draDDColVars, (i == 0 ? ddStateIndex : model.getStart()).copy());
 
 		modelNew.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// Deref label BDDs

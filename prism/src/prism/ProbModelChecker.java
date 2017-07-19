@@ -552,9 +552,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		JDDVars daDDRowVars, daDDColVars;
 		int i;
 
-		// TODO: take statesOfInterest into account for product construction
-		JDD.Deref(statesOfInterest);
-
 		AcceptanceType[] allowedAcceptance = {
 				AcceptanceType.REACH,
 				AcceptanceType.BUCHI,
@@ -571,7 +568,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
-		modelProduct = mcLtl.constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars);
+		modelProduct = mcLtl.constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
 		mainLog.println();
 		modelProduct.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// Output product, if required
@@ -968,9 +965,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		int i;
 		long l;
 
-		// currently, ignore statesOfInterest
-		JDD.Deref(statesOfInterest);
-
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
 				throw new PrismException("DA construction for time-bounded operators not supported for " + model.getModelType()+".");
@@ -1020,7 +1014,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
 		l = System.currentTimeMillis();
-		modelProduct = mcLtl.constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars);
+		modelProduct = mcLtl.constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for product construction: " + l / 1000.0 + " seconds.");
 		mainLog.println();

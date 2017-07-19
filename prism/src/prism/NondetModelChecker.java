@@ -1200,9 +1200,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		int i;
 		long l;
 
-		// currently, ignore statesOfInterest
-		JDD.Deref(statesOfInterest);
-
 		// For min probabilities, need to negate the formula
 		// (But check fairness setting since this may affect min/max)
 		// (add parentheses to allow re-parsing if required)
@@ -1225,14 +1222,19 @@ public class NondetModelChecker extends NonProbModelChecker
 				AcceptanceType.GENERALIZED_RABIN,
 				AcceptanceType.REACH
 		};
-		da = mcLtl.constructDAForLTLFormula(this, model, expr, labelDDs, allowedAcceptance);
+		try {
+			da = mcLtl.constructDAForLTLFormula(this, model, expr, labelDDs, allowedAcceptance);
+		} catch (Exception e) {
+			JDD.Deref(statesOfInterest);
+			throw e;
+		}
 
 		// Build product of MDP and automaton
 		l = System.currentTimeMillis();
 		mainLog.println("\nConstructing MDP-"+da.getAutomataType()+" product...");
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
-		modelProduct = mcLtl.constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars);
+		modelProduct = mcLtl.constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for product construction: " + l / 1000.0 + " seconds.");
 		mainLog.println();
@@ -1458,9 +1460,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		int i;
 		long l;
 
-		// currently, ignore statesOfInterest
-		JDD.Deref(statesOfInterest);
-
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
 				throw new PrismException("DA construction for time-bounded operators not supported for " + model.getModelType()+".");
@@ -1518,7 +1517,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		daDDRowVars = new JDDVars();
 		daDDColVars = new JDDVars();
 		l = System.currentTimeMillis();
-		modelProduct = mcLtl.constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars);
+		modelProduct = mcLtl.constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
 		l = System.currentTimeMillis() - l;
 		mainLog.println("Time for product construction: " + l / 1000.0 + " seconds.");
 		mainLog.println();
