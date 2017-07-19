@@ -140,6 +140,11 @@ public class NondetModelChecker extends NonProbModelChecker
 		PrismNative.setExportAdvFilename(prism.getExportAdvFilename());
 	}
 
+	public NondetModelChecker createNewModelChecker(Prism prism, Model m, PropertiesFile pf) throws PrismException
+	{
+		return new NondetModelChecker(prism, m, pf);
+	}
+
 	// Model checking functions
 
 	@Override
