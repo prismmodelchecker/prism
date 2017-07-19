@@ -31,8 +31,10 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import common.IterableStateSet;
+import common.StopWatch;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
@@ -48,6 +50,8 @@ import prism.PrismUtils;
 import strat.MDStrategyArray;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
+import automata.DA;
+import automata.LTL2WDBA;
 import common.IterableBitSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
@@ -163,16 +167,20 @@ public class MDPModelChecker extends ProbModelChecker
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(this);
 
-		// Build product of MDP and automaton
-		AcceptanceType[] allowedAcceptance = {
-				AcceptanceType.RABIN,
-				AcceptanceType.REACH
-		};
-		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
-		
+		// Model check maximal state formulas and construct DFA, with the special
+		// handling needed for cosafety reward translation
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		DA<BitSet, AcceptanceReach> da = mcLtl.constructDFAForCosafetyRewardLTL(this, model, expr, labelBS);
+
+		StopWatch timer = new StopWatch(getLog());
+		mainLog.println("\nConstructing " + model.getModelType() + "-" + da.getAutomataType() + " product...");
+		timer.start(model.getModelType() + "-" + da.getAutomataType() + " product");
+		product = mcLtl.constructProductModel(da, (MDP)model, labelBS, statesOfInterest);
+		timer.stop("product has " + product.getProductModel().infoString());
+
 		// Adapt reward info to product model
 		productRewards = ((MDPRewards) modelRewards).liftFromModel(product);
-		
+
 		// Output product, if required
 		if (getExportProductTrans()) {
 				mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
@@ -190,24 +198,16 @@ public class MDPModelChecker extends ProbModelChecker
 			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
 			out.close();
 		}
-		
+
 		// Find accepting states + compute reachability rewards
-		BitSet acc;
-		if (product.getAcceptance() instanceof AcceptanceReach) {
-			// For a DFA, just collect the accept states
-			mainLog.println("\nSkipping end component detection since DRA is a DFA...");
-			acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
-		} else {
-			// Usually, we have to detect end components in the product
-			mainLog.println("\nFinding accepting end components...");
-			acc = mcLtl.findAcceptingECStates(product.getProductModel(), product.getAcceptance());
-		}
+		BitSet acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+
 		mainLog.println("\nComputing reachability rewards...");
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
-		ModelCheckerResult res = mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc, minMax.isMin());
+		ModelCheckerResult res = mcProduct.computeReachRewards((MDP)product.getProductModel(), productRewards, acc, minMax.isMin());
 		rewardsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
-		
+
 		// Output vector over product, if required
 		if (getExportProductVector()) {
 				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
@@ -215,11 +215,11 @@ public class MDPModelChecker extends ProbModelChecker
 				rewardsProduct.print(out, false, false, false, false);
 				out.close();
 		}
-		
+
 		// Mapping rewards in the original model
 		rewards = product.projectToOriginalModel(rewardsProduct);
 		rewardsProduct.clear();
-		
+
 		return rewards;
 	}
 	
