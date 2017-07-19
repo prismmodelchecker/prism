@@ -208,11 +208,32 @@ public class LTLModelChecker extends PrismComponent
 
 
 	/**
-	 * Construct the product of a DA and a DTMC/CTMC.
+	 * Construct the product of a DA and a DTMC/CTMC, starting from a given set
+	 * of states of interest. The corresponding states in the product become
+	 * the initial states in the product model.
+	 *
+	 * <br>[ REFS: <i>returned ProbModel</i>, DEREFS: statesOfInterest]
 	 * @param da The DA
 	 * @param model The DTMC/CTMC
-	 * @param labelDDs BDDs giving the set of states for each AP in the DRA
+	 * @param labelDDs BDDs giving the set of states for each AP in the DA
+	 * @param statesOfInterest the states in the model that serve as the starting point for the DA product
 	 */
+	public ProbModel constructProductMC(DA<BitSet, ? extends AcceptanceOmega> da, ProbModel model, Vector<JDDNode> labelDDs, JDDNode statesOfInterest) throws PrismException
+	{
+		return constructProductMC(da, model, labelDDs, null, null, statesOfInterest);
+	}
+
+	/**
+	 * Construct the product of a DA and a DTMC/CTMC.
+	 * <br>Deprecated legacy method, use variant with statesOfInterest.
+	 * With this method, the initial states of the product model correspond to
+	 * the initial states of the original model, but the product is constructed
+	 * from all states of the original model.
+	 * @param da The DA
+	 * @param model The DTMC/CTMC
+	 * @param labelDDs BDDs giving the set of states for each AP in the DA
+	 */
+	@Deprecated
 	public ProbModel constructProductMC(DA<BitSet, ? extends AcceptanceOmega> da, ProbModel model, Vector<JDDNode> labelDDs) throws PrismException
 	{
 		return constructProductMC(da, model, labelDDs, null, null, true);
@@ -220,12 +241,17 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Construct the product of a DA and a DTMC/CTMC.
+	 * <br>Deprecated legacy method, use variant with statesOfInterest.
+	 * With this method, the initial states of the product model correspond to
+	 * the initial states of the original model, but the product is constructed
+	 * from all states of the original model.
 	 * @param da The DA
 	 * @param model The  DTMC/CTMC
 	 * @param labelDDs BDDs giving the set of states for each AP in the DA
 	 * @param daDDRowVarsCopy (Optionally) empty JDDVars object to obtain copy of DD row vars for DA
 	 * @param daDDColVarsCopy (Optionally) empty JDDVars object to obtain copy of DD col vars for DA
 	 */
+	@Deprecated
 	public ProbModel constructProductMC(DA<BitSet, ? extends AcceptanceOmega> da, ProbModel model, Vector<JDDNode> labelDDs, JDDVars daDDRowVarsCopy, JDDVars daDDColVarsCopy)
 			throws PrismException
 	{
@@ -234,6 +260,13 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Construct the product of a DA and a DTMC/CTMC.
+	 * <br>Deprecated legacy method, use variant with statesOfInterest.
+	 * With this method, if {@code allInit} is {@code true},
+	 * the initial states of the product model correspond to the initial states
+	 * of the original model, but the product is constructed
+	 * from all states of the original model.
+	 * If {@code allInit} is {@code false}, the product is only constructed
+	 * from the initial states of the original model.
 	 * @param da The DA
 	 * @param model The  DTMC/CTMC
 	 * @param labelDDs BDDs giving the set of states for each AP in the DA
@@ -242,8 +275,52 @@ public class LTLModelChecker extends PrismComponent
 	 * @param allInit Do we assume that all states of the original model are initial states?
 	 *        (just for the purposes of reachability)
 	 */
+	@Deprecated
 	public ProbModel constructProductMC(DA<BitSet, ? extends AcceptanceOmega> da, ProbModel model, Vector<JDDNode> labelDDs, JDDVars daDDRowVarsCopy, JDDVars daDDColVarsCopy,
 			boolean allInit) throws PrismException
+	{
+		// construct suitable statesOfInterest
+		JDDNode statesOfInterest = allInit ? model.getReach().copy() : model.getStart().copy();
+
+		// generate temporary storage for row / col vars if needed
+		JDDVars daDDRowVars = daDDRowVarsCopy == null ? new JDDVars() : daDDRowVarsCopy;
+		JDDVars daDDColVars = daDDColVarsCopy == null ? new JDDVars() : daDDColVarsCopy;
+
+		// construct product using statesOfInterest-based method
+		ProbModel modelProd = constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
+
+		// Reset initial state (to mimic legacy behavior)
+		JDDNode newStart = buildStartMask(da, labelDDs, daDDRowVars);
+		JDD.Ref(model.getStart());
+		newStart = JDD.And(model.getStart(), newStart);
+		modelProd.setStart(newStart);
+
+		// deref temporary storage for row / col vars if needed
+		if (daDDRowVarsCopy == null)
+			daDDRowVars.derefAll();
+		if (daDDColVarsCopy == null)
+			daDDColVars.derefAll();
+
+		return modelProd;
+	}
+
+	/**
+	 * Construct the product of a DA and a DTMC/CTMC, starting from a given set
+	 * of states of interest. The corresponding states in the product become
+	 * the initial states in the product model.
+	 *
+	 * <br>[ REFS: <i>returned ProbModel</i>, DEREFS: statesOfInterest]
+	 * @param da The DA
+	 * @param model The DTMC/CTMC
+	 * @param labelDDs BDDs giving the set of states for each AP in the DA
+	 * @param daDDRowVarsCopy (Optionally) empty JDDVars object to obtain copy of DD row vars for DA
+	 * @param daDDColVarsCopy (Optionally) empty JDDVars object to obtain copy of DD col vars for DA
+	 * @param statesOfInterest the states in the model that serve as the starting point for the DA product
+	 */
+	public ProbModel constructProductMC(DA<BitSet, ? extends AcceptanceOmega> da, ProbModel model,
+	                                    Vector<JDDNode> labelDDs,
+                                        JDDVars daDDRowVarsCopy, JDDVars daDDColVarsCopy,
+                                        JDDNode statesOfInterest) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -327,16 +404,10 @@ public class LTLModelChecker extends PrismComponent
 		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), newTrans);
 
 		// Build set of initial states for product
-		// Note, by default, we take product of *all* states of the original model, not just its initial states.
-		// Initial states are only used for reachability in this instance.
-		// We need to ensure that the product model includes states corresponding to all
-		// states of the original model (because we compute probabilities for all of them)
-		// but some of these may not be reachable from the initial state of the product model.
-		// Optionally (if allInit is false), we don't do this - maybe because we only care about result for the initial state
-		// Note that we reset the initial states after reachability, corresponding to just the initial states of the original model.  
+		// We use the product states between the states of interest and the corresponding
+		// DA states as the initial states of the product model (used for reachability)
 		newStart = buildStartMask(da, labelDDs, daDDRowVars);
-		JDD.Ref(allInit ? model.getReach() : model.getStart());
-		newStart = JDD.And(allInit ? model.getReach() : model.getStart(), newStart);
+		newStart = JDD.And(model.getReach().copy(), statesOfInterest.copy(), newStart);
 
 		// Create a new model model object to store the product model
 		ProbModel modelProd = new ProbModel(
@@ -367,18 +438,13 @@ public class LTLModelChecker extends PrismComponent
 			throw new PrismException("Model-"+da.getAutomataType()+" product has deadlock states");
 		}
 
-		// Reset initial state
-		newStart = buildStartMask(da, labelDDs, daDDRowVars);
-		JDD.Ref(model.getStart());
-		newStart = JDD.And(model.getStart(), newStart);
-		modelProd.setStart(newStart);
-
 		// if possible, return copies of the DA DD variables via the method parameters
 		if (daDDRowVarsCopy != null)
 			daDDRowVarsCopy.copyVarsFrom(daDDRowVars);
 		if (daDDColVarsCopy != null)
 			daDDColVarsCopy.copyVarsFrom(daDDColVars);
 
+		JDD.Deref(statesOfInterest);
 		daDDRowVars.derefAll();
 		daDDColVars.derefAll();
 
@@ -386,11 +452,31 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
-	 * Construct the product of a DA and an MDP.
+	 * Construct the product of a DA and an MDP, starting from a given set
+	 * of states of interest. The corresponding states in the product become
+	 * the initial states in the product model.
+	 *
+	 * <br>[ REFS: <i>returned NondetModel</i>, DEREFS: statesOfInterest]
 	 * @param da The DA
 	 * @param model The MDP
 	 * @param labelDDs BDDs giving the set of states for each AP in the DA
 	 */
+	public NondetModel constructProductMDP(DA<BitSet, ? extends AcceptanceOmega> da, NondetModel model, Vector<JDDNode> labelDDs, JDDNode statesOfInterest) throws PrismException
+	{
+		return constructProductMDP(da, model, labelDDs, null, null, statesOfInterest);
+	}
+
+	/**
+	 * Construct the product of a DA and an MDP.
+	 * <br>Deprecated legacy method, use variant with statesOfInterest.
+	 * With this method, the initial states of the product model correspond to
+	 * the initial states of the original model, but the product is constructed
+	 * from all states of the original model.
+	 * @param da The DA
+	 * @param model The MDP
+	 * @param labelDDs BDDs giving the set of states for each AP in the DA
+	 */
+	@Deprecated
 	public NondetModel constructProductMDP(DA<BitSet, ? extends AcceptanceOmega> da, NondetModel model, Vector<JDDNode> labelDDs) throws PrismException
 	{
 		return constructProductMDP(da, model, labelDDs, null, null, true, null);
@@ -398,20 +484,33 @@ public class LTLModelChecker extends PrismComponent
 
 	/**
 	 * Construct the product of a DA and an MDP.
+	 * <br>Deprecated legacy method, use variant with statesOfInterest.
+	 * With this method, the initial states of the product model correspond to
+	 * the initial states of the original model, but the product is constructed
+	 * from all states of the original model.
 	 * @param da The DA
 	 * @param model The MDP
 	 * @param labelDDs BDDs giving the set of states for each AP in the DA
 	 * @param daDDRowVarsCopy (Optionally) empty JDDVars object to obtain copy of DD row vars for DA
 	 * @param daDDColVarsCopy (Optionally) empty JDDVars object to obtain copy of DD col vars for DA
 	 */
+	@Deprecated
 	public NondetModel constructProductMDP(DA<BitSet, ? extends AcceptanceOmega> da, NondetModel model, Vector<JDDNode> labelDDs, JDDVars daDDRowVarsCopy, JDDVars daDDColVarsCopy)
 			throws PrismException
 	{
 		return constructProductMDP(da, model, labelDDs, daDDRowVarsCopy, daDDColVarsCopy, true, null);
 	}
 
+
 	/**
 	 * Construct the product of a DA and an MDP.
+	 * <br>Deprecated legacy method, use variant with statesOfInterest.
+	 * With this method, if {@code allInit} is {@code true},
+	 * the initial states of the product model correspond to the initial states
+	 * of the original model, but the product is constructed
+	 * from all the states in {@code init}.
+	 * If {@code allInit} is {@code false}, the product is only constructed
+	 * from the initial states of the original model.
 	 * @param da The DA
 	 * @param model The MDP
 	 * @param labelDDs BDDs giving the set of states for each AP in the DA
@@ -422,8 +521,52 @@ public class LTLModelChecker extends PrismComponent
 	 * @param init The initial state(s) (of the original model) used to build the product;
 	 *        if null; we just take the existing initial states from model.getStart().
 	 */
+	@Deprecated
 	public NondetModel constructProductMDP(DA<BitSet, ? extends AcceptanceOmega> da, NondetModel model, Vector<JDDNode> labelDDs, JDDVars daDDRowVarsCopy, JDDVars daDDColVarsCopy,
 			boolean allInit, JDDNode init) throws PrismException
+	{
+		// construct suitable statesOfInterest
+		JDDNode statesOfInterest = allInit ? model.getReach().copy() : init.copy();
+
+		// generate temporary storage for row / col vars if needed
+		JDDVars daDDRowVars = daDDRowVarsCopy == null ? new JDDVars() : daDDRowVarsCopy;
+		JDDVars daDDColVars = daDDColVarsCopy == null ? new JDDVars() : daDDColVarsCopy;
+
+		// construct product using statesOfInterest-based method
+		NondetModel modelProd = constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
+
+		// Reset initial state (to mimic legacy behavior)
+		JDDNode newStart = buildStartMask(da, labelDDs, daDDRowVars);
+		JDD.Ref(init != null ? init : model.getStart());
+		newStart = JDD.And(init != null ? init : model.getStart(), newStart);
+		modelProd.setStart(newStart);
+
+		// deref temporary storage for row / col vars if needed
+		if (daDDRowVarsCopy == null)
+			daDDRowVars.derefAll();
+		if (daDDColVarsCopy == null)
+			daDDColVars.derefAll();
+
+		return modelProd;
+	}
+
+	/**
+	 * Construct the product of a DA and an MDP, starting from a given set
+	 * of states of interest. The corresponding states in the product become
+	 * the initial states in the product model.
+	 *
+	 * <br>[ REFS: <i>returned NondetModel</i>, DEREFS: statesOfInterest]
+	 * @param da The DA
+	 * @param model The MDP
+	 * @param labelDDs BDDs giving the set of states for each AP in the DA
+	 * @param daDDRowVarsCopy (Optionally) empty JDDVars object to obtain copy of DD row vars for DA
+	 * @param daDDColVarsCopy (Optionally) empty JDDVars object to obtain copy of DD col vars for DA
+	 * @param statesOfInterest the states of interest, serving as the starting point for the MPD-DA product
+	 */
+	public NondetModel constructProductMDP(DA<BitSet, ? extends AcceptanceOmega> da, NondetModel model,
+	                                       Vector<JDDNode> labelDDs,
+	                                       JDDVars daDDRowVarsCopy, JDDVars daDDColVarsCopy,
+	                                       JDDNode statesOfInterest) throws PrismException
 	{
 		// Existing model - dds, vars, etc.
 		JDDVars varDDRowVars[];
@@ -441,7 +584,7 @@ public class LTLModelChecker extends PrismComponent
 		// DA stuff
 		JDDVars daDDRowVars, daDDColVars;
 		// Misc
-		int i, j, n;
+		int i, n;
 		boolean before;
 
 		// Get details of old model (no copy, does not need to be cleaned up)
@@ -508,17 +651,10 @@ public class LTLModelChecker extends PrismComponent
 		newTrans = JDD.Apply(JDD.TIMES, model.getTrans(), newTrans);
 
 		// Build set of initial states for product
-		// Note, by default, we take product of *all* states of the original model, not just its initial states.
-		// Initial states are only used for reachability in this instance.
-		// We need to ensure that the product model includes states corresponding to all
-		// states of the original model (because we compute probabilities for all of them)
-		// but some of these may not be reachable from the initial state of the product model.
-		// Optionally (if allInit is false), we don't do this - maybe because we only care about result for the initial state
-		// Note that we reset the initial states after reachability, corresponding to just the initial states of the original model.
-		// The initial state of the original model can be overridden by passing in 'init'.
+		// We use the product states between the states of interest and the corresponding
+		// DA states as the initial states of the product model (used for reachability)
 		newStart = buildStartMask(da, labelDDs, daDDRowVars);
-		JDD.Ref(allInit ? model.getReach() : init != null ? init : model.getStart());
-		newStart = JDD.And(allInit ? model.getReach() : init != null ? init : model.getStart(), newStart);
+		newStart = JDD.And(model.getReach().copy(), statesOfInterest.copy(), newStart);
 
 		// Create a new model model object to store the product model
 		NondetModel modelProd = new NondetModel(
@@ -564,11 +700,6 @@ public class LTLModelChecker extends PrismComponent
 			throw new PrismException("Model-DA product has deadlock states");
 		}
 
-		// Reset initial state
-		newStart = buildStartMask(da, labelDDs, daDDRowVars);
-		JDD.Ref(init != null ? init : model.getStart());
-		newStart = JDD.And(init != null ? init : model.getStart(), newStart);
-		modelProd.setStart(newStart);
 
 		//try { prism.exportStatesToFile(modelProd, Prism.EXPORT_PLAIN, new java.io.File("prod.sta")); }
 		//catch (java.io.FileNotFoundException e) {}
@@ -579,6 +710,7 @@ public class LTLModelChecker extends PrismComponent
 		if (daDDColVarsCopy != null)
 			daDDColVarsCopy.copyVarsFrom(daDDColVars);
 
+		JDD.Deref(statesOfInterest);
 		daDDRowVars.derefAll();
 		daDDColVars.derefAll();
 
