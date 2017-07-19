@@ -124,6 +124,9 @@ public class ConvertForJltl2ba
 		Expression until;
 		if (e.getOperand1() != null) ltl1 = convert(e.getOperand1());
 		if (e.getOperand2() != null) ltl2 = convert(e.getOperand2());
+		if (e.hasBounds()) {
+			throw new PrismLangException("Can not convert expression with temporal bounds to SimpleLTL: " + e);
+		}
 		switch (e.getOperator()) {
 		case ExpressionTemporal.P_X:
 			res = new SimpleLTL(SimpleLTL.LTLType.NEXT, ltl2);
