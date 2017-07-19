@@ -42,6 +42,7 @@ import acceptance.AcceptanceRabinDD;
 import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2DA;
+import common.StopWatch;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
@@ -61,6 +62,94 @@ import parser.type.TypePathBool;
  */
 public class LTLModelChecker extends PrismComponent
 {
+	/**
+	 * A wrapper for the product of a model (DTMC, MDP) and
+	 * a deterministic omega-automaton for some linear-temporal property.
+	 * <br>
+	 * Provides methods to obtain the product model, the acceptance condition and
+	 * for translating a result in the product back to the original model.
+	 * @param <M> the underlying model type (ProbModel, NondetModel)
+	 */
+	public static class LTLProduct<M extends Model> extends Product<M> {
+		/**
+		 * The omega-regular acceptance condition, lifted to the product model,
+		 * but not necessarily restricted to the product model's reachable states.
+		 */
+		private AcceptanceOmegaDD acceptance;
+
+		/**
+		 * The omega-regular acceptance condition, lifted to the product model,
+		 * restricted to the product model's reachable states.
+		 * <br>
+		 * Computed on demand.
+		 */
+		private AcceptanceOmegaDD prodAcceptance = null;
+
+		/**
+		 * Constructor.
+		 * <br>
+		 * Takes ownership of the product model, the acceptance condition,
+		 * the productStatesOfInterest and the automatonRowVars.
+		 * clears those when clear() is called.
+		 * <br>[ STORES: productModel, acceptance, productStatesOfInterest, automatonRowVars ]
+		 */
+		public LTLProduct(M productModel, M originalModel, AcceptanceOmegaDD acceptance, JDDNode productStatesOfInterest, JDDVars automatonRowVars)
+		{
+			super(productModel, originalModel, productStatesOfInterest, automatonRowVars);
+			this.acceptance = acceptance;
+		}
+
+		/**
+		 * Get the acceptance condition for the product (not a copy).
+		 * <br>
+		 * The acceptance sets are not necessarily restricted to the
+		 * reachable part of the state space of the product model.
+		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+		 */
+		public AcceptanceOmegaDD getAcceptance() {
+			return acceptance;
+		}
+
+
+		/**
+		 * Get the acceptance condition for the product, restricted
+		 * to the reachable state space of the product model (not a copy).
+		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+		 */
+		public AcceptanceOmegaDD getProductAcceptance() {
+			if (prodAcceptance == null) {
+				// compute on demand, intersect with getReach() from product model
+				prodAcceptance = acceptance.clone();
+				prodAcceptance.intersect(getProductModel().getReach());
+			}
+			return prodAcceptance;
+		}
+
+		/**
+		 * Set the acceptance condition for the product (takes
+		 * ownership of the provided acceptance object, clears
+		 * previously stored acceptance condition).
+		 * <br>[ STORES: acceptance ]
+		 */
+		public void setAcceptance(AcceptanceOmegaDD acceptance) {
+			if (this.acceptance != null) {
+				this.acceptance.clear();
+			}
+			this.acceptance = acceptance;
+		}
+
+		@Override
+		public void clear() {
+			super.clear();
+			acceptance.clear();
+			acceptance = null;
+			if (prodAcceptance != null) {
+				prodAcceptance.clear();
+				prodAcceptance = null;
+			}
+		}
+	}
+
 	/**
 	 * Create a new LTLModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -483,6 +572,51 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Construct the product of a DTMC with a deterministic automaton for the given LTL expression.
+	 * <br>[ REFS: <i>returned LTLProduct</i>, DEREFS: statesOfInterest]
+	 */
+	public LTLProduct<ProbModel> constructProductMC(ProbModelChecker mc, ProbModel model, Expression expr, JDDNode statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		Vector<JDDNode> labelDDs = new Vector<JDDNode>();
+		DA<BitSet, ? extends AcceptanceOmega> da;
+
+		da = constructDAForLTLFormula(mc, model, expr, labelDDs, allowedAcceptance);
+
+		return constructProductMC(model, da, labelDDs, statesOfInterest);
+	}
+
+	/**
+	 * Construct the product of a DTMC with the given deterministic automaton (with AP set L0,L1,...),
+	 * returning an LTLProduct.
+	 * <br>
+	 * The state sets corresponding to each AP label are given via the labelDDs vector,
+	 * which will be dereferenced after this method call.
+	 * <br>[ REFS: <i>returned LTLProduct</i>, DEREFS: statesOfInterest, labelDDs]
+	 */
+	public LTLProduct<ProbModel> constructProductMC(ProbModel model, DA<BitSet, ? extends AcceptanceOmega> da, Vector<JDDNode> labelDDs, JDDNode statesOfInterest) throws PrismException
+	{
+		// Build product of Markov chain and automaton
+		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
+		JDDVars daDDRowVars = new JDDVars();
+		JDDVars daDDColVars = new JDDVars();
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
+		ProbModel modelProduct = constructProductMC(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
+		timer.stop();
+		mainLog.println();
+		modelProduct.printTransInfo(mainLog, false);
+
+		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
+
+		daDDColVars.derefAll();
+		for (int i = 0; i < labelDDs.size(); i++) {
+			JDD.Deref(labelDDs.get(i));
+		}
+
+		return new LTLProduct<ProbModel>(modelProduct, model, acceptance, modelProduct.getStart().copy(), daDDRowVars);
+	}
+
+	/**
 	 * Construct the product of a DA and an MDP.
 	 * <br>Deprecated legacy method, use variant with statesOfInterest.
 	 * With this method, the initial states of the product model correspond to
@@ -715,6 +849,48 @@ public class LTLModelChecker extends PrismComponent
 		daDDColVars.derefAll();
 
 		return modelProd;
+	}
+
+	/**
+	 * Construct the product of an MDP with a deterministic automaton for the given LTL expression.
+	 */
+	public LTLProduct<NondetModel> constructProductMDP(NondetModelChecker mc, NondetModel model, Expression expr, JDDNode statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException {
+		Vector<JDDNode> labelDDs = new Vector<JDDNode>();
+		DA<BitSet, ? extends AcceptanceOmega> da;
+
+		da = constructDAForLTLFormula(mc, model, expr, labelDDs, allowedAcceptance);
+
+		return constructProductMDP(model, da, labelDDs, statesOfInterest);
+	}
+
+	/**
+	 * Construct the product of an MDP with the given deterministic automaton (with AP set L0,L1,...),
+	 * returning an LTLProduct.
+	 * <br>
+	 * The state sets corresponding to each AP label are given via the labelDDs vector,
+	 * which will be dereferenced after this method call.
+	 */
+	public LTLProduct<NondetModel> constructProductMDP(NondetModel model, DA<BitSet, ? extends AcceptanceOmega> da, Vector<JDDNode> labelDDs, JDDNode statesOfInterest) throws PrismException
+	{
+		// Build product of MDP and automaton
+		mainLog.println("\nConstructing MDP-"+da.getAutomataType()+" product...");
+		JDDVars daDDRowVars = new JDDVars();
+		JDDVars daDDColVars = new JDDVars();
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
+		NondetModel modelProduct = constructProductMDP(da, model, labelDDs, daDDRowVars, daDDColVars, statesOfInterest);
+		timer.stop();
+		mainLog.println();
+		modelProduct.printTransInfo(mainLog, getSettings().getBoolean(PrismSettings.PRISM_EXTRA_DD_INFO));
+
+		AcceptanceOmegaDD acceptance = da.getAcceptance().toAcceptanceDD(daDDRowVars);
+
+		daDDColVars.derefAll();
+		for (int i = 0; i < labelDDs.size(); i++) {
+			JDD.Deref(labelDDs.get(i));
+		}
+
+		return new LTLProduct<NondetModel>(modelProduct, model, acceptance, modelProduct.getStart().copy(), daDDRowVars);
 	}
 
 	/**
