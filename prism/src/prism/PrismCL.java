@@ -1420,10 +1420,6 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
-				// export transition matrix graph to dot file and view it
-				else if (sw.equals("exportmodeldotview")) {
-					exportmodeldotview = true;
-				}
 				// export transition matrix MTBDD to dot file
 				else if (sw.equals("exportdot")) {
 					if (i < args.length - 1) {
@@ -1736,6 +1732,10 @@ public class PrismCL implements PrismModelListener
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
+				}
+				// export transition matrix graph to dot file and view it (hidden option, for now)
+				else if (sw.equals("exportmodeldotview")) {
+					exportmodeldotview = true;
 				}
 				// mtbdd construction method (hidden option)
 				else if (sw.equals("c1")) {
