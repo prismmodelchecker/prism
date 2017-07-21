@@ -51,5 +51,6 @@ void PM_SetErrorMessage(const char *str, ...);
 char *PM_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);
 void export_string(const char *str, ...);
+bool PM_GetFlagExportIterations();
 
 //------------------------------------------------------------------------------

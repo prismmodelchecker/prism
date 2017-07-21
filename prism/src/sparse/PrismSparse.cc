@@ -62,6 +62,7 @@ static jmethodID tech_log_mid = NULL;
 int export_type;
 FILE *export_file;
 JNIEnv *export_env;
+static bool exportIterations = false;
 
 // error message
 static char error_message[MAX_ERR_STRING_LEN];
@@ -267,6 +268,17 @@ char *PS_GetErrorMessage()
 JNIEXPORT jstring JNICALL Java_sparse_PrismSparse_PS_1GetErrorMessage(JNIEnv *env, jclass cls)
 {
 	return env->NewStringUTF(error_message);
+}
+
+
+JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetExportIterations(JNIEnv *env, jclass cls, jboolean value)
+{
+	exportIterations = value;
+}
+
+bool PS_GetFlagExportIterations()
+{
+	return exportIterations;
 }
 
 //------------------------------------------------------------------------------

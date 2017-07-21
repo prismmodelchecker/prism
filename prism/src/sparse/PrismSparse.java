@@ -138,6 +138,12 @@ public class PrismSparse
 		PS_SetTechLog(log);
 	}
 
+	private static native void PS_SetExportIterations(boolean value);
+	public static void SetExportIterations(boolean value)
+	{
+		PS_SetExportIterations(value);
+	}
+
 	//------------------------------------------------------------------------------
 	// error message
 	//------------------------------------------------------------------------------

@@ -115,6 +115,12 @@ public class PrismMTBDD
 		PM_SetTechLog(log);
 	}
 
+	private static native void PM_SetExportIterations(boolean value);
+	public static void SetExportIterations(boolean value)
+	{
+		PM_SetExportIterations(value);
+	}
+
 	//------------------------------------------------------------------------------
 	// error message
 	//------------------------------------------------------------------------------

@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTechLog
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_SetExportIterations
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetExportIterations
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

@@ -99,6 +99,8 @@ EXPORT extern bool do_ss_detect;
 EXPORT extern int export_adv;
 // adversary export filename
 EXPORT extern const char *export_adv_filename;
+// export iterations filename
+EXPORT extern const char *export_iterations_filename;
 
 //------------------------------------------------------------------------------
 

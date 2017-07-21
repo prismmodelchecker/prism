@@ -32,6 +32,7 @@
 #include <new>
 #include <vector>
 #include "jnipointer.h"
+#include "PrismNativeGlob.h"
 
 //------------------------------------------------------------------------------
 
@@ -250,4 +251,9 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 	return fgw;
 }
 
+//------------------------------------------------------------------------------
+
+const char* get_export_iterations_filename() {
+	return export_iterations_filename;
+}
 //------------------------------------------------------------------------------

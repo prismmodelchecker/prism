@@ -53,5 +53,6 @@ void PS_SetErrorMessage(const char *str, ...);
 char *PS_GetErrorMessage();
 int store_export_info(int type, jstring fn, JNIEnv *env);
 void export_string(const char *str, ...);
+bool PS_GetFlagExportIterations();
 
 //------------------------------------------------------------------------------

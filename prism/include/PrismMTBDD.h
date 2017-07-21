@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetTechLog
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_SetExportIterations
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetExportIterations
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

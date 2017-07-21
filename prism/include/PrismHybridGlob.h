@@ -51,5 +51,6 @@ void PH_PrintToTechLog(JNIEnv *env, const char *str, ...);
 void PH_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after);
 void PH_SetErrorMessage(const char *str, ...);
 char *PH_GetErrorMessage();
+bool PH_GetFlagExportIterations();
 
 //------------------------------------------------------------------------------

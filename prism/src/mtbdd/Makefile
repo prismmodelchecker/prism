@@ -22,6 +22,7 @@ LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
 -lodd \
 -ldd \
+-ldv \
 -lprism \
 $(LIBMATH)
 

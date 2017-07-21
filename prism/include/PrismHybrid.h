@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_SetExportIterations
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetExportIterations
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */

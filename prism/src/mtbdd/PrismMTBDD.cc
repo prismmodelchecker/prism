@@ -61,6 +61,7 @@ static jmethodID tech_log_mid = NULL;
 int export_type;
 FILE *export_file;
 JNIEnv *export_env;
+static bool exportIterations = false;
 
 // error message
 static char error_message[MAX_ERR_STRING_LEN];
@@ -211,6 +212,20 @@ void export_string(const char *str, ...)
 	} else {
 		PM_PrintToMainLog(export_env, full_string);
 	}
+}
+
+//------------------------------------------------------------------------------
+// export flags
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_mtbdd_PrismMTBDD_PM_1SetExportIterations(JNIEnv *env, jclass cls, jboolean value)
+{
+	exportIterations = value;
+}
+
+bool PM_GetFlagExportIterations()
+{
+	return exportIterations;
 }
 
 //------------------------------------------------------------------------------

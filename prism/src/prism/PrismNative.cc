@@ -58,6 +58,8 @@ EXPORT bool do_ss_detect;
 EXPORT int export_adv;
 // adversary export filename
 EXPORT const char *export_adv_filename;
+// export iterations filename
+EXPORT const char *export_iterations_filename = "iterations.html";
 
 //------------------------------------------------------------------------------
 // Prism object
@@ -178,6 +180,18 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportAdvFilename(JNIEnv *e
 		// This never gets released. Oops.
 	} else {
 		export_adv_filename = NULL;
+	}
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetDefaultExportIterationsFilename(JNIEnv *env, jclass cls, jstring fn)
+{
+	if (fn) {
+		export_iterations_filename = env->GetStringUTFChars(fn, 0);
+		// This never gets released. Oops.
+	} else {
+		export_iterations_filename = NULL;
 	}
 }
 
