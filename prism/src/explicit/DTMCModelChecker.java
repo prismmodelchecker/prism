@@ -382,8 +382,8 @@ public class DTMCModelChecker extends ProbModelChecker
 				}
 			}
 		}
-		mainLog.print("States in non-zero reward BSCCs: " + bsccsNonZero.cardinality());
-		
+		mainLog.print("States in non-zero reward BSCCs: " + bsccsNonZero.cardinality() + "\n");
+
 		// Find states with infinite reward (those reach a non-zero reward BSCC with prob > 0)
 		BitSet inf;
 		if (preRel) {
@@ -396,7 +396,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 		inf.flip(0, n);
 		int numInf = inf.cardinality();
-		mainLog.println(", inf=" + numInf + ", maybe=" + (n - numInf));
+		mainLog.println("inf=" + numInf + ", maybe=" + (n - numInf));
 		
 		// Compute rewards
 		// (do this using the functions for "reward reachability" properties but with no targets)
