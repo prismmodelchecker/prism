@@ -28,6 +28,8 @@
 
 package explicit;
 
+import java.util.BitSet;
+import java.util.function.Consumer;
 import java.util.function.IntPredicate;
 
 import prism.PrismComponent;
@@ -97,6 +99,32 @@ public abstract class SCCComputer extends PrismComponent
 		sccComputer.computeSCCs(!withTrivialSCCs, restrict);
 
 		return sccs;
+	}
+
+	/**
+	 * Convenience method for functional iteration over the SCCs of a model.
+	 * <br>
+	 * For each non-trivial SCC, the given consumer's accept method is called
+	 * with a BitSet containing the state indizes of the states in the BSCC.
+	 * <br>
+	 * Note: The BitSet may be reused during calls to {@code accept}. So,
+	 * if you need to store it, clone it.
+	 *
+	 * @param parent the parent PrismComponent (for access to settings)
+	 * @param model the model
+	 * @param sccConsumer the consumer
+	 */
+	public static void forEachSCC(PrismComponent parent, Model model, Consumer<BitSet> sccConsumer) throws PrismException
+	{
+		// use consumer that reuses the BitSet
+		SCCComputer sccComputer = createSCCComputer(parent, model, new SCCConsumerBitSet(true) {
+			@Override
+			public void notifyNextSCC(BitSet scc) throws PrismException
+			{
+				sccConsumer.accept(scc);
+			}
+		});
+		sccComputer.computeSCCs();
 	}
 
 	/**
