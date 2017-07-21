@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.PrimitiveIterator.OfInt;
 import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
+import prism.PrismUtils;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state MDP.
@@ -289,7 +291,37 @@ public interface MDP extends NondetModel
 	 * @param min Min or max for (true=min, false=max)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultMinMaxSingle(int s, double vect[], boolean min, int strat[]);
+	public default double mvMultMinMaxSingle(int s, double vect[], boolean min, int strat[])
+	{
+		int stratCh = -1;
+		double minmax = 0;
+		boolean first = true;
+
+		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+			// Compute sum for this distribution
+			double d = mvMultSingle(s, choice, vect);
+
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
+				minmax = d;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null)
+					stratCh = choice;
+			}
+			first = false;
+		}
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null && !first) {
+			// For max, only remember strictly better choices
+			if (min) {
+				strat[s] = stratCh;
+			} else if (strat[s] == -1 || minmax > vect[s]) {
+				strat[s] = stratCh;
+			}
+		}
+
+		return minmax;
+	}
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication.
@@ -298,7 +330,23 @@ public interface MDP extends NondetModel
 	 * @param min Min or max (true=min, false=max)
 	 * @param val Min or max value to match
 	 */
-	public List<Integer> mvMultMinMaxSingleChoices(int s, double vect[], boolean min, double val);
+	public default List<Integer> mvMultMinMaxSingleChoices(int s, double vect[], boolean min, double val)
+	{
+		// Create data structures to store strategy
+		final List<Integer> result = new ArrayList<Integer>();
+		// One row of matrix-vector operation
+		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+			// Compute sum for this distribution
+			double d = mvMultSingle(s, choice, vect);
+
+			// Store strategy info if value matches
+			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
+				result.add(choice);
+			}
+		}
+
+		return result;
+	}
 
 	/**
 	 * Do a single row of matrix-vector multiplication for a specific choice.
@@ -306,7 +354,12 @@ public interface MDP extends NondetModel
 	 * @param i Choice index
 	 * @param vect Vector to multiply by
 	 */
-	public double mvMultSingle(int s, int i, double vect[]);
+	public default double mvMultSingle(int s, int i, double vect[])
+	{
+		return sumOverTransitions(s, i, (int __, int t, double prob) -> {
+			return prob * vect[t];
+		});
+	}
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication followed by min/max.
@@ -354,7 +407,38 @@ public interface MDP extends NondetModel
 	 * @param min Min or max for (true=min, false=max)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min, int strat[]);
+	public default double mvMultJacMinMaxSingle(int s, double vect[], boolean min, int strat[])
+	{
+		int stratCh = -1;
+		double minmax = 0;
+		boolean first = true;
+
+		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+			double d = mvMultJacSingle(s, choice, vect);
+
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
+				minmax = d;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null) {
+					stratCh = choice;
+				}
+			}
+			first = false;
+		}
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null && !first) {
+			// For max, only remember strictly better choices
+			if (min) {
+				strat[s] = stratCh;
+			} else if (strat[s] == -1 || minmax > vect[s]) {
+				strat[s] = stratCh;
+			}
+		}
+
+		return minmax;
+
+	}
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication for a specific choice.
@@ -363,7 +447,31 @@ public interface MDP extends NondetModel
 	 * @param i Choice index
 	 * @param vect Vector to multiply by
 	 */
-	public double mvMultJacSingle(int s, int i, double vect[]);
+	public default double mvMultJacSingle(int s, int i, double vect[])
+	{
+		class Jacobi {
+			double diag = 1.0;
+			double d = 0.0;
+
+			void accept(int s, int t, double prob) {
+				if (t != s) {
+					d += prob * vect[t];
+				} else {
+					diag -= prob;
+				}
+			}
+		}
+
+		Jacobi jac = new Jacobi();
+		forEachTransition(s, i, jac::accept);
+
+		double d = jac.d;
+		double diag = jac.diag;
+		if (diag > 0)
+			d /= diag;
+
+		return d;
+	}
 
 	/**
 	 * Do a matrix-vector multiplication and sum of rewards followed by min/max, i.e. one step of value iteration.
@@ -395,7 +503,53 @@ public interface MDP extends NondetModel
 	 * @param min Min or max for (true=min, false=max)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[]);
+	public default double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
+	{
+		int stratCh = -1;
+		double minmax = 0;
+		boolean first = true;
+
+		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+			double d = mvMultRewSingle(s, choice, vect, mdpRewards);
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
+				minmax = d;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null)
+					stratCh = choice;
+			}
+			first = false;
+		}
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null && !first) {
+			// For max, only remember strictly better choices
+			if (min) {
+				strat[s] = stratCh;
+			} else if (strat[s] == -1 || minmax > vect[s]) {
+				strat[s] = stratCh;
+			}
+		}
+
+		return minmax;
+	}
+
+	/**
+	 * Do a single row of matrix-vector multiplication and sum of rewards for a specific choice.
+	 * i.e. rew(s) + rew_i(s) + sum_j P_i(s,j)*vect[j]
+	 * @param s State (row) index
+	 * @param i Choice index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards (MDP rewards)
+	 */
+	public default double mvMultRewSingle(int s, int i, double vect[], MDPRewards mdpRewards)
+	{
+		double d = mdpRewards.getStateReward(s);
+		d += mdpRewards.getTransitionReward(s, i);
+		d += sumOverTransitions(s, i, (__, t, prob) -> {
+			return prob * vect[t];
+		});
+		return d;
+	}
 
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of rewards for a specific choice.
@@ -403,9 +557,17 @@ public interface MDP extends NondetModel
 	 * @param s State (row) index
 	 * @param i Choice index
 	 * @param vect Vector to multiply by
-	 * @param mcRewards The rewards
+	 * @param mcRewards The rewards (DTMC rewards)
 	 */
-	public double mvMultRewSingle(int s, int i, double vect[], MCRewards mcRewards);
+	public default double mvMultRewSingle(int s, int i, double vect[], MCRewards mcRewards)
+	{
+		double d = mcRewards.getStateReward(s);
+		// TODO: add transition rewards when added to MCRewards
+		d += sumOverTransitions(s, i, (__, t, prob) -> {
+			return prob * vect[t];
+		});
+		return d;
+	}
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max.
@@ -455,7 +617,85 @@ public interface MDP extends NondetModel
 	 * @param min Min or max for (true=min, false=max)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[]);
+	public default double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
+	{
+		int stratCh = -1;
+		double minmax = 0;
+		boolean first = true;
+
+		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+			double d = mvMultRewJacSingle(s, choice, vect, mdpRewards);
+			// Check whether we have exceeded min/max so far
+			if (first || (min && d < minmax) || (!min && d > minmax)) {
+				minmax = d;
+				// If strategy generation is enabled, remember optimal choice
+				if (strat != null) {
+					stratCh = choice;
+				}
+			}
+			first = false;
+		}
+		// If strategy generation is enabled, store optimal choice
+		if (strat != null && !first) {
+			// For max, only remember strictly better choices
+			if (min) {
+				strat[s] = stratCh;
+			} else if (strat[s] == -1 || minmax > vect[s]) {
+				strat[s] = stratCh;
+			}
+		}
+
+		return minmax;
+	}
+
+
+	/**
+	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of rewards,
+	 * for a specific choice.
+	 * i.e. return rew(s) + rew_i(s) + (sum_{j!=s} P_i(s,j)*vect[j]) / 1-P_i(s,s) }
+	 * @param s State (row) index
+	 * @param i the choice index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 */
+	public default double mvMultRewJacSingle(int s, int i, double vect[], MDPRewards mdpRewards)
+	{
+		class Jacobi {
+			double diag = 1.0;
+			double d = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, i);
+			boolean onlySelfLoops = true;
+
+			void accept(int s, int t, double prob) {
+				if (t != s) {
+					d += prob * vect[t];
+					onlySelfLoops = false;
+				} else {
+					diag -= prob;
+				}
+			}
+		}
+
+		Jacobi jac = new Jacobi();
+		forEachTransition(s, i, jac::accept);
+
+		double d = jac.d;
+		double diag = jac.diag;
+
+		if (jac.onlySelfLoops) {
+			if (d != 0) {
+				d = (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
+			} else {
+				// no reward & only self-loops: d remains 0
+				d = 0;
+			}
+		} else {
+			// not only self-loops, do Jacobi division
+			if (diag > 0)
+				d /= diag;
+		}
+
+		return d;
+	}
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of rewards.
@@ -465,7 +705,22 @@ public interface MDP extends NondetModel
 	 * @param min Min or max (true=min, false=max)
 	 * @param val Min or max value to match
 	 */
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val);
+	public default List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val)
+	{
+		// Create data structures to store strategy
+		final List<Integer> result = new ArrayList<Integer>();
+
+		// One row of matrix-vector operation
+		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+			double d = mvMultRewSingle(s, choice, vect, mdpRewards);
+			// Store strategy info if value matches
+			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
+				result.add(choice);
+			}
+		}
+
+		return result;
+	}
 
 	/**
 	 * Multiply the probability matrix induced by the MDP and {@code strat}
@@ -480,6 +735,13 @@ public interface MDP extends NondetModel
 	 * @param source Vector to multiply matrix with
 	 * @param dest Vector to write result to.
 	 */
-	public void mvMultRight(int[] states, int[] strat, double[] source, double[] dest);
+	public default void mvMultRight(int[] states, int[] strat, double[] source, double[] dest)
+	{
+		for (int state : states) {
+			forEachTransition(state, strat[state], (int s, int t, double prob) -> {
+				dest[t] += prob * source[s];
+			});
+		}
+	}
 
 }
