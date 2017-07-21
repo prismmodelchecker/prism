@@ -36,6 +36,8 @@
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
+#include <memory>
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -196,7 +198,17 @@ jboolean forwards	// forwards or backwards?
 	
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		std::string title("PS_SOR (");
+		title += forwards?"":"Backwards ";
+		title += (omega == 1.0)?"Gauss-Seidel":("SOR omega=" + std::to_string(omega));
+		title += ")";
+		iterationExport.reset(new ExportIterations(title.c_str()));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -278,7 +290,10 @@ jboolean forwards	// forwards or backwards?
 			// set vector element
 			soln[i] = d;
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln, n, 0);
+
 		// check convergence
 		if (sup_norm < term_crit_param) {
 			done = true;

@@ -36,6 +36,8 @@
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
+#include <memory>
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -196,7 +198,17 @@ jdouble omega		// omega (over-relaxation parameter)
 	
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		std::string title("PS_JOR (");
+		title += (omega == 1.0)?"Jacobi": ("JOR omega=" + std::to_string(omega));
+		title += ")";
+
+		iterationExport.reset(new ExportIterations(title.c_str()));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -264,7 +276,10 @@ jdouble omega		// omega (over-relaxation parameter)
 			// set vector element
 			soln2[i] = d;
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {

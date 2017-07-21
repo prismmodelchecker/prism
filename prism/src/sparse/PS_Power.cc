@@ -36,6 +36,8 @@
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
+#include <memory>
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -148,7 +150,13 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PS_Power"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -210,7 +218,10 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 			// set vector element
 			soln2[i] = d;
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {

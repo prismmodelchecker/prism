@@ -37,6 +37,8 @@
 #include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "ExportIterations.h"
+#include <memory>
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -214,6 +216,12 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		soln[i] = (inf_vec[i] > 0) ? HUGE_VAL : 0.0;
 	}
 
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PS_NondetReachReward"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -310,7 +318,10 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			// (if there were no choices from this state, reward is zero/infinity)
 			soln2[i] = (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0;
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {

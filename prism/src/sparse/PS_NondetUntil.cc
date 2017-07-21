@@ -37,7 +37,9 @@
 #include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 //------------------------------------------------------------------------------
 
@@ -198,7 +200,13 @@ jlong _strat				// strategy storage
 		soln[i] = yes_vec[i];
 //		if (soln[i]) printf("yes[%d] := %f;\n", i+1, yes[i]);
 	}
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PS_NondetUntil"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -270,7 +278,10 @@ jlong _strat				// strategy storage
 			// (if no choices, use value of yes)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {
