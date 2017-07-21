@@ -1747,7 +1747,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-ltl2datool <exec> ............. Run executable <exec> to convert LTL formulas to deterministic automata");
 		mainLog.println("-ltl2dasyntax <x> .............. Specify output format for -ltl2datool switch (lbt, spin, spot, rabinizer)");
 		mainLog.println("-exportiterations .............. Export vectors for iteration algorithms to file");
-		mainLog.println("-pmaxquotient .................. For Pmax computations in MDPs, compute in the MEC quotient.");
+		mainLog.println("-pmaxquotient .................. For Pmax computations in MDPs, compute in the MEC quotient");
 		
 		mainLog.println();
 		mainLog.println("MULTI-OBJECTIVE MODEL CHECKING:");
