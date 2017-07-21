@@ -1458,6 +1458,33 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Get the maximum finite value of those that are in the (BitSet) filter.
+	 * I.e., this behaves as maxOverBitSet, but filters out POSITIVE_INFINITY.
+	 */
+	public Object maxFiniteOverBitSet(BitSet filter) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			// for Integers, MAX_VALUE might arise normally or represent +INF,
+			// so we don't filter
+			int maxI = Integer.MIN_VALUE;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				if (valuesI[i] > maxI)
+					maxI = valuesI[i];
+			}
+			return new Integer(maxI);
+		} else if (type instanceof TypeDouble) {
+			double maxD = Double.NEGATIVE_INFINITY;
+			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
+				double d = valuesD[i];
+				if (Double.isFinite(d) && valuesD[i] > maxD)
+					maxD = d;
+			}
+			return new Double(maxD);
+		}
+		throw new PrismException("Can't take max over a vector of type " + type);
+	}
+
+	/**
 	 * Check if value is true for all states in the (BitSet) filter.
 	 */
 	public boolean forallOverBitSet(BitSet filter) throws PrismException
