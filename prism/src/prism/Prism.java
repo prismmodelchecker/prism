@@ -990,6 +990,30 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return reachMethod;
 	}
 
+	/**
+	 * Returns an integer containing flags for the C++ implementation of interval iteration,
+	 * derived from the current settings object.
+	 */
+	public int getIntervalIterationFlags() throws PrismException
+	{
+		int flags = 0;
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(settings);
+
+		if (iiOptions.isEnforceMonotonicityFromBelow())
+			flags += 1;
+
+		if (iiOptions.isEnforceMonotonicityFromAbove())
+			flags += 2;
+
+		if (iiOptions.isSelectMidpointForResult())
+			flags += 4;  // select midpoint for result
+
+		return flags;
+	}
+
+
+
 	public void addModelListener(PrismModelListener listener)
 	{
 		modelListeners.add(listener);
@@ -3730,6 +3754,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
 		mc.setDoBisim(doBisim);
+		mc.setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
 		mc.setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));
 		mc.setDoPmaxQuotient(settings.getBoolean(PrismSettings.PRISM_PMAX_QUOTIENT));
 

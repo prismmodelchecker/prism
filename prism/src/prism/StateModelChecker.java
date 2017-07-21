@@ -82,6 +82,8 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	protected int engine;
 	// Parameter for termination criterion
 	protected double termCritParam;
+	// Use interval iteration?
+	protected boolean doIntervalIteration;
 	// Verbose mode?
 	protected boolean verbose;
 	// Store the final results vector after model checking?
@@ -119,6 +121,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Store locally and/or pass onto engines
 		engine = prism.getEngine();
 		termCritParam = prism.getTermCritParam();
+		doIntervalIteration = prism.getSettings().getBoolean(PrismSettings.PRISM_INTERVAL_ITER);
 		verbose = prism.getVerbose();
 		storeVector = prism.getStoreVector();
 		genStrat = prism.getGenStrat();

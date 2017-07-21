@@ -86,6 +86,8 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_LIN_EQ_METHOD_PARAM			= "prism.linEqMethodParam";//"prism.overRelaxation";
 	public static final String PRISM_TOPOLOGICAL_VI					= "prism.topologicalVI";
 	public static final	String PRISM_PMAX_QUOTIENT					= "prism.pmaxQuotient";
+	public static final	String PRISM_INTERVAL_ITER					= "prism.intervalIter";
+	public static final	String PRISM_INTERVAL_ITER_OPTIONS			= "prism.intervalIterOptions";
 	public static final	String PRISM_MDP_SOLN_METHOD				= "prism.mdpSolnMethod";
 	public static final	String PRISM_MDP_MULTI_SOLN_METHOD			= "prism.mdpMultiSolnMethod";
 	public static final	String PRISM_TERM_CRIT						= "prism.termCrit";//"prism.termination";
@@ -247,6 +249,10 @@ public class PrismSettings implements Observer
 																			"Use topological value iteration in iterative numerical methods."},
 			{ BOOLEAN_TYPE,		PRISM_PMAX_QUOTIENT,				"For Pmax computations, compute in the MEC quotient",				"4.3.1",		false,																		"",
 																				"For Pmax computations, compute in the MEC quotient."},
+			{ BOOLEAN_TYPE,		PRISM_INTERVAL_ITER,				"Use interval iterations",				"4.3.1",		false,																		"",
+																				"Use interval iteration (from above and below) in iterative numerical methods."},
+			{ STRING_TYPE,		PRISM_INTERVAL_ITER_OPTIONS,				"Interval iteration options",				"4.3.1",		"",																		"",
+																	"Interval iteration options, a comma-separated list of the following:\n" + OptionsIntervalIteration.getOptionsDescription() },
 			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
 																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_MDP_MULTI_SOLN_METHOD,			"MDP multi-objective solution method",				"4.0.3",			"Value iteration",											"Value iteration,Gauss-Seidel,Linear programming",
@@ -994,6 +1000,29 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
 		}
 
+		// Interval iterations
+		else if (sw.equals("intervaliter") ||
+		         sw.equals("ii")) {
+			set(PRISM_INTERVAL_ITER, true);
+
+			if (optionsString != null) {
+				optionsString = optionsString.trim();
+				try {
+					OptionsIntervalIteration.validate(optionsString);
+				} catch (PrismException e) {
+					throw new PrismException("In options for -" + sw + " switch: " + e.getMessage());
+				}
+
+				// append options to existing ones
+				String iiOptions = getString(PRISM_INTERVAL_ITER_OPTIONS);
+				if ("".equals(iiOptions))
+					iiOptions = optionsString;
+				else
+					iiOptions += "," + optionsString;
+				set(PRISM_INTERVAL_ITER_OPTIONS, iiOptions);
+			}
+		}
+
 		// Pmax quotient
 		else if (sw.equals("pmaxquotient")) {
 			set(PRISM_PMAX_QUOTIENT, true);
@@ -1692,6 +1721,8 @@ public class PrismSettings implements Observer
 		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
 		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
 		mainLog.println("-topological ................... Perform topological iterations (only explicit engine");
+		mainLog.println("-intervaliter (or -ii) ......... Perform interval iteration (for options see -help -ii)");
+
 		mainLog.println();
 		mainLog.println("MODEL CHECKING OPTIONS:");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");
@@ -1774,6 +1805,14 @@ public class PrismSettings implements Observer
 			QuantAbstractRefine.printOptions(mainLog);
 			return true;
 		}
+		else if (sw.equals("ii") || sw.equals("intervaliter")) {
+			mainLog.println("Switch: -intervaliter (or -ii) optionally takes a comma-separated list of options:\n");
+			mainLog.println(" -intervaliter:option1,option2,...\n");
+			mainLog.println("where the options are one of the following:\n");
+			mainLog.println(OptionsIntervalIteration.getOptionsDescription());
+			return true;
+		}
+
 		return false;
 	}
 	

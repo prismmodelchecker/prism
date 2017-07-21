@@ -123,6 +123,9 @@ public class StateModelChecker extends PrismComponent
 	// For Pmax computation, collapse MECs to quotient MDP?
 	protected boolean doPmaxQuotient = false;
 
+	// Do interval iteration?
+	protected boolean doIntervalIteration = false;
+
 	// Model info (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 	protected ModelInfo modelInfo = null;
@@ -218,6 +221,7 @@ public class StateModelChecker extends PrismComponent
 		setStoreVector(other.getStoreVector());
 		setGenStrat(other.getGenStrat());
 		setDoBisim(other.getDoBisim());
+		setDoIntervalIteration(other.getDoIntervalIteration());
 		setDoPmaxQuotient(other.getDoPmaxQuotient());
 	}
 
@@ -319,6 +323,14 @@ public class StateModelChecker extends PrismComponent
 		this.doPmaxQuotient = doPmaxQuotient;
 	}
 
+	/**
+	 * Specify whether or not to use interval iteration.
+	 */
+	public void setDoIntervalIteration(boolean doIntervalIteration)
+	{
+		this.doIntervalIteration = doIntervalIteration;
+	}
+
 	// Get methods for flags/settings
 
 	public int getVerbosity()
@@ -404,6 +416,14 @@ public class StateModelChecker extends PrismComponent
 	public boolean getDoPmaxQuotient()
 	{
 		return doPmaxQuotient;
+	}
+
+	/**
+	 * Whether or not to use interval iteration.
+	 */
+	public boolean getDoIntervalIteration()
+	{
+		return doIntervalIteration;
 	}
 
 	/** Get the constant values (both from the modules file and the properties file) */
