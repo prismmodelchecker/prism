@@ -298,6 +298,25 @@ public interface DTMC extends Model
 	}
 
 	/**
+	 * Do a Jacobi-style matrix-vector multiplication for the DTMC's transition probability matrix P
+	 * and the vector {@code vect} passed in, for the state indices provided by the iterator,
+	 * i.e., for all s of {@code states}: result[s] = (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
+	 * <p>
+	 * If the state indices in the iterator are not distinct, the result will still be valid,
+	 * but this situation should be avoided for performance reasons.
+	 * @param vect Vector to multiply by
+	 * @param result Vector to store result in
+	 * @param states Perform multiplication for these rows, in the iteration order
+	 */
+	public default void mvMultJac(double vect[], double result[], PrimitiveIterator.OfInt states)
+	{
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			result[s] = mvMultJacSingle(s, vect);
+		}
+	}
+
+	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication for
 	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in.
 	 * i.e. return (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
@@ -359,6 +378,21 @@ public interface DTMC extends Model
 	}
 
 	/**
+	 * Do a matrix-vector multiplication and sum of action reward (Jacobi).
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param result Vector to store result in
+	 * @param states Do multiplication for these rows, in the specified order
+	 */
+	public default void mvMultRewJac(double vect[], MCRewards mcRewards, double result[], PrimitiveIterator.OfInt states)
+	{
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			result[s] = mvMultRewJacSingle(s, vect, mcRewards);
+		}
+	}
+
+	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
@@ -370,6 +404,52 @@ public interface DTMC extends Model
 		d += sumOverTransitions(s, (__, t, prob) -> {
 			return prob * vect[t];
 		});
+		return d;
+	}
+
+	/**
+	 * Do a single row of matrix-vector multiplication and sum of reward, Jacobi-style,
+	 * i.e., return  ( rew(s) + sum_{t!=s} P(s,t)*vect[t] ) / (1 - P(s,s))
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 */
+	public default double mvMultRewJacSingle(int s, double vect[], MCRewards mcRewards)
+	{
+		class Jacobi {
+			double diag = 1.0;
+			double d = mcRewards.getStateReward(s);
+			boolean onlySelfLoops = true;
+
+			void accept(int s, int t, double prob) {
+				if (t != s) {
+					d += prob * vect[t];
+					onlySelfLoops = false;
+				} else {
+					diag -= prob;
+				}
+			}
+		}
+
+		Jacobi jac = new Jacobi();
+		forEachTransition(s, jac::accept);
+
+		double d = jac.d;
+		double diag = jac.diag;
+
+		if (jac.onlySelfLoops) {
+			if (d != 0) {
+				d = (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
+			} else {
+				// no reward & only self-loops: d remains 0
+				d = 0;
+			}
+		} else {
+			// not only self-loops, do Jacobi division
+			if (diag > 0)
+				d /= diag;
+		}
+
 		return d;
 	}
 
