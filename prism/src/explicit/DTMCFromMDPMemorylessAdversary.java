@@ -124,24 +124,13 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		return numTransitions;
 	}
 
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	public SuccessorsIterator getSuccessors(final int s)
 	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	public boolean isSuccessor(int s1, int s2)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		throw new RuntimeException("Not implemented yet");
+		if (adv[s] >= 0) {
+			return mdp.getSuccessors(s, adv[s]);
+		} else {
+			return SuccessorsIterator.empty();
+		}
 	}
 
 	public int getNumChoices(int s)

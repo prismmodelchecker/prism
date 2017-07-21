@@ -208,10 +208,17 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 		return numTransitions;
 	}
 
+	/** Get an iterator over the successors of state s */
 	@Override
 	public Iterator<Integer> getSuccessorsIterator(final int s)
 	{
 		return trans.get(s).getSupport().iterator();
+	}
+
+	@Override
+	public SuccessorsIterator getSuccessors(int s)
+	{
+		return SuccessorsIterator.from(getSuccessorsIterator(s), true);
 	}
 
 	@Override

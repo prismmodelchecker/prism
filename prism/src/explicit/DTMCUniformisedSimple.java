@@ -134,25 +134,7 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 		return ctmc.getNumTransitions() + numExtraTransitions;
 	}
 
-	public Iterator<Integer> getSuccessorsIterator(final int s)
-	{
-		// TODO
-		throw new Error("Not yet supported");
-	}
-	
-	public boolean isSuccessor(int s1, int s2)
-	{
-		// TODO
-		throw new Error("Not yet supported");
-	}
-
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		// TODO
-		throw new Error("Not yet supported");
-	}
-
-	public boolean someSuccessorsInSet(int s, BitSet set)
+	public SuccessorsIterator getSuccessors(final int s)
 	{
 		// TODO
 		throw new Error("Not yet supported");

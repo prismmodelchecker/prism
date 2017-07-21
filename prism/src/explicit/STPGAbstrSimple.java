@@ -499,17 +499,26 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	{
 		return trans.get(s).get(i).containsOneOf(set);
 	}
-	
+
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s, final int i)
+	public SuccessorsIterator getSuccessors(final int s, final int i)
 	{
-		// Need to build set to avoid duplicates
-		// So not necessarily the fastest method to access successors
-		HashSet<Integer> succs = new HashSet<Integer>();
-		for (Distribution distr : trans.get(s).get(i)) {
-			succs.addAll(distr.getSupport());
-		}
-		return succs.iterator();
+		return SuccessorsIterator.chain(new Iterator<SuccessorsIterator>() {
+			private Iterator<Distribution> iterator = trans.get(s).get(i).iterator();
+
+			@Override
+			public boolean hasNext()
+			{
+				return iterator.hasNext();
+			}
+
+			@Override
+			public SuccessorsIterator next()
+			{
+				Distribution dist = iterator.next();
+				return SuccessorsIterator.from(dist.getSupport().iterator(), true);
+			}
+		});
 	}
 
 	// Accessors (for STPG)

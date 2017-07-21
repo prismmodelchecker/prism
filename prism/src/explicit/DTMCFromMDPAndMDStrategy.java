@@ -122,24 +122,9 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 		return numTransitions;
 	}
 
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	public SuccessorsIterator getSuccessors(final int s)
 	{
-		return mdp.getSuccessorsIterator(s, strat.getChoiceIndex(s));
-	}
-
-	public boolean isSuccessor(int s1, int s2)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		return mdp.allSuccessorsInSet(s, strat.getChoiceIndex(s), set);
-	}
-
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		return mdp.someSuccessorsInSet(s, strat.getChoiceIndex(s), set);
+		return mdp.getSuccessors(s, strat.getChoiceIndex(s));
 	}
 
 	public int getNumChoices(int s)

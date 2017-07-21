@@ -33,7 +33,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -477,48 +476,6 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s)
-	{
-		// Need to build set to avoid duplicates
-		// So not necessarily the fastest method to access successors
-		HashSet<Integer> succs = new HashSet<Integer>();
-		for (Distribution distr : trans.get(s)) {
-			succs.addAll(distr.getSupport());
-		}
-		return succs.iterator();
-	}
-
-	@Override
-	public boolean isSuccessor(int s1, int s2)
-	{
-		for (Distribution distr : trans.get(s1)) {
-			if (distr.contains(s2))
-				return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		for (Distribution distr : trans.get(s)) {
-			if (!distr.isSubsetOf(set))
-				return false;
-		}
-		return true;
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		for (Distribution distr : trans.get(s)) {
-			if (distr.containsOneOf(set))
-				return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {
@@ -594,6 +551,12 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	public Iterator<Integer> getSuccessorsIterator(final int s, final int i)
 	{
 		return trans.get(s).get(i).getSupport().iterator();
+	}
+
+	@Override
+	public SuccessorsIterator getSuccessors(final int s, final int i)
+	{
+		return SuccessorsIterator.from(getSuccessorsIterator(s, i), true);
 	}
 
 	// Accessors (for MDP)

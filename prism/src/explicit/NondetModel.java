@@ -28,6 +28,7 @@ package explicit;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.function.IntPredicate;
 
 import prism.PrismLog;
 import strat.MDStrategy;
@@ -75,7 +76,10 @@ public interface NondetModel extends Model
 	 * @param i Choice index
 	 * @param set The set to test for inclusion
 	 */
-	public boolean allSuccessorsInSet(int s, int i, BitSet set);
+	public default boolean allSuccessorsInSet(int s, int i, BitSet set)
+	{
+		return allSuccessorsMatch(s, i, set::get);
+	}
 	
 	/**
 	 * Check if some successor state from choice {@code i} of state {@code s} is in the set {@code set}.
@@ -83,15 +87,94 @@ public interface NondetModel extends Model
 	 * @param i Choice index
 	 * @param set The set to test for inclusion
 	 */
-	public boolean someSuccessorsInSet(int s, int i, BitSet set);
-	
+	public default boolean someSuccessorsInSet(int s, int i, BitSet set)
+	{
+		return someSuccessorsMatch(s, i, set::get);
+	}
+
+	/**
+	 * Check if all the successor states from choice {@code i} of state {@code s} match the predicate.
+	 * @param s The state to check
+	 * @param i Choice index
+	 * @param p The predicate
+	 */
+	public default boolean allSuccessorsMatch(int s, int i, IntPredicate p)
+	{
+		// the code for this method is equivalent to the following stream expression,
+		// but kept explicit for performance
+		//
+		// return getSuccessors(s,i).stream().allMatch(p);
+
+		SuccessorsIterator it = getSuccessors(s,i);
+		while (it.hasNext()) {
+			int t = it.nextInt();
+			if (!p.test(t))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Check if some successor state from choice {@code i} of state {@code s} match the predicate.
+	 * @param s The state to check
+	 * @param i Choice index
+	 * @param p The predicate
+	 */
+	public default boolean someSuccessorsMatch(int s, int i, IntPredicate p)
+	{
+		// the code for this method is equivalent to the following stream expression,
+		// but kept explicit for performance
+		//
+		// return getSuccessors(s,i).stream().anyMatch(p);
+
+		SuccessorsIterator it = getSuccessors(s, i);
+		while (it.hasNext()) {
+			int t = it.nextInt();
+			if (p.test(t))
+				return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Get an iterator over the successor states from choice {@code i} of state {@code s}.
 	 * @param s The state
 	 * @param i Choice index
 	 */
-	public Iterator<Integer> getSuccessorsIterator(int s, int i);
-	
+	public default Iterator<Integer> getSuccessorsIterator(int s, int i)
+	{
+		SuccessorsIterator successors = getSuccessors(s, i);
+		return successors.distinct();
+	}
+
+	/**
+	 * Get a SuccessorsIterator for state s and choice i.
+	 * @param s The state
+	 * @param i Choice index
+	 */
+	public SuccessorsIterator getSuccessors(int s, int i);
+
+	@Override
+	public default SuccessorsIterator getSuccessors(final int s)
+	{
+		return SuccessorsIterator.chain(new Iterator<SuccessorsIterator>() {
+			private int choice = 0;
+			private int choices = getNumChoices(s);
+
+			@Override
+			public boolean hasNext()
+			{
+				return choice < choices;
+			}
+
+			@Override
+			public SuccessorsIterator next()
+			{
+				return getSuccessors(s, choice++);
+			}
+		});
+	}
+
 	/**
 	 * Construct a model that is induced by applying strategy {@code strat} to this model.
 	 * Note that the "new" model may be just an implicit (read-only) representation. 

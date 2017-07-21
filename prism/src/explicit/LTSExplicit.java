@@ -131,10 +131,10 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s, int i)
+	public SuccessorsIterator getSuccessors(int s, int i)
 	{
 		// single successor for s, i
-		return Collections.singletonList(successors.get(s).get(i)).iterator();
+		return SuccessorsIterator.fromSingleton(successors.get(s).get(i));
 	}
 
 	@Override
@@ -150,30 +150,9 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
+	public SuccessorsIterator getSuccessors(int s)
 	{
-		// make successors unique
-		LinkedHashSet<Integer> succ = new LinkedHashSet<Integer>();
-		succ.addAll(successors.get(s));
-		return succ.iterator();
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		for (int t : successors.get(s)) {
-			if (!set.get(t)) return false;
-		}
-		return true;
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		for (int t : successors.get(s)) {
-			if (set.get(t)) return true;
-		}
-		return false;
+		return SuccessorsIterator.from(successors.get(s).iterator(), false);
 	}
 
 	@Override
@@ -198,15 +177,6 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	public int getNumTransitions()
 	{
 		return numTransitions;
-	}
-
-	@Override
-	public boolean isSuccessor(int s1, int s2)
-	{
-		for (Iterator<Integer> it = getSuccessorsIterator(s1); it.hasNext(); ) {
-			if (it.next() == s2) return true;
-		}
-		return false;
 	}
 
 	@Override

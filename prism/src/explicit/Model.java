@@ -31,6 +31,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntPredicate;
 
 import parser.State;
 import parser.Values;
@@ -144,27 +145,103 @@ public interface Model
 
 	/**
 	 * Get an iterator over the successors of state s.
+	 * Default implementation via the SuccessorsIterator returned
+	 * from {@code getSuccessors}, ensuring that there are no
+	 * duplicates.
 	 */
-	public Iterator<Integer> getSuccessorsIterator(int s);
-	
+	public default Iterator<Integer> getSuccessorsIterator(int s)
+	{
+		SuccessorsIterator successors = getSuccessors(s);
+		return successors.distinct();
+	}
+
+	/**
+	 * Get a SuccessorsIterator for state s.
+	 */
+	public SuccessorsIterator getSuccessors(int s);
+
 	/**
 	 * Returns true if state s2 is a successor of state s1.
 	 */
-	public boolean isSuccessor(int s1, int s2);
+	public default boolean isSuccessor(int s1, int s2)
+	{
+		// the code for this method is equivalent to the following stream expression,
+		// but kept explicit for performance
+		//
+		// return getSuccessors(s1).stream().anyMatch(
+		//           (t) -> {return t == s2;}
+		// );
+
+		SuccessorsIterator it = getSuccessors(s1);
+		while (it.hasNext()) {
+			int t = it.nextInt();
+			if (t == s2)
+				return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Check if all the successor states of a state are in a set.
 	 * @param s The state to check
 	 * @param set The set to test for inclusion
 	 */
-	public boolean allSuccessorsInSet(int s, BitSet set);
+	public default boolean allSuccessorsInSet(int s, BitSet set)
+	{
+		return allSuccessorsMatch(s, set::get);
+	}
 
 	/**
 	 * Check if any successor states of a state are in a set.
 	 * @param s The state to check
 	 * @param set The set to test for inclusion
 	 */
-	public boolean someSuccessorsInSet(int s, BitSet set);
+	public default boolean someSuccessorsInSet(int s, BitSet set)
+	{
+		return someSuccessorsMatch(s, set::get);
+	}
+
+	/**
+	 * Check if all the successor states of a state match the predicate.
+	 * @param s The state to check
+	 * @param p the predicate
+	 */
+	public default boolean allSuccessorsMatch(int s, IntPredicate p)
+	{
+		// the code for this method is equivalent to the following stream expression,
+		// but kept explicit for performance
+		//
+		// return getSuccessors(s).stream().allMatch(p);
+
+		SuccessorsIterator it = getSuccessors(s);
+		while (it.hasNext()) {
+			int t = it.nextInt();
+			if (!p.test(t))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Check if any successor states of a state match the predicate.
+	 * @param s The state to check
+	 * @param p the predicate
+	 */
+	public default boolean someSuccessorsMatch(int s, IntPredicate p)
+	{
+		// the code for this method is equivalent to the following stream expression,
+		// but kept explicit for performance
+		//
+		// return getSuccessors(s).stream().anyMatch(p);
+
+		SuccessorsIterator it = getSuccessors(s);
+		while (it.hasNext()) {
+			int t = it.nextInt();
+			if (p.test(t))
+				return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Find all deadlock states and store this information in the model.

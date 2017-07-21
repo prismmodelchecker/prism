@@ -38,6 +38,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import explicit.ModelExplicit;
+import explicit.SuccessorsIterator;
 
 /**
  * Represents a parametric Markov model.
@@ -112,7 +113,7 @@ public final class ParamModel extends ModelExplicit
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
+	public SuccessorsIterator getSuccessors(int s)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -128,18 +129,6 @@ public final class ParamModel extends ModelExplicit
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		throw new UnsupportedOperationException();
 	}
 
 	/**

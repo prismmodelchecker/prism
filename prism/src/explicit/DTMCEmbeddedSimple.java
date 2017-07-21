@@ -129,30 +129,13 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	public SuccessorsIterator getSuccessors(final int s)
 	{
 		if (exitRates[s] == 0) {
-			List<Integer> list = new ArrayList<Integer>(1);
-			list.add(s);
-			return list.iterator();
+			return SuccessorsIterator.fromSingleton(s);
 		} else {
-			return ctmc.getSuccessorsIterator(s);
+			return ctmc.getSuccessors(s);
 		}
-	}
-	
-	public boolean isSuccessor(int s1, int s2)
-	{
-		return exitRates[s1] == 0 ? (s1 == s2) : ctmc.isSuccessor(s1, s2);
-	}
-
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		return exitRates[s] == 0 ? set.get(s) : ctmc.allSuccessorsInSet(s, set); 
-	}
-
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		return exitRates[s] == 0 ? set.get(s) : ctmc.someSuccessorsInSet(s, set); 
 	}
 
 	public int getNumChoices(int s)
