@@ -35,7 +35,6 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import prism.OptionsIntervalIteration;
 import prism.PrismException;
-import prism.PrismSettings;
 import prism.PrismUtils;
 
 /**

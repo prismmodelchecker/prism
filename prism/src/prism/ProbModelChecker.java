@@ -41,7 +41,6 @@ import acceptance.AcceptanceReach;
 import acceptance.AcceptanceReachDD;
 import acceptance.AcceptanceType;
 import automata.DA;
-import automata.LTL2WDBA;
 import common.StopWatch;
 import jdd.JDD;
 import jdd.JDDNode;

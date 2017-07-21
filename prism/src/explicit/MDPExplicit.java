@@ -35,15 +35,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import common.IterableStateSet;
-
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
 import explicit.graphviz.Decorator;
-import explicit.rewards.MDPRewards;
 
 /**
  * Base class for explicit-state representations of an MDP.

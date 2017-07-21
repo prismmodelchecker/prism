@@ -29,11 +29,8 @@ package explicit;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 
-import explicit.graphviz.Decorator;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;

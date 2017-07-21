@@ -55,7 +55,6 @@ import strat.MDStrategyArray;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 import automata.DA;
-import automata.LTL2WDBA;
 import common.IntSet;
 import common.IterableBitSet;
 import explicit.modelviews.EquivalenceRelationInteger;

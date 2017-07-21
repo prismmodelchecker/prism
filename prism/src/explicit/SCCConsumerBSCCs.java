@@ -28,7 +28,6 @@ package explicit;
 
 import java.util.BitSet;
 
-import prism.PrismComponent;
 import prism.PrismException;
 
 /**
