@@ -274,7 +274,8 @@ public interface MDP extends NondetModel
 	 */
 	public default void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
 			result[s] = mvMultMinMaxSingle(s, vect, min, strat);
 		}
 	}
@@ -325,7 +326,8 @@ public interface MDP extends NondetModel
 	public default double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 	{
 		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
 			d = mvMultJacMinMaxSingle(s, vect, min, strat);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
@@ -377,7 +379,8 @@ public interface MDP extends NondetModel
 	 */
 	public default void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
 			result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
 		}
 	}
@@ -423,7 +426,8 @@ public interface MDP extends NondetModel
 	public default double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 		{
 		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
 			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
