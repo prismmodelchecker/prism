@@ -925,6 +925,8 @@ public class MDPModelChecker extends ProbModelChecker
 					strat[i] = 0;
 		}
 
+		boolean backwardsGS = (linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL);
+
 		// Start iterations
 		iters = totalIters = 0;
 		done = false;
@@ -932,7 +934,7 @@ public class MDPModelChecker extends ProbModelChecker
 			iters++;
 			// Solve induced DTMC for strategy
 			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, strat);
-			res = mcDTMC.computeReachProbsGaussSeidel(dtmc, no, yes, reUseSoln ? soln : null, null);
+			res = mcDTMC.computeReachProbsGaussSeidel(dtmc, no, yes, reUseSoln ? soln : null, null, backwardsGS);
 			soln = res.soln;
 			totalIters += res.numIters;
 			// Check if optimal, improve non-optimal choices
@@ -1025,6 +1027,8 @@ public class MDPModelChecker extends ProbModelChecker
 					strat[i] = 0;
 		}
 
+		boolean backwardsGS = (linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL);
+
 		// Start iterations
 		iters = totalIters = 0;
 		done = false;
@@ -1032,7 +1036,7 @@ public class MDPModelChecker extends ProbModelChecker
 			iters++;
 			// Solve induced DTMC for strategy
 			dtmc = new DTMCFromMDPMemorylessAdversary(mdp, strat);
-			res = mcDTMC.computeReachProbsGaussSeidel(dtmc, no, yes, soln, null);
+			res = mcDTMC.computeReachProbsGaussSeidel(dtmc, no, yes, soln, null, backwardsGS);
 			soln = res.soln;
 			totalIters += res.numIters;
 			// Check if optimal, improve non-optimal choices
