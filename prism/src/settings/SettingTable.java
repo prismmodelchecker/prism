@@ -236,6 +236,7 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
         theTable.setCellSelectionEnabled(true);
         jPanel3 = new javax.swing.JPanel();
         commentText = new javax.swing.JTextArea();
+        jScrollPaneCommentText = new javax.swing.JScrollPane(commentText);
         commentLabel = new javax.swing.JLabel();
         topPanel = new javax.swing.JPanel();
         theCombo = new javax.swing.JComboBox();
@@ -285,9 +286,11 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
         commentText.setBorder(null);
         commentText.setDoubleBuffered(true);
         commentText.setFocusable(false);
-        commentText.setMinimumSize(new java.awt.Dimension(100, 75));
-        commentText.setPreferredSize(new java.awt.Dimension(100, 75));
-        jPanel3.add(commentText, java.awt.BorderLayout.CENTER);
+        jScrollPaneCommentText.setMinimumSize(new java.awt.Dimension(100, 75));
+        jScrollPaneCommentText.setPreferredSize(new java.awt.Dimension(100, 75));
+        jScrollPaneCommentText.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPaneCommentText.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        jPanel3.add(jScrollPaneCommentText, java.awt.BorderLayout.CENTER);
 
         jPanel3.add(commentLabel, java.awt.BorderLayout.NORTH);
 
@@ -321,11 +324,13 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
 		{
 			commentLabel.setText(selected.getName());
 			commentText.setText(selected.getComment());
+			commentText.setCaretPosition(0);
 		}
 		else
 		{
 			commentLabel.setText("");
 			commentText.setText("");
+			commentText.setCaretPosition(0);
 		}
 		
 		//                for(int i = 0; i < theModel.getRowCount(); i++)
@@ -357,11 +362,13 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
 		{
 			commentLabel.setText(selected.getName());
 			commentText.setText(selected.getComment());
+			commentText.setCaretPosition(0);
 		}
 		else
 		{
 			commentLabel.setText("");
 			commentText.setText("");
+			commentText.setCaretPosition(0);
 		}
 		//System.out.println("TABLE CHANGED");
 		//       CellEditor ce = theTable.getCellEditor();
@@ -429,11 +436,13 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
 		{
 			commentLabel.setText(selected.getName());
 			commentText.setText(selected.getComment());
+			commentText.setCaretPosition(0);
 		}
 		else
 		{
 			commentLabel.setText("");
 			commentText.setText("");
+			commentText.setCaretPosition(0);
 		}
 		theModel.fireTableDataChanged();
 		theTable.repaint();
@@ -443,6 +452,7 @@ public class SettingTable extends JPanel implements ListSelectionListener, Table
     javax.swing.JLabel commentLabel;
     javax.swing.JTextArea commentText;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPaneCommentText;
     javax.swing.JComboBox theCombo;
     javax.swing.JTable theTable;
     javax.swing.JPanel topPanel;
