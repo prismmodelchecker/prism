@@ -93,6 +93,21 @@ public interface NondetModel extends Model
 	}
 
 	/**
+	 * Check the successor states from choice {@code i} of state {@code s}:
+	 * Return {@code true} iff all successors are contained in {@code u}
+	 * (remain in a "safe" region) and at least one is contained in {@code v}
+	 * (can reach the region defined by v).
+	 * @param s The state to check
+	 * @param i Choice index
+	 * @param u The BitSet that all successors have to be in
+	 * @param v The BitSet that some successors have to be in
+	 */
+	public default boolean successorsSafeAndCanReach(int s, int i, BitSet u, BitSet v)
+	{
+		return successorsSafeAndCanReach(s, i, u::get, v::get);
+	}
+
+	/**
 	 * Check if all the successor states from choice {@code i} of state {@code s} match the predicate.
 	 * @param s The state to check
 	 * @param i Choice index
@@ -134,6 +149,31 @@ public interface NondetModel extends Model
 				return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Check the successor states from choice {@code i} of state {@code s}:
+	 * Return {@code true} iff all successors match the predicate {@code u}
+	 * (remain in a "safe" region) and at least one matches predicate {@code v}
+	 * (can reach the region defined by v).
+	 * @param s The state to check
+	 * @param i Choice index
+	 * @param u The first predicate (all successors have to match)
+	 * @param v The second predicate (some successors have to match)
+	 */
+	public default boolean successorsSafeAndCanReach(int s, int i, IntPredicate u, IntPredicate v)
+	{
+		SuccessorsIterator it = getSuccessors(s, i);
+		boolean hadTransitionToV = false;
+		while (it.hasNext()) {
+			int t = it.nextInt();
+			if (!u.test(t))
+				return false;
+			if (!hadTransitionToV) {
+				hadTransitionToV = v.test(t);
+			}
+		}
+		return hadTransitionToV;
 	}
 
 	/**
