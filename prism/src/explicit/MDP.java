@@ -30,7 +30,9 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.PrimitiveIterator.OfInt;
 
+import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 
@@ -54,7 +56,28 @@ public interface MDP extends NondetModel
 	 * @param forall For-all or there-exists (true=for-all, false=there-exists)
 	 * @param result Store results here
 	 */
-	public void prob0step(BitSet subset, BitSet u, boolean forall, BitSet result);
+	public default void prob0step(final BitSet subset, final BitSet u, final boolean forall, final BitSet result)
+	{
+		for (OfInt it = new IterableStateSet(subset, getNumStates()).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
+			boolean b1 = forall; // there exists or for all
+			for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+				boolean b2 = someSuccessorsInSet(s, choice, u);
+				if (forall) {
+					if (!b2) {
+						b1 = false;
+						break;
+					}
+				} else {
+					if (b2) {
+						b1 = true;
+						break;
+					}
+				}
+			}
+			result.set(s, b1);
+		}
+	}
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob1A, i.e., for states i in {@code subset},
@@ -65,7 +88,21 @@ public interface MDP extends NondetModel
 	 * @param v Set of states {@code v}
 	 * @param result Store results here
 	 */
-	public void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result);
+	public default void prob1Astep(BitSet subset, BitSet u, BitSet v, BitSet result)
+	{
+		boolean b1;
+		for (OfInt it = new IterableStateSet(subset, getNumStates()).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
+			b1 = true;
+			for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+				if (!(successorsSafeAndCanReach(s, choice, u, v))) {
+					b1 = false;
+					break;
+				}
+			}
+			result.set(s, b1);
+		}
+	}
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob1E, i.e., for states i in {@code subset},
@@ -78,7 +115,31 @@ public interface MDP extends NondetModel
 	 * @param result Store results here
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[]);
+	public default void prob1Estep(BitSet subset, BitSet u, BitSet v, BitSet result, int strat[])
+	{
+		int stratCh = -1;
+		boolean b1;
+		for (OfInt it = new IterableStateSet(subset, getNumStates()).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
+			b1 = false;
+			for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+				if (successorsSafeAndCanReach(s, choice, u, v)) {
+					b1 = true;
+					// If strategy generation is enabled, remember optimal choice
+					if (strat != null)
+						stratCh = choice;
+					break;
+				}
+			}
+			// If strategy generation is enabled, store optimal choice
+			// (only if this the first time we add the state to S^yes)
+			if (strat != null & b1 & !result.get(s)) {
+				strat[s] = stratCh;
+			}
+			// Store result
+			result.set(s, b1);
+		}
+	}
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob1, i.e., for states i in {@code subset},
@@ -91,7 +152,29 @@ public interface MDP extends NondetModel
 	 * @param forall For-all or there-exists (true=for-all, false=there-exists)
 	 * @param result Store results here
 	 */
-	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall, BitSet result);
+	public default void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall, BitSet result)
+	{
+		boolean b1, b2;
+		for (OfInt it = new IterableStateSet(subset, getNumStates()).iterator(); it.hasNext();) {
+			final int s = it.nextInt();
+			b1 = forall; // there exists or for all
+			for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
+				b2 = successorsSafeAndCanReach(s, choice, u, v);
+				if (forall) {
+					if (!b2) {
+						b1 = false;
+						break;
+					}
+				} else {
+					if (b2) {
+						b1 = true;
+						break;
+					}
+				}
+			}
+			result.set(s, b1);
+		}
+	}
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob1 for a single state/choice,
@@ -101,8 +184,11 @@ public interface MDP extends NondetModel
 	 * @param u Set of states {@code u}
 	 * @param v Set of states {@code v}
 	 */
-	public boolean prob1stepSingle(int s, int i, BitSet u, BitSet v);
-	
+	public default boolean prob1stepSingle(int s, int i, BitSet u, BitSet v)
+	{
+		return successorsSafeAndCanReach(s, i, u, v);
+	}
+
 	/**
 	 * Do a matrix-vector multiplication followed by min/max, i.e. one step of value iteration,
 	 * i.e. for all s: result[s] = min/max_k { sum_j P_k(s,j)*vect[j] }
