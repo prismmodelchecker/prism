@@ -116,6 +116,10 @@ public class StateModelChecker extends PrismComponent
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
+
+	// For Pmax computation, collapse MECs to quotient MDP?
+	protected boolean doPmaxQuotient = false;
+
 	// Model info (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 	protected ModelInfo modelInfo = null;
@@ -211,6 +215,7 @@ public class StateModelChecker extends PrismComponent
 		setStoreVector(other.getStoreVector());
 		setGenStrat(other.getGenStrat());
 		setDoBisim(other.getDoBisim());
+		setDoPmaxQuotient(other.getDoPmaxQuotient());
 	}
 
 	/**
@@ -295,6 +300,14 @@ public class StateModelChecker extends PrismComponent
 		this.doBisim = doBisim;
 	}
 
+	/**
+	 * Specify whether or not to perform MEC quotienting for Pmax.
+	 */
+	public void setDoPmaxQuotient(boolean doPmaxQuotient)
+	{
+		this.doPmaxQuotient = doPmaxQuotient;
+	}
+
 	// Get methods for flags/settings
 
 	public int getVerbosity()
@@ -364,6 +377,14 @@ public class StateModelChecker extends PrismComponent
 	public boolean getDoBisim()
 	{
 		return doBisim;
+	}
+
+	/**
+	 * Whether or not to do MEC quotient for Pmax
+	 */
+	public boolean getDoPmaxQuotient()
+	{
+		return doPmaxQuotient;
 	}
 
 	/** Get the constant values (both from the modules file and the properties file) */

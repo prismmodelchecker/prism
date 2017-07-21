@@ -54,6 +54,8 @@ import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2WDBA;
 import common.IterableBitSet;
+import explicit.modelviews.EquivalenceRelationInteger;
+import explicit.modelviews.MDPEquiv;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
@@ -339,6 +341,8 @@ public class MDPModelChecker extends ProbModelChecker
 		// Local copy of setting
 		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
 
+		boolean doPmaxQuotient = this.doPmaxQuotient;
+
 		// Switch to a supported method, if necessary
 		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
 			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
@@ -356,6 +360,11 @@ public class MDPModelChecker extends ProbModelChecker
 			if (known != null) {
 				throw new PrismException("Policy iteration methods cannot be passed 'known' values for some states");
 			}
+		}
+
+		if (doPmaxQuotient && min) {
+			// for Pmin, don't do quotient
+			doPmaxQuotient = false;
 		}
 
 		// Start probabilistic reachability
@@ -439,7 +448,48 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Compute probabilities (if needed)
 		if (numYes + numNo < n) {
-			res = computeReachProbsNumeric(mdp, mdpSolnMethod, no, yes, min, init, known, strat);
+
+			if (!min && doPmaxQuotient) {
+				MDPEquiv maxQuotient = maxQuotient(mdp, yes, no);
+				// MDPEquiv retains original state space, making the states that are not used
+				// trap states.
+				// yesInQuotient is the representative for the yes equivalence class
+				BitSet yesInQuotient = new BitSet();
+				yesInQuotient.set(maxQuotient.mapStateToRestrictedModel(yes.nextSetBit(0)));
+				// noInQuotient is the representative for the no equivalence class as well
+				// as the non-representative states (the states in any equivalence class
+				// that are not the representative for the class). As the latter states
+				// are traps, we can just add them to the no set
+				BitSet noInQuotient = new BitSet();
+				noInQuotient.set(maxQuotient.mapStateToRestrictedModel(no.nextSetBit(0)));
+				noInQuotient.or(maxQuotient.getNonRepresentativeStates());
+				MDPSparse quotientModel = new MDPSparse(maxQuotient);
+
+				ModelCheckerResult res1 = computeReachProbsNumeric(quotientModel,
+				                                                   mdpSolnMethod,
+				                                                   noInQuotient,
+				                                                   yesInQuotient,
+				                                                   min,
+				                                                   init,
+				                                                   known,
+				                                                   strat);
+
+				res = new ModelCheckerResult();
+				res.numIters = res1.numIters;
+				res.timeTaken = res1.timeTaken;
+				res.soln = new double[mdp.getNumStates()];
+				for (int i = 0; i < n; i++) {
+					if (yes.get(i)) {
+						res.soln[i] = 1.0;
+					} else if (no.get(i)) {
+						res.soln[i] = 0.0;
+					} else {
+						res.soln[i] = res1.soln[maxQuotient.mapStateToRestrictedModel(i)];
+					}
+				}
+			} else {
+				res = computeReachProbsNumeric(mdp, mdpSolnMethod, no, yes, min, init, known, strat);
+			}
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(yes, n);
@@ -1969,6 +2019,38 @@ public class MDPModelChecker extends ProbModelChecker
 		for (int s = restrict.nextClearBit(0); s < n; s = restrict.nextClearBit(s + 1)) {
 			strat[s] = -3;
 		}
+	}
+
+	/**
+	 * Compute the end component quotient (for use with PMax),
+	 * each maximal end component is collapsed to a single state,
+	 * likewise the yes and no regions, respectively.
+	 */
+	private MDPEquiv maxQuotient(MDP mdp, BitSet yes, BitSet no) throws PrismException
+	{
+		BitSet maybe = new BitSet();
+		maybe.set(0, mdp.getNumStates());
+		maybe.andNot(yes);
+		maybe.andNot(no);
+
+		ECComputer ec = ECComputer.createECComputer(this, mdp);
+
+		ec.computeMECStates(maybe);
+		List<BitSet> mecs = ec.getMECStates();
+		mecs.add(yes);
+		mecs.add(no);
+
+		EquivalenceRelationInteger eq = new EquivalenceRelationInteger(mecs);
+		BasicModelTransformation<MDP, MDPEquiv> quotientTransform = MDPEquiv.transformDroppingLoops(mdp, eq);
+		MDPEquiv quotient = quotientTransform.getTransformedModel();
+
+		//mdp.exportToDotFile("original.dot");
+		//quotient.exportToDotFile("maxQuotient.dot");
+
+		int realStates = quotient.getNumStates() - quotient.getNonRepresentativeStates().cardinality();
+		mainLog.println("Max-Quotient MDP: " + realStates + " equivalence classes / non-trap states.");
+
+		return quotient;
 	}
 
 	/**

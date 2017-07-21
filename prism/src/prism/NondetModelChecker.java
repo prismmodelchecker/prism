@@ -72,6 +72,7 @@ import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2DA;
 import automata.LTL2WDBA;
+import common.StopWatch;
 import dv.DoubleVector;
 import dv.IntegerVector;
 import explicit.MinMax;
@@ -1823,6 +1824,19 @@ public class NondetModelChecker extends NonProbModelChecker
 		DoubleVector probsDV;
 		StateValues probs = null;
 
+		boolean doPmaxQuotient = getSettings().getBoolean(PrismSettings.PRISM_PMAX_QUOTIENT);
+
+		if (doPmaxQuotient && min) {
+			// don't do pmaxQuotient for min
+			doPmaxQuotient = false;
+		}
+
+		if (doPmaxQuotient) {
+			if (!(precomp && prob0 && prob1)) {
+				throw new PrismNotSupportedException("Precomputations (Prob0 & Prob1) must be enabled for -pmaxquotient setting");
+			}
+		}
+
 		// If required, export info about target states 
 		if (prism.getExportTarget()) {
 			JDDNode labels[] = { model.getStart(), b2 };
@@ -1915,9 +1929,67 @@ public class NondetModelChecker extends NonProbModelChecker
 			mainLog.println("\nComputing remaining probabilities...");
 			mainLog.println("Engine: " + Prism.getEngineString(engine));
 			try {
+				MDPQuotient transform = null;
+				NondetModel transformed = null;
+				JDDNode yesInQuotient = null;
+				JDDNode maybeInQuotient = null;
+
+				if (doPmaxQuotient) {
+					if (!tr.equals(model.getTrans()) ||
+					    !tra.equals(model.getTransActions()) ||
+					    !tr01.equals(model.getTrans01())) {
+						throw new PrismException("Can currently not compute MEC quotient for changed functions");
+					}
+
+					mainLog.println("\nBuilding quotient MDP, collapsing maximal end components as well as yes and no states...");
+					StopWatch ecWatch = new StopWatch(mainLog);
+					ecWatch.start("computing maximal end components");
+					ECComputer ec = ECComputer.createECComputer(this, model);
+					// find MECs in the maybe states
+					ec.computeMECStates(maybe);
+					ecWatch.stop("found " + ec.getMECStates().size() + " MECs");
+
+					List<JDDNode> ecs = new ArrayList<JDDNode>(ec.getMECStates());
+
+					ecs.add(yes.copy());
+					ecs.add(no.copy());
+
+					StopWatch watchTransform = new StopWatch(mainLog);
+					watchTransform.start("building MEC quotient");
+					transform = MDPQuotient.transform(this, model, ecs, model.getReach().copy());
+					watchTransform.stop();
+
+					if (false) {
+						try {
+							model.exportToFile(Prism.EXPORT_DOT, true, new File("model.dot"));
+							transform.getTransformedModel().exportToFile(Prism.EXPORT_DOT, true, new File("quotient.dot"));
+						} catch (FileNotFoundException e) {
+						}
+					}
+					transformed = transform.getTransformedModel();
+
+					mainLog.println("\nQuotient MDP:");
+					transformed.printTransInfo(mainLog);
+
+					yesInQuotient = transform.mapStateSetToQuotient(yes.copy());
+					maybeInQuotient = transform.mapStateSetToQuotient(maybe.copy());
+				}
+
 				switch (engine) {
 				case Prism.MTBDD:
-					probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+					if (transform != null) {
+						probsMTBDD = PrismMTBDD.NondetUntil(transformed.getTrans(),
+						                                    transformed.getODD(),
+						                                    transformed.getNondetMask(),
+						                                    transformed.getAllDDRowVars(),
+						                                    transformed.getAllDDColVars(),
+						                                    transformed.getAllDDNondetVars(),
+						                                    yesInQuotient,
+						                                    maybeInQuotient,
+						                                    min);
+					} else {
+						probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+					}
 					probs = new StateValuesMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
@@ -1927,19 +1999,55 @@ public class NondetModelChecker extends NonProbModelChecker
 						strat = new IntegerVector(ddStrat, allDDRowVars, odd);
 						JDD.Deref(ddStrat);
 					}
-					probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
-					if (genStrat) {
+					if (transform != null) {
+						strat = null;  // strategy generation with the quotient not yet supported
+						probsDV = PrismSparse.NondetUntil(transformed.getTrans(),
+						                                  transformed.getTransActions(),
+						                                  transformed.getSynchs(),
+						                                  transformed.getODD(),
+						                                  transformed.getAllDDRowVars(),
+						                                  transformed.getAllDDColVars(),
+						                                  transformed.getAllDDNondetVars(),
+						                                  yesInQuotient,
+						                                  maybeInQuotient,
+						                                  min,
+						                                  strat);
+						probs = new StateValuesDV(probsDV, transformed);
+					} else {
+						probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+						probs = new StateValuesDV(probsDV, model);
+					}
+					if (genStrat && strat != null) {
 						result.setStrategy(new MDStrategyIV(model, strat));
 					}
-					probs = new StateValuesDV(probsDV, model);
 					break;
 				case Prism.HYBRID:
-					probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
-					probs = new StateValuesDV(probsDV, model);
+					if (transform != null) {
+						probsDV = PrismHybrid.NondetUntil(transformed.getTrans(),
+						                                  transformed.getODD(),
+						                                  transformed.getAllDDRowVars(),
+						                                  transformed.getAllDDColVars(),
+						                                  transformed.getAllDDNondetVars(),
+						                                  yesInQuotient,
+						                                  maybeInQuotient,
+						                                  min);
+						probs = new StateValuesDV(probsDV, transformed);
+					} else {
+						probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+						probs = new StateValuesDV(probsDV, model);
+					}
 					break;
 				default:
 					throw new PrismException("Unknown engine");
 				}
+
+				if (transform != null) {
+					// we have to project back to the original
+					probs = transform.projectToOriginalModel(probs);
+					transform.clear();
+					JDD.Deref(yesInQuotient, maybeInQuotient);
+				}
+
 			} catch (PrismException e) {
 				JDD.Deref(yes);
 				JDD.Deref(no);
