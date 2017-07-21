@@ -491,6 +491,10 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean hasMaxReward = false;
 		//boolean hasLTLconstraint = false;
 
+		if (doIntervalIteration) {
+			throw new PrismNotSupportedException("Interval iteration currently not supported for multi-objective reasoning");
+		}
+
 		// Make sure we are only expected to compute a value for a single state,
 		// i.e., that statesOfInterest is a singleton
 		if (!JDD.isSingleton(statesOfInterest, model.getAllDDRowVars())) {
