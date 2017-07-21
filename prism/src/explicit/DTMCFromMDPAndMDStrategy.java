@@ -29,7 +29,6 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
-import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
@@ -173,27 +172,18 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 			return mdp.getTransitionsIterator(s, strat.getChoiceIndex(s));
 		} else {
 			// Empty iterator
-			return new Iterator<Entry<Integer, Double>>()
-			{
-				@Override
-				public boolean hasNext()
-				{
-					return false;
-				}
-
-				@Override
-				public Entry<Integer, Double> next()
-				{
-					return null;
-				}
-
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
+			Map<Integer,Double> empty = Collections.emptyMap();
+			return empty.entrySet().iterator();
 		}
+	}
+
+	@Override
+	public void forEachTransition(int s, TransitionConsumer c)
+	{
+		if (!strat.isChoiceDefined(s)) {
+			return;
+		}
+		mdp.forEachTransition(s, strat.getChoiceIndex(s), c::accept);
 	}
 
 	@Override
