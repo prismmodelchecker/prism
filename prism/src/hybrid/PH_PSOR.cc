@@ -37,7 +37,9 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 // local prototypes
 static void psor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose);
@@ -228,7 +230,17 @@ jboolean forwards	// forwards or backwards?
 	
 	// print total memory usage
 	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PH_GetFlagExportIterations()) {
+		std::string title("PH_PSOR (");
+		title += (omega == 1.0)?"Pseudo Gauss-Seidel": ("Pseudo SOR omega=" + std::to_string(omega));
+		title += ")";
+
+		iterationExport.reset(new ExportIterations(title.c_str()));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -326,7 +338,10 @@ jboolean forwards	// forwards or backwards?
 				soln[row_offset + i2] = soln2[i2];
 			}
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln, n, 0);
+
 		// check convergence
 		if (sup_norm < term_crit_param) {
 			done = true;

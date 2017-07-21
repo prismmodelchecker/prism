@@ -37,7 +37,9 @@
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 // local prototypes
 static void power_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose);
@@ -164,7 +166,13 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	
 	// print total memory usage
 	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PH_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PH_Power"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -193,7 +201,10 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 		
 		// do matrix vector multiply bit
 		power_rec(hdd, 0, 0, 0, transpose);
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {

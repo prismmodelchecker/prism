@@ -37,7 +37,9 @@
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 // local prototypes
 static void jor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, bool transpose);
@@ -214,7 +216,17 @@ jdouble omega		// omega (over-relaxation parameter)
 	
 	// print total memory usage
 	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PH_GetFlagExportIterations()) {
+		std::string title("PH_JOR (");
+		title += (omega == 1.0)?"Jacobi": ("JOR omega=" + std::to_string(omega));
+		title += ")";
+
+		iterationExport.reset(new ExportIterations(title.c_str()));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -256,8 +268,11 @@ jdouble omega		// omega (over-relaxation parameter)
 			for (i = 0; i < n; i++) {
 				soln2[i] = ((1-omega) * soln[i]) + (omega * soln2[i]);
 			}
-		}	
-		
+		}
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {

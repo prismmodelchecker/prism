@@ -37,7 +37,9 @@
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int code);
@@ -203,7 +205,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	for (i = 0; i < n; i++) {
 		soln[i] = 0;
 	}
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PH_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PH_NondetReachReward"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -284,7 +292,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		} else {
 			for (i = 0; i < n; i++) { if(soln2[i] < 0) soln2[i] = 0; soln2[i] += rew_dist->dist[rew_dist->ptrs[i]]; }
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
 		sup_norm = 0.0;
 		for (i = 0; i < n; i++) {
