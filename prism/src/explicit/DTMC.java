@@ -228,7 +228,12 @@ public interface DTMC extends Model
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 */
-	public double mvMultSingle(int s, double vect[]);
+	public default double mvMultSingle(int s, double vect[])
+	{
+		return sumOverTransitions(s, (__, t, prob) -> {
+			return prob * vect[t];
+		});
+	}
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication for
@@ -271,7 +276,31 @@ public interface DTMC extends Model
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 */
-	public double mvMultJacSingle(int s, double vect[]);
+	public default double mvMultJacSingle(int s, double vect[])
+	{
+		class Jacobi {
+			double diag = 1.0;
+			double d = 0.0;
+
+			void accept(int s, int t, double prob) {
+				if (t != s) {
+					d += prob * vect[t];
+				} else {
+					diag -= prob;
+				}
+			}
+		}
+
+		Jacobi jac = new Jacobi();
+		forEachTransition(s, jac::accept);
+
+		double d = jac.d;
+		double diag = jac.diag;
+		if (diag > 0)
+			d /= diag;
+
+		return d;
+	}
 
 	/**
 	 * Do a matrix-vector multiplication and sum of action reward.
@@ -294,7 +323,14 @@ public interface DTMC extends Model
 	 * @param vect Vector to multiply by
 	 * @param mcRewards The rewards
 	 */
-	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards);
+	public default double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
+	{
+		double d = mcRewards.getStateReward(s);
+		d += sumOverTransitions(s, (__, t, prob) -> {
+			return prob * vect[t];
+		});
+		return d;
+	}
 
 	/**
 	 * Do a vector-matrix multiplication for
@@ -303,5 +339,21 @@ public interface DTMC extends Model
 	 * @param vect Vector to multiply by
 	 * @param result Vector to store result in
 	 */
-	public void vmMult(double vect[], double result[]);
+	public default void vmMult(double vect[], double result[])
+	{
+		int i;
+
+		int numStates = getNumStates();
+		// Initialise result to 0
+		for (i = 0; i < numStates; i++) {
+			result[i] = 0;
+		}
+
+		// Go through matrix elements (by row)
+		for (i = 0; i < numStates; i++) {
+			forEachTransition(i, (s, t, prob) -> {
+				result[t] += prob * vect[s];
+			});
+		}
+	}
 }
