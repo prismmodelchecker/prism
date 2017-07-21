@@ -214,6 +214,24 @@ public class PrismUtils
 	}
 
 	/**
+	 * Return the maximum finite value in a double array, looking at
+	 * those entries with indices given bit the integer iterator.
+	 */
+	public static double findMaxFinite(double[] soln, PrimitiveIterator.OfInt indices)
+	{
+		double max_v = Double.NEGATIVE_INFINITY;
+		while (indices.hasNext()) {
+			int i = indices.nextInt();
+
+			double v = soln[i];
+			if (v < Double.POSITIVE_INFINITY) {
+				max_v = Double.max(v, max_v);
+			}
+		}
+		return max_v;
+	}
+
+	/**
 	 * Format a large integer, represented by a double, as a string. 
 	 */
 	public static String bigIntToString(double d)
