@@ -1554,7 +1554,37 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 		}
 
-		res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, target, inf, min, init, known, strat);
+		ZeroRewardECQuotient quotient = null;
+		boolean doZeroMECCheckForMin = true;
+		if (min & doZeroMECCheckForMin) {
+			StopWatch zeroMECTimer = new StopWatch(mainLog);
+			zeroMECTimer.start("checking for zero-reward ECs");
+			mainLog.println("For Rmin, checking for zero-reward ECs...");
+			BitSet unknown = (BitSet) inf.clone();
+			unknown.flip(0, mdp.getNumStates());
+			unknown.andNot(target);
+			quotient = ZeroRewardECQuotient.getQuotient(this, mdp, unknown, mdpRewards);
+
+			if (quotient == null) {
+				zeroMECTimer.stop("no zero-reward ECs found, proceeding normally");
+			} else {
+				zeroMECTimer.stop("built quotient MDP with " + quotient.getNumberOfZeroRewardMECs() + " zero-reward MECs");
+				if (strat != null) {
+					throw new PrismException("Constructing a strategy for Rmin in the presence of zero-reward ECs is currently not supported");
+				}
+			}
+		}
+
+		if (quotient != null) {
+			BitSet newInfStates = (BitSet)inf.clone();
+			newInfStates.or(quotient.getNonRepresentativeStates());
+			int quotientModelStates = quotient.getModel().getNumStates() - newInfStates.cardinality();
+			mainLog.println("Computing Rmin in zero-reward EC quotient model (" + quotientModelStates + " relevant states)...");
+			res = computeReachRewardsNumeric(quotient.getModel(), quotient.getRewards(), mdpSolnMethod, target, newInfStates, min, init, known, strat);
+			quotient.mapResults(res.soln);
+		} else {
+			res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, target, inf, min, init, known, strat);
+		}
 
 		// Store strategy
 		if (genStrat) {
