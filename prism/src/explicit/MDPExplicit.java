@@ -233,66 +233,6 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	// Accessors (for MDP)
 
 	@Override
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultMinMaxSingle(s, vect, min, strat);
-		}
-	}
-
-	@Override
-	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
-	{
-		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultJacMinMaxSingle(s, vect, min, strat);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultJacMinMaxSingle(s, vect, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
-		return maxDiff;
-	}
-
-	@Override
-	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[])
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
-		}
-	}
-
-	@Override
-	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
-	{
-		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
-		return maxDiff;
-	}
-
-	@Override
 	public Model constructInducedModel(MDStrategy strat)
 	{
 		return new DTMCFromMDPAndMDStrategy(this, strat);

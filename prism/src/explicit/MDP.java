@@ -272,7 +272,12 @@ public interface MDP extends NondetModel
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[]);
+	public default void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
+	{
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			result[s] = mvMultMinMaxSingle(s, vect, min, strat);
+		}
+	}
 
 	/**
 	 * Do a single row of matrix-vector multiplication followed by min/max,
@@ -317,7 +322,26 @@ public interface MDP extends NondetModel
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * @return The maximum difference between old/new elements of {@code vect}
 	 */
-	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[]);
+	public default double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
+	{
+		double d, diff, maxDiff = 0.0;
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			d = mvMultJacMinMaxSingle(s, vect, min, strat);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
+		}
+		// Use this code instead for backwards Gauss-Seidel
+		/*for (s = numStates - 1; s >= 0; s--) {
+			if (subset.get(s)) {
+				d = mvMultJacMinMaxSingle(s, vect, min, strat);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}*/
+		return maxDiff;
+	}
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication followed by min/max.
@@ -351,7 +375,12 @@ public interface MDP extends NondetModel
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[]);
+	public default void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[])
+	{
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
+		}
+	}
 
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of rewards followed by min/max.
@@ -391,7 +420,26 @@ public interface MDP extends NondetModel
 	 * @return The maximum difference between old/new elements of {@code vect}
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[]);
+	public default double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
+		{
+		double d, diff, maxDiff = 0.0;
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
+		}
+		// Use this code instead for backwards Gauss-Seidel
+		/*for (s = numStates - 1; s >= 0; s--) {
+			if (subset.get(s)) {
+				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}*/
+		return maxDiff;
+	}
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of rewards followed by min/max.
@@ -429,4 +477,5 @@ public interface MDP extends NondetModel
 	 * @param dest Vector to write result to.
 	 */
 	public void mvMultRight(int[] states, int[] strat, double[] source, double[] dest);
+
 }
