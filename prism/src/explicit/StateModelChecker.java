@@ -117,6 +117,9 @@ public class StateModelChecker extends PrismComponent
 	protected boolean doBisim = false;
 
 
+	// Do topological value iteration?
+	protected boolean doTopologicalValueIteration = false;
+
 	// For Pmax computation, collapse MECs to quotient MDP?
 	protected boolean doPmaxQuotient = false;
 
@@ -301,6 +304,14 @@ public class StateModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Specify whether or not to do topological value iteration.
+	 */
+	public void setDoTopologicalValueIteration(boolean doTopologicalValueIteration)
+	{
+		this.doTopologicalValueIteration = doTopologicalValueIteration;
+	}
+
+	/**
 	 * Specify whether or not to perform MEC quotienting for Pmax.
 	 */
 	public void setDoPmaxQuotient(boolean doPmaxQuotient)
@@ -377,6 +388,14 @@ public class StateModelChecker extends PrismComponent
 	public boolean getDoBisim()
 	{
 		return doBisim;
+	}
+
+	/**
+	 * Whether or not to do topological value iteration.
+	 */
+	public boolean getDoTopologicalValueIteration()
+	{
+		return doTopologicalValueIteration;
 	}
 
 	/**

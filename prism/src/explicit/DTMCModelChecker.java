@@ -693,7 +693,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
 		}
 
-		res = doValueIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, false);
+		res = doValueIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
 
 		// Finished probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
@@ -1302,7 +1302,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
 		}
 
-		res = doValueIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, false);
+		res = doValueIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
 
 		// Finished expected reachability
 		timer = System.currentTimeMillis() - timer;

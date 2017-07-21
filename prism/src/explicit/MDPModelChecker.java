@@ -545,7 +545,7 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		if (res == null) { // not yet computed, use iterationMethod
-			res = doValueIterationReachProbs(mdp, no, yes, min, init, known, iterationMethod, false, strat);
+			res = doValueIterationReachProbs(mdp, no, yes, min, init, known, iterationMethod, getDoTopologicalValueIteration(), strat);
 		}
 
 		return res;
@@ -1597,7 +1597,7 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		if (res == null) { // not yet computed, use iterationMethod
-			res = doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat);
+			res = doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat);
 		}
 
 		return res;
@@ -1620,7 +1620,7 @@ public class MDPModelChecker extends ProbModelChecker
 			throws PrismException
 	{
 		IterationMethodPower iterationMethod = new IterationMethodPower(termCrit == TermCrit.ABSOLUTE, termCritParam);
-		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, min, strat);
+		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat);
 	}
 
 	/**
@@ -1723,7 +1723,7 @@ public class MDPModelChecker extends ProbModelChecker
 			BitSet known, int strat[]) throws PrismException
 	{
 		IterationMethodGS iterationMethod = new IterationMethodGS(termCrit == TermCrit.ABSOLUTE, termCritParam, false);
-		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, min, strat);
+		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat);
 	}
 
 	/**
