@@ -66,24 +66,18 @@ public:
 	inline void measure(double v1, double v2) {
 		double x;
 
-		// special case: one of the values is infinite (this can happen e.g. for non-converging
-		// iterations when the values grow extremely large and overflow to infinity).
-		if (isinf(v1) || isinf(v2)) {
-			x = std::numeric_limits<double>::infinity();
-		} else {
-			// compute absolute of difference
-			x = fabs(v2 - v1);
-			if (relative) {
-				// for relative mode: divide by second value
-				// We take the absolute value of v2 to ensure that
-				// x remains non-negative. v2 can become negative e.g.
-				// during iterations with over-relaxation with large
-				// omega values.
-				// Note: if v2 is 0, then x will become +inf for x>0 and NaN for x=0, i.e., v1=v2=0
-				// In the later case, the max computation below will ignore the NaN,
-				// as NaN > y is false for all y
-				x /= fabs(v2);
-			}
+		// compute absolute of difference
+		x = fabs(v2 - v1);
+		if (relative) {
+			// for relative mode: divide by second value
+			// We take the absolute value of v2 to ensure that
+			// x remains non-negative. v2 can become negative e.g.
+			// during iterations with over-relaxation with large
+			// omega values.
+			// Note: if v2 is 0, then x will become +inf for x>0 and NaN for x=0, i.e., v1=v2=0
+			// In the later case, the max computation below will ignore the NaN,
+			// as NaN > y is false for all y
+			x /= fabs(v2);
 		}
 
 		// sup_norm = max { x, sup_norm }

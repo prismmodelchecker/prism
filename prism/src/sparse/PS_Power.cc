@@ -36,6 +36,7 @@
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "Measures.h"
 #include "ExportIterations.h"
 #include <memory>
 #include <new>
@@ -85,9 +86,11 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, j, l, h, iters;
-	double d, x, sup_norm, kb, kbt;
+	double d, kb, kbt;
 	bool done;
-	
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -162,7 +165,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
 	start3 = stop;
-	
+
 	// start iterations
 	iters = 0;
 	done = false;
@@ -223,21 +226,15 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 			iterationExport->exportVector(soln2, n, 0);
 
 		// check convergence
-		sup_norm = 0.0;
-		for (i = 0; i < n; i++) {
-			x = fabs(soln2[i] - soln[i]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[i];
-			}
-			if (x > sup_norm) sup_norm = x;
-		}
-		if (sup_norm < term_crit_param) {
+		measure.reset();
+		measure.measure(soln, soln2, n);
+		if (measure.value() < term_crit_param) {
 			done = true;
 		}
-		
+
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (measure.isRelative()?"relative ":""), measure.value());
 			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

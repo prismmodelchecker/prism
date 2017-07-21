@@ -39,6 +39,7 @@
 #include "jnipointer.h"
 #include "ExportIterations.h"
 #include <memory>
+#include "Measures.h"
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -101,9 +102,11 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	int num_actions;
 	// misc
 	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
-	double d1, d2, x, sup_norm, kb, kbt;
+	double d1, d2, kb, kbt;
 	bool done, first;
-	
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -323,21 +326,15 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			iterationExport->exportVector(soln2, n, 0);
 
 		// check convergence
-		sup_norm = 0.0;
-		for (i = 0; i < n; i++) {
-			x = fabs(soln2[i] - soln[i]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[i];
-			}
-			if (x > sup_norm) sup_norm = x;
-		}
-		if (sup_norm < term_crit_param) {
+		measure.reset();
+		measure.measure(soln, soln2, n);
+		if (measure.value() < term_crit_param) {
 			done = true;
 		}
-		
+
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
 			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
