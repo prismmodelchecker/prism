@@ -37,6 +37,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include "Measures.h"
 #include <new>
 
 // local prototypes
@@ -95,7 +96,9 @@ jdouble time		// time bound
 	// misc
 	bool done;
 	long i, iters, num_iters;
-	double x, sup_norm, kb, kbt, max_diag, weight, term_crit_param_unif;
+	double kb, kbt, max_diag, weight, term_crit_param_unif;
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
 	
 	// exception handling around whole function
 	try {
@@ -231,15 +234,9 @@ jdouble time		// time bound
 		
 		// check for steady state convergence
 		if (do_ss_detect) {
-			sup_norm = 0.0;
-			for (i = 0; i < n; i++) {
-				x = fabs(soln2[i] - soln[i]);
-				if (term_crit == TERM_CRIT_RELATIVE) {
-					x /= soln2[i];
-				}
-				if (x > sup_norm) sup_norm = x;
-			}
-			if (sup_norm < term_crit_param_unif) {
+			measure.reset();
+			measure.measure(soln, soln2, n);
+			if (measure.value() < term_crit_param_unif) {
 				done = true;
 			}
 		}
@@ -265,7 +262,7 @@ jdouble time		// time bound
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
 			PH_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
-			if (do_ss_detect) PH_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			if (do_ss_detect) PH_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
 			PH_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

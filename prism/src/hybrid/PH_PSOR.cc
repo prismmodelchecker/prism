@@ -37,6 +37,7 @@
 #include "hybrid.h"
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
+#include "Measures.h"
 #include "ExportIterations.h"
 #include <new>
 #include <memory>
@@ -102,9 +103,11 @@ jboolean forwards	// forwards or backwards?
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, j, fb, l, h, i2, h2, iters;
-	double x, sup_norm, kb, kbt;
+	double x, kb, kbt;
 	bool done;
-	
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -258,7 +261,7 @@ jboolean forwards	// forwards or backwards?
 //		PH_PrintToMainLog(env, "Iteration %d: ", iters);
 //		start3 = util_cpu_time();
 		
-		sup_norm = 0.0;
+		measure.reset();
 		
 		// stuff for block storage
 		int b_n = hddm->blocks->n;
@@ -327,13 +330,9 @@ jboolean forwards	// forwards or backwards?
 				// do over-relaxation if necessary
 				if (omega != 1) {
 					soln2[i2] = ((1-omega) * soln[row_offset + i2]) + (omega * soln2[i2]);
-				}	
-				// compute norm for convergence
-				x = fabs(soln2[i2] - soln[row_offset + i2]);
-				if (term_crit == TERM_CRIT_RELATIVE) {
-					x /= soln2[i2];
 				}
-				if (x > sup_norm) sup_norm = x;
+				// compute norm for convergence
+				measure.measure(soln[row_offset + i2], soln2[i2]);
 				// set vector element
 				soln[row_offset + i2] = soln2[i2];
 			}
@@ -343,10 +342,10 @@ jboolean forwards	// forwards or backwards?
 			iterationExport->exportVector(soln, n, 0);
 
 		// check convergence
-		if (sup_norm < term_crit_param) {
+		if (measure.value() < term_crit_param) {
 			done = true;
 		}
-		
+
 //		PH_PrintToMainLog(env, "%.2f %.2f sec\n", ((double)(util_cpu_time() - start3)/1000), ((double)(util_cpu_time() - start2)/1000)/iters);
 	}
 	
