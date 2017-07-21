@@ -91,6 +91,10 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected boolean exportAdv = false;
 	protected String exportAdvFilename;
 
+	// Delay between occasional updates for slow processes, e.g. numerical solution (milliseconds)
+	public static final int UPDATE_DELAY = 5000;
+
+
 	// Enums for flags/settings
 
 	// Method used for numerical solution
