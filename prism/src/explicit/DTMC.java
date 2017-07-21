@@ -127,6 +127,23 @@ public interface DTMC extends Model
 	}
 
 	/**
+	 * Get the number of transitions leaving a set of states.
+	 * <br>
+	 * Default implementation: Iterator over the states and sum the result of getNumTransitions(s).
+	 * @param states The set of states, specified by a OfInt iterator
+	 * @return the number of transitions
+	 */
+	public default long getNumTransitions(PrimitiveIterator.OfInt states)
+	{
+		long count = 0;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			count += getNumTransitions(s);
+		}
+		return count;
+	}
+
+	/**
 	 * Perform a single step of precomputation algorithm Prob0 for a single state,
 	 * i.e., for the state {@code s} returns true iff there is a transition from
 	 * {@code s} to a state in {@code u}.
