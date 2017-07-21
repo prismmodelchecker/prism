@@ -216,7 +216,24 @@ public interface DTMC extends Model
 	 */
 	public default void mvMult(double vect[], double result[], BitSet subset, boolean complement)
 	{
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		mvMult(vect, result, new IterableStateSet(subset, getNumStates(), complement).iterator());
+	}
+
+	/**
+	 * Do a matrix-vector multiplication for the DTMC's transition probability matrix P
+	 * and the vector {@code vect} passed in, for the state indices provided by the iterator,
+	 * i.e., for all s of {@code states}: result[s] = sum_j P(s,j)*vect[j]
+	 * <p>
+	 * If the state indices in the iterator are not distinct, the result will still be valid,
+	 * but this situation should be avoided for performance reasons.
+	 * @param vect Vector to multiply by
+	 * @param result Vector to store result in
+	 * @param states Perform multiplication for these rows, in the iteration order
+	 */
+	public default void mvMult(double vect[], double result[], PrimitiveIterator.OfInt states)
+	{
+		while (states.hasNext()) {
+			int s = states.nextInt();
 			result[s] = mvMultSingle(s, vect);
 		}
 	}
@@ -250,22 +267,33 @@ public interface DTMC extends Model
 	 */
 	public default double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
 	{
+		return mvMultGS(vect, new IterableStateSet(subset, getNumStates(), complement).iterator(), absolute);
+	}
+
+	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication for
+	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in,
+	 * storing new values directly in {@code vect} as computed.
+	 * The order and subset of states is given by the iterator {@code states},
+	 * i.e. for s in {@code states}: vect[s] = (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
+	 * The maximum (absolute/relative) difference between old/new
+	 * elements of {@code vect} is also returned.
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param states Do multiplication for these rows, in this order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @return The maximum difference between old/new elements of {@code vect}
+	 */
+	public default double mvMultGS(double vect[], PrimitiveIterator.OfInt states, boolean absolute)
+	{
 		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		while (states.hasNext()) {
+			int s = states.nextInt();
+
 			d = mvMultJacSingle(s, vect);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
 		return maxDiff;
 	}
 
@@ -312,7 +340,20 @@ public interface DTMC extends Model
 	 */
 	public default void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
 	{
-		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+		mvMultRew(vect, mcRewards, result, new IterableStateSet(subset, getNumStates(), complement).iterator());
+	}
+
+	/**
+	 * Do a matrix-vector multiplication and sum of action reward.
+	 * @param vect Vector to multiply by
+	 * @param mcRewards The rewards
+	 * @param result Vector to store result in
+	 * @param states Do multiplication for these rows, in the specified order
+	 */
+	public default void mvMultRew(double vect[], MCRewards mcRewards, double result[], PrimitiveIterator.OfInt states)
+	{
+		while (states.hasNext()) {
+			int s = states.nextInt();
 			result[s] = mvMultRewSingle(s, vect, mcRewards);
 		}
 	}
