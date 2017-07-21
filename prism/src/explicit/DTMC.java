@@ -142,7 +142,12 @@ public interface DTMC extends Model
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 */
-	public void mvMult(double vect[], double result[], BitSet subset, boolean complement);
+	public default void mvMult(double vect[], double result[], BitSet subset, boolean complement)
+	{
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			result[s] = mvMultSingle(s, vect);
+		}
+	}
 
 	/**
 	 * Do a single row of matrix-vector multiplication for
@@ -166,7 +171,26 @@ public interface DTMC extends Model
 	 * @param absolute If true, compute absolute, rather than relative, difference
 	 * @return The maximum difference between old/new elements of {@code vect}
 	 */
-	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute);
+	public default double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
+	{
+		double d, diff, maxDiff = 0.0;
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			d = mvMultJacSingle(s, vect);
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
+		}
+		// Use this code instead for backwards Gauss-Seidel
+		/*for (s = numStates - 1; s >= 0; s--) {
+			if (subset.get(s)) {
+				d = mvMultJacSingle(s, vect);
+				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+				maxDiff = diff > maxDiff ? diff : maxDiff;
+				vect[s] = d;
+			}
+		}*/
+		return maxDiff;
+	}
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication for
@@ -185,7 +209,12 @@ public interface DTMC extends Model
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 */
-	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement);
+	public default void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
+	{
+		for (int s : new IterableStateSet(subset, getNumStates(), complement)) {
+			result[s] = mvMultRewSingle(s, vect, mcRewards);
+		}
+	}
 
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward.

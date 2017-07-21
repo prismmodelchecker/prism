@@ -29,14 +29,11 @@ package explicit;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.AbstractMap;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import common.IterableStateSet;
-import explicit.rewards.MCRewards;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
@@ -143,44 +140,6 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	{
 		// Default implementation: extend iterator, setting all actions to null
 		return new AddDefaultActionToTransitionsIterator(getTransitionsIterator(s), null);
-	}
-
-	@Override
-	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultSingle(s, vect);
-		}
-	}
-
-	@Override
-	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
-	{
-		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultJacSingle(s, vect);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
-		return maxDiff;
-	}
-
-	@Override
-	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultRewSingle(s, vect, mcRewards);
-		}
 	}
 
 	public class AddDefaultActionToTransitionsIterator implements Iterator<Map.Entry<Integer, Pair<Double, Object>>>
