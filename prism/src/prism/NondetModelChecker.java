@@ -1830,6 +1830,17 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		boolean doPmaxQuotient = getSettings().getBoolean(PrismSettings.PRISM_PMAX_QUOTIENT);
 
+		if (doIntervalIteration) {
+			if (!(precomp && prob0 && prob1)) {
+				throw new PrismNotSupportedException("Precomputations (Prob0 & Prob1) must be enabled for interval iteration");
+			}
+
+			if (!min) {
+				// for Pmax and interval iteration, pmaxQuotient is required
+				doPmaxQuotient = true;
+			}
+		}
+
 		if (doPmaxQuotient && min) {
 			// don't do pmaxQuotient for min
 			doPmaxQuotient = false;
@@ -1981,18 +1992,35 @@ public class NondetModelChecker extends NonProbModelChecker
 
 				switch (engine) {
 				case Prism.MTBDD:
-					if (transform != null) {
-						probsMTBDD = PrismMTBDD.NondetUntil(transformed.getTrans(),
-						                                    transformed.getODD(),
-						                                    transformed.getNondetMask(),
-						                                    transformed.getAllDDRowVars(),
-						                                    transformed.getAllDDColVars(),
-						                                    transformed.getAllDDNondetVars(),
-						                                    yesInQuotient,
-						                                    maybeInQuotient,
-						                                    min);
+					if (doIntervalIteration) {
+						if (transform != null) {
+							probsMTBDD = PrismMTBDD.NondetUntilInterval(transformed.getTrans(),
+							                                            transformed.getODD(),
+							                                            transformed.getNondetMask(),
+							                                            transformed.getAllDDRowVars(),
+							                                            transformed.getAllDDColVars(),
+							                                            transformed.getAllDDNondetVars(),
+							                                            yesInQuotient,
+							                                            maybeInQuotient,
+							                                            min,
+							                                            prism.getIntervalIterationFlags());
+						} else {
+							probsMTBDD = PrismMTBDD.NondetUntilInterval(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, prism.getIntervalIterationFlags());
+						}
 					} else {
-						probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+						if (transform != null) {
+							probsMTBDD = PrismMTBDD.NondetUntil(transformed.getTrans(),
+							                                    transformed.getODD(),
+							                                    transformed.getNondetMask(),
+							                                    transformed.getAllDDRowVars(),
+							                                    transformed.getAllDDColVars(),
+							                                    transformed.getAllDDNondetVars(),
+							                                    yesInQuotient,
+							                                    maybeInQuotient,
+							                                    min);
+						} else {
+							probsMTBDD = PrismMTBDD.NondetUntil(tr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+						}
 					}
 					probs = new StateValuesMTBDD(probsMTBDD, model);
 					break;
@@ -2003,42 +2031,82 @@ public class NondetModelChecker extends NonProbModelChecker
 						strat = new IntegerVector(ddStrat, allDDRowVars, odd);
 						JDD.Deref(ddStrat);
 					}
-					if (transform != null) {
-						strat = null;  // strategy generation with the quotient not yet supported
-						probsDV = PrismSparse.NondetUntil(transformed.getTrans(),
-						                                  transformed.getTransActions(),
-						                                  transformed.getSynchs(),
-						                                  transformed.getODD(),
-						                                  transformed.getAllDDRowVars(),
-						                                  transformed.getAllDDColVars(),
-						                                  transformed.getAllDDNondetVars(),
-						                                  yesInQuotient,
-						                                  maybeInQuotient,
-						                                  min,
-						                                  strat);
-						probs = new StateValuesDV(probsDV, transformed);
+					if (doIntervalIteration) {
+						if (transform != null) {
+							strat = null;  // strategy generation with the quotient not yet supported
+							probsDV = PrismSparse.NondetUntilInterval(transformed.getTrans(),
+							                                          transformed.getTransActions(),
+							                                          transformed.getSynchs(),
+							                                          transformed.getODD(),
+							                                          transformed.getAllDDRowVars(),
+							                                          transformed.getAllDDColVars(),
+							                                          transformed.getAllDDNondetVars(),
+							                                          yesInQuotient,
+							                                          maybeInQuotient,
+							                                          min,
+							                                          strat,
+							                                          prism.getIntervalIterationFlags());
+							probs = new StateValuesDV(probsDV, transformed);
+						} else {
+							probsDV = PrismSparse.NondetUntilInterval(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat, prism.getIntervalIterationFlags());
+							probs = new StateValuesDV(probsDV, model);
+						}
 					} else {
-						probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
-						probs = new StateValuesDV(probsDV, model);
+						if (transform != null) {
+							strat = null;  // strategy generation with the quotient not yet supported
+							probsDV = PrismSparse.NondetUntil(transformed.getTrans(),
+							                                  transformed.getTransActions(),
+							                                  transformed.getSynchs(),
+							                                  transformed.getODD(),
+							                                  transformed.getAllDDRowVars(),
+							                                  transformed.getAllDDColVars(),
+							                                  transformed.getAllDDNondetVars(),
+							                                  yesInQuotient,
+							                                  maybeInQuotient,
+							                                  min,
+							                                  strat);
+							probs = new StateValuesDV(probsDV, transformed);
+						} else {
+							probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+							probs = new StateValuesDV(probsDV, model);
+						}
 					}
 					if (genStrat && strat != null) {
 						result.setStrategy(new MDStrategyIV(model, strat));
 					}
 					break;
 				case Prism.HYBRID:
-					if (transform != null) {
-						probsDV = PrismHybrid.NondetUntil(transformed.getTrans(),
-						                                  transformed.getODD(),
-						                                  transformed.getAllDDRowVars(),
-						                                  transformed.getAllDDColVars(),
-						                                  transformed.getAllDDNondetVars(),
-						                                  yesInQuotient,
-						                                  maybeInQuotient,
-						                                  min);
-						probs = new StateValuesDV(probsDV, transformed);
+					if (doIntervalIteration) {
+						if (transform != null) {
+							probsDV = PrismHybrid.NondetUntilInterval(transformed.getTrans(),
+							                                          transformed.getODD(),
+							                                          transformed.getAllDDRowVars(),
+							                                          transformed.getAllDDColVars(),
+							                                          transformed.getAllDDNondetVars(),
+							                                          yesInQuotient,
+							                                          maybeInQuotient,
+							                                          min,
+							                                          prism.getIntervalIterationFlags());
+							probs = new StateValuesDV(probsDV, transformed);
+						} else {
+							probsDV = PrismHybrid.NondetUntilInterval(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, prism.getIntervalIterationFlags());
+							probs = new StateValuesDV(probsDV, model);
+						}
 					} else {
-						probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
-						probs = new StateValuesDV(probsDV, model);
+						if (transform != null) {
+							probsDV = PrismHybrid.NondetUntil(transformed.getTrans(),
+							                                  transformed.getODD(),
+							                                  transformed.getAllDDRowVars(),
+							                                  transformed.getAllDDColVars(),
+							                                  transformed.getAllDDNondetVars(),
+							                                  yesInQuotient,
+							                                  maybeInQuotient,
+							                                  min);
+							probs = new StateValuesDV(probsDV, transformed);
+						} else {
+							probsDV = PrismHybrid.NondetUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min);
+							probs = new StateValuesDV(probsDV, model);
+						}
 					}
 					break;
 				default:
@@ -2296,7 +2364,11 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		List<JDDNode> zeroCostEndComponents = null;
 
-		// If required, export info about target states 
+		if (doIntervalIteration && min) {
+			throw new PrismNotSupportedException("Currently, Rmin is not supported with interval iteration and the symbolic engines");
+		}
+
+		// If required, export info about target states
 		if (prism.getExportTarget()) {
 			JDDNode labels[] = { model.getStart(), b };
 			String labelNames[] = { "init", "target" };
@@ -2382,6 +2454,9 @@ public class NondetModelChecker extends NonProbModelChecker
 		mainLog.print(", inf = " + JDD.GetNumMintermsString(inf, allDDRowVars.n()));
 		mainLog.print(", maybe = " + JDD.GetNumMintermsString(maybe, allDDRowVars.n()) + "\n");
 
+		JDDNode lower = null;
+		JDDNode upper = null;
+
 		// if maybe is empty, we have the rewards already
 		if (maybe.equals(JDD.ZERO)) {
 			JDD.Ref(inf);
@@ -2389,6 +2464,29 @@ public class NondetModelChecker extends NonProbModelChecker
 		}
 		// otherwise we compute the actual rewards
 		else {
+
+			if (doIntervalIteration) {
+				OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+				double upperBound;
+				if (iiOptions.hasManualUpperBound()) {
+					upperBound = iiOptions.getManualUpperBound();
+					getLog().printWarning("Upper bound for interval iteration manually set to " + upperBound);
+				} else {
+					upperBound = ProbModelChecker.computeReachRewardsUpperBound(this, model, tr, sr, trr, b, maybe);
+				}
+				upper = JDD.ITE(maybe.copy(), JDD.Constant(upperBound), JDD.Constant(0));
+
+				double lowerBound;
+				if (iiOptions.hasManualLowerBound()) {
+					lowerBound = iiOptions.getManualLowerBound();
+					getLog().printWarning("Lower bound for interval iteration manually set to " + lowerBound);
+				} else {
+					lowerBound = 0.0;
+				}
+				lower = JDD.ITE(maybe.copy(), JDD.Constant(lowerBound), JDD.Constant(0));
+			}
+
 			// compute the rewards
 			mainLog.println("\nComputing remaining rewards...");
 			// switch engine, if necessary
@@ -2400,12 +2498,21 @@ public class NondetModelChecker extends NonProbModelChecker
 			try {
 				switch (engine) {
 				case Prism.MTBDD:
-					rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+					if (doIntervalIteration) {
+						rewardsMTBDD = PrismMTBDD.NondetReachRewardInterval(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, lower, upper, min, prism.getIntervalIterationFlags());
+					} else {
+						rewardsMTBDD = PrismMTBDD.NondetReachReward(tr, sr, trr, odd, nondetMask, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+					}
 					rewards = new StateValuesMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
-							maybe, min);
+					if (doIntervalIteration) {
+						rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
+								maybe, lower, upper, min, prism.getIntervalIterationFlags());
+					} else {
+						rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
+								maybe, min);
+					}
 					rewards = new StateValuesDV(rewardsDV, model);
 					break;
 				case Prism.HYBRID:
@@ -2421,6 +2528,8 @@ public class NondetModelChecker extends NonProbModelChecker
 			} catch (PrismException e) {
 				JDD.Deref(inf);
 				JDD.Deref(maybe);
+				if (lower != null) JDD.Deref(lower);
+				if (upper != null) JDD.Deref(upper);
 				throw e;
 			}
 		}
@@ -2429,9 +2538,16 @@ public class NondetModelChecker extends NonProbModelChecker
 			for (JDDNode zcec : zeroCostEndComponents)
 				JDD.Deref(zcec);
 
+		if (doIntervalIteration) {
+			double max_v = rewards.maxFiniteOverBDD(maybe);
+			mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+		}
+
 		// derefs
 		JDD.Deref(inf);
 		JDD.Deref(maybe);
+		if (lower != null) JDD.Deref(lower);
+		if (upper != null) JDD.Deref(upper);
 
 		return rewards;
 	}
