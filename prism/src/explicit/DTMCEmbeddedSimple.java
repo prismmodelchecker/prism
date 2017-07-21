@@ -29,8 +29,6 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
-import common.IterableStateSet;
-
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
@@ -216,9 +214,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	{
 		if (exitRates[s] == 0) {
 			// return prob-1 self-loop
-			Map<Integer,Double> m = new TreeMap<Integer,Double>();
-			m.put(s, 1.0);
-			return m.entrySet().iterator();
+			return Collections.singletonMap(s, 1.0).entrySet().iterator();
 		} else {
 			final Iterator<Entry<Integer,Double>> ctmcIterator = ctmc.getTransitionsIterator(s);
 			
@@ -256,13 +252,21 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 						}
 					};
 				}
-
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
 			};
+		}
+	}
+
+	@Override
+	public void forEachTransition(int s, TransitionConsumer c)
+	{
+		final double er = exitRates[s];
+		if (er == 0) {
+			// exit rate = 0 -> prob 1 self loop
+			c.accept(s, s, 1.0);
+		} else {
+			ctmc.forEachTransition(s, (s_,t,rate) -> {
+				c.accept(s_, t, rate / er);
+			});
 		}
 	}
 
