@@ -1862,7 +1862,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Construct ModulesFile
 		ExplicitFiles2ModulesFile ef2mf = new ExplicitFiles2ModulesFile(this);
-		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, typeOverride);
+		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, stateRewardsFile, typeOverride);
 		// Store explicit files info for later
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
@@ -2360,6 +2360,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		int numRewardStructs = currentModelInfo.getNumRewardStructs();
 		if (numRewardStructs == 0) {
 			mainLog.println("\nOmitting state reward export as there are no reward structures");
+			return;
+		}
+		
+		if (currentModelSource == ModelSource.EXPLICIT_FILES && getExplicit()) {
+			mainLog.println("\nOmitting state reward export (not supported when importing files using the explicit engine)");
+			return;
 		}
 		
 		// Rows format does not apply to vectors
