@@ -393,6 +393,28 @@ public interface DTMC extends Model
 	}
 
 	/**
+	 * Do a matrix-vector multiplication and sum of action reward (Gauss-Seidel).
+	 * @param vect Vector to multiply by and store result in
+	 * @param mcRewards The rewards
+	 * @param states Do multiplication for these rows, in the specified order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @return The maximum difference between old/new elements of {@code vect}
+	 */
+	public default double mvMultRewGS(double vect[], MCRewards mcRewards, PrimitiveIterator.OfInt states, boolean absolute)
+	{
+		double d, diff, maxDiff = 0.0;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			d = mvMultRewJacSingle(s, vect, mcRewards);
+
+			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
+			maxDiff = diff > maxDiff ? diff : maxDiff;
+			vect[s] = d;
+		}
+		return maxDiff;
+	}
+
+	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
