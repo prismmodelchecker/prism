@@ -29,7 +29,6 @@ package explicit;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -167,9 +166,9 @@ public class SCCComputerTarjan extends SCCComputer
 		index++;
 		stack.add(0, i);
 		onStack.set(i);
-		Iterator<Integer> it = model.getSuccessorsIterator(i);
+		SuccessorsIterator it = model.getSuccessors(i);
 		while (it.hasNext()) {
-			int e = it.next();
+			int e = it.nextInt();
 			Node n = nodeList.get(e);
 			if (n.index == -1) {
 				tarjan(e);
