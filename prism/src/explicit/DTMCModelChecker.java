@@ -41,6 +41,7 @@ import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
+import prism.PrismSettings;
 import prism.PrismUtils;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
@@ -960,6 +961,11 @@ public class DTMCModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting value iteration...");
 
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit DTMC ReachProbs value iteration");
+		}
+
 		// Store num states
 		n = dtmc.getNumStates();
 
@@ -992,6 +998,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		if (known != null)
 			unknown.andNot(known);
 
+		if (iterationsExport != null)
+			iterationsExport.exportVector(soln, 0);
+
 		// Start iterations
 		iters = 0;
 		done = false;
@@ -999,6 +1008,10 @@ public class DTMCModelChecker extends ProbModelChecker
 			iters++;
 			// Matrix-vector multiply
 			dtmc.mvMult(soln, soln2, unknown, false);
+
+			if (iterationsExport != null)
+				iterationsExport.exportVector(soln, 0);
+
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter
@@ -1011,6 +1024,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Value iteration");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		if (iterationsExport != null)
+			iterationsExport.close();
 
 		// Non-convergence is an error (usually)
 		if (!done && errorOnNonConverge) {
@@ -1049,6 +1065,11 @@ public class DTMCModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting Gauss-Seidel...");
 
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit DTMC ReachProbs Gauss Seidel value iteration");
+		}
+
 		// Store num states
 		n = dtmc.getNumStates();
 
@@ -1080,6 +1101,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		if (known != null)
 			unknown.andNot(known);
 
+		if (iterationsExport != null)
+			iterationsExport.exportVector(soln, 0);
+
 		// Start iterations
 		iters = 0;
 		done = false;
@@ -1087,6 +1111,10 @@ public class DTMCModelChecker extends ProbModelChecker
 			iters++;
 			// Matrix-vector multiply
 			maxDiff = dtmc.mvMultGS(soln, unknown, false, termCrit == TermCrit.ABSOLUTE);
+
+			if (iterationsExport != null)
+				iterationsExport.exportVector(soln, 0);
+
 			// Check termination
 			done = maxDiff < termCritParam;
 		}
@@ -1095,6 +1123,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Gauss-Seidel");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		if (iterationsExport != null)
+			iterationsExport.close();
 
 		// Non-convergence is an error (usually)
 		if (!done && errorOnNonConverge) {
@@ -1341,6 +1372,11 @@ public class DTMCModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis();
 		mainLog.println("Starting value iteration...");
 
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit DTMC ReachRewards value iteration");
+		}
+
 		// Store num states
 		n = dtmc.getNumStates();
 
@@ -1371,6 +1407,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		if (known != null)
 			unknown.andNot(known);
 
+		if (iterationsExport != null)
+			iterationsExport.exportVector(soln, 0);
+
 		// Start iterations
 		iters = 0;
 		done = false;
@@ -1379,6 +1418,10 @@ public class DTMCModelChecker extends ProbModelChecker
 			iters++;
 			// Matrix-vector multiply
 			dtmc.mvMultRew(soln, mcRewards, soln2, unknown, false);
+
+			if (iterationsExport != null)
+				iterationsExport.exportVector(soln, 0);
+
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter
@@ -1391,6 +1434,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Value iteration");
 		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+
+		if (iterationsExport != null)
+			iterationsExport.close();
 
 		// Non-convergence is an error (usually)
 		if (!done && errorOnNonConverge) {
