@@ -78,6 +78,100 @@ public class MDPSparse extends MDPExplicit
 	// Constructors
 
 	/**
+	 * Constructor: Build new MDPSparse from arbitrary MDP type.
+	 *
+	 * @param mdp some MDP
+	 */
+	public MDPSparse(final MDP mdp)
+	{
+		this(mdp, false);
+	}
+
+	/**
+	 * Constructor: Build new MDPSparse from arbitrary MDP type.
+	 *
+	 * @param mdp some MDP
+	 * @param sort Whether or not to sort column indices
+	 */
+	public MDPSparse(final MDP mdp, boolean sort)
+	{
+		initialise(mdp.getNumStates());
+
+		setStatesList(mdp.getStatesList());
+		setConstantValues(mdp.getConstantValues());
+		for (String label : mdp.getLabels()) {
+			addLabel(label, mdp.getLabelStates(label));
+		}
+
+		// Copy stats
+		numDistrs = mdp.getNumChoices();
+		numTransitions = mdp.getNumTransitions();
+		maxNumDistrs = mdp.getMaxNumChoices();
+		// Initialise transition function
+		nonZeros = new double[numTransitions];
+		cols = new int[numTransitions];
+		choiceStarts = new int[numDistrs + 1];
+		rowStarts = new int[numStates + 1];
+		actions = hasActionLabels(mdp) ? new Object[numDistrs] : null;
+
+		// Copy transition function
+		final TreeMap<Integer, Double> sorted = sort ? new TreeMap<Integer, Double>() : null;
+		int rowIndex = 0, choiceIndex = 0;
+		for (int state = 0; state < numStates; state++) {
+			if (mdp.isInitialState(state)) {
+				addInitialState(state);
+			}
+			if (mdp.isDeadlockState(state)) {
+				deadlocks.add(state);
+			}
+
+			rowStarts[state] = rowIndex;
+			if (actions != null) {
+				for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
+					actions[rowIndex + choice] = mdp.getAction(state, choice);
+				}
+			}
+			for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
+				choiceStarts[rowIndex] = choiceIndex;
+				for (Iterator<Entry<Integer, Double>> transitions = mdp.getTransitionsIterator(state, choice); transitions.hasNext();) {
+					final Map.Entry<Integer, Double> trans = transitions.next();
+					if (sort) {
+						sorted.put(trans.getKey(), trans.getValue());
+					} else {
+						cols[choiceIndex] = trans.getKey();
+						nonZeros[choiceIndex] = trans.getValue();
+						choiceIndex++;
+					}
+				}
+				if (sort) {
+					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+						cols[choiceIndex] = e.getKey();
+						nonZeros[choiceIndex] = e.getValue();
+						choiceIndex++;
+					}
+					sorted.clear();
+				}
+				rowIndex++;
+			}
+		}
+		choiceStarts[numDistrs] = numTransitions;
+		rowStarts[numStates] = numDistrs;
+	}
+
+	/** Helper: Does the given MDP have action labels on any of the choices? */
+	private static boolean hasActionLabels(final MDP mdp)
+	{
+		for (int state = 0, numStates = mdp.getNumStates(); state < numStates; state++) {
+			for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
+				if (mdp.getAction(state, choice) != null) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Copy constructor (from MDPSimple).
 	 */
 	public MDPSparse(MDPSimple mdp)
