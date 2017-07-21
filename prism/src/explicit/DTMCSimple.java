@@ -275,26 +275,6 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	@Override
-	public void prob0step(BitSet subset, BitSet u, BitSet result)
-	{
-		Distribution distr;
-		for (int i : new IterableStateSet(subset, numStates)) {
-			distr = trans.get(i);
-			result.set(i, distr.containsOneOf(u));
-		}
-	}
-
-	@Override
-	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
-	{
-		Distribution distr;
-		for (int i : new IterableStateSet(subset, numStates)) {
-			distr = trans.get(i);
-			result.set(i, distr.containsOneOf(v) && distr.isSubsetOf(u));
-		}
-	}
-
-	@Override
 	public double mvMultSingle(int s, double vect[])
 	{
 		int k;

@@ -196,21 +196,6 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 		}
 	}
 
-	public void prob0step(BitSet subset, BitSet u, BitSet result)
-	{
-		for (int i : new IterableStateSet(subset, numStates)) {
-			result.set(i, mdp.someSuccessorsInSet(i, strat.getChoiceIndex(i), u));
-		}
-	}
-
-	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
-	{
-		for (int i : new IterableStateSet(subset, numStates)) {
-			int j = strat.getChoiceIndex(i);
-			result.set(i, mdp.someSuccessorsInSet(i, j, v) && mdp.allSuccessorsInSet(i, j, u));
-		}
-	}
-
 	@Override
 	public double mvMultSingle(int s, double vect[])
 	{

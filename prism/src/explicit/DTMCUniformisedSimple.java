@@ -193,18 +193,6 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 		throw new RuntimeException("Not implemented yet");
 	}
 
-	public void prob0step(BitSet subset, BitSet u, BitSet result)
-	{
-		// TODO
-		throw new Error("Not yet supported");
-	}
-
-	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
-	{
-		// TODO
-		throw new Error("Not yet supported");
-	}
-
 	@Override
 	public double mvMultSingle(int s, double vect[])
 	{

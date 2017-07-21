@@ -266,20 +266,6 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		}
 	}
 
-	public void prob0step(BitSet subset, BitSet u, BitSet result)
-	{
-		for (int i : new IterableStateSet(subset, numStates)) {
-			result.set(i, someSuccessorsInSet(i, u));
-		}
-	}
-
-	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
-	{
-		for (int i : new IterableStateSet(subset, numStates)) {
-			result.set(i, someSuccessorsInSet(i, v) && allSuccessorsInSet(i, u));
-		}
-	}
-
 	public double mvMultSingle(int s, double vect[])
 	{
 		int k;

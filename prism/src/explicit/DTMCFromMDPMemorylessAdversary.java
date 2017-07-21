@@ -196,21 +196,6 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		}
 	}
 
-	public void prob0step(BitSet subset, BitSet u, BitSet result)
-	{
-		// TODO
-		throw new Error("Not yet supported");
-	}
-
-	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
-	{
-		for (int s = 0; s < numStates; s++) {
-			if (subset.get(s)) {
-				result.set(s, mdp.prob1stepSingle(s, adv[s], u, v));
-			}
-		}
-	}
-
 	@Override
 	public double mvMultSingle(int s, double vect[])
 	{
