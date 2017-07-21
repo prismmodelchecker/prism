@@ -439,22 +439,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Compute probabilities (if needed)
 		if (numYes + numNo < n) {
-			switch (mdpSolnMethod) {
-			case VALUE_ITERATION:
-				res = computeReachProbsValIter(mdp, no, yes, min, init, known, strat);
-				break;
-			case GAUSS_SEIDEL:
-				res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known, strat);
-				break;
-			case POLICY_ITERATION:
-				res = computeReachProbsPolIter(mdp, no, yes, min, strat);
-				break;
-			case MODIFIED_POLICY_ITERATION:
-				res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
-				break;
-			default:
-				throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
-			}
+			res = computeReachProbsNumeric(mdp, mdpSolnMethod, no, yes, min, init, known, strat);
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(yes, n);
@@ -482,6 +467,30 @@ public class MDPModelChecker extends ProbModelChecker
 		res.timeTaken = timer / 1000.0;
 		res.timeProb0 = timerProb0 / 1000.0;
 		res.timePre = (timerProb0 + timerProb1) / 1000.0;
+
+		return res;
+	}
+
+	protected ModelCheckerResult computeReachProbsNumeric(MDP mdp, MDPSolnMethod method, BitSet no, BitSet yes, boolean min, double init[], BitSet known, int strat[]) throws PrismException
+	{
+		ModelCheckerResult res = null;
+
+		switch (method) {
+		case VALUE_ITERATION:
+			res = computeReachProbsValIter(mdp, no, yes, min, init, known, strat);
+			break;
+		case GAUSS_SEIDEL:
+			res = computeReachProbsGaussSeidel(mdp, no, yes, min, init, known, strat);
+			break;
+		case POLICY_ITERATION:
+			res = computeReachProbsPolIter(mdp, no, yes, min, strat);
+			break;
+		case MODIFIED_POLICY_ITERATION:
+			res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
+			break;
+		default:
+			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
+		}
 
 		return res;
 	}
