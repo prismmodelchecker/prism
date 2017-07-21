@@ -66,6 +66,40 @@ public abstract class SCCComputer extends PrismComponent
 	}
 
 	/**
+	 * Compute an SCCInfo data structure (topological ordering).
+	 * @param parent PrismComponent (for settings)
+	 * @param model the model
+	 * @param withTrivialSCCs include trivial SCCs?
+	 */
+	public static SCCInfo computeTopologicalOrdering(PrismComponent parent, Model model, boolean withTrivialSCCs) throws PrismException
+	{
+		return computeTopologicalOrdering(parent, model, withTrivialSCCs, null);
+	}
+
+	/**
+	 * Compute an SCCInfo data structure (topological ordering).
+	 * <br>
+	 * If {@code restrict != null}, restricts the underlying graph to only those states s
+	 * for which {@code restrict.test(s)} evaluates to true ("relevant states").
+	 * Edges to non-relevant states are ignored and the non-relevant
+	 * states are not considered as potential initial states.
+	 * @param parent PrismComponent (for settings)
+	 * @param model the model
+	 * @param withTrivialSCCs include trivial SCCs?
+	 * @param restrict predicate that indicates that a state is relevant ({@code null}: all states are relevant)
+	 */
+	public static SCCInfo computeTopologicalOrdering(PrismComponent parent, Model model, boolean withTrivialSCCs, IntPredicate restrict) throws PrismException
+	{
+		SCCInfo sccs = new SCCInfo(model.getNumStates());
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(parent, model, sccs);
+		// Compute SCCInfo, including trivial SCCs in the subgraph obtained when only considering
+		// states in unknown
+		sccComputer.computeSCCs(!withTrivialSCCs, restrict);
+
+		return sccs;
+	}
+
+	/**
 	 * Base constructor.
 	 */
 	public SCCComputer(PrismComponent parent, SCCConsumer consumer) throws PrismException
