@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 import prism.PrismComponent;
 import prism.PrismException;
@@ -55,6 +56,7 @@ public class SCCComputerTarjan extends SCCComputer
 	private BitSet onStack;
 	/** Should we filter trivial SCCs? */
 	private boolean filterTrivialSCCs;
+	private IntPredicate restrict;
 
 	/**
 	 * Build (B)SCC computer for a given model.
@@ -74,10 +76,11 @@ public class SCCComputerTarjan extends SCCComputer
 	// Methods for SCCComputer interface
 
 	@Override
-	public void computeSCCs(boolean filterTrivialSCCs) throws PrismException
+	public void computeSCCs(boolean filterTrivialSCCs, IntPredicate restrict) throws PrismException
 	{
 		this.filterTrivialSCCs = filterTrivialSCCs;
 		consumer.notifyStart(model);
+		this.restrict = restrict;
 		tarjan();
 		consumer.notifyDone();
 	}
@@ -91,6 +94,8 @@ public class SCCComputerTarjan extends SCCComputer
 	public void tarjan() throws PrismException
 	{
 		for (int i = 0; i < numNodes; i++) {
+			if (restrict != null && !restrict.test(i))
+				continue; // skip state if not one of the relevant states
 			if (nodeList.get(i).lowlink == -1)
 				tarjan(i);
 		}
@@ -114,6 +119,10 @@ public class SCCComputerTarjan extends SCCComputer
 			if (e == i) {
 				hadSelfloop = true;
 				continue;
+			}
+
+			if (restrict != null && !restrict.test(e)) {
+				continue; // ignore edge to state that is not relevant
 			}
 
 			Node n = nodeList.get(e);

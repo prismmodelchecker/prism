@@ -28,6 +28,8 @@
 
 package explicit;
 
+import java.util.function.IntPredicate;
+
 import prism.PrismComponent;
 import prism.PrismException;
 
@@ -85,7 +87,22 @@ public abstract class SCCComputer extends PrismComponent
 	 * Compute strongly connected components (SCCs) and notify the consumer.
 	 * Ignores trivial SCCS if {@code filterTrivialSCCs} is set to true.
 	 */
-	public abstract void computeSCCs(boolean filterTrivialSCCs) throws PrismException;
+	public void computeSCCs(boolean filterTrivialSCCs) throws PrismException
+	{
+		computeSCCs(filterTrivialSCCs, null);
+	}
+
+	/**
+	 * Compute strongly connected components (SCCs) and notify the consumer.
+	 * Ignores trivial SCCS if {@code filterTrivialSCCs} is set to true.
+	 * If {@code restrict != null}, restricts the underlying graph to only those states s
+	 * for which {@code restrict.test(s)} evaluates to true ("relevant states").
+	 * Edges to non-relevant states are ignored and the non-relevant
+	 * states are not considered as potential initial states.
+	 * @param filterTrivialSCCs ignore trivial SCCs
+	 * @param restrict predicate that indicates that a state is relevant ({@code null}: all states are relevant)
+	 */
+	public abstract void computeSCCs(boolean filterTrivialSCCs, IntPredicate restrictStates) throws PrismException;
 
 	/**
 	 * Returns true if {@code state}, assumed to be an SCC, is a trivial SCC,
