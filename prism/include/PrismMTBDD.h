@@ -129,6 +129,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbUntil
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_ProbUntilInterval
+ * Signature: (JJJIJIJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbUntilInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jint);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_ProbCumulReward
  * Signature: (JJJJJIJII)J
  */
@@ -150,6 +158,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbInstReward
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbReachReward
   (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_ProbReachRewardInterval
+ * Signature: (JJJJJIJIJJJJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1ProbReachRewardInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jlong, jint);
 
 /*
  * Class:     mtbdd_PrismMTBDD
@@ -177,6 +193,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetUntil
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_NondetUntilInterval
+ * Signature: (JJJJIJIJIJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetUntilInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean, jint);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_NondetInstReward
  * Signature: (JJJJJIJIJIIZJ)J
  */
@@ -190,6 +214,14 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetInstReward
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetReachReward
   (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_NondetReachRewardInterval
+ * Signature: (JJJJJJIJIJIJJJJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1NondetReachRewardInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jlong, jboolean, jint);
 
 /*
  * Class:     mtbdd_PrismMTBDD
@@ -257,11 +289,27 @@ JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1Power
 
 /*
  * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_PowerInterval
+ * Signature: (JJIJIJJJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1PowerInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jint);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
  * Method:    PM_JOR
  * Signature: (JJIJIJJJZD)J
  */
 JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1JOR
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jdouble);
+
+/*
+ * Class:     mtbdd_PrismMTBDD
+ * Method:    PM_JORInterval
+ * Signature: (JJIJIJJJJZDI)J
+ */
+JNIEXPORT jlong JNICALL Java_mtbdd_PrismMTBDD_PM_1JORInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jdouble, jint);
 
 #ifdef __cplusplus
 }
