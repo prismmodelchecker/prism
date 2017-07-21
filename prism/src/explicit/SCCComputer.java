@@ -4,6 +4,7 @@
 //	Authors:
 //	* Christian von Essen <christian.vonessen@imag.fr> (Verimag, Grenoble)
 //	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//  * Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,9 +28,6 @@
 
 package explicit;
 
-import java.util.BitSet;
-import java.util.List;
-
 import prism.PrismComponent;
 import prism.PrismException;
 
@@ -39,6 +37,9 @@ import prism.PrismException;
  */
 public abstract class SCCComputer extends PrismComponent
 {
+	/** The consumer */
+	protected SCCConsumer consumer;
+
 	// Method used for finding (B)SCCs
 	public enum SCCMethod {
 		TARJAN;
@@ -56,52 +57,45 @@ public abstract class SCCComputer extends PrismComponent
 	/**
 	 * Static method to create a new SCCComputer object, depending on current settings.
 	 */
-	public static SCCComputer createSCCComputer(PrismComponent parent, Model model) throws PrismException
+	public static SCCComputer createSCCComputer(PrismComponent parent, Model model, SCCConsumer consumer) throws PrismException
 	{
 		// Only one algorithm implemented currently
-		return new SCCComputerTarjan(parent, model);
+		return new SCCComputerTarjan(parent, model, consumer);
 	}
 
 	/**
 	 * Base constructor.
 	 */
-	public SCCComputer(PrismComponent parent) throws PrismException
+	public SCCComputer(PrismComponent parent, SCCConsumer consumer) throws PrismException
 	{
 		super(parent);
+		this.consumer = consumer;
 	}
 
 	/**
-	 * Compute (non-trivial) strongly connected components (SCCs) and store them.
-	 * They should be retrieved using {@link #getSCCs()}.
-	 * States in trivial SCCs (those comprising a single state without a self-loop) are also stored.
-	 * They should be retrieved using {@link #getNotInSCCs()}.
+	 * Compute strongly connected components (SCCs) and notify the consumer.
+	 * This will only report non-trivial SCCs
 	 */
-	public abstract void computeSCCs();
+	public void computeSCCs() throws PrismException
+	{
+		computeSCCs(true);
+	}
 
 	/**
-	 * Get the list of computed (non-trivial) SCCs.
+	 * Compute strongly connected components (SCCs) and notify the consumer.
+	 * Ignores trivial SCCS if {@code filterTrivialSCCs} is set to true.
 	 */
-	public abstract List<BitSet> getSCCs();
+	public abstract void computeSCCs(boolean filterTrivialSCCs) throws PrismException;
 
 	/**
-	 * Get the states not in any (non-trivial) SCC.
-	 * In other words, this is all states in trivial SCCs (those comprising a single state without a self-loop).
+	 * Returns true if {@code state}, assumed to be an SCC, is a trivial SCC,
+	 * i.e., has no self lopp.
+	 * @param model the model
+	 * @param state the state index
 	 */
-	public abstract BitSet getNotInSCCs();
-
-	/**
-	 * Compute bottom strongly connected components (BSCCs) and store them.
-	 * They can be retrieved using {@link #getBSCCs()} and {@link #getNotInBSCCs()}.
-	 */
-	public abstract void computeBSCCs();
-
-	/**
-	 * Get the list of computed BSCCs.
-	 */
-	public abstract List<BitSet> getBSCCs();
-	
-	/**
-	 * Get the states not in any BSCC.
-	 */
-	public abstract BitSet getNotInBSCCs();
+	protected boolean isTrivialSCC(Model model, int state)
+	{
+		// false if there is a self-loop, i.e., a successor t == state
+		return !(model.someSuccessorsMatch(state, (t) -> {return t == state;}));
+	}
 }

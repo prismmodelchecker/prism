@@ -53,6 +53,7 @@ import explicit.LTS;
 import explicit.LTSExplicit;
 import explicit.NonProbModelChecker;
 import explicit.SCCComputer;
+import explicit.SCCConsumerStore;
 
 /**
  * <p>
@@ -316,9 +317,10 @@ public class LTL2WDBA extends PrismComponent
 	{
 		LTS daLTS = new LTSFromDA(P.da);
 
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, daLTS);
+		SCCConsumerStore sccStore = new SCCConsumerStore();
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, daLTS, sccStore);
 		sccComputer.computeSCCs();
-		for (BitSet scc : sccComputer.getSCCs()) {
+		for (BitSet scc : sccStore.getSCCs()) {
 			if (hasAcceptingCycle(P, scc)) {
 				// mark all SCC states as final in powerset automaton
 				P.F.or(scc);
@@ -364,9 +366,10 @@ public class LTL2WDBA extends PrismComponent
 		// perform cycle check
 		// TODO: use nested-DFS?
 		boolean hasCycleViaF = false;
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, buchilts.lts);
+		SCCConsumerStore sccStore = new SCCConsumerStore();
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, buchilts.lts, sccStore);
 		sccComputer.computeSCCs();
-		for (BitSet subSCC : sccComputer.getSCCs()) {
+		for (BitSet subSCC : sccStore.getSCCs()) {
 			if (subSCC.intersects(buchilts.F)) {
 				hasCycleViaF = true;
 				break;
