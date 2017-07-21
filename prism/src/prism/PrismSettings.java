@@ -898,9 +898,10 @@ public class PrismSettings implements Observer
 		double d;
 		
 		// Process string (remove - and extract any options) 
-		Pair<String, Map<String, String>> pair = splitSwitch(args[i]);
+		Pair<String, String> pair = splitSwitch(args[i]);
 		String sw = pair.first;
-		Map<String, String> options = pair.second; 
+		String optionsString = pair.second;
+		Map<String, String> options = splitOptionsString(optionsString);
 		
 		// Note: the order of these switches should match the -help output (just to help keep track of things).
 		
@@ -1602,9 +1603,9 @@ public class PrismSettings implements Observer
 	 * When present, the options is a comma-separated list of "option" or "option=value" items.
 	 * The switch itself can be prefixed with either 1 or 2 hyphens.
 	 * 
-	 * @return a pair containing the switch name and a mapping from options to values.  
+	 * @return a pair containing the switch name and the (optional, may be null) options part
 	 */
-	private static Pair<String, Map<String, String>> splitSwitch(String sw) throws PrismException
+	private static Pair<String, String> splitSwitch(String sw)
 	{
 		// Remove "-"
 		sw = sw.substring(1);
@@ -1613,21 +1614,40 @@ public class PrismSettings implements Observer
 			sw = sw.substring(1);
 		// Extract options, if present
 		int i = sw.indexOf(':');
-		Map<String,String> map = new HashMap<String, String>();
+
+		String optionsString = null;
 		if (i != -1) {
-			String optionsString = sw.substring(i + 1);
+			optionsString = sw.substring(i + 1);
 			sw = sw.substring(0, i);
-			String options[] = optionsString.split(",");
-			for (String option : options) {
-				int j = option.indexOf("=");
-				if (j == -1) {
-					map.put(option, null);
-				} else {
-					map.put(option.substring(0,j), option.substring(j+1));
-				}
+		}
+
+		return new Pair<String, String>(sw, optionsString);
+	}
+
+	/**
+	 * Split an options string (see splitSwitch)
+	 * into a map from options to values.
+	 * <br>
+	 * For "option" options, the value is {@code null}.
+	 * @return a mapping from options to values.
+	 */
+	private static Map<String, String> splitOptionsString(String optionsString)
+	{
+		Map<String,String> map = new HashMap<String, String>();
+		if (optionsString == null || "".equals(optionsString))
+			return map;
+
+		String options[] = optionsString.split(",");
+		for (String option : options) {
+			int j = option.indexOf("=");
+			if (j == -1) {
+				map.put(option, null);
+			} else {
+				map.put(option.substring(0,j), option.substring(j+1));
 			}
 		}
-		return new Pair<String, Map<String,String>>(sw, map);
+
+		return map;
 	}
 
 	/**
