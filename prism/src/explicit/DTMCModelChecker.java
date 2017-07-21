@@ -29,28 +29,38 @@ package explicit;
 import java.io.File;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.PrimitiveIterator;
 import java.util.Vector;
 
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
+import prism.OptionsIntervalIteration;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
+import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 import automata.DA;
 import common.IntSet;
+import common.PeriodicTimer;
+import common.StopWatch;
 import common.IterableBitSet;
 import common.StopWatch;
 import explicit.LTLModelChecker.LTLProduct;
+import explicit.modelviews.DTMCAlteredDistributions;
+import explicit.modelviews.MDPFromDTMC;
 import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 
 /**
@@ -605,6 +615,10 @@ public class DTMCModelChecker extends ProbModelChecker
 			mainLog.printWarning("Switching to linear equation solution method \"" + linEqMethod.fullName() + "\"");
 		}
 
+		if (doIntervalIteration && (!precomp || !prob0 || !prob1)) {
+			throw new PrismNotSupportedException("Interval iteration requires precomputations to be active");
+		}
+
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting probabilistic reachability...");
@@ -693,7 +707,11 @@ public class DTMCModelChecker extends ProbModelChecker
 			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
 		}
 
-		res = doValueIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+		if (doIntervalIteration) {
+			res = doIntervalIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+		} else {
+			res = doValueIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+		}
 
 		// Finished probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
@@ -1088,6 +1106,109 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute reachability probabilities using power method (interval variant).
+	 * @param dtmc The DTMC
+	 * @param no Probability 0 states
+	 * @param yes Probability 1 states
+	 * @param init Optionally, an initial solution vector (will be overwritten), will be ignored if known == null
+	 * @param known Optionally, a set of states for which the exact answer is known
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
+	 * @param topological do topological interval iteration?
+	 */
+	protected ModelCheckerResult doIntervalIterationReachProbs(DTMC dtmc, BitSet no, BitSet yes, double init[], BitSet known, IterationMethod iterationMethod, boolean topological) throws PrismException
+	{
+		BitSet unknown;
+		int i, n;
+		double initBelow[], initAbove[];
+		long timer;
+
+		// Start value iteration
+		timer = System.currentTimeMillis();
+		String description = "with " + iterationMethod.getDescriptionShort();
+		mainLog.println("Starting interval iteration (" + description + ")...");
+
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit DTMC ReachProbs interval iteration  (" + description + ")");
+		}
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Create solution vector(s)
+		initBelow = (init == null) ? new double[n] : init;
+		initAbove = new double[n];
+
+		// Initialise solution vectors. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 1.0/0.0 if in yes/no; (3) initVal
+		// where initVal is 0.0 or 1.0, depending on whether we converge from below/above.
+		if (known != null && init != null) {
+			for (i = 0; i < n; i++) {
+				initBelow[i] = known.get(i) ? init[i] : yes.get(i) ? 1.0 : no.get(i) ? 0.0 : 0.0;
+				initAbove[i] = known.get(i) ? init[i] : yes.get(i) ? 1.0 : no.get(i) ? 0.0 : 1.0;
+			}
+		} else {
+			for (i = 0; i < n; i++) {
+				initBelow[i] = yes.get(i) ? 1.0 : no.get(i) ? 0.0 :  0.0;
+				initAbove[i] = yes.get(i) ? 1.0 : no.get(i) ? 0.0 :  1.0;
+			}
+		}
+
+		// Determine set of states actually need to compute values for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(yes);
+		unknown.andNot(no);
+		if (known != null)
+			unknown.andNot(known);
+
+		if (iterationsExport != null) {
+			iterationsExport.exportVector(initBelow, 0);
+			iterationsExport.exportVector(initAbove, 1);
+		}
+
+		IntSet unknownStates = IntSet.asIntSet(unknown);
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		final boolean enforceMonotonicFromBelow = iiOptions.isEnforceMonotonicityFromBelow();
+		final boolean enforceMonotonicFromAbove = iiOptions.isEnforceMonotonicityFromAbove();
+		final boolean checkMonotonic = iiOptions.isCheckMonotonicity();
+
+		if (!enforceMonotonicFromAbove) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from above.");
+		}
+		if (!enforceMonotonicFromBelow) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from below.");
+		}
+
+		IterationMethod.IterationIntervalIter below = iterationMethod.forMvMultInterval(dtmc, true, enforceMonotonicFromBelow, checkMonotonic);
+		IterationMethod.IterationIntervalIter above = iterationMethod.forMvMultInterval(dtmc, false, enforceMonotonicFromAbove, checkMonotonic);
+
+		below.init(initBelow);
+		above.init(initAbove);
+
+		if (topological) {
+			// Compute SCCInfo, including trivial SCCs in the subgraph obtained when only considering
+			// states in unknown
+			SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, dtmc, true, unknown::get);
+
+			IterationMethod.SingletonSCCSolver singletonSCCSolver = (int s, double[] soln) -> {
+				soln[s] = dtmc.mvMultJacSingle(s, soln);
+			};
+
+			// run the actual value iteration
+			return iterationMethod.doTopologicalIntervalIteration(this, description, sccs, below, above, singletonSCCSolver, timer, iterationsExport);
+		} else {
+			// run the actual value iteration
+			return iterationMethod.doIntervalIteration(this, description, below, above, unknownStates, timer, iterationsExport);
+		}
+
+	}
+
+
+
+	/**
 	 * Compute bounded reachability probabilities.
 	 * i.e. compute the probability of reaching a state in {@code target} within k steps.
 	 * @param dtmc The DTMC
@@ -1200,6 +1321,381 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute upper bound for maximum expected reward, using the variant specified in the settings.
+	 * @param dtmc the model
+	 * @param mcRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinity states
+	 * @return upper bound on R=?[ F target ] for all states
+	 */
+	double computeReachRewardsUpperBound(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		// inf and target states become trap states (with self-loops)
+		BitSet trapStates = (BitSet) target.clone();
+		trapStates.or(inf);
+		DTMCAlteredDistributions cleanedDTMC = DTMCAlteredDistributions.addSelfLoops(dtmc, trapStates);
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		double upperBound = 0.0;
+		String method = null;
+		switch (iiOptions.getBoundMethod()) {
+		case VARIANT_1_COARSE:
+			upperBound = computeReachRewardsUpperBoundVariant1Coarse(cleanedDTMC, mcRewards, target, unknown, inf);
+			method = "variant 1, coarse";
+			break;
+		case VARIANT_1_FINE:
+			upperBound = computeReachRewardsUpperBoundVariant1Fine(cleanedDTMC, mcRewards, target, unknown, inf);
+			method = "variant 1, fine";
+			break;
+		case VARIANT_2:
+			upperBound = computeReachRewardsUpperBoundVariant2(cleanedDTMC, mcRewards, target, unknown, inf);
+			method = "variant 2";
+			break;
+		case DEFAULT:
+		case DSMPI:
+		{
+			MDP mdp = new MDPFromDTMC(cleanedDTMC);
+			MDPRewards mdpRewards = new MDPRewards() {
+
+				@Override
+				public double getStateReward(int s)
+				{
+					return mcRewards.getStateReward(s);
+				}
+
+				@Override
+				public double getTransitionReward(int s, int i)
+				{
+					return 0;
+				}
+
+				@Override
+				public MDPRewards liftFromModel(Product<? extends Model> product)
+				{
+					throw new RuntimeException("Unsupported");
+				}
+
+				@Override
+				public boolean hasTransitionRewards()
+				{
+					return false;
+				}
+			};
+			upperBound = DijkstraSweepMPI.computeUpperBound(this, mdp, mdpRewards, target, unknown);
+			method = "Dijkstra Sweep MPI";
+			break;
+		}
+		}
+
+		if (method == null) {
+			throw new PrismException("Unknown upper bound heuristic");
+		}
+
+		mainLog.println("Upper bound for expectation (" + method + "): " + upperBound);
+
+		return upperBound;
+	}
+
+	/**
+	 * Compute upper bound for maximum expected reward (variant 1, coarse),
+	 * i.e., does not compute separate q_t / p_t per SCC.
+	 * Uses Rs = S, i.e., does not take reachability into account.
+	 * @param dtmc the model
+	 * @param mcRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinity states
+	 * @return upper bound on R=?[ F target ] for all states
+	 */
+	double computeReachRewardsUpperBoundVariant1Coarse(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		double[] boundsOnExpectedVisits = new double[dtmc.getNumStates()];
+		int[] Ct = new int[dtmc.getNumStates()];
+
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("computing an upper bound for expected reward");
+
+		SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, dtmc, true, null);
+		BitSet trivial = new BitSet();
+
+		double q = 0;
+		for (int scc = 0, numSCCs = sccs.getNumSCCs(); scc < numSCCs; scc++) {
+			IntSet statesForSCC = sccs.getStatesForSCC(scc);
+
+			int cardinality = statesForSCC.cardinality();
+
+			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
+			while (itSCC.hasNext()) {
+				int s = itSCC.nextInt();
+				Ct[s] = cardinality;
+
+				if (target.get(s) || inf.get(s)) {
+					// trap states
+					assert(cardinality == 1);
+					break;  // continue with next SCC
+				}
+
+				double probRemain = 0;
+				boolean allRemain = true;  // all successors remain in the SCC?
+				boolean hasSelfloop = false;
+				for (Iterator<Entry<Integer, Double>> it = dtmc.getTransitionsIterator(s); it.hasNext(); ) {
+					Entry<Integer, Double> t = it.next();
+					if (statesForSCC.get(t.getKey())) {
+						probRemain += t.getValue();
+						hasSelfloop = true;
+					} else {
+						allRemain = false;
+					}
+				}
+
+				if (!allRemain) { // action in the set X
+					q = Math.max(q, probRemain);
+				}
+
+				if (cardinality == 1 && !hasSelfloop) {
+					trivial.set(s);
+				}
+			}
+		}
+
+		double p = 1;
+		for (int s = 0; s < dtmc.getNumStates(); s++) {
+			for (Iterator<Entry<Integer, Double>> it = dtmc.getTransitionsIterator(s); it.hasNext(); ) {
+				Entry<Integer, Double> t = it.next();
+				p = Math.min(p, t.getValue());
+			}
+		}
+
+		double upperBound = 0;
+		for (int s = 0; s < dtmc.getNumStates(); s++) {
+			if (target.get(s) || inf.get(s)) {
+				// inf or target states: not relevant, set visits to 0, ignore in summation
+				boundsOnExpectedVisits[s] = 0.0;
+			} else if (unknown.get(s)) {
+				if (trivial.get(s)) {
+					// s is a trivial SCC: seen at most once
+					boundsOnExpectedVisits[s] = 1.0;
+				} else {
+					boundsOnExpectedVisits[s] = 1 / (Math.pow(p, Ct[s]-1) * (1.0-q));
+				}
+
+				upperBound += boundsOnExpectedVisits[s] * mcRewards.getStateReward(s);
+			}
+		}
+
+		timer.stop();
+
+		if (OptionsIntervalIteration.from(this).isBoundComputationVerbose()) {
+			mainLog.println("Upper bound for max expectation computation (variant 1, coarse):");
+			mainLog.println("p = " + p);
+			mainLog.println("q = " + q);
+			mainLog.println("|Ct| = " + Arrays.toString(Ct));
+			mainLog.println("ζ* = " + Arrays.toString(boundsOnExpectedVisits));
+		}
+
+		if (!Double.isFinite(upperBound)) {
+			throw new PrismException("Problem computing an upper bound for the expectation, did not get finite result");
+		}
+
+		return upperBound;
+	}
+
+	/**
+	 * Compute upper bound for maximum expected reward (variant 1, fine).
+	 * i.e., does compute separate q_t / p_t per SCC.
+	 * Uses Rs = S, i.e., does not take reachability into account.
+	 * @param dtmc the model
+	 * @param mcRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinity states
+	 * @return upper bound on R=?[ F target ] for all states
+	 */
+	double computeReachRewardsUpperBoundVariant1Fine(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		double[] boundsOnExpectedVisits = new double[dtmc.getNumStates()];
+		double[] qt = new double[dtmc.getNumStates()];
+		double[] pt = new double[dtmc.getNumStates()];
+		int[] Ct = new int[dtmc.getNumStates()];
+
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("computing an upper bound for expected reward");
+
+		SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, dtmc, true, null);
+		BitSet trivial = new BitSet();
+
+		for (int scc = 0, numSCCs = sccs.getNumSCCs(); scc < numSCCs; scc++) {
+			IntSet statesForSCC = sccs.getStatesForSCC(scc);
+
+			double q = 0;
+			double p = 1;
+			int cardinality = statesForSCC.cardinality();
+
+			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
+			while (itSCC.hasNext()) {
+				int s = itSCC.nextInt();
+				Ct[s] = cardinality;
+
+				double probRemain = 0;
+				boolean allRemain = true;  // all successors remain in the SCC?
+				boolean hasSelfloop = false;
+				for (Iterator<Entry<Integer, Double>> it = dtmc.getTransitionsIterator(s); it.hasNext(); ) {
+					Entry<Integer, Double> t = it.next();
+					if (statesForSCC.get(t.getKey())) {
+						probRemain += t.getValue();
+						p = Math.min(p, t.getValue());
+						hasSelfloop = true;
+					} else {
+						// outgoing edge
+						allRemain = false;
+					}
+				}
+
+				if (!allRemain) { // action in the set Xt
+					q = Math.max(q, probRemain);
+				}
+
+				if (cardinality == 1 && !hasSelfloop) {
+					trivial.set(s);
+				}
+			}
+
+			for (int s : statesForSCC) {
+				qt[s] = q;
+				pt[s] = p;
+			}
+		}
+
+		double upperBound = 0;
+		for (int s = 0; s < dtmc.getNumStates(); s++) {
+			if (target.get(s) || inf.get(s)) {
+				// inf or target states: not relevant, set visits to 0, ignore in summation
+				boundsOnExpectedVisits[s] = 0.0;
+			} else if (unknown.get(s)) {
+				if (trivial.get(s)) {
+					// s is a trivial SCC: seen at most once
+					boundsOnExpectedVisits[s] = 1.0;
+				} else {
+					if (pt[s] == 1.0) {
+						//throw new PrismException("Upper bound computation had p_t = 1 for state " + s);
+					}
+					boundsOnExpectedVisits[s] = 1 / (Math.pow(pt[s], Ct[s]-1) * (1.0-qt[s]));
+				}
+
+				upperBound += boundsOnExpectedVisits[s] * mcRewards.getStateReward(s);
+			} else {
+				throw new PrismException("Bogus arguments: inf/target/unknown should partition state space");
+			}
+		}
+
+		timer.stop();
+
+		if (OptionsIntervalIteration.from(this).isBoundComputationVerbose()) {
+			mainLog.println("Upper bound for max expectation computation (variant 1, fine):");
+			mainLog.println("pt = " + Arrays.toString(pt));
+			mainLog.println("qt = " + Arrays.toString(qt));
+			mainLog.println("|Ct| = " + Arrays.toString(Ct));
+			mainLog.println("ζ* = " + Arrays.toString(boundsOnExpectedVisits));
+		}
+
+		if (!Double.isFinite(upperBound)) {
+			throw new PrismException("Problem computing an upper bound for the expectation, did not get finite result");
+		}
+
+		return upperBound;
+	}
+
+
+	/**
+	 * Compute upper bound for maximum expected reward (variant 2).
+	 * Uses Rs = S, i.e., does not take reachability into account.
+	 * @param dtmc the model
+	 * @param mcRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinity states
+	 * @return upper bound on R=?[ F target ] for all states
+	 */
+	double computeReachRewardsUpperBoundVariant2(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		double[] dt = new double[dtmc.getNumStates()];
+		double[] boundsOnExpectedVisits = new double[dtmc.getNumStates()];
+
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("computing an upper bound for expected reward");
+
+		SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, dtmc, true, unknown::get);
+
+		BitSet T = (BitSet) target.clone();
+
+		@SuppressWarnings("unused")
+		int i = 0;
+		while (true) {
+			BitSet Si = new BitSet();
+			i++;
+
+			// TODO: might be inefficient, worst-case quadratic runtime...
+			for (PrimitiveIterator.OfInt it = IterableBitSet.getClearBits(T, dtmc.getNumStates() -1 ).iterator(); it.hasNext(); ) {
+				int s = it.nextInt();
+//				mainLog.println("Check " + s + " against " + T);
+				if (dtmc.someSuccessorsInSet(s, T)) {
+					Si.set(s);
+				}
+			}
+
+			if (Si.isEmpty()) {
+				break;
+			}
+
+			// mainLog.println("S" + i + " = " + Si);
+			// mainLog.println("T = " + T);
+
+			for (PrimitiveIterator.OfInt it = IterableBitSet.getSetBits(Si).iterator(); it.hasNext(); ) {
+				final int t = it.nextInt();
+				final int sccIndexForT = sccs.getSCCIndex(t);
+				double d = dtmc.sumOverTransitions(t, (int __, int u, double prob) -> {
+					// mainLog.println("t = " + t + ", u = " + u + ", prob = " + prob);
+					if (!T.get(u))
+						return 0.0;
+
+					boolean inSameSCC = (sccs.getSCCIndex(u) == sccIndexForT);
+					double d_u_t = inSameSCC ? dt[u] : 1.0;
+					// mainLog.println("d_u_t = " + d_u_t);
+					return d_u_t * prob;
+				});
+				dt[t] = d;
+				// mainLog.println("d["+t+"] = " + d);
+			}
+
+			T.or(Si);
+		}
+
+		double upperBound = 0;
+		for (PrimitiveIterator.OfInt it = IterableBitSet.getSetBits(unknown).iterator(); it.hasNext();) {
+			int s = it.nextInt();
+			boundsOnExpectedVisits[s] = 1 / dt[s];
+			upperBound += boundsOnExpectedVisits[s] * mcRewards.getStateReward(s);
+		}
+
+		timer.stop();
+
+		if (OptionsIntervalIteration.from(this).isBoundComputationVerbose()) {
+			mainLog.println("Upper bound for max expectation computation (variant 2):");
+			mainLog.println("d_t = " + Arrays.toString(dt));
+			mainLog.println("ζ* = " + Arrays.toString(boundsOnExpectedVisits));
+		}
+
+		if (!Double.isFinite(upperBound)) {
+			throw new PrismException("Problem computing an upper bound for the expectation, did not get finite result");
+		}
+
+		return upperBound;
+	}
+
+
+	/**
 	 * Compute expected reachability rewards.
 	 * @param dtmc The DTMC
 	 * @param mcRewards The rewards
@@ -1302,7 +1798,11 @@ public class DTMCModelChecker extends ProbModelChecker
 			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
 		}
 
-		res = doValueIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+		if (doIntervalIteration) {
+			res = doIntervalIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+		} else {
+			res = doValueIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+		}
 
 		// Finished expected reachability
 		timer = System.currentTimeMillis() - timer;
@@ -1496,6 +1996,136 @@ public class DTMCModelChecker extends ProbModelChecker
 		} else {
 			return iterationMethod.doValueIteration(this, description, forMvMultRew, unknownStates, timer, iterationsExport);
 		}
+	}
+
+	/**
+	 * Compute expected reachability rewards using interval iteration.
+	 * @param dtmc The DTMC
+	 * @param mcRewards The rewards
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param init Optionally, an initial solution vector (will be overwritten)
+	 * @param known Optionally, a set of states for which the exact answer is known
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
+	 * @param topological do topological interval iteration?
+	 */
+	protected ModelCheckerResult doIntervalIterationReachRewards(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet inf, double init[], BitSet known, IterationMethod iterationMethod, boolean topological)
+			throws PrismException
+	{
+		BitSet unknown;
+		int i, n;
+		double init_below[], init_above[];
+		long timer;
+
+		// Store num states
+		n = dtmc.getNumStates();
+
+		// Determine set of states actually need to compute values for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		unknown.andNot(inf);
+		if (known != null)
+			unknown.andNot(known);
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		double upperBound;
+		if (iiOptions.hasManualUpperBound()) {
+			upperBound = iiOptions.getManualUpperBound();
+			getLog().printWarning("Upper bound for interval iteration manually set to " + upperBound);
+		} else {
+			upperBound = computeReachRewardsUpperBound(dtmc, mcRewards, target, unknown, inf);
+		}
+
+		double lowerBound;
+		if (iiOptions.hasManualLowerBound()) {
+			lowerBound = iiOptions.getManualLowerBound();
+			getLog().printWarning("Lower bound for interval iteration manually set to " + lowerBound);
+		} else {
+			lowerBound = 0.0;
+		}
+
+		// Start value iteration
+		timer = System.currentTimeMillis();
+		String description = (topological ? "topological, " : "" ) + "with " + iterationMethod.getDescriptionShort();
+		mainLog.println("Starting interval iteration (" + description + ") ...");
+
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit DTMC ReachRewards interval iteration (" + description + ") ...");
+		}
+
+		// Create solution vector(s)
+		init_below = (init == null) ? new double[n] : init;
+		init_above = new double[n];
+
+		// Initialise solution vector from below. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 0.0/infinity if in target/inf; (3) lowerBound
+		if (init != null && known != null) {
+			for (i = 0; i < n; i++)
+				init_below[i] = known.get(i) ? init[i] : target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : lowerBound;
+		} else {
+			for (i = 0; i < n; i++)
+				init_below[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : lowerBound;
+		}
+
+		// Initialise solution vector from above. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 0.0/infinity if in target/inf; (3) upperBound
+		if (init != null && known != null) {
+			for (i = 0; i < n; i++)
+				init_above[i] = known.get(i) ? init[i] : target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : upperBound;
+		} else {
+			for (i = 0; i < n; i++)
+				init_above[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : upperBound;
+		}
+
+
+		if (iterationsExport != null) {
+			iterationsExport.exportVector(init_below, 0);
+			iterationsExport.exportVector(init_above, 1);
+		}
+
+		IntSet unknownStates = IntSet.asIntSet(unknown);
+
+		final boolean enforceMonotonicFromBelow = iiOptions.isEnforceMonotonicityFromBelow();
+		final boolean enforceMonotonicFromAbove = iiOptions.isEnforceMonotonicityFromAbove();
+		final boolean checkMonotonic = iiOptions.isCheckMonotonicity();
+
+		if (!enforceMonotonicFromAbove) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from above.");
+		}
+		if (!enforceMonotonicFromBelow) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from below.");
+		}
+
+		IterationMethod.IterationIntervalIter below = iterationMethod.forMvMultRewInterval(dtmc, mcRewards, true, enforceMonotonicFromBelow, checkMonotonic);
+		IterationMethod.IterationIntervalIter above = iterationMethod.forMvMultRewInterval(dtmc, mcRewards, false, enforceMonotonicFromAbove, checkMonotonic);
+
+		below.init(init_below);
+		above.init(init_above);
+
+		ModelCheckerResult rv;
+		if (topological) {
+			// Compute SCCInfo, including trivial SCCs in the subgraph obtained when only considering
+			// states in unknown
+			SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, dtmc, true, unknown::get);
+
+			IterationMethod.SingletonSCCSolver singletonSCCSolver = (int s, double[] soln) -> {
+				soln[s] = dtmc.mvMultRewJacSingle(s, soln, mcRewards);
+			};
+
+			// run the actual value iteration
+			rv = iterationMethod.doTopologicalIntervalIteration(this, description, sccs, below, above, singletonSCCSolver, timer, iterationsExport);
+		} else {
+			// run the actual value iteration
+			rv = iterationMethod.doIntervalIteration(this, description, below, above, unknownStates, timer, iterationsExport);
+		}
+
+		double max_v = PrismUtils.findMaxFinite(rv.soln, unknownStates.iterator());
+		mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+
+		return rv;
 	}
 
 	/**

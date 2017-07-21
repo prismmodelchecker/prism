@@ -31,6 +31,8 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.PrimitiveIterator;
 import java.util.Vector;
 
 import common.IterableStateSet;
@@ -39,6 +41,7 @@ import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
+import prism.OptionsIntervalIteration;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
@@ -56,6 +59,7 @@ import automata.LTL2WDBA;
 import common.IntSet;
 import common.IterableBitSet;
 import explicit.modelviews.EquivalenceRelationInteger;
+import explicit.modelviews.MDPDroppedAllChoices;
 import explicit.modelviews.MDPEquiv;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
@@ -357,6 +361,23 @@ public class MDPModelChecker extends ProbModelChecker
 			if (!min)
 				throw new PrismException("Value iteration from above only works for minimum probabilities");
 		}
+		if (doIntervalIteration) {
+			if (!min && (genStrat || exportAdv)) {
+				throw new PrismNotSupportedException("Currently, explicit engine does not support adversary construction for interval iteration and Pmax");
+			}
+			if (mdpSolnMethod != MDPSolnMethod.VALUE_ITERATION && mdpSolnMethod != MDPSolnMethod.GAUSS_SEIDEL) {
+				throw new PrismNotSupportedException("Currently, explicit engine only supports interval iteration with value iteration or Gauss-Seidel for MDPs");
+			}
+			if (init != null)
+				throw new PrismNotSupportedException("Interval iteration currently not supported with provided initial values");
+			if (!(precomp && prob0 && prob1)) {
+				throw new PrismNotSupportedException("Precomputations (Prob0 & Prob1) must be enabled for interval iteration");
+			}
+
+			if (!min) {
+				doPmaxQuotient = true;
+			}
+		}
 		if (mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION || mdpSolnMethod == MDPSolnMethod.MODIFIED_POLICY_ITERATION) {
 			if (known != null) {
 				throw new PrismException("Policy iteration methods cannot be passed 'known' values for some states");
@@ -535,9 +556,15 @@ public class MDPModelChecker extends ProbModelChecker
 			iterationMethod = new IterationMethodGS(termCrit == TermCrit.ABSOLUTE, termCritParam, false);
 			break;
 		case POLICY_ITERATION:
+			if (doIntervalIteration) {
+				throw new PrismNotSupportedException("Interval iteration currently not supported for policy iteration");
+			}
 			res = computeReachProbsPolIter(mdp, no, yes, min, strat);
 			break;
 		case MODIFIED_POLICY_ITERATION:
+			if (doIntervalIteration) {
+				throw new PrismNotSupportedException("Interval iteration currently not supported for policy iteration");
+			}
 			res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
 			break;
 		default:
@@ -545,7 +572,11 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		if (res == null) { // not yet computed, use iterationMethod
-			res = doValueIterationReachProbs(mdp, no, yes, min, init, known, iterationMethod, getDoTopologicalValueIteration(), strat);
+			if (!doIntervalIteration) {
+				res = doValueIterationReachProbs(mdp, no, yes, min, init, known, iterationMethod, getDoTopologicalValueIteration(), strat);
+			} else {
+				res = doIntervalIterationReachProbs(mdp, no, yes, min, init, known, iterationMethod, getDoTopologicalValueIteration(), strat);
+			}
 		}
 
 		return res;
@@ -847,6 +878,113 @@ public class MDPModelChecker extends ProbModelChecker
 		} else {
 			// run the actual value iteration
 			return iterationMethod.doValueIteration(this, description, iteration, unknownStates, timer, iterationsExport);
+		}
+	}
+
+	/**
+	 * Compute reachability probabilities using interval iteration.
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param mdp The MDP
+	 * @param no Probability 0 states
+	 * @param yes Probability 1 states
+	 * @param min Min or max probabilities (true=min, false=max)
+	 * @param init Optionally, an initial solution vector (will be overwritten)
+	 * @param known Optionally, a set of states for which the exact answer is known
+	 * @param iterationMethod The iteration method
+	 * @param topological Do topological value iteration?
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
+	 */
+	protected ModelCheckerResult doIntervalIterationReachProbs(MDP mdp, BitSet no, BitSet yes, boolean min, double init[], BitSet known, IterationMethod iterationMethod, boolean topological, int strat[])
+			throws PrismException
+	{
+		BitSet unknown;
+		int i, n;
+		double initBelow[], initAbove[];
+		long timer;
+
+		// Start value iteration
+		timer = System.currentTimeMillis();
+		String description = (min ? "min" : "max")
+				+ (topological ? ", topological": "" )
+				+ ", with " + iterationMethod.getDescriptionShort();
+
+		mainLog.println("Starting interval iteration (" + description + ")...");
+
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit MDP ReachProbs interval iteration (" + description + ")");
+		}
+
+		// Store num states
+		n = mdp.getNumStates();
+
+		// Create solution vector(s)
+		initBelow = (init == null) ? new double[n] : init;
+		initAbove = new double[n];
+
+		// Initialise solution vectors. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 1.0/0.0 if in yes/no; (3) initVal
+		// where initVal is 0.0 or 1.0, depending on whether we converge from below/above.
+		if (known != null && init != null) {
+			for (i = 0; i < n; i++) {
+				initBelow[i] = known.get(i) ? init[i] : yes.get(i) ? 1.0 : no.get(i) ? 0.0 : 0.0;
+				initAbove[i] = known.get(i) ? init[i] : yes.get(i) ? 1.0 : no.get(i) ? 0.0 : 1.0;
+			}
+		} else {
+			for (i = 0; i < n; i++) {
+				initBelow[i] = yes.get(i) ? 1.0 : no.get(i) ? 0.0 :  0.0;
+				initAbove[i] = yes.get(i) ? 1.0 : no.get(i) ? 0.0 :  1.0;
+			}
+		}
+
+		// Determine set of states actually need to compute values for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(yes);
+		unknown.andNot(no);
+		if (known != null)
+			unknown.andNot(known);
+
+		if (iterationsExport != null) {
+			iterationsExport.exportVector(initBelow, 0);
+			iterationsExport.exportVector(initAbove, 1);
+		}
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		final boolean enforceMonotonicFromBelow = iiOptions.isEnforceMonotonicityFromBelow();
+		final boolean enforceMonotonicFromAbove = iiOptions.isEnforceMonotonicityFromAbove();
+		final boolean checkMonotonic = iiOptions.isCheckMonotonicity();
+
+		if (!enforceMonotonicFromAbove) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from above.");
+		}
+		if (!enforceMonotonicFromBelow) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from below.");
+		}
+
+		IterationMethod.IterationIntervalIter below = iterationMethod.forMvMultMinMaxInterval(mdp, min, strat, true, enforceMonotonicFromBelow, checkMonotonic);
+		IterationMethod.IterationIntervalIter above = iterationMethod.forMvMultMinMaxInterval(mdp, min, strat, false, enforceMonotonicFromAbove, checkMonotonic);
+		below.init(initBelow);
+		above.init(initAbove);
+
+		IntSet unknownStates = IntSet.asIntSet(unknown);
+
+		if (topological) {
+			// Compute SCCInfo, including trivial SCCs in the subgraph obtained when only considering
+			// states in unknown
+			SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, mdp, true, unknown::get);
+
+			IterationMethod.SingletonSCCSolver singletonSCCSolver = (int s, double[] soln) -> {
+				soln[s] = mdp.mvMultJacMinMaxSingle(s, soln, min, strat);
+			};
+
+			// run the actual value iteration
+			return iterationMethod.doTopologicalIntervalIteration(this, description, sccs, below, above, singletonSCCSolver, timer, iterationsExport);
+		} else {
+			// run the actual value iteration
+			return iterationMethod.doIntervalIteration(this, description, below, above, unknownStates, timer, iterationsExport);
 		}
 	}
 
@@ -1256,6 +1394,453 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute upper bound for maximum expected reward, with the method specified in the settings.
+	 * @param mdp the model
+	 * @param mdpRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinite states
+	 * @return upper bound on Rmax=?[ F target ] for all states
+	 */
+	double computeReachRewardsMaxUpperBound(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		// inf and target states become trap states (with dropped choices)
+		BitSet trapStates = (BitSet) target.clone();
+		trapStates.or(inf);
+		MDP cleanedMDP = new MDPDroppedAllChoices(mdp, trapStates);
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		double upperBound = 0.0;
+		String method = null;
+		switch (iiOptions.getBoundMethod()) {
+		case VARIANT_1_COARSE:
+			upperBound = computeReachRewardsMaxUpperBoundVariant1Coarse(cleanedMDP, mdpRewards, target, unknown, inf);
+			method = "variant 1, coarse";
+			break;
+		case VARIANT_1_FINE:
+			upperBound = computeReachRewardsMaxUpperBoundVariant1Fine(cleanedMDP, mdpRewards, target, unknown, inf);
+			method = "variant 1, fine";
+			break;
+		case DEFAULT:
+		case VARIANT_2:
+			upperBound = computeReachRewardsMaxUpperBoundVariant2(cleanedMDP, mdpRewards, target, unknown, inf);
+			method = "variant 2";
+			break;
+		case DSMPI:
+			throw new PrismNotSupportedException("Dijkstra Sweep MPI upper bound heuristic can not be used for Rmax");
+		}
+
+		if (method == null) {
+			throw new PrismException("Unknown upper bound heuristic");
+		}
+
+		mainLog.println("Upper bound for max expectation (" + method + "): " + upperBound);
+		return upperBound;
+	}
+
+	/**
+	 * Compute upper bound for minimum expected reward, with the method specified in the settings.
+	 * @param mdp the model
+	 * @param mdpRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinite states
+	 * @return upper bound on Rmin=?[ F target ] for all unknown states
+	 */
+	double computeReachRewardsMinUpperBound(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		// inf and target states become trap states (with dropped choices)
+		BitSet trapStates = (BitSet) target.clone();
+		trapStates.or(inf);
+		MDP cleanedMDP = new MDPDroppedAllChoices(mdp, trapStates);
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		double upperBound = 0.0;
+		String method = null;
+		switch (iiOptions.getBoundMethod()) {
+		case DEFAULT:
+		case DSMPI:
+			upperBound = DijkstraSweepMPI.computeUpperBound(this, mdp, mdpRewards, target, unknown);
+			method = "Dijkstra Sweep MPI";
+			break;
+		case VARIANT_1_COARSE:
+			upperBound = computeReachRewardsMaxUpperBoundVariant1Coarse(cleanedMDP, mdpRewards, target, unknown, inf);
+			method = "using Rmax upper bound via variant 1, coarse";
+			break;
+		case VARIANT_1_FINE:
+			upperBound = computeReachRewardsMaxUpperBoundVariant1Fine(cleanedMDP, mdpRewards, target, unknown, inf);
+			method = "using Rmax upper bound via variant 1, fine";
+			break;
+		case VARIANT_2:
+			upperBound = computeReachRewardsMaxUpperBoundVariant2(cleanedMDP, mdpRewards, target, unknown, inf);
+			method = "using Rmax upper bound via variant 2";
+			break;
+		}
+
+		if (method == null) {
+			throw new PrismException("Unknown upper bound heuristic");
+		}
+
+		mainLog.println("Upper bound for min expectation (" + method + "): " + upperBound);
+		return upperBound;
+	}
+
+	/**
+	 * Return true if the MDP is contracting for all states in the 'unknown'
+	 * set, i.e., if Pmin=1( unknown U target) holds.
+	 */
+	private boolean isContracting(MDP mdp, BitSet unknown, BitSet target)
+	{
+		// compute Pmin=1( unknown U target )
+		BitSet pmin1 = prob1(mdp, unknown, target, true, null);
+		BitSet tmp = (BitSet) unknown.clone();
+		tmp.andNot(pmin1);
+		if (!tmp.isEmpty()) {
+			// unknown is not contained in pmin1, not contracting
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Compute upper bound for maximum expected reward (variant 1, coarse),
+	 * i.e., does not compute separate q_t / p_t per SCC.
+	 * Uses Rs = S, i.e., does not take reachability into account.
+	 * @param mdp the model
+	 * @param mdpRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @return upper bound on Rmax=?[ F target ] for all states
+	 */
+	double computeReachRewardsMaxUpperBoundVariant1Coarse(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		double[] boundsOnExpectedVisits = new double[mdp.getNumStates()];
+		double[] maxRews = new double[mdp.getNumStates()];
+		int[] Ct = new int[mdp.getNumStates()];
+
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("computing an upper bound for maximal expected reward");
+
+		SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, mdp, true, null);
+		BitSet trivial = new BitSet();
+
+		double q = 0;
+		for (int scc = 0, numSCCs = sccs.getNumSCCs(); scc < numSCCs; scc++) {
+			IntSet statesForSCC = sccs.getStatesForSCC(scc);
+
+			int cardinality = statesForSCC.cardinality();
+
+			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
+			while (itSCC.hasNext()) {
+				int s = itSCC.nextInt();
+				Ct[s] = cardinality;
+
+				boolean hasSelfloop = false;
+				for (int ch = 0; ch < mdp.getNumChoices(s); ch++) {
+					double probRemain = 0;
+					boolean allRemain = true;  // all successors remain in the SCC?
+					for (Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, ch); it.hasNext(); ) {
+						Entry<Integer, Double> t = it.next();
+						if (statesForSCC.get(t.getKey())) {
+							probRemain += t.getValue();
+							hasSelfloop = true;
+						} else {
+							allRemain = false;
+						}
+					}
+
+					if (!allRemain) { // action in the set X
+						q = Math.max(q, probRemain);
+					}
+				}
+
+				if (cardinality == 1 && !hasSelfloop) {
+					trivial.set(s);
+				}
+			}
+		}
+
+		double p = 1;
+		for (int s = 0; s < mdp.getNumStates(); s++) {
+			double maxRew = 0;
+			for (int ch = 0; ch < mdp.getNumChoices(s); ch++) {
+				for (Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, ch); it.hasNext(); ) {
+					Entry<Integer, Double> t = it.next();
+					p = Math.min(p, t.getValue());
+
+					double rew = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, ch);
+					maxRew = Math.max(maxRew, rew);
+				}
+			}
+			maxRews[s] = maxRew;
+		}
+
+		double upperBound = 0;
+		for (int s = 0; s < mdp.getNumStates(); s++) {
+			if (target.get(s) || inf.get(s)) {
+				// inf or target states: not relevant, set visits to 0, ignore in summation
+				boundsOnExpectedVisits[s] = 0.0;
+			} else if (unknown.get(s)) {
+				if (trivial.get(s)) {
+					// s is a trivial SCC: seen at most once
+					boundsOnExpectedVisits[s] = 1.0;
+				} else {
+					boundsOnExpectedVisits[s] = 1 / (Math.pow(p, Ct[s]-1) * (1.0-q));
+				}
+				upperBound += boundsOnExpectedVisits[s] * maxRews[s];
+			}
+		}
+
+		if (OptionsIntervalIteration.from(this).isBoundComputationVerbose()) {
+			mainLog.println("Upper bound for max expectation computation (variant 1, coarse):");
+			mainLog.println("p = " + p);
+			mainLog.println("q = " + q);
+			mainLog.println("|Ct| = " + Arrays.toString(Ct));
+			mainLog.println("ζ* = " + Arrays.toString(boundsOnExpectedVisits));
+			mainLog.println("maxRews = " + Arrays.toString(maxRews));
+		}
+
+		timer.stop();
+		// mainLog.println("Upper bound for max expectation (variant 1, coarse): " + upperBound);
+
+		if (!Double.isFinite(upperBound)) {
+			throw new PrismException("Problem computing an upper bound for the expectation, did not get finite result");
+		}
+
+		return upperBound;
+	}
+
+	/**
+	 * Compute upper bound for maximum expected reward (variant 1, fine).
+	 * i.e., does compute separate q_t / p_t per SCC.
+	 * Uses Rs = S, i.e., does not take reachability into account.
+	 * @param mdp the model
+	 * @param mdpRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @return upper bound on Rmax=?[ F target ] for all states
+	 */
+	double computeReachRewardsMaxUpperBoundVariant1Fine(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		double[] boundsOnExpectedVisits = new double[mdp.getNumStates()];
+		double[] qt = new double[mdp.getNumStates()];
+		double[] pt = new double[mdp.getNumStates()];
+		double[] maxRews = new double[mdp.getNumStates()];
+		int[] Ct = new int[mdp.getNumStates()];
+
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("computing an upper bound for maximal expected reward");
+
+		SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, mdp, true, null);
+		BitSet trivial = new BitSet();
+
+		for (int scc = 0, numSCCs = sccs.getNumSCCs(); scc < numSCCs; scc++) {
+			IntSet statesForSCC = sccs.getStatesForSCC(scc);
+
+			double q = 0;
+			double p = 1;
+
+			int cardinality = statesForSCC.cardinality();
+
+			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
+			while (itSCC.hasNext()) {
+				int s = itSCC.nextInt();
+
+				Ct[s] = cardinality;
+				boolean hasSelfloop = false;
+
+				for (int ch = 0; ch < mdp.getNumChoices(s); ch++) {
+
+					double probRemain = 0;
+					boolean allRemain = true;  // all successors remain in the SCC?
+					for (Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, ch); it.hasNext(); ) {
+						Entry<Integer, Double> t = it.next();
+						if (statesForSCC.get(t.getKey())) {
+							probRemain += t.getValue();
+							p = Math.min(p, t.getValue());
+							hasSelfloop = true;
+						} else {
+							allRemain = false;
+						}
+					}
+
+					if (!allRemain) { // action in the set Xt
+						q = Math.max(q, probRemain);
+					}
+				}
+
+				if (cardinality == 1 && !hasSelfloop) {
+					trivial.set(s);
+				}
+			}
+
+			for (int s : statesForSCC) {
+				qt[s] = q;
+				pt[s] = p;
+			}
+		}
+
+		for (int s = 0; s < mdp.getNumStates(); s++) {
+			double maxRew = 0;
+			for (int ch = 0; ch < mdp.getNumChoices(s); ch++) {
+				double rew = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, ch);
+				maxRew = Math.max(maxRew, rew);
+			}
+			maxRews[s] = maxRew;
+		}
+
+		double upperBound = 0;
+		for (int s = 0; s < mdp.getNumStates(); s++) {
+			if (target.get(s) || inf.get(s)) {
+				// inf or target states: not relevant, set visits to 0, ignore in summation
+				boundsOnExpectedVisits[s] = 0.0;
+			} else if (unknown.get(s)) {
+				if (trivial.get(s)) {
+					// s is a trivial SCC: seen at most once
+					boundsOnExpectedVisits[s] = 1.0;
+				} else {
+					boundsOnExpectedVisits[s] = 1 / (Math.pow(pt[s], Ct[s]-1) * (1.0-qt[s]));
+				}
+				upperBound += boundsOnExpectedVisits[s] * maxRews[s];
+			}
+		}
+
+		timer.stop();
+
+		if (OptionsIntervalIteration.from(this).isBoundComputationVerbose()) {
+			mainLog.println("Upper bound for max expectation computation (variant 1, fine):");
+			mainLog.println("pt = " + Arrays.toString(pt));
+			mainLog.println("qt = " + Arrays.toString(qt));
+			mainLog.println("|Ct| = " + Arrays.toString(Ct));
+			mainLog.println("ζ* = " + Arrays.toString(boundsOnExpectedVisits));
+			mainLog.println("maxRews = " + Arrays.toString(maxRews));
+		}
+
+		// mainLog.println("Upper bound for max expectation (variant 1, fine): " + upperBound);
+
+		if (!Double.isFinite(upperBound)) {
+			throw new PrismException("Problem computing an upper bound for the expectation, did not get finite result");
+		}
+
+		return upperBound;
+	}
+
+	/**
+	 * Compute upper bound for maximum expected reward (variant 2).
+	 * Uses Rs = S, i.e., does not take reachability into account.
+	 * @param dtmc the model
+	 * @param mcRewards the rewards
+	 * @param target the target states
+	 * @param unknown the states that are not target or infinity states
+	 * @param inf the infinity states
+	 * @return upper bound on R=?[ F target ] for all states
+	 */
+	double computeReachRewardsMaxUpperBoundVariant2(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
+	{
+		double[] dt = new double[mdp.getNumStates()];
+		double[] boundsOnExpectedVisits = new double[mdp.getNumStates()];
+		double[] maxRews = new double[mdp.getNumStates()];
+
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("computing an upper bound for expected reward");
+
+		SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, mdp, true, unknown::get);
+
+		BitSet T = (BitSet) target.clone();
+
+		@SuppressWarnings("unused")
+		int i = 0;
+		while (true) {
+			BitSet Si = new BitSet();
+			i++;
+
+			// TODO: might be inefficient, worst-case quadratic runtime...
+			for (PrimitiveIterator.OfInt it = IterableBitSet.getClearBits(T, mdp.getNumStates() -1 ).iterator(); it.hasNext(); ) {
+				int s = it.nextInt();
+				// mainLog.println("Check " + s + " against " + T);
+				boolean allActionsReachT = true;
+				for (int choice = 0, choices = mdp.getNumChoices(s); choice < choices; choice++) {
+					if (!mdp.someSuccessorsInSet(s, choice, T)) {
+						allActionsReachT = false;
+						break;
+					}
+				}
+				if (allActionsReachT) {
+					Si.set(s);
+				}
+			}
+
+			if (Si.isEmpty()) {
+				break;
+			}
+
+			// mainLog.println("S" + i + " = " + Si);
+			// mainLog.println("T = " + T);
+
+			for (PrimitiveIterator.OfInt it = IterableBitSet.getSetBits(Si).iterator(); it.hasNext(); ) {
+				final int t = it.nextInt();
+				final int sccIndexForT = sccs.getSCCIndex(t);
+
+				double min = Double.POSITIVE_INFINITY;
+				for (int choice = 0, choices = mdp.getNumChoices(t); choice < choices; choice++) {
+					// mainLog.println("State " + t + ", choice = " + choice);
+					double d = mdp.sumOverTransitions(t, choice, (int __, int u, double prob) -> {
+						// mainLog.println("t = " + t + ", u = " + u + ", prob = " + prob);
+						if (!T.get(u))
+							return 0.0;
+
+						boolean inSameSCC = (sccs.getSCCIndex(u) == sccIndexForT);
+						double d_u_t = inSameSCC ? dt[u] : 1.0;
+						// mainLog.println("d_u_t = " + d_u_t);
+						return d_u_t * prob;
+					});
+					if (d < min) {
+						min = d;
+					}
+				}
+				dt[t] = min;
+				// mainLog.println("d["+t+"] = " + dt[t]);
+			}
+
+			T.or(Si);
+		}
+
+		for (int s = 0; s < mdp.getNumStates(); s++) {
+			double maxRew = 0;
+			for (int ch = 0; ch < mdp.getNumChoices(s); ch++) {
+				double rew = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, ch);
+				maxRew = Math.max(maxRew, rew);
+			}
+			maxRews[s] = maxRew;
+		}
+
+		double upperBound = 0;
+		for (PrimitiveIterator.OfInt it = IterableBitSet.getSetBits(unknown).iterator(); it.hasNext();) {
+			int s = it.nextInt();
+			boundsOnExpectedVisits[s] = 1 / dt[s];
+			upperBound += boundsOnExpectedVisits[s] * maxRews[s];
+		}
+
+		timer.stop();
+
+		if (OptionsIntervalIteration.from(this).isBoundComputationVerbose()) {
+			mainLog.println("Upper bound for max expectation computation (variant 2):");
+			mainLog.println("d_t = " + Arrays.toString(dt));
+			mainLog.println("ζ* = " + Arrays.toString(boundsOnExpectedVisits));
+		}
+
+		// mainLog.println("Upper bound for expectation (variant 2): " + upperBound);
+
+		if (!Double.isFinite(upperBound)) {
+			throw new PrismException("Problem computing an upper bound for the expectation, did not get finite result");
+		}
+
+		return upperBound;
+	}
+
+	/**
 	 * Compute expected instantaneous reward,
 	 * i.e. compute the min/max expected reward of the states after {@code k} steps.
 	 * @param mdp The MDP
@@ -1477,7 +2062,12 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismException("Policy iteration methods cannot be passed 'known' values for some states");
 			}
 		}
-		
+		if (doIntervalIteration) {
+			if (mdpSolnMethod != MDPSolnMethod.VALUE_ITERATION && mdpSolnMethod != MDPSolnMethod.GAUSS_SEIDEL) {
+				throw new PrismNotSupportedException("Currently, explicit engine only supports interval iteration with value iteration or Gauss-Seidel for MDPs");
+			}
+		}
+
 		// Start expected reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
@@ -1624,6 +2214,9 @@ public class MDPModelChecker extends ProbModelChecker
 			iterationMethod = new IterationMethodGS(termCrit == TermCrit.ABSOLUTE, termCritParam, false);
 			break;
 		case POLICY_ITERATION:
+			if (doIntervalIteration) {
+				throw new PrismNotSupportedException("Interval iteration currently not supported for policy iteration");
+			}
 			res = computeReachRewardsPolIter(mdp, mdpRewards, target, inf, min, strat);
 			break;
 		default:
@@ -1631,7 +2224,11 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 
 		if (res == null) { // not yet computed, use iterationMethod
-			res = doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat);
+			if (!doIntervalIteration) {
+				res = doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat);
+			} else {
+				res = doIntervalIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, getDoTopologicalValueIteration(), strat);
+			}
 		}
 
 		return res;
@@ -1758,6 +2355,149 @@ public class MDPModelChecker extends ProbModelChecker
 	{
 		IterationMethodGS iterationMethod = new IterationMethodGS(termCrit == TermCrit.ABSOLUTE, termCritParam, false);
 		return doValueIterationReachRewards(mdp, mdpRewards, iterationMethod, target, inf, min, init, known, false, strat);
+	}
+
+	/**
+	 * Compute expected reachability rewards using interval iteration
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param min Min or max rewards (true=min, false=max)
+	 * @param init Optionally, an initial solution vector (will be overwritten)
+	 * @param known Optionally, a set of states for which the exact answer is known
+	 * @param topological do topological interval iteration
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.
+	 */
+	protected ModelCheckerResult doIntervalIterationReachRewards(MDP mdp, MDPRewards mdpRewards, IterationMethod iterationMethod, BitSet target, BitSet inf, boolean min, double init[], BitSet known, boolean topological, int strat[])
+			throws PrismException
+	{
+		BitSet unknown;
+		int i, n;
+		double initBelow[], initAbove[];
+		long timer;
+
+		// Store num states
+		n = mdp.getNumStates();
+
+		// Determine set of states actually need to compute values for
+		unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		unknown.andNot(inf);
+		if (known != null)
+			unknown.andNot(known);
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(this);
+
+		double upperBound;
+		if (iiOptions.hasManualUpperBound()) {
+			upperBound = iiOptions.getManualUpperBound();
+			getLog().printWarning("Upper bound for interval iteration manually set to " + upperBound);
+		} else {
+			if (min) {
+				upperBound = computeReachRewardsMinUpperBound(mdp, mdpRewards, target, unknown, inf);
+			} else {
+				upperBound = computeReachRewardsMaxUpperBound(mdp, mdpRewards, target, unknown, inf);
+			}
+		}
+
+		double lowerBound;
+		if (iiOptions.hasManualLowerBound()) {
+			lowerBound = iiOptions.getManualLowerBound();
+			getLog().printWarning("Lower bound for interval iteration manually set to " + lowerBound);
+		} else {
+			lowerBound = 0.0;
+		}
+
+		if (min) {
+			if (!isContracting(mdp, unknown, target)) {
+				throw new PrismNotSupportedException("Interval iteration for Rmin and non-contracting MDP currently not supported");
+			} else {
+				mainLog.println("Relevant sub-MDP is contracting, proceed...");
+			}
+		}
+
+		// Start value iteration
+		timer = System.currentTimeMillis();
+		String description = (min ? "min" : "max") + (topological ? ", topological" : "") + ", with " + iterationMethod.getDescriptionShort();
+		mainLog.println("Starting interval iteration (" + description + ")...");
+
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = new ExportIterations("Explicit MDP ReachRewards interval iteration (" + description + ")");
+		}
+
+		// Create initial solution vector(s)
+		initBelow = (init == null) ? new double[n] : init;
+		initAbove = new double[n];
+
+		// Initialise solution vector from below. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 0.0/infinity if in target/inf; (3) lowerBound
+		if (init != null && known != null) {
+			for (i = 0; i < n; i++)
+				initBelow[i] = known.get(i) ? init[i] : target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : lowerBound;
+		} else {
+			for (i = 0; i < n; i++)
+				initBelow[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : lowerBound;
+		}
+
+		// Initialise solution vector from above. Use (where available) the following in order of preference:
+		// (1) exact answer, if already known; (2) 0.0/infinity if in target/inf; (3) upperBound
+		if (init != null && known != null) {
+			for (i = 0; i < n; i++)
+				initAbove[i] = known.get(i) ? init[i] : target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : upperBound;
+		} else {
+			for (i = 0; i < n; i++)
+				initAbove[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : upperBound;
+		}
+
+		if (iterationsExport != null) {
+			iterationsExport.exportVector(initBelow, 0);
+			iterationsExport.exportVector(initAbove, 1);
+		}
+
+		final boolean enforceMonotonicFromBelow = iiOptions.isEnforceMonotonicityFromBelow();
+		final boolean enforceMonotonicFromAbove = iiOptions.isEnforceMonotonicityFromAbove();
+		final boolean checkMonotonic = iiOptions.isCheckMonotonicity();
+
+		if (!enforceMonotonicFromAbove) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from above.");
+		}
+		if (!enforceMonotonicFromBelow) {
+			getLog().println("Note: Interval iteration is configured to not enforce monotonicity from below.");
+		}
+
+		IterationMethod.IterationIntervalIter below = iterationMethod.forMvMultRewMinMaxInterval(mdp, mdpRewards, min, strat, true, enforceMonotonicFromBelow, checkMonotonic);
+		IterationMethod.IterationIntervalIter above = iterationMethod.forMvMultRewMinMaxInterval(mdp, mdpRewards, min, strat, false, enforceMonotonicFromAbove, checkMonotonic);
+		below.init(initBelow);
+		above.init(initAbove);
+
+		IntSet unknownStates = IntSet.asIntSet(unknown);
+
+		ModelCheckerResult rv;
+		if (topological) {
+			// Compute SCCInfo, including trivial SCCs in the subgraph obtained when only considering
+			// states in unknown
+			SCCInfo sccs = SCCComputer.computeTopologicalOrdering(this, mdp, true, unknown::get);
+
+			IterationMethod.SingletonSCCSolver singletonSCCSolver = (int s, double[] soln) -> {
+				soln[s] = mdp.mvMultRewJacMinMaxSingle(s, soln, mdpRewards, min, strat);
+			};
+
+			// run the actual value iteration
+			rv = iterationMethod.doTopologicalIntervalIteration(this, description, sccs, below, above, singletonSCCSolver, timer, iterationsExport);
+		} else {
+			// run the actual value iteration
+			rv = iterationMethod.doIntervalIteration(this, description, below, above, unknownStates, timer, iterationsExport);
+		}
+
+		double max_v = PrismUtils.findMaxFinite(rv.soln, unknownStates.iterator());
+		mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+
+		return rv;
 	}
 
 	/**
