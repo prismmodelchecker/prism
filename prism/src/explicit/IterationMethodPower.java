@@ -59,9 +59,41 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
+	public IterationIntervalIter forMvMultInterval(DTMC dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	{
+		IterationPostProcessor post = (soln, soln2, states) -> {
+			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
+		};
+
+		return new TwoVectorIteration(dtmc, post) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				dtmc.mvMult(soln, soln2, states.iterator());
+			}
+		};
+	}
+
+	@Override
 	public IterationValIter forMvMultRew(DTMC dtmc, MCRewards rew)
 	{
 		return new TwoVectorIteration(dtmc, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				dtmc.mvMultRew(soln, rew, soln2, states.iterator());
+			}
+		};
+	}
+
+	@Override
+	public IterationIntervalIter forMvMultRewInterval(DTMC dtmc, MCRewards rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	{
+		IterationPostProcessor post = (soln, soln2, states) -> {
+			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
+		};
+
+		return new TwoVectorIteration(dtmc, post) {
 			@Override
 			public void doIterate(IntSet states)
 			{
@@ -83,6 +115,23 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
+	public IterationIntervalIter forMvMultMinMaxInterval(MDP mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
+			boolean checkMonotonicity) throws PrismException
+	{
+		IterationPostProcessor post = (soln, soln2, states) -> {
+			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
+		};
+
+		return new TwoVectorIteration(mdp, post) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				mdp.mvMultMinMax(soln, min, soln2, states.iterator(), strat);
+			}
+		};
+	}
+
+	@Override
 	public String getDescriptionShort()
 	{
 		return "Power method";
@@ -92,6 +141,23 @@ public class IterationMethodPower extends IterationMethod {
 	public IterationValIter forMvMultRewMinMax(MDP mdp, MDPRewards rewards, boolean min, int[] strat) throws PrismException
 	{
 		return new TwoVectorIteration(mdp, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				mdp.mvMultRewMinMax(soln, rewards, min, soln2, states.iterator(), strat);
+			}
+		};
+	}
+
+	@Override
+	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP mdp, MDPRewards rewards, boolean min, int[] strat, boolean fromBelow,
+			boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException
+	{
+		IterationPostProcessor post = (soln, soln2, states) -> {
+			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
+		};
+
+		return new TwoVectorIteration(mdp, post) {
 			@Override
 			public void doIterate(IntSet states)
 			{

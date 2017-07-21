@@ -32,6 +32,7 @@ import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
 import prism.Pair;
+import prism.PrismException;
 import explicit.rewards.MCRewards;
 
 /**
@@ -315,6 +316,52 @@ public interface DTMC extends Model
 	}
 
 	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication (in the interval iteration context) for
+	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in,
+	 * storing new values directly in {@code vect} as computed (for use in interval iteration).
+	 * i.e. for all s: vect[s] = (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param states Do multiplication for these rows, in this order
+	 * @param ensureMonotonic ensure monotonicity
+	 * @param checkMonotonic check monotonicity
+	 * @param fromBelow iteration from below or from above? (for ensureMonotonicity, checkMonotonicity)
+	 */
+	public default void mvMultGSIntervalIter(double vect[], PrimitiveIterator.OfInt states, boolean ensureMonotonic, boolean checkMonotonic, boolean fromBelow) throws PrismException
+	{
+		double d;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+
+			d = mvMultJacSingle(s, vect);
+			if (ensureMonotonic) {
+				if (fromBelow) {
+					// from below: do max old and new
+					if (vect[s] > d) {
+						d = vect[s];
+					}
+				} else {
+					// from above: do min old and new
+					if (vect[s] < d) {
+						d = vect[s];
+					}
+				}
+			}
+			if (checkMonotonic) {
+				if (fromBelow) {
+					if (vect[s] > d) {
+						throw new PrismException("Monotonicity violated (from below): old value " + vect[s] + " > new value " + d);
+					}
+				} else {
+					if (vect[s] < d) {
+						throw new PrismException("Monotonicity violated (from above): old value " + vect[s] + " < new value " + d);
+					}
+				}
+			}
+			vect[s] = d;
+		}
+	}
+
+	/**
 	 * Do a Jacobi-style matrix-vector multiplication for the DTMC's transition probability matrix P
 	 * and the vector {@code vect} passed in, for the state indices provided by the iterator,
 	 * i.e., for all s of {@code states}: result[s] = (sum_{j!=s} P(s,j)*vect[j]) / (1-P(s,s))
@@ -429,6 +476,50 @@ public interface DTMC extends Model
 			vect[s] = d;
 		}
 		return maxDiff;
+	}
+
+	/**
+	 * Do a matrix-vector multiplication and sum of action reward (Gauss-Seidel, interval iteration context).
+	 * @param vect Vector to multiply by and store result in
+	 * @param mcRewards The rewards
+	 * @param states Do multiplication for these rows, in the specified order
+	 * @param ensureMonotonic ensure monotonicity
+	 * @param checkMonotonic check monotonicity
+	 * @param fromBelow iteration from below or from above? (for ensureMonotonicity, checkMonotonicity)
+	 */
+	public default void mvMultRewGSIntervalIter(double vect[], MCRewards mcRewards, PrimitiveIterator.OfInt states, boolean ensureMonotonic, boolean checkMonotonic, boolean fromBelow) throws PrismException
+	{
+		double d;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+
+			d = mvMultRewJacSingle(s, vect, mcRewards);
+			if (ensureMonotonic) {
+				if (fromBelow) {
+					// from below: do max old and new
+					if (vect[s] > d) {
+						d = vect[s];
+					}
+				} else {
+					// from above: do min old and new
+					if (vect[s] < d) {
+						d = vect[s];
+					}
+				}
+			}
+			if (checkMonotonic) {
+				if (fromBelow) {
+					if (vect[s] > d) {
+						throw new PrismException("Monotonicity violated (from below): old value " + vect[s] + " > new value " + d);
+					}
+				} else {
+					if (vect[s] < d) {
+						throw new PrismException("Monotonicity violated (from above): old value " + vect[s] + " < new value " + d);
+					}
+				}
+			}
+			vect[s] = d;
+		}
 	}
 
 	/**

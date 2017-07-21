@@ -60,9 +60,41 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
+	public IterationIntervalIter forMvMultInterval(DTMC dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	{
+		IterationPostProcessor post = (soln, soln2, states) -> {
+			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
+		};
+
+		return new TwoVectorIteration(dtmc, post) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				dtmc.mvMultJac(soln, soln2, states.iterator());
+			}
+		};
+	}
+
+	@Override
 	public IterationValIter forMvMultRew(DTMC dtmc, MCRewards rew)
 	{
 		return new TwoVectorIteration(dtmc, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				dtmc.mvMultRewJac(soln, rew, soln2, states.iterator());
+			}
+		};
+	}
+
+	@Override
+	public IterationIntervalIter forMvMultRewInterval(DTMC dtmc, MCRewards rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	{
+		IterationPostProcessor post = (soln, soln2, states) -> {
+			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
+		};
+
+		return new TwoVectorIteration(dtmc, post) {
 			@Override
 			public void doIterate(IntSet states)
 			{
@@ -78,7 +110,21 @@ class IterationMethodJacobi extends IterationMethod {
 	}
 
 	@Override
+	public IterationIntervalIter forMvMultMinMaxInterval(MDP mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
+			boolean checkMonotonicity) throws PrismException
+	{
+		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
+	}
+
+	@Override
 	public IterationValIter forMvMultRewMinMax(MDP mdp, MDPRewards rewards, boolean min, int[] strat) throws PrismException
+	{
+		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
+	}
+
+	@Override
+	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP mdp, MDPRewards rewards, boolean min, int[] strat, boolean fromBelow,
+			boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException
 	{
 		throw new PrismNotSupportedException("Jacobi not supported for MDPs");
 	}

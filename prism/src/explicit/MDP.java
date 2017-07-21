@@ -425,6 +425,43 @@ public interface MDP extends NondetModel
 	}
 
 	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication followed by min/max in the context of interval iteration.
+	 * i.e. for all s: vect[s] = min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
+	 * and store new values directly in {@code vect} as computed.
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param min Min or max for (true=min, false=max)
+	 * @param subset Only do multiplication for these rows (ignored if null)
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param ensureMonotonic ensure monotonicity
+	 * @param fromBelow iteration from below or from above? (for ensureMonotonicity)
+	 */
+	public default void mvMultGSMinMaxIntervalIter(double vect[], boolean min, PrimitiveIterator.OfInt states, int strat[], boolean ensureMonotonic, boolean fromBelow)
+	{
+		double d;
+		while (states.hasNext()) {
+			final int s = states.nextInt();
+			d = mvMultJacMinMaxSingle(s, vect, min, strat);
+			if (ensureMonotonic) {
+				if (fromBelow) {
+					// from below: do max old and new
+					if (vect[s] > d) {
+						d = vect[s];
+					}
+				} else {
+					// from above: do min old and new
+					if (vect[s] < d) {
+						d = vect[s];
+					}
+				}
+				vect[s] = d;
+			} else {
+				vect[s] = d;
+			}
+		}
+	}
+
+	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication followed by min/max.
 	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
 	 * Optionally, store optimal (memoryless) strategy info.
@@ -661,6 +698,45 @@ public interface MDP extends NondetModel
 			vect[s] = d;
 		}
 		return maxDiff;
+	}
+
+	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max,
+	 * for interval iteration.
+	 * i.e. for all s: vect[s] = min/max_k { rew(s) + rew_k(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
+	 * and store new values directly in {@code vect} as computed.
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param mdpRewards The rewards
+	 * @param min Min or max for (true=min, false=max)
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param ensureMonotonic enforce monotonicity?
+	 * @param fromBelow interval iteration from below? (for ensureMonotonic)
+	 */
+	public default void mvMultRewGSMinMaxIntervalIter(double vect[], MDPRewards mdpRewards, boolean min, PrimitiveIterator.OfInt states, int strat[], boolean ensureMonotonic, boolean fromBelow)
+	{
+		double d;
+		while (states.hasNext()) {
+			final int s = states.nextInt();
+			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
+			if (ensureMonotonic) {
+				if (fromBelow) {
+					// from below: do max old and new
+					if (vect[s] > d) {
+						d = vect[s];
+					}
+				} else {
+					// from above: do min old and new
+					if (vect[s] < d) {
+						d = vect[s];
+					}
+				}
+				vect[s] = d;
+			} else {
+				vect[s] = d;
+			}
+		}
 	}
 
 	/**

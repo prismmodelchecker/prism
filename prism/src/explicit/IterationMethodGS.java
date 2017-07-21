@@ -69,6 +69,23 @@ public class IterationMethodGS extends IterationMethod {
 	}
 
 	@Override
+	public IterationIntervalIter forMvMultInterval(DTMC dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	{
+		return new SingleVectorIterationIntervalIter(dtmc) {
+			@Override
+			public void iterate(IntSet states) throws PrismException
+			{
+				// Matrix-vector multiply
+				dtmc.mvMultGSIntervalIter(soln,
+				                          backwards ? states.reversedIterator() : states.iterator(),
+				                          enforceMonotonicity,
+				                          checkMonotonicity,
+				                          fromBelow);
+			}
+		};
+	}
+
+	@Override
 	public IterationValIter forMvMultRew(DTMC dtmc, MCRewards rew)
 	{
 		return new SingleVectorIterationValIter(dtmc) {
@@ -83,6 +100,24 @@ public class IterationMethodGS extends IterationMethod {
 
 				// Check termination
 				return (maxDiff < termCritParam);
+			}
+		};
+	}
+
+	@Override
+	public IterationIntervalIter forMvMultRewInterval(DTMC dtmc, MCRewards rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	{
+		return new SingleVectorIterationIntervalIter(dtmc) {
+			@Override
+			public void iterate(IntSet states) throws PrismException
+			{
+				// Matrix-vector multiply
+				dtmc.mvMultRewGSIntervalIter(soln,
+					                          rew,
+					                          backwards ? states.reversedIterator() : states.iterator(),
+					                          enforceMonotonicity,
+					                          checkMonotonicity,
+					                          fromBelow);
 			}
 		};
 	}
@@ -108,6 +143,27 @@ public class IterationMethodGS extends IterationMethod {
 	}
 
 	@Override
+	public IterationIntervalIter forMvMultMinMaxInterval(MDP mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
+			boolean checkMonotonicity) throws PrismException
+	{
+		return new SingleVectorIterationIntervalIter(mdp) {
+			@Override
+			public void iterate(IntSet states)
+			{
+				// TODO: check monotonic not yet supported
+
+				// Matrix-vector multiply
+				mdp.mvMultGSMinMaxIntervalIter(soln,
+				                               min,
+				                               backwards ? states.reversedIterator() : states.iterator(),
+				                               strat,
+				                               enforceMonotonicity,
+				                               fromBelow);
+			}
+		};
+	}
+
+	@Override
 	public IterationValIter forMvMultRewMinMax(MDP mdp, MDPRewards rewards, boolean min, int[] strat) throws PrismException
 	{
 		return new SingleVectorIterationValIter(mdp) {
@@ -124,6 +180,28 @@ public class IterationMethodGS extends IterationMethod {
 
 				// Check termination
 				return (maxDiff < termCritParam);
+			}
+		};
+	}
+
+	@Override
+	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP mdp, MDPRewards rewards, boolean min, int[] strat, boolean fromBelow,
+			boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException
+	{
+		return new SingleVectorIterationIntervalIter(mdp) {
+			@Override
+			public void iterate(IntSet states)
+			{
+				// TODO: check monotonic not yet supported
+
+				// Matrix-vector multiply
+				mdp.mvMultRewGSMinMaxIntervalIter(soln,
+				                                  rewards,
+				                                  min,
+				                                  backwards ? states.reversedIterator() : states.iterator(),
+				                                  strat,
+				                                  enforceMonotonicity,
+				                                  fromBelow);
 			}
 		};
 	}
