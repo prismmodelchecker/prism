@@ -47,6 +47,78 @@ public interface MDP extends NondetModel
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 
 	/**
+	 * Functional interface for a consumer,
+	 * accepting transitions (s,t,d), i.e.,
+	 * from state s to state t with value d.
+	 */
+	@FunctionalInterface
+	public interface TransitionConsumer {
+		void accept(int s, int t, double d);
+	}
+
+	/**
+	 * Iterate over the outgoing transitions of state {@code s} and choice {@code i}
+	 * and call the accept method of the consumer for each of them:
+	 * <br>
+	 * Call {@code accept(s,t,d)} where t is the successor state d = P(s,i,t)
+	 * is the probability from s to t with choice i.
+	 * <p>
+	 * <i>Default implementation</i>: The default implementation relies on iterating over the
+	 * iterator returned by {@code getTransitionsIterator()}.
+	 * <p><i>Note</i>: This method is the base for the default implementation of the numerical
+	 * computation methods (mvMult, etc). In derived classes, it may thus be worthwhile to
+	 * provide a specialised implementation for this method that avoids using the Iterator mechanism.
+	 *
+	 * @param s the state s
+	 * @param i the choice i
+	 * @param c the consumer
+	 */
+	public default void forEachTransition(int s, int i, TransitionConsumer c)
+	{
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(s, i); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			c.accept(s, e.getKey(), e.getValue());
+		}
+	}
+
+	/**
+	 * Functional interface for a function
+	 * mapping transitions (s,t,d), i.e.,
+	 * from state s to state t with value d,
+	 * to a double value.
+	 */
+	@FunctionalInterface
+	public interface TransitionToDoubleFunction {
+		double apply(int s, int t, double d);
+	}
+
+	/**
+	 * Iterate over the outgoing transitions of state {@code s} and choice {@code i},
+	 * call the function {@code f} and return the sum of the result values:
+	 * <br>
+	 * Return sum_t f(s, t, P(s,i,t)), where t ranges over the i-successors of s.
+	 *
+	 * @param s the state s
+	 * @param c the consumer
+	 */
+	public default double sumOverTransitions(final int s, final int i, final TransitionToDoubleFunction f)
+	{
+		class Sum {
+			double sum = 0.0;
+
+			void accept(int s, int t, double d)
+			{
+				sum += f.apply(s, t, d);
+			}
+		}
+
+		Sum sum = new Sum();
+		forEachTransition(s, i, sum::accept);
+
+		return sum.sum;
+	}
+
+	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff, for all/some choices,
 	 * there is a transition to a state in {@code u}.
