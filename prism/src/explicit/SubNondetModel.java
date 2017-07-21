@@ -253,35 +253,6 @@ public class SubNondetModel implements NondetModel
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public void exportToDotFile(String filename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark, boolean showStates)
-	{
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])

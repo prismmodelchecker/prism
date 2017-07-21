@@ -42,6 +42,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
+import explicit.graphviz.Decorator;
 import explicit.rewards.MDPRewards;
 
 /**
@@ -110,7 +111,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		int j, numChoices;
 		String nij;
@@ -119,15 +120,38 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		for (j = 0; j < numChoices; j++) {
 			action = getAction(i, j);
 			nij = "n" + i + "_" + j;
-			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-			if (action != null)
-				out.print(":" + action);
-			out.print("\" ];\n");
+			out.print(i + " -> " + nij + " ");
+
+			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+			d.attributes().put("arrowhead", "none");
+			d.setLabel(j + (action != null ? ":" + action : ""));
+
+			if (decorators != null) {
+				for (Decorator decorator : decorators) {
+					d = decorator.decorateTransition(i, j, d);
+				}
+			}
+			out.print(d);
+			out.println(";");
+
 			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
+
 			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
 			while (iter.hasNext()) {
 				Map.Entry<Integer, Double> e = iter.next();
-				out.print(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+				out.print(nij + " -> " + e.getKey() + " ");
+
+				d = new explicit.graphviz.Decoration();
+				d.setLabel(e.getValue().toString());
+
+				if (decorators != null) {
+					for (Decorator decorator : decorators) {
+						d = decorator.decorateProbability(i, e.getKey(), j, e.getValue(), d);
+					}
+				}
+
+				out.print(d);
+				out.println(";");
 			}
 		}
 	}

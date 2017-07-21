@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import explicit.graphviz.Decorator;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
@@ -82,13 +83,22 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
 		while (iter.hasNext()) {
 			Map.Entry<Integer, Double> e = iter.next();
-			out.print(i + " -> " + e.getKey() + " [ label=\"");
-			out.print(e.getValue() + "\" ];\n");
+			out.print(i + " -> " + e.getKey());
+
+			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+			d.setLabel(e.getValue().toString());
+			if (decorators != null) {
+				for (Decorator decorator : decorators) {
+					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
+				}
+			}
+
+			out.println(d.toString());
 		}
 	}
 

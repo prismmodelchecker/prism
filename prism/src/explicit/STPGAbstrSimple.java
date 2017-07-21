@@ -395,11 +395,14 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	protected void exportTransitionsToDotFile(int i, PrismLog out)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		int j, k;
 		String nij, nijk;
 		j = -1;
+
+		// we ignore decorators for the moment
+
 		for (DistributionSet distrs : trans.get(i)) {
 			j++;
 			nij = "n" + i + "_" + j;

@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
+import explicit.graphviz.Decorator;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
@@ -192,10 +193,12 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	protected void exportTransitionsToDotFile(int s, PrismLog out)
+	public void exportTransitionsToDotFile(int s, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		for (Iterator<Integer> it = getSuccessorsIterator(s); it.hasNext(); ) {
 			Integer successor = it.next();
+
+			// we ignore decorators here
 			out.println(s + " -> " + successor + ";");
 		}
 	}

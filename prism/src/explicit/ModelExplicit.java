@@ -390,65 +390,6 @@ public abstract class ModelExplicit implements Model
 	public abstract void exportToPrismExplicitTra(PrismLog out);
 
 	@Override
-	public void exportToDotFile(String filename) throws PrismException
-	{
-		exportToDotFile(filename, null);
-	}
-
-	@Override
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
-	{
-		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToDotFile(log, mark);
-		}
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out)
-	{
-		exportToDotFile(out, null, false);
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark)
-	{
-		exportToDotFile(out, mark, false);
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark, boolean showStates)
-	{
-		int i;
-		// Header
-		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
-		for (i = 0; i < numStates; i++) {
-			// Style for each state
-			if (mark != null && mark.get(i))
-				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-			// Transitions for state i
-			exportTransitionsToDotFile(i, out);
-		}
-		// Append state info (if required)
-		if (showStates) {
-			List<State> states = getStatesList();
-			if (states != null) {
-				for (i = 0; i < numStates; i++) {
-					out.print(i + " [label=\"" + i + "\\n" + states.get(i) + "\"]\n");
-				}
-			}
-		}
-		// Footer
-		out.print("}\n");
-	}
-
-	/**
-	 * Export the transitions from state {@code i} in Dot format to {@code out}.
-	 * @param i State index
-	 * @param out PrismLog for output
-	 */
-	protected abstract void exportTransitionsToDotFile(int i, PrismLog out);
-
-	@Override
 	public abstract void exportToPrismLanguage(String filename) throws PrismException;
 
 	@Override
