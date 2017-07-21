@@ -31,6 +31,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
@@ -266,7 +267,7 @@ public interface MDP extends NondetModel
 	/**
 	 * Do a matrix-vector multiplication followed by min/max, i.e. one step of value iteration,
 	 * i.e. for all s: result[s] = min/max_k { sum_j P_k(s,j)*vect[j] }
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by
 	 * @param min Min or max for (true=min, false=max)
 	 * @param result Vector to store result in
@@ -276,8 +277,23 @@ public interface MDP extends NondetModel
 	 */
 	public default void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
 	{
-		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
-			final int s = it.nextInt();
+		mvMultMinMax(vect, min, result, new IterableStateSet(subset, getNumStates(), complement).iterator(), strat);
+	}
+
+	/**
+	 * Do a matrix-vector multiplication followed by min/max, i.e. one step of value iteration,
+	 * i.e. for all s: result[s] = min/max_k { sum_j P_k(s,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by
+	 * @param min Min or max for (true=min, false=max)
+	 * @param result Vector to store result in
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	public default void mvMultMinMax(double vect[], boolean min, double result[], PrimitiveIterator.OfInt states, int strat[])
+	{
+		while (states.hasNext()) {
+			final int s = states.nextInt();
 			result[s] = mvMultMinMaxSingle(s, vect, min, strat);
 		}
 	}
@@ -285,7 +301,7 @@ public interface MDP extends NondetModel
 	/**
 	 * Do a single row of matrix-vector multiplication followed by min/max,
 	 * i.e. return min/max_k { sum_j P_k(s,j)*vect[j] }
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param min Min or max for (true=min, false=max)
@@ -367,7 +383,7 @@ public interface MDP extends NondetModel
 	 * and store new values directly in {@code vect} as computed.
 	 * The maximum (absolute/relative) difference between old/new
 	 * elements of {@code vect} is also returned.
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by (and store the result in)
 	 * @param min Min or max for (true=min, false=max)
 	 * @param subset Only do multiplication for these rows (ignored if null)
@@ -378,30 +394,40 @@ public interface MDP extends NondetModel
 	 */
 	public default double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
 	{
+		return mvMultGSMinMax(vect, min, new IterableStateSet(subset, getNumStates(), complement).iterator(), absolute, strat);
+	}
+
+	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication followed by min/max.
+	 * i.e. for all s: vect[s] = min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
+	 * and store new values directly in {@code vect} as computed.
+	 * The maximum (absolute/relative) difference between old/new
+	 * elements of {@code vect} is also returned.
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param min Min or max for (true=min, false=max)
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @return The maximum difference between old/new elements of {@code vect}
+	 */
+	public default double mvMultGSMinMax(double vect[], boolean min, PrimitiveIterator.OfInt states, boolean absolute, int strat[])
+	{
 		double d, diff, maxDiff = 0.0;
-		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
-			final int s = it.nextInt();
+		while (states.hasNext()) {
+			final int s = states.nextInt();
 			d = mvMultJacMinMaxSingle(s, vect, min, strat);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultJacMinMaxSingle(s, vect, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
 		return maxDiff;
 	}
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication followed by min/max.
 	 * i.e. return min/max_k { (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param min Min or max for (true=min, false=max)
@@ -476,7 +502,7 @@ public interface MDP extends NondetModel
 	/**
 	 * Do a matrix-vector multiplication and sum of rewards followed by min/max, i.e. one step of value iteration.
 	 * i.e. for all s: result[s] = min/max_k { rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j] }
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
@@ -494,9 +520,28 @@ public interface MDP extends NondetModel
 	}
 
 	/**
+	 * Do a matrix-vector multiplication and sum of rewards followed by min/max, i.e. one step of value iteration.
+	 * i.e. for all s: result[s] = min/max_k { rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j] }
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param min Min or max for (true=min, false=max)
+	 * @param result Vector to store result in
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	public default void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], PrimitiveIterator.OfInt states, int strat[])
+	{
+		while (states.hasNext()) {
+			final int s = states.nextInt();
+			result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
+		}
+	}
+
+	/**
 	 * Do a single row of matrix-vector multiplication and sum of rewards followed by min/max.
 	 * i.e. return min/max_k { rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j] }
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
@@ -575,7 +620,7 @@ public interface MDP extends NondetModel
 	 * and store new values directly in {@code vect} as computed.
 	 * The maximum (absolute/relative) difference between old/new
 	 * elements of {@code vect} is also returned.
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by (and store the result in)
 	 * @param mdpRewards The rewards
 	 * @param min Min or max for (true=min, false=max)
@@ -586,31 +631,42 @@ public interface MDP extends NondetModel
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
 	public default double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
-		{
+	{
+		return mvMultRewGSMinMax(vect, mdpRewards, min, new IterableStateSet(subset, getNumStates(), complement).iterator(), absolute, strat);
+	}
+
+	/**
+	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max.
+	 * i.e. for all s: vect[s] = min/max_k { rew(s) + rew_k(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
+	 * and store new values directly in {@code vect} as computed.
+	 * The maximum (absolute/relative) difference between old/new
+	 * elements of {@code vect} is also returned.
+	 * Optionally, store optimal (memoryless) strategy info.
+	 * @param vect Vector to multiply by (and store the result in)
+	 * @param mdpRewards The rewards
+	 * @param min Min or max for (true=min, false=max)
+	 * @param states Perform computation for these rows, in the iteration order
+	 * @param absolute If true, compute absolute, rather than relative, difference
+	 * @return The maximum difference between old/new elements of {@code vect}
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	public default double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, PrimitiveIterator.OfInt states, boolean absolute, int strat[])
+	{
 		double d, diff, maxDiff = 0.0;
-		for (OfInt it = new IterableStateSet(subset, getNumStates(), complement).iterator(); it.hasNext();) {
-			final int s = it.nextInt();
+		while (states.hasNext()) {
+			final int s = states.nextInt();
 			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
 		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
 		return maxDiff;
 	}
 
 	/**
 	 * Do a single row of Jacobi-style matrix-vector multiplication and sum of rewards followed by min/max.
 	 * i.e. return min/max_k { rew(s) + rew_k(s) + (sum_{j!=s} P_k(s,j)*vect[j]) / 1-P_k(s,s) }
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param s State (row) index
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
