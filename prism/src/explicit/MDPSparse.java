@@ -31,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -600,35 +601,7 @@ public class MDPSparse extends MDPExplicit
 				assert (col < end);
 				final int i = col;
 				col++;
-				return new Entry<Integer, Double>()
-				{
-					int key = cols[i];
-					double value = nonZeros[i];
-
-					@Override
-					public Integer getKey()
-					{
-						return key;
-					}
-
-					@Override
-					public Double getValue()
-					{
-						return value;
-					}
-
-					@Override
-					public Double setValue(Double arg0)
-					{
-						throw new UnsupportedOperationException();
-					}
-				};
-			}
-
-			@Override
-			public void remove()
-			{
-				throw new UnsupportedOperationException();
+				return new AbstractMap.SimpleImmutableEntry<>(cols[i], nonZeros[i]);
 			}
 		};
 	}
