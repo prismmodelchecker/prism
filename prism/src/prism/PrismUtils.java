@@ -32,6 +32,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
+import java.util.PrimitiveIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -131,6 +132,77 @@ public class PrismUtils
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * See if, for all the entries given by the {@code indizes}
+	 * iterator, two arrays of doubles are all within epsilon of each other (relative or absolute error).
+	 * <br>
+	 * Considers Inf == Inf and -Inf == -Inf.
+	 */
+	public static boolean doublesAreClose(double d1[], double d2[], PrimitiveIterator.OfInt indizes, double epsilon, boolean abs)
+	{
+		if (abs) {
+			while (indizes.hasNext()) {
+				int i = indizes.nextInt();
+				if (!PrismUtils.doublesAreCloseAbs(d1[i], d2[i], epsilon))
+					return false;
+			}
+		} else {
+			while (indizes.hasNext()) {
+				int i = indizes.nextInt();
+				if (!PrismUtils.doublesAreCloseRel(d1[i], d2[i], epsilon))
+					return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Measure supremum norm, either absolute or relative,
+	 * return the maximum difference.
+	 */
+	public static double measureSupNorm(double[] d1, double[] d2, boolean abs)
+	{
+		int n = d1.length;
+		assert( n == d2.length);
+
+		double value = 0;
+		if (abs) {
+			for (int i=0; i < n; i++) {
+				double diff = measureSupNormAbs(d1[i], d2[i]);
+				if (diff > value)
+					value = diff;
+			}
+		} else {
+			for (int i=0; i < n; i++) {
+				double diff = measureSupNormRel(d1[i], d2[i]);
+				if (diff > value)
+					value = diff;
+			}
+		}
+		return value;
+	}
+
+	/**
+	 * Measure supremum norm for two values, absolute.
+	 */
+	public static double measureSupNormAbs(double d1, double d2)
+	{
+		if (Double.isInfinite(d1) && d1==d2)
+			return 0;
+		return Math.abs(d1 - d2);
+	}
+
+	/**
+	 * Measure supremum norm for two values, relative,
+	 * with the first value used as the divisor.
+	 */
+	public static double measureSupNormRel(double d1, double d2)
+	{
+		if (d1==d2)
+			return 0;
+		return (Math.abs(d1 - d2) / d1);
 	}
 
 	/**
