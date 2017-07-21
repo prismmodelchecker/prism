@@ -2307,6 +2307,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
 		mainLog.println("-javamaxmem .................... Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
 		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
+		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 		mainLog.println();
 		mainLog.println("IMPORT OPTIONS:");
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
