@@ -315,6 +315,12 @@ public class StateValuesDV implements StateValues
 	}
 
 	@Override
+	public double maxFiniteOverBDD(JDDNode filter)
+	{
+		return values.maxFiniteOverBDD(filter, vars, odd);
+	}
+
+	@Override
 	public double sumOverBDD(JDDNode filter)
 	{
 		return values.sumOverBDD(filter, vars, odd);

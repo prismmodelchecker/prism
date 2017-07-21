@@ -265,7 +265,13 @@ public class DoubleVector
 	{
 		return DV_MaxOverBDD(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
 	}
-	
+
+	private native double DV_MaxFiniteOverBDD(long v, long filter, long vars, int num_vars, long odd);
+	public double maxFiniteOverBDD(JDDNode filter, JDDVars vars, ODDNode odd)
+	{
+		return DV_MaxOverBDD(v, filter.ptr(), vars.array(), vars.n(), odd.ptr());
+	}
+
 	// sum elements of vector according to a bdd (used for csl steady state operator)
 	private native double DV_SumOverBDD(long v, long filter, long vars, int num_vars, long odd);
 	public double sumOverBDD(JDDNode filter, JDDVars vars, ODDNode odd)

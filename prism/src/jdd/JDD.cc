@@ -441,6 +441,13 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax(JNIEnv *env, jclass cls, jlon
 
 //------------------------------------------------------------------------------
 
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMaxFinite(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
+{
+	return DD_FindMaxFinite(ddman, jlong_to_DdNode(dd));
+}
+
+//------------------------------------------------------------------------------
+
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_jdd_JDD_DD_1RestrictToFirst(JNIEnv *env, jclass cls, jlong __jlongpointer dd, jlong __jlongpointer vars, jint num_vars)
 {

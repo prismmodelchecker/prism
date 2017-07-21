@@ -138,6 +138,15 @@ public interface StateValues extends StateVector
 	double maxOverBDD(JDDNode filter);
 
 	/**
+	 * Get the maximum finite value of those that are in the (BDD) filter.
+	 * <br>
+	 * If the filter is empty for this vector or all values for the filter are non-finite,
+	 * returns negative infinity.
+	 * <br>[ DEREFS: <i>none</i> ]
+	 */
+	public double maxFiniteOverBDD(JDDNode filter);
+
+	/**
 	 * Get the sum of those elements that are in the (BDD) filter.
 	 * If the filter is empty for this vector, returns 0.
  	 * <br>[ DEREFS: <i>none</i> ]

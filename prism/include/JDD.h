@@ -457,6 +457,14 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax
 
 /*
  * Class:     jdd_JDD
+ * Method:    DD_FindMaxFinite
+ * Signature: (J)D
+ */
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMaxFinite
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     jdd_JDD
  * Method:    DD_RestrictToFirst
  * Signature: (JJI)J
  */

@@ -414,6 +414,30 @@ public class StateValuesMTBDD implements StateValues
 	}
 
 	@Override
+	public double maxFiniteOverBDD(JDDNode filter)
+	{
+		JDDNode tmp;
+		double d;
+
+		// filter filter
+		JDD.Ref(filter);
+		JDD.Ref(reach);
+		tmp = JDD.And(filter, reach);
+
+		// max of an empty set is -infinity
+		if (tmp.equals(JDD.ZERO)) return Double.NEGATIVE_INFINITY;
+
+		// set non-reach states to infinity
+		JDD.Ref(values);
+		tmp = JDD.ITE(tmp, values, JDD.MinusInfinity());
+
+		d = JDD.FindMaxFinite(tmp);
+		JDD.Deref(tmp);
+
+		return d;
+	}
+
+	@Override
 	public double sumOverBDD(JDDNode filter)
 	{
 		JDDNode tmp;

@@ -179,6 +179,12 @@ public class StateValuesVoid implements StateValues
 	}
 
 	@Override
+	public double maxFiniteOverBDD(JDDNode filter)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public double sumOverBDD(JDDNode filter)
 	{
 		throw new UnsupportedOperationException();

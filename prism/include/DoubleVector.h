@@ -153,6 +153,14 @@ JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MaxOverBDD
 
 /*
  * Class:     dv_DoubleVector
+ * Method:    DV_MaxFiniteOverBDD
+ * Signature: (JJJIJ)D
+ */
+JNIEXPORT jdouble JNICALL Java_dv_DoubleVector_DV_1MaxFiniteOverBDD
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint, jlong);
+
+/*
+ * Class:     dv_DoubleVector
  * Method:    DV_SumOverBDD
  * Signature: (JJJIJ)D
  */
