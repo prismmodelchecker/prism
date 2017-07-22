@@ -349,6 +349,10 @@ public class DTMCModelChecker extends ProbModelChecker
 		int n, numBSCCs = 0;
 		long timer;
 
+		if (getDoIntervalIteration()) {
+			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
+		}
+
 		// Switch to a supported method, if necessary
 		if (!(linEqMethod == LinEqMethod.POWER)) {
 			linEqMethod = LinEqMethod.POWER;

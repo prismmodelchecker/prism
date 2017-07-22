@@ -1727,6 +1727,10 @@ public class ProbModelChecker extends NonProbModelChecker
 		JDDNode notInBSCCs = null;
 		int numBSCCs = 0;
 
+		if (doIntervalIteration) {
+			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
+		}
+
 		// Compute bottom strongly connected components (BSCCs)
 		SCCComputer sccComputer = prism.getSCCComputer(model);
 		sccComputer.computeBSCCs();

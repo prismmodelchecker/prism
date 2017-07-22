@@ -1931,6 +1931,9 @@ public class MDPModelChecker extends ProbModelChecker
 			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
 			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
 		}
+		if (getDoIntervalIteration()) {
+			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
+		}
 
 		// Start expected total reward
 		timer = System.currentTimeMillis();

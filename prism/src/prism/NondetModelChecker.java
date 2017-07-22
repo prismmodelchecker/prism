@@ -2185,6 +2185,10 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Local copy of setting
 		int engine = this.engine;
 
+		if (doIntervalIteration) {
+			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
+		}
+
 		// Start expected total reward
 		mainLog.println("\nStarting total expected reward (max)...");
 
