@@ -48,6 +48,7 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import odd.ODDUtils;
+import param.BigRational;
 import param.ModelBuilder;
 import param.ParamModel;
 import param.ParamModelChecker;
@@ -3174,7 +3175,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!("Result".equals(prop.getExpression().getResultName())))
 			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
 		resultString += ": " + result.getResultString();
-		mainLog.print("\n" + resultString);
+		mainLog.println("\n" + resultString);
+
+		if (result.getResult() instanceof BigRational) {
+			mainLog.println("Approximate result: " + ((BigRational)result.getResult()).doubleValue());
+		}
 
 		return result;
 	}
