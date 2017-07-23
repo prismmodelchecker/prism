@@ -8,7 +8,7 @@ Version 4.4 (first released 23/7/2017)
   - expected reward to satisfy a co-safe LTL formula (MDPs, D/CTMCs, all engines)
   - interval iteration (MDPs, D/CTMCs, all engines)
   - topological value iteration (MDPs, D/CTMCs, explicit engine)
-  - expected total reward (R[C] operator) for CTMCs (all engines)
+  - expected total reward (R[C] operator) for CTMCs and MDPs (max), all engines
   - CTL model checking in the explicit engine
   - non-probabilistic LTL model checking in the explicit engine
   - instantaneous reward computation (Rmax/min[I=x]) in the explicit engine
