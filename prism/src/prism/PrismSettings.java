@@ -1714,15 +1714,15 @@ public class PrismSettings implements Observer
 		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel value iteration for solving MDPs");
 		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
 		mainLog.println("-modpoliter .................... Use modified policy iteration for solving MDPs");
+		mainLog.println("-intervaliter (or -ii) ......... Use interval iteration to solve MDPs/MCs (see -help -ii)");
+		mainLog.println("-topological ................... Use topological value iteration");
 		mainLog.println();
 		mainLog.println("SOLUTION METHOD SETTINGS");
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
 		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
 		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
-		mainLog.println("-topological ................... Perform topological iterations (only explicit engine");
-		mainLog.println("-intervaliter (or -ii) ......... Perform interval iteration (for options see -help -ii)");
-
+		
 		mainLog.println();
 		mainLog.println("MODEL CHECKING OPTIONS:");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");
