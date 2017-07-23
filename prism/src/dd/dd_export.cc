@@ -29,9 +29,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
+#include <cinttypes>
 #include <util.h>
 #include <cudd.h>
-#include <cinttypes>
 #include "dd.h"
 #include "dd_basics.h"
 #include "dd_abstr.h"
