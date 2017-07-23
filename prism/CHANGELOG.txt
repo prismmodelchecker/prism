@@ -38,7 +38,7 @@ Version 4.4 (first released 23/7/2017)
   - code base now allows/assumes Java 8
 
 -----------------------------------------------------------------------------
-Version 4.3.1 (first released 26/5/2015)
+Version 4.3.1 (first released 26/5/2016)
 -----------------------------------------------------------------------------
 
 * Bug fixes:
