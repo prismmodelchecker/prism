@@ -1,9 +1,13 @@
 This file contains details of the changes in each new version of PRISM.
 
-Recent changes: (up to svn rev 12001)
+-----------------------------------------------------------------------------
+Version 4.4 (first released 23/7/2017)
+-----------------------------------------------------------------------------
 
 * New model checking functionality:
   - expected reward to satisfy a co-safe LTL formula (MDPs, D/CTMCs, all engines)
+  - interval iteration (MDPs, D/CTMCs, all engines)
+  - topological value iteration (MDPs, D/CTMCs, explicit engine)
   - expected total reward (R[C] operator) for CTMCs (all engines)
   - CTL model checking in the explicit engine
   - non-probabilistic LTL model checking in the explicit engine
@@ -28,8 +32,9 @@ Recent changes: (up to svn rev 12001)
 * Features for developers:
   - new ModelGenerator interface for specifying models programmatically
   - extensions to test mode: complex expressions for RESULT specifications
-  - prism-auto: new options (--show-warnings, --nailgun, --ngprism), multiple -x switches
+  - prism-auto: new options/features (e.g., --show-warnings, --nailgun, --ngprism, --verbose-test)
   - DD debugging options: -dddebug and -ddtrace switches, improved ref count debugging
+  - new option -exportiterations for visualising iterative numerical methods
   - code base now allows/assumes Java 8
 
 -----------------------------------------------------------------------------
