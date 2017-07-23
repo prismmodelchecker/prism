@@ -27,7 +27,7 @@
 
 // includes
 #include "PrismMTBDD.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>

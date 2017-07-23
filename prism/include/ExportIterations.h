@@ -30,7 +30,7 @@
 
 #include <cstdio>
 #include <string>
-#include <math.h>
+#include <cmath>
 
 #include <cudd.h>
 #include <dd.h>
@@ -72,7 +72,7 @@ public:
 		for (int i = 0; i < n; i++) {
 			if (i>0) fprintf(fp, ",");
 			double d = soln[i];
-			if (isinf(d)) {
+			if (std::isinf(d)) {
 				if (d > 0)
 					fprintf(fp, "Infinity");
 				else

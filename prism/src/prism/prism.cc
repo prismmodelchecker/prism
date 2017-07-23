@@ -28,7 +28,7 @@
 // includes
 #include "prism.h"
 #include <stdio.h>
-#include <math.h>
+#include <cmath>
 #include <new>
 #include <vector>
 #include "jnipointer.h"

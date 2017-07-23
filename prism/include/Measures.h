@@ -29,7 +29,7 @@
 #define MEASURE_H
 
 #include <cstddef>  // for std::size_t type
-#include <math.h>  // for isinf
+#include <cmath>  // for std::isinf
 #include <limits>
 
 /**
@@ -140,7 +140,7 @@ public:
 
 		// special case: one of the values is infinite (this can happen e.g. for non-converging
 		// iterations when the values grow extremely large and overflow to infinity).
-		if (isinf(lower) || isinf(upper)) {
+		if (std::isinf(lower) || std::isinf(upper)) {
 			x = std::numeric_limits<double>::infinity();
 		} else {
 			// compute difference

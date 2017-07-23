@@ -30,7 +30,7 @@
 #include "hybrid.h"
 #include "PrismHybrid.h"
 #include "PrismHybridGlob.h"
-#include <math.h>
+#include <cmath>
 #include <new>
 
 // globals (used by local functions)

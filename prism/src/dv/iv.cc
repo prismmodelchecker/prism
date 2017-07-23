@@ -26,7 +26,7 @@
 //==============================================================================
 
 #include "iv.h"
-#include <math.h>
+#include <cmath>
 #include <new>
 #include <cstdint>
 

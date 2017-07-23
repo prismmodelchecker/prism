@@ -26,7 +26,7 @@
 //==============================================================================
 
 #include "dv.h"
-#include <math.h>
+#include <cmath>
 #include <new>
 #include <cstdint>
 #include <limits>
@@ -619,9 +619,9 @@ EXPORT DistVector::~DistVector()
 EXPORT bool doubles_are_close_abs(double d1, double d2, double epsilon)
 {
 	// Deal with infinite cases
-	if (isinf(d1)) {
-		return isinf(d2) && (d1 > 0) == (d2 > 0);
-	} else if (isinf(d2)) {
+	if (std::isinf(d1)) {
+		return std::isinf(d2) && (d1 > 0) == (d2 > 0);
+	} else if (std::isinf(d2)) {
 		return false;
 	}
 	// Compute/check error
@@ -631,9 +631,9 @@ EXPORT bool doubles_are_close_abs(double d1, double d2, double epsilon)
 EXPORT bool doubles_are_close_rel(double d1, double d2, double epsilon)
 {
 	// Deal with infinite cases
-	if (isinf(d1)) {
-		return isinf(d2) && (d1 > 0) == (d2 > 0);
-	} else if (isinf(d2)) {
+	if (std::isinf(d1)) {
+		return std::isinf(d2) && (d1 > 0) == (d2 > 0);
+	} else if (std::isinf(d2)) {
 		return false;
 	}
 	// Compute/check error
