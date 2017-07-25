@@ -484,8 +484,8 @@ public class ModelGenerator2MTBDD
 					/// ...for mdps...
 					else {
 						tmp = JDD.ThereExists(elem.copy(), allDDColVars);
-						// use max here because we see multiple transitions for a sinlge choice
-						transActions = JDD.Apply(JDD.MAX, transActions, JDD.Apply(JDD.TIMES, JDD.Constant(j), tmp));
+						// use max here because we see multiple transitions for a single choice
+						transActions = JDD.Apply(JDD.MAX, transActions, JDD.Apply(JDD.TIMES, JDD.Constant(k), tmp));
 					}
 
 					// Add action rewards
