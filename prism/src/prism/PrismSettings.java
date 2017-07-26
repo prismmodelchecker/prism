@@ -249,7 +249,7 @@ public class PrismSettings implements Observer
 																			"Use topological value iteration in iterative numerical methods."},
 			{ BOOLEAN_TYPE,		PRISM_PMAX_QUOTIENT,				"For Pmax computations, compute in the MEC quotient",				"4.3.1",		false,																		"",
 																				"For Pmax computations, compute in the MEC quotient."},
-			{ BOOLEAN_TYPE,		PRISM_INTERVAL_ITER,				"Use interval iterations",				"4.3.1",		false,																		"",
+			{ BOOLEAN_TYPE,		PRISM_INTERVAL_ITER,				"Use interval iteration",				"4.3.1",		false,																		"",
 																				"Use interval iteration (from above and below) in iterative numerical methods."},
 			{ STRING_TYPE,		PRISM_INTERVAL_ITER_OPTIONS,				"Interval iteration options",				"4.3.1",		"",																		"",
 																	"Interval iteration options, a comma-separated list of the following:\n" + OptionsIntervalIteration.getOptionsDescription() },
