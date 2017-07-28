@@ -66,8 +66,8 @@ jstring fn		// filename
 	
 	// print file header
 	switch (export_type) {
-	case EXPORT_PLAIN: export_string("%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars)); break;
-	case EXPORT_MATLAB: export_string("%s = sparse(%d,1);\n", export_name, odd->eoff+odd->toff); break;
+	case EXPORT_PLAIN: export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars)); break;
+	case EXPORT_MATLAB: export_string("%s = sparse(%" PRId64 ",1);\n", export_name, odd->eoff+odd->toff); break;
 	}
 	
 	// print main part of file
