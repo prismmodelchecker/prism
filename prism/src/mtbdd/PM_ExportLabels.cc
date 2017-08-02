@@ -26,6 +26,7 @@
 
 // includes
 #include "PrismMTBDD.h"
+#include <cinttypes>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -36,7 +37,7 @@
 //------------------------------------------------------------------------------
 
 // local function prototypes
-static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, long index);
+static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t index);
 
 // globals
 static const char *export_name;
@@ -89,7 +90,7 @@ jstring fn		// filename
 		break;
 	case EXPORT_MATLAB:
 		for (i = 0; i < num_labels; i++)
-			export_string("%s_%s=sparse(%d,1);\n", export_name, label_strings[i], odd->eoff+odd->toff);
+			export_string("%s_%s=sparse(%" PRId64 ",1);\n", export_name, label_strings[i], odd->eoff+odd->toff);
 		export_string("\n");
 		break;
 	case EXPORT_MRMC:
@@ -133,7 +134,7 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
+static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t index)
 {
 	int i;
 	bool all_zero;
@@ -149,15 +150,15 @@ static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, lon
 	if (level == num_vars) {
 		// print state index
 		switch (export_type) {
-		case EXPORT_PLAIN: export_string("%d:", index); break;
-		case EXPORT_MRMC: export_string("%d", index+1); break;
+		case EXPORT_PLAIN: export_string("%" PRId64 ":", index); break;
+		case EXPORT_MRMC: export_string("%" PRId64, index+1); break;
 		}
 		// print labels
 		for (i = 0; i < num_labels; i++) {
 			if (dd_array[level][i] != Cudd_ReadZero(ddman)) {
 				switch (export_type) {
 				case EXPORT_PLAIN: export_string(" %d", i); break;
-				case EXPORT_MATLAB: export_string("%s_%s(%d)=1;\n", export_name, label_strings[i], index+1); break;
+				case EXPORT_MATLAB: export_string("%s_%s(%" PRId64 ")=1;\n", export_name, label_strings[i], index+1); break;
 				case EXPORT_MRMC: export_string(" %s", label_strings[i]); break;
 				}
 			}
