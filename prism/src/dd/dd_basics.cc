@@ -25,8 +25,8 @@
 //	
 //==============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <util.h>
 #include <cudd.h>
 #include "dd_basics.h"

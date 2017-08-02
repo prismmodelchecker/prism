@@ -25,8 +25,8 @@
 //==============================================================================
 
 #include "PrismMTBDD.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdarg>
 #include <cmath>
 #include <limits.h>
 #include <util.h>

@@ -26,9 +26,9 @@
 
 #include "PrismSparse.h"
 #include "NDSparseMatrix.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdarg>
+#include <climits>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>

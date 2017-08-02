@@ -30,7 +30,7 @@
 #include "JDDVars.h"
 #include "jnipointer.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>

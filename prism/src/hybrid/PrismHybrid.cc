@@ -25,9 +25,9 @@
 //==============================================================================
 
 #include "PrismHybrid.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdarg>
+#include <limits>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>

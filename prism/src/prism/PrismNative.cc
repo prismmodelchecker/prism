@@ -25,9 +25,9 @@
 //==============================================================================
 
 #include "PrismNative.h"
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstring>
+#include <limits>
 #include <locale.h>
 #include <unistd.h>
 #include "PrismNativeGlob.h"
