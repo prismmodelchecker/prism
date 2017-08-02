@@ -325,7 +325,7 @@ jdouble time		// time bound
 		if (sum) delete[] sum;
 		sum = 0;
 	} catch (const char *err) {
-		PH_SetErrorMessage(err);
+		PH_SetErrorMessage("%s", err);
 		if (sum) delete sum;
 		sum = 0;
 	}

@@ -338,7 +338,7 @@ jlong __jlongpointer mu	// probs for multiplying
 		if (sum) delete sum;
 		sum = 0;
 	} catch (const char *err) {
-		PS_SetErrorMessage(err);
+		PS_SetErrorMessage("%s", err);
 		if (sum) delete sum;
 		sum = 0;
 	}
