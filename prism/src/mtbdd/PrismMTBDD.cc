@@ -210,7 +210,7 @@ void export_string(const char *str, ...)
 	if (export_file) {
 		fprintf(export_file, "%s", full_string);
 	} else {
-		PM_PrintToMainLog(export_env, full_string);
+		PM_PrintToMainLog(export_env, "%s", full_string);
 	}
 }
 

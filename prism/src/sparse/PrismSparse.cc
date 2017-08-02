@@ -234,7 +234,7 @@ void export_string(const char *str, ...)
 	if (export_file) {
 		fprintf(export_file, "%s", full_string);
 	} else {
-		PS_PrintToMainLog(export_env, full_string);
+		PS_PrintToMainLog(export_env, "%s", full_string);
 	}
 }
 
