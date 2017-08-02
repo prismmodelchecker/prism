@@ -158,7 +158,7 @@ jlong _strat				// strategy storage
 			// also extract list of action names from 'synchs'
 			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 		} else {
-			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.", export_adv_filename);
+			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.");
 		}
 	}
 	
