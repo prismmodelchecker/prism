@@ -280,7 +280,7 @@ jlong __jlongpointer mu	// probs for multiplying
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+			PH_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
 			if (do_ss_detect) PH_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
 			PH_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
