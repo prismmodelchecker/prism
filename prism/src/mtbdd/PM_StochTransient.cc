@@ -91,7 +91,7 @@ jdouble time				// time
 	diags = DD_SumAbstract(ddman, trans, cvars, num_rvars);
 	diags = DD_Apply(ddman, APPLY_TIMES, diags, DD_Constant(ddman, -1));
 	i = DD_GetNumNodes(ddman, diags);
-	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
 	if (combine) {
 		
@@ -121,7 +121,7 @@ jdouble time				// time
 //		PM_PrintToMainLog(env, "Q (final) = %d %d %.0f\n", DD_GetNumNodes(ddman, q), DD_GetNumTerminals(ddman, q), DD_GetNumMinterms(ddman, q, num_rvars+num_cvars));
 		
 		i = DD_GetNumNodes(ddman, q);
-		PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+		PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	}
 	else {
 		
@@ -155,7 +155,7 @@ jdouble time				// time
 		diags = DD_PermuteVariables(ddman, diags, rvars, cvars, num_rvars);
 		
 		i = DD_GetNumNodes(ddman, r);
-		PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+		PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	}
 	
 	// compute new termination criterion parameter (epsilon/8)
@@ -270,7 +270,7 @@ jdouble time				// time
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+			PM_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
 			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
