@@ -800,9 +800,6 @@ if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
-    if isWindows():
-        print("Using nailgun on Windows is currently not supported")
-        sys.exit(1)
     if options.echo or options.echoFull:
         print(options.prismExec + " -ng &")
     else:
