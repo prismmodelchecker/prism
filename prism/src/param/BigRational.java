@@ -455,6 +455,8 @@ public final class BigRational implements Comparable<BigRational>
 	 */
 	public int signum()
 	{
+		if (isInf()) return 1;
+		if (isMInf()) return -1;
 		return num.signum() * den.signum();
 	}
 
