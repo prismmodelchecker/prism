@@ -54,12 +54,12 @@ $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(O_FILES)
 $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
 	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
 
-# Don't build ngprism on Windows/Cygwin for now
 $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE): ngprism.c
+# For ngprism on Windows, link winsocket library (ws2_32)
 	@if [ "$(EXE)" = "" ]; then \
 	  $(C) $(LDFLAGS) $(CFLAGS) -o $@ $<; \
 	else \
-	  touch $@; \
+	  $(C) $(LDFLAGS) $(CFLAGS) -o $@ $< -lws2_32; \
 	fi;
 
 clean: checks
