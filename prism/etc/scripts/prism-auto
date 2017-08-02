@@ -389,21 +389,22 @@ def runPrism(args, dir=""):
         exitCode = subprocess.Popen(prismArgs).wait()
         #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
     elif options.test or options.ddWarnings:
-        f = tempfile.NamedTemporaryFile(delete=False)
-        logFile = f.name
-        # we want cleanup when we are done, as this is a real temporary file
-        cleanupLogFile = True
+        # create logfile
         if isWindows():
             # On Windows, PRISM can not open a temporary file created with NamedTemporaryFile.
-            # So, we just pass the file to Popen to capture standard output instead of redirecting
-            # with the -mainlog parameter.
-            # Note: This does not work with nailgun, as this requires the use of -mainlog to
-            # capture PRISM's output.
-            exitCode = subprocess.Popen(prismArgs, stdout=f).wait()
+            # So we use the not-as-secure mktemp...
+            # We use . as directory because PRISM / Java can not handle
+            # cygwin style paths (/tmp/...)
+            logFile = tempfile.mktemp(dir='.')
         else:
-            prismArgs = prismArgs + ['-mainlog', logFile]
-            exitCode = subprocess.Popen(prismArgs).wait()
-        f.close()
+            # Not on Windows, use NamedTemporaryFile
+            f = tempfile.NamedTemporaryFile(delete=False)
+            logFile = f.name
+            f.close()
+        # we want cleanup when we are done, as this is a real temporary file
+        cleanupLogFile = True
+        prismArgs = prismArgs + ['-mainlog', logFile]
+        exitCode = subprocess.Popen(prismArgs).wait()
     else:
         exitCode = subprocess.Popen(prismArgs).wait()
     # Extract DD reference count warnings
