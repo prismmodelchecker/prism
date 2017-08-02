@@ -122,7 +122,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_a?", compact":"");
+	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_a?", compact":"");
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// build b vector (if present)

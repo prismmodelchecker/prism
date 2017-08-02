@@ -239,7 +239,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     kb = ndsm->mem;
     kbt = kb;
     // print out info
-    PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+    PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
     PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 
     // If needed, and if info is available, build a vector of action indices for the MDP
