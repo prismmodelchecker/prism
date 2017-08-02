@@ -1,0 +1,12 @@
+// This file should be called human_test.props
+
+
+R{"time"}min=? [ (F ((robot_x=6) & (robot_y=13))) ]
+
+
+Pmax=? [ (F "close_to_human") ]
+
+partial(R{"time"}min=? [ (F "close_to_human") ])
+
+
+R{"time"}min=? [ ( !"close_to_human" U ((robot_x=6) & (robot_y=13))) ]

@@ -290,15 +290,53 @@ public class TypeCheck extends ASTTraverse
 			e.setType(TypeBool.getInstance());
 			break;
 		case ExpressionBinaryOp.PLUS:
+			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble || t1 instanceof TypePathDouble)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
+			}
+			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble || t2 instanceof TypePathDouble)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
+			}
+			if ((t1 instanceof TypePathDouble || t2 instanceof TypePathDouble) && !t1.equals(t2)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot apply to a number and a numerical path formula", e.getOperand2());
+			}
+			Type tPlus = null;
+			if (t1 instanceof TypePathDouble)
+				tPlus = TypePathDouble.getInstance();
+			else if (t1 instanceof TypeDouble || t2 instanceof TypeDouble)
+				tPlus = TypeDouble.getInstance();
+			else
+				tPlus = TypeInt.getInstance();
+			e.setType(tPlus);
+			break;
 		case ExpressionBinaryOp.MINUS:
-		case ExpressionBinaryOp.TIMES:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
 			}
 			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
 			}
-			e.setType(t1 instanceof TypeDouble || t2 instanceof TypeDouble ? TypeDouble.getInstance() : TypeInt.getInstance());
+			Type tMinus = null;
+			if (t1 instanceof TypeDouble || t2 instanceof TypeDouble)
+				tMinus = TypeDouble.getInstance();
+			else
+				tMinus = TypeInt.getInstance();
+			e.setType(tMinus);
+			break;
+		case ExpressionBinaryOp.TIMES:
+			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
+			}
+			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble || t2 instanceof TypePathBool)) {
+				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
+			}
+			Type tTimes = null;
+			if (t2 instanceof TypePathBool)
+				tTimes = TypePathDouble.getInstance();
+			else if (t1 instanceof TypeDouble || t2 instanceof TypeDouble)
+				tTimes = TypeDouble.getInstance();
+			else
+				tTimes = TypeInt.getInstance();
+			e.setType(tTimes);
 			break;
 		case ExpressionBinaryOp.DIVIDE:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
@@ -386,6 +424,9 @@ public class TypeCheck extends ASTTraverse
 				}
 			}
 			break;
+		case ExpressionFunc.PARTIAL:
+			// Anything goes
+			break;
 		default:
 			throw new PrismLangException("Cannot type check unknown function", e);
 		}
@@ -418,6 +459,7 @@ public class TypeCheck extends ASTTraverse
 			e.setType(TypeDouble.getInstance());
 			break;
 		case ExpressionFunc.MULTI:
+		case ExpressionFunc.PARTIAL:
 			// Resulting type is always same as first arg
 			if (types[0] instanceof TypeBool)
 				e.setType(TypeBool.getInstance());
@@ -478,7 +520,7 @@ public class TypeCheck extends ASTTraverse
 		}
 		// Check path operator
 		// Note: need to allow (non-path) Boolean types too, since propositional formulae are also LTL
-		if (!(e.getExpression().getType() instanceof TypePathBool || e.getExpression().getType() instanceof TypeBool)) {
+		if (!(e.getExpression().getType() instanceof TypePathBool || e.getExpression().getType() instanceof TypeBool || e.getExpression().getType() instanceof TypePathDouble)) {
 			throw new PrismLangException("Type error: Contents of P operator is not a path formula", e.getExpression());
 		}
 		// Set type

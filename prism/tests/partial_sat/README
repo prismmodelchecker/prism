@@ -1,0 +1,3 @@
+six_room_office.prism is obtained from a topological map used for the robot's navigation, and is created in python: https://github.com/bfalacerda/strands_executive/blob/doors/mdp_plan_exec/src/mdp_plan_exec/doors_top_map_mdp.py
+product_six_room_office.prism is obtained from six_room_office.prism, and the .lab, .tra, .sta and .aut files exported by prism (when model checking six_room_office.prop), and is created in python: https://github.com/bfalacerda/strands_executive/blob/doors/mdp_plan_exec/src/mdp_plan_exec/product_mdp.py
+final_policy.tra is the prism export from the second spec in product_six_room_office.prop (note that state labels do not match product_six_room_office.prop, as prism did an extra product internally, which wasn't exported)

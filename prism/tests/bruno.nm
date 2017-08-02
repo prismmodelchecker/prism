@@ -1,0 +1,55 @@
+mdp
+
+module robot
+
+	a1 : bool init false;
+	a2 : bool init false;
+	a3 : bool init false;
+	b1 : bool init false;
+	b2 : bool init false;
+	b3 : bool init false;
+	c1 : bool init false;
+	c2 : bool init false;
+	c3 : bool init false;
+	d : bool init false;
+	e : bool init false;
+	f1 : bool init false;
+	f2 : bool init false;
+	f3 : bool init false;
+	
+	[a1] true -> (a1'=false);
+	[a1] true -> (a1'=true);
+	[a2] true -> (a2'=false);
+	[a2] true -> (a2'=true);
+	[a3] true -> (a3'=false);
+	[a3] true -> (a3'=true);
+	[b1] true -> (b1'=false);
+	[b1] true -> (b1'=true);
+	[b2] true -> (b2'=false);
+	[b2] true -> (b2'=true);
+	[b3] true -> (b3'=false);
+	[b3] true -> (b3'=true);
+	[c1] true -> (c1'=false);
+	[c1] true -> (c1'=true);
+	[c2] true -> (c2'=false);
+	[c2] true -> (c2'=true);
+	[c3] true -> (c3'=false);
+	[c3] true -> (c3'=true);
+	[d] true -> (d'=false);
+	[d] true -> (d'=true);
+	[e] true -> (e'=false);
+	[e] true -> (e'=true);
+	[f1] true -> (f1'=false);
+	[f1] true -> (f1'=true);
+	[f2] true -> (f2'=false);
+	[f2] true -> (f2'=true);
+	[f3] true -> (f3'=false);
+	[f3] true -> (f3'=true);
+	
+endmodule
+
+//init true endinit
+
+rewards "coin_flips"
+	[] true : 1;
+endrewards

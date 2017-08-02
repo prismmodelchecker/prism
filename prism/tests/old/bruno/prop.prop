@@ -1,0 +1,28 @@
+multi(Pmax=? [ F "dra_acc_state1" ], R{"time"}min=? [ C ])
+    //Diverge
+
+multi(P>=0.9 [ F "dra_acc_state1" ], R{"time"}min=? [ C ])
+    //diverge, C->total reward
+
+multi(R{"goal1_rew"}max=? [ C ], P>=0.9 [ F "dra_acc_state1" ])
+    //Does not export policy
+
+multi(Pmax=? [ F "dra_acc_state1" ], R{"goal1_rew"}max=? [ C ])
+    //(1,1) as expected
+
+multi(Pmax=? [ F "dra_acc_state1" ], R{"goal1_rew"}max=? [ F "dra_acc_state1" ])
+   // Error: Reward operators in multi-objective properties must be C or C<=k (F is not yet supported).
+
+
+
+multi(Pmin=? [ F "dra_acc_state1" ], R{"goal1_rew"}min=? [ C ])
+    //Result: [(0.0,-0.0),
+    //(0.0,-0.0)] (value in the initial state)
+    //should be (0,-2)
+
+
+//FINAL GOAL
+//multi(P>=0.9 [ F "dra_acc_state1" ], R{"time"}min=? [ F "dra_acc_state1" | |=F "dra_acc_state1"], R{"goal1_rew"}max=? [ C ])
+//how do we guarantee that the paths for which the property is not satisfied but we are still maximizing "goal1_rew" minimise expected times?
+//strip product from states where prob is 0 //christel baier TACAS 14
+

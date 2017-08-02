@@ -1,0 +1,2 @@
+multi(R{"goal1_rew"}max=? [ C ], P>=0.729 [ F "dra_acc_state1" ]) //0.462375
+multi(R{"time"}min=? [ C ], R{"goal1_rew"}>=0.462375 [ C ], P>=0.729 [ F "dra_acc_state1" ]) //13.299999999999997

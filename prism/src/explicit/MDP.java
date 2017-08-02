@@ -216,6 +216,16 @@ public interface MDP extends NondetModel
 	 * @param mcRewards The rewards
 	 */
 	public double mvMultRewSingle(int s, int i, double vect[], MCRewards mcRewards);
+	
+	/**
+	 * Do a single row of matrix-vector multiplication and sum of rewards for a specific choice.
+	 * i.e. rew(s) + rew_k(s) + sum_j P_k(s,j)*vect[j]
+	 * @param s State (row) index
+	 * @param i Choice index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 */
+	public double mvMultRewSingle(int s, int i, double vect[], MDPRewards mdpRewards);
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max.

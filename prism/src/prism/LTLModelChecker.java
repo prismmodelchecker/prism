@@ -62,7 +62,7 @@ import parser.type.TypePathBool;
 public class LTLModelChecker extends PrismComponent
 {
 	/**
-	 * Create a new DTMCModelChecker, inherit basic state from parent (unless null).
+	 * Create a new LTLModelChecker, inherit basic state from parent (unless null).
 	 */
 	public LTLModelChecker(PrismComponent parent) throws PrismException
 	{
