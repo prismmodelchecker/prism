@@ -28,6 +28,7 @@
 #define PRISMNATIVEGLOB_H
 
 //------------------------------------------------------------------------------
+#include <cstdio>
 #include <jni.h>
 
 // Flags for building Windows DLLs
@@ -36,6 +37,35 @@
 #else
 	#define EXPORT
 #endif
+
+//------------------------------------------------------------------------------
+
+// macro for attributing printf-like functions to notify the compiler
+// that we'd like to have format string / argument sanity checking
+
+#ifdef __GNUC__
+  // __attribute__ should be supported by compilers that claim to behave like GNU GCC
+
+  // we have to determine the printf format string, as MINGW supports two printf backends
+#if defined(__USE_MINGW_ANSI_STDIO) && __USE_MINGW_ANSI_STDIO
+  // this should be the default for C++
+#define PRISM_PRINTF_FORMAT gnu_printf
+#elif defined(__USE_MINGW_ANSI_STDIO) && !(__USE_MINGW_ANSI_STDIO)
+#define PRISM_PRINTF_FORMAT ms_printf
+#else
+  // normal GCC: use printf as format
+#define PRISM_PRINTF_FORMAT printf
+#endif
+
+// define IS_LIKE_PRINTF, which can be placed after a printf-like function
+// first parameter is index of format string, second parameter is first vararg
+#define IS_LIKE_PRINTF(format_index, first_arg) __attribute__((__format__(PRISM_PRINTF_FORMAT, format_index,first_arg)))
+
+#else // !defined __GNUC__
+// empty IS_LIKE_PRINTF
+#define IS_LIKE_PRINTF(format_index, first_arg)
+#endif
+
 
 //------------------------------------------------------------------------------
 

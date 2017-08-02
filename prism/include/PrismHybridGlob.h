@@ -45,11 +45,11 @@ extern double last_unif;
 // macros, function prototypes
 
 #define logtwo(X) log((double)X)/log(2.0)
-void PH_PrintToMainLog(JNIEnv *env, const char *str, ...);
-void PH_PrintWarningToMainLog(JNIEnv *env, const char *str, ...);
-void PH_PrintToTechLog(JNIEnv *env, const char *str, ...);
+void PH_PrintToMainLog(JNIEnv *env, const char *str, ...) IS_LIKE_PRINTF(2,3);
+void PH_PrintWarningToMainLog(JNIEnv *env, const char *str, ...)  IS_LIKE_PRINTF(2,3);
+void PH_PrintToTechLog(JNIEnv *env, const char *str, ...)  IS_LIKE_PRINTF(2,3);
 void PH_PrintMemoryToMainLog(JNIEnv *env, const char *before, double mem, const char *after);
-void PH_SetErrorMessage(const char *str, ...);
+void PH_SetErrorMessage(const char *str, ...)  IS_LIKE_PRINTF(1,2);
 char *PH_GetErrorMessage();
 bool PH_GetFlagExportIterations();
 
