@@ -185,7 +185,7 @@ JNIEXPORT jdouble __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetMulti
     PS_PrintToMainLog(env, "%d Target combinations:\n", num_combinations);
     for (i = 0; i < num_combinations; i++) {
       PS_PrintToMainLog(env, "#%d: ", i);
-      PS_PrintToMainLog(env, "%d ", combinationIDs[i]);
+      PS_PrintToMainLog(env, "%d ", (int)combinationIDs[i]);
       PS_PrintToMainLog(env, " (%.0f states)\n", DD_GetNumMinterms(ddman, combinations[i], num_rvars));
     }
 

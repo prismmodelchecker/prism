@@ -197,7 +197,7 @@ jint time		// time
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, time);
+			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)time);
 			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
 			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();

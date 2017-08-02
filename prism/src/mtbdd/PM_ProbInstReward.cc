@@ -94,7 +94,7 @@ jint bound			// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, bound);
+			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
 			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
