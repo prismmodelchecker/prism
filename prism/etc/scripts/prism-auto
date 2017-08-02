@@ -312,7 +312,8 @@ def getExpectedOutFilesFromArgs(args):
                     fullName = base + str(i) + '.' + ext
                     foundFile = True
             if not foundFile:
-                print('\033[93m' + "Warning: There is no file of the form " + base + "[number]." + ext + " to compare against -- will skip" + '\033[0m')
+                printColoured('WARNING', "Warning: There is no file of the form " + base + "[number]." + ext + " to compare against -- will skip")
+                incrementTestStat('WARNING')
     return resultFiles
 
 # Create a valid name for a log file based on a list of benchmark arguments
