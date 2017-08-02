@@ -36,7 +36,7 @@
 //------------------------------------------------------------------------------
 
 // local function prototypes
-static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index);
+static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, long index);
 
 // globals
 static const char *export_name;
@@ -110,7 +110,7 @@ jstring fn		// filename
 	}
 	
 	// print main part of file
-	export_rec(jlong_to_DdNode(labels[0]), vars, num_vars, 0, odd, 0);
+	export_rec(vars, num_vars, 0, odd, 0);
 	
 	// free memory
 	for (i = 0; i < num_vars+1; i++) {
@@ -133,9 +133,8 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
+static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
 {
-	DdNode *e, *t;
 	int i;
 	bool all_zero;
 	
@@ -178,7 +177,7 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 			dd_array[level+1][i] = Cudd_E(dd_array[level][i]);
 		}
 	}
-	export_rec(e, vars, num_vars, level+1, odd->e, index);
+	export_rec(vars, num_vars, level+1, odd->e, index);
 	
 	// recurse - thens
 	for (i = 0; i < num_labels; i++) {
@@ -188,7 +187,7 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 			dd_array[level+1][i] = Cudd_T(dd_array[level][i]);
 		}
 	}
-	export_rec(t, vars, num_vars, level+1, odd->t, index+odd->eoff);
+	export_rec(vars, num_vars, level+1, odd->t, index+odd->eoff);
 }
 
 //------------------------------------------------------------------------------
