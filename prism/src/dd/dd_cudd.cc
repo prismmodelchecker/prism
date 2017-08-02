@@ -31,6 +31,7 @@
 
 #include <map>
 #include <set>
+#include <string>
 
 extern FILE *dd_out;
 
@@ -365,7 +366,7 @@ void DD_ReportExternalRefCounts(DdManager *manager)
 	std::map<DdNode*, int> internal_refs;
 
 	DD_AnalyzeRefCounts(manager, nodes, internal_refs);
-	printf("%lu nodes\n", nodes.size());
+	printf("%s nodes\n", std::to_string(nodes.size()).c_str());  // no portable format string flag for size_t at the moment
 
 	for (std::set<DdNode*>::iterator it = nodes.begin();
 	     it != nodes.end();
