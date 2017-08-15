@@ -33,6 +33,9 @@ default: all
 
 all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismNative.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX) $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE)
 
+# inhibit building in parallel (-j option)
+.NOTPARALLEL:
+
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
 	@if [ "$(SRC_DIR)" = "" ]; then \

@@ -305,6 +305,9 @@ EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
 .PHONY: clean javadoc tests
 
+# inhibit building in parallel (-j option)
+.NOTPARALLEL:
+
 default: all
 
 all: cuddpackage extpackages prism

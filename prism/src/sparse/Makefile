@@ -41,6 +41,9 @@ default: all
 
 all: checks $(CLASS_FILES) $(PRISM_DIR_REL)/$(INCLUDE_DIR)/PrismSparse.h $(PRISM_DIR_REL)/$(INCLUDE_DIR)/NDSparseMatrix.h $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)prismsparse$(LIBSUFFIX)
 
+# inhibit building in parallel (-j option)
+.NOTPARALLEL:
+
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
 	@if [ "$(SRC_DIR)" = "" ]; then \

@@ -31,6 +31,9 @@ default: all
 
 all: checks $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)dd$(LIBSUFFIX) $(PRISM_DIR_REL)/$(OBJ_DIR)/$(THIS_DIR)/dd_test$(EXE)
 
+# inhibit building in parallel (-j option)
+.NOTPARALLEL:
+
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
 	@if [ "$(SRC_DIR)" = "" ]; then \
