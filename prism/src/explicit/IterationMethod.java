@@ -58,6 +58,16 @@ public abstract class IterationMethod {
 		public boolean iterateAndCheckConvergence(IntSet states) throws PrismException;
 
 		/**
+		 * Notify that the given states are done (e.g., because the given SCC is finished
+		 * during a topological iteration).
+		 * <br>
+		 * This allows the two-vector iteration methods to store the current values for these
+		 * states into the second vector, so that switching the vector does not return to
+		 * previous values.
+		 */
+		public void doneWith(IntSet states);
+
+		/**
 		 * Solve for a given singleton SCC consisting of {@code state} using {@code solver},
 		 * store the result in the solution vector(s).
 		 */
@@ -80,6 +90,16 @@ public abstract class IterationMethod {
 
 		/** Perform one iteration (over the set of states) */
 		public void iterate(IntSet states) throws PrismException;
+
+		/**
+		 * Notify that the given states are done (e.g., because the given SCC is finished
+		 * during a topological iteration).
+		 * <br>
+		 * This allows the two-vector iteration methods to store the current values for these
+		 * states into the second vector, so that switching the vector does not return to
+		 * previous values.
+		 */
+		public void doneWith(IntSet states);
 
 		/**
 		 * Solve for a given singleton SCC consisting of {@code state} using {@code solver},
@@ -111,9 +131,16 @@ public abstract class IterationMethod {
 			return soln;
 		}
 
+		/* see IterationValIter.solveSingletonSCC() */
 		public void solveSingletonSCC(int state, SingletonSCCSolver solver)
 		{
 			solver.solveFor(state, soln);
+		}
+
+		/* see IterationValIter.doneWith() */
+		public void doneWith(IntSet states)
+		{
+			// single vector, nothing to do
 		}
 
 		public Model getModel()
@@ -220,6 +247,19 @@ public abstract class IterationMethod {
 			soln2 = tmp;
 
 			return done;
+		}
+
+		@Override
+		public void doneWith(IntSet states)
+		{
+			// we copy the values for the given states to the
+			// second vector, so that switching between vectors
+			// does not change their values
+			PrimitiveIterator.OfInt it = states.iterator();
+			while (it.hasNext()) {
+				int state = it.nextInt();
+				soln2[state] = soln[state];
+			}
 		}
 
 		@Override
@@ -444,6 +484,9 @@ public abstract class IterationMethod {
 				int state = sccs.getStatesForSCC(scc).iterator().nextInt();
 				iterator.solveSingletonSCC(state, singletonSCCSolver);
 
+				// no need to call doneWith(...), as solveSingletonSCC updates
+				// both vectors for two-iteration methods
+
 				mvCount += countTransitions(iterator.getModel(), IntSet.asIntSet(state));
 
 				iters++;
@@ -473,6 +516,11 @@ public abstract class IterationMethod {
 					}
 
 				}
+
+				// notify the iterator that the states are done so that
+				// their values can be copied to the second vector in a two-vector
+				// iterator
+				iterator.doneWith(statesForSCC);
 
 				mvCount += itersInSCC * countTransitions(iterator.getModel(), statesForSCC);
 			}
@@ -637,6 +685,9 @@ public abstract class IterationMethod {
 					below.solveSingletonSCC(state, singletonSCCSolver);
 					above.solveSingletonSCC(state, singletonSCCSolver);
 
+					// no need to call doneWith(...), as solveSingletonSCC updates
+					// both vectors for two-iteration methods
+
 					iters++;
 					mvCount += 2 * countTransitions(below.getModel(), IntSet.asIntSet(state));
 
@@ -691,6 +742,12 @@ public abstract class IterationMethod {
 							mc.getLog().println(", " + PrismUtils.formatDouble2dp(updatesTimer.elapsedMillisTotal() / 1000.0) + " sec so far");
 						}
 					}
+
+					// notify the iterators that the states are done so that
+					// their values can be copied to the second vector in a two-vector
+					// iterator
+					below.doneWith(statesForSCC);
+					above.doneWith(statesForSCC);
 
 					mvCount += 2 * itersInSCC * countTransitions(below.getModel(), statesForSCC);
 					finishedNonSingletonSCCs++;
