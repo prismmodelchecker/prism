@@ -1083,6 +1083,10 @@ final public class ParamModelChecker extends PrismComponent
 						Function sumOut = model.sumLeaving(choice);
 						Function choiceReward;
 						if (!isTransitionReward) {
+							// for state reward, scale by sumOut
+							// For DTMC/MDP, this changes nothing;
+							// for CTMC this takes the expected duration
+							// in this state into account
 							choiceReward = newReward.divide(sumOut);
 						} else {
 							choiceReward = functionFactory.getZero();
@@ -1092,7 +1096,7 @@ final public class ParamModelChecker extends PrismComponent
 									choiceReward = choiceReward.add(newReward.multiply(model.succProb(succ)));
 								}
 							}
-							choiceReward = choiceReward.divide(sumOut);
+							// does not get scaled by sumOut
 						}
 						rewSimple.addReward(choice, choiceReward);
 					}
