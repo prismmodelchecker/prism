@@ -480,10 +480,10 @@ def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
         incrementTestStat('FAILURE')
     elif options.ddWarnings and re.match('Warning: CUDD reports .* non-zero references', msg):
-        incrementTestStat('WARNINGS')
-        incrementTestStat('DDWARNINGS')
+        incrementTestStat('WARNING')
+        incrementTestStat('DDWARNING')
     elif 'Warning:' in msg:
-        incrementTestStat('WARNINGS')
+        incrementTestStat('WARNING')
     elif 'PASS' in msg:
         incrementTestStat('SUCCESS')
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
