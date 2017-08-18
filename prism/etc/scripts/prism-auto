@@ -417,8 +417,12 @@ def runPrism(args, dir=""):
         for line in open(logFile, 'r').readlines():
             if re.match('Testing result:', line):
                 printTestResult(line)
-            elif options.showWarnings and re.match('Warning:', line):
-                printTestResult(line)
+            elif re.match('Warning:', line):
+                if options.showWarnings:
+                    printTestResult(line)
+                else:
+                    # We don't print it, but we count it
+                    countTestResult(line)
             elif options.verboseTest:
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
@@ -469,7 +473,8 @@ def printTestStatistics():
     if options.test and not options.echo:
         print('\nTest results:')
         printColoured('SUCCESS',     ' Success:      ' + str(testStats['SUCCESS']))
-        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING']))
+        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING'])
+                      + ('  (use -w to show)' if (testStats['WARNING']>0 and not options.showWarnings and not options.verboseTest) else ''))
         if (options.ddWarnings):
             printColoured('WARNING',     '  DD-Warnings: ' + str(testStats['DDWARNING']))
         printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
