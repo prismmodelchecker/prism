@@ -531,9 +531,9 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
             else:
                 msg = msg + "FAIL (no " + os.path.basename(expFile) + " to compare to)"
                 result = False
-    	printTestResult(msg)
-    	if not result:
-    		return result
+        printTestResult(msg)
+        if not result:
+            return result
     return result
 
 # Run a benchmark, specified by a list of command-line args,
