@@ -54,7 +54,7 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 	public void visitPost(ModulesFile e) throws PrismLangException
 	{
 		int i, j, n, n2;
-		Module m;
+		parser.ast.Module m;
 		Vector<String> v;
 
 		// Check for use of init...endinit _and_ var initial values
@@ -174,13 +174,13 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 		}
 	}
 
-	public void visitPre(Module e) throws PrismLangException
+	public void visitPre(parser.ast.Module e) throws PrismLangException
 	{
 		// Register the fact we are entering a module
 		//inModule = e;
 	}
 
-	public Object visit(Module e) throws PrismLangException
+	public Object visit(parser.ast.Module e) throws PrismLangException
 	{
 		// Override this so we can keep track of when we are in an invariant
 		visitPre(e);
@@ -201,7 +201,7 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 		return null;
 	}
 
-	public void visitPost(Module e) throws PrismLangException
+	public void visitPost(parser.ast.Module e) throws PrismLangException
 	{
 		// Register the fact we are leaving a module
 		//inModule = null;
@@ -230,7 +230,7 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 		int i, n;
 		String s, var;
 		Command c;
-		Module m;
+		parser.ast.Module m;
 		boolean isLocal, isGlobal;
 
 		// Register the fact we are leaving an update

@@ -217,7 +217,7 @@ public class SimulationView extends Observable
 					canUseCurrentView = false;
 			}
 			for (int m = 0; m < parsedModel.getNumModules(); m++) {
-				Module module = parsedModel.getModule(m);
+				parser.ast.Module module = parsedModel.getModule(m);
 				for (int v = 0; v < module.getNumDeclarations(); v++) {
 					if (!allVarNames.remove(module.getDeclaration(v).getName()))
 						canUseCurrentView = false;
@@ -275,7 +275,7 @@ public class SimulationView extends Observable
 					i++;
 				}
 				for (int m = 0; m < parsedModel.getNumModules(); m++) {
-					Module module = parsedModel.getModule(m);
+					parser.ast.Module module = parsedModel.getModule(m);
 					for (int v = 0; v < module.getNumDeclarations(); v++) {
 						visibleVariables.add(new Variable(i, module.getDeclaration(v).getName(), module.getDeclaration(v).getType()));
 						i++;

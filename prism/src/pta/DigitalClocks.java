@@ -184,7 +184,7 @@ public class DigitalClocks
 		allInVariants = null;
 		mf = (ModulesFile) mf.accept(new ASTTraverseModify()
 		{
-			public Object visit(Module e) throws PrismLangException
+			public Object visit(parser.ast.Module e) throws PrismLangException
 			{
 				Command timeCommand;
 				Updates ups;
@@ -505,7 +505,7 @@ public class DigitalClocks
 			scaleFactor = computeGCD(allClockVals);
 		}
 
-		public void visitPre(Module e) throws PrismLangException
+		public void visitPre(parser.ast.Module e) throws PrismLangException
 		{
 			// Create new array to store clocks for this module
 			currentClockList = new ArrayList<String>();
