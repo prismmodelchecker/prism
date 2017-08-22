@@ -196,8 +196,8 @@ public class ASTTraverse implements ASTVisitor
 	}
 	public void visitPost(DeclarationIntUnbounded e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
-	public void visitPre(Module e) throws PrismLangException { defaultVisitPre(e); }
-	public Object visit(Module e) throws PrismLangException
+	public void visitPre(parser.ast.Module e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(parser.ast.Module e) throws PrismLangException
 	{
 		// Note: a few classes override this method (e.g. SemanticCheck)
 		// so take care to update those versions if changing this method
@@ -216,7 +216,7 @@ public class ASTTraverse implements ASTVisitor
 		visitPost(e);
 		return null;
 	}
-	public void visitPost(Module e) throws PrismLangException { defaultVisitPost(e); }
+	public void visitPost(parser.ast.Module e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(Command e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Command e) throws PrismLangException

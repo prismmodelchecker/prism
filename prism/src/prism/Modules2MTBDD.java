@@ -902,7 +902,7 @@ public class Modules2MTBDD
 	private SystemDDs translateSystemModule(SystemModule sys, int[] synchMin) throws PrismException
 	{
 		SystemDDs sysDDs;
-		Module module;
+		parser.ast.Module module;
 		String synch;
 		int i, m;
 		
@@ -1366,7 +1366,7 @@ public class Modules2MTBDD
 	// translate a single module to a dd
 	// for a given synchronizing action ("" = none)
 	
-	private ComponentDDs translateModule(int m, Module module, String synch, int synchMin) throws PrismException
+	private ComponentDDs translateModule(int m, parser.ast.Module module, String synch, int synchMin) throws PrismException
 	{
 		ComponentDDs compDDs;
 		JDDNode guardDDs[], upDDs[], tmp;

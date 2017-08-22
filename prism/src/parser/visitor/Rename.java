@@ -67,7 +67,7 @@ public class Rename extends ASTTraverseModify
 		}
 	}
 	
-	public void visitPost(Module e) throws PrismLangException
+	public void visitPost(parser.ast.Module e) throws PrismLangException
 	{
 		// New name for module is specied in RenamedModule
 		e.setName(rm.getName());
