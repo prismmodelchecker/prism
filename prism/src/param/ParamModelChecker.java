@@ -903,6 +903,7 @@ final public class ParamModelChecker extends PrismComponent
 		if (expr instanceof ExpressionUnaryOp &&
 		    ((ExpressionUnaryOp)expr).getOperator() == ExpressionUnaryOp.NOT) {
 			negated = true;
+			min = !min;
 			expr = ((ExpressionUnaryOp)expr).getOperand();
 		}
 			
