@@ -3149,7 +3149,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		// Some checks
 		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
-			throw new PrismException("Exact model checking is only supported for DTMCs, CTMCs and MDPs");
+			throw new PrismNotSupportedException("Exact model checking is only supported for DTMCs, CTMCs and MDPs");
+
+		if (currentModelType == ModelType.MDP && getFairness())
+			throw new PrismNotSupportedException("Exact model checking does not support checking MDPs under fairness");
 
 		// Set up a dummy parameter (not used)
 		String[] paramNames = new String[] { "dummy" };
@@ -3200,7 +3203,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
 		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
-			throw new PrismException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
+			throw new PrismNotSupportedException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
+
+		if (currentModelType == ModelType.MDP && getFairness())
+			throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
 
 		Values definedPFConstants = propertiesFile.getConstantValues();
 		Values constlist = currentModulesFile.getConstantValues();
