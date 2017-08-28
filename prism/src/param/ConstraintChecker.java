@@ -166,6 +166,20 @@ class ConstraintChecker {
 	 */
 	boolean check(Region region, Function constraint, boolean strict)
 	{
+		// handle case where the constraint is a constant number
+		if (constraint.isConstant()) {
+			BigRational value = constraint.asBigRational();
+
+			if (value.isNaN())
+				return false;
+
+			if (strict) {
+				return value.signum() == 1;
+			} else {
+				return value.signum() >= 0;
+			}
+		}
+
 		Function constr = constraint.toConstraint();
 		DecisionEntryKey key = new DecisionEntryKey();
 		key.constraint = constr;
