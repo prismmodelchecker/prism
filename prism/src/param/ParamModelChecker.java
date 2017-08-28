@@ -1064,7 +1064,7 @@ final public class ParamModelChecker extends PrismComponent
 			throws PrismException {
 		int numStates = model.getNumStates();
 		List<State> statesList = model.getStatesList();
-		ParamRewardStruct rewSimple = new ParamRewardStruct(functionFactory, model.getNumTotalChoices());
+		ParamRewardStruct rewSimple = new ParamRewardStruct(functionFactory, model.getNumChoices());
 		int numRewItems = rewStruct.getNumItems();
 		for (int rewItem = 0; rewItem < numRewItems; rewItem++) {
 			Expression expr = rewStruct.getReward(rewItem);
