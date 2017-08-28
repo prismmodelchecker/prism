@@ -285,6 +285,9 @@ final class ValueComputer extends PrismComponent
 		case DTMC:
 			return computeUnboundedMC(region, b1, b2, rew);
 		case MDP:
+			if (model.getMaxNumChoices() == 1) {
+				return computeUnboundedMC(region, b1, b2, rew);
+			}
 			return computeUnboundedMDP(region, b1, b2, min, rew);
 		default:
 			throw new PrismNotSupportedException("Parametric unbounded reachability computation not supported for " + model.getModelType());
