@@ -40,6 +40,8 @@ import java.util.HashMap;
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 class ConstraintChecker {
+	private boolean usedUnsoundCheck = false;
+
 	/**
 	 * Class to store keys for the cache of the decision procedure.
 	 */
@@ -124,6 +126,7 @@ class ConstraintChecker {
 	 */
 	boolean mainCheck(Region region, Function constraint, boolean strict)
 	{
+		usedUnsoundCheck = true;
 		return true;
 	}
 
@@ -197,4 +200,10 @@ class ConstraintChecker {
 
 		return result;
 	}
+
+	public boolean unsoundCheckWasUsed()
+	{
+		return usedUnsoundCheck;
+	}
+
 }

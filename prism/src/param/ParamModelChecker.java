@@ -253,6 +253,10 @@ final public class ParamModelChecker extends PrismComponent
 		timer = System.currentTimeMillis() - timer;
 		mainLog.println("\nTime for model checking: " + timer / 1000.0 + " seconds.");
 
+		if (constraintChecker.unsoundCheckWasUsed()) {
+			mainLog.printWarning("Computation of Boolean values / parameter regions used heuristic sampling, results are potentially inaccurate.");
+		}
+
 		// Store result
 		result = new Result();
 		vals.clearExceptInit();
