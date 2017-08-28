@@ -217,7 +217,7 @@ final class StateEliminator {
 		/* search for states which might never reach a target state and thus
 		 * have to be assigned a reward of infinity. */
 		if (pmc.isUseRewards()) {
-			int[] backStatesArr = collectStatesBackward();
+			int[] backStatesArr = collectStatesBackward(true);
 			HashSet<Integer> reaching = new HashSet<Integer>();
 			for (int stateNr = 0; stateNr < backStatesArr.length; stateNr++) {
 				reaching.add(backStatesArr[stateNr]);
