@@ -825,6 +825,22 @@ public final class BigRational implements Comparable<BigRational>
 	}
 
 	/**
+	 * Return an approximate String representation (via conversion to double).
+	 * If the conversion is imprecise, the result string is prefixed by '~'.
+	 */
+	public String toApproximateString()
+	{
+		String result = Double.toString(doubleValue());
+		if (new BigRational(result).equals(this)) {
+			// round-trip did not lose precision
+			return result;
+		}
+		// only approximate
+		return "~" + result;
+
+	}
+
+	/**
 	 * Returns the int representation of this value,
 	 * if this value is an integer and if the integer can
 	 * be represented by an int variable.
