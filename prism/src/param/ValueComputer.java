@@ -36,7 +36,7 @@ import common.IterableBitSet;
 import common.IterableStateSet;
 import prism.PrismComponent;
 import prism.PrismException;
-
+import prism.PrismNotSupportedException;
 
 /**
  * Computes values for properties of a parametric Markov model. 
@@ -266,12 +266,6 @@ final class ValueComputer extends PrismComponent
 
 	private RegionValues computeUnbounded(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
 	{
-		BigRational requiredVolume = region.volume().multiply(BigRational.ONE.subtract(precision));		
-		RegionValues result = new RegionValues(regionFactory);
-		RegionsTODO todo = new RegionsTODO();
-		todo.add(region);
-		BigRational volume = BigRational.ZERO;
-
 		if (rew != null) {
 			// determine infinity states
 			explicit.MDPModelChecker mcExplicit = new explicit.MDPModelChecker(this);
@@ -285,6 +279,35 @@ final class ValueComputer extends PrismComponent
 				b1.setStateValue(i, false);
 			}
 		}
+
+		switch (model.getModelType()) {
+		case CTMC:
+		case DTMC:
+			return computeUnboundedMC(region, b1, b2, rew);
+		case MDP:
+			return computeUnboundedMDP(region, b1, b2, min, rew);
+		default:
+			throw new PrismNotSupportedException("Parametric unbounded reachability computation not supported for " + model.getModelType());
+		}
+	}
+
+	private RegionValues computeUnboundedMC(Region region, StateValues b1, StateValues b2, ParamRewardStruct rew)
+	{
+		// Convert to MutablePMC, using trivial scheduler (take first choice everywhere)
+		Scheduler trivialScheduler = new Scheduler(model);
+
+		MutablePMC pmc = buildAlterablePMCForReach(model, b1, b2, trivialScheduler, rew);
+		StateValues values = computeValues(pmc, model.getFirstInitialState());
+		return regionFactory.completeCover(values);
+	}
+
+	private RegionValues computeUnboundedMDP(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
+	{
+		BigRational requiredVolume = region.volume().multiply(BigRational.ONE.subtract(precision));
+		RegionValues result = new RegionValues(regionFactory);
+		RegionsTODO todo = new RegionsTODO();
+		todo.add(region);
+		BigRational volume = BigRational.ZERO;
 
 		Scheduler initialScheduler = new Scheduler(model);
 		precomputeScheduler(model, initialScheduler, b1, b2, rew, min);
