@@ -310,7 +310,8 @@ final class ValueComputer extends PrismComponent
 
 	private RegionValues computeUnboundedMDP(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
 	{
-		BigRational requiredVolume = region.volume().multiply(BigRational.ONE.subtract(precision));
+		BigRational precisionForThisRegion = region.volume().multiply(precision);
+		BigRational requiredVolume = region.volume().subtract(precisionForThisRegion);
 		RegionValues result = new RegionValues(regionFactory);
 		RegionsTODO todo = new RegionsTODO();
 		todo.add(region);
@@ -323,6 +324,20 @@ final class ValueComputer extends PrismComponent
 			Region currentRegion = todo.poll();
 			Point midPoint = ((BoxRegion)currentRegion).getMidPoint();
 			Scheduler scheduler = computeOptConcreteReachScheduler(midPoint, model, b1, b2, min, rew, initialScheduler);
+			if (scheduler == null) {
+				// midpoint leads to non-well-defined model
+				if (currentRegion.volume().compareTo(precisionForThisRegion) <= 0) {
+					// region is below precision threshold, treat as undefined
+					// and adjust required volume
+					requiredVolume = requiredVolume.subtract(currentRegion.volume());
+				} else {
+					// we split the current region
+					// TODO: Would be nice to try and analyse the well-definedness constraints
+					todo.addAll(currentRegion.split());
+				}
+				continue;
+			}
+
 			ResultCacheEntry resultCacheEntry = lookupValues(PropType.REACH, b1, b2, rew, scheduler, min);
 			Function[] compare;
 			StateValues values;
@@ -393,14 +408,45 @@ final class ValueComputer extends PrismComponent
 		return resultCacheEntry;
 	}
 
+	/**
+	 * Compute an optimal scheduler for Pmin/Pmax[ b1 U b2 ] or Rmin/Rmax[ b1 U b2 ]
+	 * at the given parameter instantiation (point).
+	 * <br>
+	 * In parametric mode, returns {@code null} if the given point leads to a model
+	 * that is not well-formed, i.e., where transition probabilities are not actually
+	 * probabilities or graph-preserving, or the rewards are negative (not supported for MDPs).
+	 * <br>
+	 * In exact mode, throws an exception if there are negative rewards (not supported for MDPs).
+	 * <br>
+	 * This method expects an initial scheduler that ensures that policy iteration
+	 * will converge.
+	 *
+	 * @param point The point (parameter valuation) where the model should be instantiated
+	 * @param model the model
+	 * @param b1 the set of 'safe' states
+	 * @param b2 the set of 'target' states
+	 * @param min compute min or max? true = min
+	 * @param rew if non-null, compute reachability reward
+	 * @param initialScheduler an initial scheduler
+	 * @return an optimal scheduler
+	 */
 	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew, Scheduler initialScheduler) throws PrismException
 	{
-		ParamModel concrete = model.instantiate(point);
+		ParamModel concrete = model.instantiate(point, true);
+		if (concrete == null) {
+			// point leads to non-welldefined model
+			return null;
+		}
 		ParamRewardStruct rewConcrete = null;
 		if (rew != null) {
 			rewConcrete = rew.instantiate(point);
-			if (mode == ParamMode.EXACT && rewConcrete.hasNegativeRewards()) {
-				throw new PrismNotSupportedException(mode.Engine() + " currently does not support negative rewards in reachability reward computations");
+			if (rewConcrete.hasNegativeRewards()) {
+				if (mode == ParamMode.EXACT) {
+					throw new PrismNotSupportedException(mode.Engine() + " currently does not support negative rewards in reachability reward computations");
+				} else {
+					// point leads to negative values in reward structure => unsupported
+					return null;
+				}
 			}
 		}
 		
