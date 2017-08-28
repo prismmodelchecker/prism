@@ -64,8 +64,11 @@ import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionExists;
 import parser.ast.ExpressionFilter;
 import parser.ast.ExpressionFilter.FilterOperator;
+import parser.ast.ExpressionForAll;
+import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionProb;
@@ -383,6 +386,10 @@ final public class ParamModelChecker extends PrismComponent
 			res = checkExpressionReward(model, (ExpressionReward) expr, needStates);
 		} else if (expr instanceof ExpressionSS) {
 			res = checkExpressionSteadyState(model, (ExpressionSS) expr, needStates);
+		} else if (expr instanceof ExpressionForAll || expr instanceof ExpressionExists) {
+			throw new PrismNotSupportedException("Non-probabilistic CTL model checking is currently not supported in the " + mode.engine());
+		} else if (expr instanceof ExpressionFunc && ((ExpressionFunc)expr).getNameCode() == ExpressionFunc.MULTI) {
+			throw new PrismNotSupportedException("Multi-objective model checking is not supported in the " + mode.engine());
 		} else {
 			res = checkExpressionAtomic(model, expr, needStates);
 		}
