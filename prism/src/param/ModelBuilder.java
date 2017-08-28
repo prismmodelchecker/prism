@@ -327,7 +327,7 @@ public final class ModelBuilder extends PrismComponent
 	 */
 	private ParamModel doModelConstruction(ModelGeneratorSymbolic modelGenSym) throws PrismException
 	{
-		ModelType modelType;
+		final ModelType modelType;
 
 		if (!modelGenSym.hasSingleInitialState()) {
 			throw new PrismNotSupportedException("Cannot do explicit-state reachability if there are multiple initial states");
@@ -399,11 +399,35 @@ public final class ModelBuilder extends PrismComponent
 				for (int succNr = 0; succNr < numSuccessors; succNr++) {
 					State stateNew = modelGenSym.computeTransitionTarget(choiceNr, succNr);
 					Function probFn = modelGenSym.getTransitionProbabilityFunction(choiceNr, succNr);
+
+					if (modelType == ModelType.CTMC) {
+						// check rate (non-normal?)
+						if (probFn.isInf() || probFn.isMInf() || probFn.isNaN()) {
+							throw new PrismException("For state " + state.toString(modelGenSym) + ", illegal rate " + probFn.asBigRational());
+						}
+						// check rate, if constant (negative?)
+						if (probFn.isConstant() && probFn.asBigRational().signum() < 0) {
+							throw new PrismException("For state " + state.toString(modelGenSym) + ", negative rate " + probFn.asBigRational());
+						}
+					}
+
 					// divide by sumOut
 					// for DTMC, this normalises over the choices
 					// for CTMC this builds the embedded DTMC
 					// for MDP this does nothing (sumOut is set to 1)
 					probFn = probFn.divide(sumOut);
+
+					if (modelType == ModelType.DTMC || modelType == ModelType.MDP) {
+						// check probability (non-normal?)
+						if (probFn.isInf() || probFn.isMInf() || probFn.isNaN()) {
+							throw new PrismException("For state " + state.toString(modelGenSym) + ", illegal probability " + probFn.asBigRational());
+						}
+						// check probability, if constant (negative?)
+						if (probFn.isConstant() && probFn.asBigRational().signum() < 0) {
+							throw new PrismException("For state " + state.toString(modelGenSym) + ", negative probability " + probFn.asBigRational());
+						}
+					}
+
 					model.addTransition(permut[states.get(stateNew)], probFn, action == null ? "" : action.toString());
 				}
 				if (isNonDet) {
