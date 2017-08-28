@@ -226,6 +226,7 @@ final class ValueComputer extends PrismComponent
 		}
 	}
 
+	private ParamMode mode;
 	private ParamModel model;
 	private RegionFactory regionFactory;
 	private FunctionFactory functionFactory;
@@ -236,8 +237,9 @@ final class ValueComputer extends PrismComponent
 	private StateEliminator.EliminationOrder eliminationOrder;
 	private Lumper.BisimType bisimType;
 
-	ValueComputer(PrismComponent parent, ParamModel model, RegionFactory regionFactory, BigRational precision, StateEliminator.EliminationOrder eliminationOrder, Lumper.BisimType bisimType) {
+	ValueComputer(PrismComponent parent, ParamMode mode, ParamModel model, RegionFactory regionFactory, BigRational precision, StateEliminator.EliminationOrder eliminationOrder, Lumper.BisimType bisimType) {
 		super(parent);
+		this.mode = mode;
 		this.model = model;
 		this.regionFactory = regionFactory;
 		this.functionFactory = regionFactory.getFunctionFactory();
