@@ -294,12 +294,16 @@ final class ValueComputer extends PrismComponent
 		}
 	}
 
-	private RegionValues computeUnboundedMC(Region region, StateValues b1, StateValues b2, ParamRewardStruct rew)
+	private RegionValues computeUnboundedMC(Region region, StateValues b1, StateValues b2, ParamRewardStruct rew) throws PrismException
 	{
 		// Convert to MutablePMC, using trivial scheduler (take first choice everywhere)
 		Scheduler trivialScheduler = new Scheduler(model);
 
 		MutablePMC pmc = buildAlterablePMCForReach(model, b1, b2, trivialScheduler, rew);
+		if (rew != null && mode == ParamMode.EXACT) {
+			rew.checkForNonNormalRewards();
+		}
+
 		StateValues values = computeValues(pmc, model.getFirstInitialState());
 		return regionFactory.completeCover(values);
 	}
@@ -395,6 +399,9 @@ final class ValueComputer extends PrismComponent
 		ParamRewardStruct rewConcrete = null;
 		if (rew != null) {
 			rewConcrete = rew.instantiate(point);
+			if (mode == ParamMode.EXACT && rewConcrete.hasNegativeRewards()) {
+				throw new PrismNotSupportedException(mode.Engine() + " currently does not support negative rewards in reachability reward computations");
+			}
 		}
 		
 		Scheduler scheduler = lookupScheduler(point, concrete, PropType.REACH, b1, b2, min, rewConcrete);
