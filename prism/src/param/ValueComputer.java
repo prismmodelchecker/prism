@@ -286,10 +286,13 @@ final class ValueComputer extends PrismComponent
 			}
 		}
 
+		Scheduler initialScheduler = new Scheduler(model);
+		precomputeScheduler(model, initialScheduler, b1, b2, rew, min);
+
 		while (volume.compareTo(requiredVolume) == -1) {
 			Region currentRegion = todo.poll();
 			Point midPoint = ((BoxRegion)currentRegion).getMidPoint();
-			Scheduler scheduler = computeOptConcreteReachScheduler(midPoint, model, b1, b2, min, rew);
+			Scheduler scheduler = computeOptConcreteReachScheduler(midPoint, model, b1, b2, min, rew, initialScheduler);
 			ResultCacheEntry resultCacheEntry = lookupValues(PropType.REACH, b1, b2, rew, scheduler, min);
 			Function[] compare;
 			StateValues values;
@@ -360,7 +363,7 @@ final class ValueComputer extends PrismComponent
 		return resultCacheEntry;
 	}
 
-	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
+	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew, Scheduler initialScheduler) throws PrismException
 	{
 		ParamModel concrete = model.instantiate(point);
 		ParamRewardStruct rewConcrete = null;
@@ -372,8 +375,7 @@ final class ValueComputer extends PrismComponent
 		if (scheduler != null) {
 			return scheduler;
 		}
-		scheduler = new Scheduler(concrete);
-		precomputeScheduler(concrete, scheduler, b1, b2, rew, min);
+		scheduler = initialScheduler.clone();
 		boolean changed = true;
 		while (changed) {
 			MutablePMC pmc = buildAlterablePMCForReach(concrete, b1, b2, scheduler, rew);
