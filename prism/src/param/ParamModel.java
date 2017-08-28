@@ -30,7 +30,6 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
@@ -38,6 +37,9 @@ import parser.Values;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
+import strat.MDStrategy;
+import explicit.MDPGeneric;
+import explicit.Model;
 import explicit.ModelExplicit;
 import explicit.SuccessorsIterator;
 import explicit.graphviz.Decorator;
@@ -49,12 +51,14 @@ import explicit.graphviz.Decorator;
  * This turned out the be the most convenient way to implement model checking
  * for parametric models.
  */
-public final class ParamModel extends ModelExplicit
+public final class ParamModel extends ModelExplicit implements MDPGeneric<Function>
 {
 	/** total number of nondeterministic choices over all states */
 	private int numTotalChoices;
 	/** total number of probabilistic transitions over all states */
 	private int numTotalTransitions;
+	/** the maximal number of choices per state, over all states */
+	private int numMaxChoices;
 	/** begin and end of state transitions */
 	private int[] rows;
 	/** begin and end of a distribution in a nondeterministic choice */
@@ -115,9 +119,60 @@ public final class ParamModel extends ModelExplicit
 	}
 
 	@Override
-	public SuccessorsIterator getSuccessors(int s)
+	public SuccessorsIterator getSuccessors(final int s)
 	{
-		throw new UnsupportedOperationException();
+		return SuccessorsIterator.chain(new Iterator<SuccessorsIterator>() {
+			private int choice = 0;
+			private int choices = getNumChoices(s);
+
+			@Override
+			public boolean hasNext()
+			{
+				return choice < choices;
+			}
+
+			@Override
+			public SuccessorsIterator next()
+			{
+				return getSuccessors(s, choice++);
+			}
+		});
+	}
+
+	/**
+	 * Get a SuccessorsIterator for state s and choice i.
+	 * @param s The state
+	 * @param i Choice index
+	 */
+	public SuccessorsIterator getSuccessors(int s, int i)
+	{
+		return new SuccessorsIterator()
+		{
+			final int start = choiceBegin(stateBegin(s) + i);
+			int col = start;
+			final int end = choiceBegin(stateBegin(s) + i + 1);
+
+			@Override
+			public boolean hasNext()
+			{
+				return col < end;
+			}
+
+			@Override
+			public int nextInt()
+			{
+				assert (col < end);
+				int i = col;
+				col++;
+				return cols[i];
+			}
+
+			@Override
+			public boolean successorsAreDistinct()
+			{
+				return false;
+			}
+		};
 	}
 	
 	@Override
@@ -227,7 +282,6 @@ public final class ParamModel extends ModelExplicit
 		throw new UnsupportedOperationException();
 	}
 
-
 	@Override
 	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
@@ -292,7 +346,19 @@ public final class ParamModel extends ModelExplicit
 	}
 
 	@Override
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Model constructInducedModel(MDStrategy strat)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -319,9 +385,35 @@ public final class ParamModel extends ModelExplicit
 		return stateEnd(state) - stateBegin(state);
 	}
 
-	public int getNumTotalChoices()
+	@Override
+	public int getMaxNumChoices()
+	{
+		return numMaxChoices;
+	}
+
+	@Override
+	public int getNumChoices()
 	{
 		return numTotalChoices;
+	}
+
+	@Override
+	public int getNumTransitions(int s, int i)
+	{
+		return choiceEnd(stateBegin(s) + i) - choiceBegin(stateBegin(s) + i);
+	}
+
+	@Override
+	public Object getAction(int s, int i)
+	{
+		return null;
+	}
+
+	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		// we don't know
+		return false;
 	}
 
 	/**
@@ -352,8 +444,11 @@ public final class ParamModel extends ModelExplicit
 	 */
 	void finishState()
 	{
+		int state = numStates;
 		rows[numStates + 1] = numTotalChoices;
 		numStates++;
+
+		numMaxChoices = Math.max(numMaxChoices, getNumChoices(state));
 	}
 
 	/**
@@ -542,4 +637,5 @@ public final class ParamModel extends ModelExplicit
 	{
 		return functionFactory;
 	}
+
 }
