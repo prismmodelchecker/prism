@@ -602,7 +602,8 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start precomputation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting Prob0 (" + (min ? "min" : "max") + ")...");
+		if (!silentPrecomputations)
+			mainLog.println("Starting Prob0 (" + (min ? "min" : "max") + ")...");
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
@@ -646,8 +647,10 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Finished precomputation
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Prob0 (" + (min ? "min" : "max") + ")");
-		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+		if (!silentPrecomputations) {
+			mainLog.print("Prob0 (" + (min ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+		}
 
 		// If required, generate strategy. This is for min probs,
 		// so it can be done *after* the main prob0 algorithm (unlike for prob1).
@@ -688,7 +691,8 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Start precomputation
 		timer = System.currentTimeMillis();
-		mainLog.println("Starting Prob1 (" + (min ? "min" : "max") + ")...");
+		if (!silentPrecomputations)
+			mainLog.println("Starting Prob1 (" + (min ? "min" : "max") + ")...");
 
 		// Special case: no target states
 		if (target.cardinality() == 0) {
@@ -766,8 +770,10 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Finished precomputation
 		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Prob1 (" + (min ? "min" : "max") + ")");
-		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+		if (!silentPrecomputations) {
+			mainLog.print("Prob1 (" + (min ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+		}
 
 		return u;
 	}
