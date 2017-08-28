@@ -97,13 +97,19 @@ abstract class Region {
 	/**
 	 * Splits this region into several parts.
 	 * How this is done exactly depends on the implementation in derived
-	 * classes.
+	 * classes. Can take constraint into account.
 	 * 
 	 * @param constraint
-	 * @return
 	 */
 	abstract ArrayList<Region> split(Function constraint);
-	
+
+	/**
+	 * Splits this region into several parts.
+	 * How this is done exactly depends on the implementation in derived
+	 * classes.
+	 */
+	abstract ArrayList<Region> split();
+
 	abstract ArrayList<Point> specialPoints();
 
 	abstract Point randomPoint();

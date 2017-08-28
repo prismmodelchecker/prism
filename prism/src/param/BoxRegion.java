@@ -470,11 +470,17 @@ final class BoxRegion extends Region {
 		}
 		return result;
 	}
-	
+
 	@Override
 	ArrayList<Region> split(Function constraint)
 	{
 		// TODO could implement more clever splitting using constraints
+		return split();
+	}
+
+	@Override
+	ArrayList<Region> split()
+	{
 		if (((BoxRegionFactory) factory).getSplitMethod() == SPLIT_LONGEST) {
 			return splitLongest();
 		} else if (((BoxRegionFactory) factory).getSplitMethod() == SPLIT_ALL) {
