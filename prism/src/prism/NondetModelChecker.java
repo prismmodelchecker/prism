@@ -381,6 +381,11 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionMultiObjective(List<Expression> exprs, boolean forAll, JDDNode statesOfInterest) throws PrismException
 	{
+		if (fairness) {
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
+		}
+
 		// For now, just support a single expression (which may encode a Boolean combination of objectives)
 		if (exprs.size() > 1) {
 			JDD.Deref(statesOfInterest);
@@ -489,7 +494,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean hasMaxReward = false;
 		//boolean hasLTLconstraint = false;
 
+		if (fairness) {
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
+		}
+
 		if (doIntervalIteration) {
+			JDD.Deref(statesOfInterest);
 			throw new PrismNotSupportedException("Interval iteration currently not supported for multi-objective reasoning");
 		}
 
