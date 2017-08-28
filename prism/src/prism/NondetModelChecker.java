@@ -1423,6 +1423,12 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode b;
 		StateValues rewards = null;
 
+		if (fairness && !min) {
+			// Rmax with fairness not supported; Rmin computation is unaffected
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Maximum reward computation currently not supported under fairness.");
+		}
+
 		// currently, ignore statesOfInterest
 		JDD.Deref(statesOfInterest);
 
@@ -1466,6 +1472,12 @@ public class NondetModelChecker extends NonProbModelChecker
 		LTLProduct<NondetModel> modelProduct;
 		NondetModelChecker mcProduct;
 		long l;
+
+		if (fairness && !min) {
+			// Rmax with fairness not supported; Rmin computation is unaffected
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Maximum reward computation currently not supported under fairness.");
+		}
 
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
@@ -2184,6 +2196,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		StateValues rewards = null;
 		// Local copy of setting
 		int engine = this.engine;
+
+		// For Rmax[ C ] computation, fairness does not affect the result
 
 		if (doIntervalIteration) {
 			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
