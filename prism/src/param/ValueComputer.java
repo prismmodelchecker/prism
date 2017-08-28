@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import common.IterableBitSet;
 import common.IterableStateSet;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -357,7 +358,7 @@ final class ValueComputer extends PrismComponent
 		return resultCacheEntry;
 	}
 
-	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew)
+	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
 	{
 		ParamModel concrete = model.instantiate(point);
 		ParamRewardStruct rewConcrete = null;
@@ -370,7 +371,7 @@ final class ValueComputer extends PrismComponent
 			return scheduler;
 		}
 		scheduler = new Scheduler(concrete);
-		precomputeZero(concrete, scheduler, b1, b2, rew, min);
+		precomputeScheduler(concrete, scheduler, b1, b2, rew, min);
 		boolean changed = true;
 		while (changed) {
 			MutablePMC pmc = buildAlterablePMCForReach(concrete, b1, b2, scheduler, rew);
@@ -456,47 +457,81 @@ final class ValueComputer extends PrismComponent
 	}
 
 	/**
-	 * Precomputation for policy iteration.
-	 * Sets decisions of {@code sched} such that states which have a minimal
-	 * reachability probability or accumulated reward of zero do already
-	 * have a minimal value of zero if using this schedulers. For states with
-	 * minimal value larger than zero, this scheduler needs not be minimising.
+	 * Perform precomputation for policy iteration.
+	 * <br>
+	 * For Pmin, if possible, for states with Pmin[ b1 U b2 ] = 0, generate zero scheduler.
+	 * <br>
+	 * For Rmin, generate a proper scheduler, i.e., with P^sched[ b1 U b2 ] = 1
+	 * to get proper convergence in policy iteration.
+	 * Assumes that states with Pmax[ b1 U b2 ] &lt; 1 have been filtered beforehand
+	 * and are not contained in b1 or b2.
+	 * <br>
 	 * In case of maximal accumulated reward or probabilities, currently does
-	 * nothing. If {@code rew == null}, performs reachability, otherwise
+	 * nothing.
+	 * <br>
+	 * If {@code rew == null}, performs reachability, otherwise
 	 * performs accumulated reward computation. {@code b2} is the target set
 	 * for reachability probabilities or accumulated rewards. {@code b1} is
-	 * either constantly {@code} or describes the left side of an until
+	 * either constantly {@code true} or describes the left side of an until
+	 * property.
+	 */
+	private void precomputeScheduler(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2, ParamRewardStruct rew, boolean min) throws PrismException
+	{
+		if (rew == null) {
+			// probability case
+			if (min) {
+				precomputePmin(mdp, sched, b1, b2);
+			}
+		} else {
+			if (min)
+				precomputeRminProperScheduler(mdp, sched, b1, b2);
+			// TODO: Would be nice to generate proper zero scheduler in the situations
+			// where that is possible
+		}
+	}
+
+	/**
+	 * Precomputation for policy iteration, Rmin.
+	 * For Rmin, generate a proper scheduler, i.e., with P^sched[ b1 U b2 ] = 1
+	 * to get proper convergence in policy iteration.
+	 * Assumes that states with Pmax[ b1 U b2 ] &lt; 1 have been filtered beforehand
+	 * and are not contained in b1 or b2.
+	 */
+	private void precomputeRminProperScheduler(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2) throws PrismException
+	{
+		explicit.MDPModelChecker mcExplicit = new explicit.MDPModelChecker(this);
+		mcExplicit.setSilentPrecomputations(true);
+		int[] strat = new int[mdp.getNumStates()];
+		BitSet b1bs = b1.toBitSet();
+		// use prob1e strategy generation from explicit model checker
+		mcExplicit.prob1(mdp, b1bs, b2.toBitSet(), false, strat);
+
+		for (int s : IterableBitSet.getSetBits(b1bs)) {
+			assert(strat[s] >= 0);
+			sched.setChoice(s, mdp.stateBegin(s) + strat[s]);
+		}
+	}
+
+	/**
+	 * Precomputation for policy iteration, Pmin.
+	 * Sets decisions of {@code sched} such that states which have a minimal
+	 * reachability probability of zero do already have a minimal value of zero
+	 * if using this schedulers. For states with minimal value larger than zero,
+	 * this scheduler needs not be minimising.
+	 * {@code b2} is the target set for reachability probabilities. {@code b1} is
+	 * either constantly {@code true} or describes the left side of an until
 	 * property.
 	 * 
 	 * @param mdp Markov model to precompute for
 	 * @param sched scheduler to precompute
 	 * @param b1 left side of U property, or constant true
 	 * @param b2 right side of U property, or of reachability reward
-	 * @param rew reward structure
-	 * @param min true iff minimising
 	 */
-	private void precomputeZero(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2, ParamRewardStruct rew, boolean min)
+	private void precomputePmin(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2)
 	{
-		if (!min) {
-			return;
-		}
 		BitSet ones = new BitSet(mdp.getNumStates());
 		for (int state = 0; state < mdp.getNumStates(); state++) {
-			if (rew == null) {
-				ones.set(state, b2.getStateValueAsBoolean(state));
-			} else {
-				if (!b2.getStateValueAsBoolean(state)) {
-					boolean avoidReward = false;
-					for (int choice = mdp.stateBegin(state); choice < mdp.stateEnd(state); choice++) {
-						if (mdp.sumLeaving(choice).equals(functionFactory.getZero())) {
-							sched.setChoice(state, choice);
-							avoidReward = true;
-							break;
-						}
-					}
-					ones.set(state, !avoidReward);
-				}
-			}
+			ones.set(state, b2.getStateValueAsBoolean(state));
 		}
 		boolean changed = true;
 		while (changed) {
