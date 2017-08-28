@@ -588,11 +588,16 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 	 * Instantiates the parametric model at a given point.
 	 * All transition probabilities, etc. will be evaluated and set as
 	 * probabilities of the concrete model at the given point. 
+	 * <br>
+	 * If {@code checkWellDefinedness} is {@code true}, checks that the
+	 * instantiated probabilities are actually probabilities and graph-preserving.
+	 * If that is not the case, this method then returns {@code null}.
 	 * 
 	 * @param point point to instantiate model at
+	 * @param checkWellDefinedness should we check that the model is well-defined?
 	 * @return nonparametric model instantiated at {@code point}
 	 */
-	ParamModel instantiate(Point point)
+	ParamModel instantiate(Point point, boolean checkWellDefinedness)
 	{
 		ParamModel result = new ParamModel();
 		result.setModelType(getModelType());
@@ -601,7 +606,17 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 		for (int state = 0; state < numStates; state++) {
 			for (int choice = stateBegin(state); choice < stateEnd(state); choice++) {
 				for (int succ = choiceBegin(choice); succ < choiceEnd(choice); succ++) {
-					result.addTransition(succState(succ), functionFactory.fromBigRational(succProb(succ).evaluate(point)), labels[succ]);
+					BigRational p = succProb(succ).evaluate(point);
+					if (checkWellDefinedness) {
+						if (p.isSpecial() || p.compareTo(BigRational.ONE) == 1 || p.signum() <= 0) {
+							// For graph-preservation, probabilities have to be >0 and <=1
+							// Note: for CTMCs, succProb yields the probabilities of the embedded
+							// DTMC, while the rates are available separately (sumLeaving)
+							return null;
+						}
+					}
+					result.addTransition(succState(succ), functionFactory.fromBigRational(p), labels[succ]);
+
 				}
 				result.setSumLeaving(functionFactory.fromBigRational(this.sumLeaving(choice).evaluate(point)));
 				result.finishChoice();
