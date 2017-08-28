@@ -595,6 +595,7 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 	ParamModel instantiate(Point point)
 	{
 		ParamModel result = new ParamModel();
+		result.setModelType(getModelType());
 		result.reserveMem(numStates, numTotalChoices, numTotalTransitions);
 		result.initialStates = new LinkedList<Integer>(this.initialStates);
 		for (int state = 0; state < numStates; state++) {
