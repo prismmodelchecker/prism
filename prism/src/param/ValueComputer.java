@@ -32,7 +32,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import common.IterableStateSet;
 import prism.PrismComponent;
+import prism.PrismException;
 
 
 /**
@@ -246,7 +248,7 @@ final class ValueComputer extends PrismComponent
 		this.bisimType = bisimType;
 	}
 
-	RegionValues computeUnbounded(RegionValues b1, RegionValues b2, boolean min, ParamRewardStruct rew) {
+	RegionValues computeUnbounded(RegionValues b1, RegionValues b2, boolean min, ParamRewardStruct rew) throws PrismException {
 		RegionValues result = new RegionValues(regionFactory);
 		RegionValuesIntersections co = new RegionValuesIntersections(b1, b2);
 		for (RegionIntersection inter : co) {
@@ -259,13 +261,28 @@ final class ValueComputer extends PrismComponent
 		return result;
 	}
 
-	private RegionValues computeUnbounded(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew)
+	private RegionValues computeUnbounded(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
 	{
 		BigRational requiredVolume = region.volume().multiply(BigRational.ONE.subtract(precision));		
 		RegionValues result = new RegionValues(regionFactory);
 		RegionsTODO todo = new RegionsTODO();
 		todo.add(region);
 		BigRational volume = BigRational.ZERO;
+
+		if (rew != null) {
+			// determine infinity states
+			explicit.MDPModelChecker mcExplicit = new explicit.MDPModelChecker(this);
+			mcExplicit.setSilentPrecomputations(true);
+			BitSet inf = mcExplicit.prob1(model, b1.toBitSet(), b2.toBitSet(), !min, null);
+			inf.flip(0, model.getNumStates());
+
+			for (int i : new IterableStateSet(inf, model.getNumStates())) {
+				// clear states with infinite value from b1 so they will get Infinity value
+				// in the DTMC
+				b1.setStateValue(i, false);
+			}
+		}
+
 		while (volume.compareTo(requiredVolume) == -1) {
 			Region currentRegion = todo.poll();
 			Point midPoint = ((BoxRegion)currentRegion).getMidPoint();
@@ -521,7 +538,12 @@ final class ValueComputer extends PrismComponent
 			if (isSink) {
 				pmc.addTransition(state, state, functionFactory.getOne());
 				if (null != rew) {
-					pmc.setReward(state, functionFactory.getZero());
+					if (isTarget) {
+						pmc.setReward(state, functionFactory.getZero());
+					} else {
+						// !b1 & !b2 state -> infinite (can not reach b2 via b1 states)
+						pmc.setReward(state, functionFactory.getInf());
+					}
 				}
 			} else {
 				if (rew != null) {
