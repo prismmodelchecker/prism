@@ -31,7 +31,11 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+
+import parser.State;
+import prism.PrismLog;
 
 /**
  * Assigns to the different regions different values over model states.
@@ -418,6 +422,30 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 		}
 
 		return builder.toString();
+	}
+
+	/**
+	 * For each region, print part of vector to a log/file.
+	 * @param log The log
+	 * @param mode the mode
+	 * @param filter A BitSet specifying which states to print for (null if all).
+	 * @param printSparse Print non-zero/non-false elements only?
+	 * @param printStates Print states (variable values) for each element?
+	 * @param printIndices Print state indices for each element?
+	 */
+	public void printFiltered(PrismLog log, ParamMode mode, parser.type.Type type, BitSet filter, List<State> statesList, boolean printSparse, boolean printStates, boolean printIndices)
+	{
+		if (mode == ParamMode.EXACT) {
+			assert(parameterIndependent());
+			getStateValues().printFiltered(log, mode, type, filter, statesList, printSparse, printStates, printIndices);
+		} else {
+			for (Region region : regions) {
+				log.println(region + ":");
+				StateValues vals = values.get(region);
+				vals.printFiltered(log, mode, type, filter, statesList, printSparse, printStates, printIndices);
+				log.println();
+			}
+		}
 	}
 
 	public RegionValues unaryOp(int parserUnaryOpToRegionOp)

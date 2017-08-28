@@ -541,16 +541,22 @@ final public class ParamModelChecker extends PrismComponent
 		RegionValues resVals = null;
 		switch (op) {
 		case PRINT:
+		case PRINTALL:
 			// Format of print-out depends on type
 			if (expr.getType() instanceof TypeBool) {
 				// NB: 'usual' case for filter(print,...) on Booleans is to use no filter
 				mainLog.print("\nSatisfying states");
 				mainLog.println(filterTrue ? ":" : " that are also in filter " + filter + ":");
-				mainLog.print(vals.filteredString(bsFilter));
 			} else {
 				mainLog.println("\nResults (non-zero only) for filter " + filter + ":");
-				mainLog.print(vals.filteredString(bsFilter));
 			}
+
+			vals.printFiltered(mainLog, mode, expr.getType(), bsFilter,
+				               model.getStatesList(),
+				               op == FilterOperator.PRINT, // printSparse if PRINT
+				               true,  // print state values
+				               true); // print state index
+
 			resVals = vals;
 			break;
 		case MIN:

@@ -30,6 +30,13 @@ package param;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
+import java.util.function.IntPredicate;
+
+import common.IterableStateSet;
+import parser.State;
+import parser.type.TypeBool;
+import prism.PrismLog;
 
 /**
  * Class to assign a value to each state of a model.
@@ -245,4 +252,61 @@ public final class StateValues
 		}
 		return result;
 	}
+
+	/**
+	 * Print part of vector to a log/file.
+	 * @param log The log
+	 * @param mode the mode
+	 * @param filter A BitSet specifying which states to print for (null if all).
+	 * @param printSparse Print non-zero/non-false elements only?
+	 * @param printStates Print states (variable values) for each element?
+	 * @param printIndices Print state indices for each element?
+	 */
+	public void printFiltered(PrismLog log, ParamMode mode, parser.type.Type type, BitSet filter, List<State> statesList, boolean printSparse, boolean printStates, boolean printIndices)
+	{
+		int count = 0;
+
+		IntPredicate nonZero =
+				(type instanceof TypeBool)
+				? (int n) -> {return getStateValueAsBoolean(n);}
+				: (int n) -> {return !getStateValueAsFunction(n).isZero();};
+
+		// Print vector
+		for (int n : new IterableStateSet(filter, getNumStates())) {
+			if (!printSparse || nonZero.test(n)) {
+				if (printIndices) {
+					log.print(n);
+					log.print(":");
+				}
+
+				if (printStates && statesList != null)
+					log.print(statesList.get(n).toString());
+				if (printSparse && type instanceof TypeBool) {
+					log.println();
+				} else {
+					if (printIndices || printStates)
+						log.print("=");
+
+					if (type instanceof TypeBool) {
+						log.println(getStateValueAsBoolean(n));
+					} else {
+						if (mode == ParamMode.EXACT) {
+							BigRational value = getStateValueAsFunction(n).asBigRational();
+							log.println(value + "   (" + value.toApproximateString() + ")");
+						} else {
+							log.println(getStateValueAsFunction(n));
+						}
+					}
+				}
+				count++;
+			}
+		}
+
+		// Check if all zero
+		if (printSparse && count == 0) {
+			log.println("(all zero)");
+			return;
+		}
+	}
+
 }
