@@ -3165,6 +3165,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setModelBuilder(builder);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+
+		if (digital) {
+			// have to do deadlock checks, as we are in digital clock mode for PTA checking,
+			// cf. doBuildModelDigitalClocksChecks()
+			if (modelExpl.getNumDeadlockStates() > 0) {
+				int dl = modelExpl.getFirstDeadlockState();
+				String dls = modelExpl.getStatesList().get(dl).toString(currentModelInfo);
+				throw new PrismException("Timelock in PTA, e.g. in state " + dls);
+			}
+		}
+
 		Result result = mc.check(modelExpl, prop.getExpression());
 
 		// Convert result of parametric model checking to a single value,
