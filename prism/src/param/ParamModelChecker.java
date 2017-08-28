@@ -220,7 +220,7 @@ final public class ParamModelChecker extends PrismComponent
 		constraintChecker = new ConstraintChecker(numRandomPoints);
 		regionFactory = new BoxRegionFactory(functionFactory, constraintChecker, precision,
 				model.getNumStates(), model.getFirstInitialState(), simplifyRegions, splitMethod);
-		valueComputer = new ValueComputer(paramModel, regionFactory, precision, eliminationOrder, bisimType);
+		valueComputer = new ValueComputer(this, paramModel, regionFactory, precision, eliminationOrder, bisimType);
 		
 		long timer = 0;
 		

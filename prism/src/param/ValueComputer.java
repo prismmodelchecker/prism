@@ -32,12 +32,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import prism.PrismComponent;
+
+
 /**
  * Computes values for properties of a parametric Markov model. 
  * 
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-final class ValueComputer
+final class ValueComputer extends PrismComponent
 {
 	private enum PropType {
 		REACH,
@@ -230,7 +233,8 @@ final class ValueComputer
 	private StateEliminator.EliminationOrder eliminationOrder;
 	private Lumper.BisimType bisimType;
 
-	ValueComputer(ParamModel model, RegionFactory regionFactory, BigRational precision, StateEliminator.EliminationOrder eliminationOrder, Lumper.BisimType bisimType) {
+	ValueComputer(PrismComponent parent, ParamModel model, RegionFactory regionFactory, BigRational precision, StateEliminator.EliminationOrder eliminationOrder, Lumper.BisimType bisimType) {
+		super(parent);
 		this.model = model;
 		this.regionFactory = regionFactory;
 		this.functionFactory = regionFactory.getFunctionFactory();
