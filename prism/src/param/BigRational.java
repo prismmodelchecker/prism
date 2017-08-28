@@ -185,6 +185,10 @@ public final class BigRational implements Comparable<BigRational>
 			this.num = new BigInteger("-1");
 			this.den = new BigInteger("0");
 			return;
+		} else if (string.equals("NaN")) {
+			this.num = new BigInteger("0");
+			this.den = new BigInteger("0");
+			return;
 		}
 		BigInteger num;
 		BigInteger den;
