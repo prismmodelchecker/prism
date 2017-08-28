@@ -55,6 +55,8 @@ import prism.PrismSettings;
  */
 public final class ModelBuilder extends PrismComponent
 {
+	/** mode (parametric / exact) */
+	private final ParamMode mode;
 	/** the ModelGeneratorSymbolic interface providing the model to be transformed to a {@code ParamModel} */
 	private ModelGeneratorSymbolic modelGenSym;
 	/** function factory used in the constructed parametric model */
@@ -76,9 +78,10 @@ public final class ModelBuilder extends PrismComponent
 	/**
 	 * Constructor
 	 */
-	public ModelBuilder(PrismComponent parent) throws PrismException
+	public ModelBuilder(PrismComponent parent, ParamMode mode) throws PrismException
 	{
 		super(parent);
+		this.mode = mode;
 		// If present, initialise settings from PrismSettings
 		if (settings != null) {
 			functionType = settings.getString(PrismSettings.PRISM_PARAM_FUNCTION);
@@ -132,7 +135,7 @@ public final class ModelBuilder extends PrismComponent
 			case ExpressionBinaryOp.DIVIDE:
 				return f1.divide(f2);
 			default:
-				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+				throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp unExpr = ((ExpressionUnaryOp) expr);
@@ -143,7 +146,7 @@ public final class ModelBuilder extends PrismComponent
 			case ExpressionUnaryOp.PARENTH:
 				return f;
 			default:
-				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+				throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else if (expr instanceof ExpressionITE){
 			ExpressionITE iteExpr = (ExpressionITE) expr;
@@ -165,7 +168,7 @@ public final class ModelBuilder extends PrismComponent
 					// Do nothing here, exception is thrown below
 				}
 			}
-			throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+			throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
 		} else if (expr instanceof ExpressionFunc) {
 			// functions (min, max, floor, ...) are supported if
 			// they don't refer to parametric constants in their arguments
@@ -178,10 +181,10 @@ public final class ModelBuilder extends PrismComponent
 				return factory.fromBigRational(value);
 			} catch (PrismException e) {
 				// Most likely, a parametric constant occurred.
-				throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+				throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
 			}
 		} else {
-			throw new PrismNotSupportedException("parametric analysis with rate/probability of " + expr + " not implemented");
+			throw new PrismNotSupportedException("For " + mode.engine() + ", analysis with rate/probability of " + expr + " not implemented");
 		}
 	}
 
@@ -248,7 +251,7 @@ public final class ModelBuilder extends PrismComponent
 		});*/
 		
 		// Build/return model
-		mainLog.print("\nBuilding model...\n");
+		mainLog.print("\nBuilding model (" + mode.engine() + ")...\n");
 		long time = System.currentTimeMillis();
 		ParamModel modelExpl = doModelConstruction(modelGenSym);
 		time = System.currentTimeMillis() - time;

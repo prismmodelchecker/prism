@@ -3159,9 +3159,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		String[] paramLowerBounds = new String[] { "0" };
 		String[] paramUpperBounds = new String[] { "1" };
 		// And execute parameteric model checking
-		param.ModelBuilder builder = new ModelBuilder(this);
+		param.ModelBuilder builder = new ModelBuilder(this, param.ParamMode.EXACT);
 		ParamModel modelExpl = builder.constructModel(new ModulesFileModelGeneratorSymbolic(currentModulesFile, this), paramNames, paramLowerBounds, paramUpperBounds);
-		ParamModelChecker mc = new ParamModelChecker(this);
+		ParamModelChecker mc = new ParamModelChecker(this, param.ParamMode.EXACT);
 		mc.setModelBuilder(builder);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
@@ -3233,9 +3233,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
 			mainLog.println("Property constants: " + definedPFConstants);
 
-		param.ModelBuilder builder = new ModelBuilder(this);
+		param.ModelBuilder builder = new ModelBuilder(this, param.ParamMode.PARAMETRIC);
 		ParamModel modelExpl = builder.constructModel(new ModulesFileModelGeneratorSymbolic(currentModulesFile, this), paramNames, paramLowerBounds, paramUpperBounds);
-		ParamModelChecker mc = new ParamModelChecker(this);
+		ParamModelChecker mc = new ParamModelChecker(this, param.ParamMode.PARAMETRIC);
 		mc.setModelBuilder(builder);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
