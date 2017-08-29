@@ -3192,7 +3192,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println("\n" + resultString);
 
 		if (result.getResult() instanceof BigRational) {
-			mainLog.println("Approximate result: " + ((BigRational)result.getResult()).doubleValue());
+			mainLog.println(" As floating point: " + ((BigRational)result.getResult()).toApproximateString());
 		}
 
 		return result;
