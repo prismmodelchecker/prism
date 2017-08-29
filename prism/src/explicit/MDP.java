@@ -815,6 +815,7 @@ public interface MDP extends NondetModel
 
 		if (jac.onlySelfLoops) {
 			if (d != 0) {
+				// always choosing the selfloop-action will produce infinite reward
 				d = (d > 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
 			} else {
 				// no reward & only self-loops: d remains 0
