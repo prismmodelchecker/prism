@@ -425,7 +425,10 @@ public class StateValuesMTBDD implements StateValues
 		tmp = JDD.And(filter, reach);
 
 		// max of an empty set is -infinity
-		if (tmp.equals(JDD.ZERO)) return Double.NEGATIVE_INFINITY;
+		if (tmp.equals(JDD.ZERO)) {
+			JDD.Deref(tmp);
+			return Double.NEGATIVE_INFINITY;
+		}
 
 		// set non-reach states to infinity
 		JDD.Ref(values);
