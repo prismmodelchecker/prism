@@ -2137,7 +2137,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 
 		double max_v = PrismUtils.findMaxFinite(rv.soln, unknownStates.iterator());
-		mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+		if (max_v != Double.NEGATIVE_INFINITY) {
+			mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+		}
 
 		return rv;
 	}
