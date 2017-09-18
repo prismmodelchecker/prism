@@ -1345,6 +1345,11 @@ public class DTMCModelChecker extends ProbModelChecker
 	 */
 	double computeReachRewardsUpperBound(DTMC dtmc, MCRewards mcRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
 	{
+		if (unknown.isEmpty()) {
+			mainLog.println("Skipping upper bound computation, no unknown states...");
+			return 0;
+		}
+
 		// inf and target states become trap states (with self-loops)
 		BitSet trapStates = (BitSet) target.clone();
 		trapStates.or(inf);

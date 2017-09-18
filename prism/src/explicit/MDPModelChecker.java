@@ -1414,6 +1414,11 @@ public class MDPModelChecker extends ProbModelChecker
 	 */
 	double computeReachRewardsMaxUpperBound(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet unknown, BitSet inf) throws PrismException
 	{
+		if (unknown.isEmpty()) {
+			mainLog.println("Skipping upper bound computation, no unknown states...");
+			return 0;
+		}
+
 		// inf and target states become trap states (with dropped choices)
 		BitSet trapStates = (BitSet) target.clone();
 		trapStates.or(inf);
