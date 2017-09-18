@@ -2567,7 +2567,9 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		if (doIntervalIteration) {
 			double max_v = rewards.maxFiniteOverBDD(maybe);
-			mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+			if (max_v != Double.NEGATIVE_INFINITY) {
+				mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+			}
 		}
 
 		// derefs
