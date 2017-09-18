@@ -228,16 +228,16 @@ public class OptionsIntervalIteration
 					boundMethod = BoundMethod.DEFAULT;
 					break;
 				case "variant-1-coarse":
-					boundMethod = BoundMethod.DEFAULT;
+					boundMethod = BoundMethod.VARIANT_1_COARSE;
 					break;
 				case "variant-1-fine":
-					boundMethod = BoundMethod.DEFAULT;
+					boundMethod = BoundMethod.VARIANT_1_FINE;
 					break;
 				case "variant-2":
-					boundMethod = BoundMethod.DEFAULT;
+					boundMethod = BoundMethod.VARIANT_2;
 					break;
 				case "dsmpi":
-					boundMethod = BoundMethod.DEFAULT;
+					boundMethod = BoundMethod.DSMPI;
 					break;
 				default:
 					throw new PrismException("Unknown argument to interval iteration option '" + option + "', expected one of "
