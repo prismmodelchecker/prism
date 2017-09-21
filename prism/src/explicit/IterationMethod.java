@@ -427,7 +427,7 @@ public abstract class IterationMethod {
 		long timer = System.currentTimeMillis() - startTime;
 		mc.getLog().print("Value iteration (" + description + ")");
 		mc.getLog().print(" took " + iters + " iterations, ");
-		mc.getLog().print(mvCount + " MV-multiplications");
+		mc.getLog().print(mvCount + " multiplications");
 		mc.getLog().println(" and " + timer / 1000.0 + " seconds.");
 
 		if (iterationsExport != null)
@@ -535,7 +535,7 @@ public abstract class IterationMethod {
 		long timer = System.currentTimeMillis() - startTime;
 		mc.getLog().print("Value iteration (" + description + ", with " + numNonSingletonSCCs + " non-singleton SCCs)");
 		mc.getLog().print(" took " + iters + " iterations, ");
-		mc.getLog().print(mvCount + " MV-multiplications");
+		mc.getLog().print(mvCount + " multiplications");
 		mc.getLog().println(" and " + timer / 1000.0 + " seconds.");
 
 		if (iterationsExport != null)
@@ -615,7 +615,7 @@ public abstract class IterationMethod {
 			timer = System.currentTimeMillis() - timer;
 			mc.getLog().print("Interval iteration (" + description + ")");
 			mc.getLog().print(" took " + iters + " iterations, ");
-			mc.getLog().print(mvCount + " MV-multiplications");
+			mc.getLog().print(mvCount + " multiplications");
 			mc.getLog().println(" and " + timer / 1000.0 + " seconds.");
 
 			if (done && OptionsIntervalIteration.from(mc.getSettings()).isSelectMidpointForResult()) {
@@ -770,7 +770,7 @@ public abstract class IterationMethod {
 			timer = System.currentTimeMillis() - timer;
 			mc.getLog().print("Interval iteration (" + description + ", with " + numNonSingletonSCCs + " non-singleton SCCs)");
 			mc.getLog().print(" took " + iters + " iterations, ");
-			mc.getLog().print(mvCount + " MV-multiplications");
+			mc.getLog().print(mvCount + " multiplications");
 			mc.getLog().println(" and " + timer / 1000.0 + " seconds.");
 
 			if (done && OptionsIntervalIteration.from(mc.getSettings()).isSelectMidpointForResult()) {
