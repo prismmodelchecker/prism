@@ -418,7 +418,7 @@ def runPrism(args, dir=""):
             if re.match('Testing result:', line):
                 printTestResult(line)
             elif re.match('Warning:', line):
-                if options.showWarnings:
+                if options.showWarnings or options.verboseTest:
                     printTestResult(line)
                 else:
                     # We don't print it, but we count it
