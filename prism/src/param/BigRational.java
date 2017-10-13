@@ -41,7 +41,7 @@ import prism.PrismLangException;
  * 
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-public final class BigRational implements Comparable<BigRational>
+public final class BigRational extends Number implements Comparable<BigRational>
 {
 	/** the BigInteger "-1" */
 	private final static BigInteger BMONE = BigInteger.ONE.negate();
@@ -558,6 +558,87 @@ public final class BigRational implements Comparable<BigRational>
 			div = div.add(BigInteger.ONE);
 		}
 		return signum * div.doubleValue() / Math.pow(2.0, 55);
+	}
+
+	/**
+	 * Returns the value of the specified number as an {@code int},
+	 * which may involve rounding or truncation.
+	 * <br>
+	 * Note: In contrast to the standard Number.intValue() behaviour,
+	 * this implementation throws an Arithmetic exception if the underlying
+	 * rational number is not an integer or if representing as an {@code int}
+	 * overflows.
+	 * <br>
+	 * Positive and negative infinity are mapped to Integer.MAX_VALUE and Integer.MIN_VALUE,
+	 * respectively, NaN is mapped to 0 (per the Java Language Specification).
+	 *
+	 * @return  the numeric value represented by this object after conversion
+	 *          to type {@code int}.
+	 */
+	@Override
+	public int intValue()
+	{
+		if (isSpecial()) {
+			if (isInf()) return Integer.MAX_VALUE;
+			if (isMInf()) return Integer.MIN_VALUE;
+			if (isNaN()) return 0;  // per Java Language Specification
+		}
+
+		// TODO JK: In case of fraction / overflow, this method should not throw an
+		// exception but return some imprecise result. We are conservative here.
+		// In the future, it may make sense to have an intValueExact (similar to BigInteger)
+		if (!isInteger()) {
+			throw new ArithmeticException("Can not convert fractional number to int");
+		}
+		int value = getNum().intValue();
+		if (!getNum().equals(new BigInteger(Integer.toString(value)))) {
+			throw new ArithmeticException("Can not convert BigInteger to int, value out of range");
+		}
+		return value;
+	}
+
+	/**
+	 * Returns the value of the specified number as a {@code long},
+	 * which may involve rounding or truncation.
+	 * <br>
+	 * Note: In contrast to the standard Number.longValue() behaviour,
+	 * this implementation throws an Arithmetic exception if the underlying
+	 * rational number is not an integer or if representing as a {@code long}
+	 * overflows.
+	 * <br>
+	 * Positive and negative infinity are mapped to Long.MAX_VALUE and Long.MIN_VALUE,
+	 * respectively, NaN is mapped to 0 (per the Java Language Specification).
+	 *
+	 * @return  the numeric value represented by this object after conversion
+	 *          to type {@code int}.
+	 */
+	@Override
+	public long longValue()
+	{
+		if (isSpecial()) {
+			if (isInf()) return Long.MAX_VALUE;
+			if (isMInf()) return Long.MIN_VALUE;
+			if (isNaN()) return 0;  // per Java Language Specification
+		}
+
+		// TODO JK: In case of fraction / overflow, this method should not throw an
+		// exception but return some imprecise result. We are conservative here. In the future,
+		// it may make sense to have an intValueExact (similar to BigInteger)
+		if (!isInteger()) {
+			throw new ArithmeticException("Can not convert fractional number to long");
+		}
+		long value = getNum().longValue();
+		if (!getNum().equals(new BigInteger(Long.toString(value)))) {
+			throw new ArithmeticException("Can not convert BigInteger to long, value out of range");
+		}
+		return value;
+	}
+
+	@Override
+	public float floatValue()
+	{
+		// TODO JK: Better precision?
+		return (float)doubleValue();
 	}
 
 	/**
