@@ -258,7 +258,7 @@ public class SymbolicEngine
 		n = module.getNumCommands();
 		for (i = 0; i < n; i++) {
 			command = module.getCommand(i);
-			if (command.getGuard().evaluateBoolean(state)) {
+			if (command.getGuard().evaluateExact(state).toBoolean()) {
 				j = command.getSynchIndex();
 				updateLists.get(m).get(j).add(command.getUpdates());
 				enabledSynchs.set(j);
