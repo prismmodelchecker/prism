@@ -190,10 +190,8 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			this.den = new BigInteger("0");
 			return;
 		}
-		BigInteger num;
-		BigInteger den;
 		string = string.trim();
-		int slashIdx = string.indexOf('/');
+		int slashIdx = string.lastIndexOf('/');
 		if (slashIdx < 0) {
 			// decimal point notation
 			Double.parseDouble(string); // ensures correctness of format
@@ -222,7 +220,8 @@ public final class BigRational extends Number implements Comparable<BigRational>
 				int eInt = Integer.parseInt(eStr);
 				expo += eInt;
 			}
-			num = new BigInteger((negate ? "-" : "") + noDotCoeff);
+			BigInteger num = new BigInteger((negate ? "-" : "") + noDotCoeff);
+			BigInteger den;
 			BigInteger ten = BITEN;
 			if (expo == 0) {
 				den = BigInteger.ONE;
@@ -237,9 +236,14 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			this.den = result.den;
 		} else {
 			// fractional
-			num = new BigInteger(string.substring(0, slashIdx));
-			den = new BigInteger(string.substring(slashIdx + 1, string.length()));
-			BigRational r = cancel(num, den);
+			if (slashIdx == 0 || slashIdx == string.length()-1) {
+				throw new NumberFormatException("Illegal fraction syntax");
+			}
+			// because we use lastIndexOf, we obtain left-associativity,
+			// i.e. a/b/c is interpreted as (a/b)/c
+			BigRational num = new BigRational(string.substring(0, slashIdx));
+			BigRational den = new BigRational(string.substring(slashIdx + 1, string.length()));
+			BigRational r = num.divide(den);
 			this.num = r.num;
 			this.den = r.den;
 			return;
