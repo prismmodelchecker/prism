@@ -47,7 +47,7 @@ public abstract class DefaultModelGenerator implements ModelGenerator
 	public abstract ModelType getModelType();
 	
 	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
 		if (someValues != null && someValues.getNumValues() > 0)
 			throw new PrismException("This model has no constants to set");

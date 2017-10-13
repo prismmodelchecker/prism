@@ -201,6 +201,7 @@ public class PrismCL implements PrismModelListener
 	private String[] paramUpperBounds = null;
 	private String[] paramNames = null;
 
+	private boolean exactConstants = false;
 
 	/**
 	 * Entry point: call run method, catch CuddOutOfMemoryException
@@ -252,6 +253,9 @@ public class PrismCL implements PrismModelListener
 			errorAndExit("Parametric model checking requires at least one property to check");
 		}
 
+		// evaluate constants exactly if we are in param or exact computation mode
+		exactConstants = param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
+
 		// process info about undefined constants
 		try {
 			// first, see which constants are undefined
@@ -260,9 +264,11 @@ public class PrismCL implements PrismModelListener
 				undefinedMFConstants = new UndefinedConstants(modulesFile, propertiesFile, true);
 			else
 				undefinedMFConstants = new UndefinedConstants(modulesFile, null);
+			undefinedMFConstants.setExactMode(exactConstants);
 			undefinedConstants = new UndefinedConstants[numPropertiesToCheck];
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i] = new UndefinedConstants(modulesFile, propertiesFile, propertiesToCheck.get(i));
+				undefinedConstants[i].setExactMode(exactConstants);
 			}
 			// may need to remove some constants if they are used for parametric methods
 			if (param) {
@@ -292,7 +298,7 @@ public class PrismCL implements PrismModelListener
 			// set values for ModulesFile constants
 			try {
 				definedMFConstants = undefinedMFConstants.getMFConstantValues();
-				prism.setPRISMModelConstants(definedMFConstants);
+				prism.setPRISMModelConstants(definedMFConstants, exactConstants);
 			} catch (PrismException e) {
 				// in case of error, report it, store as result for any properties, and go on to the next model
 				// (might happen for example if overflow or another numerical problem is detected at this stage)
@@ -366,7 +372,7 @@ public class PrismCL implements PrismModelListener
 							// Set values for PropertiesFile constants
 							if (propertiesFile != null) {
 								definedPFConstants = undefinedConstants[j].getPFConstantValues();
-								propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+								propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
 							}
 							// Normal model checking
 							if (!simulate && !param) {
@@ -809,7 +815,7 @@ public class PrismCL implements PrismModelListener
 			try {
 				if (propertiesFile != null) {
 					definedPFConstants = undefinedMFConstants.getPFConstantValues();
-					propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
 				}
 				File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
 				prism.exportLabelsToFile(propertiesFile, exportType, f);
