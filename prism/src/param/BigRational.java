@@ -962,7 +962,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		}
 		int value = getNum().intValue();
 		if (!getNum().equals(new BigInteger(Integer.toString(value)))) {
-			throw new PrismLangException("Can not convert BigInteger to int, value out of range");
+			throw new PrismLangException("Can not convert BigInteger to int, value " + this + " out of int range");
 		}
 		return value;
 	}
