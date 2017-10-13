@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.*;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.ModelInfo;
@@ -1069,8 +1070,25 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	 * Assumes that values for constants have been provided for the model.
 	 * Note: This method replaces the old getInitialValues() method,
 	 * since State objects are now preferred to Values objects for efficiency.
+	 * <br>
+	 * The init expression is evaluated using the default evaluate, i.e.,
+	 * not using exact arithmetic.
 	 */
 	public State getDefaultInitialState() throws PrismLangException
+	{
+		return getDefaultInitialState(false);
+	}
+
+	/**
+	 * Create a State object representing the default initial state of this model.
+	 * If there are potentially multiple initial states (because the model has an
+	 * init...endinit specification), this method returns null;
+	 * Assumes that values for constants have been provided for the model.
+	 * Note: This method replaces the old getInitialValues() method,
+	 * since State objects are now preferred to Values objects for efficiency.
+	 * @param exact use exact arithmetic in evaluation of init expression?
+	 */
+	public State getDefaultInitialState(boolean exact) throws PrismLangException
 	{
 		int i, j, count, n, n2;
 		Module module;
@@ -1089,8 +1107,13 @@ public class ModulesFile extends ASTElement implements ModelInfo
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			initialValue = decl.getStartOrDefault().evaluate(constantValues);
-			initialValue = getGlobal(i).getType().castValueTo(initialValue);
+			if (exact) {
+				BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
+				initialValue = getGlobal(i).getType().castFromBigRational(r);
+			} else {
+				initialValue = decl.getStartOrDefault().evaluate(constantValues);
+				initialValue = getGlobal(i).getType().castValueTo(initialValue);
+			}
 			initialState.setValue(count++, initialValue);
 		}
 		n = getNumModules();
@@ -1099,8 +1122,13 @@ public class ModulesFile extends ASTElement implements ModelInfo
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				initialValue = decl.getStartOrDefault().evaluate(constantValues);
-				initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
+				if (exact) {
+					BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
+					initialValue = module.getDeclaration(j).getType().castFromBigRational(r);
+				} else {
+					initialValue = decl.getStartOrDefault().evaluate(constantValues);
+					initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
+				}
 				initialState.setValue(count++, initialValue);
 			}
 		}
