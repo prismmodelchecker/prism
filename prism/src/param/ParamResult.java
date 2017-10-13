@@ -172,7 +172,7 @@ public class ParamResult
 		if (propertyType.equals(TypeBool.getInstance())) {
 			// boolean result
 			boolean boolResult = regionValues.getResult(0).getInitStateValueAsBoolean();
-			boolean boolExpected = expected.evaluateBoolean();
+			boolean boolExpected = expected.evaluateExact().toBoolean();
 
 			if (boolResult != boolExpected) {
 				throw new PrismException("Wrong result (expected " + strExpected + ", got " + boolResult + ")");
