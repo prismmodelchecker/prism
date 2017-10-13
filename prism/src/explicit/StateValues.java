@@ -139,7 +139,7 @@ public class StateValues implements StateVector
 				valuesI[i] = initI;
 		} else if (type instanceof TypeDouble) {
 			valuesD = new double[size];
-			Double objD = ((TypeDouble) type).castValueTo(init);
+			Double objD = ((TypeDouble) type).castValueTo(init).doubleValue();
 			double initD = objD.doubleValue();
 			for (i = 0; i < size; i++)
 				valuesD[i] = initD;

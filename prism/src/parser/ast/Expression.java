@@ -355,6 +355,9 @@ public abstract class Expression extends ASTElement
 		if (o instanceof Double) {
 			return ((Double) o).doubleValue();
 		}
+		if (o instanceof BigRational) {
+			return ((BigRational)o).doubleValue();
+		}
 		if (o instanceof Boolean) {
 			return ((Boolean) o).booleanValue() ? 1.0 : 0.0;
 		}
