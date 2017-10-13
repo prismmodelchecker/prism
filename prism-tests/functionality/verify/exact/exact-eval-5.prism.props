@@ -1,0 +1,11 @@
+// RESULT: 0
+P=?[ F s1=1 ]
+
+// RESULT: false
+P>0[ F s1=1 ]
+
+// RESULT: 0
+P=?[ F s2 ]
+
+// RESULT: false
+P>0[ F s2 ]

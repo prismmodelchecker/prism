@@ -157,7 +157,7 @@ public final class ModelBuilder extends PrismComponent
 					// non-parametric constants and state variable values have
 					// been already partially expanded, so if this evaluation
 					// succeeds there are no parametric constants involved
-					boolean ifValue = iteExpr.getOperand1().evaluateBoolean();
+					boolean ifValue = iteExpr.getOperand1().evaluateExact().toBoolean();
 					if (ifValue) {
 						return expr2function(factory, iteExpr.getOperand2());
 					} else {

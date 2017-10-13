@@ -1,0 +1,5 @@
+// RESULT: 0
+P=?[ F s=1 ]
+
+// RESULT: false
+P>0[ F s=1 ]
