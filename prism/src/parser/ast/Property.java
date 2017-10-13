@@ -190,6 +190,9 @@ public class Property extends ASTElement
 					// Check doubles numerically
 					else if (constValToMatch instanceof Double)
 						match = PrismUtils.doublesAreCloseRel(((Double) constValToMatch).doubleValue(), Double.parseDouble(constVal), 1e-10);
+					// if constant is exact rational number, compare exactly
+					else if (constValToMatch instanceof BigRational)
+						match = BigRational.from(constVal).equals(constValToMatch);
 					// Otherwise just check for exact string match for now
 					else
 						match = constValToMatch.toString().equals(constVal);
