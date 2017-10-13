@@ -68,6 +68,7 @@ import parser.ast.ExpressionExists;
 import parser.ast.ExpressionFilter;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.ast.ExpressionForAll;
+import parser.ast.ExpressionFormula;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
@@ -372,6 +373,12 @@ final public class ParamModelChecker extends PrismComponent
 			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr, needStates);
 		} else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr, needStates);
+		} else if (expr instanceof ExpressionFormula) {
+			// This should have been defined or expanded by now.
+			if (((ExpressionFormula) expr).getDefinition() != null)
+				res = checkExpression(model, ((ExpressionFormula) expr).getDefinition(), needStates);
+			else
+				throw new PrismException("Unexpanded formula \"" + ((ExpressionFormula) expr).getName() + "\"");
 		} else if (expr instanceof ExpressionProp) {
 			res = checkExpressionProp(model, (ExpressionProp) expr, needStates);
 		} else if (expr instanceof ExpressionFilter) {
