@@ -82,4 +82,11 @@ public class TypeDouble extends Type
 		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
+
+	@Override
+	public Object castFromBigRational(BigRational value) throws PrismLangException
+	{
+		return value.doubleValue();
+	}
+
 }

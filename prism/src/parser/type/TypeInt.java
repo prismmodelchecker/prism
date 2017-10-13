@@ -26,6 +26,7 @@
 
 package parser.type;
 
+import param.BigRational;
 import prism.PrismLangException;
 
 public class TypeInt extends Type 
@@ -77,4 +78,11 @@ public class TypeInt extends Type
 		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
+
+	@Override
+	public Object castFromBigRational(BigRational value) throws PrismLangException
+	{
+		return value.toInt();
+	}
+
 }
