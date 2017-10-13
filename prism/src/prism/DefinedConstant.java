@@ -170,7 +170,10 @@ public class DefinedConstant
 		
 		// parse low value
 		try {
-			dl = Double.parseDouble(sl);
+			dl = parseDouble(sl);
+			if (!Double.isFinite(dl)) {
+				throw new NumberFormatException("Value is not finite");
+			}
 		}
 		catch (NumberFormatException e) {
 			throw new PrismException("Value " + sl + " for constant " + name + " is not a valid double");
@@ -183,7 +186,10 @@ public class DefinedConstant
 		else {
 			// parse high value
 			try {
-				dh = Double.parseDouble(sh);
+				dh = parseDouble(sh);
+				if (!Double.isFinite(dh)) {
+					throw new NumberFormatException("Value is not finite");
+				}
 			}
 			catch (NumberFormatException e) {
 				throw new PrismException("Value " + sh + " for constant " + name + " is not a valid double");
@@ -196,7 +202,10 @@ public class DefinedConstant
 			else {
 				// parse step
 				try {
-					ds = Double.parseDouble(ss);
+					ds = parseDouble(ss);
+					if (!Double.isFinite(ds)) {
+						throw new NumberFormatException("Value is not finite");
+					}
 				}
 				catch (NumberFormatException e) {
 					throw new PrismException("Value " + ss + " for constant " + name + " is not a valid double");
@@ -229,6 +238,9 @@ public class DefinedConstant
 		// parse low value
 		try {
 			rl = BigRational.from(sl);
+			if (rl.isSpecial()) {
+				throw new NumberFormatException("Value is not finite");
+			}
 		}
 		catch (NumberFormatException e) {
 			throw new PrismException("Value " + sl + " for constant " + name + " is not a valid rational number");
@@ -242,6 +254,9 @@ public class DefinedConstant
 			// parse high value
 			try {
 				rh = BigRational.from(sh);
+				if (rh.isSpecial()) {
+					throw new NumberFormatException("Value is not finite");
+				}
 			}
 			catch (NumberFormatException e) {
 				throw new PrismException("Value " + sh + " for constant " + name + " is not a valid rational number");
@@ -255,6 +270,9 @@ public class DefinedConstant
 				// parse step
 				try {
 					rs = BigRational.from(ss);
+					if (rs.isSpecial()) {
+						throw new NumberFormatException("Value is not finite");
+					}
 				}
 				catch (NumberFormatException e) {
 					throw new PrismException("Value " + ss + " for constant " + name + " is not a valid double");
@@ -498,5 +516,39 @@ public class DefinedConstant
 		if (numSteps > 1) s += ":" + step + ":" + high;
 		
 		return s;
-	}	
+	}
+
+	/** Parse a double value (supports a/b fraction syntax) */
+	public static double parseDouble(String s)
+	{
+		int slashIdx = s.lastIndexOf('/');
+		if (slashIdx < 0) {
+			return Double.parseDouble(s);
+		} else {
+			// fraction
+			// because we use lastIndexOf, we obtain left-associativity,
+			// i.e. a/b/c is interpreted as (a/b)/c
+			if (slashIdx == 0 || slashIdx == s.length()-1) {
+				throw new NumberFormatException("Illegal fraction syntax");
+			}
+			double num = parseDouble(s.substring(0, slashIdx));
+			double den = parseDouble(s.substring(slashIdx+1));
+			return num / den;
+		}
+	}
+
+	/**
+	 * Check that the string can be parsed as a double value
+	 * (double, or fraction).
+	 */
+	public static boolean isValidDouble(String s)
+	{
+		try {
+			parseDouble(s);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
 }
