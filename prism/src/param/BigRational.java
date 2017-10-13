@@ -697,6 +697,30 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		return this.compareTo(new BigRational(i));
 	}
 
+	/** Returns true if this number is less than the other number */
+	public boolean lessThan(BigRational other)
+	{
+		return this.compareTo(other) < 0;
+	}
+
+	/** Returns true if this number is less than or equal the other number */
+	public boolean lessThanEquals(BigRational other)
+	{
+		return this.compareTo(other) <= 0;
+	}
+
+	/** Returns true if this number is greater than the other number */
+	public boolean greaterThan(BigRational other)
+	{
+		return this.compareTo(other) > 0;
+	}
+
+	/** Returns true if this number is greater than or equal the other number */
+	public boolean greaterThanEquals(BigRational other)
+	{
+		return this.compareTo(other) >= 0;
+	}
+
 	/**
 	 * Return numerator of this BigRational as a BigInteger.
 	 * 
