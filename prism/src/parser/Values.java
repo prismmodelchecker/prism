@@ -31,6 +31,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import param.BigRational;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -223,6 +224,7 @@ public class Values //implements Comparable
 		Object o = values.get(i);
 		if (o instanceof Integer) return TypeInt.getInstance();
 		if (o instanceof Double)  return TypeDouble.getInstance();
+		if (o instanceof BigRational) return TypeDouble.getInstance();
 		if (o instanceof Boolean) return TypeBool.getInstance();
 		else return null;
 	}
