@@ -680,6 +680,25 @@ public class PrismCL implements PrismModelListener
 
 	private void doExports()
 	{
+		if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+			if (exporttrans ||
+			    exportstaterewards ||
+			    exporttransrewards ||
+			    exportstates ||
+			    exportspy ||
+			    exportdot ||
+			    exporttransdot ||
+			    exporttransdotstates ||
+			    exportmodeldotview ||
+			    exportlabels ||
+			    exportsccs ||
+			    exportbsccs ||
+			    exportmecs) {
+				mainLog.printWarning("Skipping exports in parametric / exact model checking mode, currently not supported.");
+				return;
+			}
+		}
+
 		// export transition matrix to a file
 		if (exporttrans) {
 			try {
@@ -879,6 +898,11 @@ public class PrismCL implements PrismModelListener
 		File exportSteadyStateFile = null;
 
 		if (steadystate) {
+			if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+				mainLog.printWarning("Skipping steady-state computation in parametric / exact model checking mode, currently not supported.");
+				return;
+			}
+
 			try {
 				// Choose destination for output (file or log)
 				if (exportSteadyStateFilename == null || exportSteadyStateFilename.equals("stdout"))
@@ -904,6 +928,11 @@ public class PrismCL implements PrismModelListener
 
 		if (dotransient) {
 			try {
+				if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+					mainLog.printWarning("Skipping transient probability computation in parametric / exact model checking mode, currently not supported.");
+					return;
+				}
+
 				// Choose destination for output (file or log)
 				if (exportTransientFilename == null || exportTransientFilename.equals("stdout"))
 					exportTransientFile = null;
