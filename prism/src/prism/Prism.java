@@ -2419,7 +2419,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		int numRewardStructs = currentModelInfo.getNumRewardStructs();
 		if (numRewardStructs == 0) {
-			mainLog.println("\nOmitting state reward export as there are no reward structures");
+			mainLog.println("\nOmitting transition reward export as there are no reward structures");
+			return;
 		}
 		
 		if (getExplicit())
