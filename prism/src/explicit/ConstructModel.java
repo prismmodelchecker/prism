@@ -328,7 +328,11 @@ public class ConstructModel extends PrismComponent
 		if (!justReach) {
 			switch (modelType) {
 			case DTMC:
-				model = sort ? new DTMCSimple(dtmc, permut) : (DTMCSimple) dtmc;
+				if (buildSparse) {
+					model = sort ? new DTMCSparse(dtmc, permut) : new DTMCSparse(dtmc);
+				} else {
+					model = sort ? new DTMCSimple(dtmc, permut) : (DTMCSimple) dtmc;
+				}
 				break;
 			case CTMC:
 				model = sort ? new CTMCSimple(ctmc, permut) : (CTMCSimple) ctmc;

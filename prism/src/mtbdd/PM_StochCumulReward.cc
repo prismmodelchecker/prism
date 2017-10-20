@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismMTBDD.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -89,7 +89,7 @@ jdouble time		// time bound
 	diags = DD_SumAbstract(ddman, trans, cvars, num_rvars);
 	diags = DD_Apply(ddman, APPLY_TIMES, diags, DD_Constant(ddman, -1));
 	i = DD_GetNumNodes(ddman, diags);
-	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
 	PM_PrintToMainLog(env, "Building iteration matrix MTBDD... ");
 	
@@ -112,7 +112,7 @@ jdouble time		// time bound
 	Cudd_Ref(reach);
 	q = DD_Apply(ddman, APPLY_PLUS, q, DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), reach));
 	i = DD_GetNumNodes(ddman, q);
-	PM_PrintToMainLog(env, "[nodes=%d] [%.1f Kb]\n", i, i*20.0/1024.0);
+	PM_PrintToMainLog(env, "[nodes=%ld] [%.1f Kb]\n", i, i*20.0/1024.0);
 	
 	// combine state/transition rewards into a single vector - this is the initial solution vector
 	Cudd_Ref(trans);
@@ -212,7 +212,7 @@ jdouble time		// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PM_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+			PM_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
 			PM_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

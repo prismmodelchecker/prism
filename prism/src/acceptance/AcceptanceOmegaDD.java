@@ -27,17 +27,33 @@
 package acceptance;
 
 import jdd.JDDNode;
+import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Generic interface for an omega-regular acceptance condition (BDD-based).
  */
-public interface AcceptanceOmegaDD
+public interface AcceptanceOmegaDD extends Cloneable
 {
 	/** Returns true if the bottom strongly connected component (BSSC)
 	 *  given by bscc_states is accepting for this acceptance condition.
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 **/
 	public boolean isBSCCAccepting(JDDNode bscc_states);
+
+	/**
+	 * Provides a copy of this acceptance condition.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public AcceptanceOmegaDD clone();
+
+	/**
+	 * Replaces the BDD functions for all the acceptance sets
+	 * of this acceptance condition with the intersection
+	 * of the current acceptance sets and the function {@code restrict}.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
+	public void intersect(JDDNode restrict);
 
 	/**
 	 * Get a string describing the acceptance condition's size,
@@ -47,6 +63,36 @@ public interface AcceptanceOmegaDD
 
 	/** Returns the AcceptanceType of this acceptance condition */
 	public AcceptanceType getType();
+
+	/**
+	 * Complement the acceptance condition if possible.
+	 * <br>
+	 * [ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param allowedAcceptance the allowed acceptance types that may be used for complementing
+	 * @throws PrismNotSupportedException if none of the allowed acceptance types can be used as target for complementing
+	 */
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException;
+
+	/**
+	 * Complement this acceptance condition to an AcceptanceGeneric condition.
+	 * <br>
+	 * Default implementation: toAcceptanceGeneric().complementToGeneric()
+	 * [ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public default AcceptanceGenericDD complementToGeneric()
+	{
+		AcceptanceGenericDD generic = this.toAcceptanceGeneric();
+		AcceptanceGenericDD complemented = generic.complementToGeneric();
+		generic.clear();
+		return complemented;
+	}
+
+	/**
+	 * Convert this acceptance condition to an AcceptanceGeneric condition.
+	 * <br>
+	 * [ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public AcceptanceGenericDD toAcceptanceGeneric();
 
 	/** Returns the type of this acceptance condition as a String,
 	 * i.e., "R" for Rabin

@@ -113,11 +113,11 @@ long lastTimeG;
 /*---------------------------------------------------------------------------*/
 
 
-#define FactorsNotStored(factors)  ((int)((long)(factors) & 01))
+#define FactorsNotStored(factors)  ((int)((ptrint)(factors) & 01))
 
-#define FactorsComplement(factors) ((Conjuncts *)((long)(factors) | 01))
+#define FactorsComplement(factors) ((Conjuncts *)((ptrint)(factors) | 01))
 
-#define FactorsUncomplement(factors) ((Conjuncts *)((long)(factors) ^ 01))
+#define FactorsUncomplement(factors) ((Conjuncts *)((ptrint)(factors) ^ 01))
 
 /**AutomaticStart*************************************************************/
 
@@ -1016,7 +1016,7 @@ CheckTablesCacheAndReturn(
 		value = 1;
 	    }
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		return(NULL);
 	    }
 	}
@@ -1031,7 +1031,7 @@ CheckTablesCacheAndReturn(
 		value = 2;
 	    }
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		return(NULL);
 	    }
 	}
@@ -1041,7 +1041,7 @@ CheckTablesCacheAndReturn(
 	if (g != one) {
 	    value = 2;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		return(NULL);
 	    }
 	}
@@ -1051,7 +1051,7 @@ CheckTablesCacheAndReturn(
 	if (h != one) {
 	    value = 1;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		return(NULL);
 	    }
 	}
@@ -1146,7 +1146,7 @@ PickOnePair(
 	    if (value == 2) {
 		value |= 1;
 		if (st_insert(ghTable, (char *)Cudd_Regular(factors->g),
-			      (char *)(long)value) == ST_OUT_OF_MEM) {
+			      (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		    FREE(factors);
 		    return(NULL);
 		}
@@ -1154,7 +1154,7 @@ PickOnePair(
 	} else {
 	    value = 1;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(factors->g),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		FREE(factors);
 		return(NULL);
 	    }
@@ -1168,7 +1168,7 @@ PickOnePair(
 	    if (value == 1) {
 		value |= 2;
 		if (st_insert(ghTable, (char *)Cudd_Regular(factors->h),
-			      (char *)(long)value) == ST_OUT_OF_MEM) {
+			      (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		    FREE(factors);
 		    return(NULL);
 		}
@@ -1176,7 +1176,7 @@ PickOnePair(
 	} else {
 	    value = 2;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(factors->h),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		FREE(factors);
 		return(NULL);
 	    }
@@ -1261,7 +1261,7 @@ CheckInTables(
 	if (h1 != one) {
 	    value = 2;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h1),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1274,7 +1274,7 @@ CheckInTables(
 	if (h1 != one) {
 	    value = 3;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h1),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1287,7 +1287,7 @@ CheckInTables(
 	if (g1 != one) {
 	    value = 1;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g1),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1300,7 +1300,7 @@ CheckInTables(
 	if (g1 != one) {
 	    value = 3;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g1),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1313,7 +1313,7 @@ CheckInTables(
 	if (h2 != one) {
 	    value = 2;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h2),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1326,7 +1326,7 @@ CheckInTables(
 	if (h2 != one) {
 	    value = 3;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h2),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1339,7 +1339,7 @@ CheckInTables(
 	if (g2 != one) {
 	    value = 1;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g2),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1352,7 +1352,7 @@ CheckInTables(
 	if (g2 != one) {
 	    value = 3;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g2),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1365,7 +1365,7 @@ CheckInTables(
 	if (h1 != one) {
 	    value = 1;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h1),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1378,7 +1378,7 @@ CheckInTables(
 	if (g1 != one) {
 	    value = 2;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g1),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1391,7 +1391,7 @@ CheckInTables(
 	if (h2 != one) {
 	    value = 1;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(h2),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1404,7 +1404,7 @@ CheckInTables(
 	if (g2 != one) {
 	    value = 2;
 	    if (st_insert(ghTable, (char *)Cudd_Regular(g2),
-			  (char *)(long)value) == ST_OUT_OF_MEM) {
+			  (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		*outOfMem = 1;
 		FREE(factors);
 		return(NULL);
@@ -1489,7 +1489,7 @@ ZeroCase(
 	} else {
 	    value = 1;
 	}
-	if (st_insert(ghTable, (char *)Cudd_Regular(x), (char *)(long)value) == ST_OUT_OF_MEM) {
+	if (st_insert(ghTable, (char *)Cudd_Regular(x), (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 	    dd->errorCode = CUDD_MEMORY_OUT;
 	    return NULL;
 	}
@@ -1522,7 +1522,7 @@ ZeroCase(
 	} else {
 	    value = 2;
 	}
-	if (st_insert(ghTable, (char *)Cudd_Regular(x), (char *)(long)value) == ST_OUT_OF_MEM) {
+	if (st_insert(ghTable, (char *)Cudd_Regular(x), (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 	    dd->errorCode = CUDD_MEMORY_OUT;
 	    return NULL;
 	}
@@ -1761,7 +1761,7 @@ BuildConjuncts(
 	    factors->h = one;
 	    lastTimeG = 1;
 	    value = 1;
-	    if (st_insert(ghTable, (char *)Cudd_Regular(node), (char *)(long)value) == ST_OUT_OF_MEM) {
+	    if (st_insert(ghTable, (char *)Cudd_Regular(node), (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		dd->errorCode = CUDD_MEMORY_OUT;
 		FREE(factors);
 		return NULL;
@@ -1771,7 +1771,7 @@ BuildConjuncts(
 	    factors->h = node;
 	    lastTimeG = 0;
 	    value = 2;
-	    if (st_insert(ghTable, (char *)Cudd_Regular(node), (char *)(long)value) == ST_OUT_OF_MEM) {
+	    if (st_insert(ghTable, (char *)Cudd_Regular(node), (char *)(ptruint)value) == ST_OUT_OF_MEM) {
 		dd->errorCode = CUDD_MEMORY_OUT;
 		FREE(factors);
 		return NULL;

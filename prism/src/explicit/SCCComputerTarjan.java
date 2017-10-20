@@ -29,9 +29,9 @@ package explicit;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.IntPredicate;
 
 import prism.PrismComponent;
 import prism.PrismException;
@@ -45,14 +45,6 @@ public class SCCComputerTarjan extends SCCComputer
 	private Model model;
 	/* Number of nodes (model states) */
 	private int numNodes;
-	/* Computed list of SCCs */
-	private List<BitSet> sccs = new ArrayList<BitSet>();
-	/* States not in non-trivial SCCs */
-	private BitSet notInSCCs;
-	/* Computed list of BSCCs */
-	private List<BitSet> bsccs = new ArrayList<BitSet>();
-	/* States not in any BSCC */
-	private BitSet notInBSCCs;
 
 	/* Next index to give to a node */
 	private int index = 0;
@@ -62,13 +54,16 @@ public class SCCComputerTarjan extends SCCComputer
 	private ArrayList<Node> nodeList;
 	/* Nodes currently on the stack. */
 	private BitSet onStack;
+	/** Should we filter trivial SCCs? */
+	private boolean filterTrivialSCCs;
+	private IntPredicate restrict;
 
 	/**
 	 * Build (B)SCC computer for a given model.
 	 */
-	public SCCComputerTarjan(PrismComponent parent, Model model) throws PrismException
+	public SCCComputerTarjan(PrismComponent parent, Model model, SCCConsumer consumer) throws PrismException
 	{
-		super(parent);
+		super(parent, consumer);
 		this.model = model;
 		this.numNodes = model.getNumStates();
 		this.nodeList = new ArrayList<Node>(numNodes);
@@ -81,85 +76,33 @@ public class SCCComputerTarjan extends SCCComputer
 	// Methods for SCCComputer interface
 
 	@Override
-	public void computeSCCs()
+	public void computeSCCs(boolean filterTrivialSCCs, IntPredicate restrict) throws PrismException
 	{
+		this.filterTrivialSCCs = filterTrivialSCCs;
+		consumer.notifyStart(model);
+		this.restrict = restrict;
 		tarjan();
-		// Now remove trivial SCCs
-		notInSCCs = new BitSet();
-		for (Iterator<BitSet> it = sccs.iterator(); it.hasNext(); ) {
-			BitSet scc = it.next();
-			if (scc.cardinality() == 1) {
-				int s = scc.nextSetBit(0);
-				if (!model.someSuccessorsInSet(s, scc)) {
-					it.remove(); // remove this SCC from sccs list
-					notInSCCs.set(s);
-				}
-			}
-		}
+		consumer.notifyDone();
 	}
 
-	@Override
-	public void computeBSCCs()
-	{
-		computeSCCs();
-		notInBSCCs = (BitSet) getNotInSCCs().clone();
-		int n = sccs.size();
-		for (int i = 0; i < n; i++) {
-			BitSet scc = sccs.get(i);
-			boolean bottom = true;
-			for (int s = scc.nextSetBit(0); s >= 0; s = scc.nextSetBit(s + 1)) {
-				if (!model.allSuccessorsInSet(s, scc)) {
-					bottom = false;
-					break;
-				}
-			}
-			if (bottom)
-				bsccs.add(scc);
-			else
-				notInBSCCs.or(scc);
-		}
-	}
-
-	@Override
-	public List<BitSet> getSCCs()
-	{
-		return sccs;
-	}
-
-	@Override
-	public BitSet getNotInSCCs()
-	{
-		return notInSCCs;
-	}
-	
-	@Override
-	public List<BitSet> getBSCCs()
-	{
-		return bsccs;
-	}
-
-	@Override
-	public BitSet getNotInBSCCs()
-	{
-		return notInBSCCs;
-	}
-	
 	// SCC Computation
 
 	/**
 	 * Execute Tarjan's algorithm. Determine maximal strongly connected components
 	 * (SCCS) for the graph of the model and stored in {@code sccs}.
 	 */
-	public void tarjan()
+	public void tarjan() throws PrismException
 	{
 		for (int i = 0; i < numNodes; i++) {
+			if (restrict != null && !restrict.test(i))
+				continue; // skip state if not one of the relevant states
 			if (nodeList.get(i).lowlink == -1)
 				tarjan(i);
 		}
 
 	}
 
-	private void tarjan(int i)
+	private void tarjan(int i) throws PrismException
 	{
 		final Node v = nodeList.get(i);
 		v.index = index;
@@ -167,9 +110,21 @@ public class SCCComputerTarjan extends SCCComputer
 		index++;
 		stack.add(0, i);
 		onStack.set(i);
-		Iterator<Integer> it = model.getSuccessorsIterator(i);
+
+		boolean hadSelfloop = false;
+		SuccessorsIterator it = model.getSuccessors(i);
 		while (it.hasNext()) {
-			int e = it.next();
+			int e = it.nextInt();
+
+			if (e == i) {
+				hadSelfloop = true;
+				continue;
+			}
+
+			if (restrict != null && !restrict.test(e)) {
+				continue; // ignore edge to state that is not relevant
+			}
+
 			Node n = nodeList.get(e);
 			if (n.index == -1) {
 				tarjan(e);
@@ -179,14 +134,24 @@ public class SCCComputerTarjan extends SCCComputer
 			}
 		}
 		if (v.lowlink == v.index) {
+			// this is a singleton SCC if the top of the stack equals i
+			boolean singletonSCC = (stack.get(0) == i);
+			if (singletonSCC && filterTrivialSCCs) {
+				if (!hadSelfloop) { // singleton SCC & no selfloop -> trivial
+					stack.remove(0);
+					onStack.set(i, false);
+					return;
+				}
+			}
+
 			int n;
-			BitSet component = new BitSet();
+			consumer.notifyStartSCC();
 			do {
 				n = stack.remove(0);
 				onStack.set(n, false);
-				component.set(n);
+				consumer.notifyStateInSCC(n);
 			} while (n != i);
-			sccs.add(component);
+			consumer.notifyEndSCC();
 		}
 	}
 

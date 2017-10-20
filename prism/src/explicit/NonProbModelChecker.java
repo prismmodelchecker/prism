@@ -504,7 +504,8 @@ public class NonProbModelChecker extends StateModelChecker
 
 		mainLog.print("Searching for non-trivial, accepting SCCs in product LTS...");
 		mainLog.flush();
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, product.getProductModel());
+		SCCConsumerStore sccConsumerStore = new SCCConsumerStore();
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, product.getProductModel(), sccConsumerStore);
 		sccComputer.computeSCCs();
 
 		// We determine the SCCs that intersect F, as those are guaranteed to
@@ -513,7 +514,7 @@ public class NonProbModelChecker extends StateModelChecker
 		int accepting = 0;
 		int sccs = 0;
 		BitSet acceptingSCCs = new BitSet();
-		for (BitSet scc : sccComputer.getSCCs()) {
+		for (BitSet scc : sccConsumerStore.getSCCs()) {
 			sccs++;
 			if (scc.intersects(product.getAcceptingStates())) {
 				acceptingSCCs.or(scc);

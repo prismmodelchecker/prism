@@ -30,6 +30,11 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 
+import explicit.rewards.ConstructRewards;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
+import explicit.rewards.STPGRewards;
 import parser.ast.Coalition;
 import parser.ast.Expression;
 import parser.ast.ExpressionProb;
@@ -47,13 +52,10 @@ import prism.IntegerBound;
 import prism.OpRelOpBound;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
-import explicit.rewards.ConstructRewards;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MDPRewards;
-import explicit.rewards.Rewards;
-import explicit.rewards.STPGRewards;
+import prism.PrismUtils;
 
 /**
  * Super class for explicit-state probabilistic model checkers.
@@ -88,6 +90,10 @@ public class ProbModelChecker extends NonProbModelChecker
 	// Adversary export
 	protected boolean exportAdv = false;
 	protected String exportAdvFilename;
+
+	// Delay between occasional updates for slow processes, e.g. numerical solution (milliseconds)
+	public static final int UPDATE_DELAY = 5000;
+
 
 	// Enums for flags/settings
 
@@ -1078,6 +1084,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((CTMCModelChecker) this).computeTotalRewards((CTMC) model, (MCRewards) modelRewards);
 			break;
 		case MDP:
+			res = ((MDPModelChecker) this).computeTotalRewards((MDP) model, (MDPRewards) modelRewards, minMax.isMin());
+			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
@@ -1235,5 +1243,58 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 
 		return dist;
+	}
+	
+	/**
+	 * Export (non-zero) state rewards for one reward structure of a model.
+	 * @param model The model
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param exportType The format in which to export
+	 * @param out Where to export
+	 */
+	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out) throws PrismException
+	{
+		int numStates = model.getNumStates();
+		int nonZeroRews = 0;
+
+		Rewards modelRewards = constructRewards(model, r);
+		switch (model.getModelType()) {
+		case DTMC:
+		case CTMC:
+			MCRewards mcRewards = (MCRewards) modelRewards;
+			for (int s = 0; s < numStates; s++) {
+				double d = mcRewards.getStateReward(s);
+				if (d != 0) {
+					nonZeroRews++;
+				}
+			}
+			out.println(numStates + " " + nonZeroRews);
+			for (int s = 0; s < numStates; s++) {
+				double d = mcRewards.getStateReward(s);
+				if (d != 0) {
+					out.println(s + " " + PrismUtils.formatDouble(d));
+				}
+			}
+			break;
+		case MDP:
+		case STPG:
+			MDPRewards mdpRewards = (MDPRewards) modelRewards;
+			for (int s = 0; s < numStates; s++) {
+				double d = mdpRewards.getStateReward(s);
+				if (d != 0) {
+					nonZeroRews++;
+				}
+			}
+			out.println(numStates + " " + nonZeroRews);
+			for (int s = 0; s < numStates; s++) {
+				double d = mdpRewards.getStateReward(s);
+				if (d != 0) {
+					out.println(s + " " + PrismUtils.formatDouble(d));
+				}
+			}
+			break;
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet export state rewards for " + model.getModelType() + "s");
+		}
 	}
 }

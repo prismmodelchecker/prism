@@ -20,6 +20,9 @@ default: all
 
 all: checks parser/PTAParser.java $(CLASS_FILES)
 
+# inhibit building in parallel (-j option)
+.NOTPARALLEL:
+
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
 	@if [ "$(SRC_DIR)" = "" ]; then \

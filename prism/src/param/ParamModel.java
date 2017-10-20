@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 
@@ -38,6 +39,8 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import explicit.ModelExplicit;
+import explicit.SuccessorsIterator;
+import explicit.graphviz.Decorator;
 
 /**
  * Represents a parametric Markov model.
@@ -112,7 +115,7 @@ public final class ParamModel extends ModelExplicit
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
+	public SuccessorsIterator getSuccessors(int s)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -128,18 +131,6 @@ public final class ParamModel extends ModelExplicit
 			}
 		}
 		return false;
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -238,7 +229,7 @@ public final class ParamModel extends ModelExplicit
 
 
 	@Override
-	protected void exportTransitionsToDotFile(int i, PrismLog out)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		int numChoices = getNumChoices(i);
 		for (int j = 0; j < numChoices; j++) {
@@ -246,8 +237,19 @@ public final class ParamModel extends ModelExplicit
 			String nij = null;
 			if (modelType.nondeterministic()) {
 				nij = "n" + i + "_" + j;
-				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-				out.print("\" ];\n");
+				out.print(i + " -> " + nij + " ");
+				explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+				d.attributes().put("arrowhead", "none");
+				d.setLabel(Integer.toString(j));
+
+				if (decorators != null) {
+					for (Decorator decorator : decorators) {
+						d = decorator.decorateTransition(i, j, d);
+					}
+				}
+				out.print(d);
+				out.println(";");
+
 				out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
 			}
 
@@ -263,19 +265,32 @@ public final class ParamModel extends ModelExplicit
 					out.print(nij + " -> " + e.getKey() + " ");
 				}
 
-				String value;
+				Object value;
 				if (e.getValue().isConstant()) {
-					value = e.getValue().asBigRational().toString();
+					value = e.getValue().asBigRational();
 				} else {
-					value = e.getValue().toString();
+					value = e.getValue();
 				}
 
-				
-				out.print("[ label=\"" + value + "\" ];\n");
+				explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+				d.setLabel(value.toString());
+
+				if (decorators != null) {
+					for (Decorator decorator : decorators) {
+						if (!modelType.nondeterministic()) {
+							d = decorator.decorateProbability(i, e.getKey(), value, d);
+						} else {
+							d = decorator.decorateProbability(i, e.getKey(), j, value, d);
+						}
+					}
+				}
+
+				out.print(d);
+				out.println(";");
 			}
 		}
 	}
-	
+
 	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
 	{

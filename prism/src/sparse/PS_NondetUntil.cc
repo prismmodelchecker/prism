@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -37,7 +37,10 @@
 #include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "Measures.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 //------------------------------------------------------------------------------
 
@@ -95,9 +98,11 @@ jlong _strat				// strategy storage
 	int num_actions;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
-	double d1, d2, x, sup_norm, kb, kbt;
+	double d1, d2, kb, kbt;
 	bool done, first;
-	
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -133,7 +138,7 @@ jlong _strat				// strategy storage
 	kb = ndsm->mem;
 	kbt = kb;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// if needed, and if info is available, build a vector of action indices for the MDP
@@ -153,7 +158,7 @@ jlong _strat				// strategy storage
 			// also extract list of action names from 'synchs'
 			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 		} else {
-			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.", export_adv_filename);
+			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.");
 		}
 	}
 	
@@ -198,13 +203,19 @@ jlong _strat				// strategy storage
 		soln[i] = yes_vec[i];
 //		if (soln[i]) printf("yes[%d] := %f;\n", i+1, yes[i]);
 	}
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PS_NondetUntil"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
 	start3 = stop;
-	
+
 	// start iterations
 	iters = 0;
 	done = false;
@@ -270,23 +281,20 @@ jlong _strat				// strategy storage
 			// (if no choices, use value of yes)
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
-		sup_norm = 0.0;
-		for (i = 0; i < n; i++) {
-			x = fabs(soln2[i] - soln[i]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[i];
-			}
-			if (x > sup_norm) sup_norm = x;
-		}
-		if (sup_norm < term_crit_param) {
+		measure.reset();
+		measure.measure(soln, soln2, n);
+		if (measure.value() < term_crit_param) {
 			done = true;
 		}
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
 			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

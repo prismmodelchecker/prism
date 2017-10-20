@@ -230,6 +230,10 @@ public class ConstructRewards
 	 */
 	public MCRewards buildMCRewardStructure(DTMC mc, ModelGenerator modelGen, int r) throws PrismException
 	{
+		if (modelGen == null) {
+			throw new PrismException("No model generator to build reward structure");
+		}
+		
 		if (modelGen.rewardStructHasTransitionRewards(r)) {
 			// TODO
 			throw new PrismNotSupportedException("Explicit engine does not yet handle transition rewards for D/CTMCs");

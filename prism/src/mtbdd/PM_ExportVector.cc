@@ -26,6 +26,7 @@
 
 // includes
 #include "PrismMTBDD.h"
+#include <cinttypes>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -36,7 +37,7 @@
 //------------------------------------------------------------------------------
 
 // local function prototypes
-static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index);
+static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t index);
 
 // globals
 static const char *export_name;
@@ -66,8 +67,8 @@ jstring fn		// filename
 	
 	// print file header
 	switch (export_type) {
-	case EXPORT_PLAIN: export_string("%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars)); break;
-	case EXPORT_MATLAB: export_string("%s = sparse(%d,1);\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
+	case EXPORT_PLAIN: export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars)); break;
+	case EXPORT_MATLAB: export_string("%s = sparse(%" PRId64 ",1);\n", export_name, odd->eoff+odd->toff); break;
 	}
 	
 	// print main part of file
@@ -82,7 +83,7 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
+static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t index)
 {
 	DdNode *e, *t;
 	
@@ -92,9 +93,9 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 	// base case - non zero terminal
 	if (level == num_vars) {
 		switch (export_type) {
-		case EXPORT_PLAIN: export_string("%d %.12g\n", index, Cudd_V(dd)); break;
-		case EXPORT_MATLAB: export_string("%s(%d)=%.12g;\n", export_name, index+1, Cudd_V(dd)); break;
-		case EXPORT_MRMC: export_string("%d %.12g\n", index+1, Cudd_V(dd)); break;
+		case EXPORT_PLAIN: export_string("%" PRId64 " %.12g\n", index, Cudd_V(dd)); break;
+		case EXPORT_MATLAB: export_string("%s(%" PRId64 ")=%.12g;\n", export_name, index+1, Cudd_V(dd)); break;
+		case EXPORT_MRMC: export_string("%" PRId64 " %.12g\n", index+1, Cudd_V(dd)); break;
 		}
 		return;
 	}

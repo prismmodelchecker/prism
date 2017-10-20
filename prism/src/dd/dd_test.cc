@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <util.h>
 #include <cudd.h>

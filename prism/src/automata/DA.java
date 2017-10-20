@@ -74,6 +74,14 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	}
 
 	/**
+	 * Construct a DRA with zero states, use addState to add states.
+	 */
+	public DA()
+	{
+		this(0);
+	}
+
+	/**
 	 * Construct a DRA of fixed size (i.e. fixed number of states).
 	 */
 	public DA(int size)
@@ -108,6 +116,17 @@ public class DA<Symbol, Acceptance extends AcceptanceOmega>
 	}
 
 	// Mutators
+
+	/**
+	 * Add a state.
+	 * @return index of the fresh state
+	 */
+	public int addState()
+	{
+		edges.add(new ArrayList<Edge>());
+		size++;
+		return size-1;
+	}
 
 	/**
 	 * Set the start state (index)

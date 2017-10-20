@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -101,7 +101,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	kb = (nnz*12.0+nc*4.0+n*4.0)/1024.0;
 	kbt = kb;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// build sparse matrix (rewards)
@@ -111,7 +111,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	nnz_r = ndsm_r->nnz;
 	nc_r = ndsm_r->nc;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
 	kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
 	kbt += kb;
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
@@ -210,7 +210,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, bound);
+			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, (int)bound);
 			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

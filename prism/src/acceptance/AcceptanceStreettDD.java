@@ -29,10 +29,10 @@ package acceptance;
 import java.util.ArrayList;
 
 import common.IterableBitSet;
-
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismNotSupportedException;
 
 /**
  * A Streett acceptance condition (based on JDD state sets).
@@ -83,8 +83,7 @@ public class AcceptanceStreettDD
 		 */
 		public JDDNode getR()
 		{
-			JDD.Ref(R);
-			return R;
+			return R.copy();
 		}
 
 		/** Get a referenced copy of the state set G.
@@ -92,8 +91,7 @@ public class AcceptanceStreettDD
 		 */
 		public JDDNode getG()
 		{
-			JDD.Ref(G);
-			return G;
+			return G.copy();
 		}
 
 		public StreettPairDD clone()
@@ -121,6 +119,29 @@ public class AcceptanceStreettDD
 				// no R visited, no need to check for G
 				return true;
 			}
+		}
+
+		public AcceptanceGenericDD toAcceptanceGeneric()
+		{
+		    AcceptanceGenericDD genericR = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.FIN, getR());
+		    AcceptanceGenericDD genericG = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.INF, getG());
+		    //      G F "R" -> G F "G"
+		    // <=>  ! G F "R"  | G F "G"
+		    // <=>  F G ! "R"  | G F "G"
+		    // <=>  Fin(R) | Inf(G)
+		    return new AcceptanceGenericDD(AcceptanceGeneric.ElementType.OR, genericR, genericG);
+                }
+
+		/**
+		 * Replaces the BDD functions for the acceptance sets
+		 * of this Streett pair with the intersection
+		 * of the current acceptance sets and the function {@code restrict}.
+		 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+		 */
+		public void intersect(JDDNode restrict)
+		{
+			R = JDD.And(R, restrict.copy());
+			G = JDD.And(G, restrict.copy());
 		}
 
 		@Override
@@ -172,6 +193,25 @@ public class AcceptanceStreettDD
 	}
 
 	@Override
+	public AcceptanceStreettDD clone()
+	{
+		AcceptanceStreettDD result = new AcceptanceStreettDD();
+		for (StreettPairDD pair : this) {
+			result.add(pair.clone());
+		}
+		return result;
+	}
+
+
+	@Override
+	public void intersect(JDDNode restrict)
+	{
+		for (StreettPairDD pair : this) {
+			pair.intersect(restrict);
+		}
+	}
+
+	@Override
 	public void clear()
 	{
 		for (StreettPairDD pair : this) {
@@ -202,19 +242,14 @@ public class AcceptanceStreettDD
 	/**
 	 * Get the Rabin acceptance condition that is the dual of this Streett acceptance condition, i.e.,
 	 * any word that is accepted by this condition is rejected by the returned Rabin condition.
+	 * <br>
+	 * Deprecated, use complementToRabin or complement(...).
 	 * @return the complement Rabin acceptance condition
 	 */
+	@Deprecated
 	public AcceptanceRabinDD complement()
 	{
-		AcceptanceRabinDD accRabin = new AcceptanceRabinDD();
-
-		for (StreettPairDD accPairStreett : this) {
-			JDDNode L = accPairStreett.getG();
-			JDDNode K = accPairStreett.getR();
-			AcceptanceRabinDD.RabinPairDD accPairRabin = new AcceptanceRabinDD.RabinPairDD(L, K);
-			accRabin.add(accPairRabin);
-		}
-		return accRabin;
+		return complementToRabin();
 	}
 
 	@Override
@@ -236,6 +271,49 @@ public class AcceptanceStreettDD
 	public AcceptanceType getType()
 	{
 		return AcceptanceType.STREETT;
+	}
+
+	@Override
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.RABIN)) {
+			return complementToRabin();
+		}
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to a supported acceptance type");
+	}
+
+	public AcceptanceRabinDD complementToRabin()
+	{
+		AcceptanceRabinDD accRabin = new AcceptanceRabinDD();
+
+		for (StreettPairDD accPairStreett : this) {
+			JDDNode L = accPairStreett.getG();
+			JDDNode K = accPairStreett.getR();
+			AcceptanceRabinDD.RabinPairDD accPairRabin = new AcceptanceRabinDD.RabinPairDD(L, K);
+			accRabin.add(accPairRabin);
+		}
+		return accRabin;
+	}
+
+	@Override
+	public AcceptanceGenericDD toAcceptanceGeneric()
+	{
+		if (size() == 0) {
+			return new AcceptanceGenericDD(true);
+		}
+		AcceptanceGenericDD genericPairs = null;
+		for (StreettPairDD pair : this) {
+			AcceptanceGenericDD genericPair = pair.toAcceptanceGeneric();
+			if (genericPairs == null) {
+				genericPairs = genericPair;
+			} else {
+				genericPairs = new AcceptanceGenericDD(AcceptanceGeneric.ElementType.AND, genericPairs, genericPair);
+			}
+		}
+		return genericPairs;
 	}
 
 	@Override

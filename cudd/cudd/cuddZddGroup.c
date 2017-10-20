@@ -581,7 +581,7 @@ zddFindNodeHiLo(
 
 #ifdef DD_DEBUG
     /* Make sure that all variables in group are contiguous. */
-    assert(treenode->size >= *upper - *lower + 1);
+    assert(treenode->size >= (MtrHalfWord) (*upper - *lower + 1));
 #endif
 
     return;

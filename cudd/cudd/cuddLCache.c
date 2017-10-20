@@ -220,7 +220,7 @@ cuddLocalCacheInit(
     cache->itemsize += sizeof(ptrint);
 #endif
     logSize = cuddComputeFloorLog2(ddMax(cacheSize,manager->slots/2));
-    cacheSize = 1 << logSize;
+    cacheSize = 1U << logSize;
     cache->item = (DdLocalCacheItem *)
 	ALLOC(char, cacheSize * cache->itemsize);
     if (cache->item == NULL) {
@@ -576,7 +576,7 @@ cuddHashTableInit(
     /* We have to guarantee that the shift be < 32. */
     if (initSize < 2) initSize = 2;
     logSize = cuddComputeFloorLog2(initSize);
-    hash->numBuckets = 1 << logSize;
+    hash->numBuckets = 1U << logSize;
     hash->shift = sizeof(int) * 8 - logSize;
     hash->bucket = ALLOC(DdHashItem *, hash->numBuckets);
     if (hash->bucket == NULL) {
@@ -1530,7 +1530,7 @@ cuddHashTableAlloc(
 		mem = (DdHashItem **) ALLOC(char,(DD_MEM_CHUNK+1) * itemsize);
 	    }
 	    if (mem == NULL) {
-		(*MMoutOfMemory)((long)((DD_MEM_CHUNK + 1) * itemsize));
+		(*MMoutOfMemory)((size_t)((DD_MEM_CHUNK + 1) * itemsize));
 		hash->manager->errorCode = CUDD_MEMORY_OUT;
 		return(NULL);
 	    }

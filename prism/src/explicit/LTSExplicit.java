@@ -29,9 +29,7 @@ package explicit;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 
 import prism.ModelType;
 import prism.PrismException;
@@ -131,10 +129,10 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s, int i)
+	public SuccessorsIterator getSuccessors(int s, int i)
 	{
 		// single successor for s, i
-		return Collections.singletonList(successors.get(s).get(i)).iterator();
+		return SuccessorsIterator.fromSingleton(successors.get(s).get(i));
 	}
 
 	@Override
@@ -150,30 +148,9 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
+	public SuccessorsIterator getSuccessors(int s)
 	{
-		// make successors unique
-		LinkedHashSet<Integer> succ = new LinkedHashSet<Integer>();
-		succ.addAll(successors.get(s));
-		return succ.iterator();
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		for (int t : successors.get(s)) {
-			if (!set.get(t)) return false;
-		}
-		return true;
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		for (int t : successors.get(s)) {
-			if (set.get(t)) return true;
-		}
-		return false;
+		return SuccessorsIterator.from(successors.get(s).iterator(), false);
 	}
 
 	@Override
@@ -201,15 +178,6 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public boolean isSuccessor(int s1, int s2)
-	{
-		for (Iterator<Integer> it = getSuccessorsIterator(s1); it.hasNext(); ) {
-			if (it.next() == s2) return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
 		throw new UnsupportedOperationException();
@@ -222,10 +190,12 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	protected void exportTransitionsToDotFile(int s, PrismLog out)
+	public void exportTransitionsToDotFile(int s, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		for (Iterator<Integer> it = getSuccessorsIterator(s); it.hasNext(); ) {
 			Integer successor = it.next();
+
+			// we ignore decorators here
 			out.println(s + " -> " + successor + ";");
 		}
 	}

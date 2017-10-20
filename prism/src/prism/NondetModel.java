@@ -202,7 +202,7 @@ public class NondetModel extends ProbModel
 
 	// do reachability
 
-	public void doReachability()
+	public void doReachability() throws PrismException
 	{
 		JDDNode tmp;
 
@@ -227,7 +227,7 @@ public class NondetModel extends ProbModel
 	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
 	 * @param seed set of states (over ddRowVars) that is known to be reachable
 	 */
-	public void doReachability(JDDNode seed)
+	public void doReachability(JDDNode seed) throws PrismException
 	{
 		JDDNode tmp;
 
@@ -421,33 +421,22 @@ public class NondetModel extends ProbModel
 		}
 	}
 
-	// export state rewards vector to a file
-
-	// returns string containing files used if there were more than 1, null otherwise
-
-	public String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	@Override
+	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException
 	{
-		if (numRewardStructs == 0)
-			throw new PrismException("There are no state rewards to export");
-		int i;
-		String filename, allFilenames = "";
-		for (i = 0; i < numRewardStructs; i++) {
-			filename = (file != null) ? file.getPath() : null;
-			if (filename != null && numRewardStructs > 1) {
-				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
-				allFilenames += ((i > 0) ? ", " : "") + filename;
-			}
-			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i + 1), allDDRowVars, odd, exportType, filename);
+		if (!ordered) {
+			// can only do explicit (sparse matrix based) export for mdps
+		} else {
+			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath());
 		}
-		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
 
-	// export transition rewards matrix to a file
-
-	// returns string containing files used if there were more than 1, null otherwise
-
+	@Deprecated
 	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
+		// export transition rewards matrix to a file
+		// returns string containing files used if there were more than 1, null otherwise
+
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no transition rewards to export");
 		int i;

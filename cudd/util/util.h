@@ -3,6 +3,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <inttypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +21,21 @@ extern "C" {
 #   define UTIL_UNUSED
 #endif
 
+#if defined(_WIN32) && !defined(__USE_MINGW_ANSI_STDIO)
+#ifndef PRIuPTR
+#define PRIuPTR "Iu"
+#endif
+#ifndef PRIxPTR
+#define PRIxPTR "Ix"
+#endif
+#ifndef PRIiPTR
+#define PRIiPTR "Id"
+#endif
+#define PRIszt "Iu"
+#else
+#define PRIszt "zu"
+#endif
+
 #ifndef SIZEOF_VOID_P
 #define SIZEOF_VOID_P 4
 #endif
@@ -29,11 +46,7 @@ extern "C" {
 #define SIZEOF_LONG 4
 #endif
 
-#if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-typedef long util_ptrint;
-#else
-typedef int util_ptrint;
-#endif
+typedef intptr_t util_ptrint;
 
 /* #define USE_MM */		/* choose libmm.a as the memory allocator */
 
@@ -177,10 +190,10 @@ extern int memcmp(), strcmp();
 
 
 #ifndef USE_MM
-extern char *MMalloc (long);
-extern void MMout_of_memory (long);
-extern void (*MMoutOfMemory) (long);
-extern char *MMrealloc (char *, long);
+extern void *MMalloc (size_t);
+extern void MMout_of_memory (size_t);
+extern void (*MMoutOfMemory) (size_t);
+extern void *MMrealloc (void *, size_t);
 #endif
 
 extern long util_cpu_time (void);

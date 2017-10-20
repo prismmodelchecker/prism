@@ -32,6 +32,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.List;
 import java.util.Locale;
+import java.util.PrimitiveIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -134,11 +135,261 @@ public class PrismUtils
 	}
 
 	/**
+	 * See if, for all the entries given by the {@code indizes}
+	 * iterator, two arrays of doubles are all within epsilon of each other (relative or absolute error).
+	 * <br>
+	 * Considers Inf == Inf and -Inf == -Inf.
+	 */
+	public static boolean doublesAreClose(double d1[], double d2[], PrimitiveIterator.OfInt indizes, double epsilon, boolean abs)
+	{
+		if (abs) {
+			while (indizes.hasNext()) {
+				int i = indizes.nextInt();
+				if (!PrismUtils.doublesAreCloseAbs(d1[i], d2[i], epsilon))
+					return false;
+			}
+		} else {
+			while (indizes.hasNext()) {
+				int i = indizes.nextInt();
+				if (!PrismUtils.doublesAreCloseRel(d1[i], d2[i], epsilon))
+					return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Measure supremum norm, either absolute or relative,
+	 * return the maximum difference.
+	 */
+	public static double measureSupNorm(double[] d1, double[] d2, boolean abs)
+	{
+		int n = d1.length;
+		assert( n == d2.length);
+
+		double value = 0;
+		if (abs) {
+			for (int i=0; i < n; i++) {
+				double diff = measureSupNormAbs(d1[i], d2[i]);
+				if (diff > value)
+					value = diff;
+			}
+		} else {
+			for (int i=0; i < n; i++) {
+				double diff = measureSupNormRel(d1[i], d2[i]);
+				if (diff > value)
+					value = diff;
+			}
+		}
+		return value;
+	}
+
+	/**
+	 * Measure supremum norm for two values, absolute.
+	 */
+	public static double measureSupNormAbs(double d1, double d2)
+	{
+		if (Double.isInfinite(d1) && d1==d2)
+			return 0;
+		return Math.abs(d1 - d2);
+	}
+
+	/**
+	 * Measure supremum norm for two values, relative,
+	 * with the first value used as the divisor.
+	 */
+	public static double measureSupNormRel(double d1, double d2)
+	{
+		if (d1==d2)
+			return 0;
+		return (Math.abs(d1 - d2) / d1);
+	}
+
+	/**
+	 * Measure supremum norm, for all the entries given by the {@code indizes}
+	 * iterator, for an interval iteration.
+	 */
+	public static double measureSupNormInterval(double[] lower, double[] upper, boolean abs, PrimitiveIterator.OfInt indizes)
+	{
+		int n = lower.length;
+		assert( n== upper.length);
+
+		double value = 0;
+		while (indizes.hasNext()) {
+			int i = indizes.nextInt();
+			double diff = measureSupNormInterval(lower[i], upper[i], abs);
+			if (diff > value)
+				value = diff;
+		}
+		return value;
+	}
+
+	/**
+	 * Measure supremum norm, either absolute or relative, for an interval iteration,
+	 * return the maximum difference.
+	 */
+	public static double measureSupNormInterval(double[] lower, double[] upper, boolean abs)
+	{
+		int n = lower.length;
+		assert( n== upper.length);
+
+		double value = 0;
+		for (int i=0; i < n; i++) {
+			double diff = measureSupNormInterval(lower[i], upper[i], abs);
+			if (diff > value)
+				value = diff;
+		}
+		return value;
+	}
+
+	/**
+	 * Measure supremum norm for two values, for interval iteration.
+	 */
+	public static double measureSupNormInterval(double lower, double upper, boolean abs)
+	{
+		// Deal with infinite cases
+		if (Double.isInfinite(lower)) {
+			if (Double.isInfinite(upper) && (lower > 0) == (upper > 0)) {
+				return 0;
+			} else {
+				return Double.POSITIVE_INFINITY;
+			}
+		} else if (Double.isInfinite(upper)) {
+			return Double.POSITIVE_INFINITY;
+		}
+
+		if (lower == upper)
+			return 0.0;
+
+		// Compute/check error
+		lower = Math.abs(lower);
+		upper = Math.abs(upper);
+		double result = upper - lower;
+		result = Math.abs(result);
+		if (!abs) {
+			result = result / lower;
+		}
+		return result;
+	}
+
+	/**
 	 * See if two doubles are (nearly) equal.
 	 */
 	public static boolean doublesAreEqual(double d1, double d2)
 	{
 		return doublesAreCloseAbs(d1, d2, epsilonDouble);
+	}
+
+	/**
+	 * Return the maximum finite value in a double array, looking at
+	 * those entries with indices given bit the integer iterator.
+	 */
+	public static double findMaxFinite(double[] soln, PrimitiveIterator.OfInt indices)
+	{
+		double max_v = Double.NEGATIVE_INFINITY;
+		while (indices.hasNext()) {
+			int i = indices.nextInt();
+
+			double v = soln[i];
+			if (v < Double.POSITIVE_INFINITY) {
+				max_v = Double.max(v, max_v);
+			}
+		}
+		return max_v;
+	}
+
+	/**
+	 * Ensure monotonicity from below for interval iteration solution vectors.
+	 * Compares the old and new values and overwrites the new value with the old
+	 * value if that is larger.
+	 * @param old_values old solution vector
+	 * @param new_values new solution vector
+	 */
+	public static void ensureMonotonicityFromBelow(double[] old_values, double[] new_values)
+	{
+		assert(old_values.length == new_values.length);
+
+		for (int i = 0, n = old_values.length; i < n; i++) {
+			double old_value = old_values[i];
+			double new_value = new_values[i];
+			// from below: do max
+			if (old_value > new_value) {
+				new_values[i] = old_value;
+			}
+		}
+	}
+
+	/**
+	 * Ensure monotonicity from above for interval iteration solution vectors.
+	 * Compares the old and new values and overwrites the new value with the old
+	 * value if that is smaller.
+	 * @param old_values old solution vector
+	 * @param new_values new solution vector
+	 */
+	public static void ensureMonotonicityFromAbove(double[] old_values, double[] new_values)
+	{
+		assert(old_values.length == new_values.length);
+
+		for (int i = 0, n = old_values.length; i < n; i++) {
+			double old_value = old_values[i];
+			double new_value = new_values[i];
+			// from above: do min
+			if (old_value < new_value) {
+				new_values[i] = old_value;
+			}
+		}
+	}
+
+	/**
+	 * Check for monotonicity: If the new_values are not element-wise less-than-equal the older values
+	 * (for from_above == true), then throws an exception. If from_above == false, the logic is reversed,
+	 * i.e., if the new_value is not greater-than-equal, an exception is thrown.
+	 * @param old_values the old values
+	 * @param new_values the new values
+	 * @param from_above the direction
+	 */
+	public static void checkMonotonicity(double[] old_values, double[] new_values, boolean from_above) throws PrismException
+	{
+		assert(old_values.length == new_values.length);
+
+		for (int i = 0, n = old_values.length; i < n; i++) {
+			double old_value = old_values[i];
+			double new_value = new_values[i];
+			if (from_above && old_value < new_value) {
+				throw new PrismException("Monotonicity violated (from above): old value " + old_value + " < new value " + new_value);
+			}
+			if (!from_above && old_value > new_value) {
+				throw new PrismException("Monotonicity violated (from below): old value " + old_value + " > new value " + new_value);
+			}
+		}
+	}
+
+	/**
+	 * Select midpoint from two interval iteration solution vectors.
+	 * Stores the result in soln_below.
+	 * @param soln_below solution vector from below
+	 * @param soln_above solution vector from above
+	 */
+	public static void selectMidpoint(double[] soln_below, double[] soln_above)
+	{
+		assert(soln_below.length == soln_above.length);
+
+		for (int i = 0, n = soln_below.length; i < n; i++) {
+			double below = soln_below[i];
+			double above = soln_above[i];
+
+			if (below != above) {
+				// use below + ( above - below ) / 2 instead of (below+above)/2 for better numerical
+				// stability
+				double d = below + (above - below)/2.0;
+				if (d >= below && d <= above) {
+					// only store result if between below and above
+					// guard against rounding problems,
+					// fallback is to simply return below as is
+					soln_below[i] = d;
+				}
+			}
+		}
 	}
 
 	/**

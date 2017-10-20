@@ -26,9 +26,10 @@
 //	
 //==============================================================================
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+#include <cinttypes>
 #include <util.h>
 #include <cudd.h>
 #include "dd.h"
@@ -176,8 +177,9 @@ FILE *fp
 	if (!found) {
 		stored[count++] = dd;
 	}
-	
-	fprintf(fp, "%zu\n", (size_t)dd);
+
+	fprintf(fp, "%" PRIuPTR "\n", (uintptr_t)dd);
+
 	return 0;
 }
 

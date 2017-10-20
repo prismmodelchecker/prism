@@ -34,9 +34,32 @@ import parser.ast.*;
 
 public interface ModelChecker
 {
+	/**
+	 * Model check an expression, process, print and return the result.
+	 */
 	public Result check(Expression expr) throws PrismException;
-	public StateValues checkExpression(Expression expr) throws PrismException;
-	public JDDNode checkExpressionDD(Expression expr) throws PrismException;
+
+	/**
+	 * Model check an expression and return a vector of result values,
+	 * with valid results for at least all states of interest.
+	 *
+	 * @param expr the expression
+	 * @param statesOfInterest the states of interest.
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	public StateValues checkExpression(Expression expr, JDDNode statesOfInterest) throws PrismException;
+
+	/**
+	 * Model check expression, convert to symbolic form (if not already), return BDD.
+	 * <br>
+	 * Will have valid results at least for all states of interest.
+	 * @param expr the expression
+	 * @param statesOfInterest the states of interest
+	 * <br>[ REFS: <i>result</i>, DEREFS: statesOfInterest ]
+	 */
+	public JDDNode checkExpressionDD(Expression expr, JDDNode statesOfInterest) throws PrismException;
+
+	/** Get the constant values (both from the modules file and the properties file) */
 	public Values getConstantValues();
 }
 

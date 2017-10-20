@@ -26,6 +26,7 @@
 
 // includes
 #include "PrismMTBDD.h"
+#include <cinttypes>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -36,7 +37,7 @@
 //------------------------------------------------------------------------------
 
 // local function prototypes
-static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index);
+static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t index);
 
 // globals
 static const char *export_name;
@@ -89,7 +90,7 @@ jstring fn		// filename
 		break;
 	case EXPORT_MATLAB:
 		for (i = 0; i < num_labels; i++)
-			export_string("%s_%s=sparse(%d,1);\n", export_name, label_strings[i], odd->eoff+odd->toff);
+			export_string("%s_%s=sparse(%" PRId64 ",1);\n", export_name, label_strings[i], odd->eoff+odd->toff);
 		export_string("\n");
 		break;
 	case EXPORT_MRMC:
@@ -110,7 +111,7 @@ jstring fn		// filename
 	}
 	
 	// print main part of file
-	export_rec(jlong_to_DdNode(labels[0]), vars, num_vars, 0, odd, 0);
+	export_rec(vars, num_vars, 0, odd, 0);
 	
 	// free memory
 	for (i = 0; i < num_vars+1; i++) {
@@ -133,9 +134,8 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long index)
+static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t index)
 {
-	DdNode *e, *t;
 	int i;
 	bool all_zero;
 	
@@ -150,15 +150,15 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 	if (level == num_vars) {
 		// print state index
 		switch (export_type) {
-		case EXPORT_PLAIN: export_string("%d:", index); break;
-		case EXPORT_MRMC: export_string("%d", index+1); break;
+		case EXPORT_PLAIN: export_string("%" PRId64 ":", index); break;
+		case EXPORT_MRMC: export_string("%" PRId64, index+1); break;
 		}
 		// print labels
 		for (i = 0; i < num_labels; i++) {
 			if (dd_array[level][i] != Cudd_ReadZero(ddman)) {
 				switch (export_type) {
 				case EXPORT_PLAIN: export_string(" %d", i); break;
-				case EXPORT_MATLAB: export_string("%s_%s(%d)=1;\n", export_name, label_strings[i], index+1); break;
+				case EXPORT_MATLAB: export_string("%s_%s(%" PRId64 ")=1;\n", export_name, label_strings[i], index+1); break;
 				case EXPORT_MRMC: export_string(" %s", label_strings[i]); break;
 				}
 			}
@@ -178,7 +178,7 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 			dd_array[level+1][i] = Cudd_E(dd_array[level][i]);
 		}
 	}
-	export_rec(e, vars, num_vars, level+1, odd->e, index);
+	export_rec(vars, num_vars, level+1, odd->e, index);
 	
 	// recurse - thens
 	for (i = 0; i < num_labels; i++) {
@@ -188,7 +188,7 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 			dd_array[level+1][i] = Cudd_T(dd_array[level][i]);
 		}
 	}
-	export_rec(t, vars, num_vars, level+1, odd->t, index+odd->eoff);
+	export_rec(vars, num_vars, level+1, odd->t, index+odd->eoff);
 }
 
 //------------------------------------------------------------------------------

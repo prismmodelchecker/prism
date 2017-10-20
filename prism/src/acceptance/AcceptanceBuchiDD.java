@@ -31,6 +31,7 @@ import common.IterableBitSet;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismNotSupportedException;
 
 /**
  * A Büchi acceptance condition (based on JDD state sets).
@@ -93,6 +94,18 @@ public class AcceptanceBuchiDD implements AcceptanceOmegaDD
 	}
 
 	@Override
+	public AcceptanceBuchiDD clone()
+	{
+		return new AcceptanceBuchiDD(acceptingStates.copy());
+	}
+
+	@Override
+	public void intersect(JDDNode restrict)
+	{
+		acceptingStates = JDD.And(acceptingStates, restrict.copy());
+	}
+
+	@Override
 	public String getSizeStatistics()
 	{
 		return "one set of accepting states";
@@ -102,6 +115,64 @@ public class AcceptanceBuchiDD implements AcceptanceOmegaDD
 	public AcceptanceType getType()
 	{
 		return AcceptanceType.BUCHI;
+	}
+
+	/**
+	 * Get the Streett acceptance condition that is the equivalent of this Buchi condition.
+	 */
+	public AcceptanceStreettDD toStreett()
+	{
+		AcceptanceStreettDD streett = new AcceptanceStreettDD();
+		streett.add(new AcceptanceStreettDD.StreettPairDD(JDD.Constant(1), acceptingStates.copy()));
+		return streett;
+	}
+
+	@Override
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.RABIN)) {
+			return complementToRabin();
+		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.STREETT)) {
+			return complementToStreett();
+		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to a supported acceptance type");
+	}
+
+	/**
+	 * Get a Rabin acceptance condition that is the complement of this condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Rabin condition.
+	 *
+	 * @return the complement Rabin acceptance condition
+	 */
+	public AcceptanceRabinDD complementToRabin()
+	{
+		AcceptanceRabinDD rabin = new AcceptanceRabinDD();
+		rabin.add(new AcceptanceRabinDD.RabinPairDD(acceptingStates.copy(), JDD.Constant(1)));
+		return rabin;
+	}
+
+	/**
+	 * Get a Streett acceptance condition that is the complement of this condition, i.e.,
+	 * any word that is accepted by this condition is rejected by the returned Streett condition.
+	 * <br>
+	 * Relies on the fact that once the goal states have been reached, all subsequent states
+	 * are goal states.
+	 *
+	 * @return the complement Streett acceptance condition
+	 */
+	public AcceptanceStreettDD complementToStreett()
+	{
+		AcceptanceStreettDD streett = new AcceptanceStreettDD();
+		streett.add(new AcceptanceStreettDD.StreettPairDD(acceptingStates.copy(), JDD.Constant(0)));
+		return streett;
+	}
+
+	@Override
+	public AcceptanceGenericDD toAcceptanceGeneric()
+	{
+		return new AcceptanceGenericDD(AcceptanceGeneric.ElementType.INF, acceptingStates.copy());
 	}
 
 	@Override

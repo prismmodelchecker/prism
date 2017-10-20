@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-#include <math.h>
+#include <cmath>
 #include "dv.h"
 #include "sparse.h"
 #include "PrismSparseGlob.h"

@@ -184,7 +184,7 @@ cuddLevelQueueInit(
     /* Use a hash table to test for uniqueness. */
     if (numBuckets < 2) numBuckets = 2;
     logSize = cuddComputeFloorLog2(numBuckets);
-    queue->numBuckets = 1 << logSize;
+    queue->numBuckets = 1U << logSize;
     queue->shift = sizeof(int) * 8 - logSize;
     queue->buckets = ALLOC(DdQueueItem *, queue->numBuckets);
     if (queue->buckets == NULL) {

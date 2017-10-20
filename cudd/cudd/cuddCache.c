@@ -144,7 +144,7 @@ cuddInitCache(
     /* Round cacheSize to largest power of 2 not greater than the requested
     ** initial cache size. */
     logSize = cuddComputeFloorLog2(ddMax(cacheSize,unique->slots/2));
-    cacheSize = 1 << logSize;
+    cacheSize = 1U << logSize;
     unique->acache = ALLOC(DdCache,cacheSize+1);
     if (unique->acache == NULL) {
 	unique->errorCode = CUDD_MEMORY_OUT;

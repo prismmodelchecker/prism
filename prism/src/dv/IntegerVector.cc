@@ -30,7 +30,7 @@
 #include "IntegerVector.h"
 #include "jnipointer.h"
 
-#include <math.h>
+#include <cmath>
 #include <new>
 
 //------------------------------------------------------------------------------

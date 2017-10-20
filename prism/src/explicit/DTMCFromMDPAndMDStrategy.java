@@ -29,7 +29,6 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
-import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
@@ -122,24 +121,9 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 		return numTransitions;
 	}
 
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	public SuccessorsIterator getSuccessors(final int s)
 	{
-		return mdp.getSuccessorsIterator(s, strat.getChoiceIndex(s));
-	}
-
-	public boolean isSuccessor(int s1, int s2)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		return mdp.allSuccessorsInSet(s, strat.getChoiceIndex(s), set);
-	}
-
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		return mdp.someSuccessorsInSet(s, strat.getChoiceIndex(s), set);
+		return mdp.getSuccessors(s, strat.getChoiceIndex(s));
 	}
 
 	public int getNumChoices(int s)
@@ -188,42 +172,18 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 			return mdp.getTransitionsIterator(s, strat.getChoiceIndex(s));
 		} else {
 			// Empty iterator
-			return new Iterator<Entry<Integer, Double>>()
-			{
-				@Override
-				public boolean hasNext()
-				{
-					return false;
-				}
-
-				@Override
-				public Entry<Integer, Double> next()
-				{
-					return null;
-				}
-
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
+			Map<Integer,Double> empty = Collections.emptyMap();
+			return empty.entrySet().iterator();
 		}
 	}
 
-	public void prob0step(BitSet subset, BitSet u, BitSet result)
+	@Override
+	public void forEachTransition(int s, TransitionConsumer c)
 	{
-		for (int i : new IterableStateSet(subset, numStates)) {
-			result.set(i, mdp.someSuccessorsInSet(i, strat.getChoiceIndex(i), u));
+		if (!strat.isChoiceDefined(s)) {
+			return;
 		}
-	}
-
-	public void prob1step(BitSet subset, BitSet u, BitSet v, BitSet result)
-	{
-		for (int i : new IterableStateSet(subset, numStates)) {
-			int j = strat.getChoiceIndex(i);
-			result.set(i, mdp.someSuccessorsInSet(i, j, v) && mdp.allSuccessorsInSet(i, j, u));
-		}
+		mdp.forEachTransition(s, strat.getChoiceIndex(s), c::accept);
 	}
 
 	@Override

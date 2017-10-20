@@ -25,9 +25,9 @@
 //==============================================================================
 
 #include "PrismHybrid.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdarg>
+#include <limits>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -56,6 +56,9 @@ static jobject tech_log_obj = NULL;
 static jmethodID main_log_mid = NULL;
 static jmethodID main_log_warn = NULL;
 static jmethodID tech_log_mid = NULL;
+
+// export stuff
+static bool exportIterations = false;
 
 // error message
 static char error_message[MAX_ERR_STRING_LEN];
@@ -210,6 +213,20 @@ char *PH_GetErrorMessage()
 JNIEXPORT jstring JNICALL Java_hybrid_PrismHybrid_PH_1GetErrorMessage(JNIEnv *env, jclass cls)
 {
 	return env->NewStringUTF(error_message);
+}
+
+//------------------------------------------------------------------------------
+// export flags
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetExportIterations(JNIEnv *env, jclass cls, jboolean value)
+{
+	exportIterations = value;
+}
+
+bool PH_GetFlagExportIterations()
+{
+	return exportIterations;
 }
 
 //------------------------------------------------------------------------------

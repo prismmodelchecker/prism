@@ -623,7 +623,7 @@ cuddZddLinearAux(
 	    goto cuddZddLinearAuxOutOfMem;
 	moveUp = cuddZddUndoMoves(table,moveDown);
 #ifdef DD_DEBUG
-	assert(moveUp == NULL || moveUp->x == x);
+	assert(moveUp == NULL || moveUp->x == (DdHalfWord) x);
 #endif
 	moveUp = cuddZddLinearUp(table, x, xLow, moveUp);
 	if (moveUp == (Move *) CUDD_OUT_OF_MEM)
@@ -641,7 +641,7 @@ cuddZddLinearAux(
 	/* Then move up. */
 	moveDown = cuddZddUndoMoves(table,moveUp);
 #ifdef DD_DEBUG
-	assert(moveDown == NULL || moveDown->y == x);
+	assert(moveDown == NULL || moveDown->y == (DdHalfWord) x);
 #endif
 	moveDown = cuddZddLinearDown(table, x, xHigh, moveDown);
 	if (moveDown == (Move *) CUDD_OUT_OF_MEM)

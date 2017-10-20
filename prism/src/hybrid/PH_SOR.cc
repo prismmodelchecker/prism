@@ -27,7 +27,7 @@
 
 // includes
 #include "PrismHybrid.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -38,7 +38,10 @@
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "Measures.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 // local prototypes
 static void sor_rec(HDDNode *hdd, int level, int row_offset, int col_offset, int r, int c, bool transpose);
@@ -55,8 +58,9 @@ static int sm_dist_mask;
 static double *diags_vec = NULL;
 static DistVector *diags_dist = NULL;
 static double *soln = NULL, *soln2 = NULL;
-static double x, sup_norm, omega;
+static double omega;
 static bool forwards; 
+static MeasureSupNorm* measure = NULL;
 
 //------------------------------------------------------------------------------
 
@@ -110,7 +114,10 @@ jboolean fwds		// forwards or backwards?
 	int i, j, fb, l, h, i2, h2, iters;
 	double kb, kbt;
 	bool done, diag_done;
-	
+	// measure for convergence termination check
+	// dynamically allocated so sor_rm and sor_cmsr have access as well
+	measure = new MeasureSupNorm(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -237,7 +244,17 @@ jboolean fwds		// forwards or backwards?
 	
 	// print total memory usage
 	PH_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PH_GetFlagExportIterations()) {
+		std::string title("PH_SOR (");
+		title += (omega == 1.0)?"Gauss-Seidel": ("SOR omega=" + std::to_string(omega));
+		title += ")";
+
+		iterationExport.reset(new ExportIterations(title.c_str()));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -253,7 +270,7 @@ jboolean fwds		// forwards or backwards?
 		
 		iters++;
 		
-		sup_norm = 0.0;
+		measure->reset();
 		
 		// stuff for block storage
 		int b_n = hddm->blocks->n;
@@ -343,13 +360,9 @@ jboolean fwds		// forwards or backwards?
 				// do over-relaxation if necessary
 				if (omega != 1) {
 					soln2[i2] = ((1-omega) * soln[row_offset + i2]) + (omega * soln2[i2]);
-				}       
-				// compute norm for convergence
-				x = fabs(soln2[i2] - soln[row_offset + i2]);
-				if (term_crit == TERM_CRIT_RELATIVE) {
-					x /= soln2[i2];
 				}
-				if (x > sup_norm) sup_norm = x;
+				// compute norm for convergence
+				measure->measure(soln[row_offset + i2], soln2[i2]);
 				// set vector element
 				soln[row_offset + i2] = soln2[i2];
 			}
@@ -358,21 +371,22 @@ jboolean fwds		// forwards or backwards?
 			if (l_b_max) {
 				soln2[0] *= ((!compact_d)?(diags_vec[row_offset]):(diags_dist->dist[(int)diags_dist->ptrs[row_offset]]));
 				if (omega != 1) soln2[0] = ((1-omega) * soln[row_offset]) + (omega * soln2[0]);
-				x = fabs(soln2[0] - soln[row_offset]);
-				if (term_crit == TERM_CRIT_RELATIVE) x /= soln2[0];
-				if (x > sup_norm) sup_norm = x;
+				measure->measure(soln[row_offset], soln2[0]);
 				soln[row_offset] = soln2[0];
 			}
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln, n, 0);
+
 		// check convergence
-		if (sup_norm < term_crit_param) {
+		if (measure->value() < term_crit_param) {
 			done = true;
 		}
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PH_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure->isRelative()?"relative ":"", measure->value());
 			PH_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
@@ -406,6 +420,7 @@ jboolean fwds		// forwards or backwards?
 	if (b_vec) delete[] b_vec;
 	if (b_dist) delete b_dist;
 	if (soln2) delete[] soln2;
+	if (measure) delete measure;
 	
 	return ptr_to_jlong(soln);
 }
@@ -498,13 +513,9 @@ static void sor_rm(RMSparseMatrix *rmsm, int row_offset, int col_offset, int r, 
 			// do over-relaxation if necessary
 			if (omega != 1) {
 				soln2[r + i2] = ((1-omega) * soln[row_offset + r + i2]) + (omega * soln2[r + i2]);
-			}	
-			// compute norm for convergence
-			x = fabs(soln2[r + i2] - soln[row_offset + r + i2]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[r + i2];
 			}
-			if (x > sup_norm) sup_norm = x;
+			// compute norm for convergence
+			measure->measure(soln[row_offset + r + i2], soln2[r + i2]);
 			// set vector element
 			soln[row_offset + r + i2] = soln2[r + i2];
 		}
@@ -549,13 +560,9 @@ static void sor_cmsr(CMSRSparseMatrix *cmsrsm, int row_offset, int col_offset, i
 			// do over-relaxation if necessary
 			if (omega != 1) {
 				soln2[r + i2] = ((1-omega) * soln[row_offset + r + i2]) + (omega * soln2[r + i2]);
-			}	
-			// compute norm for convergence
-			x = fabs(soln2[r + i2] - soln[row_offset + r + i2]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[r + i2];
 			}
-			if (x > sup_norm) sup_norm = x;
+			// compute norm for convergence
+			measure->measure(soln[row_offset + r + i2], soln2[r + i2]);
 			// set vector element
 			soln[row_offset + r + i2] = soln2[r + i2];
 		}

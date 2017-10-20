@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetTechLog
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_SetExportIterations
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_hybrid_PrismHybrid_PH_1SetExportIterations
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */
@@ -73,6 +81,14 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbUntil
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_ProbUntilInterval
+ * Signature: (JJJIJIJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbUntilInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jint);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbCumulReward
  * Signature: (JJJJJIJII)J
  */
@@ -97,6 +113,14 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachReward
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_ProbReachRewardInterval
+ * Signature: (JJJJJIJIJJJJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1ProbReachRewardInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jlong, jint);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_ProbTransient
  * Signature: (JJJJIJII)J
  */
@@ -118,6 +142,14 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetBoundedUntil
  */
 JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetUntil
   (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
+ * Method:    PH_NondetUntilInterval
+ * Signature: (JJJIJIJIJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1NondetUntilInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean, jint);
 
 /*
  * Class:     hybrid_PrismHybrid
@@ -169,11 +201,27 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1Power
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_PowerInterval
+ * Signature: (JJIJIJJJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1PowerInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jint);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_JOR
  * Signature: (JJIJIJJJZZD)J
  */
 JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1JOR
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble);
+
+/*
+ * Class:     hybrid_PrismHybrid
+ * Method:    PH_JORInterval
+ * Signature: (JJIJIJJJJZZDI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1JORInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jboolean, jdouble, jint);
 
 /*
  * Class:     hybrid_PrismHybrid
@@ -185,11 +233,27 @@ JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1SOR
 
 /*
  * Class:     hybrid_PrismHybrid
+ * Method:    PH_SORInterval
+ * Signature: (JJIJIJJJJZZDZI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1SORInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean, jint);
+
+/*
+ * Class:     hybrid_PrismHybrid
  * Method:    PH_PSOR
  * Signature: (JJIJIJJJZZDZ)J
  */
 JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1PSOR
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean);
+
+/*
+ * Class:     hybrid_PrismHybrid
+ * Method:    PH_PSORInterval
+ * Signature: (JJIJIJJJJZZDZI)J
+ */
+JNIEXPORT jlong JNICALL Java_hybrid_PrismHybrid_PH_1PSORInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean, jint);
 
 #ifdef __cplusplus
 }

@@ -35,14 +35,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import common.IterableStateSet;
-
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
-import explicit.rewards.MDPRewards;
+import explicit.graphviz.Decorator;
 
 /**
  * Base class for explicit-state representations of an MDP.
@@ -110,7 +108,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		int j, numChoices;
 		String nij;
@@ -119,15 +117,38 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		for (j = 0; j < numChoices; j++) {
 			action = getAction(i, j);
 			nij = "n" + i + "_" + j;
-			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-			if (action != null)
-				out.print(":" + action);
-			out.print("\" ];\n");
+			out.print(i + " -> " + nij + " ");
+
+			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+			d.attributes().put("arrowhead", "none");
+			d.setLabel(j + (action != null ? ":" + action : ""));
+
+			if (decorators != null) {
+				for (Decorator decorator : decorators) {
+					d = decorator.decorateTransition(i, j, d);
+				}
+			}
+			out.print(d);
+			out.println(";");
+
 			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
+
 			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
 			while (iter.hasNext()) {
 				Map.Entry<Integer, Double> e = iter.next();
-				out.print(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+				out.print(nij + " -> " + e.getKey() + " ");
+
+				d = new explicit.graphviz.Decoration();
+				d.setLabel(e.getValue().toString());
+
+				if (decorators != null) {
+					for (Decorator decorator : decorators) {
+						d = decorator.decorateProbability(i, e.getKey(), j, e.getValue(), d);
+					}
+				}
+
+				out.print(d);
+				out.println(";");
 			}
 		}
 	}
@@ -231,66 +252,6 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	// Accessors (for MDP)
-
-	@Override
-	public void mvMultMinMax(double vect[], boolean min, double result[], BitSet subset, boolean complement, int strat[])
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultMinMaxSingle(s, vect, min, strat);
-		}
-	}
-
-	@Override
-	public double mvMultGSMinMax(double vect[], boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
-	{
-		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultJacMinMaxSingle(s, vect, min, strat);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultJacMinMaxSingle(s, vect, min, strat);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
-		return maxDiff;
-	}
-
-	@Override
-	public void mvMultRewMinMax(double vect[], MDPRewards mdpRewards, boolean min, double result[], BitSet subset, boolean complement, int strat[])
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, strat);
-		}
-	}
-
-	@Override
-	public double mvMultRewGSMinMax(double vect[], MDPRewards mdpRewards, boolean min, BitSet subset, boolean complement, boolean absolute, int strat[])
-	{
-		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min, strat);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultRewJacMinMaxSingle(s, vect, mdpRewards, min);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
-		return maxDiff;
-	}
 
 	@Override
 	public Model constructInducedModel(MDStrategy strat)

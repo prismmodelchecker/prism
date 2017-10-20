@@ -104,7 +104,7 @@ public class MultiObjModelChecker extends PrismComponent
 		// Build product of MDP and automaton
 		mainLog.println("\nConstructing MDP-DRA product...");
 
-		NondetModel modelNew = mcLtl.constructProductMDP(dra[i], model, labelDDs, draDDRowVars, draDDColVars, false, i == 0 ? ddStateIndex : model.getStart());
+		NondetModel modelNew = mcLtl.constructProductMDP(dra[i], model, labelDDs, draDDRowVars, draDDColVars, (i == 0 ? ddStateIndex : model.getStart()).copy());
 
 		modelNew.printTransInfo(mainLog, prism.getExtraDDInfo());
 		// Deref label BDDs
@@ -289,7 +289,7 @@ public class MultiObjModelChecker extends PrismComponent
 					JDD.Deref(tt);
 			}
 			if (constraintViolated) {
-				throw new PrismException("Cannot use multi-objective model checking with maximising objectives and non-zero reward end compoments");
+				throw new PrismNotSupportedException("Cannot use multi-objective model checking with maximising objectives and non-zero reward end compoments");
 			}
 
 			JDD.Ref(removedActions);

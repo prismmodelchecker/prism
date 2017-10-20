@@ -60,12 +60,16 @@ import acceptance.AcceptanceBuchi;
 import acceptance.AcceptanceGenRabin;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceReach;
 import acceptance.AcceptanceStreett;
 import acceptance.AcceptanceType;
 import automata.DA;
 import automata.LTL2DA;
+import automata.LTL2WDBA;
+import jltl2ba.SimpleLTL;
 
 import common.IterableStateSet;
+import common.StopWatch;
 
 /**
  * LTL model checking functionality
@@ -254,7 +258,56 @@ public class LTLModelChecker extends PrismComponent
 		
 		return da;
 	}
-	
+
+	/**
+	 * Constructs a deterministic finite automaton (DFA) for the given syntactically co-safe
+	 * LTL formula, for use in reward computations for co-safe LTL.
+	 * <br>
+	 * First, extracted maximal state formulas are model checked with the passed in model checker.
+	 * The maximal state formulas are assigned labels (L0, L1, etc.) which become the atomic
+	 * propositions in the resulting DA. BitSets giving the states which satisfy each label
+	 * are put into the vector {@code labelBS}, which should be empty when this function is called.
+	 * <br>
+	 * To achieve "strong" semantics for the next-step operator, an additional atomic
+	 * proposition is added and X phi is transformed to X (phi & fresh_ap). This
+	 * ensures that, e.g., X X true results in two steps of accumulation.
+	 * @param mc the underlying model checker (for recursively handling maximal state formulas)
+	 * @param model the model
+	 * @param expr the co-safe LTL formula
+ 	 * @param labelBS empty vector to be filled with BitSets for subformulas
+	 * @return a DA with AcceptanceReach acceptance condition
+	 */
+	public DA<BitSet, AcceptanceReach> constructDFAForCosafetyRewardLTL(StateModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
+	{
+		// Model check maximal state formulas
+		Expression ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
+
+		SimpleLTL sltl = ltl.convertForJltl2ba();
+		// convert to positive normal form (negation only in front of APs)
+		sltl = sltl.toBasicOperators();
+		sltl = sltl.pushNegation();
+		if (sltl.hasNextStep()) {
+			// we have do add another atomic proposition to ensure "strong" semantics for
+			// the X operator
+			String stepLabel = "L" + labelBS.size();
+			BitSet allStates = new BitSet();
+			allStates.set(0, model.getNumStates(), true);
+			labelBS.add(allStates);
+			sltl = sltl.extendNextStepWithAP(stepLabel);
+			// mainLog.println("Adding step label " + stepLabel);
+		}
+
+		// Convert LTL formula to deterministic automaton, with Reach acceptance
+		LTL2WDBA ltl2wdba = new LTL2WDBA(this);
+		mainLog.println("\nBuilding deterministic finite automaton via LTL2WDBA construction (for " + sltl + ")...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("constructing DFA");
+		DA<BitSet, AcceptanceReach> dfa = ltl2wdba.cosafeltl2dfa(sltl);
+		timer.stop("DFA has " + dfa.size() + " states");
+
+		return dfa;
+	}
+
 	/**
 	 * Generate a deterministic automaton for the given LTL formula
 	 * and construct the product of this automaton with a Markov chain.
@@ -275,8 +328,10 @@ public class LTLModelChecker extends PrismComponent
 
 		// Build product of model and automaton
 		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
 		LTLProduct<DTMC> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
+		timer.stop("product has " + product.getProductModel().infoString());
 
 		return product;
 	}
@@ -302,8 +357,10 @@ public class LTLModelChecker extends PrismComponent
 
 		// Build product of model and automaton
 		mainLog.println("\nConstructing MDP-"+da.getAutomataType()+" product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
 		LTLProduct<MDP> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
+		timer.stop("product has " + product.getProductModel().infoString());
 
 		return product;
 	}
@@ -594,9 +651,10 @@ public class LTLModelChecker extends PrismComponent
 	public BitSet findAcceptingBSCCs(Model model, AcceptanceOmega acceptance) throws PrismException
 	{
 		// Compute bottom strongly connected components (BSCCs)
-		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model);
-		sccComputer.computeBSCCs();
-		List<BitSet> bsccs = sccComputer.getBSCCs();
+		SCCConsumerStore sccStore = new SCCConsumerStore();
+		SCCComputer sccComputer = SCCComputer.createSCCComputer(this, model, sccStore);
+		sccComputer.computeSCCs();
+		List<BitSet> bsccs = sccStore.getBSCCs();
 
 		BitSet result = new BitSet();
 

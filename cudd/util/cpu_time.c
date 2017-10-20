@@ -24,7 +24,9 @@
 #include <time.h>
 #endif
 
-
+#ifdef __MINGW32__
+#include <time.h>
+#endif
 
 /*
  *   util_cpu_time -- return a long which represents the elapsed processor

@@ -48,6 +48,7 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import odd.ODDUtils;
+import param.BigRational;
 import param.ModelBuilder;
 import param.ParamModel;
 import param.ParamModelChecker;
@@ -990,6 +991,30 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return reachMethod;
 	}
 
+	/**
+	 * Returns an integer containing flags for the C++ implementation of interval iteration,
+	 * derived from the current settings object.
+	 */
+	public int getIntervalIterationFlags() throws PrismException
+	{
+		int flags = 0;
+
+		OptionsIntervalIteration iiOptions = OptionsIntervalIteration.from(settings);
+
+		if (iiOptions.isEnforceMonotonicityFromBelow())
+			flags += 1;
+
+		if (iiOptions.isEnforceMonotonicityFromAbove())
+			flags += 2;
+
+		if (iiOptions.isSelectMidpointForResult())
+			flags += 4;  // select midpoint for result
+
+		return flags;
+	}
+
+
+
 	public void addModelListener(PrismModelListener listener)
 	{
 		modelListeners.add(listener);
@@ -1017,6 +1042,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 		}
 		jdd.SanityJDD.enabled = settings.getBoolean(PrismSettings.PRISM_JDD_SANITY_CHECKS);
+		PrismSparse.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
+		PrismHybrid.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
+		PrismMTBDD.SetExportIterations(settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS));
 	}
 
 	//------------------------------------------------------------------------------
@@ -1092,10 +1120,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Get an SCCComputer object for the explicit engine.
+	 * @param consumer the SCCConsumer
 	 */
-	public explicit.SCCComputer getExplicitSCCComputer(explicit.Model model) throws PrismException
+	public explicit.SCCComputer getExplicitSCCComputer(explicit.Model model, explicit.SCCConsumer consumer) throws PrismException
 	{
-		return explicit.SCCComputer.createSCCComputer(this, model);
+		return explicit.SCCComputer.createSCCComputer(this, model, consumer);
 	}
 
 	/**
@@ -1834,7 +1863,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 		// Construct ModulesFile
 		ExplicitFiles2ModulesFile ef2mf = new ExplicitFiles2ModulesFile(this);
-		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, typeOverride);
+		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, stateRewardsFile, typeOverride);
 		// Store explicit files info for later
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
@@ -2317,7 +2346,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Export the currently loaded model's state rewards to a file
+	 * Export the currently loaded model's state rewards to a file (or files, or stdout).
+	 * If there is more than 1 reward structure, then multiple files are generated
+	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
 	 * @param exportType Type of export; one of: <ul>
 	 * <li> {@link #EXPORT_PLAIN} 
 	 * <li> {@link #EXPORT_MATLAB}
@@ -2327,29 +2358,52 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		String s;
-
-		if (getExplicit())
-			throw new PrismNotSupportedException("Export of state rewards not yet supported by explicit engine");
-
-		// rows format does not apply to vectors
+		int numRewardStructs = currentModelInfo.getNumRewardStructs();
+		if (numRewardStructs == 0) {
+			mainLog.println("\nOmitting state reward export as there are no reward structures");
+			return;
+		}
+		
+		if (currentModelSource == ModelSource.EXPLICIT_FILES && getExplicit()) {
+			mainLog.println("\nOmitting state reward export (not supported when importing files using the explicit engine)");
+			return;
+		}
+		
+		// Rows format does not apply to vectors
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN;
 
 		// Build model, if necessary
 		buildModelIfRequired();
 
-		// print message
-		mainLog.print("\nExporting state rewards vector ");
+		mainLog.print("\nExporting state rewards ");
 		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
-		// do export
-		s = currentModel.exportStateRewardsToFile(exportType, file);
-		if (s != null)
-			mainLog.println("Rewards exported to files: " + s);
+		// Do export, writing to multiple files if necessary
+		List <String> files = new ArrayList<>();
+		for (int r = 0; r < numRewardStructs; r++) {
+			String filename = (file != null) ? file.getPath() : null;
+			if (filename != null && numRewardStructs > 1) {
+				filename = PrismUtils.addCounterSuffixToFilename(filename, r + 1);
+				files.add(filename);
+			}
+			File fileToUse = (filename == null) ? null : new File(filename);
+			if (!getExplicit()) {
+				currentModel.exportStateRewardsToFile(r, exportType, fileToUse);
+			} else {
+				PrismLog out = getPrismLogForFile(fileToUse);
+				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+				((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+				out.close();
+			}
+		}
+		
+		if (files.size() > 1) {
+			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
+		}
 	}
-
+	
 	/**
 	 * Export the currently loaded model's transition rewards to a file
 	 * @param ordered Ensure that (source) states are in ascending order?
@@ -2363,24 +2417,27 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportTransRewardsToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		String s;
-
+		int numRewardStructs = currentModelInfo.getNumRewardStructs();
+		if (numRewardStructs == 0) {
+			mainLog.println("\nOmitting state reward export as there are no reward structures");
+		}
+		
 		if (getExplicit())
 			throw new PrismException("Export of transition rewards not yet supported by explicit engine");
 
-		// can only do ordered version of export for MDPs
+		// Can only do ordered version of export for MDPs
 		if (currentModelType == ModelType.MDP) {
 			if (!ordered)
 				mainLog.printWarning("Cannot export unordered transition reward matrix for MDPs; using ordered.");
 			ordered = true;
 		}
-		// can only do ordered version of export for MRMC
+		// Can only do ordered version of export for MRMC
 		if (exportType == EXPORT_MRMC) {
 			if (!ordered)
 				mainLog.printWarning("Cannot export unordered transition reward matrix in MRMC format; using ordered.");
 			ordered = true;
 		}
-		// can only do ordered version of export for rows format
+		// Can only do ordered version of export for rows format
 		if (exportType == EXPORT_ROWS) {
 			if (!ordered)
 				mainLog.printWarning("Cannot export unordered transition matrix in rows format; using ordered.");
@@ -2390,15 +2447,29 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Build model, if necessary
 		buildModelIfRequired();
 
-		// print message
-		mainLog.print("\nExporting transition rewards matrix ");
+		mainLog.print("\nExporting transition rewards ");
 		mainLog.print(getStringForExportType(exportType) + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
-		// do export
-		s = currentModel.exportTransRewardsToFile(exportType, ordered, file);
-		if (s != null)
-			mainLog.println("Rewards exported to files: " + s);
+		// Do export, writing to multiple files if necessary
+		List <String> files = new ArrayList<>();
+		for (int r = 0; r < numRewardStructs; r++) {
+			String filename = (file != null) ? file.getPath() : null;
+			if (filename != null && numRewardStructs > 1) {
+				filename = PrismUtils.addCounterSuffixToFilename(filename, r + 1);
+				files.add(filename);
+			}
+			File fileToUse = (filename == null) ? null : new File(filename);
+			if (!getExplicit()) {
+				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse);
+			} else {
+				// Not implemented yet
+			}
+		}
+		
+		if (files.size() > 1) {
+			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
+		}
 	}
 
 	/**
@@ -2415,7 +2486,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		long l; // timer
 		PrismLog tmpLog;
 		SCCComputer sccComputer = null;
-		explicit.SCCComputer sccComputerExpl = null;
+		explicit.SCCConsumerStore sccConsumerExpl = null;
 		//Vector<JDDNode> bsccs;
 		//JDDNode not, bscc;
 
@@ -2436,8 +2507,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			sccComputer = getSCCComputer(currentModel);
 			sccComputer.computeBSCCs();
 		} else {
-			sccComputerExpl = getExplicitSCCComputer(currentModelExpl);
-			sccComputerExpl.computeBSCCs();
+			sccConsumerExpl = new explicit.SCCConsumerStore();
+			getExplicitSCCComputer(currentModelExpl, sccConsumerExpl).computeSCCs();
 		}
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for BSCC computation: " + l / 1000.0 + " seconds.");
@@ -2465,7 +2536,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!getExplicit()) {
 			n = sccComputer.getBSCCs().size();
 		} else {
-			n = sccComputerExpl.getBSCCs().size();
+			n = sccConsumerExpl.getBSCCs().size();
 		}
 		for (i = 0; i < n; i++) {
 			tmpLog.println();
@@ -2481,8 +2552,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					new StateListMTBDD(sccComputer.getBSCCs().get(i), currentModel).printMatlab(tmpLog);
 				JDD.Deref(sccComputer.getBSCCs().get(i));
 			} else {
-				explicit.StateValues.createFromBitSet(sccComputerExpl.getBSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB,
-						true, true);
+				explicit.StateValues.createFromBitSet(sccConsumerExpl.getBSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
 			}
 			if (exportType == EXPORT_MATLAB)
 				tmpLog.println("];");
@@ -2601,7 +2671,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		long l; // timer
 		PrismLog tmpLog;
 		SCCComputer sccComputer = null;
-		explicit.SCCComputer sccComputerExpl = null;
+		explicit.SCCConsumerStore sccConsumerExpl = null;
 
 		// no specific states format for MRMC
 		if (exportType == EXPORT_MRMC)
@@ -2620,8 +2690,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			sccComputer = getSCCComputer(currentModel);
 			sccComputer.computeSCCs();
 		} else {
-			sccComputerExpl = getExplicitSCCComputer(currentModelExpl);
-			sccComputerExpl.computeSCCs();
+			sccConsumerExpl = new explicit.SCCConsumerStore();
+			getExplicitSCCComputer(currentModelExpl, sccConsumerExpl).computeSCCs();
 		}
 		l = System.currentTimeMillis() - l;
 		mainLog.println("\nTime for SCC computation: " + l / 1000.0 + " seconds.");
@@ -2649,7 +2719,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!getExplicit()) {
 			n = sccComputer.getSCCs().size();
 		} else {
-			n = sccComputerExpl.getSCCs().size();
+			n = sccConsumerExpl.getSCCs().size();
 		}
 		for (i = 0; i < n; i++) {
 			tmpLog.println();
@@ -2665,8 +2735,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					new StateListMTBDD(sccComputer.getSCCs().get(i), currentModel).printMatlab(tmpLog);
 				JDD.Deref(sccComputer.getSCCs().get(i));
 			} else {
-				explicit.StateValues.createFromBitSet(sccComputerExpl.getSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB,
-						true, true);
+				explicit.StateValues.createFromBitSet(sccConsumerExpl.getSCCs().get(i), currentModelExpl).print(tmpLog, true, exportType == EXPORT_MATLAB, true, true);
 			}
 			if (exportType == EXPORT_MATLAB)
 				tmpLog.println("];");
@@ -2836,13 +2905,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return fauMC.check(prop.getExpression());
 		}
 		// Auto-switch engine if required
-		else if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
+		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
 				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
 				engineSwitch = true;
 				lastEngine = getEngine();
 				setEngine(Prism.EXPLICIT);
 			}
+		}
+		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
+			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL mocel checking.");
+			engineSwitch = true;
+			lastEngine = getEngine();
+			setEngine(Prism.EXPLICIT);
 		}
 		try {
 			// Build model, if necessary
@@ -3100,7 +3175,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (!("Result".equals(prop.getExpression().getResultName())))
 			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
 		resultString += ": " + result.getResultString();
-		mainLog.print("\n" + resultString);
+		mainLog.println("\n" + resultString);
+
+		if (result.getResult() instanceof BigRational) {
+			mainLog.println("Approximate result: " + ((BigRational)result.getResult()).doubleValue());
+		}
 
 		return result;
 	}
@@ -3686,6 +3765,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
 		mc.setDoBisim(doBisim);
+		mc.setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
+		mc.setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));
+		mc.setDoPmaxQuotient(settings.getBoolean(PrismSettings.PRISM_PMAX_QUOTIENT));
 
 		return mc;
 	}

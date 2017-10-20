@@ -118,8 +118,7 @@ public class ECComputerDefault extends ECComputer
 			}
 
 			// Filter bad transitions
-			JDD.Ref(stableSet);
-			JDDNode stableSetTrans = maxStableSetTrans(stableSet);
+			JDDNode stableSetTrans = getStableTransReln(stableSet.copy());
 
 			// Find the maximal SCCs in (stableSet, stableSetTrans)
 			sccComputer = SCCComputer.createSCCComputer(this, stableSet, stableSetTrans, allDDRowVars, allDDColVars);
@@ -148,108 +147,4 @@ public class ECComputerDefault extends ECComputer
 		return mecs;
 	}
 
-	/**
-	 * Returns the maximal stable set of states contained in {@code candidateStates},
-	 * i.e. the maximal subset of states which have a choice whose transitions remain in the subset. 
-	 * @param candidateStates BDD for a set of states (over allDDRowVars) (dereferenced after calling this function)
-	 * @return A referenced BDD with the maximal stable set in c
-	 */
-	private JDDNode findMaximalStableSet(JDDNode candidateStates)
-	{
-		// Store two copies to allow check for fixed point 
-		JDDNode current = candidateStates;
-		JDDNode old = JDD.Constant(0);
-		// Fixed point
-		while (!current.equals(old)) {
-			// Remember last set
-			JDD.Deref(old);
-			JDD.Ref(current);
-			old = current;
-			// Find transitions starting in current
-			JDD.Ref(trans01);
-			JDD.Ref(current);
-			JDDNode currTrans = JDD.Apply(JDD.TIMES, trans01, current);
-			// Find transitions starting in current *and* ending in current
-			current = JDD.PermuteVariables(current, allDDRowVars, allDDColVars);
-			JDD.Ref(currTrans);
-			JDDNode currTrans2 = JDD.Apply(JDD.TIMES, currTrans, current);
-			// Find transitions leaving current
-			JDD.Ref(currTrans2);
-			currTrans = JDD.And(currTrans, JDD.Not(currTrans2));
-			// Find choices leaving current
-			currTrans = JDD.ThereExists(currTrans, allDDColVars);
-			// Remove leaving choices
-			currTrans2 = JDD.ThereExists(currTrans2, allDDColVars);
-			currTrans2 = JDD.And(currTrans2, JDD.Not(currTrans));
-			// Keep states with at least one choice
-			current = JDD.ThereExists(currTrans2, allDDNondetVars);
-		}
-		JDD.Deref(old);
-		return current;
-	}
-
-	/**
-	 * Returns the maximal stable set of states contained in {@code candidateStates},
-	 * i.e. the maximal subset of states which have a choice whose transitions remain in the subset. 
-	 * @param candidateStates BDD for a set of states (over allDDRowVars) (dereferenced after calling this function)
-	 * @return A referenced BDD with the maximal stable set in c
-	 * 
-	 * Old version of the code (uses probability sum, which shouldn't be needed).
-	 */
-	private JDDNode findMaximalStableSetOld(JDDNode candidateStates)
-	{
-		JDDNode old = JDD.Constant(0);
-		JDDNode current = candidateStates;
-
-		while (!current.equals(old)) {
-			JDD.Deref(old);
-			JDD.Ref(current);
-			old = current;
-
-			JDD.Ref(current);
-			JDD.Ref(trans);
-			// Select transitions starting in current
-			JDDNode currTrans = JDD.Apply(JDD.TIMES, trans, current);
-			// Select transitions starting in current and ending in current
-			JDDNode tmp = JDD.PermuteVariables(current, allDDRowVars, allDDColVars);
-			tmp = JDD.Apply(JDD.TIMES, currTrans, tmp);
-			// Sum all successor probabilities for each (state, action) tuple
-			tmp = JDD.SumAbstract(tmp, allDDColVars);
-			// If the sum for a (state,action) tuple is 1,
-			// there is an action that remains in the stable set with prob 1
-			tmp = JDD.GreaterThan(tmp, 1 - sumRoundOff);
-			// Without fairness, we just need one action per state
-			current = JDD.ThereExists(tmp, allDDNondetVars);
-		}
-		JDD.Deref(old);
-		return current;
-	}
-
-	/**
-	 * Returns the transition relation of a stable set
-	 * 
-	 * @param b BDD of a stable set (dereferenced after calling this function)
-	 * @return referenced BDD of the transition relation restricted to the stable set
-	 */
-	private JDDNode maxStableSetTrans(JDDNode b)
-	{
-
-		JDD.Ref(b);
-		JDD.Ref(trans);
-		// Select transitions starting in b
-		JDDNode currTrans = JDD.Apply(JDD.TIMES, trans, b);
-		JDDNode mask = JDD.PermuteVariables(b, allDDRowVars, allDDColVars);
-		// Select transitions starting in current and ending in current
-		mask = JDD.Apply(JDD.TIMES, currTrans, mask);
-		// Sum all successor probabilities for each (state, action) tuple
-		mask = JDD.SumAbstract(mask, allDDColVars);
-		// If the sum for a (state,action) tuple is 1,
-		// there is an action that remains in the stable set with prob 1
-		mask = JDD.GreaterThan(mask, 1 - sumRoundOff);
-		// select the transitions starting in these tuples
-		JDD.Ref(trans01);
-		JDDNode stableTrans01 = JDD.And(trans01, mask);
-		// Abstract over actions
-		return JDD.ThereExists(stableTrans01, allDDNondetVars);
-	}
 }

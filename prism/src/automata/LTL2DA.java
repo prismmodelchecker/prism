@@ -43,6 +43,7 @@ import jhoafparser.parser.generated.ParseException;
 import jhoafparser.transformations.ToStateAcceptance;
 import jltl2ba.APSet;
 import jltl2ba.SimpleLTL;
+import jltl2ba.LTLFragments;
 import jltl2dstar.LTL2Rabin;
 import parser.Values;
 import parser.ast.Expression;
@@ -52,6 +53,7 @@ import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
+import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 
 /**
@@ -123,8 +125,30 @@ public class LTL2DA extends PrismComponent
 				if (useExternal) {
 					result = convertLTLFormulaToDAWithExternalTool(ltl, constants, allowedAcceptance);
 				} else {
-					// use jltl2dstar LTL2DA
-					result = LTL2Rabin.ltl2da(ltl.convertForJltl2ba(), allowedAcceptance);
+					SimpleLTL simpleLTL = ltl.convertForJltl2ba();
+
+					// don't use LTL2WDBA translation yet
+					boolean allowLTL2WDBA = false;
+					if (allowLTL2WDBA) {
+						LTLFragments fragments = LTLFragments.analyse(simpleLTL);
+						mainLog.println(fragments);
+
+						if (fragments.isSyntacticGuarantee() && AcceptanceType.contains(allowedAcceptance, AcceptanceType.REACH)) {
+							// a co-safety property
+							mainLog.println("Generating DFA for co-safety property...");
+							LTL2WDBA ltl2wdba = new LTL2WDBA(this);
+							result = ltl2wdba.cosafeltl2dfa(simpleLTL);
+						} else if (allowLTL2WDBA && fragments.isSyntacticObligation() && AcceptanceType.contains(allowedAcceptance, AcceptanceType.BUCHI)) {
+							// an obligation property
+							mainLog.println("Generating DBA for obligation property...");
+							LTL2WDBA ltl2wdba = new LTL2WDBA(this);
+							result = ltl2wdba.obligation2wdba(simpleLTL);
+						}
+					}
+					if (result == null) {
+						// use jltl2dstar LTL2DA
+						result = LTL2Rabin.ltl2da(simpleLTL, allowedAcceptance);
+					}
 				}
 			} else {
 				throw new PrismNotSupportedException("Could not convert LTL formula to deterministic automaton, formula had time-bounds");
@@ -342,11 +366,11 @@ public class LTL2DA extends PrismComponent
 			System.out.println("LTL: " + expr);*/
 
 			// Convert to Expression (from LBT format)
-			String ltl = args[0];
+			// String ltl = args[0];
 			SimpleLTL sltl = SimpleLTL.parseFormulaLBT(args[0]);
 			Expression expr = Expression.createFromJltl2ba(sltl);
-			System.out.println("LBT: " + ltl);
-			System.out.println("LTL: " + expr);
+			// System.out.println("LBT: " + ltl);
+			// System.out.println("LTL: " + expr);
 
 			// Build/export DA
 			LTL2DA ltl2da = new LTL2DA(new PrismComponent());

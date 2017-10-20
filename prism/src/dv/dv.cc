@@ -26,22 +26,25 @@
 //==============================================================================
 
 #include "dv.h"
-#include <math.h>
+#include <cmath>
 #include <new>
+#include <cstdint>
+#include <limits>
 
 // local function prototypes
 
-static void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, long n, double *res);
-static DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, double d, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *vec2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, int level, ODDNode *odd, long o);
-static void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, long o, long o2);
+static void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o, int64_t n, double *res);
+static DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, double d, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *vec2, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static double max_finite_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o);
+static void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, int64_t o, int64_t o2);
 
 // Threshold for comparison of doubles
 static double epsilon_double = 1e-12;
@@ -62,7 +65,7 @@ EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **var
 
 EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, ODDNode *odd, double *res)
 {
-	long i, n;
+	int64_t i, n;
 
 	// determine size
 	n = odd->eoff + odd->toff;
@@ -78,7 +81,7 @@ EXPORT double *mtbdd_to_double_vector(DdManager *ddman, DdNode *dd, DdNode **var
 	return res;
 }
 
-void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, long o, long n, double *res)
+void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o, int64_t n, double *res)
 {
 	DdNode *e, *t;
 
@@ -113,7 +116,7 @@ EXPORT DdNode *double_vector_to_mtbdd(DdManager *ddman, double *vec, DdNode **va
 	return double_vector_to_mtbdd_rec(ddman, vec, vars, num_vars, 0, odd, 0);
 }
 
-DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+DdNode *double_vector_to_mtbdd_rec(DdManager *ddman, double *vec, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	DdNode *e, *t;
 
@@ -169,7 +172,7 @@ EXPORT DdNode *double_vector_to_bdd(DdManager *ddman, double *vec, int rel_op, d
 
 // Recursive call for double_vector_to_bdd methods
 
-DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+DdNode *double_vector_to_bdd_rec(DdManager *ddman, double *vec, int rel_op, double value1, double value2, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	DdNode *e, *t;
 
@@ -219,7 +222,7 @@ EXPORT void filter_double_vector(DdManager *ddman, double *vec, DdNode *filter, 
 	filter_double_vector_rec(ddman, vec, filter, d, vars, num_vars, 0, odd, 0);
 }
 
-void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, double d, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, double d, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	DdNode *dd;
 	
@@ -249,7 +252,7 @@ EXPORT void max_double_vector_mtbdd(DdManager *ddman, double *vec, DdNode *vec2,
 	max_double_vector_mtbdd_rec(ddman, vec, vec2, vars, num_vars, 0, odd, 0);
 }
 
-void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	DdNode *dd;
 	double d;
@@ -288,7 +291,7 @@ EXPORT double get_first_from_bdd(DdManager *ddman, double *vec, DdNode *filter, 
 	else return get_first_from_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
 
-double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	DdNode *dd;
 	
@@ -317,7 +320,7 @@ EXPORT double min_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *
 	return min_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
 
-double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	double d1, d2;
 	DdNode *dd;
@@ -353,7 +356,7 @@ EXPORT double max_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *
 	return max_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
 
-double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	double d1, d2;
 	DdNode *dd;
@@ -380,6 +383,44 @@ double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 	}
 }
 
+
+EXPORT double max_finite_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, ODDNode *odd)
+{
+	return max_finite_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
+}
+
+double max_finite_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
+{
+	double d1, d2;
+	DdNode *dd;
+
+	if (level == num_vars) {
+		if (Cudd_V(filter) > 0) {
+			double v = vec[o];
+			if (v < std::numeric_limits<double>::infinity()) {
+				return -std::numeric_limits<double>::infinity();
+			} else {
+				return v;
+			}
+		}
+		else {
+			return -std::numeric_limits<double>::infinity();
+		}
+	}
+	else {
+		d1 = d2 = -HUGE_VAL;
+		if (odd->eoff > 0) {
+			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			d1 = max_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
+		}
+		if (odd->toff > 0) {
+			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			d2 = max_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
+		}
+		return (d1 > d2) ? d1 : d2;
+	}
+}
+
 //------------------------------------------------------------------------------
 
 // sums up the elements of a double array - but only those in the bdd passed in
@@ -389,7 +430,7 @@ EXPORT double sum_double_vector_over_bdd(DdManager *ddman, double *vec, DdNode *
 	return sum_double_vector_over_bdd_rec(ddman, vec, filter, vars, num_vars, 0, odd, 0);
 }
 
-double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	double d;
 	DdNode *dd;
@@ -425,7 +466,7 @@ EXPORT double sum_double_vector_over_mtbdd(DdManager *ddman, double *vec, DdNode
 	return sum_double_vector_over_mtbdd_rec(ddman, vec, mult, vars, num_vars, 0, odd, 0);
 }
 
-double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, int level, ODDNode *odd, long o)
+double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *mult, DdNode **vars, int num_vars, int level, ODDNode *odd, int64_t o)
 {
 	double d;
 	DdNode *dd;
@@ -458,7 +499,7 @@ EXPORT void sum_double_vector_over_dd_vars(DdManager *ddman, double *vec, double
 	return sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, 0, first_var, last_var, odd, odd2, 0, 0);
 }
 
-void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, long o, long o2)
+void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *vec2, DdNode **vars, int num_vars, int level, int first_var, int last_var, ODDNode *odd, ODDNode *odd2, int64_t o, int64_t o2)
 {
 	if (level == num_vars) {
 		vec2[o2] += vec[o];
@@ -578,9 +619,9 @@ EXPORT DistVector::~DistVector()
 EXPORT bool doubles_are_close_abs(double d1, double d2, double epsilon)
 {
 	// Deal with infinite cases
-	if (isinf(d1)) {
-		return isinf(d2) && (d1 > 0) == (d2 > 0);
-	} else if (isinf(d2)) {
+	if (std::isinf(d1)) {
+		return std::isinf(d2) && (d1 > 0) == (d2 > 0);
+	} else if (std::isinf(d2)) {
 		return false;
 	}
 	// Compute/check error
@@ -590,9 +631,9 @@ EXPORT bool doubles_are_close_abs(double d1, double d2, double epsilon)
 EXPORT bool doubles_are_close_rel(double d1, double d2, double epsilon)
 {
 	// Deal with infinite cases
-	if (isinf(d1)) {
-		return isinf(d2) && (d1 > 0) == (d2 > 0);
-	} else if (isinf(d2)) {
+	if (std::isinf(d1)) {
+		return std::isinf(d2) && (d1 > 0) == (d2 > 0);
+	} else if (std::isinf(d2)) {
 		return false;
 	}
 	// Compute/check error

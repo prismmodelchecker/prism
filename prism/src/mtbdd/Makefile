@@ -5,6 +5,9 @@
 #      various options to be passed in         #
 ################################################
 
+# inhibit building in parallel (-j option)
+.NOTPARALLEL:
+
 .SUFFIXES: .o .c .cc
 
 # Reminder: $@ = target, $* = target without extension, $< = dependency
@@ -22,6 +25,7 @@ LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
 -lodd \
 -ldd \
+-ldv \
 -lprism \
 $(LIBMATH)
 

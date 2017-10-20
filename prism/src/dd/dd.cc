@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 // output stream for anything printed by the dd package
 // (stdout by default)

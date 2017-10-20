@@ -38,10 +38,24 @@ import parser.ast.RelOp;
 public interface StateValues extends StateVector
 {
 	/** Converts to StateValuesDV, destroys (clear) this vector */
-	StateValuesDV convertToStateValuesDV();
+	StateValuesDV convertToStateValuesDV() throws PrismException;
 
 	/** Converts to StateValuesMTBDD, destroys (clear) this vector */
 	StateValuesMTBDD convertToStateValuesMTBDD();
+
+	/**
+	 * Switch the underlying model of this StateValues object.
+	 * The new model has to be compatible with the old one,
+	 * i.e., it has to have the same row variables and reachable states.
+	 * <br>
+	 * An example would be to switch between a CTMC and the embedded DTMC,
+	 * i.e., where both models by construction have the same structure and state space.
+	 * <br>
+	 * Note that there are currently <b>no sanity checks</b>, so be careful when
+	 * using this method.
+	 * @param newModel the new model
+	 */
+	void switchModel(Model newModel);
 
 	/**
 	 * Set the elements of this vector by reading them in from a file.
@@ -122,6 +136,15 @@ public interface StateValues extends StateVector
 	 * <br>[ DEREFS: <i>none</i> ]
 	 */
 	double maxOverBDD(JDDNode filter);
+
+	/**
+	 * Get the maximum finite value of those that are in the (BDD) filter.
+	 * <br>
+	 * If the filter is empty for this vector or all values for the filter are non-finite,
+	 * returns negative infinity.
+	 * <br>[ DEREFS: <i>none</i> ]
+	 */
+	public double maxFiniteOverBDD(JDDNode filter);
 
 	/**
 	 * Get the sum of those elements that are in the (BDD) filter.

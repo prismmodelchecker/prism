@@ -481,23 +481,7 @@ public class ProbModel implements Model
 		if (old != null) JDD.Deref(old);
 	}
 
-	/**
-	 * Add a label with corresponding state set, ensuring a unique, non-existing label.
-	 * The label will be either "X" or "X_i" where X is the content of the {@code prefix} argument
-	 * and i is a non-negative integer.
-	 * <br>
-	 * Optionally, a set of defined label names can be passed so that those labels
-	 * can be avoided. This can be obtained from the model checker via {@code getDefinedLabelNames()}.
-	 * <br>
-	 * Note that a stored label takes precedence over the on-the-fly calculation
-	 * of an ExpressionLabel, cf. {@link explicit.StateModelChecker#checkExpressionLabel}
-	 * <br>[ STORES: labelDD, deref on later call to clear() ]
-	 *
-	 * @param prefix the prefix for the unique label
-	 * @param labelDD the JDDNode with the state set for the label
-	 * @param definedLabelNames set of names (optional, may be {@code null}) to check for existing labels
-	 * @return the generated unique label
-	 */
+	@Override
 	public String addUniqueLabelDD(String prefix, JDDNode labelDD, Set<String> definedLabelNames)
 	{
 		String label;
@@ -567,7 +551,7 @@ public class ProbModel implements Model
 
 	// do reachability
 
-	public void doReachability()
+	public void doReachability() throws PrismException
 	{
 		// compute reachable states
 		setReach(PrismMTBDD.Reachability(trans01, allDDRowVars, allDDColVars, start));
@@ -581,7 +565,7 @@ public class ProbModel implements Model
 	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
 	 * @param seed set of states (over ddRowVars) that is known to be reachable
 	 */
-	public void doReachability(JDDNode seed)
+	public void doReachability(JDDNode seed) throws PrismException
 	{
 		// do sanity check on seed if checking is enabled
 		if (SanityJDD.enabled)
@@ -597,7 +581,7 @@ public class ProbModel implements Model
 	// this method allows you to skip the reachability phase
 	// it is only here for experimental purposes - not general use.
 
-	public void skipReachability()
+	public void skipReachability() throws PrismException
 	{
 		// don't compute reachable states - assume all reachable
 		reach = JDD.Constant(1);
@@ -608,6 +592,7 @@ public class ProbModel implements Model
 		// build odd, clear old one
 		if (odd != null) {
 			ODDUtils.ClearODD(odd);
+			odd = null;
 		}
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}
@@ -616,7 +601,7 @@ public class ProbModel implements Model
 	 * Set reachable states BDD (and compute number of states and ODD)
 	 */
 
-	public void setReach(JDDNode reach)
+	public void setReach(JDDNode reach) throws PrismException
 	{
 		if (this.reach != null)
 			JDD.Deref(this.reach);
@@ -628,6 +613,7 @@ public class ProbModel implements Model
 		// build odd, clear old one
 		if (odd != null) {
 			ODDUtils.ClearODD(odd);
+			odd = null;
 		}
 		odd = ODDUtils.BuildODD(reach, allDDRowVars);
 	}
@@ -837,12 +823,18 @@ public class ProbModel implements Model
 		}
 	}
 
-	// export state rewards vector to a file
+	@Override
+	public void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath());
+	}
 
-	// returns string containing files used if there were more than 1, null otherwise
-
+	@Deprecated
 	public String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
+		// export state rewards vector to a file
+		// returns string containing files used if there were more than 1, null otherwise
+
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no state rewards to export");
 		int i;
@@ -858,12 +850,22 @@ public class ProbModel implements Model
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
 
-	// export transition rewards matrix to a file
+	@Override
+	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException
+	{
+		if (!ordered) {
+			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath());
+		} else {
+			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath());
+		}
+	}
 
-	// returns string containing files used if there were more than 1, null otherwise
-
+	@Deprecated
 	public String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
 	{
+		// export transition rewards matrix to a file
+		// returns string containing files used if there were more than 1, null otherwise
+
 		if (numRewardStructs == 0)
 			throw new PrismException("There are no transition rewards to export");
 		int i;

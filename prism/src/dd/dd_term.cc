@@ -277,6 +277,33 @@ DdNode *dd
 
 //------------------------------------------------------------------------------
 
+// Find maximal finite terminal node (constant). Returns -infinity if there is none
+double DD_FindMaxFinite
+(
+DdManager *ddman,
+DdNode *dd
+)
+{
+	DdGen *gen;
+	DdNode *node;
+	bool rv = true;
+
+	double max_v = -std::numeric_limits<double>::infinity();
+
+	Cudd_ForeachNode(ddman, dd, gen, node) {
+		if (Cudd_IsConstant(node)) {
+			double v = Cudd_V(node);
+			if (v < std::numeric_limits<double>::infinity() && v > max_v) {
+				max_v = v;
+			}
+		}
+	}
+
+	return max_v;
+}
+
+//------------------------------------------------------------------------------
+
 double DD_FindMax
 (
 DdManager *ddman,
