@@ -257,9 +257,9 @@ Mtr_MakeGroup(
     /* First holds the pointer to the first child contained in the new
     ** group. Here low <= first->low and low + size >= first->low +
     ** first->size.  One of the two inequalities is strict. */
-    last = first->younger;
-    while (last != NULL &&
-	   (unsigned int) (last->low + last->size) < low + size) {
+    last = first;
+    while (last->younger != NULL &&
+	   (unsigned int) (last->younger->low + last->younger->size) <= low + size) {
 	last = last->younger;
     }
     if (last == NULL) {

@@ -32,6 +32,7 @@ import acceptance.AcceptanceGeneric.ElementType;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismNotSupportedException;
 
 /**
  * A generic acceptance condition (based on JDD state sets).
@@ -78,6 +79,38 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 				return;
 		}
 		throw new UnsupportedOperationException("Unsupported operatator in generic acceptance condition");
+	}
+
+	/**
+	 * Constructor for TRUE or FALSE
+	 * @param value true or false?
+	 */
+	public AcceptanceGenericDD(boolean value) {
+		kind = value ? ElementType.TRUE : ElementType.FALSE;
+	}
+
+	/**
+	 * Constructor for an INF, FIN, INF_NOT or FIN_NOT element.
+	 * <br>[ STORES: <i>states</i> ]
+	 */
+	public AcceptanceGenericDD(ElementType kind, JDDNode states)
+	{
+		this.kind = kind;
+		left = null;
+		right = null;
+		this.states = states;
+	}
+
+	/**
+	 * Constructor for a binary operator (AND/OR).
+	 * <br>[ STORES: <i>left, right operand</i> ]
+	 */
+	public AcceptanceGenericDD(ElementType kind, AcceptanceGenericDD left, AcceptanceGenericDD right)
+	{
+		this.kind = kind;
+		this.left = left;
+		this.right = right;
+		states = null;
 	}
 
 	/** Get the ElementType of this AST element */
@@ -144,6 +177,49 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 	}
 
 	@Override
+	public void intersect(JDDNode restrict)
+	{
+		switch(kind) {
+		case TRUE:
+		case FALSE:
+			return;
+		case AND:
+		case OR:
+			left.intersect(restrict);
+			right.intersect(restrict);
+			return;
+		case INF:
+		case INF_NOT:
+		case FIN:
+		case FIN_NOT:
+			states = JDD.And(states, restrict.copy());
+		}
+		throw new UnsupportedOperationException("Unsupported operator in generic acceptance expression");
+	}
+
+
+	@Override
+	public AcceptanceGenericDD clone()
+	{
+		switch(kind) {
+		case TRUE:
+			return new AcceptanceGenericDD(true);
+		case FALSE:
+			return new AcceptanceGenericDD(false);
+		case AND:
+			return new AcceptanceGenericDD(ElementType.AND, left.clone(), right.clone());
+		case OR:
+			return new AcceptanceGenericDD(ElementType.OR, left.clone(), right.clone());
+		case INF:
+		case INF_NOT:
+		case FIN:
+		case FIN_NOT:
+			return new AcceptanceGenericDD(kind, states.copy());
+		}
+		throw new UnsupportedOperationException("Unsupported operatator in generic acceptance condition");
+	}
+
+	@Override
 	public String getSizeStatistics() {
 		return "generic acceptance with " + countAcceptanceSets() + " acceptance sets";
 	}
@@ -151,6 +227,54 @@ public class AcceptanceGenericDD implements AcceptanceOmegaDD {
 	@Override
 	public AcceptanceType getType() {
 		return AcceptanceType.GENERIC;
+	}
+
+	@Override
+	public AcceptanceOmegaDD complement(AcceptanceType... allowedAcceptance) throws PrismNotSupportedException
+	{
+		if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			return this.complementToGeneric();
+		}
+		throw new PrismNotSupportedException("Can not complement " + getType() + " acceptance to required acceptance type");
+	}
+
+	/** Complement this acceptance condition, return as AcceptanceGeneric. */
+	@Override
+	public AcceptanceGenericDD complementToGeneric()
+	{
+		// overrides the default implementation in AcceptanceOmegaDD, as it's the base case
+		// that is used there
+
+		switch (kind) {
+		case TRUE:
+			return new AcceptanceGenericDD(false);
+		case FALSE:
+			return new AcceptanceGenericDD(true);
+		case AND:
+			return new AcceptanceGenericDD(ElementType.OR,
+			                               getLeft().complementToGeneric(),
+			                               getRight().complementToGeneric());
+		case OR:
+			return new AcceptanceGenericDD(ElementType.AND,
+			                               getLeft().complementToGeneric(),
+			                               getRight().complementToGeneric());
+		case FIN:
+			return new AcceptanceGenericDD(ElementType.INF, states.copy());
+		case FIN_NOT:
+			return new AcceptanceGenericDD(ElementType.INF_NOT, states.copy());
+		case INF:
+			return new AcceptanceGenericDD(ElementType.FIN, states.copy());
+		case INF_NOT:
+			return new AcceptanceGenericDD(ElementType.FIN_NOT, states.copy());
+		default:
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	@Override
+	public AcceptanceGenericDD toAcceptanceGeneric()
+	{
+		return this.clone();
 	}
 
 	@Override

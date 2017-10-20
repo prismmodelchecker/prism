@@ -30,7 +30,7 @@
 #include "JDDVars.h"
 #include "jnipointer.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -437,6 +437,13 @@ JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMinPositive(JNIEnv *env, jclass c
 JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMax(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
 {
 	return DD_FindMax(ddman, jlong_to_DdNode(dd));
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT jdouble JNICALL Java_jdd_JDD_DD_1FindMaxFinite(JNIEnv *env, jclass cls, jlong __jlongpointer dd)
+{
+	return DD_FindMaxFinite(ddman, jlong_to_DdNode(dd));
 }
 
 //------------------------------------------------------------------------------

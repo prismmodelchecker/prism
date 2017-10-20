@@ -91,6 +91,7 @@ public class JDD
 	private static native double DD_FindMin(long dd);
 	private static native double DD_FindMinPositive(long dd);
 	private static native double DD_FindMax(long dd);
+	private static native double DD_FindMaxFinite(long dd);
 	private static native long DD_RestrictToFirst(long dd, long vars, int num_vars);
 	private static native boolean DD_IsZeroOneMTBDD(long dd);
 	// dd_info
@@ -963,7 +964,19 @@ public class JDD
 		checkForCuddError();
 		return rv;
 	}
-	
+
+	/**
+	 * Returns maximal finite positive terminal in dd, i.e.,
+	 * If there is none, returns -infinity.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
+	public static double FindMaxFinite(JDDNode dd)
+	{
+		double rv = DD_FindMaxFinite(dd.ptr());
+		checkForCuddError();
+		return rv;
+	}
+
 	/**
 	 * returns dd restricted to first non-zero path (cube)
 	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]

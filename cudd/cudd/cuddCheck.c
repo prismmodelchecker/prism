@@ -220,7 +220,7 @@ Cudd_DebugCheck(
 			count = 1;
 		    }
 		    if (st_insert(edgeTable,(char *)cuddT(f),
-		    (char *)(long)count) == ST_OUT_OF_MEM) {
+		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			return(CUDD_OUT_OF_MEM);
 		    }
@@ -235,7 +235,7 @@ Cudd_DebugCheck(
 			count = 1;
 		    }
 		    if (st_insert(edgeTable,(char *)Cudd_Regular(cuddE(f)),
-		    (char *)(long)count) == ST_OUT_OF_MEM) {
+		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			return(CUDD_OUT_OF_MEM);
 		    }
@@ -326,7 +326,7 @@ Cudd_DebugCheck(
 			count = 1;
 		    }
 		    if (st_insert(edgeTable,(char *)cuddT(f),
-		    (char *)(long)count) == ST_OUT_OF_MEM) {
+		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			return(CUDD_OUT_OF_MEM);
 		    }
@@ -340,7 +340,7 @@ Cudd_DebugCheck(
 			count = 1;
 		    }
 		    if (st_insert(edgeTable,(char *)cuddE(f),
-		    (char *)(long)count) == ST_OUT_OF_MEM) {
+		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			table->errorCode = CUDD_MEMORY_OUT;
 			return(CUDD_OUT_OF_MEM);
@@ -386,15 +386,9 @@ Cudd_DebugCheck(
 	    if (f->ref != 0) {
 		if (f->index != CUDD_CONST_INDEX) {
 		    fprintf(table->err,"Error: node has illegal index\n");
-#if SIZEOF_VOID_P == 8
 		    fprintf(table->err,
-			    "       node 0x%lx, id = %u, ref = %u, value = %g\n",
+			    "       node 0x%" PRIxPTR ", id = %u, ref = %u, value = %g\n",
 			    (ptruint)f,f->index,f->ref,cuddV(f));
-#else
-		    fprintf(table->err,
-			    "       node 0x%x, id = %hu, ref = %hu, value = %g\n",
-			    (ptruint)f,f->index,f->ref,cuddV(f));
-#endif
 		    flag = 1;
 		}
 	    } else {
@@ -416,11 +410,8 @@ Cudd_DebugCheck(
     gen = st_init_gen(edgeTable);
     while (st_gen(gen, &f, &count)) {
 	if (count > (int)(f->ref) && f->ref != DD_MAXREF) {
-#if SIZEOF_VOID_P == 8
-	    fprintf(table->err,"ref count error at node 0x%lx, count = %d, id = %u, ref = %u, then = 0x%lx, else = 0x%lx\n",(ptruint)f,count,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
-#else
-	    fprintf(table->err,"ref count error at node 0x%x, count = %d, id = %hu, ref = %hu, then = 0x%x, else = 0x%x\n",(ptruint)f,count,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
-#endif
+	    fprintf(table->err,"ref count error at node 0x%" PRIxPTR ", count = %d, id = %u, ref = %u, then = 0x%" PRIxPTR ", else = 0x%" PRIxPTR "\n",
+                (ptruint)f,count,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
 	    debugFindParent(table,f);
 	    flag = 1;
 	}
@@ -651,13 +642,8 @@ cuddHeapProfile(
 	nonempty = 0;	/* number of tables with live nodes */
 
     /* Print header. */
-#if SIZEOF_VOID_P == 8
-    retval = fprintf(dd->out,"*** DD heap profile for 0x%lx ***\n",
+    retval = fprintf(dd->out,"*** DD heap profile for 0x%" PRIxPTR " ***\n",
 		     (ptruint) dd);
-#else
-    retval = fprintf(dd->out,"*** DD heap profile for 0x%x ***\n",
-		     (ptruint) dd);
-#endif
     if (retval == EOF) return 0;
 
     /* Print number of live nodes for each nonempty table. */
@@ -714,11 +700,8 @@ cuddPrintNode(
   FILE *fp)
 {
     f = Cudd_Regular(f);
-#if SIZEOF_VOID_P == 8
-    (void) fprintf(fp,"       node 0x%lx, id = %u, ref = %u, then = 0x%lx, else = 0x%lx\n",(ptruint)f,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
-#else
-    (void) fprintf(fp,"       node 0x%x, id = %hu, ref = %hu, then = 0x%x, else = 0x%x\n",(ptruint)f,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
-#endif
+    (void) fprintf(fp,"       node 0x%" PRIxPTR ", id = %u, ref = %u, then = 0x%" PRIxPTR ", else = 0x%" PRIxPTR "\n",
+        (ptruint)f,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
 
 } /* end of cuddPrintNode */
 
@@ -826,13 +809,8 @@ debugFindParent(
 	    f = nodelist[j];
 	    while (f != NULL) {
 		if (cuddT(f) == node || Cudd_Regular(cuddE(f)) == node) {
-#if SIZEOF_VOID_P == 8
-		    (void) fprintf(table->out,"parent is at 0x%lx, id = %u, ref = %u, then = 0x%lx, else = 0x%lx\n",
+		    (void) fprintf(table->out,"parent is at 0x%" PRIxPTR ", id = %u, ref = %u, then = 0x%" PRIxPTR ", else = 0x%" PRIxPTR "\n",
 			(ptruint)f,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
-#else
-		    (void) fprintf(table->out,"parent is at 0x%x, id = %hu, ref = %hu, then = 0x%x, else = 0x%x\n",
-			(ptruint)f,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
-#endif
 		}
 		f = f->next;
 	    }

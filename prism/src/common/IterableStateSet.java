@@ -3,6 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Märcker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -28,23 +29,23 @@
 package common;
 
 import java.util.BitSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import java.util.PrimitiveIterator.OfInt;
+
+import common.iterable.*;
 
 /**
  * A convenience wrapper around IterableBitSet that handles the three cases of
  * iterating over the set or cleared bits of a BitSet representing a set of states
  * as well as iterating over all states if the BitSet is {@code null}.
  */
-public class IterableStateSet implements Iterable<Integer> {
-	private BitSet setOfStates;
-	private Integer numStates = null;
-	private boolean complement = false;
+public class IterableStateSet implements IterableInt
+{
+	private final IterableInt setOfStates;
 
 	/**
 	 * Constructor (iterate over all states 0..numStates-1)
 	 * 
-	 * @param numStates the number of states in the model, i.e., with indizes 0..numStates-1
+	 * @param numStates the number of states in the model, i.e., with indices 0..numStates-1
 	 */
 	public IterableStateSet(int numStates)
 	{
@@ -54,9 +55,9 @@ public class IterableStateSet implements Iterable<Integer> {
 	/**
 	 * Constructor (iterate over the sets given by setOfStates or over all states)
 	 * 
-	 * @param setOfStates the BitSet representing state indizes in the model.
+	 * @param setOfStates the BitSet representing state indices in the model.
 	 *                    {@code null} signifies "all states in the model"
-	 * @param numStates the number of states in the model, i.e., with indizes 0..numStates-1
+	 * @param numStates the number of states in the model, i.e., with indices 0..numStates-1
 	 */
 	public IterableStateSet(BitSet setOfStates, int numStates)
 	{
@@ -64,87 +65,53 @@ public class IterableStateSet implements Iterable<Integer> {
 	}
 
 	/**
-	 * Constructor (most general form)
+	 * Constructor
 	 *
-	 * @param setOfStates the BitSet representing state indizes in the model.
+	 * @param setOfStates the BitSet representing state indices in the model.
 	 *                    {@code null} signifies "all states in the model"
-	 * @param numStates the number of states in the model, i.e., with indizes 0..numStates-1
+	 * @param numStates the number of states in the model, i.e., with indices 0..numStates-1
 	 * @param complement if {@code true}, iterate over all the states not included in setOfStates
 	 */
 	public IterableStateSet(BitSet setOfStates, int numStates, boolean complement)
 	{
-		this.setOfStates = setOfStates;
-		this.numStates = numStates;
-		this.complement = complement;
+		this(setOfStates, numStates, complement, false);
 	}
 
-	/** Implementation of an Iterator that iterates over all state indizes 0..numStates-1 */
-	private class AllStatesIterator implements Iterator<Integer>
+	/**
+	 * Constructor (most general form)
+	 *
+	 * @param setOfStates the BitSet representing state indices in the model.
+	 *                    {@code null} signifies "all states in the model"
+	 * @param numStates the number of states in the model, i.e., with indices 0..numStates-1
+	 * @param complement if {@code true}, iterate over all the states not included in setOfStates
+	 * @param reversed iterate in reverse order?
+	 */
+	public IterableStateSet(BitSet setOfStates, int numStates, boolean complement, boolean reversed)
 	{
-		private int current = 0;
-
-		@Override
-		public boolean hasNext()
-		{
-			if (current < numStates) {
-				return true;
+		if (setOfStates == null || (setOfStates.length() == numStates && setOfStates.cardinality() == numStates)) {
+			// all states
+			if (complement) {
+				this.setOfStates = EmptyIterable.OfInt();
 			} else {
-				return false;
+				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
 			}
-		}
-
-		@Override
-		public Integer next()
-		{
-			if (hasNext()) {
-				return current++;
-			}
-			throw new NoSuchElementException();
-		}
-
-		@Override
-		public void remove()
-		{
-			throw new UnsupportedOperationException();
-		}
-	};
-
-	/** Implementation of an Iterator that iterates over the empty state set */
-	private class NoStatesIterator implements Iterator<Integer>
-	{
-		@Override
-		public boolean hasNext()
-		{
-			return false;
-		}
-
-		@Override
-		public Integer next()
-		{
-			throw new NoSuchElementException();
-		}
-
-		@Override
-		public void remove()
-		{
-			throw new UnsupportedOperationException();
-		}
-	};
-
-	@Override
-	public Iterator<Integer> iterator()
-	{
-		if (setOfStates == null) {
-			if (!complement) {
-				// return iterator over all states
-				return new AllStatesIterator();
+		} else if (setOfStates.isEmpty()) {
+			// no states
+			if (complement) {
+				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
 			} else {
-				return new NoStatesIterator();
+				this.setOfStates = EmptyIterable.OfInt();
 			}
 		} else {
-			// return appropriate IterableBitSet with maxIndex = numStates-1
-			return new IterableBitSet(setOfStates, numStates-1, complement).iterator();
+			// build appropriate IterableBitSet with maxIndex = numStates-1
+			this.setOfStates = new IterableBitSet(setOfStates, numStates - 1, complement, reversed);
 		}
+	}
+
+	@Override
+	public OfInt iterator()
+	{
+		return setOfStates.iterator();
 	}
 
 	/**
@@ -171,7 +138,7 @@ public class IterableStateSet implements Iterable<Integer> {
 		}
 
 		System.out.println("\nAll " + numStates + " states:");
-		for (Integer index : new IterableStateSet(null, numStates)) {
+		for (Integer index : new IterableStateSet((BitSet) null, numStates)) {
 			System.out.println(index);
 		}
 

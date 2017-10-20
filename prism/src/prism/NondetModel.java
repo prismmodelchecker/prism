@@ -202,7 +202,7 @@ public class NondetModel extends ProbModel
 
 	// do reachability
 
-	public void doReachability()
+	public void doReachability() throws PrismException
 	{
 		JDDNode tmp;
 
@@ -227,7 +227,7 @@ public class NondetModel extends ProbModel
 	 * <br/>[ REFS: <i>result</i>, DEREFS: seed ]
 	 * @param seed set of states (over ddRowVars) that is known to be reachable
 	 */
-	public void doReachability(JDDNode seed)
+	public void doReachability(JDDNode seed) throws PrismException
 	{
 		JDDNode tmp;
 

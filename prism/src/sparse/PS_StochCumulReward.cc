@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -36,6 +36,7 @@
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "Measures.h"
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -85,7 +86,9 @@ jdouble time		// time bound
 	bool done;
 	int j, l, h;
 	long i, iters, num_iters;
-	double d, x, sup_norm, max_diag, weight, kb, kbt, unif, term_crit_param_unif;
+	double d, max_diag, weight, kb, kbt, unif, term_crit_param_unif;
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
 	
 	// exception handling around whole function
 	try {
@@ -115,7 +118,7 @@ jdouble time		// time bound
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_tr?", compact":"");
+	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_tr?", compact":"");
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diagonals
@@ -285,15 +288,9 @@ jdouble time		// time bound
 		
 		// check for steady state convergence
 		if (do_ss_detect) {
-			sup_norm = 0.0;
-			for (i = 0; i < n; i++) {
-				x = fabs(soln2[i] - soln[i]);
-				if (term_crit == TERM_CRIT_RELATIVE) {
-					x /= soln2[i];
-				}
-				if (x > sup_norm) sup_norm = x;
-			}
-			if (sup_norm < term_crit_param_unif) {
+			measure.reset();
+			measure.measure(soln, soln2, n);
+			if (measure.value() < term_crit_param_unif) {
 				done = true;
 			}
 		}
@@ -319,8 +316,8 @@ jdouble time		// time bound
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
-			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, "Iteration %ld (of %ld): ", iters, fgw.right);
+			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", measure.isRelative()?"relative ":"", measure.value());
 			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
@@ -353,7 +350,7 @@ jdouble time		// time bound
 		if (sum) delete[] sum;
 		sum = 0;
 	} catch (const char *err) {
-		PS_SetErrorMessage(err);
+		PS_SetErrorMessage("%s", err);
 		if (sum) delete sum;
 		sum = 0;
 	}

@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -37,6 +37,9 @@
 #include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
+#include "ExportIterations.h"
+#include <memory>
+#include "Measures.h"
 #include <new>
 
 //------------------------------------------------------------------------------
@@ -99,9 +102,11 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	int num_actions;
 	// misc
 	int i, j, k, k_r, l1, h1, l2, h2, l2_r, h2_r, iters;
-	double d1, d2, x, sup_norm, kb, kbt;
+	double d1, d2, kb, kbt;
 	bool done, first;
-	
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -135,7 +140,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	kb = (nnz*12.0+nc*4.0+n*4.0)/1024.0;
 	kbt = kb;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc, nnz, ndsm->k);
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc, nnz, ndsm->k);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// if needed, and if info is available, build a vector of action indices for the MDP
@@ -155,7 +160,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			// also extract list of action names from 'synchs'
 			get_string_array_from_java(env, synchs, action_names_jstrings, action_names, num_actions);
 		} else {
-			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.", export_adv_filename);
+			PS_PrintWarningToMainLog(env, "Action labels are not available for adversary generation.");
 		}
 	}
 	
@@ -166,7 +171,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	nnz_r = ndsm_r->nnz;
 	nc_r = ndsm_r->nc;
 	// print out info
-	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%d, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
+	PS_PrintToMainLog(env, "[n=%d, nc=%d, nnz=%ld, k=%d] ", n, nc_r, nnz_r, ndsm_r->k);
 	kb = (nnz_r*12.0+nc_r*4.0+n*4.0)/1024.0;
 	kbt += kb;
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
@@ -212,6 +217,12 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	// initial solution is infinity in 'inf' states, zero elsewhere
 	for (i = 0; i < n; i++) {
 		soln[i] = (inf_vec[i] > 0) ? HUGE_VAL : 0.0;
+	}
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PS_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PS_NondetReachReward"));
+		iterationExport->exportVector(soln, n, 0);
 	}
 
 	// get setup time
@@ -310,23 +321,20 @@ jboolean min				// min or max probabilities (true = min, false = max)
 			// (if there were no choices from this state, reward is zero/infinity)
 			soln2[i] = (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0;
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
-		sup_norm = 0.0;
-		for (i = 0; i < n; i++) {
-			x = fabs(soln2[i] - soln[i]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[i];
-			}
-			if (x > sup_norm) sup_norm = x;
-		}
-		if (sup_norm < term_crit_param) {
+		measure.reset();
+		measure.measure(soln, soln2, n);
+		if (measure.value() < term_crit_param) {
 			done = true;
 		}
-		
+
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
 			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

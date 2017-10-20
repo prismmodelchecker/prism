@@ -26,9 +26,9 @@
 
 #include "PrismSparse.h"
 #include "NDSparseMatrix.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <limits.h>
+#include <cstdio>
+#include <cstdarg>
+#include <climits>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -62,6 +62,7 @@ static jmethodID tech_log_mid = NULL;
 int export_type;
 FILE *export_file;
 JNIEnv *export_env;
+static bool exportIterations = false;
 
 // error message
 static char error_message[MAX_ERR_STRING_LEN];
@@ -233,7 +234,7 @@ void export_string(const char *str, ...)
 	if (export_file) {
 		fprintf(export_file, "%s", full_string);
 	} else {
-		PS_PrintToMainLog(export_env, full_string);
+		PS_PrintToMainLog(export_env, "%s", full_string);
 	}
 }
 
@@ -267,6 +268,17 @@ char *PS_GetErrorMessage()
 JNIEXPORT jstring JNICALL Java_sparse_PrismSparse_PS_1GetErrorMessage(JNIEnv *env, jclass cls)
 {
 	return env->NewStringUTF(error_message);
+}
+
+
+JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetExportIterations(JNIEnv *env, jclass cls, jboolean value)
+{
+	exportIterations = value;
+}
+
+bool PS_GetFlagExportIterations()
+{
+	return exportIterations;
 }
 
 //------------------------------------------------------------------------------

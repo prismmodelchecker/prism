@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismHybrid.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -37,7 +37,10 @@
 #include "PrismHybridGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "Measures.h"
+#include "ExportIterations.h"
 #include <new>
+#include <memory>
 
 // local prototypes
 static void mult_rec(HDDNode *hdd, int level, int row_offset, int col_offset);
@@ -99,9 +102,11 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
 	int i, j, iters;
-	double x, sup_norm, kb, kbt;
+	double x, kb, kbt;
 	bool done;
-	
+	// measure for convergence termination check
+	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
+
 	// exception handling around whole function
 	try {
 	
@@ -168,7 +173,13 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	} else {
 		for (i = 0; i < n; i++) { soln[i] = yes_dist->dist[yes_dist->ptrs[i]]; }
 	}
-	
+
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PH_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PH_NondetUntil"));
+		iterationExport->exportVector(soln, n, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -235,23 +246,20 @@ jboolean min		// min or max probabilities (true = min, false = max)
 				soln2[i] = (!compact_y) ? (yes_vec[i]) : (yes_dist->dist[yes_dist->ptrs[i]]);
 			}
 		}
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(soln2, n, 0);
+
 		// check convergence
-		sup_norm = 0.0;
-		for (i = 0; i < n; i++) {
-			x = fabs(soln2[i] - soln[i]);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				x /= soln2[i];
-			}
-			if (x > sup_norm) sup_norm = x;
-		}
-		if (sup_norm < term_crit_param) {
+		measure.reset();
+		measure.measure(soln, soln2, n);
+		if (measure.value() < term_crit_param) {
 			done = true;
 		}
-		
+
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PH_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+			PH_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
 			PH_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}

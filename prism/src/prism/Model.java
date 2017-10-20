@@ -78,6 +78,25 @@ public interface Model
 	 */
 	Set<String> getLabels();
 
+	/**
+	 * Add a label with corresponding state set, ensuring a unique, non-existing label.
+	 * The label will be either "X" or "X_i" where X is the content of the {@code prefix} argument
+	 * and i is a non-negative integer.
+	 * <br>
+	 * Optionally, a set of defined label names can be passed so that those labels
+	 * can be avoided. This can be obtained from the model checker via {@code getDefinedLabelNames()}.
+	 * <br>
+	 * Note that a stored label takes precedence over the on-the-fly calculation
+	 * of an ExpressionLabel, cf. {@link explicit.StateModelChecker#checkExpressionLabel}
+	 * <br>[ STORES: labelDD, deref on later call to clear() ]
+	 *
+	 * @param prefix the prefix for the unique label
+	 * @param labelDD the JDDNode with the state set for the label
+	 * @param definedLabelNames set of names (optional, may be {@code null}) to check for existing labels
+	 * @return the generated unique label
+	 */
+	public String addUniqueLabelDD(String prefix, JDDNode labelDD, Set<String> definedLabelNames);
+
 	String globalToLocal(long x);
 	int globalToLocal(long x, int l);
 	State convertBddToState(JDDNode dd);
@@ -164,9 +183,9 @@ public interface Model
 
 	void resetTrans(JDDNode trans);
 	void resetTransRewards(int i, JDDNode transRewards);
-	void doReachability();
-	void skipReachability();
-	void setReach(JDDNode reach);
+	void doReachability() throws PrismException;
+	void skipReachability() throws PrismException;
+	void setReach(JDDNode reach) throws PrismException;
 	void setTransActions(JDDNode transActions); // MDPs only
 	void setTransPerAction(JDDNode[] transPerAction); // D/CTMCs only
 	void filterReachableStates();

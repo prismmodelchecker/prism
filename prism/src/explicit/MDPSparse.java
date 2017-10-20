@@ -31,9 +31,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +77,100 @@ public class MDPSparse extends MDPExplicit
 	protected int maxNumDistrs;
 
 	// Constructors
+
+	/**
+	 * Constructor: Build new MDPSparse from arbitrary MDP type.
+	 *
+	 * @param mdp some MDP
+	 */
+	public MDPSparse(final MDP mdp)
+	{
+		this(mdp, false);
+	}
+
+	/**
+	 * Constructor: Build new MDPSparse from arbitrary MDP type.
+	 *
+	 * @param mdp some MDP
+	 * @param sort Whether or not to sort column indices
+	 */
+	public MDPSparse(final MDP mdp, boolean sort)
+	{
+		initialise(mdp.getNumStates());
+
+		setStatesList(mdp.getStatesList());
+		setConstantValues(mdp.getConstantValues());
+		for (String label : mdp.getLabels()) {
+			addLabel(label, mdp.getLabelStates(label));
+		}
+
+		// Copy stats
+		numDistrs = mdp.getNumChoices();
+		numTransitions = mdp.getNumTransitions();
+		maxNumDistrs = mdp.getMaxNumChoices();
+		// Initialise transition function
+		nonZeros = new double[numTransitions];
+		cols = new int[numTransitions];
+		choiceStarts = new int[numDistrs + 1];
+		rowStarts = new int[numStates + 1];
+		actions = hasActionLabels(mdp) ? new Object[numDistrs] : null;
+
+		// Copy transition function
+		final TreeMap<Integer, Double> sorted = sort ? new TreeMap<Integer, Double>() : null;
+		int rowIndex = 0, choiceIndex = 0;
+		for (int state = 0; state < numStates; state++) {
+			if (mdp.isInitialState(state)) {
+				addInitialState(state);
+			}
+			if (mdp.isDeadlockState(state)) {
+				deadlocks.add(state);
+			}
+
+			rowStarts[state] = rowIndex;
+			if (actions != null) {
+				for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
+					actions[rowIndex + choice] = mdp.getAction(state, choice);
+				}
+			}
+			for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
+				choiceStarts[rowIndex] = choiceIndex;
+				for (Iterator<Entry<Integer, Double>> transitions = mdp.getTransitionsIterator(state, choice); transitions.hasNext();) {
+					final Map.Entry<Integer, Double> trans = transitions.next();
+					if (sort) {
+						sorted.put(trans.getKey(), trans.getValue());
+					} else {
+						cols[choiceIndex] = trans.getKey();
+						nonZeros[choiceIndex] = trans.getValue();
+						choiceIndex++;
+					}
+				}
+				if (sort) {
+					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+						cols[choiceIndex] = e.getKey();
+						nonZeros[choiceIndex] = e.getValue();
+						choiceIndex++;
+					}
+					sorted.clear();
+				}
+				rowIndex++;
+			}
+		}
+		choiceStarts[numDistrs] = numTransitions;
+		rowStarts[numStates] = numDistrs;
+	}
+
+	/** Helper: Does the given MDP have action labels on any of the choices? */
+	private static boolean hasActionLabels(final MDP mdp)
+	{
+		for (int state = 0, numStates = mdp.getNumStates(); state < numStates; state++) {
+			for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
+				if (mdp.getAction(state, choice) != null) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Copy constructor (from MDPSimple).
@@ -384,75 +478,40 @@ public class MDPSparse extends MDPExplicit
 		return numTransitions;
 	}
 
-	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	private SuccessorsIterator colsIterator(int start, int end, boolean distinct)
 	{
-		// Need to build set to avoid duplicates
-		// So not necessarily the fastest method to access successors
+		return new SuccessorsIterator() {
+			int cur = start;
+
+			@Override
+			public boolean successorsAreDistinct()
+			{
+				return distinct;
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				return cur < end;
+			}
+
+			@Override
+			public int nextInt()
+			{
+				return cols[cur++];
+			}
+		};
+	}
+
+	@Override
+	public SuccessorsIterator getSuccessors(final int s)
+	{
+		// Assumes that only non-zero entries are stored
 		int start = choiceStarts[rowStarts[s]];
 		int end = choiceStarts[rowStarts[s + 1]];
-		HashSet<Integer> succs = new HashSet<Integer>();
-		for (int i = start; i < end; i++) {
-			succs.add(cols[i]);
-		}
-		return succs.iterator();
-	}
-
-	@Override
-	public boolean isSuccessor(int s1, int s2)
-	{
-		int j, k, l1, h1, l2, h2;
-		l1 = rowStarts[s1];
-		h1 = rowStarts[s1 + 1];
-		for (j = l1; j < h1; j++) {
-			l2 = choiceStarts[j];
-			h2 = choiceStarts[j + 1];
-			for (k = l2; k < h2; k++) {
-				// Assume that only non-zero entries are stored
-				if (cols[k] == s2) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		int j, k, l1, h1, l2, h2;
-		l1 = rowStarts[s];
-		h1 = rowStarts[s + 1];
-		for (j = l1; j < h1; j++) {
-			l2 = choiceStarts[j];
-			h2 = choiceStarts[j + 1];
-			for (k = l2; k < h2; k++) {
-				// Assume that only non-zero entries are stored
-				if (!set.get(cols[k])) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		int j, k, l1, h1, l2, h2;
-		l1 = rowStarts[s];
-		h1 = rowStarts[s + 1];
-		for (j = l1; j < h1; j++) {
-			l2 = choiceStarts[j];
-			h2 = choiceStarts[j + 1];
-			for (k = l2; k < h2; k++) {
-				// Assume that only non-zero entries are stored
-				if (set.get(cols[k])) {
-					return true;
-				}
-			}
-		}
-		return false;
+		// we can guarantee that the successors are distinct if there is at most one successor...
+		boolean distinct = (start == end || start + 1 == end);
+		return colsIterator(start, end, distinct);
 	}
 
 	@Override
@@ -505,47 +564,12 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public boolean allSuccessorsInSet(int s, int i, BitSet set)
-	{
-		int j, k, l2, h2;
-		j = rowStarts[s] + i;
-		l2 = choiceStarts[j];
-		h2 = choiceStarts[j + 1];
-		for (k = l2; k < h2; k++) {
-			// Assume that only non-zero entries are stored
-			if (!set.get(cols[k])) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, int i, BitSet set)
-	{
-		int j, k, l2, h2;
-		j = rowStarts[s] + i;
-		l2 = choiceStarts[j];
-		h2 = choiceStarts[j + 1];
-		for (k = l2; k < h2; k++) {
-			// Assume that only non-zero entries are stored
-			if (set.get(cols[k])) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s, final int i)
+	public SuccessorsIterator getSuccessors(final int s, final int i)
 	{
 		int start = choiceStarts[rowStarts[s] + i];
 		int end = choiceStarts[rowStarts[s] + i + 1];
-		List<Integer> succs = new ArrayList<Integer>();
-		for (int j = start; j < end; j++) {
-			succs.add(cols[j]);
-		}
-		return succs.iterator();
+		// we assume here that the successors for a single choice are distinct
+		return colsIterator(start, end, true);
 	}
 
 	// Accessors (for MDP)
@@ -577,35 +601,7 @@ public class MDPSparse extends MDPExplicit
 				assert (col < end);
 				final int i = col;
 				col++;
-				return new Entry<Integer, Double>()
-				{
-					int key = cols[i];
-					double value = nonZeros[i];
-
-					@Override
-					public Integer getKey()
-					{
-						return key;
-					}
-
-					@Override
-					public Double getValue()
-					{
-						return value;
-					}
-
-					@Override
-					public Double setValue(Double arg0)
-					{
-						throw new UnsupportedOperationException();
-					}
-				};
-			}
-
-			@Override
-			public void remove()
-			{
-				throw new UnsupportedOperationException();
+				return new AbstractMap.SimpleImmutableEntry<>(cols[i], nonZeros[i]);
 			}
 		};
 	}

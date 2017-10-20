@@ -63,6 +63,8 @@
 /* Nested includes                                                           */
 /*---------------------------------------------------------------------------*/
 
+#include <inttypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -118,9 +120,9 @@ extern "C" {
 /*---------------------------------------------------------------------------*/
 
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-typedef unsigned int   MtrHalfWord;
+typedef uint32_t MtrHalfWord;
 #else
-typedef unsigned short MtrHalfWord;
+typedef uint16_t MtrHalfWord;
 #endif
 
 typedef struct MtrNode {

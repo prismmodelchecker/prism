@@ -1,22 +1,44 @@
 This file contains details of the changes in each new version of PRISM.
 
-Recent changes: (up to svn rev 10893)
+-----------------------------------------------------------------------------
+Version 4.4 (first released 23/7/2017)
+-----------------------------------------------------------------------------
 
-* Timeout feature (-timeout switch)
-* Built-in support for Nailgun client/server
-* Allow -exportpropaut to export DA in HOA format (-exportpropaut:hoa da.hoa)
-* Debugging options: -dddebug and -ddtrace command-line switches
-* Allow -javamaxmem switch for GUI as well as command line
-* Better error handling when CUDD runs out of memory
-* Partial support for multi-objective queries expressed as Boolean expressions
-* Allow <<>> and [[]] operators for MDP (only * or empty), all engines
-* Model checking of expected reward to satisfy a co-safe LTL formula, all engines
-* Performance improvements in explicit engine
-* prism-auto: new options (--show-warnings, --nailgun, --ngprism), multiple -x switches
-* Bug fixes
+* New model checking functionality:
+  - expected reward to satisfy a co-safe LTL formula (MDPs, D/CTMCs, all engines)
+  - interval iteration (MDPs, D/CTMCs, all engines)
+  - topological value iteration (MDPs, D/CTMCs, explicit engine)
+  - expected total reward (R[C] operator) for CTMCs and MDPs (max), all engines
+  - CTL model checking in the explicit engine
+  - non-probabilistic LTL model checking in the explicit engine
+  - instantaneous reward computation (Rmax/min[I=x]) in the explicit engine
+  - DTMC transient probability computation for the explicit engine
+
+* Imports and exports:
+  - model import from explicit files for the explicit engine (-import... switches)
+  - full import of labels during explicit model import (all engines)
+  - import of state rewards during explicit model import (symbolic engines)
+  - export of state rewards from explicit engine
+  - export of models to .dot format via the -exportmodel switch
+
+* Miscellaneous:
+  - built-in support for Nailgun client/server
+  - new timeout feature (-timeout switch)
+  - performance improvements in explicit engine
+  - GUI also supports -javamaxmem switch to set Java memory
+  - better error handling when CUDD runs out of memory
+  - various bug fixes and performance improvements
+
+* Features for developers:
+  - new ModelGenerator interface for specifying models programmatically
+  - extensions to test mode: complex expressions for RESULT specifications
+  - prism-auto: new options/features (e.g., --show-warnings, --nailgun, --ngprism, --verbose-test)
+  - DD debugging options: -dddebug and -ddtrace switches, improved ref count debugging
+  - new option -exportiterations for visualising iterative numerical methods
+  - code base now allows/assumes Java 8
 
 -----------------------------------------------------------------------------
-Version 4.3.1 (first released 26/5/2015)
+Version 4.3.1 (first released 26/5/2016)
 -----------------------------------------------------------------------------
 
 * Bug fixes:

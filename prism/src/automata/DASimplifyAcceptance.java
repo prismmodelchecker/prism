@@ -4,7 +4,9 @@ import java.util.BitSet;
 
 import prism.PrismComponent;
 import prism.PrismException;
+import explicit.LTS;
 import explicit.SCCComputer;
+import explicit.SCCConsumerStore;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
 import acceptance.AcceptanceReach;
@@ -29,9 +31,11 @@ public class DASimplifyAcceptance
 		if (da.getAcceptance() instanceof AcceptanceRabin) {
 			DA<BitSet, AcceptanceRabin> dra = (DA<BitSet, AcceptanceRabin>) da;
 			// K_i states that do not occur in a (non-trivial) SCC of the DRA may as well be removed
-			SCCComputer sccComp = explicit.SCCComputer.createSCCComputer(parent, new LTSFromDA(da));
-			sccComp.computeBSCCs();
-			BitSet trivial = sccComp.getNotInSCCs();
+			LTS lts = new LTSFromDA(da);
+			SCCConsumerStore sccStore = new SCCConsumerStore();
+			SCCComputer sccComp = explicit.SCCComputer.createSCCComputer(parent, lts, sccStore);
+			sccComp.computeSCCs();
+			BitSet trivial = sccStore.getNotInSCCs();
 			for (RabinPair pair : dra.getAcceptance()) {
 				if (pair.getK().intersects(trivial)) {
 					pair.getK().andNot(trivial);

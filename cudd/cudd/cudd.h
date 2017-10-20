@@ -64,6 +64,8 @@
 #include "mtr.h"
 #include "epd.h"
 
+#include <inttypes.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -254,9 +256,9 @@ typedef enum {
 
 
 #if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-typedef unsigned int   DdHalfWord;
+typedef uint32_t   DdHalfWord;
 #else
-typedef unsigned short DdHalfWord;
+typedef uint16_t DdHalfWord;
 #endif
 
 typedef struct DdNode DdNode;
@@ -308,7 +310,7 @@ typedef DdNode * (*DD_MAOP)(DdManager *, DdNode *);
 typedef DdNode * (*DD_CTFP)(DdManager *, DdNode *, DdNode *);
 typedef DdNode * (*DD_CTFP1)(DdManager *, DdNode *);
 /* Type of memory-out function. */
-typedef void (*DD_OOMFP)(long);
+typedef void (*DD_OOMFP)(size_t);
 /* Type of comparison function for qsort. */
 typedef int (*DD_QSFP)(const void *, const void *);
 
@@ -351,7 +353,7 @@ typedef int (*DD_QSFP)(const void *, const void *);
   SeeAlso      [Cudd_NotCond]
 
 ******************************************************************************/
-#define Cudd_Not(node) ((DdNode *)((long)(node) ^ 01))
+#define Cudd_Not(node) ((DdNode *)((uintptr_t)(node) ^ (uintptr_t)01))
 
 
 /**Macro***********************************************************************
@@ -367,7 +369,7 @@ typedef int (*DD_QSFP)(const void *, const void *);
   SeeAlso      [Cudd_Not]
 
 ******************************************************************************/
-#define Cudd_NotCond(node,c) ((DdNode *)((long)(node) ^ (c)))
+#define Cudd_NotCond(node,c) ((DdNode *)((uintptr_t)(node) ^ (uintptr_t)(c)))
 
 
 /**Macro***********************************************************************
@@ -381,7 +383,7 @@ typedef int (*DD_QSFP)(const void *, const void *);
   SeeAlso      [Cudd_Complement Cudd_IsComplement]
 
 ******************************************************************************/
-#define Cudd_Regular(node) ((DdNode *)((unsigned long)(node) & ~01))
+#define Cudd_Regular(node) ((DdNode *)((uintptr_t)(node) & ~(uintptr_t)01))
 
 
 /**Macro***********************************************************************
@@ -395,7 +397,7 @@ typedef int (*DD_QSFP)(const void *, const void *);
   SeeAlso      [Cudd_Regular Cudd_IsComplement]
 
 ******************************************************************************/
-#define Cudd_Complement(node) ((DdNode *)((unsigned long)(node) | 01))
+#define Cudd_Complement(node) ((DdNode *)((uintptr_t)(node) | (uintptr_t)01))
 
 
 /**Macro***********************************************************************
@@ -409,7 +411,7 @@ typedef int (*DD_QSFP)(const void *, const void *);
   SeeAlso      [Cudd_Regular Cudd_Complement]
 
 ******************************************************************************/
-#define Cudd_IsComplement(node)	((int) ((long) (node) & 01))
+#define Cudd_IsComplement(node)	((int) ((uintptr_t) (node) & (uintptr_t)01))
 
 
 /**Macro***********************************************************************
@@ -730,7 +732,7 @@ extern int Cudd_ReadNumberXovers (DdManager *dd);
 extern void Cudd_SetNumberXovers (DdManager *dd, int numberXovers);
 extern unsigned int Cudd_ReadOrderRandomization(DdManager * dd);
 extern void Cudd_SetOrderRandomization(DdManager * dd, unsigned int factor);
-extern unsigned long Cudd_ReadMemoryInUse (DdManager *dd);
+extern size_t Cudd_ReadMemoryInUse (DdManager *dd);
 extern int Cudd_PrintInfo (DdManager *dd, FILE *fp);
 extern long Cudd_ReadPeakNodeCount (DdManager *dd);
 extern int Cudd_ReadPeakLiveNodeCount (DdManager * dd);
@@ -922,7 +924,7 @@ extern DdNode * Cudd_SubsetCompress (DdManager *dd, DdNode *f, int nvars, int th
 extern DdNode * Cudd_SupersetCompress (DdManager *dd, DdNode *f, int nvars, int threshold);
 extern MtrNode * Cudd_MakeTreeNode (DdManager *dd, unsigned int low, unsigned int size, unsigned int type);
 extern int Cudd_addHarwell (FILE *fp, DdManager *dd, DdNode **E, DdNode ***x, DdNode ***y, DdNode ***xn, DdNode ***yn_, int *nx, int *ny, int *m, int *n, int bx, int sx, int by, int sy, int pr);
-extern DdManager * Cudd_Init (unsigned int numVars, unsigned int numVarsZ, unsigned int numSlots, unsigned int cacheSize, unsigned long maxMemory);
+extern DdManager * Cudd_Init (unsigned int numVars, unsigned int numVarsZ, unsigned int numSlots, unsigned int cacheSize, size_t maxMemory);
 extern void Cudd_Quit (DdManager *unique);
 extern int Cudd_PrintLinear (DdManager *table);
 extern int Cudd_ReadLinear (DdManager *table, int x, int y);
@@ -1022,7 +1024,7 @@ extern double Cudd_AverageDistance (DdManager *dd);
 extern long Cudd_Random (void);
 extern void Cudd_Srandom (long seed);
 extern double Cudd_Density (DdManager *dd, DdNode *f, int nvars);
-extern void Cudd_OutOfMem (long size);
+extern void Cudd_OutOfMem (size_t size);
 extern int Cudd_zddCount (DdManager *zdd, DdNode *P);
 extern double Cudd_zddCountDouble (DdManager *zdd, DdNode *P);
 extern DdNode	* Cudd_zddProduct (DdManager *dd, DdNode *f, DdNode *g);

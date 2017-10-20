@@ -335,8 +335,8 @@ Cudd_DelayedDerefBdd(
 #if 0
     if (table->nextDead == table->deathRowDepth) {
 	if (table->deathRowDepth < table->looseUpTo / 2) {
-	    extern void (*MMoutOfMemory)(long);
-	    void (*saveHandler)(long) = MMoutOfMemory;
+	    extern void (*MMoutOfMemory)(size_t);
+	    void (*saveHandler)(size_t) = MMoutOfMemory;
 	    DdNodePtr *newRow;
 	    MMoutOfMemory = Cudd_OutOfMem;
 	    newRow = REALLOC(DdNodePtr,table->deathRow,2*table->deathRowDepth);

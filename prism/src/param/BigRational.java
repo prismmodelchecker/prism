@@ -455,6 +455,8 @@ public final class BigRational implements Comparable<BigRational>
 	 */
 	public int signum()
 	{
+		if (isInf()) return 1;
+		if (isMInf()) return -1;
 		return num.signum() * den.signum();
 	}
 
@@ -474,6 +476,7 @@ public final class BigRational implements Comparable<BigRational>
 			num = this.num.pow(exponent);
 			den = this.den.pow(exponent);
 		} else { // exponent < 0
+			exponent = -exponent;
 			num = this.den.pow(exponent);
 			den = this.num.pow(exponent);
 		}

@@ -155,7 +155,7 @@ DddmpWriteNodeIndexAdd (
   )
 {
   if (1 || !Cudd_IsConstant (f)) {
-    f->next = (struct DdNode *)((ptruint)((id)<<1));
+    f->next = (struct DdNode *)((ptruint)id<<1);
   }
 
   return;

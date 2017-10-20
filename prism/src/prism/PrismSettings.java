@@ -84,11 +84,16 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_COMPACT						= "prism.compact";
 	public static final	String PRISM_LIN_EQ_METHOD					= "prism.linEqMethod";//"prism.iterativeMethod";
 	public static final	String PRISM_LIN_EQ_METHOD_PARAM			= "prism.linEqMethodParam";//"prism.overRelaxation";
+	public static final String PRISM_TOPOLOGICAL_VI					= "prism.topologicalVI";
+	public static final	String PRISM_PMAX_QUOTIENT					= "prism.pmaxQuotient";
+	public static final	String PRISM_INTERVAL_ITER					= "prism.intervalIter";
+	public static final	String PRISM_INTERVAL_ITER_OPTIONS			= "prism.intervalIterOptions";
 	public static final	String PRISM_MDP_SOLN_METHOD				= "prism.mdpSolnMethod";
 	public static final	String PRISM_MDP_MULTI_SOLN_METHOD			= "prism.mdpMultiSolnMethod";
 	public static final	String PRISM_TERM_CRIT						= "prism.termCrit";//"prism.termination";
 	public static final	String PRISM_TERM_CRIT_PARAM				= "prism.termCritParam";//"prism.terminationEpsilon";
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
+	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
 	
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
@@ -240,6 +245,14 @@ public class PrismSettings implements Observer
 																			"Which iterative method to use when solving linear equation systems." },
 			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"Over-relaxation parameter",			"2.1",			new Double(0.9),															"",																							
 																			"Over-relaxation parameter for iterative numerical methods such as JOR/SOR." },
+			{ BOOLEAN_TYPE,		PRISM_TOPOLOGICAL_VI,				"Use topological value iteration",				"4.3.1",		false,																		"",
+																			"Use topological value iteration in iterative numerical methods."},
+			{ BOOLEAN_TYPE,		PRISM_PMAX_QUOTIENT,				"For Pmax computations, compute in the MEC quotient",				"4.3.1",		false,																		"",
+																				"For Pmax computations, compute in the MEC quotient."},
+			{ BOOLEAN_TYPE,		PRISM_INTERVAL_ITER,				"Use interval iteration",				"4.3.1",		false,																		"",
+																				"Use interval iteration (from above and below) in iterative numerical methods."},
+			{ STRING_TYPE,		PRISM_INTERVAL_ITER_OPTIONS,				"Interval iteration options",				"4.3.1",		"",																		"",
+																	"Interval iteration options, a comma-separated list of the following:\n" + OptionsIntervalIteration.getOptionsDescription() },
 			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
 																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_MDP_MULTI_SOLN_METHOD,			"MDP multi-objective solution method",				"4.0.3",			"Value iteration",											"Value iteration,Gauss-Seidel,Linear programming",
@@ -250,6 +263,8 @@ public class PrismSettings implements Observer
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
 			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
+			{ BOOLEAN_TYPE,		PRISM_EXPORT_ITERATIONS,				"Export iterations (debug/visualisation)",			"4.3.1",			false,														"",
+																			"Export solution vectors for iteration algorithms to iterations.html"},
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -889,9 +904,10 @@ public class PrismSettings implements Observer
 		double d;
 		
 		// Process string (remove - and extract any options) 
-		Pair<String, Map<String, String>> pair = splitSwitch(args[i]);
+		Pair<String, String> pair = splitSwitch(args[i]);
 		String sw = pair.first;
-		Map<String, String> options = pair.second; 
+		String optionsString = pair.second;
+		Map<String, String> options = splitOptionsString(optionsString);
 		
 		// Note: the order of these switches should match the -help output (just to help keep track of things).
 		
@@ -983,6 +999,40 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
 		}
+
+		// Interval iterations
+		else if (sw.equals("intervaliter") ||
+		         sw.equals("ii")) {
+			set(PRISM_INTERVAL_ITER, true);
+
+			if (optionsString != null) {
+				optionsString = optionsString.trim();
+				try {
+					OptionsIntervalIteration.validate(optionsString);
+				} catch (PrismException e) {
+					throw new PrismException("In options for -" + sw + " switch: " + e.getMessage());
+				}
+
+				// append options to existing ones
+				String iiOptions = getString(PRISM_INTERVAL_ITER_OPTIONS);
+				if ("".equals(iiOptions))
+					iiOptions = optionsString;
+				else
+					iiOptions += "," + optionsString;
+				set(PRISM_INTERVAL_ITER_OPTIONS, iiOptions);
+			}
+		}
+
+		// Pmax quotient
+		else if (sw.equals("pmaxquotient")) {
+			set(PRISM_PMAX_QUOTIENT, true);
+		}
+
+		// Topological VI
+		else if (sw.equals("topological")) {
+			set(PRISM_TOPOLOGICAL_VI, true);
+		}
+
 		// Linear equation solver over-relaxation parameter
 		else if (sw.equals("omega")) {
 			if (i < args.length - 1) {
@@ -1032,6 +1082,10 @@ public class PrismSettings implements Observer
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
+		}
+		// export iterations
+		else if (sw.equals("exportiterations")) {
+			set(PRISM_EXPORT_ITERATIONS, true);
 		}
 		
 		// MODEL CHECKING OPTIONS:
@@ -1578,9 +1632,9 @@ public class PrismSettings implements Observer
 	 * When present, the options is a comma-separated list of "option" or "option=value" items.
 	 * The switch itself can be prefixed with either 1 or 2 hyphens.
 	 * 
-	 * @return a pair containing the switch name and a mapping from options to values.  
+	 * @return a pair containing the switch name and the (optional, may be null) options part
 	 */
-	private static Pair<String, Map<String, String>> splitSwitch(String sw) throws PrismException
+	private static Pair<String, String> splitSwitch(String sw)
 	{
 		// Remove "-"
 		sw = sw.substring(1);
@@ -1589,21 +1643,40 @@ public class PrismSettings implements Observer
 			sw = sw.substring(1);
 		// Extract options, if present
 		int i = sw.indexOf(':');
-		Map<String,String> map = new HashMap<String, String>();
+
+		String optionsString = null;
 		if (i != -1) {
-			String optionsString = sw.substring(i + 1);
+			optionsString = sw.substring(i + 1);
 			sw = sw.substring(0, i);
-			String options[] = optionsString.split(",");
-			for (String option : options) {
-				int j = option.indexOf("=");
-				if (j == -1) {
-					map.put(option, null);
-				} else {
-					map.put(option.substring(0,j), option.substring(j+1));
-				}
+		}
+
+		return new Pair<String, String>(sw, optionsString);
+	}
+
+	/**
+	 * Split an options string (see splitSwitch)
+	 * into a map from options to values.
+	 * <br>
+	 * For "option" options, the value is {@code null}.
+	 * @return a mapping from options to values.
+	 */
+	private static Map<String, String> splitOptionsString(String optionsString)
+	{
+		Map<String,String> map = new HashMap<String, String>();
+		if (optionsString == null || "".equals(optionsString))
+			return map;
+
+		String options[] = optionsString.split(",");
+		for (String option : options) {
+			int j = option.indexOf("=");
+			if (j == -1) {
+				map.put(option, null);
+			} else {
+				map.put(option.substring(0,j), option.substring(j+1));
 			}
 		}
-		return new Pair<String, Map<String,String>>(sw, map);
+
+		return map;
 	}
 
 	/**
@@ -1641,12 +1714,15 @@ public class PrismSettings implements Observer
 		mainLog.println("-gaussseidel (or -gs) .......... Use Gauss-Seidel value iteration for solving MDPs");
 		mainLog.println("-politer ....................... Use policy iteration for solving MDPs");
 		mainLog.println("-modpoliter .................... Use modified policy iteration for solving MDPs");
+		mainLog.println("-intervaliter (or -ii) ......... Use interval iteration to solve MDPs/MCs (see -help -ii)");
+		mainLog.println("-topological ................... Use topological value iteration");
 		mainLog.println();
 		mainLog.println("SOLUTION METHOD SETTINGS");
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
 		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
 		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
+		
 		mainLog.println();
 		mainLog.println("MODEL CHECKING OPTIONS:");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");
@@ -1670,6 +1746,8 @@ public class PrismSettings implements Observer
 		mainLog.println("-exportadvmdp <file> ........... Export an adversary from MDP model checking (as an MDP)");
 		mainLog.println("-ltl2datool <exec> ............. Run executable <exec> to convert LTL formulas to deterministic automata");
 		mainLog.println("-ltl2dasyntax <x> .............. Specify output format for -ltl2datool switch (lbt, spin, spot, rabinizer)");
+		mainLog.println("-exportiterations .............. Export vectors for iteration algorithms to file");
+		mainLog.println("-pmaxquotient .................. For Pmax computations in MDPs, compute in the MEC quotient");
 		
 		mainLog.println();
 		mainLog.println("MULTI-OBJECTIVE MODEL CHECKING:");
@@ -1727,6 +1805,14 @@ public class PrismSettings implements Observer
 			QuantAbstractRefine.printOptions(mainLog);
 			return true;
 		}
+		else if (sw.equals("ii") || sw.equals("intervaliter")) {
+			mainLog.println("Switch: -intervaliter (or -ii) optionally takes a comma-separated list of options:\n");
+			mainLog.println(" -intervaliter:option1,option2,...\n");
+			mainLog.println("where the options are one of the following:\n");
+			mainLog.println(OptionsIntervalIteration.getOptionsDescription());
+			return true;
+		}
+
 		return false;
 	}
 	

@@ -43,6 +43,7 @@ import parser.ast.ExpressionLiteral;
 import parser.ast.LabelList;
 import parser.ast.Module;
 import parser.ast.ModulesFile;
+import parser.ast.RewardStruct;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeInt;
@@ -82,7 +83,7 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 	 * @param transFile transitions file
 	 * @param labelsFile labels file (may be {@code null})
 	 */
-	public ModulesFile buildModulesFile(File statesFile, File transFile, File labelsFile, ModelType typeOverride) throws PrismException
+	public ModulesFile buildModulesFile(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
 	{
 		ModulesFile modulesFile;
 		ModelType modelType;
@@ -98,6 +99,11 @@ public class ExplicitFiles2ModulesFile extends PrismComponent
 		// This way, expressions can refer to the labels later on.
 		if (labelsFile != null) {
 			modulesFile.setLabelList(createLabelListFromLabelsFile(labelsFile));
+		}
+		
+		// Add a new (unnamed) reward structure if there is a state rewards file
+		if (stateRewardsFile != null) {
+			modulesFile.addRewardStruct(new RewardStruct());
 		}
 
 		// Set model type: if no preference stated, assume default of MDP

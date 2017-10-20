@@ -123,7 +123,7 @@ Cudd_Init(
   unsigned int numVarsZ /* initial number of ZDD variables (i.e., subtables) */,
   unsigned int numSlots /* initial size of the unique tables */,
   unsigned int cacheSize /* initial size of the cache */,
-  unsigned long maxMemory /* target maximum memory occupation */)
+  size_t maxMemory /* target maximum memory occupation */)
 {
     DdManager *unique;
     int i,result;
@@ -140,7 +140,7 @@ Cudd_Init(
 				DD_MAX_LOOSE_FRACTION);
     unique = cuddInitTable(numVars,numVarsZ,numSlots,looseUpTo);
     if (unique == NULL) return(NULL);
-    unique->maxmem = (unsigned long) maxMemory / 10 * 9;
+    unique->maxmem = (size_t) maxMemory / 10 * 9;
     maxCacheSize = (unsigned int) ((maxMemory / sizeof(DdCache)) /
 				   DD_MAX_CACHE_FRACTION);
     result = cuddInitCache(unique,cacheSize,maxCacheSize);

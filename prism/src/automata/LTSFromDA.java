@@ -27,10 +27,6 @@
 package automata;
 
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import prism.ModelType;
 import prism.PrismException;
@@ -39,6 +35,7 @@ import strat.MDStrategy;
 import explicit.LTS;
 import explicit.Model;
 import explicit.ModelExplicit;
+import explicit.SuccessorsIterator;
 
 /**
  * Class giving access to the labelled transition system (LTS) underlying a deterministic automaton (DA).
@@ -58,38 +55,30 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	// Methods to implement Model
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
+	public SuccessorsIterator getSuccessors(int s)
 	{
-		Set<Integer> succs = new HashSet<Integer>();
-		int n = da.getNumEdges(s);
-		for (int i = 0; i < n; i++) {
-			succs.add(da.getEdgeDest(s, i));
-		}
-		return succs.iterator();
-	}
+		return new SuccessorsIterator() {
+			private int n = da.getNumEdges(s);
+			private int i = 0;
 
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		int n = da.getNumEdges(s);
-		for (int i = 0; i < n; i++) {
-			if (!set.get(da.getEdgeDest(s, i))) {
+			@Override
+			public boolean successorsAreDistinct()
+			{
 				return false;
 			}
-		}
-		return true;
-	}
 
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		int n = da.getNumEdges(s);
-		for (int i = 0; i < n; i++) {
-			if (set.get(da.getEdgeDest(s, i))) {
-				return true;
+			@Override
+			public boolean hasNext()
+			{
+				return i < n;
 			}
-		}
-		return false;
+
+			@Override
+			public int nextInt()
+			{
+				return da.getEdgeDest(s, i++);
+			}
+		};
 	}
 
 	@Override
@@ -141,12 +130,6 @@ public class LTSFromDA extends ModelExplicit implements LTS
 
 	@Override
 	public void exportToPrismExplicitTra(PrismLog out)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	@Override
-	protected void exportTransitionsToDotFile(int i, PrismLog out)
 	{
 		throw new RuntimeException("Not implemented yet");
 	}
@@ -213,9 +196,9 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s, int i)
+	public SuccessorsIterator getSuccessors(int s, int i)
 	{
-		return Collections.singleton(da.getEdgeDest(s, i)).iterator();
+		return SuccessorsIterator.fromSingleton(da.getEdgeDest(s, i));
 	}
 
 	@Override

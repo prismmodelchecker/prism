@@ -84,24 +84,11 @@ public class StateValuesDV implements StateValues
 	 */
 	public StateValuesDV(DoubleVector values, Model model)
 	{
-		int i;
-
 		// store values vector
 		this.values = values;
 
 		// get info from model
-		this.model = model;
-		vars = model.getAllDDRowVars();
-		numVars = vars.n();
-		odd = model.getODD();
-		varList = model.getVarList();
-
-		// initialise arrays
-		varSizes = new int[varList.getNumVars()];
-		for (i = 0; i < varList.getNumVars(); i++) {
-			varSizes[i] = varList.getRangeLogTwo(i);
-		}
-		varValues = new int[varList.getNumVars()];
+		setModel(model);
 	}
 
 	/**
@@ -113,10 +100,33 @@ public class StateValuesDV implements StateValues
 	 * @param dd the double vector
 	 * @param model the underlying model
 	 */
-	public StateValuesDV(JDDNode dd, Model model)
+	public StateValuesDV(JDDNode dd, Model model) throws PrismException
 	{
 		// TODO: Enforce/check that dd is zero for all non-reachable states
 		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model);
+	}
+
+	/** Helper method: Store information about the underlying model */
+	private void setModel(Model model)
+	{
+		this.model = model;
+		vars = model.getAllDDRowVars();
+		numVars = vars.n();
+		odd = model.getODD();
+		varList = model.getVarList();
+
+		// initialise arrays
+		varSizes = new int[varList.getNumVars()];
+		for (int i = 0; i < varList.getNumVars(); i++) {
+			varSizes[i] = varList.getRangeLogTwo(i);
+		}
+		varValues = new int[varList.getNumVars()];
+	}
+
+	@Override
+	public void switchModel(Model newModel)
+	{
+		setModel(newModel);
 	}
 
 	// CONVERSION METHODS
@@ -302,6 +312,12 @@ public class StateValuesDV implements StateValues
 	public double maxOverBDD(JDDNode filter)
 	{
 		return values.maxOverBDD(filter, vars, odd);
+	}
+
+	@Override
+	public double maxFiniteOverBDD(JDDNode filter)
+	{
+		return values.maxFiniteOverBDD(filter, vars, odd);
 	}
 
 	@Override

@@ -26,6 +26,7 @@
 
 // includes
 #include "PrismMTBDD.h"
+#include <cinttypes>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -36,7 +37,7 @@
 //------------------------------------------------------------------------------
 
 // local function prototypes
-static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c);
+static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, int64_t r, int64_t c);
 
 // globals
 static const char *export_name;
@@ -69,8 +70,8 @@ jstring fn		// filename
 	
 	// print file header
 	switch (export_type) {
-	case EXPORT_PLAIN: export_string("%d %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, matrix, num_rvars+num_cvars)); break;
-	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
+	case EXPORT_PLAIN: export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, matrix, num_rvars+num_cvars)); break;
+	case EXPORT_MATLAB: export_string("%s = sparse(%" PRId64 ",%" PRId64 ");\n", export_name, odd->eoff+odd->toff, odd->eoff+odd->toff); break;
 	case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("digraph %s {\nsize=\"8,5\"\nnode [shape = box];\n", export_name); break;
 	}
 	
@@ -92,7 +93,7 @@ jstring fn		// filename
 
 //------------------------------------------------------------------------------
 
-static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, long r, long c)
+static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars, int level, ODDNode *row, ODDNode *col, int64_t r, int64_t c)
 {
 	DdNode *e, *t, *ee, *et, *te, *tt;
 	
@@ -102,9 +103,9 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 	// base case - non zero terminal
 	if (level == num_vars) {
 		switch (export_type) {
-		case EXPORT_PLAIN: export_string("%d %d %.12g\n", r, c, Cudd_V(dd)); break;
-		case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, Cudd_V(dd)); break;
-		case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, Cudd_V(dd)); break;
+		case EXPORT_PLAIN: export_string("%" PRId64 " %" PRId64 " %.12g\n", r, c, Cudd_V(dd)); break;
+		case EXPORT_MATLAB: export_string("%s(%" PRId64 ",%" PRId64 ")=%.12g;\n", export_name, r+1, c+1, Cudd_V(dd)); break;
+		case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%" PRId64 " -> %" PRId64 " [ label=\"%.12g\" ];\n", r, c, Cudd_V(dd)); break;
 		}
 		return;
 	}

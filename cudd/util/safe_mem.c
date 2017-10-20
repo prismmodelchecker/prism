@@ -1,6 +1,5 @@
 /* LINTLIBRARY */
 
-#include <stdio.h>
 #include "util.h"
 
 /*
@@ -25,11 +24,8 @@
 extern "C" {
 #endif
 
-extern char *MMalloc(long);
-extern void MMout_of_memory(long);
-extern char *MMrealloc(char *, long);
 
-void (*MMoutOfMemory)(long) = MMout_of_memory;
+void (*MMoutOfMemory)(size_t) = MMout_of_memory;
 
 #ifdef __cplusplus
 }
@@ -38,60 +34,38 @@ void (*MMoutOfMemory)(long) = MMout_of_memory;
 
 /* MMout_of_memory -- out of memory for lazy people, flush and exit */
 void 
-MMout_of_memory(long size)
+MMout_of_memory(size_t size)
 {
     (void) fflush(stdout);
-    (void) fprintf(stderr, "\nout of memory allocating %lu bytes\n",
-		   (unsigned long) size);
+    (void) fprintf(stderr,
+                   "\nCUDD: out of memory allocating %" PRIszt " bytes\n",
+		   (size_t) size);
     exit(1);
 }
 
 
-char *
-MMalloc(long size)
+void *
+MMalloc(size_t size)
 {
-    char *p;
+    void *p;
 
-#ifdef IBMPC
-    if (size > 65000L) {
-	if (MMoutOfMemory != (void (*)(long)) 0 ) (*MMoutOfMemory)(size);
-	return NIL(char);
-    }
-#endif
-    if (size == 0) size = sizeof(long);
-    if ((p = (char *) malloc((unsigned long) size)) == NIL(char)) {
+    if ((p = malloc(size)) == NIL(void)) {
 	if (MMoutOfMemory != 0 ) (*MMoutOfMemory)(size);
-	return NIL(char);
+	return NIL(void);
     }
     return p;
 }
 
 
-char *
-MMrealloc(char *obj, long size)
-{
-    char *p;
 
-#ifdef IBMPC
-    if (size > 65000L) {
+void *
+MMrealloc(void *obj, size_t size)
+{
+    void *p;
+
+    if ((p = realloc(obj, size)) == NIL(void)) {
 	if (MMoutOfMemory != 0 ) (*MMoutOfMemory)(size);
-	return NIL(char);
-    }
-#endif
-    if (obj == NIL(char)) return MMalloc(size);
-    if (size <= 0) size = sizeof(long);
-    if ((p = (char *) realloc(obj, (unsigned long) size)) == NIL(char)) {
-	if (MMoutOfMemory != 0 ) (*MMoutOfMemory)(size);
-	return NIL(char);
+	return NIL(void);
     }
     return p;
-}
-
-
-void
-MMfree(char *obj)
-{
-    if (obj != 0) {
-	free(obj);
-    }
 }

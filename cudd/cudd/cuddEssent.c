@@ -1436,8 +1436,8 @@ bitVectorSet(
 
     word = i >> LOGBPL;
     bit = i & (BPL - 1);
-    vector[word] &= ~(1L << bit);
-    vector[word] |= (((long) val) << bit);
+    vector[word] &= ~((ptruint) 1 << bit);
+    vector[word] |= (((ptruint) val) << bit);
 
 } /* end of bitVectorSet */
 

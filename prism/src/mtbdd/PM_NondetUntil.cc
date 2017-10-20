@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismMTBDD.h"
-#include <math.h>
+#include <cmath>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -34,6 +34,8 @@
 #include "PrismMTBDDGlob.h"
 #include "jnipointer.h"
 #include "prism.h"
+#include "ExportIterations.h"
+#include <memory>
 
 //------------------------------------------------------------------------------
 
@@ -90,6 +92,12 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	Cudd_Ref(yes);
 	sol = yes;
 
+	std::unique_ptr<ExportIterations> iterationExport;
+	if (PM_GetFlagExportIterations()) {
+		iterationExport.reset(new ExportIterations("PM_NondetUntil"));
+		iterationExport->exportVector(sol, rvars, num_rvars, odd, 0);
+	}
+
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
@@ -136,7 +144,10 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		// put 1s (for 'yes' states) back into into solution vector		
 		Cudd_Ref(yes);
 		tmp = DD_Apply(ddman, APPLY_MAX, tmp, yes);
-		
+
+		if (iterationExport)
+			iterationExport->exportVector(tmp, rvars, num_rvars, odd, 0);
+
 		// check convergence
 		switch (term_crit) {
 		case TERM_CRIT_ABSOLUTE:

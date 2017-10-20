@@ -31,8 +31,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -211,55 +209,6 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s)
-	{
-		s = translateState(s);
-		HashSet<Integer> succs = new HashSet<Integer>();
-		for (int i : new IterableStateSet(actions.get(s), model.getNumChoices(s))){
-			Iterator<Integer> it = model.getSuccessorsIterator(s, i);
-			while (it.hasNext()) {
-				int j = it.next();
-				succs.add(inverseTranslateState(j));
-			}
-		}
-		return succs.iterator();
-	}
-
-	@Override
-	public boolean isSuccessor(int s1, int s2)
-	{
-		s1 = translateState(s1);
-		s2 = translateState(s2);
-		return model.isSuccessor(s1, s2);
-	}
-
-	@Override
-	public boolean allSuccessorsInSet(int s, BitSet set)
-	{
-		Iterator<Integer> successors = getSuccessorsIterator(s);
-		while (successors.hasNext()) {
-			Integer successor = successors.next();
-			if (!set.get(successor)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public boolean someSuccessorsInSet(int s, BitSet set)
-	{
-		Iterator<Integer> successors = getSuccessorsIterator(s);
-		while (successors.hasNext()) {
-			Integer successor = successors.next();
-			if (set.get(successor)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
 		throw new UnsupportedOperationException();
@@ -301,35 +250,6 @@ public class SubNondetModel implements NondetModel
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
-	public void exportToDotFile(String filename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(String filename, BitSet mark) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToDotFile(PrismLog out, BitSet mark, boolean showStates)
-	{
-		throw new UnsupportedOperationException();
-	}
 
 	@Override
 	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
@@ -402,45 +322,35 @@ public class SubNondetModel implements NondetModel
 		int iOriginal = translateAction(s, i);
 		return model.getNumTransitions(sOriginal, iOriginal);
 	}
-	
-	@Override
-	public boolean allSuccessorsInSet(int s, int i, BitSet set)
-	{
-		Iterator<Integer> successors = getSuccessorsIterator(s, i);
-		while (successors.hasNext()) {
-			Integer successor = successors.next();
-			if (!set.get(successor)) {
-				return false;
-			}
-		}
-		return true;
-	}
 
 	@Override
-	public boolean someSuccessorsInSet(int s, int i, BitSet set)
-	{
-		Iterator<Integer> successors = getSuccessorsIterator(s, i);
-		while (successors.hasNext()) {
-			Integer successor = successors.next();
-			if (set.get(successor)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	@Override
-	public Iterator<Integer> getSuccessorsIterator(int s, int i)
+	public SuccessorsIterator getSuccessors(int s, int i)
 	{
 		int sOriginal = translateState(s);
 		int iOriginal = translateAction(s, i);
-		List<Integer> succ = new ArrayList<Integer>();
-		Iterator<Integer> it = model.getSuccessorsIterator(sOriginal, iOriginal);
-		while (it.hasNext()) {
-			int j = it.next();
-			succ.add(inverseTranslateState(j));
-		}
-		return succ.iterator();
+
+		SuccessorsIterator it = model.getSuccessors(sOriginal, iOriginal);
+		return new SuccessorsIterator() {
+
+			@Override
+			public boolean successorsAreDistinct()
+			{
+				return it.successorsAreDistinct();
+			}
+
+			@Override
+			public boolean hasNext()
+			{
+				return it.hasNext();
+			}
+
+			@Override
+			public int nextInt()
+			{
+				return inverseTranslateState(it.next());
+			}
+
+		};
 	}
 
 	private BitSet translateSet(BitSet set)

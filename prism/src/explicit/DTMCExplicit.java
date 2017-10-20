@@ -29,14 +29,12 @@ package explicit;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.AbstractMap;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
-import common.IterableStateSet;
-import explicit.rewards.MCRewards;
+import explicit.graphviz.Decorator;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
@@ -85,13 +83,22 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
 		while (iter.hasNext()) {
 			Map.Entry<Integer, Double> e = iter.next();
-			out.print(i + " -> " + e.getKey() + " [ label=\"");
-			out.print(e.getValue() + "\" ];\n");
+			out.print(i + " -> " + e.getKey());
+
+			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+			d.setLabel(e.getValue().toString());
+			if (decorators != null) {
+				for (Decorator decorator : decorators) {
+					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
+				}
+			}
+
+			out.println(d.toString());
 		}
 	}
 
@@ -143,44 +150,6 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	{
 		// Default implementation: extend iterator, setting all actions to null
 		return new AddDefaultActionToTransitionsIterator(getTransitionsIterator(s), null);
-	}
-
-	@Override
-	public void mvMult(double vect[], double result[], BitSet subset, boolean complement)
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultSingle(s, vect);
-		}
-	}
-
-	@Override
-	public double mvMultGS(double vect[], BitSet subset, boolean complement, boolean absolute)
-	{
-		double d, diff, maxDiff = 0.0;
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultJacSingle(s, vect);
-			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-			maxDiff = diff > maxDiff ? diff : maxDiff;
-			vect[s] = d;
-		}
-		// Use this code instead for backwards Gauss-Seidel
-		/*for (s = numStates - 1; s >= 0; s--) {
-			if (subset.get(s)) {
-				d = mvMultJacSingle(s, vect);
-				diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
-				maxDiff = diff > maxDiff ? diff : maxDiff;
-				vect[s] = d;
-			}
-		}*/
-		return maxDiff;
-	}
-
-	@Override
-	public void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
-	{
-		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			result[s] = mvMultRewSingle(s, vect, mcRewards);
-		}
 	}
 
 	public class AddDefaultActionToTransitionsIterator implements Iterator<Map.Entry<Integer, Pair<Double, Object>>>

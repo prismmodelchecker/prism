@@ -54,7 +54,9 @@
 	HANDLE NG_STDOUT_FILENO;
 	HANDLE NG_STDERR_FILENO;
 	#define FILE_SEPARATOR '\\'
+#ifndef MSG_WAITALL
 	#define MSG_WAITALL 0
+#endif
 #else
 	#define NG_STDIN_FILENO STDIN_FILENO
 	#define NG_STDOUT_FILENO STDOUT_FILENO
@@ -64,7 +66,7 @@
 	typedef unsigned int SOCKET;
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || !defined(MSG_NOSIGNAL)
   #define SEND_FLAGS 0
 #else
   #define SEND_FLAGS MSG_NOSIGNAL

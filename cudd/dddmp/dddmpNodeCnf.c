@@ -307,7 +307,7 @@ DddmpWriteNodeIndexCnf (
   )
 {
   if (!Cudd_IsConstant (f)) {
-    f->next = (struct DdNode *)((ptruint)((id)<<1));
+    f->next = (struct DdNode *)((ptruint)id<<1);
   }
 
   return (DDDMP_SUCCESS);
@@ -418,9 +418,9 @@ DddmpWriteNodeIndexCnfWithTerminalCheck (
   if (!Cudd_IsConstant (f)) {
     if (Cudd_IsConstant (cuddT (f)) && Cudd_IsConstant (cuddE (f))) {
       /* If Variable SET ID as Variable ID */
-      f->next = (struct DdNode *)((ptruint)((cnfIds[f->index])<<1));
+      f->next = (struct DdNode *)((ptruint)cnfIds[f->index]<<1);
     } else {
-      f->next = (struct DdNode *)((ptruint)((id)<<1));
+      f->next = (struct DdNode *)((ptruint)id<<1);
       id++;
     }
   }
@@ -899,9 +899,9 @@ DddmpPrintBddAndNextRecur (
   fPtr = Cudd_Regular (f);
   
   if (Cudd_IsComplement (f)) {
-    fprintf (stdout, "sign=- ptr=%ld ", ((long int) fPtr));
+    fprintf (stdout, "sign=- ptr=%" PRIiPTR " ", ((ptrint) fPtr));
   } else {
-    fprintf (stdout, "sign=+ ptr=%ld ", ((long int) fPtr));
+    fprintf (stdout, "sign=+ ptr=%" PRIiPTR " ", ((ptrint) fPtr));
   }
  
   if (cuddIsConstant (fPtr)) {
@@ -911,8 +911,8 @@ DddmpPrintBddAndNextRecur (
   }
 
   fprintf (stdout,  
-    "thenPtr=%ld elsePtr=%ld BddId=%d CnfId=%d Visited=%d\n",
-    ((long int) cuddT (fPtr)), ((long int) cuddE (fPtr)),
+    "thenPtr=%" PRIiPTR " elsePtr=%" PRIiPTR " BddId=%d CnfId=%d Visited=%d\n",
+    ((ptrint) cuddT (fPtr)), ((ptrint) cuddE (fPtr)),
     fPtr->index, DddmpReadNodeIndexCnf (fPtr),
     DddmpVisitedCnf (fPtr));
   

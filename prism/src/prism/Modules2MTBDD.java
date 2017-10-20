@@ -1922,7 +1922,8 @@ public class Modules2MTBDD
 	private JDDNode translateExpression(Expression e) throws PrismException
 	{
 		// pass this work onto the Expression2MTBDD object
-		return expr2mtbdd.checkExpressionDD(e);
+		// states of interest = JDD.ONE = true = all possible states
+		return expr2mtbdd.checkExpressionDD(e, JDD.ONE.copy());
 	}
 
 	// build state and transition rewards

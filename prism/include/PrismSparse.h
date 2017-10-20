@@ -41,6 +41,14 @@ JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetTechLog
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_SetExportIterations
+ * Signature: (Z)V
+ */
+JNIEXPORT void JNICALL Java_sparse_PrismSparse_PS_1SetExportIterations
+  (JNIEnv *, jclass, jboolean);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_GetErrorMessage
  * Signature: ()Ljava/lang/String;
  */
@@ -62,6 +70,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbBoundedUntil
  */
 JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbUntil
   (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_ProbUntilInterval
+ * Signature: (JJJIJIJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbUntilInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jint);
 
 /*
  * Class:     sparse_PrismSparse
@@ -89,6 +105,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbReachReward
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_ProbReachRewardInterval
+ * Signature: (JJJJJIJIJJJJJI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1ProbReachRewardInterval
+  (JNIEnv *, jclass, jlong, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jlong, jint);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_ProbTransient
  * Signature: (JJJJIJII)J
  */
@@ -113,6 +137,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_NondetUntilInterval
+ * Signature: (JJLjava/util/List;JJIJIJIJJZJI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetUntilInterval
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jboolean, jlong, jint);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_NondetCumulReward
  * Signature: (JJJJJIJIJIIZ)J
  */
@@ -134,6 +166,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetInstReward
  */
 JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetReachReward
   (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_NondetReachRewardInterval
+ * Signature: (JJLjava/util/List;JJJJIJIJIJJJJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1NondetReachRewardInterval
+  (JNIEnv *, jclass, jlong, jlong, jobject, jlong, jlong, jlong, jlong, jint, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jlong, jboolean, jint);
 
 /*
  * Class:     sparse_PrismSparse
@@ -249,6 +289,14 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1Power
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_PowerInterval
+ * Signature: (JJIJIJJJJZI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1PowerInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jint);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_JOR
  * Signature: (JJIJIJJJZZD)J
  */
@@ -257,11 +305,27 @@ JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1JOR
 
 /*
  * Class:     sparse_PrismSparse
+ * Method:    PS_JORInterval
+ * Signature: (JJIJIJJJJZZDI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1JORInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jboolean, jdouble, jint);
+
+/*
+ * Class:     sparse_PrismSparse
  * Method:    PS_SOR
  * Signature: (JJIJIJJJZZDZ)J
  */
 JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1SOR
   (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean);
+
+/*
+ * Class:     sparse_PrismSparse
+ * Method:    PS_SORInterval
+ * Signature: (JJIJIJJJJZZDZI)J
+ */
+JNIEXPORT jlong JNICALL Java_sparse_PrismSparse_PS_1SORInterval
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jint, jlong, jlong, jlong, jlong, jboolean, jboolean, jdouble, jboolean, jint);
 
 #ifdef __cplusplus
 }

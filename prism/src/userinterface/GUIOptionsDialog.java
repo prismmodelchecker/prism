@@ -99,7 +99,7 @@ public class GUIOptionsDialog extends javax.swing.JDialog
 		jPanel1.setLayout(new java.awt.BorderLayout());
 
 		theTabs.setMinimumSize(new java.awt.Dimension(400, 50));
-		theTabs.setPreferredSize(new java.awt.Dimension(400, 500));
+		theTabs.setPreferredSize(new java.awt.Dimension(600, 500));
 		jPanel1.add(theTabs, java.awt.BorderLayout.CENTER);
 
 		getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);

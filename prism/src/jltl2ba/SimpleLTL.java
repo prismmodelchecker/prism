@@ -941,6 +941,53 @@ public class SimpleLTL {
 		return true;
 	}
 
+	/**
+	 * Transform LTL formula by extend each<br>
+	 * X phi<br>
+	 * node in the syntax tree to<br>
+	 * X (label & phi).
+	 * <br>
+	 * The LTL formula has to consist only of basic operators (see toBasicOperators()).
+	 * @param label the label of the atomic proposition
+	 * @return the transformed LTL formula
+	 */
+	public SimpleLTL extendNextStepWithAP(String label)
+	{
+		switch (kind) {
+		case TRUE:
+		case FALSE:
+		case AP:
+			return this.clone();
+		case NOT: {
+			SimpleLTL newLeft = left.extendNextStepWithAP(label);
+			return new SimpleLTL(kind, newLeft);
+		}
+		case NEXT: {
+			SimpleLTL newLeft = left.extendNextStepWithAP(label);
+			// transform X phi to X ("label" & phi)
+			return new SimpleLTL(LTLType.NEXT,
+					new SimpleLTL(LTLType.AND, new SimpleLTL(label), newLeft));
+		}
+		case OR:
+		case AND:
+		case RELEASE:
+		case UNTIL: {
+			SimpleLTL newLeft = left.extendNextStepWithAP(label);
+			SimpleLTL newRight = right.extendNextStepWithAP(label);
+			return new SimpleLTL(kind, newLeft, newRight);
+		}
+		case FINALLY:
+		case GLOBALLY: {
+			SimpleLTL newLeft = left.extendNextStepWithAP(label);
+			return new SimpleLTL(kind, newLeft);
+		}
+		case EQUIV:
+		case IMPLIES:
+			throw new UnsupportedOperationException("Extending Next operator with AP not supported for " + kind.toString() + " operator, only for basic operators: " + this);
+		}
+		throw new UnsupportedOperationException();
+	}
+
 	public SimpleLTL toDNF() throws PrismException
 	{
 		switch (kind) {

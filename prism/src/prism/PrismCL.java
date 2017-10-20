@@ -1420,10 +1420,6 @@ public class PrismCL implements PrismModelListener
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
-				// export transition matrix graph to dot file and view it
-				else if (sw.equals("exportmodeldotview")) {
-					exportmodeldotview = true;
-				}
 				// export transition matrix MTBDD to dot file
 				else if (sw.equals("exportdot")) {
 					if (i < args.length - 1) {
@@ -1736,6 +1732,10 @@ public class PrismCL implements PrismModelListener
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
+				}
+				// export transition matrix graph to dot file and view it (hidden option, for now)
+				else if (sw.equals("exportmodeldotview")) {
+					exportmodeldotview = true;
 				}
 				// mtbdd construction method (hidden option)
 				else if (sw.equals("c1")) {
@@ -2306,6 +2306,8 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-test .......................... Enable \"test\" mode");
 		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
 		mainLog.println("-javamaxmem .................... Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
+		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
+		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 		mainLog.println();
 		mainLog.println("IMPORT OPTIONS:");
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");

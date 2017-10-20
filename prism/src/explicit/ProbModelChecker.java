@@ -91,6 +91,10 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected boolean exportAdv = false;
 	protected String exportAdvFilename;
 
+	// Delay between occasional updates for slow processes, e.g. numerical solution (milliseconds)
+	public static final int UPDATE_DELAY = 5000;
+
+
 	// Enums for flags/settings
 
 	// Method used for numerical solution
@@ -1080,6 +1084,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((CTMCModelChecker) this).computeTotalRewards((CTMC) model, (MCRewards) modelRewards);
 			break;
 		case MDP:
+			res = ((MDPModelChecker) this).computeTotalRewards((MDP) model, (MDPRewards) modelRewards, minMax.isMin());
+			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
