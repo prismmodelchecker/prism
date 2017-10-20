@@ -290,53 +290,15 @@ public class TypeCheck extends ASTTraverse
 			e.setType(TypeBool.getInstance());
 			break;
 		case ExpressionBinaryOp.PLUS:
-			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble || t1 instanceof TypePathDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
-			}
-			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble || t2 instanceof TypePathDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
-			}
-			if ((t1 instanceof TypePathDouble || t2 instanceof TypePathDouble) && !t1.equals(t2)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " cannot apply to a number and a numerical path formula", e.getOperand2());
-			}
-			Type tPlus = null;
-			if (t1 instanceof TypePathDouble)
-				tPlus = TypePathDouble.getInstance();
-			else if (t1 instanceof TypeDouble || t2 instanceof TypeDouble)
-				tPlus = TypeDouble.getInstance();
-			else
-				tPlus = TypeInt.getInstance();
-			e.setType(tPlus);
-			break;
 		case ExpressionBinaryOp.MINUS:
+		case ExpressionBinaryOp.TIMES:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
 			}
 			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
 			}
-			Type tMinus = null;
-			if (t1 instanceof TypeDouble || t2 instanceof TypeDouble)
-				tMinus = TypeDouble.getInstance();
-			else
-				tMinus = TypeInt.getInstance();
-			e.setType(tMinus);
-			break;
-		case ExpressionBinaryOp.TIMES:
-			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
-			}
-			if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble || t2 instanceof TypePathBool)) {
-				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand2());
-			}
-			Type tTimes = null;
-			if (t2 instanceof TypePathBool)
-				tTimes = TypePathDouble.getInstance();
-			else if (t1 instanceof TypeDouble || t2 instanceof TypeDouble)
-				tTimes = TypeDouble.getInstance();
-			else
-				tTimes = TypeInt.getInstance();
-			e.setType(tTimes);
+			e.setType(t1 instanceof TypeDouble || t2 instanceof TypeDouble ? TypeDouble.getInstance() : TypeInt.getInstance());
 			break;
 		case ExpressionBinaryOp.DIVIDE:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {

@@ -650,7 +650,6 @@ public interface MDP extends NondetModel
 		});
 		return d;
 	}
-	
 
 	/**
 	 * Do a Gauss-Seidel-style matrix-vector multiplication and sum of rewards followed by min/max.

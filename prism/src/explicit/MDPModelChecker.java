@@ -772,7 +772,6 @@ public class MDPModelChecker extends ProbModelChecker
 		if (genStrat) {
 			res.strat = new MDStrategyArray(mdp, strat);
 		}
-		
 		// Export adversary
 		if (exportAdv) {
 			// Prune strategy
@@ -1832,7 +1831,7 @@ public class MDPModelChecker extends ProbModelChecker
 		res.timePre = 0.0;
 		return res;
 	}
-	
+
 	/**
 	 * Compute expected cumulative (step-bounded) rewards.
 	 * i.e. compute the min/max reward accumulated within {@code k} steps.
@@ -1980,7 +1979,6 @@ public class MDPModelChecker extends ProbModelChecker
 		mainLog.println("Upper bound for min expectation (" + method + "): " + upperBound);
 		return upperBound;
 	}
-
 
 	/**
 	 * Return true if the MDP is contracting for all states in the 'unknown'
