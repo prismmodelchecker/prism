@@ -67,6 +67,7 @@ public class ExportIterations {
 		log.println("<h1>" + title + "</h1>");
 		log.println("<svg></svg>");
 		log.println("<script src=\"http://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>");
+		log.flush();
 	}
 
 	/**
@@ -92,6 +93,7 @@ public class ExportIterations {
 			exportValue(d);
 		}
 		log.print("]," + type + ")</script>\n");
+		log.flush();
 	}
 
 	/**
@@ -117,6 +119,7 @@ public class ExportIterations {
 			exportValue(d);
 		}
 		log.print("]," + type + ")</script>\n");
+		log.flush();
 	}
 
 	private void exportValue(double d)
@@ -134,6 +137,7 @@ public class ExportIterations {
 	public void close()
 	{
 		log.println("\n</body></html>");
+		log.flush();
 	}
 
 	public static void setDefaultFilename(String newDefaultFilename)
