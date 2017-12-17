@@ -27,6 +27,7 @@
 
 package prism;
 
+import java.util.Collections;
 import java.util.List;
 
 import parser.Values;
@@ -50,19 +51,32 @@ public interface ModelInfo
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}.
 	 */
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException;
+	public default void setSomeUndefinedConstants(Values someValues) throws PrismException
+	{
+		// By default, assume there are no constants to define 
+		if (someValues != null && someValues.getNumValues() > 0)
+			throw new PrismException("This model has no constants to set");
+	}
 
 	/**
 	 * Get access to the values for all constants in the model, including the 
 	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
 	 * Until they are set for the first time, this method returns null.  
 	 */
-	public Values getConstantValues();
+	public default Values getConstantValues()
+	{
+		// By default, assume there are no constants to define 
+		return new Values();
+	}
 
 	/**
 	 * Does the model contain unbounded variables?
 	 */
-	public boolean containsUnboundedVariables();
+	public default boolean containsUnboundedVariables()
+	{
+		// By default, assume all variables are finite-ranging
+		return false;
+	}
 
 	/**
 	 * Get the number of variables in the model. 
@@ -75,69 +89,121 @@ public interface ModelInfo
 	public List<String> getVarNames();
 	
 	/**
+	 * Look up the index of a variable in the model by name.
+	 * Returns -1 if there is no such variable.
+	 */
+	public default int getVarIndex(String name)
+	{
+		// Default implementation just extracts from getVarNames() 
+		return getVarNames().indexOf(name);
+	}
+
+	/**
+	 * Get the name of the {@code i}th variable in the model.
+	 * {@code i} should always be between 0 and getNumVars() - 1. 
+	 */
+	public default String getVarName(int i)
+	{
+		// Default implementation just extracts from getVarNames() 
+		return getVarNames().get(i);
+	}
+
+	/**
 	 * Get the types of all the variables in the model.
 	 */
 	public List<Type> getVarTypes();
 
 	/**
-	 * Look up the index of a variable in the model by name.
-	 * Returns -1 if there is no such variable.
-	 */
-	public int getVarIndex(String name);
-
-	/**
-	 * Get the name of the {@code i}th variable in the model.
-	 */
-	public String getVarName(int i);
-
-	/**
 	 * Get the type of the {@code i}th variable in the model.
+	 * {@code i} should always be between 0 and getNumVars() - 1. 
 	 */
-	//public Type getVarType(int i) throws PrismException;
+	public default Type getVarType(int i) throws PrismException
+	{
+		// Default implementation just extracts from getVarTypes() 
+		return getVarTypes().get(i);
+	}
 
 	/**
 	 * Get the number of labels (atomic propositions) defined for the model. 
 	 */
-	public int getNumLabels();
+	public default int getNumLabels()
+	{
+		// Default implementation just extracts from getLabelNames() 
+		return getLabelNames().size();
+	}
 	
 	/**
 	 * Get the names of all the labels in the model.
 	 */
-	public List<String> getLabelNames();
+	public default List<String> getLabelNames()
+	{
+		// No labels by default
+		return Collections.emptyList();
+	}
 	
 	/**
 	 * Get the name of the {@code i}th label of the model.
+	 * {@code i} should always be between 0 and getNumLabels() - 1. 
 	 */
-	public String getLabelName(int i) throws PrismException;
+	public default String getLabelName(int i) throws PrismException
+	{
+		// Default implementation just extracts from getLabelNames() 
+		try {
+			return getLabelNames().get(i);
+		} catch (IndexOutOfBoundsException e) {
+			throw new PrismException("Label number " + i + " not defined");
+		}
+	}
 	
 	/**
-	 * Get the index of the label with name {@code label}. Returns -1 if none exists.
+	 * Get the index of the label with name {@code name}.
+	 * Indexed from 0. Returns -1 if label of that name does not exist.
 	 */
-	public int getLabelIndex(String label);
+	public default int getLabelIndex(String name)
+	{
+		// Default implementation just extracts from getLabelNames() 
+		return getLabelNames().indexOf(name);
+	}
 	
 	/**
 	 * Get the number of reward structures in the model.
 	 */
-	public int getNumRewardStructs();
+	public default int getNumRewardStructs()
+	{
+		// Default implementation just extracts from getRewardStructNames() 
+		return getRewardStructNames().size();
+	}
 	
 	/**
 	 * Get a list of the names of the reward structures in the model.
 	 */
-	public List<String> getRewardStructNames();
+	public default List<String> getRewardStructNames()
+	{
+		// No reward structures by default
+		return Collections.emptyList();
+	}
 	
 	/**
 	 * Get the index of a module by its name
 	 * (indexed from 0, not from 1 like at the user (property language) level).
 	 * Returns -1 if name does not exist.
 	 */
-	public int getRewardStructIndex(String name);
+	public default int getRewardStructIndex(String name)
+	{
+		// Default implementation just extracts from getRewardStructNames() 
+		return getRewardStructNames().indexOf(name);
+	}
 
 	/**
 	 * Get a reward structure by its index
 	 * (indexed from 0, not from 1 like at the user (property language) level).
 	 * Returns null if index is out of range.
 	 */
-	public RewardStruct getRewardStruct(int i);
+	public default RewardStruct getRewardStruct(int i)
+	{
+		// No reward structures by default
+		return null;
+	}
 
 	/**
 	 * Returns true if the reward structure with index i defines transition rewards.
@@ -146,7 +212,11 @@ public interface ModelInfo
 	 * If using an algorithm or implementation that does not support transition rewards,
 	 * you may need to return false here (as well as not defining transition rewards).
 	 */
-	public boolean rewardStructHasTransitionRewards(int i);
+	public default boolean rewardStructHasTransitionRewards(int i)
+	{
+		// By default, assume that any reward structures that do exist may have transition rewards
+		return true;
+	}
 
 	// TODO: can we remove this?
 	public VarList createVarList() throws PrismException;
