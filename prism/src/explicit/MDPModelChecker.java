@@ -526,8 +526,10 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 		// Export adversary
 		if (exportAdv) {
-			// Prune strategy
-			restrictStrategyToReachableStates(mdp, strat);
+			// Prune strategy, if needed
+			if (getRestrictStratToReach()) {
+				restrictStrategyToReachableStates(mdp, strat);
+			}
 			// Export
 			PrismLog out = new PrismFileLog(exportAdvFilename);
 			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
@@ -2200,8 +2202,10 @@ public class MDPModelChecker extends ProbModelChecker
 		}
 		// Export adversary
 		if (exportAdv) {
-			// Prune strategy
-			restrictStrategyToReachableStates(mdp, strat);
+			// Prune strategy, if needed
+			if (getRestrictStratToReach()) {
+				restrictStrategyToReachableStates(mdp, strat);
+			}
 			// Export
 			PrismLog out = new PrismFileLog(exportAdvFilename);
 			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);

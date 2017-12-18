@@ -200,7 +200,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
 	// Should any generated strategies should be restricted to the states reachable under them?
-	protected boolean restrictStratToReach = false;
+	protected boolean restrictStratToReach = true;
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
@@ -3782,6 +3782,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setExportProductVectorFilename(exportProductVectorFilename);
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
+		mc.setRestrictStratToReach(restrictStratToReach);
 		mc.setDoBisim(doBisim);
 		mc.setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
 		mc.setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));
