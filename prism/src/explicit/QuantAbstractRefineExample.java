@@ -324,7 +324,7 @@ public class QuantAbstractRefineExample extends QuantAbstractRefine
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
 			UndefinedConstants undefinedConstants = new UndefinedConstants(modulesFile, null);
 			undefinedConstants.defineUsingConstSwitch("");
-			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
+			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues(), false);
 			modulesFile = (ModulesFile) modulesFile.deepCopy().expandConstants(modulesFile.getConstantList());
 			
 			// Build the model (explicit-state reachability) 

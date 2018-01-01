@@ -305,7 +305,9 @@ public class PropertiesFile extends ASTElement
 
 		// Set up some values for constants
 		// (without assuming any info about undefined constants)
-		setSomeUndefinedConstants(null);
+		// use non-exact constant evaluation by default, for exact evaluation
+		// reevaluate later-on
+		setSomeUndefinedConstants(null, false);
 	}
 
 	// check formula identifiers
@@ -534,10 +536,10 @@ public class PropertiesFile extends ASTElement
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
 	 */
-	public void setUndefinedConstants(Values someValues) throws PrismLangException
+	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
 	{
 		// Might need values for ModulesFile constants too
-		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues());
+		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues(), exact);
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
 		// This will usually be done on a per-property basis later
 	}
@@ -548,10 +550,10 @@ public class PropertiesFile extends ASTElement
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}.
 	 */
-	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
 	{
 		// Might need values for ModulesFile constants too
-		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues());
+		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues(), exact);
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
 		// This will usually be done on a per-property basis later
 	}

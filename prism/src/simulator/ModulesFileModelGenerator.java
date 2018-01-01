@@ -112,7 +112,7 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 	}
 	
 	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
 		// We start again with a copy of the original modules file
 		// and set the constants in the copy.
@@ -121,7 +121,7 @@ public class ModulesFileModelGenerator extends DefaultModelGenerator
 		// start again at a place where references to constants have not
 		// yet been replaced.
 		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
-		modulesFile.setSomeUndefinedConstants(someValues);
+		modulesFile.setSomeUndefinedConstants(someValues, exact);
 		mfConstants = modulesFile.getConstantValues();
 		initialise();
 	}

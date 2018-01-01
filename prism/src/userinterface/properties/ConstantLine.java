@@ -263,11 +263,11 @@ public class ConstantLine extends javax.swing.JPanel
 		else if(type instanceof TypeDouble)
 		{
 			try {
-				s = singleValueField.getText(); Double.parseDouble(s);
+				s = singleValueField.getText(); DefinedConstant.parseDouble(s);
 				if (isRange()) {
-					s = startValueField.getText(); Double.parseDouble(s);
-					s = endValueField.getText(); Double.parseDouble(s);
-					s = stepValueField.getText(); Double.parseDouble(s);
+					s = startValueField.getText(); DefinedConstant.parseDouble(s);
+					s = endValueField.getText(); DefinedConstant.parseDouble(s);
+					s = stepValueField.getText(); DefinedConstant.parseDouble(s);
 				}
 			} catch (NumberFormatException e) {
 				throw new PrismException("Invalid value \""+s+"\" for double constant \""+getName()+"\"");

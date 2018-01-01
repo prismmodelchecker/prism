@@ -262,6 +262,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private ModelGenerator currentModelGenerator = null;
 	// Constants to be defined for PRISM model
 	private Values currentDefinedMFConstants = null;
+	// Was currentDefinedMFConstants evaluated exactly?
+	private boolean currentDefinedMFConstantsAreExact = false;
 	// Built model storage - symbolic or explicit - at most one is non-null
 	private Model currentModel = null;
 	private explicit.Model currentModelExpl = null;
@@ -1775,23 +1777,29 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Set (some or all) undefined constants for the currently loaded PRISM model
 	 * (assuming they have changed since the last time this was called).
 	 * @param definedMFConstants The constant values
+	 * @param exact evaluation of constants (using BigRational)
 	 */
-	public void setPRISMModelConstants(Values definedMFConstants) throws PrismException
+	public void setPRISMModelConstants(Values definedMFConstants, boolean exact) throws PrismException
 	{
-		if (currentDefinedMFConstants == null && definedMFConstants == null)
+		if (currentDefinedMFConstants == null && definedMFConstants == null && currentDefinedMFConstantsAreExact == exact)
 			return;
-		if (currentDefinedMFConstants != null && currentDefinedMFConstants.equals(definedMFConstants))
+		if (currentDefinedMFConstants != null &&
+		    currentDefinedMFConstants.equals(definedMFConstants) &&
+		    currentDefinedMFConstantsAreExact == exact) {
+			// no change in constants and evaluation mode, nothing to do
 			return;
+		}
 
 		// Clear any existing built model(s)
 		clearBuiltModel();
 		// Store constants here and in ModulesFile
 		currentDefinedMFConstants = definedMFConstants;
+		currentDefinedMFConstantsAreExact = exact;
 		if (currentModulesFile != null) {
-			currentModulesFile.setSomeUndefinedConstants(definedMFConstants);
+			currentModulesFile.setSomeUndefinedConstants(definedMFConstants, exact);
 		}
 		if (currentModelGenerator != null) {
-			currentModelGenerator.setSomeUndefinedConstants(definedMFConstants);
+			currentModelGenerator.setSomeUndefinedConstants(definedMFConstants, exact);
 		}
 
 		// If required, export parsed PRISM model, with constants expanded
@@ -2971,7 +2979,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				DigitalClocks dc = new DigitalClocks(this);
 				dc.translate(oldModulesFile, propertiesFile, expr);
 				currentModulesFile = dc.getNewModulesFile();
-				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues());
+				// evaluate constants exactly if we are in exact computation mode
+				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues(), settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
 				currentModelType = ModelType.MDP;
 				currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
 				clearBuiltModel();

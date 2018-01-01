@@ -26,6 +26,7 @@
 
 package parser.type;
 
+import param.BigRational;
 import prism.PrismLangException;
 
 public class TypeDouble extends Type 
@@ -70,13 +71,22 @@ public class TypeDouble extends Type
 	}
 	
 	@Override
-	public Double castValueTo(Object value) throws PrismLangException
+	public Number castValueTo(Object value) throws PrismLangException
 	{
 		if (value instanceof Double)
 			return (Double) value;
+		if (value instanceof BigRational)
+			return (BigRational) value;
 		if (value instanceof Integer)
 			return new Double(((Integer) value).intValue());
 		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
+
+	@Override
+	public Object castFromBigRational(BigRational value) throws PrismLangException
+	{
+		return value.doubleValue();
+	}
+
 }

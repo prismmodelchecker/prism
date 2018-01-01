@@ -31,6 +31,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import param.BigRational;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -223,6 +224,7 @@ public class Values //implements Comparable
 		Object o = values.get(i);
 		if (o instanceof Integer) return TypeInt.getInstance();
 		if (o instanceof Double)  return TypeDouble.getInstance();
+		if (o instanceof BigRational) return TypeDouble.getInstance();
 		if (o instanceof Boolean) return TypeBool.getInstance();
 		else return null;
 	}
@@ -242,16 +244,19 @@ public class Values //implements Comparable
 	public int getIntValue(int i) throws PrismLangException
 	{
 		Object o;
-		
+
 		o = values.get(i);
-		
+
 		if (o instanceof Boolean) {
 			return ((Boolean)o).booleanValue() ? 1 : 0;
 		}
 		if (o instanceof Integer) {
 			return ((Integer)o).intValue();
 		}
-		
+		if (o instanceof BigRational) {
+			return ((BigRational)o).toInt();
+		}
+
 		throw new PrismLangException("Cannot get integer value for \"" + getName(i) + "\"");
 	}
 
@@ -274,6 +279,9 @@ public class Values //implements Comparable
 		if (o instanceof Double) {
 			return ((Double)o).doubleValue();
 		}
+		if (o instanceof BigRational) {
+			return ((BigRational)o).doubleValue();
+		}
 		
 		throw new PrismLangException("Cannot get double value for \"" + getName(i) + "\"");
 	}
@@ -284,14 +292,16 @@ public class Values //implements Comparable
 	public boolean getBooleanValue(int i) throws PrismLangException
 	{
 		Object o;
-		
+
 		o = values.get(i);
-		
-		if (!(o instanceof Boolean)) {
+
+		if (o instanceof Boolean) {
+			return ((Boolean)o).booleanValue();
+		} else if (o instanceof BigRational) {
+			return ((BigRational)o).toBoolean();
+		} else {
 			throw new PrismLangException("Cannot get boolean value for \"" + getName(i) + "\"");
 		}
-		
-		return ((Boolean)o).booleanValue();
 	}
 
 	/**

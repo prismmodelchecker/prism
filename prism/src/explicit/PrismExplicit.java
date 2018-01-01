@@ -433,9 +433,9 @@ public class PrismExplicit extends PrismComponent
 			prism = new Prism(mainLog);
 			//prism.initialise();
 			ModulesFile modulesFile = prism.parseModelFile(new File(args[0]));
-			modulesFile.setUndefinedConstants(null);
+			modulesFile.setUndefinedConstants(null, false);
 			PropertiesFile propertiesFile = prism.parsePropertiesFile(modulesFile, new File(args[1]));
-			propertiesFile.setUndefinedConstants(null);
+			propertiesFile.setUndefinedConstants(null, false);
 			PrismExplicit pe = new PrismExplicit(prism.getMainLog(), prism.getSettings());
 			Model modelExpl = pe.buildModel(modulesFile, new ModulesFileModelGenerator(modulesFile, prism));
 			pe.modelCheck(modelExpl, modulesFile, propertiesFile, propertiesFile.getProperty(0));

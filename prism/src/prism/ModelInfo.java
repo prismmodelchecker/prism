@@ -50,7 +50,7 @@ public interface ModelInfo
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}.
 	 */
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException;
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException;
 
 	/**
 	 * Get access to the values for all constants in the model, including the 

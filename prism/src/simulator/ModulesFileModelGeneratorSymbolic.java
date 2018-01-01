@@ -23,6 +23,15 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 
+/**
+ * A variant of ModulesFileGenerator that is suitable for model generation
+ * at a symbolic level, i.e., where numeric values are kept as expressions
+ * instead of being evaluated.
+ * <br>
+ * Used by the parametric / exact engine to build models.
+ * <br>
+ * Uses exact arithmetic to evaluate the various expressions in a model description.
+ */
 public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator implements ModelGeneratorSymbolic
 {
 	// Parent PrismComponent (logs, settings etc.)
@@ -137,7 +146,7 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 	}
 	
 	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
 		// We start again with a copy of the original modules file
 		// and set the constants in the copy.
@@ -146,7 +155,7 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 		// start again at a place where references to constants have not
 		// yet been replaced.
 		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
-		modulesFile.setSomeUndefinedConstants(someValues);
+		modulesFile.setSomeUndefinedConstants(someValues, exact);
 		mfConstants = modulesFile.getConstantValues();
 		initialise();
 	}
@@ -241,7 +250,8 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 	public State getInitialState() throws PrismException
 	{
 		if (modulesFile.getInitialStates() == null) {
-			return modulesFile.getDefaultInitialState();
+			// get initial state, using exact evaluation
+			return modulesFile.getDefaultInitialState(true);
 		} else {
 			// Inefficient but probably won't be called
 			return getInitialStates().get(0);
@@ -254,7 +264,8 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 		List<State> initStates = new ArrayList<State>();
 		// Easy (normal) case: just one initial state
 		if (modulesFile.getInitialStates() == null) {
-			State state = modulesFile.getDefaultInitialState();
+			// get initial state, using exact evaluation
+			State state = modulesFile.getDefaultInitialState(true);
 			initStates.add(state);
 		}
 		// Otherwise, there may be multiple initial states
@@ -263,7 +274,7 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 			Expression init = modulesFile.getInitialStates();
 			List<State> allPossStates = varList.getAllStates();
 			for (State possState : allPossStates) {
-				if (init.evaluateBoolean(modulesFile.getConstantValues(), possState)) {
+				if (init.evaluateExact(modulesFile.getConstantValues(), possState).toBoolean()) {
 					initStates.add(possState);
 				}
 			}
@@ -364,7 +375,7 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 	public boolean isLabelTrue(int i) throws PrismException
 	{
 		Expression expr = labelList.getLabel(i);
-		return expr.evaluateBoolean(exploreState);
+		return expr.evaluateExact(exploreState).toBoolean();
 	}
 	
 	@Override
@@ -376,8 +387,8 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 		for (int i = 0; i < n; i++) {
 			if (!rewStr.getRewardStructItem(i).isTransitionReward()) {
 				Expression guard = rewStr.getStates(i);
-				if (guard.evaluateBoolean(modulesFile.getConstantValues(), state)) {
-					double rew = rewStr.getReward(i).evaluateDouble(modulesFile.getConstantValues(), state);
+				if (guard.evaluateExact(modulesFile.getConstantValues(), state).toBoolean()) {
+					double rew = rewStr.getReward(i).evaluateExact(modulesFile.getConstantValues(), state).doubleValue();
 					if (Double.isNaN(rew))
 						throw new PrismLangException("Reward structure evaluates to NaN at state " + state, rewStr.getReward(i));
 					d += rew;
@@ -398,8 +409,8 @@ public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator imp
 				Expression guard = rewStr.getStates(i);
 				String cmdAction = rewStr.getSynch(i);
 				if (action == null ? (cmdAction.isEmpty()) : action.equals(cmdAction)) {
-					if (guard.evaluateBoolean(modulesFile.getConstantValues(), state)) {
-						double rew = rewStr.getReward(i).evaluateDouble(modulesFile.getConstantValues(), state);
+					if (guard.evaluateExact(modulesFile.getConstantValues(), state).toBoolean()) {
+						double rew = rewStr.getReward(i).evaluateExact(modulesFile.getConstantValues(), state).doubleValue();
 						if (Double.isNaN(rew))
 							throw new PrismLangException("Reward structure evaluates to NaN at state " + state, rewStr.getReward(i));
 						d += rew;

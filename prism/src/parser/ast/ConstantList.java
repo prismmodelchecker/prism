@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.PrismLangException;
@@ -238,10 +239,11 @@ public class ConstantList extends ASTElement
 	 * and return a Values object with values for *all* constants.
 	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
 	 * Argument 'otherValues' contains any other values which may be needed, null if none
+	 * If argument 'exact' is true, constants are evaluated using exact arithmetic (BigRational)
 	 */
-	public Values evaluateConstants(Values someValues, Values otherValues) throws PrismLangException
+	public Values evaluateConstants(Values someValues, Values otherValues, boolean exact) throws PrismLangException
 	{
-		return evaluateSomeOrAllConstants(someValues, otherValues, true);
+		return evaluateSomeOrAllConstants(someValues, otherValues, true, exact);
 	}
 	
 	/**
@@ -249,10 +251,11 @@ public class ConstantList extends ASTElement
 	 * and return a Values object with values for all constants that could be evaluated.
 	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
 	 * Argument 'otherValues' contains any other values which may be needed, null if none
+	 * If argument 'exact' is true, constants are evaluated using exact arithmetic (BigRational)
 	 */
-	public Values evaluateSomeConstants(Values someValues, Values otherValues) throws PrismLangException
+	public Values evaluateSomeConstants(Values someValues, Values otherValues, boolean exact) throws PrismLangException
 	{
-		return evaluateSomeOrAllConstants(someValues, otherValues, false);
+		return evaluateSomeOrAllConstants(someValues, otherValues, false, exact);
 	}
 	
 	/**
@@ -261,8 +264,9 @@ public class ConstantList extends ASTElement
 	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined.
 	 * Argument 'otherValues' contains any other values which may be needed, null if none.
 	 * If argument 'all' is true, an exception is thrown if any undefined constant is not defined.
+	 * If argument 'exact' is true, constants are evaluated using exact arithmetic (BigRational)
 	 */
-	private Values evaluateSomeOrAllConstants(Values someValues, Values otherValues, boolean all) throws PrismLangException
+	private Values evaluateSomeOrAllConstants(Values someValues, Values otherValues, boolean all, boolean exact) throws PrismLangException
 	{
 		ConstantList cl;
 		Expression e;
@@ -322,8 +326,23 @@ public class ConstantList extends ASTElement
 		// Evaluate constants and store in new Values object (again, ignoring 'otherValues' ones)		
 		allValues = new Values();
 		for (i = 0; i < numToEvaluate; i++) {
-			if (cl.getConstant(i) != null) {
-				val = cl.getConstant(i).evaluate(null, otherValues);
+			Expression constant = cl.getConstant(i);
+			if (constant != null) {
+				if (exact) {
+					BigRational r = constant.evaluateExact(null, otherValues);
+					// handle differently, depending on constant type
+					if (constant.getType() instanceof TypeDouble) {
+						// we keep as BigRational for TypeDouble
+						val = r;
+					} else {
+						// we convert to Java int / boolean for TypeInt and TypeBool
+						// Note: throws exception if value can't be precisely represented
+						// using the corresponding Java data type
+						val = constant.getType().castFromBigRational(r);
+					}
+				} else {
+					val = constant.evaluate(null, otherValues);
+				}
 				allValues.addValue(cl.getConstantName(i), val);
 			}
 		}

@@ -1608,7 +1608,8 @@ public class SimulatorEngine extends PrismComponent
 		for (int i = 0; i < n; i++) {
 			definedPFConstants = undefinedConstants.getPFConstantValues();
 			pfcs[i] = definedPFConstants;
-			propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+			// for simulation, use non-exact constant evaluation
+			propertiesFile.setSomeUndefinedConstants(definedPFConstants, false);
 			try {
 				checkPropertyForSimulation(expr);
 				indices[i] = addProperty(expr, propertiesFile);
