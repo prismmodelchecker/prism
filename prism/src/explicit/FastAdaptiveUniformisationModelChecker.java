@@ -238,7 +238,7 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 			throw new PrismNotSupportedException("Currently only instantaneous or cumulative rewards are allowed.");
 		}
 		double time = temporal.getUpperBound().evaluateDouble(constantValues);
-		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);
+		RewardStruct rewStruct = modulesFile.getRewardStruct(expr.getRewardStructIndexByIndexObject(modulesFile.getRewardStructNames(), constantValues));
 		fau.setRewardStruct(rewStruct);
 		fau.setConstantValues(constantValues);
 		fau.computeTransientProbsAdaptive(time);

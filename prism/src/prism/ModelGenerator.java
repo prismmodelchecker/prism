@@ -160,33 +160,4 @@ public interface ModelGenerator extends ModelInfo
 		// No labels by default
 		throw new PrismException("Label number \"" + i + "\" not defined");
 	}
-	
-	/**
-	 * Get the state reward of the {@code r}th reward structure for state {@code state}
-	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * @param r The index of the reward structure to use
-	 * @param state The state in which to evaluate the rewards 
-	 */
-	public default double getStateReward(int r, State state) throws PrismException
-	{
-		// Default reward to 0 (no reward structures by default anyway)
-		return 0.0;
-	}
-
-	
-	/**
-	 * Get the state-action reward of the {@code r}th reward structure for state {@code state} and action {@code action}
-	 * ({@code r} is indexed from 0, not from 1 like at the user (property language) level).
-	 * If a reward structure has no transition rewards, you can indicate this by implementing
-	 * the method {@link #rewardStructHasTransitionRewards(int)}, which may improve efficiency
-	 * and/or allow use of algorithms/implementations that do not support transition rewards rewards.
-	 * @param r The index of the reward structure to use
-	 * @param state The state in which to evaluate the rewards 
-	 * @param action The outgoing action label 
-	 */
-	public default double getStateActionReward(int r, State state, Object action) throws PrismException
-	{
-		// Default reward to 0 (no reward structures by default anyway)
-		return 0.0;
-	}
 }

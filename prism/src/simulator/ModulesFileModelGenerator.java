@@ -16,8 +16,9 @@ import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.RewardGenerator;
 
-public class ModulesFileModelGenerator implements ModelGenerator
+public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerator
 {
 	// Parent PrismComponent (logs, settings etc.)
 	protected PrismComponent parent;
@@ -187,30 +188,6 @@ public class ModulesFileModelGenerator implements ModelGenerator
 	}
 	
 	@Override
-	public int getNumRewardStructs()
-	{
-		return modulesFile.getNumRewardStructs();
-	}
-	
-	@Override
-	public List<String> getRewardStructNames()
-	{
-		return modulesFile.getRewardStructNames();
-	}
-	
-	@Override
-	public int getRewardStructIndex(String name)
-	{
-		return modulesFile.getRewardStructIndex(name);
-	}
-	
-	@Override
-	public RewardStruct getRewardStruct(int i)
-	{
-		return modulesFile.getRewardStruct(i);
-	}
-
-	@Override
 	public VarList createVarList()
 	{
 		return varList;
@@ -332,6 +309,26 @@ public class ModulesFileModelGenerator implements ModelGenerator
 		return expr.evaluateBoolean(exploreState);
 	}
 	
+	// Methods for RewardGenerator interface
+
+	@Override
+	public List<String> getRewardStructNames()
+	{
+		return modulesFile.getRewardStructNames();
+	}
+	
+	@Override
+	public boolean rewardStructHasStateRewards(int i)
+	{
+		return modulesFile.rewardStructHasStateRewards(i);
+	}
+	
+	@Override
+	public boolean rewardStructHasTransitionRewards(int i)
+	{
+		return modulesFile.rewardStructHasTransitionRewards(i);
+	}
+	
 	@Override
 	public double getStateReward(int r, State state) throws PrismException
 	{
@@ -374,13 +371,7 @@ public class ModulesFileModelGenerator implements ModelGenerator
 		}
 		return d;
 	}
-	
-	//@Override
-	public void calculateStateRewards(State state, double[] store) throws PrismLangException
-	{
-		updater.calculateStateRewards(state, store);
-	}
-	
+
 	// Local utility methods
 	
 	/**
@@ -394,11 +385,5 @@ public class ModulesFileModelGenerator implements ModelGenerator
 			transitionListBuilt = true;
 		}
 		return transitionList;
-	}
-
-	@Override
-	public boolean rewardStructHasTransitionRewards(int i)
-	{
-		return modulesFile.rewardStructHasTransitionRewards(i);
 	}
 }

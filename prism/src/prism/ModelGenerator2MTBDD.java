@@ -48,8 +48,9 @@ public class ModelGenerator2MTBDD
 	private Prism prism;
 	private PrismLog mainLog;
 
-	// Source model generator
+	// Source model generators
 	private ModelGenerator modelGen;
+	private RewardGenerator rewardGen;
 
 	// Model info
 	private ModelType modelType;
@@ -111,16 +112,17 @@ public class ModelGenerator2MTBDD
 	/**
 	 * Build a Model corresponding to the passed in model generator.
 	 */
-	public Model build(ModelGenerator modelGen) throws PrismException
+	public Model build(ModelGenerator modelGen, RewardGenerator rewardGen) throws PrismException
 	{
 		this.modelGen = modelGen;
+		this.rewardGen = rewardGen;
 		modelType = modelGen.getModelType();
 		varList = modelGen.createVarList();
 		numLabels = modelGen.getNumLabels();
 		numVars = varList.getNumVars();
 		modelVariables = new ModelVariablesDD();
-		numRewardStructs = modelGen.getNumRewardStructs();
-		rewardStructNames = modelGen.getRewardStructNames().toArray(new String[0]);
+		numRewardStructs = rewardGen.getNumRewardStructs();
+		rewardStructNames = rewardGen.getRewardStructNames().toArray(new String[0]);
 		return buildModel();
 	}
 
@@ -497,7 +499,7 @@ public class ModelGenerator2MTBDD
 
 					// Add action rewards
 					for (int r = 0; r < numRewardStructs; r++) {
-						double tr = modelGen.getStateActionReward(r, state, o);
+						double tr = rewardGen.getStateActionReward(r, state, o);
 						transRewardsArray[r] = JDD.Apply(JDD.PLUS, transRewardsArray[r], JDD.Apply(JDD.TIMES, JDD.Constant(tr), elem.copy()));
 					}
 					
@@ -518,7 +520,7 @@ public class ModelGenerator2MTBDD
 			
 			// Add state rewards
 			for (int r = 0; r < numRewardStructs; r++) {
-				double sr = modelGen.getStateReward(r, state);
+				double sr = rewardGen.getStateReward(r, state);
 				stateRewardsArray[r] = JDD.Apply(JDD.PLUS, stateRewardsArray[r], JDD.Apply(JDD.TIMES, JDD.Constant(sr), ddState.copy()));
 			}
 			

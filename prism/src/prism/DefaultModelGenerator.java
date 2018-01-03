@@ -28,10 +28,10 @@
 package prism;
 
 /**
- * Default implementation of the {@link ModelGenerator} interface.
- * Basically redundant since that interface now has default method implementations.
+ * Default implementation of the {@link ModelGenerator} and {@link RewardGenerator} interfaces.
+ * Basically redundant since these interfaces now have default method implementations.
  * Retained just for backwards compatibility.
  */
-public abstract class DefaultModelGenerator implements ModelGenerator
+public abstract class DefaultModelGenerator implements ModelGenerator, RewardGenerator
 {
 }

@@ -260,6 +260,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private ModulesFile currentModulesFile = null;
 	// Model generator (null if none loaded)
 	private ModelGenerator currentModelGenerator = null;
+	// Reward generator (null if none loaded)
+	private RewardGenerator currentRewardGenerator = null;
 	// Constants to be defined for PRISM model
 	private Values currentDefinedMFConstants = null;
 	// Was currentDefinedMFConstants evaluated exactly?
@@ -1751,6 +1753,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Create a model generator for the PRISM model if appropriate - we will use that where possible
 		if (currentModulesFile.getModelType() != ModelType.PTA && currentModulesFile.getSystemDefn() == null) {
 			currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
+			currentRewardGenerator = ((ModulesFileModelGenerator) currentModelGenerator);
+		} else {
+			currentModelGenerator = null;
+			currentRewardGenerator = modulesFile;
 		}
 		// Clear any existing built model(s)
 		clearBuiltModel();
@@ -1797,6 +1803,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		currentModelSource = ModelSource.MODEL_GENERATOR;
 		// Store model generator
 		currentModelGenerator = modelGen;
+		if (modelGen instanceof RewardGenerator) {
+			currentRewardGenerator = (RewardGenerator) modelGen;
+		} else {
+			currentRewardGenerator = new RewardGenerator() {};
+		}
 		// Clear any existing built model(s)
 		clearBuiltModel();
 		// Reset dependent info
@@ -1922,6 +1933,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Construct ModulesFile
 		ExplicitFiles2ModulesFile ef2mf = new ExplicitFiles2ModulesFile(this);
 		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, stateRewardsFile, typeOverride);
+		currentRewardGenerator = currentModulesFile;
 		// Store explicit files info for later
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
@@ -2061,7 +2073,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					throw new PrismException("There is no currently loaded model generator to build");
 				if (!getExplicit()) {
 					ModelGenerator2MTBDD modelGen2mtbdd = new ModelGenerator2MTBDD(this);
-					currentModel = modelGen2mtbdd.build(currentModelGenerator);
+					currentModel = modelGen2mtbdd.build(currentModelGenerator, currentRewardGenerator);
 					currentModelExpl = null;
 				} else {
 					ConstructModel constructModel = new ConstructModel(this);
@@ -2416,7 +2428,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		int numRewardStructs = currentModelInfo.getNumRewardStructs();
+		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
 		if (numRewardStructs == 0) {
 			mainLog.println("\nOmitting state reward export as there are no reward structures");
 			return;
@@ -2475,7 +2487,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void exportTransRewardsToFile(boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		int numRewardStructs = currentModelInfo.getNumRewardStructs();
+		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
 		if (numRewardStructs == 0) {
 			mainLog.println("\nOmitting transition reward export as there are no reward structures");
 			return;
@@ -3844,7 +3856,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		// Create model checker
 		explicit.StateModelChecker mc = explicit.StateModelChecker.createModelChecker(currentModelType, this);
-		mc.setModulesFileAndPropertiesFile(currentModelInfo, propertiesFile, currentModelGenerator);
+		mc.setModelCheckingInfo(currentModelInfo, propertiesFile, currentRewardGenerator);
 		// Pass any additional local settings
 		mc.setExportTarget(exportTarget);
 		mc.setExportTargetFilename(exportTargetFilename);
