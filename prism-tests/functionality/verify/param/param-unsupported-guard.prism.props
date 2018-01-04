@@ -1,0 +1,3 @@
+// RESULT(p=0.5): 1        ; for concrete constants, everything is fine
+// RESULT: Error           ; unsupported for parametric
+P=?[ F s=1 ]

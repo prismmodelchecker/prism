@@ -1,0 +1,23 @@
+mdp
+
+module m
+	s : [0..2];
+
+	[a] s=0 -> (s'=1);
+	[] s=1 -> (s'=1);
+	[b] s=1 -> (s'=2);
+	[] s=2 -> (s'=2);
+
+endmodule
+
+rewards "R1"
+	[a] s=0 : 1;
+	[b] s=1 : 2;
+endrewards
+
+rewards "R2"
+	[a] s=0 : 2;
+	[b] s=1 : 1;
+endrewards
+
+

@@ -1,0 +1,6 @@
+	// Use GS because Jacobi converges v slowly
+	
+	// RESULT: 0.16524722795153043
+	S=? [ na=2 ];
+	// RESULT: 8.535277424128644
+	R=? [ S ];

@@ -1,0 +1,8 @@
+// RESULT: 1
+Pmax=? [ (!"WayPoint7" U "WayPoint14") ]
+
+// RESULT: 61
+R{"time"}min=? [ (!"WayPoint7" U "WayPoint14") ]
+
+// RESULT: Infinity
+R{"time"}min=? [ (!"WayPoint10" U "WayPoint14") ]

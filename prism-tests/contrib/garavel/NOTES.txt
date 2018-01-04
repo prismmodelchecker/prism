@@ -1,0 +1,4 @@
+Some tests contributed by Hubert Garavel.
+(Also by Alexander Graf-Brioll and their students)
+DTMC examples + variations on the dice example.
+Derived from the "Applied Concurrency Theory" lecture given in Saarland.

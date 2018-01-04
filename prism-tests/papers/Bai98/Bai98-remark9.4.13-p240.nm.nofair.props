@@ -1,0 +1,4 @@
+	// RESULT: 0
+	Pmin=? [ (X "b") => (G "a") ];
+	// RESULT: 1
+	Pmax=? [ (X "b") => (G "a") ];

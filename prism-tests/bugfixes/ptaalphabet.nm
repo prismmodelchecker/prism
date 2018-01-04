@@ -1,0 +1,14 @@
+// dtmc // Pmax =? [ F seenA ] = 0.0 Pmax =? [ F seenB ] = 0.0
+pta // Pmax =? [ F seenA ] = 1.0 Pmax =? [ F seenB ] = 0.0
+
+module AA
+seenA: bool init false;
+
+[fire] true -> (seenA'=true);
+endmodule
+
+module BB
+seenB: bool init false;
+
+[fire] false -> (seenB'=true);
+endmodule

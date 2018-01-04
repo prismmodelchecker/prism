@@ -1,0 +1,6 @@
+	// RESULT: 0.864664716763387 (1-e^-2)
+	filter(first, P=? [ "a" U<=2 "b" ], x=1);
+	// RESULT: ?
+	"phi": ("a" & "b") | P<=0.8 [ "a" U<=2 "b" ];
+	// RESULT: true
+	filter(forall, "phi" <=> (x=0 | x=3));

@@ -1,0 +1,3 @@
+-exportadv advgenexplicit.nm.props.adv.tra -ex
+-exportadv advgenexplicit.nm.props.adv.tra -nopre -ex
+-exportadv advgenexplicit.nm.props.adv.tra -nopre

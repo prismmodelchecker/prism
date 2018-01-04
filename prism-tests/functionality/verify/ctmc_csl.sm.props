@@ -1,0 +1,53 @@
+	// RESULT: 1
+	P=? [ F "premium" ];
+	
+	// RESULT: 2.575834331129808E-9
+	P=? [ F<=0.2 !"minimum" ];
+	
+	// RESULT: 2.587821746795989E-7
+	P=? [ F<=2 !"minimum" ];
+	
+	// RESULT: 1.3126420636755083E-5
+	P=? [ F<=20 !"minimum" ];
+	
+	// RESULT: 1.7751335826903441E-4
+	P=? [ F<=200 !"minimum" ];
+	
+	// RESULT: 0.0018221051490216614
+	P=? [ F<=2000 !"minimum" ];
+	
+	// RESULT: 0.9999999635780142
+	P=? [ F[0.3,0.3] !"minimum"  {!"minimum"}{max} ];
+	
+	// RESULT: 0.9933696967082797
+	P=? [ F[3,3] !"minimum"  {!"minimum"}{max} ];
+	
+	// RESULT: 0.10124016421845902
+	P=? [ F[30,30] !"minimum"  {!"minimum"}{max} ];
+	
+	// RESULT: 0.0011006375189713275
+	P=? [ F<=0.2 "premium" {"minimum"}{min} ];
+	
+	// RESULT: 0.08472606264690494
+	P=? [ F<=2 "premium" {"minimum"}{min} ];
+	
+	// RESULT: 0.8656869444157752
+	P=? [ F<=20 "premium" {"minimum"}{min} ];
+	
+	// RESULT: 0.02716568936043944
+	P=? [ "minimum" U<=1 "premium" {"minimum"}{min} ];
+	
+	// RESULT: 0.7528670508736512
+	P=? [ !"minimum" U>=10 "minimum" {!"minimum"}{max} ];
+	
+	// RESULT: 99.87733171389172
+	R{"percent_op"}=?[ I=10 ];
+
+	// RESULT: 0.003662017006365601
+	R{"time_not_min"}=?[ C<=1000 ];
+	
+	// RESULT: 0.007787151838390689
+	R{"num_repairs"}=?[ C<=1 ];
+	
+	// RESULT: 0.1539570981244814
+	R{"num_repairs"}=?[ C<=10 ];

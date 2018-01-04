@@ -1,0 +1,40 @@
+mdp
+
+module m
+	s : [0..2];
+	p : [0..2];
+
+	[a] s=0 -> 0.4 : (s'=1) & (p'=0) + 0.6 : (s'=1) & (p'=1);
+	[b] s=0 -> 0.5 : (s'=1) & (p'=1) + 0.5 : (s'=1) & (p'=2);
+	[c] s=0 -> 0.8 : (s'=1) & (p'=2) + 0.2 : (s'=1) & (p'=0);
+	[] s>0 -> true;
+
+endmodule
+
+rewards "R1"
+
+	[a] s=0 : 1;
+	[b] s=0 : 2;
+	[c] s=0 : 3;
+
+endrewards
+
+rewards "R2"
+
+        [a] s=0 : 1;
+        [b] s=0 : 1;
+        [c] s=0 : 1;
+
+endrewards
+
+
+rewards "R3"
+
+        [a] s=0 : 3;
+        [b] s=0 : 2;
+        [c] s=0 : 1;
+
+endrewards
+
+
+

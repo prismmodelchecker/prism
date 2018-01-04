@@ -1,0 +1,32 @@
+// RESULT: 0.12  //  = 1/10 * (1+(0.8*0+0.1*1+0.1*1))
+R=? [ (F "goal1") | (F "goal2") ]
+
+// RESULT: 0.12
+R=? [ X F ("goal1" | "goal2") ]
+
+// RESULT: 0.12
+R=? [ F X ("goal1" | "goal2") ]
+
+// RESULT: 0.2
+R=? [ X X ("goal1" | "goal2") ]
+
+// RESULT: Infinity
+R=? [ X X "goal2" ]
+
+// RESULT: 118/900
+R=? [ F "goal2" ]
+
+// RESULT: 118/900
+R=? [ (F "goal2") ]
+
+// RESULT: 118/900
+R=? [ s!=3 U "goal2" ]
+
+// RESULT: Error:co-safe
+R=? [ F G "goal1" ]
+
+// RESULT: Error:co-safe
+R=? [ F G "goal1" ]
+
+// RESULT: Error:co-safe
+R=? [ (G !"hazard")&(G F "goal1") ]

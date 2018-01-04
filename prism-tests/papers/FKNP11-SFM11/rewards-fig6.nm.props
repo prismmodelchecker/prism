@@ -1,0 +1,7 @@
+// sec 5.1
+// RESULT: 2
+Rmax=? [ I=3 ]
+
+// sec 5.2
+// RESULT: 5
+Rmin=? [ C<=3 ]

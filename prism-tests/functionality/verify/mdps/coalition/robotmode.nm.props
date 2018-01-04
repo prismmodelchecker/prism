@@ -1,0 +1,148 @@
+// RESULT: 0
+Pmin=? [ F "goal1" ]
+// RESULT: 0.55
+Pmax=? [ F "goal1" ]
+// RESULT: true
+P>=0 [ F "goal1" ]
+// RESULT: false
+P>0 [ F "goal1" ]
+// RESULT: false
+P<0.5 [ F "goal1" ]
+// RESULT: true
+P<0.6 [ F "goal1" ]
+// RESULT: false
+P>0.6 [ F "goal1" ]
+// RESULT: 0
+Pmin=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: 0.1
+Pmax=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+P>=0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+P>0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+P<0.05 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+P<0.15 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+P>0.15 [ (G !"hazard")&(G F "goal1") ]
+
+// RESULT: 0
+[[*]] Pmin=? [ F "goal1" ]
+// RESULT: 0.55
+[[*]] Pmax=? [ F "goal1" ]
+// RESULT: true
+[[*]] P>=0 [ F "goal1" ]
+// RESULT: false
+[[*]] P>0 [ F "goal1" ]
+// RESULT: false
+[[*]] P<0.5 [ F "goal1" ]
+// RESULT: true
+[[*]] P<0.6 [ F "goal1" ]
+// RESULT: false
+[[*]] P>0.6 [ F "goal1" ]
+// RESULT: 0
+[[*]] Pmin=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: 0.1
+[[*]] Pmax=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[*]] P>=0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[*]] P>0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[*]] P<0.05 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[*]] P<0.15 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[*]] P>0.15 [ (G !"hazard")&(G F "goal1") ]
+
+// RESULT: 0
+<<*>> Pmin=? [ F "goal1" ]
+// RESULT: 0.55
+<<*>> Pmax=? [ F "goal1" ]
+// RESULT: true
+<<*>> P>=0 [ F "goal1" ]
+// RESULT: true
+<<*>> P>0 [ F "goal1" ]
+// RESULT: true
+<<*>> P<0.5 [ F "goal1" ]
+// RESULT: true
+<<*>> P<0.6 [ F "goal1" ]
+// RESULT: false
+<<*>> P>0.6 [ F "goal1" ]
+// RESULT: 0
+<<*>> Pmin=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: 0.1
+<<*>> Pmax=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+<<*>> P>=0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+<<*>> P>0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+<<*>> P<0.05 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+<<*>> P<0.15 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+<<*>> P>0.15 [ (G !"hazard")&(G F "goal1") ]
+
+// 1 player so <<*>> == [[]]
+
+// RESULT: 0
+[[]] Pmin=? [ F "goal1" ]
+// RESULT: 0.55
+[[]] Pmax=? [ F "goal1" ]
+// RESULT: true
+[[]] P>=0 [ F "goal1" ]
+// RESULT: true
+[[]] P>0 [ F "goal1" ]
+// RESULT: true
+[[]] P<0.5 [ F "goal1" ]
+// RESULT: true
+[[]] P<0.6 [ F "goal1" ]
+// RESULT: false
+[[]] P>0.6 [ F "goal1" ]
+// RESULT: 0
+[[]] Pmin=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: 0.1
+[[]] Pmax=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[]] P>=0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[]] P>0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[]] P<0.05 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[]] P<0.15 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[]] P>0.15 [ (G !"hazard")&(G F "goal1") ]
+
+// 1 player so [[*]] == <<>>
+
+// RESULT: 0
+[[*]] Pmin=? [ F "goal1" ]
+// RESULT: 0.55
+[[*]] Pmax=? [ F "goal1" ]
+// RESULT: true
+[[*]] P>=0 [ F "goal1" ]
+// RESULT: false
+[[*]] P>0 [ F "goal1" ]
+// RESULT: false
+[[*]] P<0.5 [ F "goal1" ]
+// RESULT: true
+[[*]] P<0.6 [ F "goal1" ]
+// RESULT: false
+[[*]] P>0.6 [ F "goal1" ]
+// RESULT: 0
+[[*]] Pmin=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: 0.1
+[[*]] Pmax=? [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[*]] P>=0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[*]] P>0 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[*]] P<0.05 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: true
+[[*]] P<0.15 [ (G !"hazard")&(G F "goal1") ]
+// RESULT: false
+[[*]] P>0.15 [ (G !"hazard")&(G F "goal1") ]

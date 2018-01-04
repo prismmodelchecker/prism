@@ -1,0 +1,6 @@
+# parametric model checking
+-param p -const z=0.5
+# exact model checking, run experiment for 0.1,0.2,...,0.9
+-exact -const p=0.1:0.1:0.9,z=0.5
+# standard model checking, run experiment for 0.1,0.2,...,0.9
+-const p=0.1:0.1:0.9,z=0.5

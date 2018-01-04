@@ -1,0 +1,57 @@
+// Example to check steady-state probability computation
+// on a CTMC comprising multiple bottom strongly connected components
+
+// Na + Cl <--> Na+ + Cl- 
+// dxp/gxn 09/06/04
+
+// ctmc model
+ctmc
+
+// constants
+const int N1=10; // number of Na molecules
+const int N2=N1; // number of Cl molecules
+
+// base rates
+const double e1rate = 100; // Na + Cl -> Na+ + Cl-
+const double e2rate = 10; // Na+ + Cl- -> Na + Cl
+
+// module representing the base rates of reactions
+module base_rates
+	
+	dummy : bool; // dummy variable
+	
+	[e1] true -> e1rate : true;
+	[e2] true -> e2rate : true;
+	
+endmodule
+
+// Na and Na+ module
+module na
+	
+	na : [0..N1+1] init 6;
+	// total number of Na and Na+ molecules is fixed at N1
+	// na is the number of Na molecules 
+	// therefore N1-na gives the number of Na+ molecules
+	
+	[] na=N1 & cl=N2 -> (na'=N1+1);
+	[e1] na>0  ->     na  : (na'=na-1);
+	[e2] na<N1-2 -> (N1-na) : (na'=na+1);
+	
+endmodule
+
+// Cl and Cl- module
+module cl
+	
+	cl : [0..N2] init N1;
+	// total number of Cl and Cl- molecules is fixed at N2
+	// cl is the number of Cl molecules 
+	// therefore N2-cl is the number of Cl- molecules
+	
+	[e1] cl>0  ->     cl  : (cl'=cl-1);
+	[e2] cl<N2 -> (N2-cl) : (cl'=cl+1);
+	
+endmodule
+
+rewards
+	true : 100*(na/N1);
+endrewards

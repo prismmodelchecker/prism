@@ -1,0 +1,5 @@
+// RESULT: 11/3
+R=? [ F s=7 ]
+
+// RESULT: Infinity
+R=? [ F d=6 ]

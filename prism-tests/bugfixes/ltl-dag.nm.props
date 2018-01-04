@@ -1,0 +1,12 @@
+// bugfix: SimpleLTL.simplify() requires that the formula is a tree, i.e., no sharing of subtrees.
+// Fix (SVN rev: 10894) ensures that SimpleLTL is a tree (regression due to rev 10565).
+// Without the fix, the Pmin formula has result 1.0.
+//
+// Model: two_dice.nm
+
+// RESULT: 0.0
+Pmax=?[ (X (s1=7)) | (X (X s1=7)) ]
+
+// RESULT: 0.0
+Pmin=?[ (X (s1=7)) | (X (X s1=7)) ]
+

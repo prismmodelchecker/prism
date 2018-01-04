@@ -1,0 +1,41 @@
+// Bug fix test for: https://github.com/prismmodelchecker/prism/issues/15
+
+// Lane change mdp.
+
+mdp
+
+// Repair variable p is the probability of staying in the same
+// state even after giving a turn signal.
+const double p;
+
+// States/actions.
+module lanechange
+        state : [1..4] init 1;
+
+	// 1: Init lane change.
+	[drive] (state=1) -> (state'=1);
+	[turn] (state=1) -> (state'=2);
+
+	// 2: Do lane change.
+	[drive] (state=2) -> (state'=2);
+	[turn] (state=2) -> p: (state'=2) + (1-p): (state'=4);
+	[abort] (state=2) -> (state'=3);
+
+	// 3: Abort lane change.
+	[] (state=3) -> true;
+
+	// 4: In new lane.
+	[] (state=4) -> true;
+endmodule
+
+// Reward, associated with the states.
+rewards
+	state=1 : 0.2;
+	state=2 : 0.3;
+	state=3 : 0.05;
+	state=4 : 0.1;
+endrewards
+
+// Labels.
+label "changed" = state=4;
+label "abandoned" = state=3;

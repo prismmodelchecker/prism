@@ -1,0 +1,18 @@
+// Bug fixed in svn rev 11061
+// Value iteration multi-objective was removing self-loops
+// in situations where it should not be
+
+mdp
+
+module m
+	s : [0..1];
+
+	[] s=0 -> (s'=0);
+	[a] s=0 -> (s'=1);
+	[] s=1 -> (s'=1);
+
+endmodule
+
+rewards "R1"
+	[a] s=0 : 2;
+endrewards

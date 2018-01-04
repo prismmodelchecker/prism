@@ -1,0 +1,124 @@
+// RESULT: 0.0
+R{"a"}=? [ s>=0 ];
+
+// RESULT: 0.0
+R{"a"}=? [ true ];
+
+// RESULT: 0.0
+R{"a"}=? [ !false ];
+
+// RESULT: 0.0
+R{"a"}=? [ s>0 | s=0 ];
+
+// RESULT: 0.0
+R{"a"}=? [ s=0 ];
+
+// RESULT: 0.0
+R{"a"}=? [ F s=0 ];
+
+// RESULT: 3.4
+R{"a"}=? [ F s=1 ];
+
+// RESULT: 3+2/5+7+5/7
+R{"a"}=? [ F s=2 ];
+
+// RESULT: 3+2/5+7+5/7+1
+R{"a"}=? [ F s=3 ];
+
+// RESULT: 3.4
+R{"a"}=? [ X s>=0 ];
+
+// RESULT: 3.4
+R{"a"}=? [ X true ];
+
+// RESULT: Infinity
+R{"a"}=? [ ! (X true) ];
+
+// RESULT: 3.4
+R{"a"}=? [ ! (X false) ];
+
+// RESULT: 3+2/5+7+5/7
+R{"a"}=? [ X X s>=0 ];
+
+// RESULT: 3+2/5+7+5/7
+R{"a"}=? [ X X true ];
+
+// RESULT: 3+2/5+7+5/7+1
+R{"a"}=? [ X X X s>=0 ];
+
+// RESULT: 3+2/5+7+5/7+1
+R{"a"}=? [ X X X true ];
+
+// RESULT: 3+2/5+7+5/7+1
+R{"a"}=? [ X X X (true ? true : s>=0) ];
+
+// RESULT: 3+2/5+7+5/7+1
+R{"a"}=? [ X X X (false ? true : s>=0) ];
+
+// RESULT: Infinity
+R{"a"}=? [ X X X false ];
+
+
+
+// as above, but with only with state rewards
+
+// RESULT: 0.0
+R{"a_state"}=? [ s>=0 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ true ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ !false ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ s>0 | s=0 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ s=0 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ F s=0 ];
+
+// RESULT: 0.4
+R{"a_state"}=? [ F s=1 ];
+
+// RESULT: 2/5+5/7
+R{"a_state"}=? [ F s=2 ];
+
+// RESULT: 2/5+5/7+1
+R{"a_state"}=? [ F s=3 ];
+
+// RESULT: 0.4
+R{"a_state"}=? [ X s>=0 ];
+
+// RESULT: 0.4
+R{"a_state"}=? [ X true ];
+
+// RESULT: Infinity
+R{"a_state"}=? [ ! (X true) ];
+
+// RESULT: 0.4
+R{"a_state"}=? [ ! (X false) ];
+
+// RESULT: 2/5+5/7
+R{"a_state"}=? [ X X s>=0 ];
+
+// RESULT: 2/5+5/7
+R{"a_state"}=? [ X X true ];
+
+// RESULT: 2/5+5/7+1
+R{"a_state"}=? [ X X X s>=0 ];
+
+// RESULT: 2/5+5/7+1
+R{"a_state"}=? [ X X X true ];
+
+// RESULT: 2/5+5/7+1
+R{"a_state"}=? [ X X X (true ? true : s>=0) ];
+
+// RESULT: 2/5+5/7+1
+R{"a_state"}=? [ X X X (false ? true : s>=0) ];
+
+// RESULT: Infinity
+R{"a_state"}=? [ X X X false ];
+

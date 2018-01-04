@@ -1,0 +1,5 @@
+-ptamethod games
+-ptamethod digital
+-ptamethod backwards
+-mdp
+-mdp -ex

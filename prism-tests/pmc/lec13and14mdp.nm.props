@@ -1,0 +1,14 @@
+	// RESULT: 2/3
+	Pmin=? [ F "a" ];
+	// RESULT: 14/15
+	Pmin=? [ F "a" {s=1} ];
+	// RESULT: 1
+	Pmax=? [ F "a" ];
+	// RESULT: 1
+	Pmax=? [ F "a" {s=1} ];
+	// RESULT: true
+	filter(forall, P>0.5 [ F "a" ] <=> (s=0|s=1|s=2));
+	// RESULT: true
+	filter(forall, P<0.1 [ F "a" ] <=> false);
+	// RESULT: true
+	filter(forall, P>0 [ F "a" ] <=> (s=0|s=1|s=2));

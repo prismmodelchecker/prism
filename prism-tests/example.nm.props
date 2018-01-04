@@ -1,0 +1,13 @@
+// Example properties to illustrate regression tests
+
+// RESULT: 0.5
+Pmax=? [ F s=2 ];
+
+// RESULT: true
+P<0.6 [ F s=2 ];
+
+// RESULT: 2
+ceil(Pmax=? [ F s=2 ]) + 1;
+
+// RESULT: Error
+Pmax=? [ F<=(-1) s=2 ];

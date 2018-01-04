@@ -1,0 +1,44 @@
+// Parallel composition of two PAs M_1/M_2 and DFA A_G^err (see Figure 16, p.46)
+
+mdp
+
+// M_1
+module M1
+
+	// s=i for state s_i
+	s : [0..3] init 0;
+
+	[detect]   s=0 -> 0.8:(s'=1) + 0.2:(s'=2);
+	[warn]     s=1 -> (s'=2);
+	[shutdown] s=2 -> (s'=3);
+	[off]      s=3 -> true;
+
+endmodule
+
+// M_2
+module M2
+
+	t : [0..3] init 0;
+
+	[warn]     t=0 -> (t'=1);
+	[shutdown] t=0 -> 0.9:(t'=2) + 0.1:(t'=3);
+	[shutdown] t=1 -> (t'=2);
+	[off]      t=2 -> true;
+	[fail]     t=3 -> true;
+	
+endmodule
+
+// DFA A_G^err for safety property Phi_G ("never fail")
+module A_G_err
+
+	// q=i for state q_i
+	q : [3..4] init 3;
+
+	[fail] q=3 -> (q'=4);
+
+	[fail] q=4 -> true;
+	
+endmodule
+
+// Accepting states for A_G^err
+label "A_G_err_acc" = q=4;
