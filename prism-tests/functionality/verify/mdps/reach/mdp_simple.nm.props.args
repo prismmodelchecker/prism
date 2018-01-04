@@ -1,0 +1,7 @@
+-s
+-m
+-h
+-ex -valiter
+-ex -gs
+-ex -politer
+-ex -modpoliter

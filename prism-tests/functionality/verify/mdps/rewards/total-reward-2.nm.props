@@ -1,0 +1,29 @@
+// RESULT: Infinity
+R{"steps"}max=?[ C ]
+
+// RESULT: Infinity
+R{"s0"}max=?[ C ]
+
+
+// RESULT: 3
+R{"s0_a"}max=?[ C ]
+
+// RESULT: 3
+multi(R{"s0_a"}max=?[ C ])
+
+// RESULT: Infinity
+R{"s0_a"}max=?[ F s=1 ]
+
+// RESULT: Infinity
+R{"s0_a"}max=?[ F (s=1 | s=2) ]
+
+
+// RESULT: Infinity
+R{"s0_b"}max=?[ C ]
+
+
+// RESULT: Infinity
+R{"s1"}max=?[ C ]
+
+// RESULT: 0
+filter(state, R{"s1"}max=?[ C ], s=2)

@@ -1,0 +1,99 @@
+// Bug fixed in svn rev 11059
+// Value iteration multi-objective Pareto generation was using wrong direction vector in some cases
+
+
+mdp
+
+const double pse = 0.2;
+const double pusb = 0.6;
+const double prav = 0.7;
+const double pef = 0.75;
+const double prc = 0.85;
+
+//player a
+//attacker, [doAttackSE], [dontDoAttackSE], [doAttackUSB], [dontDoAttackUSB],
+//[doAttackEF], [dontDoAttackEF],
+//[prob_SE_OR_USB], [prob_NRAV], [prob_NRC_AND_EF],
+//[succeed] , [fail]
+//endplayer
+
+//player d
+//[doDefenceRAV], [dontDoDefenceRAV], [doDefenceRC], [dontDoDefenceRC]
+//endplayer
+
+module attacker
+
+s:[0..8];
+
+doSE : bool init false;
+doUSB : bool init false;
+doRAV : bool init false;
+doRC : bool init false;
+doEF : bool init false;
+
+//subtree t_SU = SE_OR_USB
+success_t_SU : bool init false;
+//subtree t_VF = SE_OR_USB_AND_NRAV
+success_t_VF : bool init false;
+//whole tree
+success_Root : bool init false;
+
+//nondeterministic transactions of sub-tree SE_OR_USB
+[doAttackSE_USB] s=0 -> (s'=1)&(doSE'=true)&(doUSB'=true);
+[doAttackSE] s=0 -> (s'=1)&(doSE'=true);
+[doAttackUSB] s=0 -> (s'=1)&(doUSB'=true);
+[dontDoAttackSE_USB] s=0 -> (s'=1);
+
+
+//probabilistic transactions of sub-tree SE_OR_USB (t_SU)
+[prob_SE_OR_USB] s=1 & doSE=true & doUSB=true -> 1-(1-pse)*(1-pusb):(s'=2)&(success_t_SU'=true) + (1-pse)*(1-pusb):(s'=2)&(success_t_SU'=false);
+[prob_SE_OR_USB] s=1 & doSE=true & doUSB=false -> pse:(s'=2)&(success_t_SU'=true) + (1-pse):(s'=2)&(success_t_SU'=false);
+[prob_SE_OR_USB] s=1 & doSE=false & doUSB=true -> pusb:(s'=2)&(success_t_SU'=true) + (1-pusb):(s'=2)&(success_t_SU'=false);
+[prob_SE_OR_USB] s=1 & doSE=false & doUSB=false -> (s'=2)&(success_t_SU'=false);
+
+//nondeterministic transactions of sub-tree NEG_RAV
+[doDefenceRAV] s=2 ->(s'=3)&(doRAV'=true);
+//[dontDoDefenceRAV] s=2 -> (s'=3);
+
+//probabilistic transactions of sub-tree NEG_RAV (t_VF)
+[prob_NRAV] s=3 & success_t_SU=true & doRAV=true -> (1-prav):(s'=4)&(success_t_VF'=true) + prav:(s'=4)&(success_t_VF'=false);
+[prob_NRAV] s=3 & success_t_SU=true & doRAV=false -> (s'=4)&(success_t_VF'=true);
+[prob_NRAV] s=3 & success_t_SU=false  -> (s'=4)&(success_t_VF'=false);
+
+//nondeterministic transactions of sub-tree EF_AND_NEG_RC
+[doDefenceRC] s=4 -> (s'=5)&(doRC'=true);
+//[dontDoDefenceRC] s=4 -> (s'=5)&(doRC'=false);
+
+[doAttackEF] s=5 -> (s'=6)&(doEF'=true);
+[dontDoAttackEF] s=5 -> (s'=6)&(doEF'=false);
+
+//probabilistic transactions of sub-tree EF_AND_NEG_RC
+[prob_NRC_AND_EF] s=6 & success_t_VF=true & doRC=true & doEF=true -> pef*(1-prc):(s'=7)&(success_Root'=true) + 1-pef*(1-prc):(s'=7)&(success_Root'=false);
+//[prob_NRC_AND_EF] s=6 & success_t_VF=true & doRC=true & doEF=false ->(s'=7)&(success_Root'=false);
+[prob_NRC_AND_EF] s=6 & success_t_VF=true & doRC=false & doEF=true -> pef:(s'=7)&(success_Root'=true) + (1-pef):(s'=7)&(success_Root'=false);
+[prob_NRC_AND_EF] s=6 & success_t_VF=true & doEF=false -> (s'=7)&(success_Root'=false);
+[prob_NRC_AND_EF] s=6 & success_t_VF=false -> (s'=7)&(success_Root'=false);
+
+
+[succeed] s=7&success_Root=true -> (s'=8);
+[fail] s=7&success_Root=false -> (s'=8);
+
+endmodule
+
+
+//success state for an attacker
+label "success" = s=8&success_Root=true;
+label "end" = s=8;
+
+rewards "cost"
+[doAttackSE_USB] true:10;
+[doAttackSE] true:2;
+[doAttackUSB] true:8;
+[doAttackEF] true:5;
+endrewards
+
+rewards "success"
+[succeed] true:1;
+endrewards
+
+

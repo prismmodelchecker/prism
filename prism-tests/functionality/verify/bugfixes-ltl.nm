@@ -1,0 +1,14 @@
+// LTL bug(s) fixed in trunk rev 2201
+
+mdp
+
+module test
+
+	x : [0..2];
+	
+	[] x=0 -> true;
+	[] x=0 -> 0.5 : (x'=1) + 0.5: (x'=2);
+	[] x=1 -> (x'=0);
+	[] x=2 -> true;
+	
+endmodule

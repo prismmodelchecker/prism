@@ -1,0 +1,8 @@
+// transient props with large time bound
+// (need ss-detection disabling currently)
+	
+	// RESULT: 99.87507834359438
+	R{"percent_op"}=?[ I=100 ];
+	
+	// RESULT: 99.87330029344373
+	R{"percent_op"}=?[ I=100 {!"minimum"}{min} ];

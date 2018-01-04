@@ -1,0 +1,62 @@
+// RESULT: 0.0
+R{"a"}max=? [ s>=0 ];
+
+// RESULT: 0.0
+R{"a"}max=? [ true ];
+
+// RESULT: 0.0
+R{"a"}max=? [ !false ];
+
+// RESULT: 0.0
+R{"a"}max=? [ s>0 | s=0 ];
+
+// RESULT: 0.0
+R{"a"}max=? [ s=0 ];
+
+// RESULT: 0.0
+R{"a"}max=? [ F s=0 ];
+
+// RESULT: 5.0
+R{"a"}max=? [ F s=1 ];
+
+// RESULT: 17.0
+R{"a"}max=? [ F s=2 ];
+
+// RESULT: 39.0
+R{"a"}max=? [ F s=3 ];
+
+// RESULT: 5.0
+R{"a"}max=? [ X s>=0 ];
+
+// RESULT: 5.0
+R{"a"}max=? [ X true ];
+
+// RESULT: Infinity
+R{"a"}max=? [ ! (X true) ];
+
+// RESULT: 5.0
+R{"a"}max=? [ ! (X false) ];
+
+// RESULT: 17.0
+R{"a"}max=? [ X X s>=0 ];
+
+// RESULT: 17.0
+R{"a"}max=? [ X X true ];
+
+// RESULT: 28.0
+R{"a"}max=? [ X X X s>=0 ];
+
+// RESULT: 28.0
+R{"a"}max=? [ X X X true ];
+
+// RESULT: 28.0
+R{"a"}max=? [ X X X (true ? true : s>=0) ];
+
+// RESULT: 28.0
+R{"a"}max=? [ X X X (false ? true : s>=0) ];
+
+// RESULT: Infinity
+R{"a"}max=? [ X X X false ];
+
+
+

@@ -1,0 +1,44 @@
+	// RESULT: 1/2
+	P=? [ X s=1 ];
+	
+	// RESULT: 1/6
+	P=? [ F s=2 ];
+	
+	// RESULT: 1/3
+	P=? [ F s=2|s=4 ];
+	
+	// RESULT: 0
+	P=? [ F<=0 s=2 ];
+	
+	// RESULT: 1/8
+	P=? [ F<=2 s=2 ];
+	
+	// RESULT: 1/8
+	P=? [ F<=3 s=2 ];
+	
+	// RESULT: 1/8
+	P=? [ F<4 s=2 ];
+	
+	// RESULT: 0.16650390625
+	P=? [ F<=10 s=2 ];
+	
+	// RESULT: 0
+	P=? [ G s<2 ];
+	
+	// RESULT: 0.0625
+	P=? [ G<=4 s<2 ];
+	
+	// RESULT: 1/2
+	P=? [ s!=1 U s=3 ];
+	
+	// RESULT: 1/2
+	P=? [ s!=1 U<=1 s=3 ];
+	
+	// RESULT: 1/2
+	P=? [ s!=1 U<=8 s=3 ];
+	
+	// RESULT: 14.060546875
+	R{"r"}=? [ C<=10 ];
+	
+	// RESULT: 23/12
+	R{"r"}=? [ S ];

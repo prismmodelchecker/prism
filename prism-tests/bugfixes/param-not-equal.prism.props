@@ -1,0 +1,10 @@
+// test case for the fix in SVN r11976
+// handling of != operator by parametric / exact engine in state formulas
+//
+// first property had result of 0 before fix, the second (equivalent) property had the correct result
+
+// RESULT: 3/8
+P=?[ (s!=t) U s=3 ]
+
+// RESULT: 3/8
+P=?[ !(s=t) U s=3 ]

@@ -1,0 +1,17 @@
+// RESULT: 1.0 
+Pmax=?[ F s=2 ]
+
+// RESULT: 0.0 
+Pmin=?[ F s=2 ]
+
+// RESULT: 0.0 
+Pmax=?[ F<1 s=2 ]
+
+// RESULT: 0.5
+Pmax=?[ F<=1 s=2 ]
+
+// RESULT: 0.75
+Pmax=?[ F<=2 s=2 ]
+
+// RESULT: 0.875
+Pmax=?[ F<=3 s=2 ]

@@ -1,0 +1,11 @@
+-prop 1 -const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.1.txt
+-prop 1 -const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.1.csv:csv
+-prop 1 -const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.1.comment.txt:comment
+-prop 1 -const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.1.matrix.txt:matrix
+-prop 1 -const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.1.matrix.csv:matrix,csv
+
+-const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.all.txt
+-const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.all.csv:csv
+-const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.all.comment.txt:comment
+-const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.all.matrix.txt:matrix
+-const AA=0:1,x=1:3,BB=1:2 -exportresults exportresults.pm.props.all.matrix.csv:matrix,csv

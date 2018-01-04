@@ -1,0 +1,39 @@
+// A MDP + reachability reward property which
+// proved tricky for policy iteration: useful test case
+
+mdp
+
+module strips
+s : [ 0 .. 5 ] init 0;
+
+[ a ] s=0 -> 1: (s'=1) ;
+[ b ] s=0 -> 0.4: (s'=2)  + 0.6: (s'=0) ;
+[ c ] s=2 -> 1: (s'=3) ;
+[ a ] s=2 -> 1: (s'=3) ;
+[ b ] s=2 -> 0.4: (s'=2)  + 0.6: (s'=2) ;
+[ d ] s=3 -> 0.3: (s'=4)  + 0.5: (s'=3)  + 0.2: (s'=1) ;
+[ c ] s=3 -> 1: (s'=3) ;
+[ a ] s=3 -> 1: (s'=3) ;
+[ e ] s=3 -> 0.1: (s'=4)  + 0.9: (s'=3) ;
+[ b ] s=3 -> 0.4: (s'=3)  + 0.6: (s'=3) ;
+[ a ] s=1 -> 1: (s'=1) ;
+[ e ] s=1 -> 0.1: (s'=5)  + 0.9: (s'=1) ;
+[ b ] s=1 -> 0.4: (s'=3)  + 0.6: (s'=1) ;
+endmodule
+
+rewards "cost"
+[ a ] true : 8;
+[ b ] true : 5;
+[ c ] true : 4;
+[ d ] true : 3;
+[ e ] true : 3;
+endrewards
+
+rewards "reward"
+[ a ] true : 1;
+[ b ] true : 1;
+[ c ] true : 1;
+[ d ] true : 1;
+[ e ] true : 1;
+endrewards
+

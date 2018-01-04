@@ -1,0 +1,33 @@
+mdp
+
+module M
+
+	s : [0..3];
+	
+	[go]  s=0 -> (s'=1);
+	[mix] s=0 -> 1/2:(s'=1) + 1/2:(s'=s);
+	[go]  s=1 -> (s'=2);
+	[mix] s=1 -> 1/2:(s'=2) + 1/2:(s'=s);
+	[go]  s=2 -> (s'=3);
+	[mix] s=2 -> 1/2:(s'=3) + 1/2:(s'=s);
+	[go] s>2 -> true;
+
+endmodule
+
+rewards "a"
+	s=0: 2;
+	[go] s=0: 3;
+	s=1: 5;
+	[go] s=1: 7;
+	s=2: 11;
+endrewards
+
+rewards "b"
+	s=0: 2;
+	[] s=0: 3;
+	s=1: 5;
+	[] s=1: 7;
+	s=2: 11;
+	[] s=3: 13;
+	s=3: 17;
+endrewards

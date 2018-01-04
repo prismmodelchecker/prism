@@ -1,0 +1,6 @@
+// Additional labels not in the model file
+
+label "five" = d=5;
+
+// RESULT: 1/6
+P=? [ F "five" ]

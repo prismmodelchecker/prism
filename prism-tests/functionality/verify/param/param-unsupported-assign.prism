@@ -1,0 +1,11 @@
+dtmc
+
+// the param constant
+const double p;
+
+module M1
+  s: [0..1] init 0;
+
+  // Unsupported: Can not use parametric constant in assignment
+  [] true -> 1:(s'=floor(p));
+endmodule

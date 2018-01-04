@@ -1,0 +1,8 @@
+// steady-state props
+// (needs additional arguments)
+
+	// RESULT: 0.9999212408513795
+	S=? [ "premium" ];
+	
+	// RESULT: 3.7011298647145493E-6
+	S=? [ !"minimum" ];

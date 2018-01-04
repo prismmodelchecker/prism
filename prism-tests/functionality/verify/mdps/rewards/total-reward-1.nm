@@ -1,0 +1,28 @@
+mdp
+
+module M
+  s: [0..1] init 0;
+
+  [a] s=0 -> 1:(s'=0);
+  [b] s=0 -> 1/2:(s'=0) + 1/2:(s'=1);
+  [c] s=0 -> 1:(s'=1);
+
+  [a] s=1 -> 1:(s'=0);
+endmodule
+
+rewards "steps"
+  true : 1;
+endrewards
+
+rewards "s0"
+  s=0 : 1;
+endrewards
+
+rewards "s0_a"
+  [a] s=0 : 2;
+endrewards
+
+rewards "s0_b"
+  [b] s=0 : 1/100000;
+endrewards
+

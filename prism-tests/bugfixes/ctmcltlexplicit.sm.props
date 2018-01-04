@@ -1,0 +1,44 @@
+// trigger LTL engine
+
+// RESULT: 1/3
+P=? [ (X "full") & true {x=2} ]
+
+
+// checks for nested formulas:
+
+// RESULT: 0.77686982
+P=? [ F<1 x=1 ]
+// RESULT: 0.0794343
+P=? [ F<1 "full" ]
+
+// RESULT: 0.0
+P=?[ P>0.8 [ F<1 x=1 ] ]
+
+// RESULT: 1.0
+P=?[ P>0.75 [ F<1 x=1 ] ]
+
+// RESULT: 1.0
+P=?[ P>0.2 [ F<1 x=1 ] ]
+
+// RESULT: 0.0
+P=?[ X P>0.8 [ F<1 "full"] ]
+// RESULT: 0.0
+P=?[ (X P>0.8 [ F<1 "full"]) & true ]
+
+// RESULT: 1.0
+P=?[ X P>0.05 [ F<1 "full" ] ]
+// RESULT: 1.0
+P=?[ (X P>0.05 [ F<1 "full" ]) & true ]
+
+// RESULT: 1.0
+P=?[ X P>0.01 [ F<1 "full" ] ]
+// RESULT: 1.0
+P=?[ (X P>0.01 [ F<1 "full" ]) & true ]
+
+// RESULT: 1.0
+P=?[ P>0[ F<0.5 "full" ] ]
+// RESULT: 1.0
+P=?[ (X P>0.05[ F<0.5 "full" ]) & true ]
+
+// RESULT: 1/9
+P=?[ X X X (P>=1 [ "full"] & P>0.1[ F<2 P>=0.5[ X "empty"] ]) ]
