@@ -410,14 +410,14 @@ make_dirs:
 
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  cd ../prism-tests && $(PWD)/etc/scripts/prism-auto -t -m . -p $(PWD)/bin/prism --nailgun --ngprism $(PWD)/bin/ngprism; \
+	  cd ../prism-tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism; \
 	else \
 	  echo "Skipping tests"; \
 	fi
 
 testslocal:
 	@if [ -d tests ]; then \
-	  cd tests && $(PWD)/etc/scripts/prism-auto -t -m . -p $(PWD)/bin/prism --nailgun --ngprism $(PWD)/bin/ngprism; \
+	  cd tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism; \
 	else \
 	  echo "Skipping local tests"; \
 	fi
