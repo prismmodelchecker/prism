@@ -505,7 +505,7 @@ dist_tidy:
 	@find . \( -type d -o -type s \) -exec chmod 755 {} \;
 	@find . -type f  \( -name '*.sh' -o -name '*.so' -o -name '*.dll' \) -exec chmod 755 {} \;
 	@find examples -type f -name 'auto' -exec chmod 755 {} \; || test 1
-	@find bin -type f -exec chmod 755 {} \;
+	@find bin -type f -exec chmod 755 {} \; || test 1
 	@find src/bin -type f -exec chmod 755 {} \;
 	@find etc/scripts -type f -exec chmod 755 {} \;
 
