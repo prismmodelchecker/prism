@@ -121,16 +121,16 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 	}
 	
 	// recurse
-	if (dd->index > cvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(cvars[level])) {
 		ee = et = te = tt = dd;
 	}
-	else if (dd->index > rvars[level]->index) {
+	else if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(rvars[level])) {
 		ee = te = Cudd_E(dd);
 		et = tt = Cudd_T(dd);
 	}
 	else {
 		e = Cudd_E(dd);
-		if (e->index > cvars[level]->index) {
+		if (Cudd_NodeReadIndex(e) > Cudd_NodeReadIndex(cvars[level])) {
 			ee = et = e;
 		}
 		else {
@@ -138,7 +138,7 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 			et = Cudd_T(e);
 		}
 		t = Cudd_T(dd);
-		if (t->index > cvars[level]->index) {
+		if (Cudd_NodeReadIndex(t) > Cudd_NodeReadIndex(cvars[level])) {
 			te = tt = t;
 		}
 		else {

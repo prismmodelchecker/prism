@@ -114,7 +114,7 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 	}
 	
 	// recurse
-	if (dd->index > vars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(vars[level])) {
 		e = t = dd;
 	}
 	else {

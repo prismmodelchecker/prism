@@ -95,7 +95,7 @@ void mtbdd_to_double_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int
 		res[o] = Cudd_V(dd);
 		return;
 	}
-	else if (dd->index > vars[level]->index) {
+	else if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(vars[level])) {
 		e = t = dd;
 	}
 	else {
@@ -233,11 +233,11 @@ void filter_double_vector_rec(DdManager *ddman, double *vec, DdNode *filter, dou
 	}
 	else {
 		if (odd->eoff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 			filter_double_vector_rec(ddman, vec, dd, d, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			filter_double_vector_rec(ddman, vec, dd, d, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 	}
@@ -266,11 +266,11 @@ void max_double_vector_mtbdd_rec(DdManager *ddman, double *vec, DdNode *filter, 
 	}
 	else {
 		if (odd->eoff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 			max_double_vector_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			max_double_vector_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 	}
@@ -300,12 +300,12 @@ double get_first_from_bdd_rec(DdManager *ddman, double *vec, DdNode *filter, DdN
 	}
 	else {
 		// go down filter along first non-zero path
-		dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+		dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 		if (dd != Cudd_ReadZero(ddman)) {
 			return get_first_from_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		else {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			return get_first_from_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 	}
@@ -336,11 +336,11 @@ double min_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 	else {
 		d1 = d2 = HUGE_VAL;
 		if (odd->eoff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 			d1 = min_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			d2 = min_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		return (d1 < d2) ? d1 : d2;
@@ -372,11 +372,11 @@ double max_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 	else {
 		d1 = d2 = -HUGE_VAL;
 		if (odd->eoff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 			d1 = max_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			d2 = max_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		return (d1 > d2) ? d1 : d2;
@@ -410,11 +410,11 @@ double max_finite_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNo
 	else {
 		d1 = d2 = -HUGE_VAL;
 		if (odd->eoff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 			d1 = max_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			d2 = max_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		return (d1 > d2) ? d1 : d2;
@@ -446,11 +446,11 @@ double sum_double_vector_over_bdd_rec(DdManager *ddman, double *vec, DdNode *fil
 	else {
 		d = 0;
 		if (odd->eoff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_E(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_E(filter);
 			d += sum_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (filter->index > vars[level]->index) ? filter : Cudd_T(filter);
+			dd = (Cudd_NodeReadIndex(filter) > Cudd_NodeReadIndex(vars[level])) ? filter : Cudd_T(filter);
 			d += sum_double_vector_over_bdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		return d;
@@ -477,11 +477,11 @@ double sum_double_vector_over_mtbdd_rec(DdManager *ddman, double *vec, DdNode *m
 	else {
 		d = 0;
 		if (odd->eoff > 0) {
-			dd = (mult->index > vars[level]->index) ? mult : Cudd_E(mult);
+			dd = (Cudd_NodeReadIndex(mult) > Cudd_NodeReadIndex(vars[level])) ? mult : Cudd_E(mult);
 			d += sum_double_vector_over_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->e, o);
 		}
 		if (odd->toff > 0) {
-			dd = (mult->index > vars[level]->index) ? mult : Cudd_T(mult);
+			dd = (Cudd_NodeReadIndex(mult) > Cudd_NodeReadIndex(vars[level])) ? mult : Cudd_T(mult);
 			d += sum_double_vector_over_mtbdd_rec(ddman, vec, dd, vars, num_vars, level+1, odd->t, o+odd->eoff);
 		}
 		return d;
@@ -506,14 +506,14 @@ void sum_double_vector_over_dd_vars_rec(DdManager *ddman, double *vec, double *v
 	}
 	else {
 		if (odd->eoff > 0) {
-			if (vars[level]->index >= first_var && vars[level]->index <= last_var) {
+			if (Cudd_NodeReadIndex(vars[level]) >= first_var && Cudd_NodeReadIndex(vars[level]) <= last_var) {
 				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->e, odd2, o, o2);
 			} else {
 				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->e, odd2->e, o, o2);
 			}
 		}
 		if (odd->toff > 0) {
-			if (vars[level]->index >= first_var && vars[level]->index <= last_var) {
+			if (Cudd_NodeReadIndex(vars[level]) >= first_var && Cudd_NodeReadIndex(vars[level]) <= last_var) {
 				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->t, odd2, o+odd->eoff, o2);
 			} else {
 				sum_double_vector_over_dd_vars_rec(ddman, vec, vec2, vars, num_vars, level+1, first_var, last_var, odd->t, odd2->t, o+odd->eoff, o2+odd2->eoff);

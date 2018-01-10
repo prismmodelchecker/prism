@@ -82,7 +82,7 @@ void mtbdd_to_integer_vector_rec(DdManager *ddman, DdNode *dd, DdNode **vars, in
 		res[o] = (int) Cudd_V(dd);
 		return;
 	}
-	else if (dd->index > vars[level]->index) {
+	else if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(vars[level])) {
 		e = t = dd;
 	}
 	else {
