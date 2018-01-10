@@ -18,11 +18,7 @@ INCLUDES = \
 
 LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(CUDD_DIR)/lib \
--lcudd \
--lutil \
--lmtr \
--lst \
--lepd
+-lcudd
 
 CC_FILES = $(wildcard *.cc)
 O_FILES = $(CC_FILES:%.cc=$(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/%.o)

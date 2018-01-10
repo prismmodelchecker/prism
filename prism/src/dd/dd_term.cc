@@ -365,14 +365,14 @@ int num_vars
 	filter = DD_Constant(ddman, 1);
 	if (filter == NULL) return NULL;
 	for (i = 0; i < num_vars; i++) {
-		next_ptr = (ptr->index > vars[i]->index) ? ptr : Cudd_E(ptr);
+		next_ptr = (Cudd_NodeReadIndex(ptr) > Cudd_NodeReadIndex(vars[i])) ? ptr : Cudd_E(ptr);
 		if (next_ptr != Cudd_ReadZero(ddman)) {
 			Cudd_Ref(vars[i]);
 			filter = DD_And(ddman, filter, DD_Not(ddman, vars[i]));
 			if (filter == NULL) return NULL;
 		}
 		else {
-			next_ptr = (ptr->index > vars[i]->index) ? ptr : Cudd_T(ptr);
+			next_ptr = (Cudd_NodeReadIndex(ptr) > Cudd_NodeReadIndex(vars[i])) ? ptr : Cudd_T(ptr);
 			Cudd_Ref(vars[i]);
 			filter = DD_And(ddman, filter, vars[i]);
 			if (filter == NULL) return NULL;

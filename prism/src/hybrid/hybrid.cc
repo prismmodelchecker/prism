@@ -342,7 +342,7 @@ HDDNode *build_hdd_matrix_rowrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 	}
 	
 	// if not, have to recurse before creation
-	if (dd->index > rvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(rvars[level])) {
 		e = t = dd;
 	}
 	else {
@@ -390,7 +390,7 @@ HDDNode *build_hdd_matrix_colrec(DdNode *dd, DdNode **rvars, DdNode **cvars, int
 	// otherwise go on and create it...
 	
 	// can't be a terminal node so recurse before creation
-	if (dd->index > cvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(cvars[level])) {
 		e = t = dd;
 	}
 	else {
@@ -1400,7 +1400,7 @@ void build_mdp_cubes_rec(DdNode *dd, DdNode *cube, DdNode **rvars, DdNode **cvar
 	}
 	
 	// recurse
-	if (dd->index > ndvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(ndvars[level])) {
 		e = t = dd;
 	}
 	else {

@@ -53,7 +53,7 @@ int num_vars
 		permut[i] = i;
 	}
 	for (i = 0; i < num_vars; i++) {
-		permut[old_vars[i]->index] = new_vars[i]->index;
+		permut[Cudd_NodeReadIndex(old_vars[i])] = Cudd_NodeReadIndex(new_vars[i]);
 	}	
 	res = Cudd_addPermute(ddman, dd, permut);	
 	if (res == NULL) return NULL;
@@ -112,10 +112,10 @@ int num_vars
 	x_bdd_vars = new DdNode*[num_vars];
 	y_bdd_vars = new DdNode*[num_vars];
 	for (i = 0; i < num_vars; i++) {
-		x_bdd_vars[i] = Cudd_bddIthVar(ddman, x_vars[i]->index);
+		x_bdd_vars[i] = Cudd_bddIthVar(ddman, Cudd_NodeReadIndex(x_vars[i]));
 		if (x_bdd_vars[i] == NULL) return NULL;
 		Cudd_Ref(x_bdd_vars[i]);
-		y_bdd_vars[i] = Cudd_bddIthVar(ddman, y_vars[i]->index);
+		y_bdd_vars[i] = Cudd_bddIthVar(ddman, Cudd_NodeReadIndex(y_vars[i]));
 		if (y_bdd_vars[i] == NULL) return NULL;
 		Cudd_Ref(y_bdd_vars[i]);
 	}
@@ -178,10 +178,10 @@ int num_vars
 	x_bdd_vars = new DdNode*[num_vars];
 	y_bdd_vars = new DdNode*[num_vars];
 	for (i = 0; i < num_vars; i++) {
-		x_bdd_vars[i] = Cudd_bddIthVar(ddman, x_vars[i]->index);
+		x_bdd_vars[i] = Cudd_bddIthVar(ddman, Cudd_NodeReadIndex(x_vars[i]));
 		if (x_bdd_vars[i] == NULL) return NULL;
 		Cudd_Ref(x_bdd_vars[i]);
-		y_bdd_vars[i] = Cudd_bddIthVar(ddman, y_vars[i]->index);
+		y_bdd_vars[i] = Cudd_bddIthVar(ddman, Cudd_NodeReadIndex(y_vars[i]));
 		if (y_bdd_vars[i] == NULL) return NULL;
 		Cudd_Ref(y_bdd_vars[i]);
 	}
@@ -243,10 +243,10 @@ int num_vars
 	x_bdd_vars = new DdNode*[num_vars];
 	y_bdd_vars = new DdNode*[num_vars];
 	for (i = 0; i < num_vars; i++) {
-		x_bdd_vars[i] = Cudd_bddIthVar(ddman, x_vars[i]->index);
+		x_bdd_vars[i] = Cudd_bddIthVar(ddman, Cudd_NodeReadIndex(x_vars[i]));
 		if (x_bdd_vars[i] == NULL) return NULL;
 		Cudd_Ref(x_bdd_vars[i]);
-		y_bdd_vars[i] = Cudd_bddIthVar(ddman, y_vars[i]->index);
+		y_bdd_vars[i] = Cudd_bddIthVar(ddman, Cudd_NodeReadIndex(y_vars[i]));
 		if (y_bdd_vars[i] == NULL) return NULL;
 		Cudd_Ref(y_bdd_vars[i]);
 	}

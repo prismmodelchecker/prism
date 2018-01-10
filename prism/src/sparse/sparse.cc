@@ -943,7 +943,7 @@ void split_mdp_rec(DdManager *ddman, DdNode *dd, DdNode **ndvars, int num_ndvars
 	}
 	
 	// recurse
-	if (dd->index > ndvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(ndvars[level])) {
 		e = t = dd;
 	}
 	else {
@@ -971,14 +971,14 @@ void split_mdp_and_sub_mdp_rec(DdManager *ddman, DdNode *dd, DdNode *subdd, DdNo
 	}
 	
 	// recurse
-	if (dd->index > ndvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(ndvars[level])) {
 		e = t = dd;
 	}
 	else {
 		e = Cudd_E(dd);
 		t = Cudd_T(dd);
 	}
-	if (subdd->index > ndvars[level]->index) {
+	if (Cudd_NodeReadIndex(subdd) > Cudd_NodeReadIndex(ndvars[level])) {
 		e2 = t2 = subdd;
 	}
 	else {
@@ -1101,16 +1101,16 @@ void traverse_mtbdd_matr_rec(DdManager *ddman, DdNode *dd, DdNode **rvars, DdNod
 	}
 	
 	// recurse
-	if (dd->index > cvars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(cvars[level])) {
 		ee = et = te = tt = dd;
 	}
-	else if (dd->index > rvars[level]->index) {
+	else if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(rvars[level])) {
 		ee = te = Cudd_E(dd);
 		et = tt = Cudd_T(dd);
 	}
 	else {
 		e = Cudd_E(dd);
-		if (e->index > cvars[level]->index) {
+		if (Cudd_NodeReadIndex(e) > Cudd_NodeReadIndex(cvars[level])) {
 			ee = et = e;
 		}
 		else {
@@ -1118,7 +1118,7 @@ void traverse_mtbdd_matr_rec(DdManager *ddman, DdNode *dd, DdNode **rvars, DdNod
 			et = Cudd_T(e);
 		}
 		t = Cudd_T(dd);
-		if (t->index > cvars[level]->index) {
+		if (Cudd_NodeReadIndex(t) > Cudd_NodeReadIndex(cvars[level])) {
 			te = tt = t;
 		}
 		else {
@@ -1169,7 +1169,7 @@ void traverse_mtbdd_vect_rec(DdManager *ddman, DdNode *dd, DdNode **vars, int nu
 	}
 	
 	// recurse
-	if (dd->index > vars[level]->index) {
+	if (Cudd_NodeReadIndex(dd) > Cudd_NodeReadIndex(vars[level])) {
 		e = t = dd;
 	}
 	else {

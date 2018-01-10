@@ -172,7 +172,7 @@ static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, int
 	
 	// recurse - elses
 	for (i = 0; i < num_labels; i++) {
-		if (dd_array[level][i]->index > vars[level]->index) {
+		if (Cudd_NodeReadIndex(dd_array[level][i]) > Cudd_NodeReadIndex(vars[level])) {
 			dd_array[level+1][i] = dd_array[level][i];
 		} else {
 			dd_array[level+1][i] = Cudd_E(dd_array[level][i]);
@@ -182,7 +182,7 @@ static void export_rec(DdNode **vars, int num_vars, int level, ODDNode *odd, int
 	
 	// recurse - thens
 	for (i = 0; i < num_labels; i++) {
-		if (dd_array[level][i]->index > vars[level]->index) {
+		if (Cudd_NodeReadIndex(dd_array[level][i]) > Cudd_NodeReadIndex(vars[level])) {
 			dd_array[level+1][i] = dd_array[level][i];
 		} else {
 			dd_array[level+1][i] = Cudd_T(dd_array[level][i]);
