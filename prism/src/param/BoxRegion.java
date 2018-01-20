@@ -416,6 +416,24 @@ final class BoxRegion extends Region {
 		return result;
 	}
 	
+	@Override
+	RegionValues ITE(StateValues valuesI, StateValues valuesT, StateValues valuesE)
+	{
+		RegionValues result = new RegionValues(factory);
+		int numStates = valuesI.getNumStates();
+		StateValues values = new StateValues(numStates, factory.getInitialState());
+		for (int state = 0; state < numStates; state++) {
+			if (valuesI.getStateValueAsBoolean(state)) {
+				values.setStateValue(state, valuesT.getStateValue(state));
+			} else {
+				values.setStateValue(state, valuesE.getStateValue(state));
+			}
+		}
+		result.add(this, values);
+
+		return result;
+	}
+
 	/**
 	 * Split region in longest dimension.
 	 * 

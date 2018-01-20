@@ -70,6 +70,7 @@ import parser.ast.ExpressionFilter.FilterOperator;
 import parser.ast.ExpressionForAll;
 import parser.ast.ExpressionFormula;
 import parser.ast.ExpressionFunc;
+import parser.ast.ExpressionITE;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionProb;
@@ -371,6 +372,8 @@ final public class ParamModelChecker extends PrismComponent
 			res = checkExpressionUnaryOp(model, (ExpressionUnaryOp) expr, needStates);
 		} else if (expr instanceof ExpressionBinaryOp) {
 			res = checkExpressionBinaryOp(model, (ExpressionBinaryOp) expr, needStates);
+		} else if (expr instanceof ExpressionITE) {
+			res = checkExpressionITE(model, (ExpressionITE) expr, needStates);
 		} else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr, needStates);
 		} else if (expr instanceof ExpressionFormula) {
@@ -464,6 +467,21 @@ final public class ParamModelChecker extends PrismComponent
 		res2.clearNotNeeded(needStates);
 
 		return res1.binaryOp(parserBinaryOpToRegionOp(expr.getOperator()), res2);
+	}
+
+	/**
+	 * Model check an If-Then-Else operator.
+	 */
+	protected RegionValues checkExpressionITE(ParamModel model, ExpressionITE expr, BitSet needStates) throws PrismException
+	{
+		RegionValues resI = checkExpression(model, expr.getOperand1(), needStates);
+		RegionValues resT = checkExpression(model, expr.getOperand2(), needStates);
+		RegionValues resE = checkExpression(model, expr.getOperand3(), needStates);
+		resI.clearNotNeeded(needStates);
+		resT.clearNotNeeded(needStates);
+		resE.clearNotNeeded(needStates);
+
+		return resI.ITE(resT, resE);
 	}
 
 	/**

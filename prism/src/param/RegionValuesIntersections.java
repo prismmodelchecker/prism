@@ -30,28 +30,33 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
+ * Computes the intersections of two (or three) regions.
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 final class RegionValuesIntersections implements Iterable<RegionIntersection> {
 	final private class RegionIntersectionOperator implements Iterator<RegionIntersection> {
 		private RegionValues regions1;
 		private RegionValues regions2;
+		private RegionValues regions3;
 		private int numRegions1;
 		private int regions1Index;
 		private boolean hasNext;
 		private Region region;
 		private StateValues stateValues1;
 		private StateValues stateValues2;
+		private StateValues stateValues3;
 
-		RegionIntersectionOperator(RegionValues regions1, RegionValues regions2)
+		RegionIntersectionOperator(RegionValues regions1, RegionValues regions2, RegionValues regions3)
 		{
 			this.regions1 = regions1;
 			this.regions2 = regions2;
+			this.regions3 = regions3;
 			regions1Index = 0;
 			numRegions1 = regions1.getNumRegions();
 			region = null;
 			stateValues1 = null;
 			stateValues2 = null;
+			stateValues3 = null;
 			findNext();
 		}
 		
@@ -61,7 +66,9 @@ final class RegionValuesIntersections implements Iterable<RegionIntersection> {
 				region = regions1.getRegion(regions1Index);
 				stateValues1 = regions1.getResult(region);
 				stateValues2 = regions2.getResult(region);
-				found = stateValues2 != null;
+				stateValues3 = regions3 != null ? regions3.getResult(region) : null;
+				found = (stateValues2 != null
+						&& (regions3 == null || stateValues3 != null));
 				regions1Index++;
 			}
 			hasNext = found;
@@ -75,7 +82,7 @@ final class RegionValuesIntersections implements Iterable<RegionIntersection> {
 		@Override
 		public RegionIntersection next() {
 			if (hasNext) {
-				RegionIntersection result = new RegionIntersection(region, stateValues1, stateValues2);
+				RegionIntersection result = new RegionIntersection(region, stateValues1, stateValues2, stateValues3);
 				findNext();
 				return result;
 			} else {
@@ -91,16 +98,25 @@ final class RegionValuesIntersections implements Iterable<RegionIntersection> {
 
 	private RegionValues regions1;
 	private RegionValues regions2;
+	private RegionValues regions3;
 
 	public RegionValuesIntersections(RegionValues regions1, RegionValues regions2) {
 		regions1.cosplit(regions2);
 		this.regions1 = regions1;
 		this.regions2 = regions2;
+		this.regions3 = null;
+	}
+
+	public RegionValuesIntersections(RegionValues regions1, RegionValues regions2, RegionValues regions3) {
+		regions1.cosplit(regions2, regions3);
+		this.regions1 = regions1;
+		this.regions2 = regions2;
+		this.regions3 = regions3;
 	}
 
 	@Override
 	public Iterator<RegionIntersection> iterator() {
-		return new RegionIntersectionOperator(regions1, regions2);
+		return new RegionIntersectionOperator(regions1, regions2, regions3);
 	}
 
 }
