@@ -94,6 +94,8 @@ abstract class Region {
 	
 	abstract RegionValues binaryOp(int op, StateValues values1, StateValues values2);
 
+	abstract RegionValues ITE(StateValues valueI, StateValues valueT, StateValues valueE);
+
 	/**
 	 * Splits this region into several parts.
 	 * How this is done exactly depends on the implementation in derived

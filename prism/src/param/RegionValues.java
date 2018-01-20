@@ -176,6 +176,40 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 		other.values = otherNewStateValues;
 	}
 
+	public void cosplit(RegionValues other, RegionValues other2)
+	{
+		this.simplify();
+		other.simplify();
+		other2.simplify();
+
+		ArrayList<Region> newRegions = new ArrayList<Region>();
+		HashMap<Region, StateValues> thisNewStateValues = new HashMap<Region, StateValues>();
+		HashMap<Region, StateValues> otherNewStateValues = new HashMap<Region, StateValues>();
+		HashMap<Region, StateValues> other2NewStateValues = new HashMap<Region, StateValues>();
+		for (Region thisRegion : this.regions) {
+			for (Region otherRegion : other.regions) {
+				for (Region other2Region : other2.regions) {
+					Region newRegion = thisRegion.conjunct(otherRegion);
+					if (newRegion != null)
+						newRegion = newRegion.conjunct(other2Region);
+					if (newRegion != null) {
+						newRegions.add(newRegion);
+						thisNewStateValues.put(newRegion, this.values.get(thisRegion));
+						otherNewStateValues.put(newRegion, other.values.get(otherRegion));
+						other2NewStateValues.put(newRegion, other2.values.get(other2Region));
+					}
+				}
+			}
+		}
+
+		this.regions = new ArrayList<Region>(newRegions);
+		this.values = thisNewStateValues;
+		other.regions = new ArrayList<Region>(newRegions);
+		other.values = otherNewStateValues;
+		other2.regions = new ArrayList<Region>(newRegions);
+		other2.values = other2NewStateValues;
+	}
+
 	@Override
 	public String toString()
 	{
@@ -475,6 +509,21 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 				break;
 			}
 			result.setStateValue(state, value);
+		}
+		return result;
+	}
+
+	public RegionValues ITE(RegionValues resT, RegionValues resE)
+	{
+		RegionValues result = new RegionValues(factory);
+		RegionValuesIntersections co = new RegionValuesIntersections(this, resT, resE);
+		for (RegionIntersection inter : co) {
+			Region region = inter.getRegion();
+			StateValues valueI = inter.getStateValues1();
+			StateValues valueT = inter.getStateValues2();
+			StateValues valueE = inter.getStateValues3();
+			RegionValues values = region.ITE(valueI, valueT, valueE);
+			result.addAll(values);
 		}
 		return result;
 	}
