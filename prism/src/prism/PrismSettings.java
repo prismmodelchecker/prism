@@ -630,10 +630,10 @@ public class PrismSettings implements Observer
 	
 	public File getLocationForSettingsFile()
 	{
+		String toolName = Prism.getToolName().toLowerCase();
 		File legacyConfigFile = new File(System.getProperty("user.home") +
-				File.separator + ".prism");
-		if (legacyConfigFile.exists() && !legacyConfigFile.isDirectory())
-		{
+				File.separator + "." + toolName);
+		if (legacyConfigFile.exists() && !legacyConfigFile.isDirectory()) {
 			return legacyConfigFile;
 		}
 		
@@ -644,11 +644,11 @@ public class PrismSettings implements Observer
 		if (os.indexOf("win") >= 0) { // Windows
 			// use "$HOME\.prism"
 			config = new File(System.getProperty("user.home") +
-					File.separator + ".prism");
+					File.separator + "." + toolName);
 		} else if (os.indexOf("mac") >= 0) { // MacOS
 			// use "$HOME/Library/Preferences/prism/prism.settings"
 			config = new File(System.getProperty("user.home") +
-					"/Library/Preferences/prism.settings");
+					"/Library/Preferences/" + toolName + ".settings");
 		} else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 ||
 				os.indexOf("aix") >= 0 || os.indexOf("sunos") >= 0 ||
 				os.indexOf("bsd") >= 0) { // Linux, AIX, Solaris, *BSD
@@ -660,11 +660,11 @@ public class PrismSettings implements Observer
 			if (configBase.endsWith("/")) {
 				configBase = configBase.substring(0, configBase.length() - 1);
 			}
-			config = new File(configBase + "/prism.settings");
+			config = new File(configBase + "/" + toolName + ".settings");
 		} else { // unknown operating system
 			// use "$HOME\.prism"
 			config = new File(System.getProperty("user.home") +
-					File.separator + ".prism");
+					File.separator + "." + toolName);
 		}
 		return config;
 	}
@@ -680,7 +680,7 @@ public class PrismSettings implements Observer
 		{
 			FileWriter out = new FileWriter(file);
 			
-			out.write("# PRISM settings file\n");
+			out.write("# " + Prism.getToolName() + " settings file\n");
 			out.write("# (created by version "+Prism.getVersion()+")\n");
 			
 			for(int i = 0; i < optionOwners.length; i++)
