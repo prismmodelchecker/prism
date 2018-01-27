@@ -408,6 +408,11 @@ make_dirs:
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
 
+# Run a single test case
+test:
+	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
+
+# Run all tests (in ../prism-tests and ./tests)
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
 	  cd ../prism-tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism; \
@@ -415,6 +420,11 @@ tests: testslocal
 	  echo "Skipping tests"; \
 	fi
 
+# Just display the command to run the test suite on this version of PRISM
+testsecho:
+	@echo etc/scripts/prism-auto -t -m --nailgun --ngprism bin/ngprism ../prism-tests -p bin/prism
+
+# Run local tests (in ./tests)
 testslocal:
 	@if [ -d tests ]; then \
 	  cd tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism; \
