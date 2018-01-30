@@ -853,7 +853,7 @@ public class PrismSettings implements Observer
 		// If necessary, resave the preferences file
 		if (resaveNeeded) {
 			try {
-				saveSettingsFile();
+				saveSettingsFile(file);
 			}
 			catch (PrismException e) {
 			}
