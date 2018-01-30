@@ -696,9 +696,24 @@ public class PrismSettings implements Observer
 	
 	public synchronized void saveSettingsFile(File file) throws PrismException
 	{
-		try
-		{
-			FileWriter out = new FileWriter(file);
+		// first, we ensure the directories for the file that don't exist yet
+		// are created
+		File parent = null;
+		try {
+			parent = file.getAbsoluteFile().getParentFile();
+			if (parent != null && !parent.exists()) {
+				parent.mkdirs();
+			}
+		} catch (Exception e) {
+			if (parent != null) {
+				throw new PrismException("Error creating required directories (" + parent + ") for file " + file + ": " +e.getMessage());
+			} else {
+				throw new PrismException("Error creating required directories for file " + file + ": " +e.getMessage());
+			}
+		}
+
+		// and now, we write the settings to file
+		try (FileWriter out = new FileWriter(file)) {
 			
 			out.write("# " + Prism.getToolName() + " settings file\n");
 			out.write("# (created by version "+Prism.getVersion()+")\n");
