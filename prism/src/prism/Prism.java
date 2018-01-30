@@ -308,7 +308,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Read in PRISM settings from the default file (.prism in user's home directory).
+	 * Read in PRISM settings from the default file (see PrismSettings.getLocationForSettingsFile()).
 	 * If no file exists, attempt to create a new one with default settings.
 	 */
 	public void loadUserSettingsFile()
@@ -318,7 +318,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Read in PRISM settings from a specified file.
-	 * If the file is null, use the default (.prism in user's home directory).
+	 * If the file is null, use the default (see PrismSettings.getLocationForSettingsFile()).
 	 * If no file exists, attempt to create a new one with default settings.
 	 */
 	public void loadUserSettingsFile(File settingsFile)

@@ -627,7 +627,27 @@ public class PrismSettings implements Observer
 			listener.notifySettings(this);
 		}
 	}
-	
+
+	/**
+	 * Get the default location of the settings file.
+	 * <br>
+	 * There is a legacy location (filename '.prism' in the user's
+	 * home directory), and a modern location, which depends on the
+	 * operating system:
+	 * <ul>
+	 * <li>For macOS, the location is $HOME/Library/Preferences/prism.settings</li>
+	 * <li>For Linux, the location depends on the environment variable $XDG_CONFIG_HOME;
+	 * if set, the location is $XDG_CONFIG_HOME/prism.settings;
+	 * if not, it's $HOME/.config/prism.settings</li>
+	 * <li>On Windows, only the legacy location is supported</li>
+	 * </ul>
+	 * <br>
+	 * If the legacy settings file exists, this method returns that location.
+	 * Otherwise, the modern location is returned.
+	 * <br>
+	 * To support different settings files in derived tools (e.g. prism-games),
+	 * the filename is derived from the tool name (see Prism.getToolName()).
+	 */
 	public File getLocationForSettingsFile()
 	{
 		String toolName = Prism.getToolName().toLowerCase();
