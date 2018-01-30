@@ -1,6 +1,25 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Changes since version 4.4
+-----------------------------------------------------------------------------
+
+* Default location of the XPRISM settings file has changed,
+  to avoid cluttering the user's home directory:
+  - On Linux (adhering to XDG Base Directory Specification):
+     $XDG_CONFIG_HOME/prism.settings  (if that environment variable is set)
+     $HOME/.config/prism.settings     (otherwise)
+  - On macOS:
+     $HOME/Library/Preferences/prism.settings
+  - On Windows:
+     .prism in the user's home directory (unchanged from previous location)
+
+  If the settings file already exists in the legacy location
+     $HOME/.prism
+  XPRISM continues to use that location.
+
+
+-----------------------------------------------------------------------------
 Version 4.4 (first released 23/7/2017)
 -----------------------------------------------------------------------------
 
