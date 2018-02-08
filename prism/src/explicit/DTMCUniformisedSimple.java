@@ -42,6 +42,10 @@ import explicit.rewards.MCRewards;
 /**
 * Simple explicit-state representation of a DTMC, constructed (implicitly) as the uniformised DTMC of a CTMC.
 * This class is read-only: most of data is pointers to other model info.
+* <br>
+* Note: This implicitly constructed DTMC does not provide implementations for
+* all methods of a full DTMCExplicit model. See {@link CTMCSimple#buildUniformisedDTMC} for
+* a method to obtain an explicit uniformised DTMC.
 */
 public class DTMCUniformisedSimple extends DTMCExplicit
 {
@@ -114,6 +118,31 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 		return ctmc.isInitialState(i);
 	}
 
+	@Override
+	public int getNumDeadlockStates()
+	{
+		return ctmc.getNumDeadlockStates();
+	}
+
+	@Override
+	public Iterable<Integer> getDeadlockStates()
+	{
+		return ctmc.getDeadlockStates();
+	}
+
+	@Override
+	public StateValues getDeadlockStatesList()
+	{
+		return ctmc.getDeadlockStatesList();
+	}
+
+	@Override
+	public int getFirstDeadlockState()
+	{
+		return ctmc.getFirstDeadlockState();
+	}
+
+	@Override
 	public boolean isDeadlockState(int i)
 	{
 		return ctmc.isDeadlockState(i);
