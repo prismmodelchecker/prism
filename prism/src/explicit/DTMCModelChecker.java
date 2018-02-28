@@ -2175,32 +2175,44 @@ public class DTMCModelChecker extends ProbModelChecker
 		BitSet notInBSCCs = sccStore.getNotInBSCCs();
 		int numBSCCs = bsccs.size();
 
-		// See which states in the initial distribution do *not* have non-zero prob
-		BitSet startNot = new BitSet();
+		// Compute support of initial distribution
+		int numInit = 0;
+		BitSet init = new BitSet();
 		for (int i = 0; i < numStates; i++) {
-			if (initDist[i] == 0)
-				startNot.set(i);
+			if (initDist[i] > 0)
+				init.set(i);
+				numInit++;
 		}
-		// Determine whether initial states are all in a single BSCC 
-		int allInOneBSCC = -1;
+		// Determine whether initial states are all in the same BSCC 
+		int initInOneBSCC = -1;
 		for (int b = 0; b < numBSCCs; b++) {
-			if (!bsccs.get(b).intersects(startNot)) {
-				allInOneBSCC = b;
+			// test subset via setminus
+			BitSet notInB = (BitSet) init.clone();
+			notInB.andNot(bsccs.get(b));
+			if (notInB.isEmpty()) {
+				// all init states in b
+				// >> finish
+				initInOneBSCC = b;
+				break;
+			} else if (notInB.cardinality() < numInit) {
+				// some init states in b and some not
+				// >> abort
 				break;
 			}
+			// no init state in b
+			// >> try next BSCC
 		}
 
-		// If all initial states are in a single BSCC, it's easy...
+		// If all initial states are in the same BSCC, it's easy...
 		// Just compute steady-state probabilities for the BSCC
-		if (allInOneBSCC != -1) {
-			mainLog.println("\nInitial states all in one BSCC (so no reachability probabilities computed)");
-			BitSet bscc = bsccs.get(allInOneBSCC);
+		if (initInOneBSCC > -1) {
+			mainLog.println("\nInitial states are all in one BSCC (so no reachability probabilities computed)");
+			BitSet bscc = bsccs.get(initInOneBSCC);
 			computeSteadyStateProbsForBSCC(dtmc, bscc, solnProbs);
 		}
 
 		// Otherwise, have to consider all the BSCCs
 		else {
-
 			// Compute probability of reaching each BSCC from initial distribution 
 			double[] probBSCCs = new double[numBSCCs];
 			for (int b = 0; b < numBSCCs; b++) {
