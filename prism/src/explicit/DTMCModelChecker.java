@@ -2160,18 +2160,12 @@ public class DTMCModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeSteadyStateProbs(DTMC dtmc, double initDist[]) throws PrismException
 	{
-		ModelCheckerResult res;
-		BitSet startNot, bscc;
-		double probBSCCs[], solnProbs[], reachProbs[];
-		int n, numBSCCs = 0, allInOneBSCC;
-		long timer;
-
-		timer = System.currentTimeMillis();
+		StopWatch watch = new StopWatch().start();
 
 		// Store num states
-		n = dtmc.getNumStates();
+		int numStates = dtmc.getNumStates();
 		// Create results vector
-		solnProbs = new double[n];
+		double[] solnProbs = new double[numStates];
 
 		// Compute bottom strongly connected components (BSCCs)
 		SCCConsumerStore sccStore = new SCCConsumerStore();
@@ -2179,16 +2173,16 @@ public class DTMCModelChecker extends ProbModelChecker
 		sccComputer.computeSCCs();
 		List<BitSet> bsccs = sccStore.getBSCCs();
 		BitSet notInBSCCs = sccStore.getNotInBSCCs();
-		numBSCCs = bsccs.size();
+		int numBSCCs = bsccs.size();
 
 		// See which states in the initial distribution do *not* have non-zero prob
-		startNot = new BitSet();
-		for (int i = 0; i < n; i++) {
+		BitSet startNot = new BitSet();
+		for (int i = 0; i < numStates; i++) {
 			if (initDist[i] == 0)
 				startNot.set(i);
 		}
 		// Determine whether initial states are all in a single BSCC 
-		allInOneBSCC = -1;
+		int allInOneBSCC = -1;
 		for (int b = 0; b < numBSCCs; b++) {
 			if (!bsccs.get(b).intersects(startNot)) {
 				allInOneBSCC = b;
@@ -2200,7 +2194,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		// Just compute steady-state probabilities for the BSCC
 		if (allInOneBSCC != -1) {
 			mainLog.println("\nInitial states all in one BSCC (so no reachability probabilities computed)");
-			bscc = bsccs.get(allInOneBSCC);
+			BitSet bscc = bsccs.get(allInOneBSCC);
 			computeSteadyStateProbsForBSCC(dtmc, bscc, solnProbs);
 		}
 
@@ -2208,16 +2202,16 @@ public class DTMCModelChecker extends ProbModelChecker
 		else {
 
 			// Compute probability of reaching each BSCC from initial distribution 
-			probBSCCs = new double[numBSCCs];
+			double[] probBSCCs = new double[numBSCCs];
 			for (int b = 0; b < numBSCCs; b++) {
 				mainLog.println("\nComputing probability of reaching BSCC " + (b + 1));
-				bscc = bsccs.get(b);
+				BitSet bscc = bsccs.get(b);
 				// Compute probabilities
-				reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
+				double[] reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
 				// Compute probability of reaching BSCC, which is dot product of
 				// vectors for initial distribution and probabilities of reaching it
 				probBSCCs[b] = 0.0;
-				for (int i = 0; i < n; i++) {
+				for (int i = 0; i < numStates; i++) {
 					probBSCCs[b] += initDist[i] * reachProbs[i];
 				}
 				mainLog.print("\nProbability of reaching BSCC " + (b + 1) + ": " + probBSCCs[b] + "\n");
@@ -2226,7 +2220,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			// Compute steady-state probabilities for each BSCC 
 			for (int b = 0; b < numBSCCs; b++) {
 				mainLog.println("\nComputing steady-state probabilities for BSCC " + (b + 1));
-				bscc = bsccs.get(b);
+				BitSet bscc = bsccs.get(b);
 				// Compute steady-state probabilities for the BSCC
 				computeSteadyStateProbsForBSCC(dtmc, bscc, solnProbs);
 				// Multiply by BSCC reach prob
@@ -2236,10 +2230,9 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 
 		// Return results
-		res = new ModelCheckerResult();
+		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = solnProbs;
-		timer = System.currentTimeMillis() - timer;
-		res.timeTaken = timer / 1000.0;
+		res.timeTaken = watch.elapsedSeconds();
 		return res;
 	}
 
@@ -2254,16 +2247,10 @@ public class DTMCModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeSteadyStateBackwardsProbs(DTMC dtmc, double multProbs[]) throws PrismException
 	{
-		ModelCheckerResult res;
-		BitSet bscc;
-		double probBSCCs[], ssProbs[], reachProbs[], soln[];
-		int n, numBSCCs = 0;
-		long timer;
-
-		timer = System.currentTimeMillis();
+		StopWatch watch = new StopWatch().start();
 
 		// Store num states
-		n = dtmc.getNumStates();
+		int numStates = dtmc.getNumStates();
 
 		// Compute bottom strongly connected components (BSCCs)
 		SCCConsumerStore sccStore = new SCCConsumerStore();
@@ -2271,14 +2258,14 @@ public class DTMCModelChecker extends ProbModelChecker
 		sccComputer.computeSCCs();
 		List<BitSet> bsccs = sccStore.getBSCCs();
 		BitSet notInBSCCs = sccStore.getNotInBSCCs();
-		numBSCCs = bsccs.size();
+		int numBSCCs = bsccs.size();
 
 		// Compute steady-state probability for each BSCC...
-		probBSCCs = new double[numBSCCs];
-		ssProbs = new double[n];
+		double[] probBSCCs = new double[numBSCCs];
+		double[] ssProbs = new double[numStates];
 		for (int b = 0; b < numBSCCs; b++) {
 			mainLog.println("\nComputing steady state probabilities for BSCC " + (b + 1));
-			bscc = bsccs.get(b);
+			BitSet bscc = bsccs.get(b);
 			// Compute steady-state probabilities for the BSCC
 			computeSteadyStateProbsForBSCC(dtmc, bscc, ssProbs);
 			// Compute weighted sum of probabilities with multProbs
@@ -2296,8 +2283,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 
 		// Create/initialise prob vector
-		soln = new double[n];
-		for (int i = 0; i < n; i++) {
+		double[] soln = new double[numStates];
+		for (int i = 0; i < numStates; i++) {
 			soln[i] = 0.0;
 		}
 
@@ -2305,7 +2292,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		if (notInBSCCs.isEmpty()) {
 			mainLog.println("\nAll states are in BSCCs (so no reachability probabilities computed)");
 			for (int b = 0; b < numBSCCs; b++) {
-				bscc = bsccs.get(b);
+				BitSet bscc = bsccs.get(b);
 				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1))
 					soln[i] += probBSCCs[b];
 			}
@@ -2319,21 +2306,20 @@ public class DTMCModelChecker extends ProbModelChecker
 				if (probBSCCs[b] == 0.0)
 					continue;
 				mainLog.println("\nComputing probabilities of reaching BSCC " + (b + 1));
-				bscc = bsccs.get(b);
+				BitSet bscc = bsccs.get(b);
 				// Compute probabilities
-				reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
+				double[] reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
 				// Multiply by value for BSCC, add to total
-				for (int i = 0; i < n; i++) {
+				for (int i = 0; i < numStates; i++) {
 					soln[i] += reachProbs[i] * probBSCCs[b];
 				}
 			}
 		}
 
 		// Return results
-		res = new ModelCheckerResult();
+		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
-		timer = System.currentTimeMillis() - timer;
-		res.timeTaken = timer / 1000.0;
+		res.timeTaken = watch.elapsedSeconds();
 		return res;
 	}
 
@@ -2350,23 +2336,17 @@ public class DTMCModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeSteadyStateProbsForBSCC(DTMC dtmc, BitSet bscc, double result[]) throws PrismException
 	{
-		ModelCheckerResult res;
-		int n, iters;
-		double soln[], soln2[], tmpsoln[];
-		boolean done;
-		long timer;
-
 		// Start value iteration
-		timer = System.currentTimeMillis();
 		mainLog.println("Starting value iteration...");
+		StopWatch watch = new StopWatch(mainLog).start();
 
 		// Store num states
-		n = dtmc.getNumStates();
+		int numStates = dtmc.getNumStates();
 
 		// Create solution vector(s)
 		// Use the passed in vector, if present
-		soln = result == null ? new double[n] : result;
-		soln2 = new double[n];
+		double[] soln = result == null ? new double[numStates] : result;
+		double[] soln2 = new double[numStates];
 
 		// Initialise solution vectors. Equiprobable for BSCC states.
 		double equiprob = 1.0 / bscc.cardinality();
@@ -2374,8 +2354,8 @@ public class DTMCModelChecker extends ProbModelChecker
 			soln[i] = soln2[i] = equiprob;
 
 		// Start iterations
-		iters = 0;
-		done = false;
+		int iters = 0;
+		boolean done = false;
 		while (!done && iters < maxIters) {
 			iters++;
 			// Matrix-vector multiply
@@ -2383,15 +2363,14 @@ public class DTMCModelChecker extends ProbModelChecker
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter
-			tmpsoln = soln;
+			double[] tmpsoln = soln;
 			soln = soln2;
 			soln2 = tmpsoln;
 		}
 
 		// Finished value iteration
-		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Value iteration");
-		mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+		watch.stop();
+		mainLog.println("Value iteration took " + iters + " iterations and " + watch.elapsedSeconds() + " seconds.");
 
 		// Non-convergence is an error (usually)
 		if (!done && errorOnNonConverge) {
@@ -2401,10 +2380,10 @@ public class DTMCModelChecker extends ProbModelChecker
 		}
 
 		// Return results
-		res = new ModelCheckerResult();
+		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
 		res.numIters = iters;
-		res.timeTaken = timer / 1000.0;
+		res.timeTaken = watch.elapsedSeconds();
 		return res;
 	}
 
