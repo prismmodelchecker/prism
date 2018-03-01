@@ -1463,6 +1463,8 @@ public class PrismCL implements PrismModelListener
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
+					// if we are asked to export the steady-state probs, we should compute them
+					steadystate = true;
 				}
 				// export transient probs (as opposed to displaying on screen) 
 				else if (sw.equals("exporttransient") || sw.equals("exporttr")) {
