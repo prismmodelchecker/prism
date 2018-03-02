@@ -23,4 +23,3 @@ notifications:
       - klein@tcs.inf.tu-dresden.de
     on_success: change
     on_failure: always
-
