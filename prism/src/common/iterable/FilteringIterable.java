@@ -55,21 +55,21 @@ public abstract class FilteringIterable<E, I extends Iterable<E>> implements Fun
 		this.iterable = iterable;
 	}
 
-	public static abstract class DedupedIterable<E, I extends FunctionalIterable<E>> implements FunctionalIterable<E>
+	public static abstract class DistinctIterable<E, I extends FunctionalIterable<E>> implements FunctionalIterable<E>
 	{
 		protected I source;
-		protected I deduped;
+		protected I distinct;
 	
 		@SuppressWarnings("unchecked")
-		public DedupedIterable(Iterable<E> source)
+		public DistinctIterable(Iterable<E> source)
 		{
-			this.source  = (I) FunctionalIterable.extend(source);
-			this.deduped = null;
+			this.source   = (I) FunctionalIterable.extend(source);
+			this.distinct = null;
 		}
 	
 	
 	
-		public static class Of<E> extends DedupedIterable<E, FunctionalIterable<E>>
+		public static class Of<E> extends DistinctIterable<E, FunctionalIterable<E>>
 		{
 			public Of(Iterable<E> source)
 			{
@@ -80,11 +80,11 @@ public abstract class FilteringIterable<E, I extends Iterable<E>> implements Fun
 			public FunctionalIterator<E> iterator()
 			{
 				if (source == null) {
-					return deduped.iterator();
+					return distinct.iterator();
 				}
 				Set<E> set                 = new HashSet<E>();
 				FunctionalIterable<E> iter = source.filter(set::add);
-				deduped                    = FunctionalIterable.extend(set);
+				distinct                   = FunctionalIterable.extend(set);
 				source                     = null;
 				return iter.iterator();
 			}
@@ -92,7 +92,7 @@ public abstract class FilteringIterable<E, I extends Iterable<E>> implements Fun
 	
 	
 	
-		public static class OfInt extends DedupedIterable<Integer, IterableInt> implements IterableInt
+		public static class OfInt extends DistinctIterable<Integer, IterableInt> implements IterableInt
 		{
 			public OfInt(IterableInt source)
 			{
@@ -103,12 +103,12 @@ public abstract class FilteringIterable<E, I extends Iterable<E>> implements Fun
 			public FunctionalPrimitiveIterator.OfInt iterator()
 			{
 				if (source == null) {
-					deduped.iterator();
+					distinct.iterator();
 				}
 				BitSet bits          = new BitSet();
 				IntPredicate set     = (int i) -> {if (bits.get(i)) return false; else bits.set(i); return true;};
 				IterableInt filtered = source.filter(set);
-				deduped              = IterableBitSet.getSetBits(bits);
+				distinct             = IterableBitSet.getSetBits(bits);
 				source               = null;
 				return FunctionalIterator.extend(filtered.iterator());
 			}

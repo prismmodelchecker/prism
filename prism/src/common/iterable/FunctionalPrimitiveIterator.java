@@ -87,7 +87,7 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		 * filtering duplicate elements (via HashSet).
 		 */
 		@Override
-		default FunctionalPrimitiveIterator.OfDouble dedupe()
+		default FunctionalPrimitiveIterator.OfDouble distinct()
 		{
 			Set<Double> set = new HashSet<>();
 			return new FilteringIterator.OfDouble(unwrap(), set::add);
@@ -98,9 +98,9 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		 * filtering consecutive duplicate elements.
 		 */
 		@Override
-		default FunctionalPrimitiveIterator.OfDouble dedupeCons()
+		default FunctionalPrimitiveIterator.OfDouble dedupe()
 		{
-			DoublePredicate test = new DoublePredicate()
+			DoublePredicate unseen = new DoublePredicate()
 			{
 				boolean isFirst = true;
 				double previous = 0;
@@ -108,12 +108,14 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 				@Override
 				public boolean test(double d)
 				{
-					boolean seen = !isFirst && previous == d;
-					previous     = d;
-					return seen;
+					if (!isFirst && previous == d) {
+						return false;
+					}
+					previous = d;
+					return true;
 				}
 			};
-			return new FilteringIterator.OfDouble(unwrap(), test);
+			return new FilteringIterator.OfDouble(unwrap(), unseen);
 		}
 
 		default FunctionalPrimitiveIterator.OfDouble filter(DoublePredicate predicate)
@@ -351,7 +353,7 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		 * filtering duplicate elements (via BitSet).
 		 */
 		@Override
-		default FunctionalPrimitiveIterator.OfInt dedupe()
+		default FunctionalPrimitiveIterator.OfInt distinct()
 		{
 			BitSet bits      = new BitSet();
 			IntPredicate set = (int i) -> {if (bits.get(i)) return false; else bits.set(i); return true;};
@@ -363,9 +365,9 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		 * filtering consecutive duplicate elements.
 		 */
 		@Override
-		default FunctionalPrimitiveIterator.OfInt dedupeCons()
+		default FunctionalPrimitiveIterator.OfInt dedupe()
 		{
-			IntPredicate test = new IntPredicate()
+			IntPredicate unseen = new IntPredicate()
 			{
 				boolean isFirst = true;
 				int previous    = 0;
@@ -373,12 +375,14 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 				@Override
 				public boolean test(int i)
 				{
-					boolean seen = !isFirst && previous == i;
-					previous     = i;
-					return seen;
+					if (!isFirst && previous == i) {
+						return false;
+					}
+					previous = i;
+					return true;
 				}
 			};
-			return new FilteringIterator.OfInt(unwrap(), test);
+			return new FilteringIterator.OfInt(unwrap(), unseen);
 		}
 
 		default FunctionalPrimitiveIterator.OfInt filter(IntPredicate predicate)
@@ -634,7 +638,7 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		 * filtering duplicate elements (via HashSet).
 		 */
 		@Override
-		default FunctionalPrimitiveIterator.OfLong dedupe()
+		default FunctionalPrimitiveIterator.OfLong distinct()
 		{
 			Set<Long> set = new HashSet<>();
 			return new FilteringIterator.OfLong(unwrap(), (LongPredicate) set::add);
@@ -645,9 +649,9 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		 * filtering consecutive duplicate elements.
 		 */
 		@Override
-		default FunctionalPrimitiveIterator.OfLong dedupeCons()
+		default FunctionalPrimitiveIterator.OfLong dedupe()
 		{
-			LongPredicate test = new LongPredicate()
+			LongPredicate unseen = new LongPredicate()
 			{
 				boolean isFirst = true;
 				long previous   = 0;
@@ -655,12 +659,14 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 				@Override
 				public boolean test(long l)
 				{
-					boolean seen = !isFirst && previous == l;
-					previous     = l;
-					return seen;
+					if (!isFirst && previous == l) {
+						return false;
+					}
+					previous = l;
+					return true;
 				}
 			};
-			return new FilteringIterator.OfLong(unwrap(), test);
+			return new FilteringIterator.OfLong(unwrap(), unseen);
 		}
 
 		default FunctionalPrimitiveIterator.OfLong filter(LongPredicate predicate)

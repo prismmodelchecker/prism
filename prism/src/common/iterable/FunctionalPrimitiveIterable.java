@@ -52,7 +52,7 @@ import java.util.function.LongToDoubleFunction;
 import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 
-import common.iterable.FilteringIterable.DedupedIterable;
+import common.iterable.FilteringIterable.DistinctIterable;
 
 public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterable<E>
 {
@@ -104,20 +104,20 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		}
 
 		@Override
-		default IterableDouble dedupe()
+		default IterableDouble distinct()
 		{
-			return new DedupedIterable.Of<>(this).mapToDouble(Double::doubleValue);
+			return new DistinctIterable.Of<>(this).mapToDouble(Double::doubleValue);
 		}
 
 		@Override
-		default IterableDouble dedupeCons()
+		default IterableDouble dedupe()
 		{
 			return new IterableDouble()
 			{
 				@Override
 				public FunctionalPrimitiveIterator.OfDouble iterator()
 				{
-					return IterableDouble.this.iterator().dedupeCons();
+					return IterableDouble.this.iterator().dedupe();
 				}
 			};
 		}
@@ -267,20 +267,20 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		}
 
 		@Override
-		default IterableInt dedupe()
+		default IterableInt distinct()
 		{
-			return new DedupedIterable.OfInt(this);
+			return new DistinctIterable.OfInt(this);
 		}
 
 		@Override
-		default IterableInt dedupeCons()
+		default IterableInt dedupe()
 		{
 			return new IterableInt()
 			{
 				@Override
 				public FunctionalPrimitiveIterator.OfInt iterator()
 				{
-					return IterableInt.this.iterator().dedupeCons();
+					return IterableInt.this.iterator().dedupe();
 				}
 			};
 		}
@@ -439,20 +439,20 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		}
 
 		@Override
-		default IterableLong dedupe()
+		default IterableLong distinct()
 		{
-			return new DedupedIterable.Of<>(this).mapToLong(Long::longValue);
+			return new DistinctIterable.Of<>(this).mapToLong(Long::longValue);
 		}
 
 		@Override
-		default IterableLong dedupeCons()
+		default IterableLong dedupe()
 		{
 			return new IterableLong()
 			{
 				@Override
 				public FunctionalPrimitiveIterator.OfLong iterator()
 				{
-					return IterableLong.this.iterator().dedupeCons();
+					return IterableLong.this.iterator().dedupe();
 				}
 			};
 		}

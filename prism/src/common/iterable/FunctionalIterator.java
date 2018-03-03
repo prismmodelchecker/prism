@@ -391,7 +391,7 @@ public interface FunctionalIterator<E> extends Iterator<E>
 	 * that {@code equals()} and {@code hashCode()} are properly
 	 * implemented).
 	 */
-	default FunctionalIterator<E> dedupe()
+	default FunctionalIterator<E> distinct()
 	{
 		Set<E> set = new HashSet<>();
 		return new FilteringIterator.Of<>(unwrap(), set::add);
@@ -401,21 +401,23 @@ public interface FunctionalIterator<E> extends Iterator<E>
 	 * Obtain filtering iterator for the given iterator,
 	 * filtering consecutive duplicate elements.
 	 */
-	default FunctionalIterator<E> dedupeCons()
+	default FunctionalIterator<E> dedupe()
 	{
-		Predicate<E> test = new Predicate<E>()
+		Predicate<E> unseen = new Predicate<E>()
 		{
 			Object previous = new Object();
 
 			@Override
 			public boolean test(E obj)
 			{
-				boolean seen = Objects.equals(previous, obj);
-				previous     = obj;
-				return seen;
+				if (Objects.equals(previous, obj)) {
+					return false;
+				}
+				previous = obj;
+				return true;
 			}
 		};
-		return new FilteringIterator.Of<>(unwrap(), test);
+		return new FilteringIterator.Of<>(unwrap(), unseen);
 	}
 
 	default FunctionalIterator<E> filter(Predicate<? super E> function)

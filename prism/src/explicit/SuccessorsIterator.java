@@ -70,7 +70,7 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 		if (successorsAreDistinct()) {
 			return this;
 		} else {
-			return new SuccessorsIteratorFromOfInt(FunctionalIterator.extend(this).dedupe(), true);
+			return new SuccessorsIteratorFromOfInt(FunctionalIterator.extend(this).distinct(), true);
 		}
 	}
 

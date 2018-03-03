@@ -39,7 +39,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
-import common.iterable.FilteringIterable.DedupedIterable;
+import common.iterable.FilteringIterable.DistinctIterable;
 import common.iterable.FunctionalPrimitiveIterable.IterableDouble;
 import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import common.iterable.FunctionalPrimitiveIterable.IterableLong;
@@ -118,19 +118,19 @@ public interface FunctionalIterable<E> extends Iterable<E>
 		return new ChainedIterable.Of<>(this, new ChainedIterable.Of<>(iterables));
 	}
 
-	default FunctionalIterable<E> dedupe()
+	default FunctionalIterable<E> distinct()
 	{
-		return new DedupedIterable.Of<>(this);
+		return new DistinctIterable.Of<>(this);
 	}
 
-	default FunctionalIterable<E> dedupeCons()
+	default FunctionalIterable<E> dedupe()
 	{
 		return new FunctionalIterable<E>()
 		{
 			@Override
 			public FunctionalIterator<E> iterator()
 			{
-				return FunctionalIterable.this.iterator().dedupeCons();
+				return FunctionalIterable.this.iterator().dedupe();
 			}
 		};
 	}
