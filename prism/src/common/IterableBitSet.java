@@ -29,9 +29,9 @@ package common;
 
 import java.util.BitSet;
 import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator.OfInt;
 
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterator.OfInt;
 
 /**
  * Convenience class to loop easily over the set/clear bits of a BitSet.
@@ -41,10 +41,10 @@ import common.iterable.IterableInt;
  */
 public class IterableBitSet implements IterableInt
 {
-	private BitSet set;
-	private boolean clearBits = false;
-	private boolean reversed = false;
-	private Integer maxIndex = null;
+	protected BitSet set;
+	protected boolean clearBits = false;
+	protected boolean reversed = false;
+	protected Integer maxIndex = null;
 
 	/**
 	 * Constructor for an Iterable that iterates over the set bits of {@code set}

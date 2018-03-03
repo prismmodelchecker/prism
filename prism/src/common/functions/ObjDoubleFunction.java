@@ -24,13 +24,21 @@
 //	
 //==============================================================================
 
-package common.iterable;
+package common.functions;
 
-import java.util.PrimitiveIterator.OfDouble;
+import java.util.Objects;
+import java.util.function.Function;
 
-/** Iterable for a PrimitiveIterator.OfDouble */
-public interface IterableDouble extends Iterable<Double>
+/**
+ * Functional interface for a binary function (T, R) -> double.
+ */
+@FunctionalInterface
+public interface ObjDoubleFunction<T, R>
 {
-	@Override
-	public OfDouble iterator();
+	R apply(T t, double i);
+
+	default <V> ObjDoubleFunction<T, V> andThen(Function<? super R, ? extends V> after) {
+		Objects.requireNonNull(after);
+		return (T t, double i) -> after.apply(apply(t, i));
+	}
 }

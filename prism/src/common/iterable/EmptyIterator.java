@@ -27,15 +27,13 @@
 
 package common.iterable;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
 
 /**
  * Base class for empty Iterators,
  * static helpers for common primitive iterators.
  */
-public abstract class EmptyIterator<T> implements Iterator<T>
+public abstract class EmptyIterator<E> implements FunctionalIterator<E>
 {
 	private static final Of<?> OF           = new Of<>();
 	private static final OfInt OF_INT       = new OfInt();
@@ -43,20 +41,24 @@ public abstract class EmptyIterator<T> implements Iterator<T>
 	private static final OfDouble OF_DOUBLE = new OfDouble();
 
 	@SuppressWarnings("unchecked")
-	public static <T> Of<T> Of() {
-		return (Of<T>) OF;
+	public static <E> Of<E> Of()
+	{
+		return (Of<E>) OF;
 	}
 
-	public static OfInt OfInt() {
+	public static OfDouble OfDouble()
+	{
+		return OF_DOUBLE;
+	}
+
+	public static OfInt OfInt()
+	{
 		return OF_INT;
 	}
 
-	public static OfLong OfLong() {
+	public static OfLong OfLong()
+	{
 		return OF_LONG;
-	}
-
-	public static OfDouble OfDouble() {
-		return OF_DOUBLE;
 	}
 
 	@Override
@@ -65,18 +67,35 @@ public abstract class EmptyIterator<T> implements Iterator<T>
 		return false;
 	}
 
-	public static class Of<T> extends EmptyIterator<T>
+
+
+	public static class Of<E> extends EmptyIterator<E>
 	{
 		private Of() {};
 
 		@Override
-		public T next()
+		public E next()
 		{
 			throw new NoSuchElementException();
 		}
 	}
 
-	public static class OfInt extends EmptyIterator<Integer> implements PrimitiveIterator.OfInt
+
+
+	public static class OfDouble extends EmptyIterator<Double> implements FunctionalPrimitiveIterator.OfDouble
+	{
+		private OfDouble() {};
+
+		@Override
+		public double nextDouble()
+		{
+			throw new NoSuchElementException();
+		}
+	}
+
+
+
+	public static class OfInt extends EmptyIterator<Integer> implements FunctionalPrimitiveIterator.OfInt
 	{
 		private OfInt() {};
 
@@ -87,23 +106,14 @@ public abstract class EmptyIterator<T> implements Iterator<T>
 		}
 	}
 
-	public static class OfLong extends EmptyIterator<Long> implements PrimitiveIterator.OfLong
+
+
+	public static class OfLong extends EmptyIterator<Long> implements FunctionalPrimitiveIterator.OfLong
 	{
 		private OfLong() {};
 
 		@Override
 		public long nextLong()
-		{
-			throw new NoSuchElementException();
-		}
-	}
-
-	public static class OfDouble extends EmptyIterator<Double> implements PrimitiveIterator.OfDouble
-	{
-		private OfDouble() {};
-
-		@Override
-		public double nextDouble()
 		{
 			throw new NoSuchElementException();
 		}

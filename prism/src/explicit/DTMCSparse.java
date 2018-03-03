@@ -38,7 +38,7 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.function.Function;
 
 import common.IterableStateSet;
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import common.iterable.MappingIterator;
 import explicit.rewards.MCRewards;
 import prism.PrismException;
@@ -408,7 +408,7 @@ public class DTMCSparse extends DTMCExplicit
 		};
 		String s = "trans: [ ";
 		final IterableStateSet states = new IterableStateSet(numStates);
-		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.From<>(states, getDistribution);
+		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.From<>(states.iterator(), getDistribution);
 		while (distributions.hasNext()) {
 			final Entry<Integer, Distribution> dist = distributions.next();
 			s += dist.getKey() + ": " + dist.getValue();

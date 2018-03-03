@@ -1,24 +1,72 @@
+//==============================================================================
+//	
+//	Copyright (c) 2016-
+//	Authors:
+//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
 package common.iterable;
 
-import java.util.Iterator;
+import common.iterable.FunctionalPrimitiveIterable.IterableDouble;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableLong;
 
-public abstract class SingletonIterable<T> implements Iterable<T>
+public abstract class SingletonIterable<E> implements FunctionalIterable<E>
 {
-	public static class Of<T> extends SingletonIterable<T>
+	public static class Of<E> extends SingletonIterable<E>
 	{
-		final T element;
+		final E element;
 
-		public Of(T theElement)
+		public Of(E theElement)
 		{
 			element = theElement;
 		}
 
 		@Override
-		public Iterator<T> iterator()
+		public FunctionalIterator<E> iterator()
 		{
 			return new SingletonIterator.Of<>(element);
 		}
 	}
+
+
+
+	public static class OfDouble extends SingletonIterable<Double> implements IterableDouble
+	{
+		final double element;
+	
+		public OfDouble(double theElement)
+		{
+			element = theElement;
+		}
+	
+		@Override
+		public SingletonIterator.OfDouble iterator()
+		{
+			return new SingletonIterator.OfDouble(element);
+		}
+	}
+
+
 
 	public static class OfInt extends SingletonIterable<Integer> implements IterableInt
 	{
@@ -36,6 +84,8 @@ public abstract class SingletonIterable<T> implements Iterable<T>
 		}
 	}
 
+
+
 	public static class OfLong extends SingletonIterable<Long> implements IterableLong
 	{
 		final long element;
@@ -49,22 +99,6 @@ public abstract class SingletonIterable<T> implements Iterable<T>
 		public SingletonIterator.OfLong iterator()
 		{
 			return new SingletonIterator.OfLong(element);
-		}
-	}
-
-	public static class OfDouble extends SingletonIterable<Double> implements IterableDouble
-	{
-		final double element;
-
-		public OfDouble(double theElement)
-		{
-			element = theElement;
-		}
-
-		@Override
-		public SingletonIterator.OfDouble iterator()
-		{
-			return new SingletonIterator.OfDouble(element);
 		}
 	}
 }

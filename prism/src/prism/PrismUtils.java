@@ -36,7 +36,7 @@ import java.util.PrimitiveIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 
 /**
  * Various general-purpose utility methods in Java
