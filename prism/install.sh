@@ -17,7 +17,12 @@ if [ ! "$1" = "silent" ] ; then
     echo "Installing PRISM (directory=$PRISM_DIR)"
 fi
 TEMP_FILE=tmp
-FILES_TO_CHANGE=`find bin -maxdepth 1 ! -type d ! -name '*.bat' ! -name ngprism`
+# Search for the scripts that should be changed
+# We exclude:
+#  - Windows .BAT files
+#  - the ngprism binary
+#  - hidden files (starting with a dot, e.g., the .DS_Store files from MacOS)
+FILES_TO_CHANGE=`find bin -maxdepth 1 ! -type d ! -iname '*.bat' ! -iname ngprism ! -name '.*'`
 for FILE_TO_CHANGE in $FILES_TO_CHANGE
 do
   if [ -f "$PRISM_DIR"/$FILE_TO_CHANGE ]; then
