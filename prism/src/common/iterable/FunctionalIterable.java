@@ -101,7 +101,7 @@ public interface FunctionalIterable<E> extends Iterable<E>
 	// Transforming Methods
 
 	@SuppressWarnings("unchecked")
-	default FunctionalIterable<E> chain(Iterable<? extends E>... iterables)
+	default FunctionalIterable<E> concat(Iterable<? extends E>... iterables)
 	{
 		switch (iterables.length) {
 		case 0:
@@ -113,7 +113,7 @@ public interface FunctionalIterable<E> extends Iterable<E>
 		}
 	}
 
-	default FunctionalIterable<E> chain(Iterable<Iterable<? extends E>> iterables)
+	default FunctionalIterable<E> concat(Iterable<Iterable<? extends E>> iterables)
 	{
 		return new ChainedIterable.Of<>(this, new ChainedIterable.Of<>(iterables));
 	}

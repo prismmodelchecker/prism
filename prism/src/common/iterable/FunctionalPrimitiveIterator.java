@@ -74,7 +74,7 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 	{
 		// Transforming Methods
 
-		default FunctionalPrimitiveIterator.OfDouble chain(PrimitiveIterator.OfDouble... iterators)
+		default FunctionalPrimitiveIterator.OfDouble concat(PrimitiveIterator.OfDouble... iterators)
 		{
 			if (iterators.length == 0) {
 				return this;
@@ -340,7 +340,7 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 	{
 		// Transforming Methods
 
-		default FunctionalPrimitiveIterator.OfInt chain(PrimitiveIterator.OfInt... iterators)
+		default FunctionalPrimitiveIterator.OfInt concat(PrimitiveIterator.OfInt... iterators)
 		{
 			if (iterators.length == 0) {
 				return this;
@@ -625,7 +625,7 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 	{
 		// Transforming Methods
 
-		default FunctionalPrimitiveIterator.OfLong chain(PrimitiveIterator.OfLong... iterators)
+		default FunctionalPrimitiveIterator.OfLong concat(PrimitiveIterator.OfLong... iterators)
 		{
 			if (iterators.length == 0) {
 				return this;

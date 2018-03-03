@@ -372,7 +372,7 @@ public interface FunctionalIterator<E> extends Iterator<E>
 	// Transforming Methods
 
 	@SuppressWarnings("unchecked")
-	default FunctionalIterator<E> chain(Iterator<? extends E>... iterators)
+	default FunctionalIterator<E> concat(Iterator<? extends E>... iterators)
 	{
 		if (iterators.length == 0) {
 			return this;
@@ -380,7 +380,7 @@ public interface FunctionalIterator<E> extends Iterator<E>
 		return new ChainedIterator.Of<>(unwrap(), iterators);
 	}
 
-	default FunctionalIterator<E> chain(Iterator<Iterator<? extends E>> iterators)
+	default FunctionalIterator<E> concat(Iterator<Iterator<? extends E>> iterators)
 	{
 		return new ChainedIterator.Of<>(unwrap(), iterators);
 	}

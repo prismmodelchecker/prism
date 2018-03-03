@@ -91,7 +91,7 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 
 		// Transforming Methods
 
-		default IterableDouble chain(IterableDouble... iterables)
+		default IterableDouble concat(IterableDouble... iterables)
 		{
 			switch (iterables.length) {
 			case 0:
@@ -254,7 +254,7 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 
 		// Transforming Methods
 
-		default IterableInt chain(IterableInt... iterables)
+		default IterableInt concat(IterableInt... iterables)
 		{
 			switch (iterables.length) {
 			case 0:
@@ -426,7 +426,7 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 
 		// Transforming Methods
 
-		default IterableLong chain(IterableLong... iterables)
+		default IterableLong concat(IterableLong... iterables)
 		{
 			switch (iterables.length) {
 			case 0:
