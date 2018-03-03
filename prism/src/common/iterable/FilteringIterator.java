@@ -27,8 +27,6 @@
 
 package common.iterable;
 
-import java.util.BitSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -37,7 +35,6 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.PrimitiveIterator;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.DoubleBinaryOperator;
@@ -88,132 +85,6 @@ public abstract class FilteringIterator<E, I extends Iterator<E>> implements Fun
 		if (!hasNext) {
 			throw new NoSuchElementException();
 		}
-	}
-
-	/**
-	 * Obtain filtering iterator for the given iterator,
-	 * filtering duplicate elements (via HashSet, requires
-	 * that {@code equals()} and {@code hashCode()} are properly
-	 * implemented).
-	 */
-	public static <E> FunctionalIterator<E> dedupe(Iterator<E> iterator)
-	{
-		Set<E> set = new HashSet<>();
-		return new FilteringIterator.Of<>(iterator, set::add);
-	}
-
-	/**
-	 * Obtain filtering iterator for the given primitive double iterator,
-	 * filtering duplicate elements (via HashSet).
-	 */
-	public static FunctionalPrimitiveIterator.OfDouble dedupe(PrimitiveIterator.OfDouble iterator)
-	{
-		Set<Double> set = new HashSet<>();
-		return new FilteringIterator.OfDouble(iterator, set::add);
-	}
-
-	/**
-	 * Obtain filtering iterator for the given primitive int iterator,
-	 * filtering duplicate elements (via BitSet).
-	 */
-	public static FunctionalPrimitiveIterator.OfInt dedupe(PrimitiveIterator.OfInt iterator)
-	{
-		BitSet bits      = new BitSet();
-		IntPredicate set = (int i) -> {if (bits.get(i)) return false; else bits.set(i); return true;};
-		return new FilteringIterator.OfInt(iterator, set);
-	}
-
-	/**
-	 * Obtain filtering iterator for the given primitive int iterator,
-	 * filtering duplicate elements (via HashSet).
-	 */
-	public static FunctionalPrimitiveIterator.OfLong dedupe(PrimitiveIterator.OfLong iterator)
-	{
-		Set<Long> set = new HashSet<>();
-		return new FilteringIterator.OfLong(iterator, (LongPredicate) set::add);
-	}
-
-	public static <E> FunctionalIterator<E> dedupeCons(Iterator<E> iterator)
-	{
-		Predicate<E> test = new Predicate<E>()
-		{
-			Object previous = new Object();
-
-			@Override
-			public boolean test(E o)
-			{
-				boolean seen = Objects.equals(previous, o);
-				previous = o;
-				return seen;
-			}
-		};
-		return new FilteringIterator.Of<>(iterator, test);
-	}
-
-	/**
-	 * Obtain filtering iterator for the given primitive long iterator,
-	 * filtering duplicate elements (via HashSet).
-	 */
-	public static FunctionalPrimitiveIterator.OfDouble dedupeCons(PrimitiveIterator.OfDouble iterator)
-	{
-		DoublePredicate test = new DoublePredicate()
-		{
-			boolean isFirst = true;
-			double previous = 0;
-
-			@Override
-			public boolean test(double d)
-			{
-				boolean seen = !isFirst && previous == d;
-				previous = d;
-				return seen;
-			}
-		};
-		return new FilteringIterator.OfDouble(iterator, test);
-	}
-
-	public static FunctionalPrimitiveIterator.OfInt dedupeCons(PrimitiveIterator.OfInt iterator)
-	{
-		IntPredicate test = new IntPredicate()
-		{
-			boolean isFirst = true;
-			int previous    = 0;
-
-			@Override
-			public boolean test(int d)
-			{
-				boolean seen = !isFirst && previous == d;
-				previous = d;
-				return seen;
-			}
-		};
-		return new FilteringIterator.OfInt(iterator, test);
-	}
-
-	public static FunctionalPrimitiveIterator.OfLong dedupeCons(PrimitiveIterator.OfLong iterator)
-	{
-		LongPredicate test = new LongPredicate()
-		{
-			boolean isFirst = true;
-			long previous   = 0;
-
-			@Override
-			public boolean test(long d)
-			{
-				boolean seen = !isFirst && previous == d;
-				previous = d;
-				return seen;
-			}
-		};
-		return new FilteringIterator.OfLong(iterator, test);
-	}
-
-	public static <E> Iterator<E> nonNull(Iterator<E> iterator)
-	{
-		if (iterator instanceof PrimitiveIterator) {
-			return iterator;
-		}
-		return new FilteringIterator.Of<>(iterator, Objects::nonNull);
 	}
 
 

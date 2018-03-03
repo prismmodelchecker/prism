@@ -52,6 +52,8 @@ import java.util.function.LongToDoubleFunction;
 import java.util.function.LongToIntFunction;
 import java.util.function.LongUnaryOperator;
 
+import common.iterable.FilteringIterable.DedupedIterable;
+
 public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterable<E>
 {
 	@Override
@@ -71,6 +73,11 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 	default void forEach(E_CONS action)
 	{
 		iterator().forEachRemaining(action);
+	}
+
+	default FunctionalPrimitiveIterable<E, E_CONS> nonNull()
+	{
+		return this;
 	}
 
 
@@ -99,7 +106,20 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		@Override
 		default IterableDouble dedupe()
 		{
-			return FilteringIterable.dedupe(this);
+			return new DedupedIterable.Of<>(this).mapToDouble(Double::doubleValue);
+		}
+
+		@Override
+		default IterableDouble dedupeCons()
+		{
+			return new IterableDouble()
+			{
+				@Override
+				public FunctionalPrimitiveIterator.OfDouble iterator()
+				{
+					return IterableDouble.this.iterator().dedupeCons();
+				}
+			};
 		}
 
 		default IterableDouble filter(DoublePredicate predicate)
@@ -145,6 +165,11 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		default IterableLong mapToLong(DoubleToLongFunction function)
 		{
 			return new MappingIterable.FromDoubleToLong(this, function);
+		}
+
+		default IterableDouble nonNull()
+		{
+			return this;
 		}
 
 
@@ -244,7 +269,20 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		@Override
 		default IterableInt dedupe()
 		{
-			return FilteringIterable.dedupe(this);
+			return new DedupedIterable.OfInt(this);
+		}
+
+		@Override
+		default IterableInt dedupeCons()
+		{
+			return new IterableInt()
+			{
+				@Override
+				public FunctionalPrimitiveIterator.OfInt iterator()
+				{
+					return IterableInt.this.iterator().dedupeCons();
+				}
+			};
 		}
 
 		default IterableInt filter(IntPredicate predicate)
@@ -292,6 +330,10 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 			return new MappingIterable.FromIntToLong(this, function);
 		}
 
+		default IterableInt nonNull()
+		{
+			return this;
+		}
 
 
 		// Accumulations Methods (Consuming)
@@ -399,7 +441,20 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		@Override
 		default IterableLong dedupe()
 		{
-			return FilteringIterable.dedupe(this);
+			return new DedupedIterable.Of<>(this).mapToLong(Long::longValue);
+		}
+
+		@Override
+		default IterableLong dedupeCons()
+		{
+			return new IterableLong()
+			{
+				@Override
+				public FunctionalPrimitiveIterator.OfLong iterator()
+				{
+					return IterableLong.this.iterator().dedupeCons();
+				}
+			};
 		}
 
 		default IterableLong filter(LongPredicate predicate)
@@ -445,6 +500,11 @@ public interface FunctionalPrimitiveIterable<E, E_CONS> extends FunctionalIterab
 		default IterableLong mapToLong(LongUnaryOperator function)
 		{
 			return new MappingIterable.FromLongToLong(this, function);
+		}
+
+		default IterableLong nonNull()
+		{
+			return this;
 		}
 
 

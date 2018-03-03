@@ -36,7 +36,6 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 
 import common.functions.primitive.PairPredicateInt;
-import common.iterable.FilteringIterator;
 import common.IterableBitSet;
 import common.IterableStateSet;
 import common.IteratorTools;
@@ -232,7 +231,7 @@ public class MDPEquiv extends MDPView
 		}
 		Iterator<Integer> successors = model.getSuccessorsIterator(originalState, originalChoice);
 		if (hasTransitionToNonRepresentative.get(originalState)) {
-			return FilteringIterator.dedupe(new MappingIterator.From<>(successors, this::mapStateToRestrictedModel));
+			return (new MappingIterator.From<>(successors, this::mapStateToRestrictedModel)).dedupe();
 		}
 		return successors;
 	}

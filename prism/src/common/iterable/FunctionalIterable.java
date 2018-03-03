@@ -39,6 +39,7 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
+import common.iterable.FilteringIterable.DedupedIterable;
 import common.iterable.FunctionalPrimitiveIterable.IterableDouble;
 import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import common.iterable.FunctionalPrimitiveIterable.IterableLong;
@@ -119,7 +120,19 @@ public interface FunctionalIterable<E> extends Iterable<E>
 
 	default FunctionalIterable<E> dedupe()
 	{
-		return FilteringIterable.Of.dedupe(this);
+		return new DedupedIterable.Of<>(this);
+	}
+
+	default FunctionalIterable<E> dedupeCons()
+	{
+		return new FunctionalIterable<E>()
+		{
+			@Override
+			public FunctionalIterator<E> iterator()
+			{
+				return FunctionalIterable.this.iterator().dedupeCons();
+			}
+		};
 	}
 
 	default FunctionalIterable<E> filter(Predicate<? super E> function)
@@ -169,7 +182,7 @@ public interface FunctionalIterable<E> extends Iterable<E>
 
 	default Iterable<E> nonNull()
 	{
-		return FilteringIterable.nonNull(this);
+		return new FilteringIterable.Of<>(this, Objects::nonNull);
 	}
 
 

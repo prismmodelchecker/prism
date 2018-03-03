@@ -27,12 +27,14 @@
 package common.iterable;
 
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.PrimitiveIterator;
+import java.util.Set;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleFunction;
@@ -80,16 +82,38 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 			return new ChainedIterator.OfDouble(unwrap(), iterators);
 		}
 
+		/**
+		 * Obtain filtering iterator for the given primitive double iterator,
+		 * filtering duplicate elements (via HashSet).
+		 */
 		@Override
 		default FunctionalPrimitiveIterator.OfDouble dedupe()
 		{
-			return FilteringIterator.dedupe(unwrap());
+			Set<Double> set = new HashSet<>();
+			return new FilteringIterator.OfDouble(unwrap(), set::add);
 		}
 
+		/**
+		 * Obtain filtering iterator for the given primitive double iterator,
+		 * filtering consecutive duplicate elements.
+		 */
 		@Override
 		default FunctionalPrimitiveIterator.OfDouble dedupeCons()
 		{
-			return FilteringIterator.dedupeCons(unwrap());
+			DoublePredicate test = new DoublePredicate()
+			{
+				boolean isFirst = true;
+				double previous = 0;
+
+				@Override
+				public boolean test(double d)
+				{
+					boolean seen = !isFirst && previous == d;
+					previous     = d;
+					return seen;
+				}
+			};
+			return new FilteringIterator.OfDouble(unwrap(), test);
 		}
 
 		default FunctionalPrimitiveIterator.OfDouble filter(DoublePredicate predicate)
@@ -135,6 +159,12 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		default PrimitiveIterator.OfLong mapToLong(DoubleToLongFunction function)
 		{
 			return new MappingIterator.FromDoubleToLong(unwrap(), function);
+		}
+
+		@Override
+		default FunctionalPrimitiveIterator.OfDouble nonNull()
+		{
+			return this;
 		}
 
 		@Override
@@ -316,16 +346,39 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 			return new ChainedIterator.OfInt(unwrap(), iterators);
 		}
 
+		/**
+		 * Obtain filtering iterator for the given primitive int iterator,
+		 * filtering duplicate elements (via BitSet).
+		 */
 		@Override
 		default FunctionalPrimitiveIterator.OfInt dedupe()
 		{
-			return FilteringIterator.dedupe(unwrap());
+			BitSet bits      = new BitSet();
+			IntPredicate set = (int i) -> {if (bits.get(i)) return false; else bits.set(i); return true;};
+			return new FilteringIterator.OfInt(unwrap(), set);
 		}
 
+		/**
+		 * Obtain filtering iterator for the given primitive int iterator,
+		 * filtering consecutive duplicate elements.
+		 */
 		@Override
 		default FunctionalPrimitiveIterator.OfInt dedupeCons()
 		{
-			return FilteringIterator.dedupeCons(unwrap());
+			IntPredicate test = new IntPredicate()
+			{
+				boolean isFirst = true;
+				int previous    = 0;
+
+				@Override
+				public boolean test(int i)
+				{
+					boolean seen = !isFirst && previous == i;
+					previous     = i;
+					return seen;
+				}
+			};
+			return new FilteringIterator.OfInt(unwrap(), test);
 		}
 
 		default FunctionalPrimitiveIterator.OfInt filter(IntPredicate predicate)
@@ -371,6 +424,12 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		default FunctionalPrimitiveIterator.OfLong mapToLong(IntToLongFunction function)
 		{
 			return new MappingIterator.FromIntToLong(unwrap(), function);
+		}
+
+		@Override
+		default FunctionalPrimitiveIterator.OfInt nonNull()
+		{
+			return this;
 		}
 
 		@Override
@@ -570,16 +629,38 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 			return new ChainedIterator.OfLong(unwrap(), iterators);
 		}
 
+		/**
+		 * Obtain filtering iterator for the given primitive long iterator,
+		 * filtering duplicate elements (via HashSet).
+		 */
 		@Override
 		default FunctionalPrimitiveIterator.OfLong dedupe()
 		{
-			return FilteringIterator.dedupe(unwrap());
+			Set<Long> set = new HashSet<>();
+			return new FilteringIterator.OfLong(unwrap(), (LongPredicate) set::add);
 		}
 
+		/**
+		 * Obtain filtering iterator for the given primitive long iterator,
+		 * filtering consecutive duplicate elements.
+		 */
 		@Override
 		default FunctionalPrimitiveIterator.OfLong dedupeCons()
 		{
-			return FilteringIterator.dedupeCons(unwrap());
+			LongPredicate test = new LongPredicate()
+			{
+				boolean isFirst = true;
+				long previous   = 0;
+
+				@Override
+				public boolean test(long l)
+				{
+					boolean seen = !isFirst && previous == l;
+					previous     = l;
+					return seen;
+				}
+			};
+			return new FilteringIterator.OfLong(unwrap(), test);
 		}
 
 		default FunctionalPrimitiveIterator.OfLong filter(LongPredicate predicate)
@@ -625,6 +706,12 @@ public interface FunctionalPrimitiveIterator<E, E_CONS> extends FunctionalIterat
 		default PrimitiveIterator.OfLong mapToLong(LongUnaryOperator function)
 		{
 			return new MappingIterator.FromLongToLong(unwrap(), function);
+		}
+
+		@Override
+		default FunctionalPrimitiveIterator.OfLong nonNull()
+		{
+			return this;
 		}
 
 		@Override

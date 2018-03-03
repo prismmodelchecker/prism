@@ -27,10 +27,12 @@
 package common.iterable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.PrimitiveIterator;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
@@ -383,14 +385,37 @@ public interface FunctionalIterator<E> extends Iterator<E>
 		return new ChainedIterator.Of<>(unwrap(), iterators);
 	}
 
+	/**
+	 * Obtain filtering iterator for the given iterator,
+	 * filtering duplicate elements (via HashSet, requires
+	 * that {@code equals()} and {@code hashCode()} are properly
+	 * implemented).
+	 */
 	default FunctionalIterator<E> dedupe()
 	{
-		return FilteringIterator.dedupe(unwrap());
+		Set<E> set = new HashSet<>();
+		return new FilteringIterator.Of<>(unwrap(), set::add);
 	}
 
+	/**
+	 * Obtain filtering iterator for the given iterator,
+	 * filtering consecutive duplicate elements.
+	 */
 	default FunctionalIterator<E> dedupeCons()
 	{
-		return FilteringIterator.dedupeCons(unwrap());
+		Predicate<E> test = new Predicate<E>()
+		{
+			Object previous = new Object();
+
+			@Override
+			public boolean test(E obj)
+			{
+				boolean seen = Objects.equals(previous, obj);
+				previous     = obj;
+				return seen;
+			}
+		};
+		return new FilteringIterator.Of<>(unwrap(), test);
 	}
 
 	default FunctionalIterator<E> filter(Predicate<? super E> function)
@@ -440,7 +465,7 @@ public interface FunctionalIterator<E> extends Iterator<E>
 
 	default FunctionalIterator<E> nonNull()
 	{
-		return extend(FilteringIterator.nonNull(unwrap()));
+		return new FilteringIterator.Of<>(unwrap(), Objects::nonNull);
 	}
 
 
