@@ -397,29 +397,22 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	@Override
 	public void vmMult(double vect[], double result[])
 	{
-		int i, j;
-		double prob, er;
-		Distribution distr;
-		
 		// Initialise result to 0
-		for (j = 0; j < numStates; j++) {
-			result[j] = 0;
-		}
+		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
-		for (i = 0; i < numStates; i++) {
-			distr = ctmc.getTransitions(i);
-			er = exitRates[i];
+		for (int state = 0; state < numStates; state++) {
+			double er = exitRates[state];
 			// Exit rate 0: prob 1 self-loop
 			if (er == 0) {
-				result[i] += vect[i];
+				result[state] += vect[state];
+				continue;
 			}
 			// Exit rate > 0
-			else {
-				for (Map.Entry<Integer, Double> e : distr) {
-					j = (Integer) e.getKey();
-					prob = (Double) e.getValue();
-					result[j] += (prob / er) * vect[i];
-				}
+			for (Iterator<Entry<Integer, Double>> transitions = ctmc.getTransitionsIterator(state); transitions.hasNext();) {
+				Entry<Integer, Double> trans = transitions.next();
+				int target  = trans.getKey();
+				double prob = trans.getValue() / er;
+				result[target] += prob * vect[state];
 			}
 		}
 	}
