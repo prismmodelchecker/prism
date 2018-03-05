@@ -592,17 +592,11 @@ public interface DTMC extends Model
 	 */
 	public default void vmMult(double vect[], double result[])
 	{
-		int i;
-
-		int numStates = getNumStates();
 		// Initialise result to 0
-		for (i = 0; i < numStates; i++) {
-			result[i] = 0;
-		}
-
+		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
-		for (i = 0; i < numStates; i++) {
-			forEachTransition(i, (s, t, prob) -> {
+		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
+			forEachTransition(state, (s, t, prob) -> {
 				result[t] += prob * vect[s];
 			});
 		}

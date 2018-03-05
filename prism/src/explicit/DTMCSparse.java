@@ -349,8 +349,8 @@ public class DTMCSparse extends DTMCExplicit
 		// Go through matrix elements (by row)
 		for (int state = 0; state < numStates; state++) {
 			for (int i=rows[state], stop=rows[state+1]; i < stop; i++) {
-				final int target = columns[i];
-				final double probability = probabilities[i];
+				int target = columns[i];
+				double probability = probabilities[i];
 				result[target] += probability * vect[state];
 			}
 		}
