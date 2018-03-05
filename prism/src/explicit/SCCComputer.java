@@ -94,8 +94,9 @@ public abstract class SCCComputer extends PrismComponent
 	{
 		SCCInfo sccs = new SCCInfo(model.getNumStates());
 		SCCComputer sccComputer = SCCComputer.createSCCComputer(parent, model, sccs);
-		// Compute SCCInfo, including trivial SCCs in the subgraph obtained when only considering
-		// states in unknown
+		// Compute SCCInfo, possibly including trivial SCCs,
+		// restricted to the sub-graph obtained when only considering
+		// states in restrict (if not-null)
 		sccComputer.computeSCCs(!withTrivialSCCs, restrict);
 
 		return sccs;
@@ -105,7 +106,7 @@ public abstract class SCCComputer extends PrismComponent
 	 * Convenience method for functional iteration over the SCCs of a model.
 	 * <br>
 	 * For each non-trivial SCC, the given consumer's accept method is called
-	 * with a BitSet containing the state indizes of the states in the BSCC.
+	 * with a BitSet containing the state indizes of the states in the SCC.
 	 * <br>
 	 * Note: The BitSet may be reused during calls to {@code accept}. So,
 	 * if you need to store it, clone it.
