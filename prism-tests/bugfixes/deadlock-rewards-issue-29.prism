@@ -1,0 +1,15 @@
+// test case for github issue #29
+// transitions added for deadlock removal should not get rewards
+
+mdp
+
+module M1
+  s: [0..1] init 0;
+
+  // deadlock for state 1
+  [] s=0 -> 1:(s'=1);
+endmodule
+
+rewards "r"
+  [] true: 2;
+endrewards

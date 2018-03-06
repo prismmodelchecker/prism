@@ -174,6 +174,12 @@ public class ConstructRewards
 					if (guard.evaluateBoolean(constantValues, statesList.get(j))) {
 						// Transition reward
 						if (rewStr.getRewardStructItem(i).isTransitionReward()) {
+							if (mdp.isDeadlockState(j)) {
+								// As state j is a deadlock state, any outgoing transition
+								// was added to "fix" the deadlock and thus does not get a reward.
+								// Skip to next state
+								continue;
+							}
 							numChoices = mdp.getNumChoices(j);
 							for (k = 0; k < numChoices; k++) {
 								mdpAction = mdp.getAction(j, k);
@@ -275,7 +281,14 @@ public class ConstructRewards
 			if (!allowNegative && rew < 0)
 				throw new PrismException("Reward structure evaluates to " + rew + " at state " + state +", negative rewards not allowed");
 			rewSimple.addToStateReward(j, rew);
+
 			// State-action rewards
+			if (mdp.isDeadlockState(j)) {
+				// As state j is a deadlock state, any outgoing transition
+				// was added to "fix" the deadlock and thus does not get a reward.
+				// Skip to next state
+				continue;
+			}
 			int numChoices = mdp.getNumChoices(j);
 			for (int k = 0; k < numChoices; k++) {
 				rew = modelGen.getStateActionReward(r, state, mdp.getAction(j, k));
