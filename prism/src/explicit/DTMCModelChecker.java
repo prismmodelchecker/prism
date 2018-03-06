@@ -2365,6 +2365,12 @@ public class DTMCModelChecker extends ProbModelChecker
 		for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1))
 			soln[i] = soln2[i] = equiprob;
 
+		ExportIterations iterationsExport = null;
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			iterationsExport = ExportIterations.createWithUniqueFilename("Explicit DTMC BSCC steady state value iteration", "iterations-ss-bscc");
+			iterationsExport.exportVector(soln);
+		}
+
 		// Start iterations
 		int iters = 0;
 		boolean done = false;
@@ -2378,11 +2384,19 @@ public class DTMCModelChecker extends ProbModelChecker
 			double[] tmpsoln = soln;
 			soln = soln2;
 			soln2 = tmpsoln;
+
+			if (iterationsExport != null) {
+				iterationsExport.exportVector(soln);
+			}
 		}
 
 		// Finished value iteration
 		watch.stop();
 		mainLog.println("Value iteration took " + iters + " iterations and " + watch.elapsedSeconds() + " seconds.");
+
+		if (iterationsExport != null) {
+			iterationsExport.close();
+		}
 
 		// Non-convergence is an error (usually)
 		if (!done && errorOnNonConverge) {
