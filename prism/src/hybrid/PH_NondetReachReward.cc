@@ -212,6 +212,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PH_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PH_NondetReachReward"));
+		PH_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 

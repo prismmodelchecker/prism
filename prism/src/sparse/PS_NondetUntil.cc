@@ -207,6 +207,7 @@ jlong _strat				// strategy storage
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PS_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PS_NondetUntil"));
+		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 
