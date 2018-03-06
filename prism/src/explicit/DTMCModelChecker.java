@@ -2398,7 +2398,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Finished value iteration
 		watch.stop();
-		mainLog.println("Value iteration took " + iters + " iterations and " + watch.elapsedSeconds() + " seconds.");
+		mainLog.println("Power method: " + iters + " iterations in " + watch.elapsedSeconds() + " seconds.");
 
 		if (iterationsExport != null) {
 			iterationsExport.close();
