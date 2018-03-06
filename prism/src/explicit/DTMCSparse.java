@@ -236,6 +236,46 @@ public class DTMCSparse extends DTMCExplicit
 	}
 
 	@Override
+	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
+	{
+		T result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public double reduceTransitions(int state, double init, DoubleTransitionFunction fn)
+	{
+		double result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public int reduceTransitions(int state, int init, IntTransitionFunction fn)
+	{
+		int result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public long reduceTransitions(int state, long init, LongTransitionFunction fn)
+	{
+		long result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
+	}
+
+	@Override
 	public int getNumTransitions(int state)
 	{
 		return rows[state + 1] - rows[state];

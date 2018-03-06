@@ -92,6 +92,130 @@ public interface DTMC extends Model
 	}
 
 	/**
+	 * Quaternary function that maps an Object of type {@code T},
+	 * and a transition from state {@code s} to state {@code t}
+	 * with probabiliy/rate {@code d}
+	 * to an Object of type {@code T}.
+	 *
+	 * @param <T> type of first argument and result
+	 */
+	@FunctionalInterface
+	public static interface ObjTransitionFunction<T>
+	{
+		T apply(T result, int s, int t, double d);
+	}
+
+	/**
+	 * Iterate over the outgoing transitions of state {@code state}
+	 * and apply the reducing function {@code fn}
+	 * to the intermediate result and the transition:
+	 * <br/>
+	 * Call {@code apply(r,s,t,d)} where
+	 * {@code r} is the intermediate result,
+	 * {@code t} is the successor state and,
+	 * in a DTMC, {@code d} = P(s,t) is the probability from {@code s} to {@code t},
+	 * while in CTMC, {@code d} = R(s,t) is the rate from {@code s} to {@code t}.
+	 * The return value of apply is the intermediate result for the next transition.
+	 * <p>
+	 * <i>Default implementation</i>: The default implementation relies on iterating over the
+	 * iterator returned by {@code getTransitionsIterator()}.
+	 * <p><i>Note</i>: This method is the base for the default implementation of the numerical
+	 * computation methods (mvMult, etc). In derived classes, it may thus be worthwhile to
+	 * provide a specialised implementation for this method that avoids using the Iterator mechanism.
+	 *
+	 * @param state the state
+	 * @param init initial result value
+	 * @param fn the reducing function
+	 */
+	public default <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
+	{
+		T result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * Primitive specialisation of {@code ObjTransitionFunction} for {@code double} results.
+	 *
+	 * @see ObjTransitionFunction
+	 */
+	@FunctionalInterface
+	public static interface DoubleTransitionFunction
+	{
+		double apply(double result, int s, int t, double d);
+	}
+
+	/**
+	 * Primitive specialisation of {@code reduce} for {@code double} values.
+	 *
+	 * @see #reduceTransitions(int, Object, ObjTransitionFunction)
+	 */
+	public default double reduceTransitions(int state, double init, DoubleTransitionFunction fn)
+	{
+		double result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * Primitive specialisation of {@code ObjTransitionFunction} for {@code int} values.
+	 *
+	 * @see ObjTransitionFunction
+	 */
+	@FunctionalInterface
+	public interface IntTransitionFunction
+	{
+		int apply(int result, int s, int t, double d);
+	}
+
+	/**
+	 * Primitive specialisation of {@code reduce} for {@code int} values.
+	 *
+	 * @see #reduceTransitions(int, Object, ObjTransitionFunction)
+	 */
+	public default int reduceTransitions(int state, int init, IntTransitionFunction fn)
+	{
+		int result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * Primitive specialisation of {@code ObjTransitionFunction} for {@code long} values.
+	 *
+	 * @see ObjTransitionFunction
+	 */
+	@FunctionalInterface
+	public interface LongTransitionFunction
+	{
+		long apply(long result, int s, int t, double d);
+	}
+
+	/**
+	 * Primitive specialisation of {@code reduce} for {@code long} values.
+	 *
+	 * @see #reduceTransitions(int, Object, ObjTransitionFunction)
+	 */
+	public default long reduceTransitions(int state, long init, LongTransitionFunction fn)
+	{
+		long result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
 	 * Functional interface for a function
 	 * mapping transitions (s,t,d), i.e.,
 	 * from state s to state t with value d
@@ -103,29 +227,17 @@ public interface DTMC extends Model
 	}
 
 	/**
-	 * Iterate over the outgoing transitions of state {@code s}, call the function {@code f}
+	 * Iterate over the outgoing transitions of state {@code state}, call the function {@code f}
 	 * and return the sum of the result values:
 	 * <br>
-	 * Return sum_t f(s, t, P(s,t)), where t ranges over the successors of s.
+	 * Return sum_t f(state, t, P(s,t)), where t ranges over the successors of state.
 	 *
-	 * @param s the state s
-	 * @param c the consumer
+	 * @param state the state
+	 * @param f     the function
 	 */
-	public default double sumOverTransitions(final int s, final TransitionToDoubleFunction f)
+	public default double sumOverTransitions(int state, TransitionToDoubleFunction f)
 	{
-		class Sum {
-			double sum = 0.0;
-
-			void accept(int s, int t, double d)
-			{
-				sum += f.apply(s, t, d);
-			}
-		}
-
-		Sum sum = new Sum();
-		forEachTransition(s, sum::accept);
-
-		return sum.sum;
+		return reduceTransitions(state, 0.0, (r, s, t, d) -> r + f.apply(s, t, d));
 	}
 
 	/**

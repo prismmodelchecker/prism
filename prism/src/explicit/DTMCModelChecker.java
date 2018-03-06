@@ -2491,11 +2491,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 			// Note: diagsQ[state] = 0.0, as it was freshly created
 			// Compute negative exit rate (ignoring a possible self-loop)
-			dtmc.forEachTransition(state, (s, t, prob) -> {
-				if (s != t) {
-					diagsQ[state] -= prob;
-				}
-			});
+			diagsQ[state] -= dtmc.reduceTransitions(state, 0.0, (r, s, t, p) -> (s == t) ? r : r + p);
 
 			// Note: If there are no outgoing transitions, diagsQ[state] = 0, which is fine
 

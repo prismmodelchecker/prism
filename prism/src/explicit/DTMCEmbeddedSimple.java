@@ -270,6 +270,66 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		}
 	}
 
+	@Override
+	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
+	{
+		double er = exitRates[state];
+		T result = init;
+		if (er == 0) {
+			// exit rate = 0 -> prob 1 self loop
+			fn.apply(result, state, state, 1.0);
+		} else {
+			ctmc.reduceTransitions(state, result, (r, s, t, rate) ->
+				fn.apply(r, s, t, rate / er));
+		}
+		return result;
+	}
+
+	@Override
+	public double reduceTransitions(int state, double init, DoubleTransitionFunction fn)
+	{
+		double er = exitRates[state];
+		double result = init;
+		if (er == 0) {
+			// exit rate = 0 -> prob 1 self loop
+			fn.apply(result, state, state, 1.0);
+		} else {
+			ctmc.reduceTransitions(state, result, (r, s, t, rate) ->
+				fn.apply(r, s, t, rate / er));
+		}
+		return result;
+	}
+
+	@Override
+	public int reduceTransitions(int state, int init, IntTransitionFunction fn)
+	{
+		double er = exitRates[state];
+		int result = init;
+		if (er == 0) {
+			// exit rate = 0 -> prob 1 self loop
+			fn.apply(result, state, state, 1.0);
+		} else {
+			ctmc.reduceTransitions(state, result, (int r, int s, int t, double rate) ->
+				fn.apply(r, s, t, rate / er));
+		}
+		return result;
+	}
+
+	@Override
+	public long reduceTransitions(int state, long init, LongTransitionFunction fn)
+	{
+		double er = exitRates[state];
+		long result = init;
+		if (er == 0) {
+			// exit rate = 0 -> prob 1 self loop
+			fn.apply(result, state, state, 1.0);
+		} else {
+			ctmc.reduceTransitions(state, result, (long r, int s, int t, double rate) ->
+				fn.apply(r, s, t, rate / er));
+		}
+		return result;
+	}
+
 	public double mvMultSingle(int s, double vect[])
 	{
 		int k;
