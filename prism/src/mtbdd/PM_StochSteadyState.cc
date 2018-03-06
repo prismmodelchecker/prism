@@ -77,7 +77,11 @@ jint num_cvars
 	Cudd_Ref(diags);
 	q = DD_Apply(ddman, APPLY_PLUS, trans, DD_Apply(ddman, APPLY_TIMES, DD_Identity(ddman, rvars, cvars, num_rvars), diags));
 	
-	// if we are going to solve with the power method, we have to modify the matrix a bit
+	// If we are going to solve with the power method, we have to modify the matrix a bit
+	// in order to guarantee convergence. Hence, we compute the iteration matrix
+	// a = q * deltaT + I
+	// where I is the identity matrix.
+	// Please refer to "William J. Stewart: Introduction to the Numerical Solution of Markov Chains" p. 124. for details.
 	if (lin_eq_method == LIN_EQ_METHOD_POWER) {
 		// choose deltat
 		deltat = -0.99 / DD_FindMin(ddman, diags);
