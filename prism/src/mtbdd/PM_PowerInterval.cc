@@ -110,8 +110,8 @@ jint flags
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PM_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PM_Power (interval)"));
-		iterationExport->exportVector(sol_below, rvars, num_rvars, odd, 0);
-		iterationExport->exportVector(sol_above, rvars, num_rvars, odd, 1);
+		iterationExport->exportVector(sol_below, (transpose?cvars:rvars), num_rvars, odd, 0);
+		iterationExport->exportVector(sol_above, (transpose?cvars:rvars), num_rvars, odd, 1);
 	}
 
 	// get setup time
@@ -166,8 +166,8 @@ jint flags
 
 
 		if (iterationExport) {
-			iterationExport->exportVector(sol_below, rvars, num_rvars, odd, 0);
-			iterationExport->exportVector(sol_above, rvars, num_rvars, odd, 1);
+			iterationExport->exportVector(sol_below, (transpose?cvars:rvars), num_rvars, odd, 0);
+			iterationExport->exportVector(sol_above, (transpose?cvars:rvars), num_rvars, odd, 1);
 		}
 
 		// check convergence
