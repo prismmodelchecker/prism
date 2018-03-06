@@ -1017,6 +1017,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ExportIterations iterationsExport = null;
 		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = new ExportIterations("Explicit DTMC ReachProbs value iteration (" + description + ")");
+			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
 
 		// Store num states
@@ -1144,6 +1145,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ExportIterations iterationsExport = null;
 		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = new ExportIterations("Explicit DTMC ReachProbs interval iteration  (" + description + ")");
+			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
 
 		// Store num states
@@ -1861,6 +1863,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ExportIterations iterationsExport = null;
 		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = new ExportIterations("Explicit DTMC ReachRewards value iteration");
+			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
 
 		// Store num states
@@ -1964,6 +1967,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ExportIterations iterationsExport = null;
 		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = new ExportIterations("Explicit DTMC ReachRewards value iteration (" + description + ")");
+			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
 
 		// Store num states
@@ -2073,6 +2077,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		ExportIterations iterationsExport = null;
 		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = new ExportIterations("Explicit DTMC ReachRewards interval iteration (" + description + ") ...");
+			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
 
 		// Create solution vector(s)
@@ -2369,6 +2374,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
 			iterationsExport = ExportIterations.createWithUniqueFilename("Explicit DTMC BSCC steady state value iteration", "iterations-ss-bscc");
 			iterationsExport.exportVector(soln);
+			mainLog.println("Exporting iterations to " + iterationsExport.getFileName());
 		}
 
 		// Start iterations

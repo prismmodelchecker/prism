@@ -146,6 +146,7 @@ jint flags
 		title += "), interval";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(sol_below, (transpose?cvars:rvars), num_rvars, odd, 0);
 		iterationExport->exportVector(sol_above, (transpose?cvars:rvars), num_rvars, odd, 1);
 	}

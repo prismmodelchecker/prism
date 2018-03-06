@@ -131,6 +131,7 @@ jdouble omega		// omega (jor parameter)
 		title += ")";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(sol, (transpose?cvars:rvars), num_rvars, odd, 0);
 	}
 

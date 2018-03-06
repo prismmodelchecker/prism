@@ -100,6 +100,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=b not Ax=b?)
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PM_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PM_Power"));
+		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(sol, (transpose?cvars:rvars), num_rvars, odd, 0);
 	}
 

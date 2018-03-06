@@ -110,6 +110,7 @@ jint flags
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PM_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PM_Power (interval)"));
+		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(sol_below, (transpose?cvars:rvars), num_rvars, odd, 0);
 		iterationExport->exportVector(sol_above, (transpose?cvars:rvars), num_rvars, odd, 1);
 	}
