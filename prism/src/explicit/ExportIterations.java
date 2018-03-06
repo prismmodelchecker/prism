@@ -71,6 +71,18 @@ public class ExportIterations {
 	}
 
 	/**
+	 * Returns the name of the file used for exporting,
+	 * or {@code null} if it can not be determined.
+	 */
+	public String getFileName()
+	{
+		if (log instanceof PrismFileLog) {
+			return ((PrismFileLog)log).getFileName();
+		}
+		return null;
+	}
+
+	/**
 	 * Export the given vector.
 	 * @param soln the value vector
 	 */
