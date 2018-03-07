@@ -31,14 +31,6 @@ public class SingleLineStringSetting extends Setting
     private static SingleLineStringRenderer renderer;
     private static SingleLineStringEditor editor;
     
-    static
-    {
-        renderer = new SingleLineStringRenderer();
-        editor = new SingleLineStringEditor();
-    }
-    
-    
-    
     /** Creates a new instance of SingleLineStringSetting */
 	public SingleLineStringSetting(String name, String value, String comment, SettingOwner owner, boolean editableWhenMultiple, StringConstraint constraint)
     {
@@ -52,11 +44,17 @@ public class SingleLineStringSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new SingleLineStringEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new SingleLineStringRenderer();
+        }
         return renderer;
     }
     

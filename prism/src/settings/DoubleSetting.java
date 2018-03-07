@@ -30,14 +30,7 @@ public class DoubleSetting extends Setting
 {
     private static DoubleRenderer renderer;
     private static DoubleEditor editor;
-    
-    static
-    {
-        renderer = new DoubleRenderer();
-        editor = new DoubleEditor();
-    }
-    
-    
+
     /** Creates a new instance of DoubleSetting */
     public DoubleSetting(String name, Double value, String comment, SettingOwner owner, boolean editableWhenMultiple, NumericConstraint constraint)
     {
@@ -51,11 +44,17 @@ public class DoubleSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new DoubleEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new DoubleRenderer();
+        }
         return renderer;
     }
     

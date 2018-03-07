@@ -33,14 +33,7 @@ public class FontColorSetting extends Setting
 {
     private static FontColorRenderer renderer;
     private static FontColorEditor editor;
-    
-    static
-    {
-        renderer = new FontColorRenderer();
-        editor = new FontColorEditor();
-    }
-    
-    
+
     /** Creates a new instance of FontColorSetting */
 	public FontColorSetting(String name, FontColorPair value, String comment, SettingOwner owner, boolean editableWhenMultiple)
     {
@@ -54,11 +47,17 @@ public class FontColorSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new FontColorEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new FontColorRenderer();
+        }
         return renderer;
     }
     

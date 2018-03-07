@@ -29,29 +29,25 @@ package settings;
 public class ChoiceSetting extends Setting
 {
     private static ChoiceRenderer renderer;
-    
-    
-    static
-    {
-        renderer = new ChoiceRenderer();
-    }
-    
-    
+
     private String[]values;
-    private ChoiceEditor editor; //editor is not static, we need one editor for each object
+    /**
+     * Editor for these settings.
+     * It is not static, as we need one editor for each object.
+     * Delayed allocation on first use, so we don't allocate on headless use.
+     */
+    private ChoiceEditor editor;
     
     /** Creates a new instance of ChoiceSetting */
     public ChoiceSetting(String name, String[]values, String value, String comment, SettingOwner owner, boolean editableWhenMultiple)
     {
         super(name, value, comment, owner, editableWhenMultiple);
-        editor = new ChoiceEditor(values);
         this.values = values;
     }
 	
 	public ChoiceSetting(String name, String[]values, String value, String comment, SettingOwner owner, boolean editableWhenMultiple, StringConstraint constraint)
 	{
 		super(name, value, comment, owner, editableWhenMultiple, constraint);
-		editor = new ChoiceEditor(values);
 		this.values = values;
 	}
     
@@ -72,11 +68,17 @@ public class ChoiceSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new ChoiceEditor(values);
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new ChoiceRenderer();
+        }
         return renderer;
     }
     
