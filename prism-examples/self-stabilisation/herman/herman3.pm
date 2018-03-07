@@ -6,7 +6,7 @@ dtmc
 
 const double p = 0.5;
 
-// module for process 1
+// module for process #1
 module process1
 
 	// Boolean variable for process 1
