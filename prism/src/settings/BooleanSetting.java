@@ -30,14 +30,7 @@ public class BooleanSetting extends Setting
 {
     private static BooleanRenderer renderer;
     private static BooleanEditor editor;
-    
-    static
-    {
-        renderer = new BooleanRenderer();
-        editor = new BooleanEditor();
-    }
-    
-    
+
     /** Creates a new instance of BooleanSetting */
     public BooleanSetting(String name, Boolean value, String comment, SettingOwner owner, boolean editableWhenMultiple)
     {
@@ -51,11 +44,17 @@ public class BooleanSetting extends Setting
 	
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new BooleanEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new BooleanRenderer();
+        }
         return renderer;
     }
     
