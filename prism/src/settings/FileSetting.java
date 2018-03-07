@@ -72,8 +72,6 @@ public class FileSetting extends Setting
         super(name, value, comment, owner, editableWhenMultiple);
 		if(value != null) validFile = value.isFile();
 		else validFile = false;
-		
-		selector = defaultSelector();
     }
 	
     public FileSetting(String name, File value, String comment, SettingOwner owner, boolean editableWhenMultiple, FontColorConstraint constraint)
@@ -81,8 +79,6 @@ public class FileSetting extends Setting
         super(name, value, comment, owner, editableWhenMultiple, constraint);
 		if(value != null) validFile = value.isFile();
 		else validFile = false;
-		
-		selector = defaultSelector();
     }
 	
 	public void checkObjectWithConstraints(Object obj) throws SettingException
@@ -153,6 +149,9 @@ public class FileSetting extends Setting
 	
 	public FileSelector getFileSelector()
 	{
+		if (selector == null) {
+			selector = defaultSelector();
+		}
 		return selector;
 	}
 	
