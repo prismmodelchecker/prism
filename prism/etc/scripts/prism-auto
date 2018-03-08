@@ -271,6 +271,15 @@ def renameExports(prefix, args):
     else:
         return args
 
+
+#  Return True if there are any -export... switches
+
+def hasExportSwitches(args):
+    for i in range(len(args)-1):
+        if args[i].startswith("-export"):
+            return True
+    return False
+
 # Find all files that match any -export switch file argument
 # This takes into account that a .all extension corresponds to five different files
 # and that multiple reward structures will result in filenames extended with a number
@@ -551,6 +560,9 @@ def benchmark(file, args, dir=""):
     # Expand input/output files to full paths
     args = expandFilenames(args, dir)
 
+    if options.skipExportRuns and hasExportSwitches(args):
+        return
+
     # Determine which out files apply to this benchmark from the -export switches (if required)
     if not options.echo and options.test:
         outFiles = getExpectedOutFilesFromArgs(args)
@@ -799,6 +811,7 @@ parser.add_option("--debug", action="store_true", dest="debug", default=False, h
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 parser.add_option("--models-filename", dest="modelsFilename", metavar="X", default="models", help="Read in list of models/parameters for a directory from file X, if present [default=models]")
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
+parser.add_option("--skip-export-runs", action="store_true", dest="skipExportRuns", default=False, help="Skip all runs having exports")
 parser.add_option("--dd-warnings", action="store_true", dest="ddWarnings", default=False, help="Print the DD reference count warnings")
 parser.add_option("--colour", dest="colourEnabled", metavar="X", type="choice", choices=["yes","no","auto"], default="auto", help="Whether to colour test results: yes, no, auto (yes iff in terminal mode) [default=auto]")
 (options, args) = parser.parse_args()
