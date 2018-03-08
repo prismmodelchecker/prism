@@ -144,6 +144,22 @@ public class PrismHybrid
 		return PH_GetErrorMessage();
 	}
 
+	/**
+	 * Generate the proper exception for an error from the native layer.
+	 * Gets the error message and returns the corresponding exception,
+	 * i.e., if the message contains "not supported" then a PrismNotSupportedException
+	 * is returned, otherwise a plain PrismException.
+	 */
+	private static PrismException generateExceptionForError()
+	{
+		String msg = getErrorMessage();
+		if (msg.contains("not supported")) {
+			return new PrismNotSupportedException(msg);
+		} else {
+			return new PrismException(msg);
+		}
+	}
+
 	//------------------------------------------------------------------------------
 	// numerical computation detail queries
 	//------------------------------------------------------------------------------
@@ -169,7 +185,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_ProbBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), bound);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -180,7 +196,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_ProbUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -189,7 +205,7 @@ public class PrismHybrid
 	public static DoubleVector ProbUntilInterval(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, int flags) throws PrismException
 	{
 		long ptr = PH_ProbUntilInterval(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -200,7 +216,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_ProbCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), bound);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -211,7 +227,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_ProbInstReward(trans.ptr(), sr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -222,7 +238,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_ProbReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -231,7 +247,7 @@ public class PrismHybrid
 	public static DoubleVector ProbReachRewardInterval(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, int flags) throws PrismException
 	{
 		long ptr = PH_ProbReachRewardInterval(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -242,7 +258,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_ProbTransient(trans.ptr(), odd.ptr(), init.getPtr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -257,7 +273,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_NondetBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), time, minmax);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -268,7 +284,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_NondetUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -279,7 +295,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_NondetUntilInterval(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -290,7 +306,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_NondetReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -306,7 +322,7 @@ public class PrismHybrid
 
 		long mult = (multProbs == null) ? 0 : multProbs.getPtr();
 		long ptr = PH_StochBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), time, mult);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -317,7 +333,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_StochCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -328,7 +344,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_StochSteadyState(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -339,7 +355,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_StochTransient(trans.ptr(), odd.ptr(), init.getPtr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 	
@@ -354,7 +370,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_Power(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -365,7 +381,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_PowerInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -376,7 +392,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_JOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -387,7 +403,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_JORInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, row_sums, omega, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -398,7 +414,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_SOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, backwards);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -409,7 +425,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_SORInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, row_sums, omega, backwards, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -420,7 +436,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_PSOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, backwards);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
@@ -431,7 +447,7 @@ public class PrismHybrid
 		checkNumStates(odd);
 
 		long ptr = PH_PSORInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, row_sums, omega, backwards, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
