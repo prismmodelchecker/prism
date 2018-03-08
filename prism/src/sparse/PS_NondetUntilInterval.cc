@@ -312,7 +312,7 @@ jint flags
 			helper.updateValueFromBelow(soln_below2[i], soln_below[i], (h1 > l1) ? d1 : yes_vec[i]);
 		}
 
-		// do matrix multiplication and min/max for above, optionally generate adversary
+		// do matrix multiplication and min/max for above (don't generate adversary, done above in "from below" iteration)
 		h1 = h2 = 0;
 		for (i = 0; i < n; i++) {
 			d1 = 0.0; // initial value doesn't matter
