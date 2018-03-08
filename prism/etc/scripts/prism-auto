@@ -792,7 +792,7 @@ parser.add_option("-t", "--test", action="store_true", dest="test", default=Fals
 parser.add_option("--verbose-test", action="store_true", dest="verboseTest", default=False, help="Run in verbose test mode (implies --test)")
 parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
 parser.add_option("--nailgun", action="store_true", dest="nailgun", default=False, help="Run PRISM in Nailgun mode")
-parser.add_option("--ngprism", dest="ngprism", metavar="FILE", default="ngprism", help="Specify the location of ngprism (for Nailgun mode)")
+parser.add_option("--ngprism", dest="ngprism", metavar="FILE", default=None, help="Specify the location of ngprism (for Nailgun mode) [default: derive from --prog setting]")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
@@ -814,6 +814,14 @@ if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
+    if options.ngprism is None:
+        # derive ngprism location from the --prog setting
+        dir = os.path.dirname(options.prismExec)
+        base = os.path.basename(options.prismExec)
+        # we just replace the base part of prismExec by ngprism and hope for the best...
+        base = 'ngprism'
+        options.ngprism = os.path.join(dir, base)
+        print("Derived executable for nailgun server: " + options.ngprism)
     if options.echo or options.echoFull:
         print(options.prismExec + " -ng &")
     else:
