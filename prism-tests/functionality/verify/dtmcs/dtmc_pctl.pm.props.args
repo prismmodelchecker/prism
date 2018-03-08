@@ -1,0 +1,49 @@
+# different engines and iteration methods:
+
+-ex -power
+-ex -jacobi
+-ex -gs
+-ex -bgs
+
+-s -power
+-s -jacobi
+-s -gs
+-s -bgs
+
+-h -power
+-h -jacobi
+-h -pgs
+
+-m -power
+-m -jacobi
+
+# and using interval iteration:
+
+-ii -ex -power
+-ii -ex -jacobi
+-ii -ex -gs
+-ii -ex -bgs
+
+-ii -s -power
+-ii -s -jacobi
+-ii -s -gs
+-ii -s -bgs
+
+-ii -h -power
+-ii -h -jacobi
+-ii -h -pgs
+
+-ii -m -power
+-ii -m -jacobi
+
+# and using -topological
+
+-ex -power -topological
+-ex -jacobi -topological
+-ex -gs -topological
+-ex -bgs -topological
+
+-ii -ex -power -topological
+-ii -ex -jacobi -topological
+-ii -ex -gs -topological
+-ii -ex -bgs -topological
