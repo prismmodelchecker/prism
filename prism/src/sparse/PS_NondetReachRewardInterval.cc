@@ -395,7 +395,7 @@ jint flags
 			}
 			// set vector element
 			// (if there were no choices from this state, reward is zero/infinity)
-			helper.updateValueFromBelow(soln_above2[i], soln_above[i], (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0);
+			helper.updateValueFromAbove(soln_above2[i], soln_above[i], (h1 > l1) ? d1 : inf_vec[i] > 0 ? HUGE_VAL : 0);
 		}
 
 		if (iterationExport) {
