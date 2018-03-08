@@ -9,11 +9,11 @@
 
 # Reminder: $@ = target, $* = target without extension, $< = dependency
 
-THIS_DIR = simulator
+THIS_DIR = cex
 PRISM_DIR_REL = ../..
 
-JAVA_FILES_ALL = $(wildcard *.java sampler/*.java networking/*.java method/*.java)
-JAVA_FILES = $(patsubst %package-info.java,,$(JAVA_FILES_ALL))
+JAVA_FILES_ALL = $(wildcard *.java)
+JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
 PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/*"
@@ -35,7 +35,7 @@ $(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class: %.java
 	(cd ..; $(JAVAC) -sourcepath $(THIS_DIR)/$(PRISM_DIR_REL)/$(SRC_DIR) -classpath $(PRISM_CLASSPATH) -d $(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR) $(THIS_DIR)/$<)
 
 clean: checks
-	@rm -f $(CLASS_FILES) $(PRISM_DIR_REL)/$(LIB_DIR)/$(LIBPREFIX)simengine$(LIBSUFFIX) $(O_FILES)
+	@rm -f $(CLASS_FILES)
 
 celan: clean
 
