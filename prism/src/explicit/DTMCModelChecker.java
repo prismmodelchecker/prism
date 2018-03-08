@@ -1139,7 +1139,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
-		String description = "with " + iterationMethod.getDescriptionShort();
+		String description = (topological ? "topological, " : "" ) + "with " + iterationMethod.getDescriptionShort();
 		mainLog.println("Starting interval iteration (" + description + ")...");
 
 		ExportIterations iterationsExport = null;
