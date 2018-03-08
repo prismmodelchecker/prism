@@ -14,13 +14,14 @@
 import os,sys,re,subprocess,signal,tempfile,functools,logging,time,platform
 from pipes import quote
 from optparse import OptionParser
+from threading import Timer
 
 #==================================================================================================
 # Global variables
 #==================================================================================================
 
 # statistics about test results
-testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, DUPLICATE = 0)
+testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, DUPLICATE = 0, TIMEOUT = 0)
 
 # colour coding for test results
 # for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -517,7 +518,7 @@ def runPrism(args, dir=""):
         logFile = os.path.join(options.logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
         prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = subprocess.Popen(prismArgs).wait()
+        exitCode = execute(prismArgs)
         #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
     elif options.test or options.ddWarnings:
         # create logfile
@@ -535,9 +536,9 @@ def runPrism(args, dir=""):
         # we want cleanup when we are done, as this is a real temporary file
         cleanupLogFile = True
         prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = subprocess.Popen(prismArgs).wait()
+        exitCode = execute(prismArgs)
     else:
-        exitCode = subprocess.Popen(prismArgs).wait()
+        exitCode = execute(prismArgs)
     # Extract DD reference count warnings
     if options.ddWarnings:
         for line in open(logFile, 'r').readlines():
@@ -572,6 +573,44 @@ def runPrism(args, dir=""):
     if cleanupLogFile:
         # logFile was a temporary file and we'd like to clean it up
         os.remove(logFile)
+
+# call-back function for expiration of the execute timer thread
+def timeout(proc, flag):
+    printColoured('FAILURE', 'Timeout (' + str(options.timeout) + 's)')
+    flag.append(True)
+    proc.kill()
+
+# execute the given process, optionally setting a timeout
+def execute(args):
+    if options.timeout is not None:
+        # run program
+        proc = subprocess.Popen(args)
+        # list to serve as indicator that a timeout has occurred
+        flag = []
+        # setup timer to call timeout function with proc and flag as arguments
+        timer = Timer(float(options.timeout), timeout, [proc, flag])
+        try:
+            # start time and wait for process to finish
+            timer.start()
+            exitCode = proc.wait()
+            # here, either the process quit by itself (flag is empty)
+            # or was killed in the timeout function (flag contains one True element)
+            hadTimeout = bool(flag)   # timeout = flag is not empty -> True
+            if hadTimeout:
+                incrementTestStat('TIMEOUT')
+                # in nailgun mode, we have to restart the nailgun server,
+                # as the VM can be in an inconsistent state
+                if options.nailgun: restartNailGunServer()
+                # if we had a timeout, fake exitCode of 0
+                return 0
+            return exitCode
+        finally:
+            timer.cancel()
+    else:
+        proc = subprocess.Popen(args)
+        exitCode = proc.wait()
+        return exitCode
+
 
 # Print a testing-related message, colour coding if needed
 
@@ -613,6 +652,8 @@ def printTestStatistics():
         printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
         if options.skipDuplicates:
             printColoured('SKIPPED',     ' Skipped dup.: ' + str(testStats['DUPLICATE']) + '  (due to --skip-duplicate-runs)')
+        if options.timeout:
+            printColoured('FAILURE',     ' Timeouts:     ' + str(testStats['TIMEOUT']))
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
@@ -937,6 +978,7 @@ parser.add_option("--models-filename", dest="modelsFilename", metavar="X", defau
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
 parser.add_option("--skip-export-runs", action="store_true", dest="skipExportRuns", default=False, help="Skip all runs having exports")
 parser.add_option("--skip-duplicate-runs", action="store_true", dest="skipDuplicates", default=False, help="Skip PRISM runs which have the same arguments as an earlier run (with some heuristics to detect equivalent arguments)")
+parser.add_option("--timeout", dest="timeout", metavar="N", default=None, help='Timeout for each PRISM run (examples values for N: 5 / 5s for seconds, 5m / 5h for minutes / hours)')
 parser.add_option("--dd-warnings", action="store_true", dest="ddWarnings", default=False, help="Print the DD reference count warnings")
 parser.add_option("--colour", dest="colourEnabled", metavar="X", type="choice", choices=["yes","no","auto"], default="auto", help="Whether to colour test results: yes, no, auto (yes iff in terminal mode) [default=auto]")
 (options, args) = parser.parse_args()
@@ -948,6 +990,22 @@ if options.debug:
 if options.verboseTest:
     # --verbose-test implies --test
     vars(options)['test'] = True
+if options.timeout:
+    # handle time units
+    mult = 1.0
+    if options.timeout.endswith('s'):
+        vars(options)['timeout'] = options.timeout[0:-1]  # strip 's'
+    elif options.timeout.endswith('m'):
+        vars(options)['timeout'] = options.timeout[0:-1]
+        mult =  60.0;
+    elif options.timeout.endswith('h'):
+        vars(options)['timeout'] = options.timeout[0:-1]
+        mult = 3600.0;
+    try:
+        vars(options)['timeout'] = float(options.timeout) * mult
+    except ValueError:
+        print('Illegal parameter value for timeout parameter')
+        sys.exit(1)
 if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
