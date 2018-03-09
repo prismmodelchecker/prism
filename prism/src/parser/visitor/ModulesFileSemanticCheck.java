@@ -29,6 +29,7 @@ package parser.visitor;
 import java.util.Vector;
 
 import parser.ast.*;
+import parser.ast.Module;
 import parser.type.*;
 import prism.ModelType;
 import prism.PrismLangException;

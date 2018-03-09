@@ -27,6 +27,7 @@
 package parser.visitor;
 
 import parser.ast.*;
+import parser.ast.Module;
 import prism.PrismLangException;
 
 // Performs a depth-first traversal of an asbtract syntax tree (AST).
@@ -216,7 +217,7 @@ public class ASTTraverse implements ASTVisitor
 		visitPost(e);
 		return null;
 	}
-	public void visitPost(parser.ast.Module e) throws PrismLangException { defaultVisitPost(e); }
+	public void visitPost(Module e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(Command e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Command e) throws PrismLangException

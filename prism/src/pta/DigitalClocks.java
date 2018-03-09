@@ -30,6 +30,7 @@ import java.util.*;
 
 import parser.*;
 import parser.ast.*;
+import parser.ast.Module;
 import parser.type.*;
 import parser.visitor.*;
 import prism.*;

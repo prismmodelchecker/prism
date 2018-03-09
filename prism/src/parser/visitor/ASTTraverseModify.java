@@ -27,6 +27,7 @@
 package parser.visitor;
 
 import parser.ast.*;
+import parser.ast.Module;
 import prism.PrismLangException;
 
 // Variant of ASTTraverse.
