@@ -584,7 +584,7 @@ public class TypeCheck extends ASTTraverse
 	{
 		// Recursively type check referenced property
 		// (may not have been done yet, e.g. because that property appears later than the current one in a PropertiesFile)
-		// (NB: recursive check not triggered in visit() method because PropertiesFile not available there)
+		// (NB: recursive check not triggered in visitNow() method because PropertiesFile not available there)
 		// However, if a PropertiesFile is not available *and* we have a type stored already, don't recompute
 		// (in case typeCheck() is called by getType() later without passing a PropertieFile)
 		if (propertiesFile == null) {

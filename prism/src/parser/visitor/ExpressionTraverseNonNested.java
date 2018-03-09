@@ -42,9 +42,9 @@ import prism.PrismLangException;
  * <br/>
  * Subclasses should not override<br/>
  * <ul>
- *  <li>{@code visit(ExpressionProb)}</li>
- *  <li>{@code visit(ExpressionReward)}</li>
- *  <li>{@code visit(ExpressionSS)}</li>
+ *  <li>{@code visitNow(ExpressionProb)}</li>
+ *  <li>{@code visitNow(ExpressionReward)}</li>
+ *  <li>{@code visitNow(ExpressionSS)}</li>
  * </ul>
  */
 public class ExpressionTraverseNonNested extends ASTTraverse
@@ -74,7 +74,7 @@ public class ExpressionTraverseNonNested extends ASTTraverse
 	}
 
 	@Override
-	public Object visit(ExpressionProb e) throws PrismLangException
+	public Object visitNow(ExpressionProb e) throws PrismLangException
 	{
 		currentNesting++;
 		// only visit if we are still in limit
@@ -82,13 +82,13 @@ public class ExpressionTraverseNonNested extends ASTTraverse
 			currentNesting--;
 			return null;
 		}
-		Object rv = super.visit(e);
+		Object rv = super.visitNow(e);
 		currentNesting--;
 		return rv;
 	}
 
 	@Override
-	public Object visit(ExpressionReward e) throws PrismLangException
+	public Object visitNow(ExpressionReward e) throws PrismLangException
 	{
 		currentNesting++;
 		// only visit if we are still in limit
@@ -96,13 +96,13 @@ public class ExpressionTraverseNonNested extends ASTTraverse
 			currentNesting--;
 			return null;
 		}
-		Object rv = super.visit(e);
+		Object rv = super.visitNow(e);
 		currentNesting--;
 		return rv;
 	}
 
 	@Override
-	public Object visit(ExpressionSS e) throws PrismLangException
+	public Object visitNow(ExpressionSS e) throws PrismLangException
 	{
 		currentNesting++;
 		// only visit if we are still in limit
@@ -110,7 +110,7 @@ public class ExpressionTraverseNonNested extends ASTTraverse
 			currentNesting--;
 			return null;
 		}
-		Object rv = super.visit(e);
+		Object rv = super.visitNow(e);
 		currentNesting--;
 		return rv;
 	}

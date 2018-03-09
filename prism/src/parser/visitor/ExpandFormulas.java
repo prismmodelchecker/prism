@@ -48,7 +48,7 @@ public class ExpandFormulas extends ASTTraverseModify
 		this.replace = replace;
 	}
 	
-	public Object visit(ExpressionFormula e) throws PrismLangException
+	public Object visitNow(ExpressionFormula e) throws PrismLangException
 	{
 		int i;
 		Type t;

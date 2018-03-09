@@ -80,7 +80,7 @@ public class PrismParser implements PrismParserConstants {
                         else if (args[0].equals("-ltl") || args[0].equals("-l")) {
                                 Expression expr = p.parseSingleLTLFormula(str);
                                 expr = (Expression) expr.accept(new ASTTraverseModify() {
-                                        public Object visit(ExpressionIdent e) throws PrismLangException
+                                        public Object visitNow(ExpressionIdent e) throws PrismLangException
                                         {
                                                 return new parser.ast.ExpressionVar(e.getName(), TypeBool.getInstance());
                                         }
@@ -99,7 +99,7 @@ public class PrismParser implements PrismParserConstants {
                                         System.out.println("Syntactically co-safe: " + Expression.isCoSafeLTLSyntactic(exprPnf));
                                 }
                                 Expression expr2 = (Expression) expr.deepCopy().accept(new ASTTraverseModify() {
-                                        public Object visit(ExpressionVar e) throws PrismLangException
+                                        public Object visitNow(ExpressionVar e) throws PrismLangException
                                         {
                                                         return new parser.ast.ExpressionLabel(e.getName());
                                         }

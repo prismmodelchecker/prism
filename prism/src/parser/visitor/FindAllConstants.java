@@ -41,7 +41,7 @@ public class FindAllConstants extends ASTTraverseModify
 		this.constantList = constantList;
 	}
 	
-	public Object visit(ExpressionIdent e) throws PrismLangException
+	public Object visitNow(ExpressionIdent e) throws PrismLangException
 	{
 		int i;
 		// See if identifier corresponds to a constant

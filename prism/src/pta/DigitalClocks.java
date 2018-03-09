@@ -128,7 +128,7 @@ public class DigitalClocks
 		for (RewardStruct rs : modulesFile.getRewardStructs()) {
 			rs.accept(new ASTTraverseModify()
 			{
-				public Object visit(ExpressionVar e) throws PrismLangException
+				public Object visitNow(ExpressionVar e) throws PrismLangException
 				{
 					if (e.getType() instanceof TypeClock) {
 						throw new PrismLangException("Reward structures cannot contain references to clocks", e);
@@ -165,7 +165,7 @@ public class DigitalClocks
 		// Change all clock variable declarations to bounded integers
 		mf = (ModulesFile) mf.accept(new ASTTraverseModify()
 		{
-			public Object visit(Declaration e) throws PrismLangException
+			public Object visitNow(Declaration e) throws PrismLangException
 			{
 				if (e.getDeclType() instanceof DeclarationClock) {
 					int cMax = cci.getScaledClockMax(e.getName());
@@ -185,7 +185,7 @@ public class DigitalClocks
 		allInVariants = null;
 		mf = (ModulesFile) mf.accept(new ASTTraverseModify()
 		{
-			public Object visit(parser.ast.Module e) throws PrismLangException
+			public Object visitNow(Module e) throws PrismLangException
 			{
 				Command timeCommand;
 				Updates ups;
@@ -203,7 +203,7 @@ public class DigitalClocks
 				// Replace all clocks x with x+1 in invariant
 				invar = (Expression) invar.accept(new ASTTraverseModify()
 				{
-					public Object visit(ExpressionVar e) throws PrismLangException
+					public Object visitNow(ExpressionVar e) throws PrismLangException
 					{
 						if (e.getType() instanceof TypeClock) {
 							return Expression.Plus(e, Expression.Int(1));
@@ -248,7 +248,7 @@ public class DigitalClocks
 		asttm = new ASTTraverseModify()
 		{
 			// Resets
-			public Object visit(Update e) throws PrismLangException
+			public Object visitNow(Update e) throws PrismLangException
 			{
 				int i, n;
 				ExpressionFunc exprFunc;
@@ -270,7 +270,7 @@ public class DigitalClocks
 			}
 
 			// Variable accesses
-			public Object visit(ExpressionVar e) throws PrismLangException
+			public Object visitNow(ExpressionVar e) throws PrismLangException
 			{
 				if (e.getType() instanceof TypeClock) {
 					e.setType(TypeInt.getInstance());

@@ -132,7 +132,7 @@ public class LTL2RabinLibrary
 		labels = new ArrayList<String>();
 		ltl.accept(new ASTTraverse()
 		{
-			public Object visit(ExpressionLabel e) throws PrismLangException
+			public Object visitNow(ExpressionLabel e) throws PrismLangException
 			{
 				labels.add(e.getName());
 				return null;
@@ -144,7 +144,7 @@ public class LTL2RabinLibrary
 		Expression ltl2 = ltl.deepCopy();
 		ltl2.accept(new ASTTraverseModify()
 		{
-			public Object visit(ExpressionLabel e) throws PrismLangException
+			public Object visitNow(ExpressionLabel e) throws PrismLangException
 			{
 				int i = labels.indexOf(e.getName());
 				//char letter = (char) ('a' + i);

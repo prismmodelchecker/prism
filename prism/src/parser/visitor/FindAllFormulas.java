@@ -41,7 +41,7 @@ public class FindAllFormulas extends ASTTraverseModify
 		this.formulaList = formulaList;
 	}
 	
-	public Object visit(ExpressionIdent e) throws PrismLangException
+	public Object visitNow(ExpressionIdent e) throws PrismLangException
 	{
 		int i;
 		// See if identifier corresponds to a formula
