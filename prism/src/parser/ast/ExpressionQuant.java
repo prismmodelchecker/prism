@@ -26,9 +26,12 @@
 
 package parser.ast;
 
+import param.BigRational;
+import parser.EvaluateContext;
 import parser.Values;
 import prism.OpRelOpBound;
 import prism.PrismException;
+import prism.PrismLangException;
 
 /**
  * Abstract class for representing "quantitative" operators (P,R,S),
@@ -161,8 +164,69 @@ public abstract class ExpressionQuant extends Expression
 		return filter;
 	}
 
+	// Test methods
+
+	@Override
+	public boolean isConstant()
+	{
+		return false;
+	}
+
+	@Override
+	public boolean isProposition()
+	{
+		return false;
+	}
+
+	public boolean isQuantitative()
+	{
+		return getBound() == null;
+	}
+
+	@Override
+	public boolean returnsSingleValue()
+	{
+		return false;
+	}
+
+	// Methods required for Expression:
+
+	@Override
+	public Object evaluate(final EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate a quantiative expression without a model");
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate a quantiative expression without a model");
+	}
+
+	// Methods required for ASTElement:
+
+	@Override
+	public abstract ExpressionQuant deepCopy();
+
 	// Standard methods
-	
+
+	@Override
+	public String toString()
+	{
+		return operatorToString() + boundsToString() + " [ " + bodyToString() + " ]";
+	}
+
+	protected abstract String operatorToString();
+
+	protected String boundsToString()
+	{
+		String bounds = getBound() == null ? "?" : getBound().toString();
+		return getRelOp() + bounds;
+	}
+
+	protected abstract String bodyToString();
+
+
 	@Override
 	public int hashCode()
 	{

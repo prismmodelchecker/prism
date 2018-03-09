@@ -790,14 +790,8 @@ public abstract class Expression extends ASTElement
 	 */
 	public static boolean isQuantitative(Expression expr)
 	{
-		if (expr instanceof ExpressionProb) {
-			return ((ExpressionProb) expr).getProb() == null;
-		}
-		else if (expr instanceof ExpressionReward) {
-			return ((ExpressionReward) expr).getReward() == null;
-		}
-		else if (expr instanceof ExpressionSS) {
-			return ((ExpressionSS) expr).getProb() == null;
+		if (expr instanceof ExpressionQuant) {
+			return ((ExpressionQuant) expr).isQuantitative();
 		}
 		return false;
 	}

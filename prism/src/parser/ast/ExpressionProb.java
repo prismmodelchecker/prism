@@ -26,8 +26,6 @@
 
 package parser.ast;
 
-import param.BigRational;
-import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
 import prism.OpRelOpBound;
@@ -91,32 +89,8 @@ public class ExpressionProb extends ExpressionQuant
 			return new OpRelOpBound("P", getRelOp(), null);
 		}
 	}
-	
+
 	// Methods required for Expression:
-
-	@Override
-	public boolean isConstant()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean isProposition()
-	{
-		return false;
-	}
-	
-	@Override
-	public Object evaluate(EvaluateContext ec) throws PrismLangException
-	{
-		throw new PrismLangException("Cannot evaluate a P operator without a model");
-	}
-
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
-	{
-		throw new PrismLangException("Cannot evaluate a P operator without a model");
-	}
 
 	@Override
 	public String getResultName()
@@ -131,12 +105,6 @@ public class ExpressionProb extends ExpressionQuant
 			return "Probability";
 	}
 
-	@Override
-	public boolean returnsSingleValue()
-	{
-		return false;
-	}
-
 	// Methods required for ASTElement:
 
 	@Override
@@ -146,7 +114,7 @@ public class ExpressionProb extends ExpressionQuant
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionProb deepCopy()
 	{
 		ExpressionProb expr = new ExpressionProb();
 		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
@@ -161,18 +129,16 @@ public class ExpressionProb extends ExpressionQuant
 	// Standard methods
 
 	@Override
-	public String toString()
+	protected String operatorToString()
 	{
-		String s = "";
+		return "P" + getModifierString();
+	}
 
-		s += "P" + getModifierString() + getRelOp();
-		s += (getBound() == null) ? "?" : getBound().toString();
-		s += " [ " + getExpression();
-		if (getFilter() != null)
-			s += " " + getFilter();
-		s += " ]";
-
-		return s;
+	@Override
+	protected String bodyToString()
+	{
+		String filter = getFilter() == null ? "" : " " + getFilter();
+		return getExpression() + filter;
 	}
 }
 
