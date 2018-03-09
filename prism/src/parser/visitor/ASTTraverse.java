@@ -30,12 +30,16 @@ import parser.ast.*;
 import parser.ast.Module;
 import prism.PrismLangException;
 
-// Performs a depth-first traversal of an asbtract syntax tree (AST).
-// Many traversal-based tasks can be implemented by extending and either:
-// (a) overriding defaultVisitPre or defaultVisitPost
-// (b) overiding visit for leaf (or other selected) nodes
-// See also ASTTraverseModify.
-
+/**
+ *  Performs a depth-first traversal of an abstract syntax tree (AST).
+ *
+ * Many traversal-based tasks can be implemented by extending and either:
+ * <ul>
+ * <li>overriding defaultVisitPre or defaultVisitPost</li>
+ * <li>overriding visit for leaf (or other selected) nodes</li>
+ * </ul>
+ * @see ASTTraverseModify
+ */
 public class ASTTraverse implements ASTVisitor
 {
 	public void defaultVisitPre(ASTElement e) throws PrismLangException {}
