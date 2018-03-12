@@ -160,6 +160,17 @@ public class RewardStruct extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public RewardStruct clone()
+	{
+		RewardStruct clone = (RewardStruct) super.clone();
+		
+		clone.items = (Vector<RewardStructItem>) items.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

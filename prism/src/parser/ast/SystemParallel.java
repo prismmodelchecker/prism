@@ -179,6 +179,17 @@ public class SystemParallel extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemParallel clone()
+	{
+		SystemParallel clone = (SystemParallel) super.clone();
+
+		clone.actions = (Vector<String>) actions.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

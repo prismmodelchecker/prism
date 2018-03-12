@@ -151,6 +151,12 @@ public class Command extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public Command clone()
+	{
+		return (Command) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

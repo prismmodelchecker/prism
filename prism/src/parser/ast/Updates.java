@@ -148,6 +148,7 @@ public class Updates extends ASTElement
 	/**
 	 * Visitor method.
 	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
@@ -191,6 +192,18 @@ public class Updates extends ASTElement
 		}
 		ret.setPosition(this);
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Updates clone()
+	{
+		Updates clone = (Updates) super.clone();
+
+		clone.probs   = (ArrayList<Expression>) probs.clone();
+		clone.updates = (ArrayList<Update>) updates.clone();
+
+		return clone;
 	}
 }
 

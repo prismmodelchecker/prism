@@ -52,7 +52,7 @@ public class ExpressionReward extends ExpressionQuant
 	}
 
 	// Set methods
-	
+
 	public void setRewardStructIndex(Object o)
 	{
 		rewardStructIndex = o;
@@ -237,6 +237,12 @@ public class ExpressionReward extends ExpressionQuant
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
+	}
+
+	@Override
+	public ExpressionReward clone()
+	{
+		return (ExpressionReward) super.clone();
 	}
 
 	// Standard methods

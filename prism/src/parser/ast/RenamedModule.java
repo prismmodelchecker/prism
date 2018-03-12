@@ -200,6 +200,20 @@ public class RenamedModule extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public RenamedModule clone()
+	{
+		RenamedModule clone = (RenamedModule) super.clone();
+
+		clone.newNameASTElements = (ArrayList<ExpressionIdent>) newNameASTElements.clone();
+		clone.newNames           = (ArrayList<String>) newNames.clone();
+		clone.oldNameASTElements = (ArrayList<ExpressionIdent>) oldNameASTElements.clone();
+		clone.oldNames           = (ArrayList<String>) oldNames.clone();
+		
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

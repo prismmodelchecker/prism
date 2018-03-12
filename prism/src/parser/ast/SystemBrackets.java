@@ -120,6 +120,12 @@ public class SystemBrackets extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public SystemBrackets clone()
+	{
+		return (SystemBrackets) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

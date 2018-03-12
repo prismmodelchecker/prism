@@ -203,11 +203,6 @@ public abstract class ExpressionQuant extends Expression
 		throw new PrismLangException("Cannot evaluate a quantiative expression without a model");
 	}
 
-	// Methods required for ASTElement:
-
-	@Override
-	public abstract ExpressionQuant deepCopy();
-
 	// Standard methods
 
 	@Override

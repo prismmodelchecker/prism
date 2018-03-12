@@ -119,6 +119,12 @@ public class SystemReference extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public SystemReference clone()
+	{
+		return (SystemReference) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

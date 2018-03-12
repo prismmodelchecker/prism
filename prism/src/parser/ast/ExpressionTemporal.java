@@ -279,6 +279,12 @@ public class ExpressionTemporal extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionTemporal clone()
+	{
+		return (ExpressionTemporal) super.clone();
+	}
+
 	// Standard methods
 
 	@Override

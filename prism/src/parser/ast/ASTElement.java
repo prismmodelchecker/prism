@@ -35,7 +35,7 @@ import prism.*;
 
 // Abstract class for PRISM language AST elements
 
-public abstract class ASTElement
+public abstract class ASTElement implements Cloneable
 {
 	// Type - default to null (unknown)
 	protected Type type = null;
@@ -187,6 +187,20 @@ public abstract class ASTElement
 	 * Perform a deep copy.
 	 */
 	public abstract ASTElement deepCopy();
+
+	/**
+	 * Perform a shallow copy of the receiver and
+	 * clone all internal container, e.g., lists and vectors, too.
+	 */
+	@Override
+	public ASTElement clone()
+	{
+		try {
+			return (ASTElement) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new InternalError("Object#clone is expected to work for Cloneable objects.", e);
+		}
+	}
 
 	// Various methods based on AST traversals (implemented using the visitor
 	// pattern):

@@ -88,4 +88,10 @@ public class DeclarationClock extends DeclarationType
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public DeclarationClock clone()
+	{
+		return (DeclarationClock) super.clone();
+	}
 }

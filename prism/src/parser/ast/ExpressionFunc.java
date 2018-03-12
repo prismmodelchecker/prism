@@ -468,9 +468,20 @@ public class ExpressionFunc extends Expression
 
 		return e;
 	}
-	
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ExpressionFunc clone()
+	{
+		ExpressionFunc clone = (ExpressionFunc) super.clone();
+
+		clone.operands = (ArrayList<Expression>) operands.clone();
+
+		return clone;
+	}
+
 	// Standard methods
-	
+
 	@Override
 	public String toString()
 	{

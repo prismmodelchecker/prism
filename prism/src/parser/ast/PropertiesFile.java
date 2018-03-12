@@ -36,7 +36,7 @@ import prism.PrismUtils;
 
 // Class representing parsed properties file/list
 
-public class PropertiesFile extends ASTElement
+public class PropertiesFile extends ASTElement implements Cloneable
 {
 	// Associated ModulesFile (for constants, ...)
 	private ModulesFile modulesFile;
@@ -643,6 +643,24 @@ public class PropertiesFile extends ASTElement
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public PropertiesFile clone()
+	{
+		PropertiesFile clone = (PropertiesFile) super.clone();
+
+		// clone main components
+		clone.properties = (Vector<Property>) properties.clone();
+
+		// clone other (generated) info
+		if (allIdentsUsed != null)
+			clone.allIdentsUsed = (Vector<String>) allIdentsUsed.clone();
+		if (constantValues != null)
+			clone.constantValues = new Values(constantValues);
+
+		return clone;
 	}
 }
 

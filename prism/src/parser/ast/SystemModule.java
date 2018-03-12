@@ -114,6 +114,12 @@ public class SystemModule extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public SystemModule clone()
+	{
+		return (SystemModule) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

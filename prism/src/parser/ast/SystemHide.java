@@ -165,6 +165,17 @@ public class SystemHide extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemHide clone()
+	{
+		SystemHide clone = (SystemHide) super.clone();
+
+		clone.actions = (Vector<String>) actions.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

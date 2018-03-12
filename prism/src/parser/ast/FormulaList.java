@@ -34,7 +34,7 @@ import prism.PrismUtils;
 
 // class to store list of formulas
 
-public class FormulaList extends ASTElement
+public class FormulaList extends ASTElement implements Cloneable
 {
 	// Name/expression pairs to define formulas
 	private Vector<String> names;
@@ -168,6 +168,19 @@ public class FormulaList extends ASTElement
 		}
 		ret.setPosition(this);
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public FormulaList clone()
+	{
+		FormulaList clone = (FormulaList) super.clone();
+
+		clone.formulas   = (Vector<Expression>)      formulas.clone();
+		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+		clone.names      = (Vector<String>)          names.clone();
+
+		return clone;
 	}
 }
 

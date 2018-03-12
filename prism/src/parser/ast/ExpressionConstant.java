@@ -116,6 +116,12 @@ public class ExpressionConstant extends Expression
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public ExpressionConstant clone()
+	{
+		return (ExpressionConstant) super.clone();
+	}
 	
 	// Standard methods
 	

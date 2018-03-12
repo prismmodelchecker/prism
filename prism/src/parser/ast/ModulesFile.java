@@ -53,7 +53,7 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	private ArrayList<SystemDefn> systemDefns; // System definitions (system...endsystem constructs)
 	private ArrayList<String> systemDefnNames; // System definition names (system...endsystem constructs)
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
-	private List<String> rewardStructNames; // Names of reward structures
+	private ArrayList<String> rewardStructNames; // Names of reward structures
 	private Expression initStates; // Initial states specification
 
 	// Lists of all identifiers used
@@ -1318,6 +1318,39 @@ public class ModulesFile extends ASTElement implements ModelInfo
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 		
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ModulesFile clone()
+	{
+		ModulesFile clone = (ModulesFile) super.clone();
+
+		// clone main components
+		clone.globals           = (Vector<Declaration>) globals.clone();
+		clone.modules           = (Vector<Object>) modules.clone();
+		clone.systemDefnNames   = (ArrayList<String>) systemDefnNames.clone();
+		clone.systemDefns       = (ArrayList<SystemDefn>) systemDefns.clone();
+		clone.rewardStructs     = (ArrayList<RewardStruct>) rewardStructs.clone();
+		clone.rewardStructNames = (ArrayList<String>) rewardStructNames.clone();
+		clone.formulaIdents     = (Vector<String>) formulaIdents.clone();
+		clone.constantIdents    = (Vector<String>) constantIdents.clone();
+		clone.varIdents         = (Vector<String>) varIdents.clone();
+		clone.varDecls          = (Vector<Declaration>) varDecls.clone();
+		clone.varNames          = (Vector<String>) varNames.clone();
+		clone.varTypes          = (Vector<Type>) varTypes.clone();
+
+		// clone other (generated) info
+		if (constantValues != null)
+			clone.constantValues = (Values) constantValues.clone();
+		if (undefinedConstantValues != null)
+			clone.undefinedConstantValues = (Values) undefinedConstantValues.clone();
+		if (moduleNames != null)
+			clone.moduleNames = moduleNames.clone();
+		if (synchs != null)
+			clone.synchs =  (Vector<String>) synchs.clone();
+
+		return clone;
 	}
 }
 

@@ -27,7 +27,6 @@
 package parser.ast;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 
 import parser.*;
 import parser.type.*;
@@ -350,6 +349,21 @@ public class Update extends ASTElement
 		}
 		ret.setPosition(this);
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Update clone()
+	{
+		Update clone = (Update) super.clone();
+
+		clone.indices   = (ArrayList<Integer>) indices.clone();
+		clone.vars      = (ArrayList<String>) vars.clone();
+		clone.exprs     = (ArrayList<Expression>) exprs.clone();
+		clone.types     = (ArrayList<Type>) types.clone();
+		clone.varIdents = (ArrayList<ExpressionIdent>) varIdents.clone();
+
+		return clone;
 	}
 }
 

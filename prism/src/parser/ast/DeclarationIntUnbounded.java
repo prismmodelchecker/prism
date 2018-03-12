@@ -88,4 +88,10 @@ public class DeclarationIntUnbounded extends DeclarationType
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public DeclarationIntUnbounded clone()
+	{
+		return (DeclarationIntUnbounded) super.clone();
+	}
 }

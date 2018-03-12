@@ -103,8 +103,14 @@ public class ExpressionProp extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionProp clone()
+	{
+		return (ExpressionProp) super.clone();
+	}
+
 	// Standard methods
-	
+
 	@Override
 	public String toString()
 	{
