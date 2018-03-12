@@ -99,14 +99,13 @@ public class ExpressionForAll extends Expression
 	{
 		return v.visit(this);
 	}
-	
+
 	@Override
-	public Expression deepCopy()
+	public ExpressionForAll deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionForAll expr = new ExpressionForAll(expression.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		expression = copier.copy(expression);
+
+		return this;
 	}
 
 	@Override

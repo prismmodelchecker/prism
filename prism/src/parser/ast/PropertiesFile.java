@@ -619,30 +619,17 @@ public class PropertiesFile extends ASTElement implements Cloneable
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	@SuppressWarnings("unchecked")
-	public ASTElement deepCopy()
+	@Override
+	public PropertiesFile deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		PropertiesFile ret = new PropertiesFile(modelInfo);
-		// Copy ASTElement stuff
-		ret.setPosition(this);
-		// Deep copy main components
-		ret.setFormulaList((FormulaList) formulaList.deepCopy());
-		ret.setLabelList((LabelList) labelList.deepCopy());
-		ret.combinedLabelList = (LabelList) combinedLabelList.deepCopy();
-		ret.setConstantList((ConstantList) constantList.deepCopy());
-		n = getNumProperties();
-		for (i = 0; i < n; i++) {
-			ret.addProperty((Property) getPropertyObject(i).deepCopy());
-		}
-		// Copy other (generated) info
-		ret.allIdentsUsed = (allIdentsUsed == null) ? null : (Vector<String>) allIdentsUsed.clone();
-		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
+		// deep copy main components
+		formulaList       = copier.copy(formulaList);
+		labelList         = copier.copy(labelList);
+		combinedLabelList = copier.copy(combinedLabelList);
+		constantList      = copier.copy(constantList);
+		copier.copyAll(properties);
 
-		return ret;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

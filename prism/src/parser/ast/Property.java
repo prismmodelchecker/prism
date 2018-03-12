@@ -581,12 +581,11 @@ public class Property extends ASTElement
 	}
 
 	@Override
-	public Property deepCopy()
+	public Property deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Property prop = new Property(expr, name, comment);
-		prop.setType(type);
-		prop.setPosition(this);
-		return prop;
+		expr = copier.copy(expr);
+
+		return this;
 	}
 
 	@Override

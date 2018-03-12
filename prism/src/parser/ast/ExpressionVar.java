@@ -119,12 +119,9 @@ public class ExpressionVar extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionVar deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionVar expr = new ExpressionVar(name, type);
-		expr.setIndex(index);
-		expr.setPosition(this);
-		return expr;
+		return this;
 	}
 
 	@Override

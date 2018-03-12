@@ -175,23 +175,13 @@ public class Updates extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public Updates deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		Expression p;
-		Updates ret = new Updates();
-		n = getNumUpdates();
-		for (i = 0; i < n; i++) {
-			p = getProbability(i);
-			if (p != null)
-				p = p.deepCopy();
-			ret.addUpdate(p, (Update) getUpdate(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(probs);
+		copier.copyAll(updates);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

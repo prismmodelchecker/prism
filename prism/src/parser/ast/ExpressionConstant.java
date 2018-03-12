@@ -108,13 +108,11 @@ public class ExpressionConstant extends Expression
 	{
 		return v.visit(this);
 	}
-	
+
 	@Override
-	public Expression deepCopy()
+	public ExpressionConstant deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Expression ret = new ExpressionConstant(name, type);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

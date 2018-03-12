@@ -30,6 +30,7 @@ import param.BigRational;
 import parser.EvaluateContext;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionBinaryOp extends Expression
@@ -269,12 +270,12 @@ public class ExpressionBinaryOp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionBinaryOp deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionBinaryOp expr = new ExpressionBinaryOp(op, operand1.deepCopy(), operand2.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+
+		return this;
 	}
 
 	@Override

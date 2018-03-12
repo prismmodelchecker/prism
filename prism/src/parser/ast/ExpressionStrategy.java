@@ -32,6 +32,7 @@ import java.util.List;
 import param.BigRational;
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -201,18 +202,11 @@ public class ExpressionStrategy extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionStrategy deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionStrategy expr = new ExpressionStrategy();
-		expr.setThereExists(isThereExists());
-		expr.coalition = new Coalition(coalition);
-		for (Expression operand : operands) {
-			expr.addOperand((Expression) operand.deepCopy());
-		}
-		expr.singleOperand = singleOperand;
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		copier.copyAll(operands);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

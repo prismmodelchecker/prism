@@ -429,24 +429,17 @@ public class ConstantList extends ASTElement
 		
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public ConstantList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		ConstantList ret = new ConstantList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			Expression constantNew = (getConstant(i) == null) ? null : getConstant(i).deepCopy();
-			ret.addConstant((ExpressionIdent)getConstantNameIdent(i).deepCopy(), constantNew, getConstantType(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(constants);
+		copier.copyAll(nameIdents);
+
+		return this;
 	}
 
-@SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	@Override
 	public ConstantList clone()
 	{

@@ -99,14 +99,13 @@ public class ExpressionExists extends Expression
 	{
 		return v.visit(this);
 	}
-	
+
 	@Override
-	public Expression deepCopy()
+	public ExpressionExists deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionExists expr = new ExpressionExists(expression.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		expression = copier.copy(expression);
+
+		return this;
 	}
 
 	@Override

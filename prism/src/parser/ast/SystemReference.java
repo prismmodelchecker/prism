@@ -111,13 +111,11 @@ public class SystemReference extends SystemDefn
 	{
 		return "\"" + name + "\"";
 	}
-	
+
 	@Override
-	public SystemDefn deepCopy()
+	public SystemReference deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemDefn ret = new SystemReference(name);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

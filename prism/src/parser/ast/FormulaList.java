@@ -155,19 +155,13 @@ public class FormulaList extends ASTElement implements Cloneable
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public FormulaList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		FormulaList ret = new FormulaList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			ret.addFormula((ExpressionIdent)getFormulaNameIdent(i).deepCopy(), getFormula(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(formulas);
+		copier.copyAll(nameIdents);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

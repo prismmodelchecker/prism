@@ -281,28 +281,16 @@ public class Module extends ASTElement
 		
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public Module deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		Module ret = new Module(name);
-		if (nameASTElement != null)
-			ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
-		n = getNumDeclarations();
-		for (i = 0; i < n; i++) {
-			ret.addDeclaration((Declaration)getDeclaration(i).deepCopy());
-		}
-		n = getNumCommands();
-		for (i = 0; i < n; i++) {
-			ret.addCommand((Command)getCommand(i).deepCopy());
-		}
-		if (invariant != null)
-			ret.setInvariant(invariant.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		nameASTElement = copier.copy(nameASTElement);
+		invariant      = copier.copy(invariant);
+		copier.copyAll(decls);
+		copier.copyAll(commands);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

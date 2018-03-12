@@ -254,16 +254,13 @@ public class ExpressionFilter extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionFilter deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionFilter e;
-		e = new ExpressionFilter(opName, operand.deepCopy(), filter == null ? null : filter.deepCopy());
-		e.setInvisible(invisible);
-		e.setType(type);
-		e.setPosition(this);
-		e.param = this.param;
+		filter  = copier.copy(filter);
+		operand = copier.copy(operand);
 
-		return e;
+		return this;
+
 	}
 
 	@Override

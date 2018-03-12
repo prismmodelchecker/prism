@@ -186,7 +186,25 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Perform a deep copy.
 	 */
-	public abstract ASTElement deepCopy();
+	public ASTElement deepCopy()
+	{
+		try {
+			return new DeepCopy().copy(this);
+		} catch (PrismLangException e) {
+			throw new Error(e);
+		}
+	}
+
+	/**
+	 * Perform a deep copy of all internal ASTElements using a deep copy visitor.
+	 * This method is usually called after {@code clone()} and must return the receiver.
+	 *
+	 * @param copier the copy visitor
+	 * @returns the receiver with deep-copied subcomponents
+	 * @throws PrismLangException
+	 * @see #clone()
+	 */
+	public abstract ASTElement deepCopy(DeepCopy copier) throws PrismLangException;
 
 	/**
 	 * Perform a shallow copy of the receiver and

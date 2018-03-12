@@ -106,13 +106,11 @@ public class SystemModule extends SystemDefn
 	{
 		return name;
 	}
-	
+
 	@Override
-	public SystemDefn deepCopy()
+	public SystemModule deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemDefn ret = new SystemModule(name);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

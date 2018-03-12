@@ -112,13 +112,13 @@ public class SystemBrackets extends SystemDefn
 	{
 		return "(" + operand + ")";
 	}
-	
+
 	@Override
-	public SystemDefn deepCopy()
+	public SystemBrackets deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemDefn ret = new SystemBrackets(getOperand().deepCopy());
-		ret.setPosition(this);
-		return ret;
+		operand = copier.copy(operand);
+
+		return this;
 	}
 
 	@Override

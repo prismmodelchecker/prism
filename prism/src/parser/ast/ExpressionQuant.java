@@ -29,6 +29,7 @@ package parser.ast;
 import param.BigRational;
 import parser.EvaluateContext;
 import parser.Values;
+import parser.visitor.DeepCopy;
 import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -201,6 +202,16 @@ public abstract class ExpressionQuant extends Expression
 	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a quantiative expression without a model");
+	}
+
+	@Override
+	public ExpressionQuant deepCopy(DeepCopy copier) throws PrismLangException
+	{
+		expression = copier.copy(expression);
+		bound      = copier.copy(bound);
+		filter     = copier.copy(filter);
+
+		return this;
 	}
 
 	// Standard methods

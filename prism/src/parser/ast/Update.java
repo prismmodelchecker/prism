@@ -334,21 +334,13 @@ public class Update extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public Update deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		Update ret = new Update();
-		n = getNumElements();
-		for (i = 0; i < n; i++) {
-			ret.addElement((ExpressionIdent) getVarIdent(i).deepCopy(), getExpression(i).deepCopy());
-			ret.setType(i, getType(i));
-			ret.setVarIndex(i, getVarIndex(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(exprs);
+		copier.copyAll(varIdents);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

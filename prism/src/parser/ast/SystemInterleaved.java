@@ -148,18 +148,13 @@ public class SystemInterleaved extends SystemDefn
 		
 		return s;
 	}
-	
+
 	@Override
-	public SystemDefn deepCopy()
+	public SystemInterleaved deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		SystemInterleaved ret = new SystemInterleaved();
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			ret.addOperand(getOperand(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(operands);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

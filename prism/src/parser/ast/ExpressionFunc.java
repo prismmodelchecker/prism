@@ -452,21 +452,11 @@ public class ExpressionFunc extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionFunc deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		ExpressionFunc e;
+		copier.copyAll(operands);
 
-		e = new ExpressionFunc(name);
-		e.setOldStyle(oldStyle);
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			e.addOperand((Expression) getOperand(i).deepCopy());
-		}
-		e.setType(type);
-		e.setPosition(this);
-
-		return e;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

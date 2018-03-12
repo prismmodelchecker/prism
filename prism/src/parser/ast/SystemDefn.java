@@ -30,13 +30,6 @@ import java.util.Vector;
 
 public abstract class SystemDefn extends ASTElement
 {
-	// Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
-
-	/**
-	 * Perform a deep copy.
-	 */
-	public abstract SystemDefn deepCopy();
-
 	// Methods required for SystemDefn (all subclasses should implement):
 
 	/**

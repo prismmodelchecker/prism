@@ -152,18 +152,13 @@ public class SystemHide extends SystemDefn
 		
 		return s;
 	}
-	
+
 	@Override
-	public SystemDefn deepCopy()
+	public SystemHide deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		SystemHide ret = new SystemHide(getOperand().deepCopy());
-		n = getNumActions();
-		for (i = 0; i < n; i++) {
-			ret.addAction(getAction(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		operand = copier.copy(operand);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

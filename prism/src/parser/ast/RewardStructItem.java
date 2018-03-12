@@ -138,16 +138,14 @@ public class RewardStructItem extends ASTElement
 		
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public RewardStructItem deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		RewardStructItem ret = new RewardStructItem(synch, states.deepCopy(), reward.deepCopy());
-		ret.setSynchIndex(getSynchIndex());
-		ret.setPosition(this);
-		return ret;
+		states = copier.copy(states);
+		reward = copier.copy(reward);
+
+		return this;
 	}
 
 	@Override
