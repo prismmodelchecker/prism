@@ -155,6 +155,17 @@ public class ExpressionTemporal extends Expression
 		equals = true;
 	}
 
+	/**
+	 * Take the bounds information from the other ExpressionTemporal
+	 * and store them in this ExpressionTemporal (no deep copy).
+	 */
+	public void setBoundsFrom(ExpressionTemporal exprTemp)
+	{
+		setLowerBound(exprTemp.getLowerBound(), exprTemp.lowerBoundIsStrict());
+		setUpperBound(exprTemp.getUpperBound(), exprTemp.upperBoundIsStrict());
+		equals = exprTemp.equals;
+	}
+
 	// Get methods
 
 	/** Set the operator */
@@ -383,36 +394,28 @@ public class ExpressionTemporal extends Expression
 			// F a == true U a
 			op1 = Expression.True();
 			exprTemp = new ExpressionTemporal(P_U, op1, operand2);
-			exprTemp.setLowerBound(lBound, lBoundStrict);
-			exprTemp.setUpperBound(uBound, uBoundStrict);
-			exprTemp.equals = equals;
+			exprTemp.setBoundsFrom(this);
 			return exprTemp;
 		case P_G:
 			// G a == !(true U !a)
 			op1 = Expression.True();
 			op2 = Expression.Not(operand2);
 			exprTemp = new ExpressionTemporal(P_U, op1, op2);
-			exprTemp.setLowerBound(lBound, lBoundStrict);
-			exprTemp.setUpperBound(uBound, uBoundStrict);
-			exprTemp.equals = equals;
+			exprTemp.setBoundsFrom(this);
 			return Expression.Not(exprTemp);
 		case P_W:
 			// a W b == !(a&!b U !a&!b)
 			op1 = Expression.And(operand1, Expression.Not(operand2));
 			op2 = Expression.And(Expression.Not(operand1), Expression.Not(operand2));
 			exprTemp = new ExpressionTemporal(P_U, op1, op2);
-			exprTemp.setLowerBound(lBound, lBoundStrict);
-			exprTemp.setUpperBound(uBound, uBoundStrict);
-			exprTemp.equals = equals;
+			exprTemp.setBoundsFrom(this);
 			return Expression.Not(exprTemp);
 		case P_R:
 			// a R b == !(!a U !b)
 			op1 = Expression.Not(operand1);
 			op2 = Expression.Not(operand2);
 			exprTemp = new ExpressionTemporal(P_U, op1, op2);
-			exprTemp.setLowerBound(lBound, lBoundStrict);
-			exprTemp.setUpperBound(uBound, uBoundStrict);
-			exprTemp.equals = equals;
+			exprTemp.setBoundsFrom(this);
 			return Expression.Not(exprTemp);
 		}
 		throw new PrismLangException("Cannot convert " + getOperatorSymbol() + " to until form");
