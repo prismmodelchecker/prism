@@ -529,6 +529,7 @@ public class HOAF2DA implements HOAConsumer {
 			return result;
 		case EXP_FALSE:
 			result.add(new APMonom(false));
+			return result;
 		case EXP_OR:
 			result.addAll(labelExpressionToAPMonom(expr.getLeft()));
 			result.addAll(labelExpressionToAPMonom(expr.getRight()));
