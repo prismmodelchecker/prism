@@ -45,7 +45,7 @@ private:
 
 public:
 	/** Constructor, set relative flag */
-	MeasureSupNorm(bool relative) : relative(relative) {
+	explicit MeasureSupNorm(bool relative) : relative(relative) {
 		reset();
 	}
 
@@ -117,7 +117,7 @@ private:
 
 public:
 	/** Constructor, set relative flag */
-	MeasureSupNormInterval(bool relative) : relative(relative) {
+	explicit MeasureSupNormInterval(bool relative) : relative(relative) {
 		reset();
 	}
 
