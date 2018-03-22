@@ -200,6 +200,7 @@ public class BooleanUtils
 					Expression a = exprTemp.getOperand1();
 					Expression b = exprTemp.getOperand2();
 					Expression aNeg = null, bNeg = null, aCopy = null, bNegCopy = null;
+					ExpressionTemporal result = null;
 					switch (exprTemp.getOperator()) {
 					case ExpressionTemporal.P_X:
 						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
@@ -209,27 +210,37 @@ public class BooleanUtils
 						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
 						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 						// !(a U b)  ==  !a R !b
-						return new ExpressionTemporal(ExpressionTemporal.P_R, aNeg, bNeg);
+						result = new ExpressionTemporal(ExpressionTemporal.P_R, aNeg, bNeg);
+						result.setBoundsFrom(exprTemp);
+						return result;
 					case ExpressionTemporal.P_F:
 						 bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 						// !(F b)  ==  G !b
-						return new ExpressionTemporal(ExpressionTemporal.P_G, null, bNeg);
+						result = new ExpressionTemporal(ExpressionTemporal.P_G, null, bNeg);
+						result.setBoundsFrom(exprTemp);
+						return result;
 					case ExpressionTemporal.P_G:
 						 bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 						// !(G b)  ==  F !b
-						return new ExpressionTemporal(ExpressionTemporal.P_F, null, bNeg);
+						result = new ExpressionTemporal(ExpressionTemporal.P_F, null, bNeg);
+						result.setBoundsFrom(exprTemp);
+						return result;
 					case ExpressionTemporal.P_W:
 						aCopy = doConversionToPositiveNormalForm(a.deepCopy(), ltl);
 						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
 						bNegCopy = doConversionToPositiveNormalForm(Expression.Not(b.deepCopy()), ltl);
 						// !(a W b) == a&!b U !a&!b
-						return new ExpressionTemporal(ExpressionTemporal.P_R, Expression.And(aCopy, bNeg), Expression.And(aNeg, bNegCopy));
+						result = new ExpressionTemporal(ExpressionTemporal.P_R, Expression.And(aCopy, bNeg), Expression.And(aNeg, bNegCopy));
+						result.setBoundsFrom(exprTemp);
+						return result;
 					case ExpressionTemporal.P_R:
 						aNeg = doConversionToPositiveNormalForm(Expression.Not(a), ltl);
 						bNeg = doConversionToPositiveNormalForm(Expression.Not(b), ltl);
 						// !(a R b)  ==  !a U !b
-						return new ExpressionTemporal(ExpressionTemporal.P_U, aNeg, bNeg);
+						result = new ExpressionTemporal(ExpressionTemporal.P_U, aNeg, bNeg);
+						result.setBoundsFrom(exprTemp);
+						return result;
 					default:
 						// Don't change (shouldn't happen)
 						return expr;
@@ -254,11 +265,14 @@ public class BooleanUtils
 		}
 		// Preserve temporal operators
 		if (ltl && expr instanceof ExpressionTemporal) {
-			Expression a = ((ExpressionTemporal) expr).getOperand1(); 
-			Expression b = ((ExpressionTemporal) expr).getOperand2();
+			ExpressionTemporal exprTemp = (ExpressionTemporal)expr;
+			Expression a = exprTemp.getOperand1();
+			Expression b = exprTemp.getOperand2();
 			Expression aConv = (a == null) ? null : doConversionToPositiveNormalForm(a, ltl);
 			Expression bConv = (b == null) ? null : doConversionToPositiveNormalForm(b, ltl);
-			return new ExpressionTemporal(((ExpressionTemporal) expr).getOperator(), aConv, bConv);
+			ExpressionTemporal result = new ExpressionTemporal(exprTemp.getOperator(), aConv, bConv);
+			result.setBoundsFrom(exprTemp);
+			return result;
 		}
 		// Proposition
 		return expr;
