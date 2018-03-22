@@ -507,6 +507,7 @@ public class StateValuesMTBDD implements StateValues
 			break;
 		case LT:
 			sol = JDD.LessThan(values, bound);
+			break;
 		default:
 			// Don't handle
 		}
