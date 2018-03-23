@@ -305,7 +305,10 @@ public class PropertiesFile extends ASTElement
 
 		// Set up some values for constants
 		// (without assuming any info about undefined constants)
-		setSomeUndefinedConstants(null);
+		//
+		// we use non-exact constant evaluation by default,
+		// for exact mode constants will be reevaluated later on
+		setSomeUndefinedConstants(null, false);
 	}
 
 	// check formula identifiers
@@ -532,7 +535,7 @@ public class PropertiesFile extends ASTElement
 	 * Set values for *all* undefined constants and then evaluate all constants.
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
 	 * <br>
 	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
 	 */

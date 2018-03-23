@@ -2991,7 +2991,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				DigitalClocks dc = new DigitalClocks(this);
 				dc.translate(oldModulesFile, propertiesFile, expr);
 				currentModulesFile = dc.getNewModulesFile();
-				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues());
+				// evaluate constants (use exact evaluation if we are in exact computation mode)
+				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues(), settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
 				currentModelType = ModelType.MDP;
 				currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
 				clearBuiltModel();

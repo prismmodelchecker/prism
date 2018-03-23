@@ -1,0 +1,15 @@
+// test case for exact handling of floating point literals
+
+dtmc
+
+// in exact mode, this literal should be kept with full precision
+// and not be approximated by 0.5, which would happen if it's converted to a double first
+const double p = 0.500000000000000000000000000000001;
+
+const double x;  // dummy, for parametric mode
+
+module M1
+  s: [0..2] init 0;
+
+  [] s=0 -> p:(s'=1) + (1-p):(s'=2);
+endmodule

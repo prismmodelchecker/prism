@@ -269,6 +269,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		verifyAfterReceiveParseNotification = false;
 
 		try {
+			// are we in exact mode?
+			boolean exact = getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
+
 			// Get valid/selected properties
 			String propertiesString = getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString();
 			// Get PropertiesFile for valid/selected properties
@@ -281,6 +284,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			for (int i = 0; i < n; i++)
 				validProperties.add(parsedProperties.getPropertyObject(i));
 			uCon = new UndefinedConstants(parsedModel, parsedProperties, validProperties);
+			uCon.setExactMode(exact);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
 				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
@@ -290,8 +294,8 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
-			getPrism().setPRISMModelConstants(mfConstants);
-			parsedProperties.setSomeUndefinedConstants(pfConstants);
+			getPrism().setPRISMModelConstants(mfConstants, exact);
+			parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 			// Store properties to be verified
 			propertiesToBeVerified = validGUIProperties;
 			for (GUIProperty gp : propertiesToBeVerified)
@@ -361,8 +365,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
-			getPrism().setPRISMModelConstants(mfConstants);
-			parsedProperties.setSomeUndefinedConstants(pfConstants);
+			// currently, evaluate constants non-exact for simulation
+			getPrism().setPRISMModelConstants(mfConstants, false);
+			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
 			for (GUIProperty gp : simulatableGUIProperties)
 				gp.setConstants(mfConstants, pfConstants);
 
@@ -433,6 +438,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 		// sort out undefined constants
 		UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, props);
+		uCon.setExactMode(getPrism().getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
 		boolean showGraphDialog = false;
 		boolean useSimulation = false;
 		if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() == 0) {
@@ -1131,8 +1137,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// Store model/property constants
 			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
-			getPrism().setPRISMModelConstants(mfConstants);
-			parsedProperties.setSomeUndefinedConstants(pfConstants);
+			// currently, evaluate constants non-exact for model building
+			getPrism().setPRISMModelConstants(mfConstants, false);
+			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
 			// If export is being done to log, switch view to log
 			if (exportFile == null)
 				logToFront();

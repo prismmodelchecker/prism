@@ -686,7 +686,9 @@ public class ModulesFile extends ASTElement implements ModelInfo
 		// NB: Can't call setUndefinedConstants if there are undefined constants
 		// because semanticCheckAfterConstants may fail. 
 		if (getUndefinedConstants().isEmpty()) {
-			setUndefinedConstants(null);
+			// we use non-exact constant evaluation by default,
+			// for exact mode constants will be reevaluated later on
+			setUndefinedConstants(null, false);
 		}
 	}
 
