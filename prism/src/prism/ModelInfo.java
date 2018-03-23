@@ -50,12 +50,36 @@ public interface ModelInfo
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * <br>
+	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
 	 */
 	public default void setSomeUndefinedConstants(Values someValues) throws PrismException
 	{
 		// By default, assume there are no constants to define 
 		if (someValues != null && someValues.getNumValues() > 0)
 			throw new PrismException("This model has no constants to set");
+	}
+
+	/**
+	 * Set values for *some* undefined constants.
+	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * <br>
+	 * Constant values are evaluated using either using standard (integer, floating-point) arithmetic
+	 * or exact arithmetic, depending on the value of the {@code exact} flag.
+	 */
+	public default void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
+	{
+		// default implementation: use implementation for setSomeUndefinedConstants(Values)
+		// for non-exact, error for exact
+		//
+		// implementers should override both this method and setSomeUndefinedConstants(Values)
+		// above
+		if (!exact)
+			setSomeUndefinedConstants(someValues);
+		else
+			throw new PrismException("This model can not set constants in exact mode");
 	}
 
 	/**

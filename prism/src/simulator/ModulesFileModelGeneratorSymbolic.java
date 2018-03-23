@@ -134,9 +134,15 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	{
 		return modelType;
 	}
-	
+
 	@Override
 	public void setSomeUndefinedConstants(Values someValues) throws PrismException
+	{
+		setSomeUndefinedConstants(someValues, false);
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
 		// We start again with a copy of the original modules file
 		// and set the constants in the copy.
@@ -145,7 +151,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 		// start again at a place where references to constants have not
 		// yet been replaced.
 		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
-		modulesFile.setSomeUndefinedConstants(someValues);
+		modulesFile.setSomeUndefinedConstants(someValues, exact);
 		mfConstants = modulesFile.getConstantValues();
 		initialise();
 	}
