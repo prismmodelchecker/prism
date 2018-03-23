@@ -1011,24 +1011,43 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
 	 * Calling this method also triggers some additional semantic checks
 	 * that can only be done once constant values have been specified.
+	 * <br>
+	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
-		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		constantValues = constantList.evaluateConstants(someValues, null);
-		doSemanticChecksAfterConstants();
+		setUndefinedConstants(someValues, false);
 	}
 
 	/**
-	 * Set values for *some* undefined constants and then evaluate all constants where possible.
+	 * Set values for *all* undefined constants and then evaluate all constants.
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
+	 * Calling this method also triggers some additional semantic checks
+	 * that can only be done once constant values have been specified.
+	 * <br>
+	 * Constant values are evaluated using either standard (integer, floating-point) arithmetic
+	 * or exact arithmetic, depending on the value of the {@code exact} flag.
 	 */
-	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
 	{
 		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		constantValues = constantList.evaluateSomeConstants(someValues, null);
+		constantValues = constantList.evaluateConstants(someValues, null, exact);
+		doSemanticChecksAfterConstants();
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	{
+		setSomeUndefinedConstants(someValues, false);
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
+	{
+		undefinedConstantValues = someValues == null ? null : new Values(someValues);
+		constantValues = constantList.evaluateSomeConstants(someValues, null, exact);
 		doSemanticChecksAfterConstants();
 	}
 

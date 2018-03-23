@@ -533,11 +533,27 @@ public class PropertiesFile extends ASTElement
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
+	 * <br>
+	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
+		setUndefinedConstants(someValues, false);
+	}
+
+	/**
+	 * Set values for *all* undefined constants and then evaluate all constants.
+	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * <br>
+	 * Constant values are evaluated using either standard (integer, floating-point) arithmetic
+	 * or exact arithmetic, depending on the value of the {@code exact} flag.
+	 */
+	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
+	{
 		// Might need values for ModulesFile constants too
-		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues());
+		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues(), exact);
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
 		// This will usually be done on a per-property basis later
 	}
@@ -547,11 +563,27 @@ public class PropertiesFile extends ASTElement
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
 	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * <br>
+	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
 	 */
 	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
 	{
+		setSomeUndefinedConstants(someValues, false);
+	}
+
+	/**
+	 * Set values for *some* undefined constants and then evaluate all constants where possible.
+	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Undefined constants can be subsequently redefined to different values with the same method.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * <br>
+	 * Constant values are evaluated using either standard (integer, floating-point) arithmetic
+	 * or exact arithmetic, depending on the value of the {@code exact} flag.
+	 */
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
+	{
 		// Might need values for ModulesFile constants too
-		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues());
+		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues(), exact);
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
 		// This will usually be done on a per-property basis later
 	}
