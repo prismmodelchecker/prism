@@ -224,12 +224,17 @@ public class GUIExperiment
 					}
 				});
 
+				// are we in exact mode?
+				boolean exact = prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
+				// for simulation, don't use exact mode...
+				exact &= !useSimulation;
+
 				for (i = 0; i < undefinedConstants.getNumModelIterations(); i++) {
 
 					// set values for ModulesFile constants
 					try {
 						definedMFConstants = undefinedConstants.getMFConstantValues();
-						prism.setPRISMModelConstants(definedMFConstants);
+						prism.setPRISMModelConstants(definedMFConstants, exact);
 					} catch (Exception e) {
 						// in case of error, report it (in log only), store as result, and go on to the next model
 						errorLog(e);
@@ -302,7 +307,7 @@ public class GUIExperiment
 								// Set values for PropertiesFile constants
 								if (propertiesFile != null) {
 									definedPFConstants = undefinedConstants.getPFConstantValues();
-									propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+									propertiesFile.setSomeUndefinedConstants(definedPFConstants, exact);
 								}
 								// Normal model checking
 								if (!useSimulation) {

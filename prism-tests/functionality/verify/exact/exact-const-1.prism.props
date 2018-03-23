@@ -1,0 +1,11 @@
+// RESULT: 1/3
+P=?[ F s=1 ]
+
+// RESULT: false
+P>1/3[ F s=1 ]
+
+// RESULT: true
+P>=1/3[ F s=1 ]
+
+// RESULT: false
+P<1/3[ F s=1 ]
