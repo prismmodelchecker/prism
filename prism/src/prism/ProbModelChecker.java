@@ -61,6 +61,7 @@ import parser.type.TypePathDouble;
 import prism.LTLModelChecker.LTLProduct;
 import sparse.PrismSparse;
 import dv.DoubleVector;
+import explicit.ExportIterations;
 
 /*
  * Model checker for DTMCs.
@@ -2363,7 +2364,9 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		if (doIntervalIteration) {
 			double max_v = rewards.maxFiniteOverBDD(maybe);
-			mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+			if (max_v != Double.NEGATIVE_INFINITY) {
+				mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+			}
 		}
 
 		// derefs
@@ -2567,6 +2570,11 @@ public class ProbModelChecker extends NonProbModelChecker
 		JDD.Ref(bscc);
 		init = JDD.Apply(JDD.DIVIDE, bscc, JDD.Constant(n));
 
+		if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+			String filename = ExportIterations.getUniqueFilename("iterations-ss-bscc");
+			PrismNative.setDefaultExportIterationsFilename(filename);
+		}
+
 		// compute remaining probabilities
 		mainLog.println("\nComputing probabilities...");
 		mainLog.println("Engine: " + Prism.getEngineString(engine));
@@ -2591,6 +2599,10 @@ public class ProbModelChecker extends NonProbModelChecker
 			JDD.Deref(trf);
 			JDD.Deref(init);
 			throw e;
+		} finally {
+			if (settings.getBoolean(PrismSettings.PRISM_EXPORT_ITERATIONS)) {
+				PrismNative.setDefaultExportIterationsFilename(ExportIterations.getDefaultFilename());
+			}
 		}
 
 		// derefs

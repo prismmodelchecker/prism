@@ -48,6 +48,8 @@ import prism.PrismNotSupportedException;
  */
 public class ParamResult
 {
+	/** The computation mode (parametric / exact) */
+	private ParamMode mode;
 	/** The actual result */
 	private RegionValues regionValues;
 	/** The model builder (for accessing expr2func) */
@@ -61,8 +63,9 @@ public class ParamResult
 	 * @param modelBuilder the model builder used during checking
 	 * @param factory the function factory used during checking
 	 */
-	public ParamResult(RegionValues regionValues, ModelBuilder modelBuilder, FunctionFactory factory)
+	public ParamResult(ParamMode mode, RegionValues regionValues, ModelBuilder modelBuilder, FunctionFactory factory)
 	{
+		this.mode = mode;
 		this.regionValues = regionValues;
 		this.modelBuilder = modelBuilder;
 		this.factory = factory;
@@ -98,7 +101,7 @@ public class ParamResult
 	public Object getSimpleResult(Type propertyType) throws PrismException
 	{
 		if (regionValues.getNumRegions() != 1)
-			throw new PrismException("Unexpected result from parametric model checker");
+			throw new PrismException("Unexpected result from " + mode + " model checker");
 
 		if (propertyType.equals(TypeBool.getInstance())) {
 			// boolean result
@@ -163,7 +166,7 @@ public class ParamResult
 	private boolean test(Type propertyType, Expression expected, String strExpected) throws PrismException
 	{
 		if (regionValues.getNumRegions() != 1) {
-			throw new PrismNotSupportedException("Testing parametric results with multiple regions not supported");
+			throw new PrismNotSupportedException("Testing " + mode + " results with multiple regions not supported");
 		}
 
 		if (propertyType.equals(TypeBool.getInstance())) {
@@ -180,7 +183,7 @@ public class ParamResult
 			try {
 				funcExpected = modelBuilder.expr2function(factory, expected);
 			} catch (PrismException e) {
-				throw new PrismException("Invalid (or unsupported) RESULT specification \"" + strExpected + "\" for parametric property");
+				throw new PrismException("Invalid (or unsupported) RESULT specification \"" + strExpected + "\" for " + mode + " property");
 			}
 			param.Function func = regionValues.getResult(0).getInitStateValueAsFunction();
 

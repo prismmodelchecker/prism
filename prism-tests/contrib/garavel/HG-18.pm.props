@@ -1,0 +1,9 @@
+
+
+// Steady state probability of being in State 0
+// RESULT : 0.8333333333333334
+S=? [s=0 ]
+
+// Steady state probability of being in State 1
+// RESULT : 0.16666666666666666
+S=? [s=1 ]

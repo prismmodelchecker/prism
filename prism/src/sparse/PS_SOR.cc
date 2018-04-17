@@ -209,6 +209,7 @@ jboolean forwards	// forwards or backwards?
 		title += (omega == 1.0)?"Gauss-Seidel":("SOR omega=" + std::to_string(omega));
 		title += ")";
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 

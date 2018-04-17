@@ -40,6 +40,8 @@ import java.util.HashMap;
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
 class ConstraintChecker {
+	private boolean usedUnsoundCheck = false;
+
 	/**
 	 * Class to store keys for the cache of the decision procedure.
 	 */
@@ -124,6 +126,7 @@ class ConstraintChecker {
 	 */
 	boolean mainCheck(Region region, Function constraint, boolean strict)
 	{
+		usedUnsoundCheck = true;
 		return true;
 	}
 
@@ -163,6 +166,20 @@ class ConstraintChecker {
 	 */
 	boolean check(Region region, Function constraint, boolean strict)
 	{
+		// handle case where the constraint is a constant number
+		if (constraint.isConstant()) {
+			BigRational value = constraint.asBigRational();
+
+			if (value.isNaN())
+				return false;
+
+			if (strict) {
+				return value.signum() == 1;
+			} else {
+				return value.signum() >= 0;
+			}
+		}
+
 		Function constr = constraint.toConstraint();
 		DecisionEntryKey key = new DecisionEntryKey();
 		key.constraint = constr;
@@ -197,4 +214,10 @@ class ConstraintChecker {
 
 		return result;
 	}
+
+	public boolean unsoundCheckWasUsed()
+	{
+		return usedUnsoundCheck;
+	}
+
 }

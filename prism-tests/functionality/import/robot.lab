@@ -1,0 +1,6 @@
+0="init" 1="deadlock" 2="hazard" 3="goal1" 4="goal2"
+0: 0
+1: 2
+2: 4
+3: 4
+5: 3

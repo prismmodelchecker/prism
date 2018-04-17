@@ -1563,7 +1563,13 @@ double *hdd_negative_row_sums(HDDMatrix *hddm, int n, bool transpose)
 	int row_offset;
 	int col_offset;
 	HDDNode *node;
-	
+
+	// TODO: it looks like col_offset is not actually used during the various
+	// recursion steps (including swapping when transpose is set);
+	// candidate for removal / refactoring
+	// initialise col_offset
+	col_offset = 0;
+
 	// loop through rows/columns of blocks
 	h = 0;
 	for (i = 0; i < b_n; i++) {

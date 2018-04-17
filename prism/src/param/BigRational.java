@@ -185,6 +185,10 @@ public final class BigRational implements Comparable<BigRational>
 			this.num = new BigInteger("-1");
 			this.den = new BigInteger("0");
 			return;
+		} else if (string.equals("NaN")) {
+			this.num = new BigInteger("0");
+			this.den = new BigInteger("0");
+			return;
 		}
 		BigInteger num;
 		BigInteger den;
@@ -818,6 +822,22 @@ public final class BigRational implements Comparable<BigRational>
 		if (isZero())
 			return false;
 		throw new PrismLangException("Conversion from BigRational to Boolean not possible, invalid value: " + this);
+	}
+
+	/**
+	 * Return an approximate String representation (via conversion to double).
+	 * If the conversion is imprecise, the result string is prefixed by '~'.
+	 */
+	public String toApproximateString()
+	{
+		String result = Double.toString(doubleValue());
+		if (new BigRational(result).equals(this)) {
+			// round-trip did not lose precision
+			return result;
+		}
+		// only approximate
+		return "~" + result;
+
 	}
 
 	/**

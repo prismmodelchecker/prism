@@ -68,7 +68,7 @@ public class Modules2PTA extends PrismComponent
 	public PTA translate() throws PrismLangException
 	{
 		int i, numModules;
-		Module module, moduleNew;
+		parser.ast.Module module, moduleNew;
 		ArrayList<String> nonClocks;
 		ArrayList<String> allNonClocks = new ArrayList<String>();
 		ArrayList<ArrayList<State>> pcStates;
@@ -85,15 +85,15 @@ public class Modules2PTA extends PrismComponent
 		// Check for inter-module variable references 
 		modulesFile.accept(new ASTTraverse()
 		{
-			private Module inModule = null;
+			private parser.ast.Module inModule = null;
 
-			public void visitPre(Module e) throws PrismLangException
+			public void visitPre(parser.ast.Module e) throws PrismLangException
 			{
 				// Register the fact we are entering a module
 				inModule = e;
 			}
 
-			public void visitPost(Module e) throws PrismLangException
+			public void visitPost(parser.ast.Module e) throws PrismLangException
 			{
 				// Register the fact we are leaving a module
 				inModule = null;
@@ -165,7 +165,7 @@ public class Modules2PTA extends PrismComponent
 	 * Translate a single module.
 	 * (Which has been transformed using convertModuleToPCForm)
 	 */
-	private PTA translateModule(Module module, ArrayList<State> pcStates) throws PrismLangException
+	private PTA translateModule(parser.ast.Module module, ArrayList<State> pcStates) throws PrismLangException
 	{
 		// Clocks and PC variable stuff
 		ArrayList<String> clocks;
@@ -486,7 +486,7 @@ public class Modules2PTA extends PrismComponent
 	 * @param pcVars: The variables that should be converted to a PC.
 	 * @param pcStates: An empty ArrayList into which PC value states will be stored.
 	 */
-	private Module convertModuleToPCForm(Module module, List<String> pcVars, ArrayList<State> pcStates) throws PrismLangException
+	private parser.ast.Module convertModuleToPCForm(parser.ast.Module module, List<String> pcVars, ArrayList<State> pcStates) throws PrismLangException
 	{
 		// Info about variables in model to be used as program counter
 		int pcNumVars;
@@ -494,7 +494,7 @@ public class Modules2PTA extends PrismComponent
 		// info about new program counter var
 		String pc;
 		// Components of old and new module 
-		Module moduleNew;
+		parser.ast.Module moduleNew;
 		Declaration decl, declNew;
 		Command command, commandNew;
 		Expression guard, guardNew;
@@ -545,7 +545,7 @@ public class Modules2PTA extends PrismComponent
 		}
 
 		// Create a new module
-		moduleNew = new Module(module.getName());
+		moduleNew = new parser.ast.Module(module.getName());
 		
 		// Preserve alphabet of old module (might change if some commands are not enabled)
 		moduleNew.setAlphabet(module.getAllSynchs());

@@ -66,7 +66,7 @@ public class VarList
 		this();
 
 		int i, j, n, n2;
-		Module module;
+		parser.ast.Module module;
 		Declaration decl;
 
 		// First add all globals to the list

@@ -355,6 +355,9 @@ public class ExpressionFunc extends Expression
 		// Check for overflow
 		if (res > Integer.MAX_VALUE)
 			throw new PrismLangException("Overflow evaluating integer power");
+		// Check for underflow
+		if (res < Integer.MIN_VALUE)
+			throw new PrismLangException("Underflow evaluating integer power");
 		return (int) res;
 	}
 

@@ -1,0 +1,2 @@
+// RESULT:1/3
+"ltl": P=? [ F X d>4 ]

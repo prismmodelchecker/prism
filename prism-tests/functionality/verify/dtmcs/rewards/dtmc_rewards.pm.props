@@ -1,0 +1,74 @@
+// RESULT: 0.0
+R{"a"}=? [ C<=0 ];
+// RESULT: 5.0
+R{"a"}=? [ C<=1 ];
+// RESULT: 17.0
+R{"a"}=? [ C<=2 ];
+// RESULT: 28.0
+R{"a"}=? [ C<=3 ];
+
+// RESULT: 28.0
+R{"a"}=? [ C ];
+// RESULT: Infinity
+R{"b"}=? [ C ];
+
+// RESULT: 2.0
+R{"a"}=? [ I=0 ];
+// RESULT: 5.0
+R{"a"}=? [ I=1 ];
+// RESULT: 11.0
+R{"a"}=? [ I=2 ];
+// RESULT: 0.0
+R{"a"}=? [ I=3 ];
+
+// RESULT: 0.0
+R{"a"}=? [ F s=0 ];
+// RESULT: 5.0
+R{"a"}=? [ F s=1 ];
+// RESULT: 17.0
+R{"a"}=? [ F s=2 ];
+// RESULT: 28.0
+R{"a"}=? [ F s>2 ];
+
+// RESULT: 0.0
+R{"a"}=? [ S ];
+
+
+
+// same as above, using only state rewards
+// Note: I rewards are different from the results above
+
+// RESULT: 0.0
+R{"a_state"}=? [ C<=0 ];
+// RESULT: 5.0
+R{"a_state"}=? [ C<=1 ];
+// RESULT: 17.0
+R{"a_state"}=? [ C<=2 ];
+// RESULT: 28.0
+R{"a_state"}=? [ C<=3 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ C ];
+// RESULT: Infinity
+R{"b_state"}=? [ C ];
+
+// RESULT: 5.0
+R{"a_state"}=? [ I=0 ];
+// RESULT: 12.0
+R{"a_state"}=? [ I=1 ];
+// RESULT: 11.0
+R{"a_state"}=? [ I=2 ];
+// RESULT: 0.0
+R{"a_state"}=? [ I=3 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ F s=0 ];
+// RESULT: 5.0
+R{"a_state"}=? [ F s=1 ];
+// RESULT: 17.0
+R{"a_state"}=? [ F s=2 ];
+// RESULT: 28.0
+R{"a_state"}=? [ F s>2 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ S ];

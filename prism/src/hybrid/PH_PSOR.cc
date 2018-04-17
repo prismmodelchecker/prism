@@ -241,6 +241,7 @@ jboolean forwards	// forwards or backwards?
 		title += ")";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PH_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 

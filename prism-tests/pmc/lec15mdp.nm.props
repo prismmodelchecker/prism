@@ -1,0 +1,22 @@
+	// RESULT: 0.75
+	Pmax=? [ F s=3|s=4 ];
+	// RESULT: 0.75
+	Pmax=? [ F s=1|s=3|s=4 ];
+	// RESULT: 0.75
+	Pmax=? [ F s=6 ];
+	// RESULT: 1
+	Pmax=? [ F s=5|s=7|s=8 ];
+	// RESULT: 0.75
+	Pmax=? [ G F s=4|s=6 ];
+	// RESULT: false
+	P>=1 [ G F s=1|s=4|s=6 ];
+	// RESULT: true
+	P>=1 [ G F (s=1|s=4|s=6|s=7) ];
+	// RESULT: false
+	P>=1 [ G F (s=1|s=6|s=7) ];
+	// RESULT: 0.25
+	Pmin=? [ G F s=7 ];
+	// RESULT: true
+	P>0 [ G F s=7 ];
+	// RESULT: false
+	P>0.3 [ G F s=7 ];

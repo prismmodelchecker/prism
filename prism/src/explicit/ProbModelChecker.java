@@ -79,6 +79,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected boolean precomp = true;
 	protected boolean prob0 = true;
 	protected boolean prob1 = true;
+	// should we suppress log output during precomputations?
+	protected boolean silentPrecomputations = false;
 	// Use predecessor relation? (e.g. for precomputation)
 	protected boolean preRel = true;
 	// Direction of convergence for value iteration (lfp/gfp)
@@ -289,6 +291,18 @@ public class ProbModelChecker extends NonProbModelChecker
 	public void setVerbosity(int verbosity)
 	{
 		this.verbosity = verbosity;
+	}
+
+	/**
+	 * Set flag for suppressing log output during precomputations (prob0, prob1, ...)
+	 * @param value silent?
+	 * @return the previous value of this flag
+	 */
+	public boolean setSilentPrecomputations(boolean value)
+	{
+		boolean old = silentPrecomputations;
+		silentPrecomputations = value;
+		return old;
 	}
 
 	/**

@@ -217,10 +217,25 @@ public class SimpleLTL {
 		SimpleLTL rv = this;
 		
 		switch (kind) {
-		case AND: case OR: case IMPLIES: case EQUIV: case UNTIL: case RELEASE:
+		case AND:
+		case OR:
+		case IMPLIES:
+		case EQUIV:
+		case UNTIL:
+		case RELEASE:
 			right = right.simplified();
-		case NOT: case NEXT: case FINALLY: case GLOBALLY:
 			left = left.simplified();
+			break;
+
+		case NOT:
+		case NEXT:
+		case FINALLY:
+		case GLOBALLY:
+			left = left.simplified();
+			break;
+
+		default:
+			// do nothing
 		}
 
 		switch (kind) {

@@ -1,0 +1,18 @@
+
+// RESULT: 1/6
+P=? [ F s=7 ]
+
+// RESULT: 1/6
+P=? [ F s=8 ]
+
+// RESULT: 1/6
+P=? [ F s=9 ]
+
+// RESULT: 1/6
+P=? [ F s=10 ]
+
+// RESULT: 1/6
+P=? [ F s=11 ]
+
+// RESULT: 1/6
+P=? [ F s=12 ]

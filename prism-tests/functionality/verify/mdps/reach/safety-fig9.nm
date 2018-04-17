@@ -1,0 +1,33 @@
+// MDP M_1 (see Figure 9, p.34) and DFA A_A^err (see Figure 8, p.32)
+
+mdp
+
+// M_1
+module M1
+
+	// s=i for state s_i
+	s : [0..3] init 0;
+
+	[detect]   s=0 -> 0.8:(s'=1) + 0.2:(s'=2);
+	[warn]     s=1 -> (s'=2);
+	[shutdown] s=2 -> (s'=3);
+	[off]      s=3 -> true;
+
+endmodule
+
+// DFA A_A^err for property Phi_A ("never shutdown before warn")
+module A_A_err
+
+	// q=i for state q_i
+	q : [0..2] init 0;
+
+	[warn]     q=0 -> (q'=1);
+	[shutdown] q=0 -> (q'=2);
+
+	[warn]     q>=1 -> true;
+	[shutdown] q>=1 -> true;
+	
+endmodule
+
+// Accepting states for A_A^err
+label "A_A_err_acc" = q=2;

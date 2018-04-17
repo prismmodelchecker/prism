@@ -41,6 +41,7 @@
 class ExportIterations {
 private:
 	FILE *fp;
+	std::string filename;
 
 public:
 	/**
@@ -48,6 +49,7 @@ public:
 	 */
 	ExportIterations(const char* title = "", const char* filename = get_export_iterations_filename()) {
 		fp = fopen(filename, "w");
+		this->filename = filename;
 
 		fprintf(fp, "<!DOCTYPE html>\n");
 		fprintf(fp, "<html><head>\n");
@@ -62,6 +64,13 @@ public:
 		fprintf(fp, "<h1>%s</h1>\n", title);
 		fprintf(fp, "<svg></svg>\n");
 		fprintf(fp, "<script src=\"http://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>\n");
+	}
+
+	/**
+	 * Get the filename used for exporting.
+	 */
+	const std::string& getFileName() {
+		return filename;
 	}
 
 	/**

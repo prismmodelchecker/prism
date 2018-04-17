@@ -1016,6 +1016,7 @@ public class MDPSparse extends MDPExplicit
 		h1 = rowStarts[s + 1];
 		for (j = l1; j < h1; j++) {
 			diag = 1.0;
+			boolean onlySelfloops = true;
 			// Compute sum for this distribution
 			// (note: have to add state rewards in the loop for Jacobi)
 			d = mdpRewards.getStateReward(s);
@@ -1024,17 +1025,26 @@ public class MDPSparse extends MDPExplicit
 			h2 = choiceStarts[j + 1];
 			for (k = l2; k < h2; k++) {
 				if (cols[k] != s) {
+					onlySelfloops = false;
 					d += nonZeros[k] * vect[cols[k]];
 				} else {
 					diag -= nonZeros[k];
 				}
 			}
-			if (diag > 0)
-				d /= diag;
 			// Catch special case of probability 1 self-loop (Jacobi does it wrong)
-			if (h2 - l2 == 1 && cols[l2] == s) {
-				d = Double.POSITIVE_INFINITY;
+			if (onlySelfloops) {
+				if (d != 0) {
+					// always choosing the selfloop-action will produce infinite reward
+					d = (d>0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY);
+				} else {
+					// no reward & only self-loops: d remains 0
+					d = 0;
+				}
+			} else if (diag > 0) {
+				// not only self-loops, do Jacobi division
+				d /= diag;
 			}
+
 			// Check whether we have exceeded min/max so far
 			if (first || (min && d < minmax) || (!min && d > minmax)) {
 				minmax = d;

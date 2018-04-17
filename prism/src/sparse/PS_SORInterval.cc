@@ -222,6 +222,7 @@ jint flags
 		title += (omega == 1.0)?"Gauss-Seidel":("SOR omega=" + std::to_string(omega));
 		title += "), interval";
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln_below, n, 0);
 		iterationExport->exportVector(soln_above, n, 1);
 	}

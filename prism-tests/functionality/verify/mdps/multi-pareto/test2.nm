@@ -1,0 +1,16 @@
+// simple example where the values of y_{v,sigma} are > 1
+// example formula: multi(P>=0.3[F x=2],P>=0.75[F x=3],P>=0.1[F x=4])  -- false
+// example formula: multi(P>=0.1[F x=3],P>=0.1[F x=2],P>=0.1[F x=4]) -- true
+// only two points: [0.1,0.1,1.0], [1.0,0.1,0.1], [0.2,0.2,0.2]
+
+module M
+
+x:[0..6] init 0;
+
+[] x=0 -> (x'=1);
+[a] x=1 -> 0.1 : (x'=5) + 0.9:(x'=2);
+[b] x=1 -> 0.1 : (x'=5) + 0.9:(x'=3);
+[c] x=1 -> 0.2 : (x'=2) + 0.2:(x'=3) + 0.2:(x'=4) + 0.4:(x'=6);
+[] x>1 -> true;
+
+endmodule

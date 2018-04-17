@@ -116,7 +116,7 @@ public interface IntSet extends Iterable<Integer>
 	{
 		/** The wrapped BitSet */
 		private BitSet bs;
-		/** The cardinality of the underlying BitSet (cached, -1 = not yet computed */
+		/** The cardinality of the underlying BitSet (cached, -1 = not yet computed) */
 		int cardinality = -1;
 
 		/** Constructor */

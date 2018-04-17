@@ -1,0 +1,5 @@
+// RESULT: false
+multi(P>=0.3[F x=3],P>=0.75[F x=2])
+
+// RESULT: 0.25
+multi(Pmax=? [F x=3],P>=0.75[F x=2])

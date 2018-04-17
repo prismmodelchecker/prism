@@ -381,6 +381,11 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionMultiObjective(List<Expression> exprs, boolean forAll, JDDNode statesOfInterest) throws PrismException
 	{
+		if (fairness) {
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
+		}
+
 		// For now, just support a single expression (which may encode a Boolean combination of objectives)
 		if (exprs.size() > 1) {
 			JDD.Deref(statesOfInterest);
@@ -489,7 +494,13 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean hasMaxReward = false;
 		//boolean hasLTLconstraint = false;
 
+		if (fairness) {
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
+		}
+
 		if (doIntervalIteration) {
+			JDD.Deref(statesOfInterest);
 			throw new PrismNotSupportedException("Interval iteration currently not supported for multi-objective reasoning");
 		}
 
@@ -1423,6 +1434,12 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode b;
 		StateValues rewards = null;
 
+		if (fairness && !min) {
+			// Rmax with fairness not supported; Rmin computation is unaffected
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Maximum reward computation currently not supported under fairness.");
+		}
+
 		// currently, ignore statesOfInterest
 		JDD.Deref(statesOfInterest);
 
@@ -1466,6 +1483,12 @@ public class NondetModelChecker extends NonProbModelChecker
 		LTLProduct<NondetModel> modelProduct;
 		NondetModelChecker mcProduct;
 		long l;
+
+		if (fairness && !min) {
+			// Rmax with fairness not supported; Rmin computation is unaffected
+			JDD.Deref(statesOfInterest);
+			throw new PrismNotSupportedException("Maximum reward computation currently not supported under fairness.");
+		}
 
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
@@ -2185,6 +2208,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Local copy of setting
 		int engine = this.engine;
 
+		// For Rmax[ C ] computation, fairness does not affect the result
+
 		if (doIntervalIteration) {
 			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
 		}
@@ -2542,7 +2567,9 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		if (doIntervalIteration) {
 			double max_v = rewards.maxFiniteOverBDD(maybe);
-			mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+			if (max_v != Double.NEGATIVE_INFINITY) {
+				mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
+			}
 		}
 
 		// derefs

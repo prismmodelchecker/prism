@@ -26,6 +26,8 @@
 
 package explicit;
 
+import java.util.HashMap;
+
 import dv.DoubleVector;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -40,6 +42,9 @@ public class ExportIterations {
 	private static String defaultFilename = "iterations.html";
 
 	private PrismLog log;
+
+	/** A hashmap for generating unique filenames */
+	private static HashMap<String, Integer> counts = new HashMap<>();
 
 	public ExportIterations(String title) throws PrismException
 	{
@@ -67,6 +72,19 @@ public class ExportIterations {
 		log.println("<h1>" + title + "</h1>");
 		log.println("<svg></svg>");
 		log.println("<script src=\"http://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>");
+		log.flush();
+	}
+
+	/**
+	 * Returns the name of the file used for exporting,
+	 * or {@code null} if it can not be determined.
+	 */
+	public String getFileName()
+	{
+		if (log instanceof PrismFileLog) {
+			return ((PrismFileLog)log).getFileName();
+		}
+		return null;
 	}
 
 	/**
@@ -92,6 +110,7 @@ public class ExportIterations {
 			exportValue(d);
 		}
 		log.print("]," + type + ")</script>\n");
+		log.flush();
 	}
 
 	/**
@@ -117,6 +136,7 @@ public class ExportIterations {
 			exportValue(d);
 		}
 		log.print("]," + type + ")</script>\n");
+		log.flush();
 	}
 
 	private void exportValue(double d)
@@ -134,6 +154,29 @@ public class ExportIterations {
 	public void close()
 	{
 		log.println("\n</body></html>");
+		log.flush();
+	}
+
+	/**
+	 * Get a unique HTML file name with the given prefix, of the form
+	 * 'prefix-counter.html', where counter starts with 0 and
+	 * is incremented each time a unique filename with the same prefix is
+	 * requested.
+	 */
+	public static String getUniqueFilename(String prefix)
+	{
+		int count = counts.getOrDefault(prefix, 0);
+		counts.put(prefix, count+1);
+		return prefix + "-" + count + ".html";
+	}
+
+	/**
+	 * Create an ExportIterations helper with a unique filename generated
+	 * from {@code prefix} (see getUniqueFilename).
+	 */
+	public static ExportIterations createWithUniqueFilename(String title, String prefix) throws PrismException
+	{
+		return new ExportIterations(title, PrismFileLog.create(getUniqueFilename(prefix)));
 	}
 
 	public static void setDefaultFilename(String newDefaultFilename)

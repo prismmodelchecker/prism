@@ -235,6 +235,7 @@ jint flags
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PS_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PS_NondetUntil_Interval"));
+		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln_below, n, 0);
 		iterationExport->exportVector(soln_above, n, 1);
 	}
@@ -311,7 +312,7 @@ jint flags
 			helper.updateValueFromBelow(soln_below2[i], soln_below[i], (h1 > l1) ? d1 : yes_vec[i]);
 		}
 
-		// do matrix multiplication and min/max for above, optionally generate adversary
+		// do matrix multiplication and min/max for above (don't generate adversary, done above in "from below" iteration)
 		h1 = h2 = 0;
 		for (i = 0; i < n; i++) {
 			d1 = 0.0; // initial value doesn't matter

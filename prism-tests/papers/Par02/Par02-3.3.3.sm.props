@@ -1,0 +1,6 @@
+	// RESULT: 2/3
+	S=? [ (x=0) | (x=2) ];
+	// RESULT: ?
+	"ex": S>=0.6 [ (x=0) | (x=2) ];
+	// RESULT: true
+	filter(forall, "ex" <=> true);

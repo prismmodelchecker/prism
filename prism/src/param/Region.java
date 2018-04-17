@@ -94,16 +94,24 @@ abstract class Region {
 	
 	abstract RegionValues binaryOp(int op, StateValues values1, StateValues values2);
 
+	abstract RegionValues ITE(StateValues valueI, StateValues valueT, StateValues valueE);
+
+	/**
+	 * Splits this region into several parts.
+	 * How this is done exactly depends on the implementation in derived
+	 * classes. Can take constraint into account.
+	 * 
+	 * @param constraint
+	 */
+	abstract ArrayList<Region> split(Function constraint);
+
 	/**
 	 * Splits this region into several parts.
 	 * How this is done exactly depends on the implementation in derived
 	 * classes.
-	 * 
-	 * @param constraint
-	 * @return
 	 */
-	abstract ArrayList<Region> split(Function constraint);
-	
+	abstract ArrayList<Region> split();
+
 	abstract ArrayList<Point> specialPoints();
 
 	abstract Point randomPoint();

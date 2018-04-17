@@ -123,6 +123,12 @@ public class PrismFileLog extends PrismLog
 		return fp;
 	}
 
+	/** Get the filename (or "stdout" if writing to standard output) */
+	public String getFileName()
+	{
+		return stdout ? "stdout" : filename;
+	}
+
 	@Override
 	public void flush()
 	{

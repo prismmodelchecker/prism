@@ -27,6 +27,7 @@
 
 package prism;
 
+import java.util.Collections;
 import java.util.List;
 
 import parser.State;
@@ -41,13 +42,21 @@ public interface ModelGenerator extends ModelInfo
 	/**
 	 * Does the model have a single initial state?
 	 */
-	public boolean hasSingleInitialState() throws PrismException;
+	public default boolean hasSingleInitialState() throws PrismException
+	{
+		// Default to the case of a single initial state
+		return true;
+	}
 	
 	/**
 	 * Get the initial states of the model.
 	 * The returned list should contain fresh State objects that can be kept/modified. 
 	 */
-	public List<State> getInitialStates() throws PrismException;
+	public default List<State> getInitialStates() throws PrismException
+	{
+		// Default to the case of a single initial state
+		return Collections.singletonList(getInitialState());
+	}
 	
 	/**
 	 * Get the initial state of the model, if there is just one,
@@ -78,7 +87,16 @@ public interface ModelGenerator extends ModelInfo
 	/**
 	 * Get the total number of transitions in the current state.
 	 */
-	public int getNumTransitions() throws PrismException;
+	public default int getNumTransitions() throws PrismException
+	{
+		// Default implementation just extracts from getNumChoices() and getNumTransitions(i) 
+		int tot = 0;
+		int n = getNumChoices();
+		for (int i = 0; i < n; i++) {
+			tot += getNumTransitions(i);
+		}
+		return tot;
+	}
 
 	/**
 	 * Get the number of transitions in the {@code i}th nondeterministic choice.
@@ -113,7 +131,11 @@ public interface ModelGenerator extends ModelInfo
 	 * (as can be the case for Markov chains), this method returns the action for the first transition.
 	 * So, this method is essentially equivalent to {@code getTransitionAction(i, 0)}. 
 	 */
-	public Object getChoiceAction(int i) throws PrismException;
+	public default Object getChoiceAction(int i) throws PrismException
+	{
+		// Default implementation 
+		return getTransitionAction(i, 0);
+	}
 
 	/**
 	 * Get the probability/rate of a transition within a choice, specified by its index/offset.
@@ -133,13 +155,26 @@ public interface ModelGenerator extends ModelInfo
 	 * Is label {@code label} true in the state currently being explored?
 	 * @param label The name of the label to check 
 	 */
-	public boolean isLabelTrue(String label) throws PrismException;
+	public default boolean isLabelTrue(String label) throws PrismException
+	{
+		// Default implementation: Look up label and then check by index
+		int i = getLabelIndex(label);
+		if (i == -1) {
+			throw new PrismException("Label \"" + label + "\" not defined");
+		} else {
+			return isLabelTrue(i);
+		}
+	}
 	
 	/**
 	 * Is the {@code i}th label of the model true in the state currently being explored?
 	 * @param i The index of the label to check 
 	 */
-	public boolean isLabelTrue(int i) throws PrismException;
+	public default boolean isLabelTrue(int i) throws PrismException
+	{
+		// No labels by default
+		throw new PrismException("Label number \"" + i + "\" not defined");
+	}
 	
 	/**
 	 * Get the state reward of the {@code r}th reward structure for state {@code state}
@@ -147,7 +182,12 @@ public interface ModelGenerator extends ModelInfo
 	 * @param r The index of the reward structure to use
 	 * @param state The state in which to evaluate the rewards 
 	 */
-	public double getStateReward(int r, State state) throws PrismException;
+	public default double getStateReward(int r, State state) throws PrismException
+	{
+		// Default reward to 0 (no reward structures by default anyway)
+		return 0.0;
+	}
+
 	
 	/**
 	 * Get the state-action reward of the {@code r}th reward structure for state {@code state} and action {@code action}
@@ -159,5 +199,9 @@ public interface ModelGenerator extends ModelInfo
 	 * @param state The state in which to evaluate the rewards 
 	 * @param action The outgoing action label 
 	 */
-	public double getStateActionReward(int r, State state, Object action) throws PrismException;
+	public default double getStateActionReward(int r, State state, Object action) throws PrismException
+	{
+		// Default reward to 0 (no reward structures by default anyway)
+		return 0.0;
+	}
 }

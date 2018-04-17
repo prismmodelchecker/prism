@@ -1,0 +1,54 @@
+// Running example MDP (see Figure 2, p.6)
+// and DRA for LTL property "(F G finish) & (F risk)" (see Figure 11, p.38)
+
+mdp
+
+// MDP M
+module M
+
+	// s=i for state s_i
+	s : [0..3];
+	
+	[go] s=0 -> (s'=1);
+	[safe] s=1 -> 0.7:(s'=0) + 0.3:(s'=2);
+	[risk] s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[finish] s=2 -> (s'=2);
+	[stop] s=3 -> (s'=3);
+	[reset] s=3 -> (s'=0);
+
+endmodule
+
+// DRA A_ltl for LTL property "(F G finish) & (F risk)"
+// This is encoded as a PRISM module to allow action-based LTL 
+// model checking: PRISM only supports state-based LTL currently
+module A_ltl
+
+	// q=i for state q_i
+	q : [0..2];
+	
+	[go] q=0 -> (q'=0);
+	[safe] q=0 -> (q'=0);
+	[risk] q=0 -> (q'=1);
+	[finish] q=0 -> (q'=0);
+	[stop] q=0 -> (q'=0);
+	[reset] q=0 -> (q'=0);
+
+	[go] q=1 -> (q'=1);
+	[safe] q=1 -> (q'=1);
+	[risk] q=1 -> (q'=1);
+	[finish] q=1 -> (q'=2);
+	[stop] q=1 -> (q'=1);
+	[reset] q=1 -> (q'=1);
+
+	[go] q=2 -> (q'=1);
+	[safe] q=2 -> (q'=1);
+	[risk] q=2 -> (q'=1);
+	[finish] q=2 -> (q'=2);
+	[stop] q=2 -> (q'=1);
+	[reset] q=2 -> (q'=1);
+
+endmodule
+
+// Accepting pair (L_1,K_1) = ({q_1},{q_2}) for the DRA
+label "L1" = q=1;
+label "K1" = q=2;

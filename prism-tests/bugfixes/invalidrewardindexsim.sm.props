@@ -1,0 +1,5 @@
+// RESULT: Error "Invalid"
+R{0}=?[I=0.1]
+
+// RESULT: Error "Invalid"
+R{3}=?[I=0.1]

@@ -1,0 +1,20 @@
+// Bug fixed in rev 5582
+// (c-closure on empty zone breaks when max clock constraint constant is 0)
+
+pta
+
+module never_enabled_action
+s : [0..3];
+x : clock;
+y : clock;
+
+invariant
+ (s=0 => x=0 & y=0)
+endinvariant
+
+[] s=0 -> (s'=1);
+[] s=1 & x=y -> (s'=2);
+[] s= 1 & x < y -> (s'=3);
+[] s=2 -> true;
+[] s=3 -> true;
+endmodule

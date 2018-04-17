@@ -30,7 +30,7 @@ package param;
  * Maintains the intersection of two regions.
  * This class is to be used in combination with
  * {@code RegionValuesIntersections} to iterate over the intersection
- * of two {@RegionValues}.
+ * of two (or three) {@RegionValues}.
  * 
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  * @see RegionValuesIntersections
@@ -39,14 +39,21 @@ final class RegionIntersection {
 	private Region region;
 	private StateValues values1;
 	private StateValues values2;
+	private StateValues values3;
 
 	public RegionIntersection(Region region, StateValues values1, StateValues values2)
+	{
+		this(region, values1, values2, null);
+	}
+
+	public RegionIntersection(Region region, StateValues values1, StateValues values2, StateValues values3)
 	{
 		this.region = region;
 		this.values1 = values1;
 		this.values2 = values2;
+		this.values3 = values3;
 	}
-	
+
 	public Region getRegion()
 	{
 		return region;
@@ -61,4 +68,10 @@ final class RegionIntersection {
 	{
 		return values2;
 	}
+
+	public StateValues getStateValues3()
+	{
+		return values3;
+	}
+
 }

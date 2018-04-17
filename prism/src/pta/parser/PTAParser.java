@@ -127,13 +127,13 @@ public class PTAParser implements PTAParserConstants {
                         // Find alphabet
                         n = locationNames.size();
                         for (i = 0; i < n; i++) {
-                            ArrayList<astTransition> tt = transitions.get(locationNames.get(i));
-                            if (tt == null || tt.isEmpty()) continue;
-                            for (astTransition t : tt) {
-                            	if (t.action != null && !t.action.equals("")) {
-                            		alphabet.add(t.action);
-                            	}
-                            }
+                                ArrayList<astTransition> tt = transitions.get(locationNames.get(i));
+                                if (tt == null || tt.isEmpty()) continue;
+                                for (astTransition t : tt) {
+                                        if (t.action != null && !t.action.equals("")) {
+                                                alphabet.add(t.action);
+                                        }
+                                }
                         }
                         // Create new PTA
                         pta = new PTA(new ArrayList<String> (alphabet));

@@ -1,0 +1,14 @@
+// RESULT: 1.0
+Pmax=? [ F<=6 s=0 ];
+
+// RESULT: 1.0
+Pmax=? [ F<=1 s=0 ];
+
+// RESULT: 1.0
+Pmax=? [ F<=0 s=0 ];
+
+// RESULT: Error "Negative"
+Pmax=? [ F<0 s=0 ];
+
+// RESULT: Error "Negative"
+Pmax=? [ F< -1 s=0 ]; 

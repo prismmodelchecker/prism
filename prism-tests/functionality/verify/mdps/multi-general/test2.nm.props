@@ -1,0 +1,11 @@
+// RESULT: false
+multi(P>=0.3[F x=2],P>=0.75[F x=3],P>=0.1[F x=4])
+
+// RESULT: NaN
+multi(Pmax=?[F x=2],P>=0.75[F x=3],P>=0.1[F x=4])
+
+// RESULT: true
+multi(P>=0.1[F x=3],P>=0.1[F x=2],P>=0.1[F x=4])
+
+//RESULT: 0.55
+multi(Pmax=?[F x=3],P>=0.1[F x=2],P>=0.1[F x=4])

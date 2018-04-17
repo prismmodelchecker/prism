@@ -1,0 +1,6 @@
+// RESULT: NaN
+multi(Rmax=? [C], P>=0.3[F x=3],P>=0.75[F x=2])
+
+// RESULT: 1.833333333333333
+multi(Rmax=? [C], P>=0.3[F x=3],P>=0.5[F x=2])
+

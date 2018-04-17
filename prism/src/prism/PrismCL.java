@@ -1463,6 +1463,8 @@ public class PrismCL implements PrismModelListener
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
+					// if we are asked to export the steady-state probs, we should compute them
+					steadystate = true;
 				}
 				// export transient probs (as opposed to displaying on screen) 
 				else if (sw.equals("exporttransient") || sw.equals("exporttr")) {
@@ -2097,7 +2099,8 @@ public class PrismCL implements PrismModelListener
 		}
 
 		// check not trying to do gauss-seidel with mtbdd engine
-		if (prism.getEngine() == Prism.MTBDD) {
+		// (if we are in test mode, we ignore here; will lead to appropriate 'not supported' error handling during testing)
+		if (prism.getEngine() == Prism.MTBDD && !test) {
 			j = prism.getLinEqMethod();
 			if (j == Prism.GAUSSSEIDEL || j == Prism.BGAUSSSEIDEL || j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL) {
 				errorAndExit("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
@@ -2108,7 +2111,8 @@ public class PrismCL implements PrismModelListener
 		}
 
 		// or pseudo methods with sparse engine
-		else if (prism.getEngine() == Prism.SPARSE) {
+		// (if we are in test mode, we ignore here; will lead to appropriate 'not supported' error handling during testing)
+		else if (prism.getEngine() == Prism.SPARSE && !test) {
 			j = prism.getLinEqMethod();
 			if (j == Prism.PGAUSSSEIDEL || j == Prism.BPGAUSSSEIDEL || j == Prism.PSOR || j == Prism.BPSOR) {
 				errorAndExit("Pseudo Gauss-Seidel/SOR methods are currently not supported by the sparse engine");
@@ -2412,7 +2416,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
 			mainLog.println(" * csv - Export results as comma-separated values");
 			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
-			mainLog.println(" * comment - Export results in comment format for regerssion testing)");
+			mainLog.println(" * comment - Export results in comment format for regression testing)");
 		}
 		// -exportmodel
 		else if (sw.equals("exportmodel")) {

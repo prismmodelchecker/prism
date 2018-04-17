@@ -222,6 +222,7 @@ jint flags
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PH_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PH_NondetUntil_Interval"));
+		PH_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln_below, n, 0);
 		iterationExport->exportVector(soln_above, n, 1);
 	}

@@ -1,0 +1,2 @@
+// RESULT: 0.1
+"ltl2": Pmax=? [ (G !"hazard")&(G F "goal1") ]

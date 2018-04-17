@@ -630,7 +630,43 @@ public class PrismSettings implements Observer
 	
 	public File getLocationForSettingsFile()
 	{
-		return new File(System.getProperty("user.home")+File.separator+".prism");
+		String toolName = Prism.getToolName().toLowerCase();
+		File legacyConfigFile = new File(System.getProperty("user.home") +
+				File.separator + "." + toolName);
+		if (legacyConfigFile.exists() && !legacyConfigFile.isDirectory()) {
+			return legacyConfigFile;
+		}
+		
+		// Check for operating system, try XDG base directory specification if
+		// UNIX-like system (except for MacOS) is found
+		String os = System.getProperty("os.name").toLowerCase();
+		File config;
+		if (os.indexOf("win") >= 0) { // Windows
+			// use "$HOME\.prism"
+			config = new File(System.getProperty("user.home") +
+					File.separator + "." + toolName);
+		} else if (os.indexOf("mac") >= 0) { // MacOS
+			// use "$HOME/Library/Preferences/prism/prism.settings"
+			config = new File(System.getProperty("user.home") +
+					"/Library/Preferences/" + toolName + ".settings");
+		} else if (os.indexOf("nix") >= 0 || os.indexOf("nux") >= 0 ||
+				os.indexOf("aix") >= 0 || os.indexOf("sunos") >= 0 ||
+				os.indexOf("bsd") >= 0) { // Linux, AIX, Solaris, *BSD
+			// check for $XDG_CONFIG_HOME
+			String configBase = System.getenv("XDG_CONFIG_HOME");
+			if (configBase == null) {
+				configBase = System.getProperty("user.home") + "/.config";
+			}
+			if (configBase.endsWith("/")) {
+				configBase = configBase.substring(0, configBase.length() - 1);
+			}
+			config = new File(configBase + "/" + toolName + ".settings");
+		} else { // unknown operating system
+			// use "$HOME\.prism"
+			config = new File(System.getProperty("user.home") +
+					File.separator + "." + toolName);
+		}
+		return config;
 	}
 	
 	public synchronized void saveSettingsFile() throws PrismException
@@ -644,7 +680,7 @@ public class PrismSettings implements Observer
 		{
 			FileWriter out = new FileWriter(file);
 			
-			out.write("# PRISM settings file\n");
+			out.write("# " + Prism.getToolName() + " settings file\n");
 			out.write("# (created by version "+Prism.getVersion()+")\n");
 			
 			for(int i = 0; i < optionOwners.length; i++)
@@ -1400,6 +1436,7 @@ public class PrismSettings implements Observer
 					break;
 				case "spot":
 					set(PRISM_LTL2DA_SYNTAX, "Spot");
+					break;
 				case "rabinizer":
 					set(PRISM_LTL2DA_SYNTAX, "Rabinizer");
 					break;

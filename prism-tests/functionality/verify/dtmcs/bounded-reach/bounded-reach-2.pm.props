@@ -1,0 +1,26 @@
+// RESULT: 0.984375
+P=? [ F skip=1 ]
+
+// RESULT: 1.0
+P=? [ F s=6 ]
+
+// RESULT: 0.0
+P=? [ F=5 s=6 ]
+
+// RESULT: 0.015625
+P=? [ F=6 s=6 ]
+
+// RESULT: 0.046875
+P=? [ F=7 s=6 ]
+
+// RESULT: 0.08203125
+P=? [ F=8 s=6 ]
+
+// RESULT: 0.015625
+P=? [ (skip=0) U s=6 ]
+
+// RESULT: 0.0
+P=? [ (skip=0) U[10,20] s=6 ]
+
+// RESULT: 0.623046875
+P=? [ G>=10 s>4 ]

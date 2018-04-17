@@ -49,7 +49,19 @@ final class Scheduler {
 			choices[state] = model.stateEnd(state) - 1;
 		}
 	}
-	
+
+	/** Copy constructor */
+	Scheduler(Scheduler other)
+	{
+		choices = other.choices.clone();
+	}
+
+	@Override
+	public Scheduler clone()
+	{
+		return new Scheduler(this);
+	}
+
 	/**
 	 * Set choice for given state.
 	 * 

@@ -146,8 +146,9 @@ jint flags
 		title += "), interval";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
-		iterationExport->exportVector(sol_below, rvars, num_rvars, odd, 0);
-		iterationExport->exportVector(sol_above, rvars, num_rvars, odd, 1);
+		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		iterationExport->exportVector(sol_below, (transpose?cvars:rvars), num_rvars, odd, 0);
+		iterationExport->exportVector(sol_above, (transpose?cvars:rvars), num_rvars, odd, 1);
 	}
 
 	// get setup time
@@ -211,8 +212,8 @@ jint flags
 		sol_above = tmp;
 
 		if (iterationExport) {
-			iterationExport->exportVector(sol_below, rvars, num_rvars, odd, 0);
-			iterationExport->exportVector(sol_above, rvars, num_rvars, odd, 1);
+			iterationExport->exportVector(sol_below, (transpose?cvars:rvars), num_rvars, odd, 0);
+			iterationExport->exportVector(sol_above, (transpose?cvars:rvars), num_rvars, odd, 1);
 		}
 
 		// check convergence

@@ -200,7 +200,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
 	// Should any generated strategies should be restricted to the states reachable under them?
-	protected boolean restrictStratToReach = false;
+	protected boolean restrictStratToReach = true;
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
@@ -2419,7 +2419,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		int numRewardStructs = currentModelInfo.getNumRewardStructs();
 		if (numRewardStructs == 0) {
-			mainLog.println("\nOmitting state reward export as there are no reward structures");
+			mainLog.println("\nOmitting transition reward export as there are no reward structures");
+			return;
 		}
 		
 		if (getExplicit())
@@ -2849,7 +2850,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public Result modelCheck(String propertyString) throws PrismException
 	{
-		PropertiesFile propertiesFile = parsePropertiesString(currentModelGenerator, propertyString);
+		PropertiesFile propertiesFile = parsePropertiesString(currentModelInfo, propertyString);
 		if (propertiesFile.getNumProperties() != 1) {
 			throw new PrismException("There should be exactly one property to check (there are " + propertiesFile.getNumProperties() + ")");
 		}
@@ -3149,19 +3150,33 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		// Some checks
 		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
-			throw new PrismException("Exact model checking is only supported for DTMCs, CTMCs and MDPs");
+			throw new PrismNotSupportedException("Exact model checking is only supported for DTMCs, CTMCs and MDPs");
+
+		if (currentModelType == ModelType.MDP && getFairness())
+			throw new PrismNotSupportedException("Exact model checking does not support checking MDPs under fairness");
 
 		// Set up a dummy parameter (not used)
 		String[] paramNames = new String[] { "dummy" };
 		String[] paramLowerBounds = new String[] { "0" };
 		String[] paramUpperBounds = new String[] { "1" };
 		// And execute parameteric model checking
-		param.ModelBuilder builder = new ModelBuilder(this);
+		param.ModelBuilder builder = new ModelBuilder(this, param.ParamMode.EXACT);
 		ParamModel modelExpl = builder.constructModel(new ModulesFileModelGeneratorSymbolic(currentModulesFile, this), paramNames, paramLowerBounds, paramUpperBounds);
-		ParamModelChecker mc = new ParamModelChecker(this);
+		ParamModelChecker mc = new ParamModelChecker(this, param.ParamMode.EXACT);
 		mc.setModelBuilder(builder);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
+
+		if (digital) {
+			// have to do deadlock checks, as we are in digital clock mode for PTA checking,
+			// cf. doBuildModelDigitalClocksChecks()
+			if (modelExpl.getNumDeadlockStates() > 0) {
+				int dl = modelExpl.getFirstDeadlockState();
+				String dls = modelExpl.getStatesList().get(dl).toString(currentModelInfo);
+				throw new PrismException("Timelock in PTA, e.g. in state " + dls);
+			}
+		}
+
 		Result result = mc.check(modelExpl, prop.getExpression());
 
 		// Convert result of parametric model checking to a single value,
@@ -3178,7 +3193,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println("\n" + resultString);
 
 		if (result.getResult() instanceof BigRational) {
-			mainLog.println("Approximate result: " + ((BigRational)result.getResult()).doubleValue());
+			mainLog.println(" As floating point: " + ((BigRational)result.getResult()).toApproximateString());
 		}
 
 		return result;
@@ -3200,7 +3215,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
 		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
-			throw new PrismException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
+			throw new PrismNotSupportedException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
+
+		if (currentModelType == ModelType.MDP && getFairness())
+			throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
 
 		Values definedPFConstants = propertiesFile.getConstantValues();
 		Values constlist = currentModulesFile.getConstantValues();
@@ -3216,9 +3234,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
 			mainLog.println("Property constants: " + definedPFConstants);
 
-		param.ModelBuilder builder = new ModelBuilder(this);
+		param.ModelBuilder builder = new ModelBuilder(this, param.ParamMode.PARAMETRIC);
 		ParamModel modelExpl = builder.constructModel(new ModulesFileModelGeneratorSymbolic(currentModulesFile, this), paramNames, paramLowerBounds, paramUpperBounds);
-		ParamModelChecker mc = new ParamModelChecker(this);
+		ParamModelChecker mc = new ParamModelChecker(this, param.ParamMode.PARAMETRIC);
 		mc.setModelBuilder(builder);
 		mc.setParameters(paramNames, paramLowerBounds, paramUpperBounds);
 		mc.setModulesFileAndPropertiesFile(currentModulesFile, propertiesFile);
@@ -3764,6 +3782,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setExportProductVectorFilename(exportProductVectorFilename);
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
+		mc.setRestrictStratToReach(restrictStratToReach);
 		mc.setDoBisim(doBisim);
 		mc.setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
 		mc.setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));

@@ -1,0 +1,5 @@
+// RESULT: [(0,1),(0.6,0.4)]
+multi(Pmax=? [F x=3],Pmax=? [F x=2])
+
+// RESULT: [(0,1),(0.6,0.4)]
+multi(Pmin=? [F x=3],Pmin=? [F x=2])

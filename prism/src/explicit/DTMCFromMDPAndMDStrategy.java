@@ -123,7 +123,11 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 
 	public SuccessorsIterator getSuccessors(final int s)
 	{
-		return mdp.getSuccessors(s, strat.getChoiceIndex(s));
+		if (strat.isChoiceDefined(s)) {
+			return mdp.getSuccessors(s, strat.getChoiceIndex(s));
+		} else {
+			return SuccessorsIterator.empty();
+		}
 	}
 
 	public int getNumChoices(int s)

@@ -1,0 +1,267 @@
+// RESULT: 0.0
+R{"a"}=? [ s>=0 ];
+
+// RESULT: 0.0
+R{"a"}=? [ true ];
+
+// RESULT: 0.0
+R{"a"}=? [ !false ];
+
+// RESULT: 0.0
+R{"a"}=? [ s>0 | s=0 ];
+
+// RESULT: 0.0
+R{"a"}=? [ s=0 ];
+
+// RESULT: 0.0
+R{"a"}=? [ F s=0 ];
+
+// RESULT: 5.0
+R{"a"}=? [ F s=1 ];
+
+// RESULT: 17.0
+R{"a"}=? [ F s=2 ];
+
+// RESULT: 28.0
+R{"a"}=? [ F s=3 ];
+
+// RESULT: 5.0
+R{"a"}=? [ X s>=0 ];
+
+// RESULT: 5.0
+R{"a"}=? [ X true ];
+
+// RESULT: Infinity
+R{"a"}=? [ ! (X true) ];
+
+// RESULT: 5.0
+R{"a"}=? [ ! (X false) ];
+
+// RESULT: 17.0
+R{"a"}=? [ X X s>=0 ];
+
+// RESULT: 17.0
+R{"a"}=? [ X X true ];
+
+// RESULT: 28.0
+R{"a"}=? [ X X X s>=0 ];
+
+// RESULT: 28.0
+R{"a"}=? [ X X X true ];
+
+// RESULT: 28.0
+R{"a"}=? [ X X X (true ? true : s>=0) ];
+
+// RESULT: 28.0
+R{"a"}=? [ X X X (false ? true : s>=0) ];
+
+// RESULT: Infinity
+R{"a"}=? [ X X X false ];
+
+
+// nesting X and U...
+
+// RESULT: 0.0
+R{"a"}=? [ (X X true) U s=0 ];
+
+// RESULT: 17.0
+R{"a"}=? [ (X X true) U s=1 ];
+
+// RESULT: 28.0
+R{"a"}=? [ (X X true) U s=2 ];
+
+// RESULT: 28.0
+R{"a"}=? [ (X X true) U s=3 ];
+
+// RESULT: 58.0
+R{"b"}=? [ (X X true) U s=3 ];
+
+// RESULT: 0.0
+R{"a"}=? [ s=0 | (X true) ];
+
+
+// some more combinations...
+
+// RESULT: 12.0
+filter(state, R{"a"}=? [ s=0 | (X true) ], s=1);
+
+// RESULT: 11.0
+filter(state, R{"a"}=? [ s=0 | (X true) ], s=2);
+
+// RESULT: 0.0
+filter(state, R{"a"}=? [ s=0 | (X true) ], s=3);
+
+// RESULT: 5.0
+filter(state, R{"a"}=? [ (X s=1) | (X s=2) ], s=0);
+
+// RESULT: 12.0
+filter(state, R{"a"}=? [ (X s=1) | (X s=2) ], s=1);
+
+// RESULT: Infinity
+filter(state, R{"a"}=? [ (X s=1) | (X s=2) ], s=2);
+
+
+// nesting F and X
+
+// RESULT: 5.0
+R{"a"}=? [ F (X s=1) ];
+
+// RESULT: 17.0
+R{"a"}=? [ F (X s=2) ];
+
+// RESULT: 28.0
+R{"a"}=? [ F (X s=3) ];
+
+// RESULT: 5.0
+R{"a"}=? [ F (s=0 & (X s=1)) ];
+
+// RESULT: 17.0
+R{"a"}=? [ F (s=1 & (X s=2)) ];
+
+// RESULT: 28.0
+R{"a"}=? [ F (s=2 & (X s=3)) ];
+
+
+
+// the same as above, just using only state rewards
+
+// RESULT: 0.0
+R{"a_state"}=? [ s>=0 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ true ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ !false ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ s>0 | s=0 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ s=0 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ F s=0 ];
+
+// RESULT: 5.0
+R{"a_state"}=? [ F s=1 ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ F s=2 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ F s=3 ];
+
+// RESULT: 5.0
+R{"a_state"}=? [ X s>=0 ];
+
+// RESULT: 5.0
+R{"a_state"}=? [ X true ];
+
+// RESULT: Infinity
+R{"a_state"}=? [ ! (X true) ];
+
+// RESULT: 5.0
+R{"a_state"}=? [ ! (X false) ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ X X s>=0 ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ X X true ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ X X X s>=0 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ X X X true ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ X X X (true ? true : s>=0) ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ X X X (false ? true : s>=0) ];
+
+// RESULT: Infinity
+R{"a_state"}=? [ X X X false ];
+
+// nesting X and U...
+
+// RESULT: 0.0
+R{"a_state"}=? [ (X X true) U s=0 ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ (X X true) U s=1 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ (X X true) U s=2 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ (X X true) U s=3 ];
+
+// RESULT: 58.0
+R{"b_state"}=? [ (X X true) U s=3 ];
+
+
+// nesting X and U...
+
+// RESULT: 0.0
+R{"a_state"}=? [ (X X true) U s=0 ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ (X X true) U s=1 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ (X X true) U s=2 ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ (X X true) U s=3 ];
+
+// RESULT: 58.0
+R{"b_state"}=? [ (X X true) U s=3 ];
+
+// RESULT: 0.0
+R{"a_state"}=? [ s=0 | (X true) ];
+
+
+// some more combinations...
+
+// RESULT: 12.0
+filter(state, R{"a_state"}=? [ s=0 | (X true) ], s=1);
+
+// RESULT: 11.0
+filter(state, R{"a_state"}=? [ s=0 | (X true) ], s=2);
+
+// RESULT: 0.0
+filter(state, R{"a_state"}=? [ s=0 | (X true) ], s=3);
+
+// RESULT: 5.0
+filter(state, R{"a_state"}=? [ (X s=1) | (X s=2) ], s=0);
+
+// RESULT: 12.0
+filter(state, R{"a_state"}=? [ (X s=1) | (X s=2) ], s=1);
+
+// RESULT: Infinity
+filter(state, R{"a_state"}=? [ (X s=1) | (X s=2) ], s=2);
+
+
+// nesting F and X
+
+// RESULT: 5.0
+R{"a_state"}=? [ F (X s=1) ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ F (X s=2) ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ F (X s=3) ];
+
+// RESULT: 5.0
+R{"a_state"}=? [ F (s=0 & (X s=1)) ];
+
+// RESULT: 17.0
+R{"a_state"}=? [ F (s=1 & (X s=2)) ];
+
+// RESULT: 28.0
+R{"a_state"}=? [ F (s=2 & (X s=3)) ];
+

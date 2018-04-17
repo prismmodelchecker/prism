@@ -1,0 +1,117 @@
+pta
+
+module originator
+
+	o : [0..12];
+	// 0 - init
+	// 1 - send
+	// 2 - wait
+	// 3 - last
+	// 4 - early
+	// 5 - error
+	// 6 - sent_random
+	// 7 - sent_last
+	// 8 - done
+	// 9 - done_early
+	// 10 - done_error
+	// 11 - wait_random
+	// 12 - wait_last
+
+	x : clock;
+
+	invariant
+		(o=0 => true) &
+		(o=1 => x<=0) &
+		(o=2 => x<=5) & // x<=AD+1
+		(o=3 => x<=0) &
+		(o=4 => x<=0) &
+		(o=5 => x<=0) &
+		(o=6 => true) &
+		(o=7 => true) &
+		(o=8 => true) &
+		(o=9 => true) &
+		(o=10 => true) &
+		(o=11 => x<=5) & // x<=AD+1
+		(o=12 => x<=5) // x<=AD+1
+	endinvariant
+
+	[req] o=0 -> (o'=1) & (x'=0);
+	[message] o=1 & x<=0 -> (o'=2);
+	[ack]  o=2 & (x>=1 & x<=4) -> 0.9 : (o'=1) & (x'=0) + 0.1 :  (o'=3) & (x'=0); // guard x>=ad,x<=AD
+	[] o=2 & x>4 -> 0.9 : (o'=4) & (x'=0) + 0.1 :  (o'=5) & (x'=0); // guard x>AD
+	[decode] o=2 -> 0.9 : (o'=6) + 0.1 :  (o'=7);
+	[finished] o=3 -> (o'=8) & (x'=0);
+
+	[] o=8 -> (o'=8);
+	[] o=9 -> (o'=9);
+	[] o=10 -> (o'=10);
+
+	[stop] o=4 -> (o'=9); 
+	[error] o=5 -> (o'=10);
+
+	[decoded_random] o=6 -> (o'=11);
+	[decoded_last] o=7 -> (o'=12);
+
+	[ack] o=11 & (x>=1 & x<=4) -> (o'=1) & (x'=0);  // guard x>=ad,x<=AD
+	[stop] o=11 & x>4 ->  (o'=9) & (x'=0); 
+
+	[ack] o=12 & (x>=1 & x<=4) -> (o'=3) & (x'=0);  // guard x>=ad,x<=AD
+	[stop] o=12  & x>4 -> (o'=10) & (x'=0); 
+
+endmodule
+
+module recipient
+
+	r : [0..9];
+	// 0 - request
+	// 1 - wait
+	// 2 - ack
+	// 3 - done
+	// 4 - decode1
+	// 5 - decode2
+	// 6 - terminate
+	// 7 - decode
+	// 8 - decoded
+	// 9 - random
+
+	y : clock;
+
+	invariant
+		(r=0 => y<=0) &
+		(r=1 => true) &
+		(r=2 => true) &
+		(r=3 => true) &
+		(r=4 => y<=1) &
+		(r=5 => y<=3) &
+		(r=6 => true) &
+		(r=7 => y<=0) &
+		(r=8 => y<=0) &
+		(r=9 => y<=0)
+	endinvariant
+
+	[req] r=0 & y=0 -> (r'=1);
+	[message] r=1 -> (r'=2) & (y'=0);
+	[finished] r=1 -> (r'=3);
+
+	[ack] r=2 -> (r'=1);
+	[] r=2 -> (r'=4) & (y'=0);
+	[] r=2 -> (r'=5) & (y'=0);
+	[] r=2 -> (r'=6);
+
+	[] r=3 -> (r'=3);
+	[] r=6 -> (r'=6);
+
+	[] r=4 & y=1 -> 0.01 : (r'=7) & (y'=0) + 0.99 : (r'=2) & (y'=0);
+	[] r=5 & y=3 -> 0.05 : (r'=7) & (y'=0) + 0.95 : (r'=2) & (y'=0);
+
+	[decode] r=7 & y=0 -> (r'=8);
+	[decoded_random] r=8 & y=0 -> (r'=9);
+	[decoded_last] r=8 & y=0 -> (r'=6);
+	[ack] r=9 -> (r'=1);
+	[] r=9 -> (r'=6);
+
+endmodule
+
+label "gains_information" = o=10;
+
+

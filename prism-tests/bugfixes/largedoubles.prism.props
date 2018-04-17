@@ -1,0 +1,7 @@
+// Bug triggered by very large doubles being stored incorrectly in CUDD
+// (fixed in svn rev 10872)
+
+// RESULT (XX=1): 2001.0
+// RESULT (XX=2): 2001.0
+Rmax=? [ C<=1 ]
+ 

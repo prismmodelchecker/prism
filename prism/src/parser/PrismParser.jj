@@ -535,7 +535,7 @@ ModulesFile ModulesFile() throws PrismLangException :
 	int typeCount = 0;
 	Token typeDupe = null;
 	Declaration global;
-	Module m = null;
+	parser.ast.Module m = null;
 	RenamedModule rm = null;
 	RewardStruct rs = null;
 	Expression init = null;
@@ -791,17 +791,17 @@ DeclarationType DeclarationVarType() :
 
 // Module
 
-Module Module() :
+parser.ast.Module Module() :
 {
 	ExpressionIdent name = null;
 	Declaration var = null;
 	Expression invar;
 	Command comm = null;
-	Module module = null;
+	parser.ast.Module module = null;
 	Token begin = null;
 }
 {
-	begin = <MODULE> name = IdentifierExpression() { module = new Module(name.getName()); }
+	begin = <MODULE> name = IdentifierExpression() { module = new parser.ast.Module(name.getName()); }
 	( var = Declaration() { module.addDeclaration(var); } )*
 	( <INVARIANT> invar = Expression(false, false) <ENDINVARIANT> { module.setInvariant(invar); } )?
 	( comm = Command() { module.addCommand(comm); } )*

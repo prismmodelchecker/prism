@@ -1,0 +1,27 @@
+
+
+// Probability of throwing 1?
+// RESULT : 0.16666650772094727
+S=? [s=7 & d=1 ]
+
+// Probability of throwing 2?
+// RESULT : 0.16666650772094727
+S=? [s=7 & d=2 ]
+
+// Probability of throwing 3?
+// RESULT : 0.16666650772094727
+S=? [s=7 & d=3 ]
+
+// Probability of throwing 4?
+// RESULT : 0.16666650772094727
+S=? [s=7 & d=4 ]
+
+// Probability of throwing 5?
+// RESULT : 0.16666650772094727
+S=? [s=7 & d=5 ]
+
+// Probability of throwing 6?
+// RESULT : 0.16666650772094727
+S=? [s=7 & d=6 ]
+
+

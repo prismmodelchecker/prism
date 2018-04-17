@@ -265,6 +265,7 @@ public class NBA implements Iterable<NBA_State> {
 			break;
 		case "lbtt":
 			print_lbtt(out);
+			break;
 		case "hoa":
 			print_hoa(out);
 			break;

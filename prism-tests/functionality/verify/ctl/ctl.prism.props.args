@@ -1,0 +1,8 @@
+# we test all variants: consider as CTMC, DTMC and MDP, explicit and symbolic engines
+-ctmc -ex
+-dtmc -ex
+-mdp -ex
+-ctmc -mtbdd
+-dtmc -mtbdd
+-mdp -mtbdd
+

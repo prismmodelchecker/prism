@@ -26,6 +26,9 @@
 
 package param;
 
+import prism.PrismException;
+import prism.PrismNotSupportedException;
+
 /**
  * Reward structure for parametric model.
  * We only consider rewards assigned to a certain nondeterministic choice,
@@ -122,7 +125,47 @@ final class ParamRewardStruct {
 	{
 		return rewards[choice];
 	}
-	
+
+	/**
+	 * Returns true if there are negative rewards.
+	 * <br>
+	 * Can only be called on a reward structure that
+	 * has been instantiated, i.e., where all rewards
+	 * are constant rational numbers.
+	 * <br>
+	 * If either +/-Inf or NaN are encountered, an exception is thrown.
+	 */
+	public boolean hasNegativeRewards() throws PrismException
+	{
+		for (Function r : rewards) {
+			if (!r.isConstant()) {
+				throw new UnsupportedOperationException("Can not check for negative rewards against non-constant functions");
+			}
+			BigRational v = r.asBigRational();
+			if (v.isSpecial()) {
+				throw new PrismNotSupportedException("Reward value " + v + " not supported");
+			}
+			if (r.asBigRational().signum() < 0) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check for non-normal reward values, i.e., +/-Inf and NaN,
+	 * throw exception if detected.
+	 */
+	public void checkForNonNormalRewards() throws PrismException
+	{
+		for (Function r : rewards) {
+			if (r.isInf() || r.isMInf() || r.isNaN()) {
+				throw new PrismNotSupportedException("Reward value " + r + " not supported");
+			}
+		}
+	}
+
 	@Override
 	public String toString() {
 		StringBuffer result = new StringBuffer();

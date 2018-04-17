@@ -25,7 +25,9 @@ prism/lib/lpsolve55j.jar
 # generated CUDD headers:
 cudd/include/*.h
 
-# Eclipse project file (should not be versioned)
+# Eclipse project files (should not be versioned)
+\.project
 prism/\.project
-# Eclipse project custom settings directory
+# Eclipse project custom settings
+\.settings/
 prism/\.settings/

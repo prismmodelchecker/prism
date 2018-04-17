@@ -131,7 +131,8 @@ jdouble omega		// omega (jor parameter)
 		title += ")";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
-		iterationExport->exportVector(sol, rvars, num_rvars, odd, 0);
+		PM_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
+		iterationExport->exportVector(sol, (transpose?cvars:rvars), num_rvars, odd, 0);
 	}
 
 	// get setup time
@@ -163,7 +164,7 @@ jdouble omega		// omega (jor parameter)
 		}
 
 		if (iterationExport)
-			iterationExport->exportVector(tmp, rvars, num_rvars, odd, 0);
+			iterationExport->exportVector(tmp, (transpose?cvars:rvars), num_rvars, odd, 0);
 
 		// check convergence
 		switch (term_crit) {

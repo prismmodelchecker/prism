@@ -375,7 +375,7 @@ ModulesFile ModulesFile() throws ParseException, PrismLangException {ModelType t
         int typeCount = 0;
         Token typeDupe = null;
         Declaration global;
-        Module m = null;
+        parser.ast.Module m = null;
         RenamedModule rm = null;
         RewardStruct rs = null;
         Expression init = null;
@@ -1027,15 +1027,15 @@ declType.setPosition(begin, getToken(0)); {if ("" != null) return declType;}
 
 // Module
   static final public 
-Module Module() throws ParseException {ExpressionIdent name = null;
+parser.ast.Module Module() throws ParseException {ExpressionIdent name = null;
         Declaration var = null;
         Expression invar;
         Command comm = null;
-        Module module = null;
+        parser.ast.Module module = null;
         Token begin = null;
     begin = jj_consume_token(MODULE);
     name = IdentifierExpression();
-module = new Module(name.getName());
+module = new parser.ast.Module(name.getName());
     label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
