@@ -31,7 +31,11 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+
+import parser.State;
+import prism.PrismLog;
 
 /**
  * Assigns to the different regions different values over model states.
@@ -170,6 +174,40 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 		this.values = thisNewStateValues;
 		other.regions = new ArrayList<Region>(newRegions);
 		other.values = otherNewStateValues;
+	}
+
+	public void cosplit(RegionValues other, RegionValues other2)
+	{
+		this.simplify();
+		other.simplify();
+		other2.simplify();
+
+		ArrayList<Region> newRegions = new ArrayList<Region>();
+		HashMap<Region, StateValues> thisNewStateValues = new HashMap<Region, StateValues>();
+		HashMap<Region, StateValues> otherNewStateValues = new HashMap<Region, StateValues>();
+		HashMap<Region, StateValues> other2NewStateValues = new HashMap<Region, StateValues>();
+		for (Region thisRegion : this.regions) {
+			for (Region otherRegion : other.regions) {
+				for (Region other2Region : other2.regions) {
+					Region newRegion = thisRegion.conjunct(otherRegion);
+					if (newRegion != null)
+						newRegion = newRegion.conjunct(other2Region);
+					if (newRegion != null) {
+						newRegions.add(newRegion);
+						thisNewStateValues.put(newRegion, this.values.get(thisRegion));
+						otherNewStateValues.put(newRegion, other.values.get(otherRegion));
+						other2NewStateValues.put(newRegion, other2.values.get(other2Region));
+					}
+				}
+			}
+		}
+
+		this.regions = new ArrayList<Region>(newRegions);
+		this.values = thisNewStateValues;
+		other.regions = new ArrayList<Region>(newRegions);
+		other.values = otherNewStateValues;
+		other2.regions = new ArrayList<Region>(newRegions);
+		other2.values = other2NewStateValues;
 	}
 
 	@Override
@@ -420,6 +458,30 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 		return builder.toString();
 	}
 
+	/**
+	 * For each region, print part of vector to a log/file.
+	 * @param log The log
+	 * @param mode the mode
+	 * @param filter A BitSet specifying which states to print for (null if all).
+	 * @param printSparse Print non-zero/non-false elements only?
+	 * @param printStates Print states (variable values) for each element?
+	 * @param printIndices Print state indices for each element?
+	 */
+	public void printFiltered(PrismLog log, ParamMode mode, parser.type.Type type, BitSet filter, List<State> statesList, boolean printSparse, boolean printStates, boolean printIndices)
+	{
+		if (mode == ParamMode.EXACT) {
+			assert(parameterIndependent());
+			getStateValues().printFiltered(log, mode, type, filter, statesList, printSparse, printStates, printIndices);
+		} else {
+			for (Region region : regions) {
+				log.println(region + ":");
+				StateValues vals = values.get(region);
+				vals.printFiltered(log, mode, type, filter, statesList, printSparse, printStates, printIndices);
+				log.println();
+			}
+		}
+	}
+
 	public RegionValues unaryOp(int parserUnaryOpToRegionOp)
 	{
 		RegionValues result = new RegionValues(factory);
@@ -447,6 +509,21 @@ public final class RegionValues implements Iterable<Entry<Region, StateValues>>
 				break;
 			}
 			result.setStateValue(state, value);
+		}
+		return result;
+	}
+
+	public RegionValues ITE(RegionValues resT, RegionValues resE)
+	{
+		RegionValues result = new RegionValues(factory);
+		RegionValuesIntersections co = new RegionValuesIntersections(this, resT, resE);
+		for (RegionIntersection inter : co) {
+			Region region = inter.getRegion();
+			StateValues valueI = inter.getStateValues1();
+			StateValues valueT = inter.getStateValues2();
+			StateValues valueE = inter.getStateValues3();
+			RegionValues values = region.ITE(valueI, valueT, valueE);
+			result.addAll(values);
 		}
 		return result;
 	}

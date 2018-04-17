@@ -241,6 +241,7 @@ jint flags
 		title += ")";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PH_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln_below, n, 0);
 		iterationExport->exportVector(soln_above, n, 1);
 	}

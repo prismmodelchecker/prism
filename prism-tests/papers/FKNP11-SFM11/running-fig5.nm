@@ -1,0 +1,30 @@
+// Modified running example MDP (see Figure 5, p.16)
+
+mdp
+
+module M
+
+	// s=i for state s_i
+	s : [0..3]; // 
+	
+	[go] s=0 -> (s'=1);
+	[safe] s=1 -> 0.6:(s'=0) + 0.3:(s'=2) + 0.1:(s'=3);
+	[risk] s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+	[finish] s=2 -> (s'=2);
+	[stop] s=3 -> (s'=3);
+
+endmodule
+
+rewards
+	// state rewards
+	s=0 : 1;
+	s=1 : 2;
+	// transition rewards
+	[go] s=0 : 1;
+	[safe] s=1 : 1;
+	[risk] s=1 : 4;
+endrewards
+
+label "initial" = s=0;
+label "succ" = s=2;
+label "fail" = s=3;

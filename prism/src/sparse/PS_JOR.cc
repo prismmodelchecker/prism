@@ -209,6 +209,7 @@ jdouble omega		// omega (over-relaxation parameter)
 		title += ")";
 
 		iterationExport.reset(new ExportIterations(title.c_str()));
+		PS_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 

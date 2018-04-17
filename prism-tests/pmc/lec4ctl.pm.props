@@ -1,0 +1,11 @@
+// RESULT: true
+P>=1 [ F "tails" ]
+
+// RESULT: false
+A [ F "tails" ]
+
+// RESULT: true
+P<=0 [ G !"tails" ]
+
+// RESULT: true
+E [ G !"tails" ]

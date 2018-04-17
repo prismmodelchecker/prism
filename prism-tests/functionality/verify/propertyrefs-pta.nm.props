@@ -1,0 +1,6 @@
+const int x = 6;
+
+// RESULT: 1/6
+"six": Pmax=? [ F s=7 & "d6" ];
+
+"d6": d=x;

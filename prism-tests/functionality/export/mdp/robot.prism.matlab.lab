@@ -1,0 +1,11 @@
+l_init=sparse(6,1);
+l_deadlock=sparse(6,1);
+l_hazard=sparse(6,1);
+l_goal1=sparse(6,1);
+l_goal2=sparse(6,1);
+
+l_init(1)=1;
+l_hazard(2)=1;
+l_goal2(3)=1;
+l_goal2(4)=1;
+l_goal1(6)=1;

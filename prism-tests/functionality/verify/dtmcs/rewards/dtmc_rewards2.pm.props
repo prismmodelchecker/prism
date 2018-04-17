@@ -1,0 +1,20 @@
+	// RESULT: 17/6
+	R{"r"}=? [ F s>2 ];
+	
+	// RESULT: 13/6
+	R{"time"}=? [ F s>2 ];
+	
+	// RESULT: Infinity
+	R{"r"}=? [ F s>3 ];
+	
+	// RESULT: 15/32
+	R{"r"}=? [ I=4 ];
+	
+	// RESULT: 14.060546875
+	R{"r"}=? [ C<=10 ];
+	
+	// RESULT: Infinity
+	R{"r"}=? [ C ];
+	
+	// RESULT: 23/12
+	R{"r"}=? [ S ];

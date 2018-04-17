@@ -1,0 +1,8 @@
+const int x = 6;
+
+// RESULT: 0.5
+"six": P=? [ F s=7 & d=6 ] + "x";
+
+"x": P=? [ F s=7 & d=x ] + "six2";
+
+"six2": P=? [ F s=7 & d=6 ];

@@ -1,0 +1,17 @@
+// RESULT: Infinity
+Rmin=? [ F "goal1" ]
+
+// RESULT: Infinity
+Rmax=? [ F "goal1" ]
+
+// RESULT: 19/15
+Rmin=? [ F "goal2" ]
+
+// RESULT: Infinity
+Rmax=? [ F "goal2" ]
+
+// RESULT: 1.2
+Rmin=? [ F ("goal1"|"goal2") ]
+
+// RESULT: 3.5
+Rmax=? [ F ("goal1"|"goal2") ]

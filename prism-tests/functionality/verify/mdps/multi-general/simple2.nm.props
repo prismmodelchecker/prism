@@ -1,0 +1,6 @@
+
+// RESULT: 3.0
+multi(R{"R1"}max=? [ C ],P>=0.4 [ F s=1&p=2 ])
+
+// RESULT: 1.8
+multi(Rmax=? [ C ],P>=0.52 [ F s=1&p=1 ],P>=0.4 [ F s=1&p=2 ])

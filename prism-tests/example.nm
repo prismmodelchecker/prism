@@ -1,0 +1,15 @@
+// Tiny MDP example for example test
+
+mdp
+
+module M
+
+s:[0..3];
+
+[a] s=0 -> 1:(s'=1);
+[b] s=1 -> 0.7:(s'=0) + 0.3:(s'=1);
+[c] s=1 -> 0.5:(s'=2) + 0.5:(s'=3);
+[a] s=2 -> 1:(s'=2);
+[a] s=3 -> 1:(s'=3);
+
+endmodule

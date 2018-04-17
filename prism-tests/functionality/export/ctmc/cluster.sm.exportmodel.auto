@@ -1,0 +1,33 @@
+# Export all model info in different formats
+
+-exportmodel cluster.sm.all
+-exportmodel cluster.sm.mrmc.all:mrmc
+-exportmodel cluster.sm.matlab.all:matlab
+-exportmodel cluster.sm.rows.all:rows
+
+# Export model info separately (for a few formats)
+
+-exportmodel cluster.sm.tra
+-exportmodel cluster.sm.lab
+-exportmodel cluster.sm.sta
+-exportmodel cluster.sm.srew
+-exportmodel cluster.sm.trew
+-exportmodel cluster.sm.mrmc.tra:mrmc
+-exportmodel cluster.sm.mrmc.lab:mrmc
+-exportmodel cluster.sm.mrmc.sta:mrmc
+-exportmodel cluster.sm.mrmc.srew:mrmc
+-exportmodel cluster.sm.mrmc.trew:mrmc
+
+# Export model info separately (for a few formats) - explicit
+
+-exportmodel cluster.sm.tra -ex
+-exportmodel cluster.sm.sta -ex
+-exportmodel cluster.sm.lab -ex
+#-exportmodel cluster.sm.srew -ex
+#-exportmodel cluster.sm.trew -ex
+#-exportmodel cluster.sm.mrmc.tra:mrmc -ex
+#-exportmodel cluster.sm.mrmc.sta:mrmc -ex
+-exportmodel cluster.sm.mrmc.lab:mrmc -ex
+#-exportmodel cluster.sm.matlab.tra:matlab -ex
+#-exportmodel cluster.sm.matlab.sta:matlab -ex
+-exportmodel cluster.sm.matlab.lab:matlab -ex

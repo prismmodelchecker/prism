@@ -1,0 +1,23 @@
+-prop 1 -const x=1:3 -exportresults exportresults2.pm.props.1.txt
+-prop 1 -const x=1:3 -exportresults exportresults2.pm.props.1.csv:csv
+-prop 1 -const x=1:3 -exportresults exportresults2.pm.props.1.comment.txt:comment
+-prop 1 -const x=1:3 -exportresults exportresults2.pm.props.1.matrix.txt:matrix
+-prop 1 -const x=1:3 -exportresults exportresults2.pm.props.1.matrix.csv:matrix,csv
+
+-const x=1:3 -exportresults exportresults2.pm.props.all.txt
+-const x=1:3 -exportresults exportresults2.pm.props.all.csv:csv
+-const x=1:3 -exportresults exportresults2.pm.props.all.comment.txt:comment
+-const x=1:3 -exportresults exportresults2.pm.props.all.matrix.txt:matrix
+-const x=1:3 -exportresults exportresults2.pm.props.all.matrix.csv:matrix,csv
+
+-prop 1 -const x=1 -exportresults exportresults2.pm.props.single.1.txt
+-prop 1 -const x=1 -exportresults exportresults2.pm.props.single.1.csv:csv
+-prop 1 -const x=1 -exportresults exportresults2.pm.props.single.1.comment.txt:comment
+-prop 1 -const x=1 -exportresults exportresults2.pm.props.single.1.matrix.txt:matrix
+-prop 1 -const x=1 -exportresults exportresults2.pm.props.single.1.matrix.csv:matrix,csv
+
+-const x=1 -exportresults exportresults2.pm.props.single.all.txt
+-const x=1 -exportresults exportresults2.pm.props.single.all.csv:csv
+-const x=1 -exportresults exportresults2.pm.props.single.all.comment.txt:comment
+-const x=1 -exportresults exportresults2.pm.props.single.all.matrix.txt:matrix
+-const x=1 -exportresults exportresults2.pm.props.single.all.matrix.csv:matrix,csv

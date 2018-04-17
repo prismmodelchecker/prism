@@ -1,0 +1,37 @@
+// Bug triggered by very large doubles being stored incorrectly in CUDD
+// (fixed in svn rev 10872)
+
+mdp
+
+const int XX;
+
+module clk
+	time : [0..6] init 3;
+	[tack] time=3 -> (time'=4);
+endmodule
+
+module env
+	s : [0..5] init 3;
+endmodule
+
+module sys
+	ss : [1..3] init 1;
+	d : [1..5] init 3;
+endmodule
+
+const double DBL_MAX = 1.5e+200;
+
+formula iam = (s = 0 ? 0.355159 : 0) + (s = 1 ? 0.162756 : 0) + (s = 2 ? 0.0876354 : 0) + (s = 3 ? 0.0494423 : 0) + (s = 4 ? 0.0295989 : 0) + (s = 5 ? 0.0259923 : 0);
+formula df = (d - 1) / 4;
+formula lambda = 1 / (iam * ss);
+formula beta = 0.5 * 0.0856328 + (1-df) * 0.0177031;
+formula rho = lambda * beta;
+formula cs2 = (0.5 * 0.00733298 + 0.5 * 0.000313401) / pow(beta, 2);
+formula t = beta + beta * (rho / (1 - rho)) * (1 + cs2) / 2;
+formula uTotal = ((true ? DBL_MAX : t) = DBL_MAX) ? 1:0;
+
+rewards "util"
+	[tack] true : 2000 + (uTotal);
+endrewards
+
+label "final" = time=6;

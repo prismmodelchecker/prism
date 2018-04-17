@@ -374,6 +374,8 @@ public class ConstructModel extends PrismComponent
 		int numStates = statesList.size();
 		// Create storage for labels
 		int numLabels = modelGen.getNumLabels();
+		// No need to continue unless this ModelGenerator uses labels
+		if (numLabels == 0) return;
 		BitSet bitsets[] = new BitSet[numLabels];
 		for (int j = 0; j < numLabels; j++) {
 			bitsets[j] = new BitSet();

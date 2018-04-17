@@ -1,0 +1,15 @@
+
+// RESULT: 0.03000000042158528
+"error_line_1" : S=? [ error_1 {"init"}{min} ]
+
+// RESULT: 0.029200001350718534
+"error_line_2" : S=? [ error_2 {"init"}{min} ]
+
+// RESULT: 0.05740099996352296
+"error_line_1xor2" : S=? [ error_last_1 <=> !error_2 {"init"}{min} ]
+
+// RESULT: 0.058300499978873876
+"error_line_1or2" : S=? [ error_last_1 | error_2 {"init"}{min} ]
+
+// RESULT: 8.99500015350916E-4
+"error_line_1and2" : S=? [ error_last_1 & error_2 {"init"}{min} ]

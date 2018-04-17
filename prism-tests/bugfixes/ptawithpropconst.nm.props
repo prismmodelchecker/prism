@@ -1,0 +1,9 @@
+const int T;
+
+// Minimum probability that a leader is eventually elected
+// RESULT: ?
+Pmax=? [ F<=T "done" ]
+
+// Maximum expected time to elect a leader
+// RESULT: 1379.5
+R{"time"}min=? [ F "done" ]

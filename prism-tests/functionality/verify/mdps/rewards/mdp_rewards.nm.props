@@ -1,0 +1,68 @@
+// RESULT: 0.0
+R{"a"}max=? [ C<=0 ];
+// RESULT: 5.0
+R{"a"}max=? [ C<=1 ];
+// RESULT: 17.0
+R{"a"}max=? [ C<=2 ];
+// RESULT: 28.0
+R{"a"}max=? [ C<=3 ];
+
+// RESULT: 39.0
+R{"a"}max=? [ C ];
+// RESULT: Infinity
+R{"b"}max=? [ C ];
+
+// RESULT: 2.0
+R{"a"}max=? [ I=0 ];
+// RESULT: 5.0
+R{"a"}max=? [ I=1 ];
+// RESULT: 11.0
+R{"a"}max=? [ I=2 ];
+// RESULT: 9.625
+R{"a"}max=? [ I=3 ];
+
+// RESULT: 0.0
+R{"a"}max=? [ F s=0 ];
+// RESULT: 5.0
+R{"a"}max=? [ F s=1 ];
+// RESULT: 17.0
+R{"a"}max=? [ F s=2 ];
+// RESULT: 39.0
+R{"a"}max=? [ F s>2 ];
+
+
+
+
+
+// RESULT: 0.0
+R{"a"}min=? [ C<=0 ];
+// RESULT: 2.0
+R{"a"}min=? [ C<=1 ];
+// RESULT: 5.5
+R{"a"}min=? [ C<=2 ];
+// RESULT: 11.25
+R{"a"}min=? [ C<=3 ];
+
+// RESULT: 25.0
+R{"a"}min=? [ C ];
+// RESULT: Infinity
+R{"b"}min=? [ C ];
+
+// RESULT: 2.0
+R{"a"}min=? [ I=0 ];
+// RESULT: 3.5
+R{"a"}min=? [ I=1 ];
+// RESULT: 5.75
+R{"a"}min=? [ I=2 ];
+// RESULT: 0.0
+R{"a"}min=? [ I=3 ];
+
+// RESULT: 0.0
+R{"a"}min=? [ F s=0 ];
+// RESULT: 4.0
+R{"a"}min=? [ F s=1 ];
+// RESULT: 14.0
+R{"a"}min=? [ F s=2 ];
+// RESULT: 25.0
+R{"a"}min=? [ F s>2 ];
+

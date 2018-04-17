@@ -1,0 +1,36 @@
+// Fixed in trunk svn rev 9359
+// Bug in explicit.MDPSimple.mvMultJacSingle computation
+// Test case triggers the bug for policy iteration + LTL, as result of DRA-product is MDPSimple
+
+mdp
+
+label "goal" = s=7 | s=3;
+
+module m1
+  s : [0..9] init 0;
+
+  [a] s=0 ->   1:(s'=1);
+  [b] s=0 -> 0.9:(s'=3) + 0.1:(s'=2);
+
+  [a] s=1 ->   1:(s'=4);
+  [b] s=1 -> 0.2:(s'=2) + 0.8:(s'=3);
+
+  [a] s=2 ->   1:(s'=2);
+
+  [a] s=3 ->   1:(s'=3);
+
+  [a] s=4 ->   1:(s'=5);
+  [b] s=4 -> 0.3:(s'=6) + 0.7:(s'=7);
+
+  [a] s=5 ->   1:(s'=8);
+  [b] s=5 -> 0.6:(s'=3) + 0.4:(s'=2);
+
+  [a] s=6 ->   1:(s'=6);
+
+  [a] s=7 ->   1:(s'=7);
+
+  [a] s=8 ->   1:(s'=9);
+  [b] s=8 -> 0.5:(s'=3) + 0.5:(s'=2);
+
+  [a] s=9 ->   1:(s'=2);
+endmodule

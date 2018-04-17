@@ -1,0 +1,385 @@
+const int k = 2;
+
+// ------ Bounds for Globally ----------------
+
+// RESULT: Error
+P=?[ G<0 s<2]
+// RESULT: 1.0
+P=?[ G<1 s<2]
+// RESULT: 1.0
+P=?[ G<2 s<2]
+// RESULT: 0.0
+P=?[ G<3 s<2]
+// RESULT: 0.0
+P=?[ G<4 s<2]
+
+
+// RESULT: 1.0
+P=?[ G<=0 s<2]
+// RESULT: 1.0
+P=?[ G<=1 s<2]
+// RESULT: 0.0
+P=?[ G<=2 s<2]
+// RESULT: 0.0
+P=?[ G<=3 s<2]
+// RESULT: 0.0
+P=?[ G<=4 s<2]
+
+
+// RESULT: 0.0
+P=?[ G>0 s>2]
+// RESULT: 0.0
+P=?[ G>1 s>2]
+// RESULT: 1.0
+P=?[ G>2 s>2]
+// RESULT: 1.0
+P=?[ G>3 s>2]
+// RESULT: 1.0
+P=?[ G>4 s>2]
+
+
+// RESULT: 0.0
+P=?[ G>=0 s>2]
+// RESULT: 0.0
+P=?[ G>=1 s>2]
+// RESULT: 0.0
+P=?[ G>=2 s>2]
+// RESULT: 1.0
+P=?[ G>=3 s>2]
+// RESULT: 1.0
+P=?[ G>=4 s>2]
+
+
+// RESULT: Error
+P=? [ G[1,0] true ]
+// RESULT: Error
+P=? [ G[-1,1] true ]
+// RESULT: 1.0
+P=? [ G[1,3] (s=1 | s=2 | s=3) ]
+// RESULT: 0.0
+P=? [ G[1,3] (s=1 | s=3) ]
+// RESULT: 1.0
+P=? [ G[1,3] (s>=1 | s<=3) ]
+
+
+// RESULT: 1.0
+P=? [ G=3 (s=3) ]
+// RESULT: 0.0
+P=? [ G=3 (s=2) ]
+
+// RESULT: 1.0
+P=? [ G=(k) (s=2) ]
+
+// ------ Bounds for Finally ----------------
+
+
+// RESULT: Error
+P=?[ F<0 s=2]
+// RESULT: 0.0
+P=?[ F<1 s=2]
+// RESULT: 0.0
+P=?[ F<2 s=2]
+// RESULT: 1.0
+P=?[ F<3 s=2]
+// RESULT: 1.0
+P=?[ F<4 s=2]
+
+
+// RESULT: 0.0
+P=?[ F<=0 s=2]
+// RESULT: 0.0
+P=?[ F<=1 s=2]
+// RESULT: 1.0
+P=?[ F<=2 s=2]
+// RESULT: 1.0
+P=?[ F<=3 s=2]
+// RESULT: 1.0
+P=?[ F<=4 s=2]
+
+
+// RESULT: 1.0
+P=?[ F>0 s=2]
+// RESULT: 1.0
+P=?[ F>1 s=2]
+// RESULT: 0.0
+P=?[ F>2 s=2]
+// RESULT: 0.0
+P=?[ F>3 s=2]
+// RESULT: 0.0
+P=?[ F>4 s=2]
+
+
+// RESULT: 1.0
+P=?[ F>=0 s=2]
+// RESULT: 1.0
+P=?[ F>=1 s=2]
+// RESULT: 1.0
+P=?[ F>=2 s=2]
+// RESULT: 0.0
+P=?[ F>=3 s=2]
+// RESULT: 0.0
+P=?[ F>=4 s=2]
+
+
+// RESULT: Error
+P=? [ F[1,0] true ]
+// RESULT: Error
+P=? [ F[-1,1] true ]
+// RESULT: 0.0
+P=? [ F[1,3] s=0 ]
+// RESULT: 1.0
+P=? [ F[1,3] s=1 ]
+// RESULT: 1.0
+P=? [ F[1,3] s=2 ]
+// RESULT: 1.0
+P=? [ F[1,3] s=3 ]
+// RESULT: 0.0
+P=? [ F[1,3] s=4 ]
+
+// RESULT: 0.0
+P=? [ F=2 s=1 ]
+// RESULT: 1.0
+P=? [ F=2 s=2 ]
+// RESULT: 0.0
+P=? [ F=2 s=3 ]
+
+
+
+// ------ Bounds for Until ----------------
+
+// RESULT: 0.0
+P=? [ s<2 U=2 s=1 ]
+// RESULT: 1.0
+P=? [ s<2 U=2 s=2 ]
+// RESULT: 0.0
+P=? [ s<2 U=2 s=3 ]
+// RESULT: 0.0
+P=? [ s<1 U=2 s=2 ]
+
+// RESULT: 0.0
+P=? [ s<2 U>2 s=2 ]
+// RESULT: 1.0
+P=? [ s<2 U>=2 s=2 ]
+
+// RESULT: 0.0
+P=? [ false U>=1 false ]
+// RESULT: 0.0
+P=? [ false U<1 false ]
+// RESULT: 0.0
+P=? [ true U>=1 false ]
+// RESULT: 0.0
+P=? [ true U<1 false ]
+
+// RESULT: 1.0
+P=? [ false U>=0 true ]
+// RESULT: 0.0
+P=? [ false U>0 true ]
+// RESULT: 1.0
+P=? [ true U>=0 true ]
+// RESULT: 1.0
+P=? [ true U>2 true ]
+
+// RESULT: 1.0
+P=? [ true U>=3 s=4 ]
+// RESULT: 0.0
+P=? [ true U>=3 s=2 ]
+
+// RESULT: 1.0
+P=? [ false U>=0 s=0 ]
+// RESULT: 0.0
+P=? [ false U>=0 s=1 ]
+// RESULT: 0.0
+P=? [ false U>0  s=0 ]
+
+// RESULT: 0.0
+P=? [ s=0 U>=0 false ]
+
+// RESULT: 1.0
+P=? [ s=1 U>=0 true ]
+// RESULT: 1.0
+P=? [ s=1 U<10 true ]
+// RESULT: 0.0
+P=? [ s=1 U>1 true ]
+// RESULT: 0.0
+P=? [ s<3 U>3 true ]
+// RESULT: 1.0
+P=? [ s<3 U>=3 true ]
+
+// RESULT: 1.0
+P=? [ s=1 U[0,10] true ]
+// RESULT: 0.0
+P=? [ s=1 U[2,10] true ]
+// RESULT: 0.0
+P=? [ s<3 U[4,10] true ]
+// RESULT: 1.0
+P=? [ s<3 U[3,10] true ]
+
+
+
+// test cases where the left and right operand
+// are the same
+// RESULT: 1.0
+P=? [ s<4 U[0,0] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[0,1] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[0,2] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[0,3] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[0,4] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[0,5] s<4 ]
+
+// RESULT: 1.0
+P=? [ s<4 U[0,4] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[1,4] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[2,4] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[3,4] s<4 ]
+// RESULT: 0.0
+P=? [ s<4 U[4,4] s<4 ]
+
+// RESULT: 1.0
+P=? [ s<4 U[0,5] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[1,5] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[2,5] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[3,5] s<4 ]
+// RESULT: 0.0
+P=? [ s<4 U[4,5] s<4 ]
+// RESULT: 0.0
+P=? [ s<4 U[5,5] s<4 ]
+
+// RESULT: 1.0
+P=? [ s<4 U[0,3] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[1,3] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[2,3] s<4 ]
+// RESULT: 1.0
+P=? [ s<4 U[3,3] s<4 ]
+
+
+// test cases where the left and right operand
+// are dual
+// RESULT: 0.0
+P=? [ s!=3 U[0,0] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[1,1] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[2,2] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[3,3] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[4,4] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[5,5] s=3 ]
+
+// RESULT: 0.0
+P=? [ s!=3 U[0,1] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[1,2] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[2,3] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[3,4] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[4,5] s=3 ]
+
+// RESULT: 0.0
+P=? [ s!=3 U[0,2] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[1,3] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[2,4] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[3,5] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[4,6] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[0,3] s=3 ]
+
+// RESULT: 1.0
+P=? [ s!=3 U[1,4] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[2,5] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[3,6] s=3 ]
+// RESULT: 0.0
+P=? [ s!=3 U[4,7] s=3 ]
+
+// RESULT: 1.0
+P=? [ s!=3 U[0,4] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[1,5] s=3 ]
+// RESULT: 1.0
+P=? [ s!=3 U[2,6] s=3 ]
+
+
+
+
+// ------ Bounds for Release ----------------
+// a R[l,u] b = !(!a U[l,u] !b)
+
+// RESULT: 1.0
+P=? [ false R<3 s<3 ]
+
+// RESULT: 0.0
+P=? [ false R<=3 s<3 ]
+
+// RESULT: 1.0
+P=? [ false R=3 s=3 ]
+
+// RESULT: 0.0
+P=? [ false R=3 s!=3 ]
+
+
+// RESULT: 1.0
+P=? [ false R<=1 true ]
+
+// RESULT: 1.0
+P=? [ false R>=1 true ]
+
+// RESULT: 1.0
+P=? [ false R[1,10] true ]
+
+// RESULT: 1.0
+P=? [ false R=2 true ]
+
+// RESULT: 0.0
+P=? [ false R<1 false ]
+
+// RESULT: 0.0
+P=? [ true R<1 false ]
+
+// RESULT: 1.0
+P=? [ true R>1 false ]
+
+// RESULT: 1.0
+P=? [ true R>1 false ]
+
+
+// RESULT: 1.0
+P=? [ s=4 R>1 s>1 ]
+
+// RESULT: 0.0
+P=? [ s=4 R>1 s>2 ]
+
+// RESULT: 1.0
+P=? [ s=4 R[1,3] (s>=1 & s<=3) ]
+
+// RESULT: 0.0
+P=? [ s=4 R[1,3] (s>=1 & s<3) ]
+
+// RESULT: 1.0
+P=? [ s=3 R[1,4] (s>=1 & s<=3) ]
+
+// RESULT: 0.0
+P=? [ s=3 R[1,4] (s>=1 & s<3) ]
+
+

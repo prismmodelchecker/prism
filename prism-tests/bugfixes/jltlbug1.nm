@@ -1,0 +1,14 @@
+// LTL-to-DRA bug fix (svn rev 9109)
+// Bug (and fix) reported by Joachim Klein
+
+dtmc
+
+label "a" = s=0;
+label "b" = s=1;
+
+module simple
+  s: [0..1] init 0;
+
+  [] true -> 0.5:(s'=0) + 0.5:(s'=1);
+
+endmodule

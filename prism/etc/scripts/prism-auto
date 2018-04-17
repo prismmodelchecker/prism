@@ -417,8 +417,12 @@ def runPrism(args, dir=""):
         for line in open(logFile, 'r').readlines():
             if re.match('Testing result:', line):
                 printTestResult(line)
-            elif options.showWarnings and re.match('Warning:', line):
-                printTestResult(line)
+            elif re.match('Warning:', line):
+                if options.showWarnings or options.verboseTest:
+                    printTestResult(line)
+                else:
+                    # We don't print it, but we count it
+                    countTestResult(line)
             elif options.verboseTest:
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
@@ -469,7 +473,8 @@ def printTestStatistics():
     if options.test and not options.echo:
         print('\nTest results:')
         printColoured('SUCCESS',     ' Success:      ' + str(testStats['SUCCESS']))
-        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING']))
+        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING'])
+                      + ('  (use -w to show)' if (testStats['WARNING']>0 and not options.showWarnings and not options.verboseTest) else ''))
         if (options.ddWarnings):
             printColoured('WARNING',     '  DD-Warnings: ' + str(testStats['DDWARNING']))
         printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
@@ -531,9 +536,9 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
             else:
                 msg = msg + "FAIL (no " + os.path.basename(expFile) + " to compare to)"
                 result = False
-    	printTestResult(msg)
-    	if not result:
-    		return result
+        printTestResult(msg)
+        if not result:
+            return result
     return result
 
 # Run a benchmark, specified by a list of command-line args,
@@ -741,6 +746,15 @@ def benchmarkPropListFile(propListFile):
         propFile = items[1].strip()
         benchmarkPropertiesFile(os.path.join(dir, propFile))
 
+# (Re-)start the nailgun server
+# We first try to stop an existing server (which should fail quickly if there is none running)
+def restartNailGunServer():
+    print("Stopping existing nailgun server, if it's running...")
+    subprocess.Popen([options.ngprism, "stop"]).wait()
+    print("Starting nailgun server...")
+    os.system(options.prismExec + " -ng &")
+    time.sleep(0.5)
+
 #==================================================================================================
 # Main program
 #==================================================================================================
@@ -803,8 +817,7 @@ if options.nailgun:
     if options.echo or options.echoFull:
         print(options.prismExec + " -ng &")
     else:
-        os.system(options.prismExec + " -ng &")
-        time.sleep(0.5)
+        restartNailGunServer();
 for arg in args:
     if os.path.isdir(arg):
         benchmarkDir(arg)

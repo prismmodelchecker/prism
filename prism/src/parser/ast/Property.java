@@ -372,27 +372,42 @@ public class Property extends ASTElement
 			// Parse expected result
 			double doubleExp;
 			boolean simple = true;  // is the expectation string a simple expression?
+
+			@SuppressWarnings("unused")
+			boolean approx = false;  // is this an approximate expected value, i.e., a floating point string starting with ~?
+
+			// we handle ~... expected results here
+			// in this case (non-exact mode) it does not really matter,
+			// as we currently do an approximate comparison anyways
+			String strExpectedValue;
+			if (strExpected.startsWith("~")) {
+				approx = true;
+				strExpectedValue = strExpected.substring(1);
+			} else {
+				strExpectedValue = strExpected;
+			}
+
 			try {
 				// See if it's NaN
-				if (strExpected.equals("NaN")) {
+				if (strExpectedValue.equals("NaN")) {
 					doubleExp = Double.NaN;
 				}
 				// See if it's a fraction
-				else if (strExpected.matches("[0-9]+/[0-9]+")) {
-					int numer = Integer.parseInt(strExpected.substring(0, strExpected.indexOf('/')));
-					int denom = Integer.parseInt(strExpected.substring(strExpected.indexOf('/') + 1));
+				else if (strExpectedValue.matches("[0-9]+/[0-9]+")) {
+					int numer = Integer.parseInt(strExpectedValue.substring(0, strExpectedValue.indexOf('/')));
+					int denom = Integer.parseInt(strExpectedValue.substring(strExpectedValue.indexOf('/') + 1));
 					doubleExp = ((double) numer) / denom;
 					simple = false;  // complex expression
 				}
 				// Otherwise, see if it's just a double
 				else {
-					doubleExp = Double.parseDouble(strExpected);
+					doubleExp = Double.parseDouble(strExpectedValue);
 				}
 			} catch (NumberFormatException e) {
 				// complex expression?
 				Expression expectedExpr = null;
 				try {
-					expectedExpr = Prism.parseSingleExpressionString(strExpected);
+					expectedExpr = Prism.parseSingleExpressionString(strExpectedValue);
 					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
 					expectedExpr.typeCheck();
 					doubleExp = expectedExpr.evaluateDouble(constValues);
@@ -404,6 +419,7 @@ public class Property extends ASTElement
 			// Parse actual result
 			if (!(result instanceof Double))
 				throw new PrismException("Result is wrong type (" + result.getClass() + ") for (double-valued) property");
+
 			double doubleRes = ((Double) result).doubleValue();
 			// Compare results
 			if (Double.isNaN(doubleRes)) {
@@ -420,33 +436,63 @@ public class Property extends ASTElement
 			// Parse expected result
 			BigRational rationalRes = (BigRational) result;
 			BigRational rationalExp = null;
-			boolean simple = true;  // is the expectation string a simple expression?
+			boolean approx = false;  // is this an approximate expected value, i.e., a floating point string starting with ~?
+
+			String strExpectedValue;
+			if (strExpected.startsWith("~")) {
+				approx = true;
+				strExpectedValue = strExpected.substring(1);
+			} else {
+				strExpectedValue = strExpected;
+			}
+
 			try {
 				// See if it's NaN
-				if (strExpected.equals("NaN")) {
+				if (strExpectedValue.equals("NaN")) {
 					if (!rationalRes.isNaN())
 						throw new PrismException("Wrong result (expected NaN, got " + rationalRes + ")");
 				}
 				// For integers/rationals/doubles, parse with BigRational
 				else {
-					rationalExp = new BigRational(strExpected);
+					rationalExp = new BigRational(strExpectedValue);
 				}
 			} catch (NumberFormatException e) {
 				// complex expression?
 				Expression expectedExpr = null;
 				try {
-					expectedExpr = Prism.parseSingleExpressionString(strExpected);
+					expectedExpr = Prism.parseSingleExpressionString(strExpectedValue);
 					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
 					expectedExpr.typeCheck();
 					rationalExp = expectedExpr.evaluateExact(constValues);
-					simple = false;  // complex expression
 				} catch (PrismLangException e2) {
 					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for rational-valued property: " + e2.getMessage());
 				}
 			}
 			// Compare results
-			if (!rationalRes.equals(rationalExp))
-				throw new PrismException("Wrong result (expected " + (simple ? "" : strExpected + " = ") + rationalExp + ", got " + rationalRes + ")");
+			if (!rationalRes.equals(rationalExp)) {
+				boolean match = false;
+
+				if (type instanceof TypeDouble) {
+					// try imprecise comparison
+					try {
+						double doubleExp = Double.parseDouble(strExpectedValue);
+						boolean areClose = PrismUtils.doublesAreCloseRel(doubleExp, rationalRes.doubleValue(), 1e-5);
+						if (areClose) {
+							if (approx) {
+								// we only have an approximate value to compare to, so we are fine here
+								match = true;
+							} else {
+								throw new PrismException("Inexact, but close result (expected '" + strExpected + "' = " + rationalExp + " (" + rationalExp.toApproximateString() +"), got " + rationalRes + " (" + rationalRes.toApproximateString() + "))");
+							}
+						}
+					} catch (NumberFormatException e) {
+					}
+				}
+
+				if (!match) {
+					throw new PrismException("Wrong result (expected '" + strExpected + "' = " + rationalExp + " (" + rationalExp.toApproximateString() +"), got " + rationalRes + " (" + rationalRes.toApproximateString() + "))");
+				}
+			}
 		}
 		else if (type instanceof TypeVoid && result instanceof TileList) { //Pareto curve
 

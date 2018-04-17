@@ -124,10 +124,23 @@ final class StateEliminator {
 	 * Orders states so that states near target states are eliminated first.
 	 * States which do not reach target states are eliminated last. In case
 	 * there are no target states, the order is arbitrary
+	 */
+	private int[] collectStatesBackward()
+	{
+		return collectStatesBackward(false);
+	}
+
+	/**
+	 * Orders states so that states near target states are eliminated first.
+	 * States which do not reach target states are eliminated last. In case
+	 * there are no target states, the order is arbitrary
+	 * <br>
+	 * If {@code onlyStatesReachingTarget} is true, only the states that
+	 * can reach the target states will be returned.
 	 * 
 	 * @return list of states in requested order
 	 */
-	private int[] collectStatesBackward()
+	private int[] collectStatesBackward(boolean onlyStatesReachingTarget)
 	{
 		int[] states = new int[pmc.getNumStates()];
 		BitSet seen = new BitSet(pmc.getNumStates());
@@ -155,7 +168,11 @@ final class StateEliminator {
 			}
 			current = next;
 		}
-		
+
+		if (onlyStatesReachingTarget) {
+			return states;
+		}
+
 		/* might not find all states when doing as above,
 		 * so add missing ones */
 		HashSet<Integer> allStates = new HashSet<Integer>();
@@ -200,7 +217,7 @@ final class StateEliminator {
 		/* search for states which might never reach a target state and thus
 		 * have to be assigned a reward of infinity. */
 		if (pmc.isUseRewards()) {
-			int[] backStatesArr = collectStatesBackward();
+			int[] backStatesArr = collectStatesBackward(true);
 			HashSet<Integer> reaching = new HashSet<Integer>();
 			for (int stateNr = 0; stateNr < backStatesArr.length; stateNr++) {
 				reaching.add(backStatesArr[stateNr]);

@@ -1,0 +1,7 @@
+	// RESULT (version=1): 0
+	// RESULT (version=2): 0.5
+	Pmin=? [ F "tails" ];
+
+	// RESULT (version=1): 0.5
+	// RESULT (version=2): 1
+	Pmax=? [ F "tails" ];

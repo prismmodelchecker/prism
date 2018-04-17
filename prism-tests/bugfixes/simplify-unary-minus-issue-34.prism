@@ -1,0 +1,11 @@
+// Test case for https://github.com/prismmodelchecker/prism/issues/34
+//   Expression simplification for 0-x does not preserve type
+//   Error during model building (explicit), simulation
+
+dtmc
+
+module M1
+   s : [0..1] init 0;
+
+   [] true -> 1/2:(s'=0) + 1/2:(s'=max(1,0-s));
+endmodule

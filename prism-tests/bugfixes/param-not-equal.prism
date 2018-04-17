@@ -1,0 +1,16 @@
+// test case for the fix in SVN r11976
+// handling of != operator by parametric / exact engine in state formulas
+
+dtmc
+
+module M1
+  s: [0..3] init 0;
+  t: [0..3] init 1;
+
+  // overlapping actions in DTMC: if both [a] and [b] are enabled, each is taken with
+  // probability 1/2
+  [a] s < 3 -> 1/2:(s'=s+1) + 1/2:(s'=s);
+  [b] t < 3 -> 1/2:(t'=t+1) + 1/2:(t'=t);
+
+  [c] s=3 & t=3 -> 1:true;
+endmodule

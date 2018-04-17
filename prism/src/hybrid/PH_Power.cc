@@ -173,6 +173,7 @@ jboolean transpose	// transpose A? (i.e. solve xA=x not Ax=x?)
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PH_GetFlagExportIterations()) {
 		iterationExport.reset(new ExportIterations("PH_Power"));
+		PH_PrintToMainLog(env, "Exporting iterations to %s\n", iterationExport->getFileName().c_str());
 		iterationExport->exportVector(soln, n, 0);
 	}
 

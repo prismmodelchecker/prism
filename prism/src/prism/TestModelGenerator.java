@@ -42,7 +42,7 @@ import parser.type.TypeInt;
 import explicit.ConstructModel;
 import explicit.DTMCModelChecker;
 
-public class TestModelGenerator extends DefaultModelGenerator
+public class TestModelGenerator implements ModelGenerator
 {
 	protected State exploreState;
 	protected int x;

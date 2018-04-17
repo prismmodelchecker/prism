@@ -1,0 +1,10 @@
+dtmc
+
+const double p;
+formula outcome = (s>0 ? s-1 : -1);
+
+module M1
+  s: [0..4] init 0;
+
+  [] s=0 -> 1/2:(s'=0) + 1/8:(s'=1) + 1/8:(s'=2) + 1/8:(s'=3) + 1/8:(s'=4);
+endmodule

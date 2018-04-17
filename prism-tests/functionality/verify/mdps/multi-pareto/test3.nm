@@ -1,0 +1,20 @@
+// simple example where the values of y_{v,sigma} are > 1
+// example formula: multi(P>=0.3[F x=3],P>=0.75[F x=2])
+// only two points: [0.6,0.4], [0.0,1.0] 
+
+module M
+
+x:[0..3] init 0;
+
+[a] x=0 -> (x'=1);
+[a] x=1 -> 0.4 : (x'=2) + 0.6: (x'=3);
+[b] x=1 -> (x'=2);
+[] x=2 -> (x'=2);
+[] x=3 -> (x'=3);
+
+endmodule
+
+rewards "total_time"
+    [a] true : 1;
+endrewards
+

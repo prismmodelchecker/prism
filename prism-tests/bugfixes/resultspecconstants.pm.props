@@ -1,0 +1,6 @@
+const int end = 7;
+const int x;
+
+// Probability of throwing x?
+// RESULT (start=0,end=7,x=6): 1/6
+P=? [ F s=end & d=x ]

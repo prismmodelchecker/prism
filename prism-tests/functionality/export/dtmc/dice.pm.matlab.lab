@@ -1,0 +1,13 @@
+l_init=sparse(13,1);
+l_deadlock=sparse(13,1);
+l_end=sparse(13,1);
+l_six=sparse(13,1);
+
+l_init(1)=1;
+l_end(8)=1;
+l_end(9)=1;
+l_end(10)=1;
+l_end(11)=1;
+l_end(12)=1;
+l_end(13)=1;
+l_six(13)=1;

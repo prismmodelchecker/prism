@@ -1,0 +1,25 @@
+# Travis CI configuration
+
+# trusty (has build-essential) + Java
+dist: trusty
+# we are requiring VM instead of Docker builds due to sporadic nailgun test suite failures
+sudo: required
+language: java
+
+# we test for JDK8 and JDK9
+jdk:
+  - oraclejdk8
+  - oraclejdk9
+  
+# compile and run the test suite
+script: cd prism && make && echo 'Compilation successful, running test suite....' && echo && make tests && echo && echo 'Yay'
+
+
+# notifications
+notifications:
+  email:
+    recipients:
+      - d.a.parker@cs.bham.ac.uk
+      - klein@tcs.inf.tu-dresden.de
+    on_success: change
+    on_failure: always

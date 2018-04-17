@@ -16,14 +16,13 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.RewardStruct;
 import parser.type.Type;
-import prism.DefaultModelGenerator;
 import prism.ModelGeneratorSymbolic;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 
-public class ModulesFileModelGeneratorSymbolic extends DefaultModelGenerator implements ModelGeneratorSymbolic
+public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 {
 	// Parent PrismComponent (logs, settings etc.)
 	protected PrismComponent parent;

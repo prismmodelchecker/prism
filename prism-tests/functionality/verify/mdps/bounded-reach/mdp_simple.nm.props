@@ -1,0 +1,161 @@
+// RESULT: 0.1
+Pmax=? [ F<=1 t=1 ]
+// RESULT: 0.1
+Pmax=? [ true U<=1 t=1 ]
+// RESULT: 0.1
+Pmax=? [ true U[0,1] t=1 ]
+// RESULT: 0.1
+Pmax=? [ true U=1 t=1 ]
+
+// RESULT: 0.2
+Pmax=? [ F<=2 t=1 ]
+// RESULT: 0.2
+Pmax=? [ true U<=2 t=1 ]
+// RESULT: 0.2
+Pmax=? [ true U[0,2] t=1 ]
+// RESULT: 0.2
+Pmax=? [ true U=2 t=1 ]
+
+// RESULT: 0.4
+Pmax=? [ F<=4 t=1 ]
+// RESULT: 0.4
+Pmax=? [ true U<=4 t=1 ]
+// RESULT: 0.4
+Pmax=? [ true U[0,4] t=1 ]
+// RESULT: 0.4
+Pmax=? [ true U=4 t=1 ]
+
+// RESULT: 0.4
+Pmax=? [ F<5 t=1 ]
+// RESULT: 0.4
+Pmax=? [ true U<5 t=1 ]
+
+// RESULT: 0.0
+Pmin=?[ F<=1 t=1 ]
+// RESULT: 0.0
+Pmin=?[ F<=2 t=1 ]
+// RESULT: 0.0
+Pmin=?[ F<=4 t=1 ]
+// RESULT: 0.1
+Pmin=?[ F<=6 t=1 ]
+// RESULT: 0.1
+Pmin=?[ F[2,6] t=1 ]
+// RESULT: 0.0
+Pmin=?[ (t!=1) U[2,6] t=1 ]
+
+
+
+// RESULT: 0.9
+Pmin=?[ G<=1 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<=1 t!=1 ]
+
+// RESULT: 0.8
+Pmin=?[ G<=2 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<=2 t!=1 ]
+
+// RESULT: 0.7
+Pmin=?[ G<=3 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<=3 t!=1 ]
+
+
+// RESULT: 0.6
+Pmin=?[ G<=4 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<=4 t!=1 ]
+
+
+// RESULT: 0.5
+Pmin=?[ G<=5 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<=5 t!=1 ]
+
+// RESULT: 0.5
+Pmin=?[ G<6 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<6 t!=1 ]
+
+// RESULT: 0.0
+Pmin=?[ G<=6 t!=1 ]
+// RESULT: 1.0
+Pmax=?[ G<=5 t!=1 ]
+
+// RESULT: 0.9
+Pmax=?[ G<=7 t!=1 ]
+
+
+// RESULT: 0.5
+Pmin=?[ G[2,5] t!=1 ]
+
+
+// RESULT: 1.0
+Pmax=? [ F>=1 t=1 ]
+// RESULT: 1.0
+Pmax=? [ F>=2 t=1 ]
+// RESULT: 1.0
+Pmax=? [ F>=3 t=1 ]
+// RESULT: 1.0
+Pmax=? [ F>=4 t=1 ]
+// RESULT: 1.0
+Pmax=? [ F>=5 t=1 ]
+// RESULT: 1.0
+Pmax=? [ F>=6 t=1 ]
+
+// RESULT: 0.1
+Pmin=? [ F>=1 t=1 ]
+
+// RESULT: 0.8
+Pmin=? [ F>=2 t!=1 ]
+// RESULT: 0.7
+Pmin=? [ F>=3 t!=1 ]
+// RESULT: 0.6
+Pmin=? [ F>=4 t!=1 ]
+// RESULT: 0.5
+Pmin=? [ F>=5 t!=1 ]
+// RESULT: 0.0
+Pmin=? [ F>=6 t!=1 ]
+
+
+// RESULT: 0.9
+Pmax=? [ G>=1 t!=1 ]
+// RESULT: 0.9
+Pmax=? [ G>=2 t!=1 ]
+// RESULT: 0.9
+Pmax=? [ G>=3 t!=1 ]
+// RESULT: 0.9
+Pmax=? [ G>=4 t!=1 ]
+// RESULT: 0.9
+Pmax=? [ G>=5 t!=1 ]
+// RESULT: 0.9
+Pmax=? [ G>=6 t!=1 ]
+
+// RESULT: 0.3
+Pmax=? [ s<=2 U t=1 ]
+// RESULT: 0.1
+Pmax=? [ s<=2 U<=1 t=1 ]
+// RESULT: 0.2
+Pmax=? [ s<=2 U<=2 t=1 ]
+// RESULT: 0.2
+Pmax=? [ s<=2 U<3 t=1 ]
+// RESULT: 0.3
+Pmax=? [ s<=2 U<=3 t=1 ]
+// RESULT: 0.3
+Pmax=? [ s<=2 U<4 t=1 ]
+// RESULT: 0.3
+Pmax=? [ s<=2 U<=4 t=1 ]
+// RESULT: 0.3
+Pmax=? [ s<=2 U<=5 t=1 ]
+// RESULT: 0.3
+Pmax=? [ s<=2 U<=6 t=1 ]
+
+// RESULT: 0.3
+Pmax=? [ (s<=2 & t!=1) U t=1 ]
+// RESULT: 0.0
+Pmax=? [ (s<=2 & t!=1) U[0,0] t=1 ]
+// RESULT: 0.1
+Pmax=? [ (s<=2 & t!=1) U[0,1] t=1 ]
+// RESULT: 0.1
+Pmax=? [ (s<=2 & t!=1) U[1,1] t=1 ]
+

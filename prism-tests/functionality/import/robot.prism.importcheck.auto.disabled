@@ -1,0 +1,2 @@
+-mdp -importmodel robot.all robot.prism.props
+-mdp -importmodel robot.all robot.prism.props -ex

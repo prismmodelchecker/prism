@@ -37,7 +37,7 @@ private:
 	bool select_midpoint;
 
 public:
-	IntervalIteration(int flags) {
+	explicit IntervalIteration(int flags) {
 		ensure_monotonic_from_below = (flags & 0x01);
 		ensure_monotonic_from_above = (flags & 0x02);
 		select_midpoint = (flags & 0x04);

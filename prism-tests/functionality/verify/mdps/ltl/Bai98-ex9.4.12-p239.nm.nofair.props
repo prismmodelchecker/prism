@@ -1,0 +1,4 @@
+	// RESULT: 0
+	Pmin=? [ F ("a" & (X "b")) ];
+	// RESULT: 0.5
+	Pmax=? [ F ("a" & (X "b")) ];

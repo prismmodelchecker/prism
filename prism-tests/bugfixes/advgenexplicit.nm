@@ -1,0 +1,16 @@
+// Bug fixed in trunk rev 3629
+// Explicit engine fails for adv gen on Pmin=? [ F s=1 ]
+
+mdp
+
+module M1
+
+	s : [0..2];
+
+	[a] s=0 -> 0.5:(s'=1) + 0.5:(s'=2);
+	[b] s=0 -> 1:(s'=2); // this is optimal
+
+	[c] s>0 -> true;
+
+endmodule
+

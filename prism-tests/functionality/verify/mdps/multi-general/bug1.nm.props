@@ -1,0 +1,8 @@
+// RESULT: 0.6
+multi(Pmin=? [(F s=2)], P>=0 [true])
+
+// RESULT: 0.6
+multi(Pmin=? [F s=2], P>=0 [true])
+
+// RESULT: 1.0
+multi(Pmax=? [true], P>=0.01 [true]) 

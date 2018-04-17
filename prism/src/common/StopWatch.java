@@ -84,17 +84,18 @@ public class StopWatch
 	}
 
 	/** Start the stop watch (without task description) */
-	public void start()
+	public StopWatch start()
 	{
-		start(null);
+		return start(null);
 	}
 
 	/** Start the stop watch, store task description (may be {@code null}) */
-	public void start(String taskDescription)
+	public StopWatch start(String taskDescription)
 	{
 		this.taskDescription = taskDescription;
 		running = true;
 		time = System.currentTimeMillis();
+		return this;
 	}
 
 	/**

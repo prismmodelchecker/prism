@@ -128,7 +128,7 @@ public class ExplicitModel2MTBDD
 			this.modulesFile = modulesFile;
 		} else {
 			this.modulesFile = modulesFile = new ModulesFile();
-			Module m = new Module("M");
+			parser.ast.Module m = new parser.ast.Module("M");
 			Declaration d = new Declaration("x", new DeclarationInt(Expression.Int(0), Expression.Int(numStates - 1)));
 			d.setStart(Expression.Int(0));
 			m.addDeclaration(d);

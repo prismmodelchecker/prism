@@ -1,0 +1,3 @@
+// RESULT (x=1): true
+// RESULT (x=2): true
+// RESULT (x=3): false

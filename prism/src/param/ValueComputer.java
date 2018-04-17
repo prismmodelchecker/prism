@@ -32,12 +32,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import common.IterableBitSet;
+import common.IterableStateSet;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismNotSupportedException;
+
 /**
  * Computes values for properties of a parametric Markov model. 
  * 
  * @author Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
  */
-final class ValueComputer
+final class ValueComputer extends PrismComponent
 {
 	private enum PropType {
 		REACH,
@@ -220,6 +226,7 @@ final class ValueComputer
 		}
 	}
 
+	private ParamMode mode;
 	private ParamModel model;
 	private RegionFactory regionFactory;
 	private FunctionFactory functionFactory;
@@ -230,7 +237,9 @@ final class ValueComputer
 	private StateEliminator.EliminationOrder eliminationOrder;
 	private Lumper.BisimType bisimType;
 
-	ValueComputer(ParamModel model, RegionFactory regionFactory, BigRational precision, StateEliminator.EliminationOrder eliminationOrder, Lumper.BisimType bisimType) {
+	ValueComputer(PrismComponent parent, ParamMode mode, ParamModel model, RegionFactory regionFactory, BigRational precision, StateEliminator.EliminationOrder eliminationOrder, Lumper.BisimType bisimType) {
+		super(parent);
+		this.mode = mode;
 		this.model = model;
 		this.regionFactory = regionFactory;
 		this.functionFactory = regionFactory.getFunctionFactory();
@@ -242,7 +251,7 @@ final class ValueComputer
 		this.bisimType = bisimType;
 	}
 
-	RegionValues computeUnbounded(RegionValues b1, RegionValues b2, boolean min, ParamRewardStruct rew) {
+	RegionValues computeUnbounded(RegionValues b1, RegionValues b2, boolean min, ParamRewardStruct rew) throws PrismException {
 		RegionValues result = new RegionValues(regionFactory);
 		RegionValuesIntersections co = new RegionValuesIntersections(b1, b2);
 		for (RegionIntersection inter : co) {
@@ -255,17 +264,80 @@ final class ValueComputer
 		return result;
 	}
 
-	private RegionValues computeUnbounded(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew)
+	private RegionValues computeUnbounded(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
 	{
-		BigRational requiredVolume = region.volume().multiply(BigRational.ONE.subtract(precision));		
+		if (rew != null) {
+			// determine infinity states
+			explicit.MDPModelChecker mcExplicit = new explicit.MDPModelChecker(this);
+			mcExplicit.setSilentPrecomputations(true);
+			BitSet inf = mcExplicit.prob1(model, b1.toBitSet(), b2.toBitSet(), !min, null);
+			inf.flip(0, model.getNumStates());
+
+			for (int i : new IterableStateSet(inf, model.getNumStates())) {
+				// clear states with infinite value from b1 so they will get Infinity value
+				// in the DTMC
+				b1.setStateValue(i, false);
+			}
+		}
+
+		switch (model.getModelType()) {
+		case CTMC:
+		case DTMC:
+			return computeUnboundedMC(region, b1, b2, rew);
+		case MDP:
+			if (model.getMaxNumChoices() == 1) {
+				return computeUnboundedMC(region, b1, b2, rew);
+			}
+			return computeUnboundedMDP(region, b1, b2, min, rew);
+		default:
+			throw new PrismNotSupportedException("Parametric unbounded reachability computation not supported for " + model.getModelType());
+		}
+	}
+
+	private RegionValues computeUnboundedMC(Region region, StateValues b1, StateValues b2, ParamRewardStruct rew) throws PrismException
+	{
+		// Convert to MutablePMC, using trivial scheduler (take first choice everywhere)
+		Scheduler trivialScheduler = new Scheduler(model);
+
+		MutablePMC pmc = buildAlterablePMCForReach(model, b1, b2, trivialScheduler, rew);
+		if (rew != null && mode == ParamMode.EXACT) {
+			rew.checkForNonNormalRewards();
+		}
+
+		StateValues values = computeValues(pmc, model.getFirstInitialState());
+		return regionFactory.completeCover(values);
+	}
+
+	private RegionValues computeUnboundedMDP(Region region, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew) throws PrismException
+	{
+		BigRational precisionForThisRegion = region.volume().multiply(precision);
+		BigRational requiredVolume = region.volume().subtract(precisionForThisRegion);
 		RegionValues result = new RegionValues(regionFactory);
 		RegionsTODO todo = new RegionsTODO();
 		todo.add(region);
 		BigRational volume = BigRational.ZERO;
+
+		Scheduler initialScheduler = new Scheduler(model);
+		precomputeScheduler(model, initialScheduler, b1, b2, rew, min);
+
 		while (volume.compareTo(requiredVolume) == -1) {
 			Region currentRegion = todo.poll();
 			Point midPoint = ((BoxRegion)currentRegion).getMidPoint();
-			Scheduler scheduler = computeOptConcreteReachScheduler(midPoint, model, b1, b2, min, rew);
+			Scheduler scheduler = computeOptConcreteReachScheduler(midPoint, model, b1, b2, min, rew, initialScheduler);
+			if (scheduler == null) {
+				// midpoint leads to non-well-defined model
+				if (currentRegion.volume().compareTo(precisionForThisRegion) <= 0) {
+					// region is below precision threshold, treat as undefined
+					// and adjust required volume
+					requiredVolume = requiredVolume.subtract(currentRegion.volume());
+				} else {
+					// we split the current region
+					// TODO: Would be nice to try and analyse the well-definedness constraints
+					todo.addAll(currentRegion.split());
+				}
+				continue;
+			}
+
 			ResultCacheEntry resultCacheEntry = lookupValues(PropType.REACH, b1, b2, rew, scheduler, min);
 			Function[] compare;
 			StateValues values;
@@ -336,20 +408,53 @@ final class ValueComputer
 		return resultCacheEntry;
 	}
 
-	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew)
+	/**
+	 * Compute an optimal scheduler for Pmin/Pmax[ b1 U b2 ] or Rmin/Rmax[ b1 U b2 ]
+	 * at the given parameter instantiation (point).
+	 * <br>
+	 * In parametric mode, returns {@code null} if the given point leads to a model
+	 * that is not well-formed, i.e., where transition probabilities are not actually
+	 * probabilities or graph-preserving, or the rewards are negative (not supported for MDPs).
+	 * <br>
+	 * In exact mode, throws an exception if there are negative rewards (not supported for MDPs).
+	 * <br>
+	 * This method expects an initial scheduler that ensures that policy iteration
+	 * will converge.
+	 *
+	 * @param point The point (parameter valuation) where the model should be instantiated
+	 * @param model the model
+	 * @param b1 the set of 'safe' states
+	 * @param b2 the set of 'target' states
+	 * @param min compute min or max? true = min
+	 * @param rew if non-null, compute reachability reward
+	 * @param initialScheduler an initial scheduler
+	 * @return an optimal scheduler
+	 */
+	Scheduler computeOptConcreteReachScheduler(Point point, ParamModel model, StateValues b1, StateValues b2, boolean min, ParamRewardStruct rew, Scheduler initialScheduler) throws PrismException
 	{
-		ParamModel concrete = model.instantiate(point);
+		ParamModel concrete = model.instantiate(point, true);
+		if (concrete == null) {
+			// point leads to non-welldefined model
+			return null;
+		}
 		ParamRewardStruct rewConcrete = null;
 		if (rew != null) {
 			rewConcrete = rew.instantiate(point);
+			if (rewConcrete.hasNegativeRewards()) {
+				if (mode == ParamMode.EXACT) {
+					throw new PrismNotSupportedException(mode.Engine() + " currently does not support negative rewards in reachability reward computations");
+				} else {
+					// point leads to negative values in reward structure => unsupported
+					return null;
+				}
+			}
 		}
 		
 		Scheduler scheduler = lookupScheduler(point, concrete, PropType.REACH, b1, b2, min, rewConcrete);
 		if (scheduler != null) {
 			return scheduler;
 		}
-		scheduler = new Scheduler(concrete);
-		precomputeZero(concrete, scheduler, b1, b2, rew, min);
+		scheduler = initialScheduler.clone();
 		boolean changed = true;
 		while (changed) {
 			MutablePMC pmc = buildAlterablePMCForReach(concrete, b1, b2, scheduler, rew);
@@ -435,47 +540,81 @@ final class ValueComputer
 	}
 
 	/**
-	 * Precomputation for policy iteration.
-	 * Sets decisions of {@code sched} such that states which have a minimal
-	 * reachability probability or accumulated reward of zero do already
-	 * have a minimal value of zero if using this schedulers. For states with
-	 * minimal value larger than zero, this scheduler needs not be minimising.
+	 * Perform precomputation for policy iteration.
+	 * <br>
+	 * For Pmin, if possible, for states with Pmin[ b1 U b2 ] = 0, generate zero scheduler.
+	 * <br>
+	 * For Rmin, generate a proper scheduler, i.e., with P^sched[ b1 U b2 ] = 1
+	 * to get proper convergence in policy iteration.
+	 * Assumes that states with Pmax[ b1 U b2 ] &lt; 1 have been filtered beforehand
+	 * and are not contained in b1 or b2.
+	 * <br>
 	 * In case of maximal accumulated reward or probabilities, currently does
-	 * nothing. If {@code rew == null}, performs reachability, otherwise
+	 * nothing.
+	 * <br>
+	 * If {@code rew == null}, performs reachability, otherwise
 	 * performs accumulated reward computation. {@code b2} is the target set
 	 * for reachability probabilities or accumulated rewards. {@code b1} is
-	 * either constantly {@code} or describes the left side of an until
+	 * either constantly {@code true} or describes the left side of an until
+	 * property.
+	 */
+	private void precomputeScheduler(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2, ParamRewardStruct rew, boolean min) throws PrismException
+	{
+		if (rew == null) {
+			// probability case
+			if (min) {
+				precomputePmin(mdp, sched, b1, b2);
+			}
+		} else {
+			if (min)
+				precomputeRminProperScheduler(mdp, sched, b1, b2);
+			// TODO: Would be nice to generate proper zero scheduler in the situations
+			// where that is possible
+		}
+	}
+
+	/**
+	 * Precomputation for policy iteration, Rmin.
+	 * For Rmin, generate a proper scheduler, i.e., with P^sched[ b1 U b2 ] = 1
+	 * to get proper convergence in policy iteration.
+	 * Assumes that states with Pmax[ b1 U b2 ] &lt; 1 have been filtered beforehand
+	 * and are not contained in b1 or b2.
+	 */
+	private void precomputeRminProperScheduler(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2) throws PrismException
+	{
+		explicit.MDPModelChecker mcExplicit = new explicit.MDPModelChecker(this);
+		mcExplicit.setSilentPrecomputations(true);
+		int[] strat = new int[mdp.getNumStates()];
+		BitSet b1bs = b1.toBitSet();
+		// use prob1e strategy generation from explicit model checker
+		mcExplicit.prob1(mdp, b1bs, b2.toBitSet(), false, strat);
+
+		for (int s : IterableBitSet.getSetBits(b1bs)) {
+			assert(strat[s] >= 0);
+			sched.setChoice(s, mdp.stateBegin(s) + strat[s]);
+		}
+	}
+
+	/**
+	 * Precomputation for policy iteration, Pmin.
+	 * Sets decisions of {@code sched} such that states which have a minimal
+	 * reachability probability of zero do already have a minimal value of zero
+	 * if using this schedulers. For states with minimal value larger than zero,
+	 * this scheduler needs not be minimising.
+	 * {@code b2} is the target set for reachability probabilities. {@code b1} is
+	 * either constantly {@code true} or describes the left side of an until
 	 * property.
 	 * 
 	 * @param mdp Markov model to precompute for
 	 * @param sched scheduler to precompute
 	 * @param b1 left side of U property, or constant true
 	 * @param b2 right side of U property, or of reachability reward
-	 * @param rew reward structure
-	 * @param min true iff minimising
 	 */
-	private void precomputeZero(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2, ParamRewardStruct rew, boolean min)
+	private void precomputePmin(ParamModel mdp, Scheduler sched, StateValues b1, StateValues b2)
 	{
-		if (!min) {
-			return;
-		}
 		BitSet ones = new BitSet(mdp.getNumStates());
 		for (int state = 0; state < mdp.getNumStates(); state++) {
-			if (rew == null) {
-				ones.set(state, b2.getStateValueAsBoolean(state));
-			} else {
-				if (!b2.getStateValueAsBoolean(state)) {
-					boolean avoidReward = false;
-					for (int choice = mdp.stateBegin(state); choice < mdp.stateEnd(state); choice++) {
-						if (mdp.sumLeaving(choice).equals(functionFactory.getZero())) {
-							sched.setChoice(state, choice);
-							avoidReward = true;
-							break;
-						}
-					}
-					ones.set(state, !avoidReward);
-				}
-			}
+			ones.set(state, b2.getStateValueAsBoolean(state));
 		}
 		boolean changed = true;
 		while (changed) {
@@ -517,7 +656,12 @@ final class ValueComputer
 			if (isSink) {
 				pmc.addTransition(state, state, functionFactory.getOne());
 				if (null != rew) {
-					pmc.setReward(state, functionFactory.getZero());
+					if (isTarget) {
+						pmc.setReward(state, functionFactory.getZero());
+					} else {
+						// !b1 & !b2 state -> infinite (can not reach b2 via b1 states)
+						pmc.setReward(state, functionFactory.getInf());
+					}
 				}
 			} else {
 				if (rew != null) {

@@ -1,0 +1,11 @@
+# As a CTMC
+-ctmc -ex
+-ctmc -mtbdd
+-ctmc -hybrid
+-ctmc -sparse
+
+# As a DTMC
+-dtmc -ex
+-dtmc -mtbdd
+-dtmc -hybrid
+-dtmc -sparse

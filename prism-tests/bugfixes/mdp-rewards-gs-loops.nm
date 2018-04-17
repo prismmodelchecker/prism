@@ -1,0 +1,16 @@
+// Bug in Gauss-Seidel solution of MDP expected reward to a target for models with self-loops
+// (spotted by Joachim Klein)
+// Fixed in svn rev 11841
+
+mdp
+
+module M1
+ s: [0..1] init 0;
+
+ [] s=0 -> 1/2:(s'=0) + 1/2:(s'=1);
+ [] s=1 -> true;
+endmodule
+
+rewards
+ s=0 : 1;
+endrewards

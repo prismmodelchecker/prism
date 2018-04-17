@@ -131,6 +131,22 @@ public class PrismMTBDD
 		return PM_GetErrorMessage();
 	}
 
+	/**
+	 * Generate the proper exception for an error from the native layer.
+	 * Gets the error message and returns the corresponding exception,
+	 * i.e., if the message contains "not supported" then a PrismNotSupportedException
+	 * is returned, otherwise a plain PrismException.
+	 */
+	private static PrismException generateExceptionForError()
+	{
+		String msg = getErrorMessage();
+		if (msg.contains("not supported")) {
+			return new PrismNotSupportedException(msg);
+		} else {
+			return new PrismException(msg);
+		}
+	}
+
 	//------------------------------------------------------------------------------
 	// JNI wrappers for blocks of mtbdd code
 	//------------------------------------------------------------------------------
@@ -384,7 +400,7 @@ public class PrismMTBDD
 	public static JDDNode ProbBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, int bound) throws PrismException
 	{
 		long ptr = PM_ProbBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), bound);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 	
@@ -393,7 +409,7 @@ public class PrismMTBDD
 	public static JDDNode ProbUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe) throws PrismException
 	{
 		long ptr = PM_ProbUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -402,7 +418,7 @@ public class PrismMTBDD
 	public static JDDNode ProbUntilInterval(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, int flags) throws PrismException
 	{
 		long ptr = PM_ProbUntilInterval(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -411,7 +427,7 @@ public class PrismMTBDD
 	public static JDDNode ProbCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, int bound) throws PrismException
 	{
 		long ptr = PM_ProbCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), bound);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -420,7 +436,7 @@ public class PrismMTBDD
 	public static JDDNode ProbInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDVars rows, JDDVars cols, int time) throws PrismException
 	{
 		long ptr = PM_ProbInstReward(trans.ptr(), sr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -429,7 +445,7 @@ public class PrismMTBDD
 	public static JDDNode ProbReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe) throws PrismException
 	{
 		long ptr = PM_ProbReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -438,7 +454,7 @@ public class PrismMTBDD
 	public static JDDNode ProbReachRewardInterval(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, int flags) throws PrismException
 	{
 		long ptr = PM_ProbReachRewardInterval(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -447,7 +463,7 @@ public class PrismMTBDD
 	public static JDDNode ProbTransient(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols, int time) throws PrismException
 	{
 		long ptr = PM_ProbTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -460,7 +476,7 @@ public class PrismMTBDD
 	public static JDDNode NondetBoundedUntil(JDDNode trans, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, int bound, boolean minmax) throws PrismException
 	{
 		long ptr = PM_NondetBoundedUntil(trans.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), bound, minmax);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 	
@@ -469,7 +485,7 @@ public class PrismMTBDD
 	public static JDDNode NondetUntil(JDDNode trans, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax) throws PrismException
 	{
 		long ptr = PM_NondetUntil(trans.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -478,7 +494,7 @@ public class PrismMTBDD
 	public static JDDNode NondetUntilInterval(JDDNode trans, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax, int flags) throws PrismException
 	{
 		long ptr = PM_NondetUntilInterval(trans.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -487,7 +503,7 @@ public class PrismMTBDD
 	public static JDDNode NondetInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, int time, boolean minmax, JDDNode init) throws PrismException
 	{
 		long ptr = PM_NondetInstReward(trans.ptr(), sr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), time, minmax, init.ptr());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -496,7 +512,7 @@ public class PrismMTBDD
 	public static JDDNode NondetReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException
 	{
 		long ptr = PM_NondetReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -505,7 +521,7 @@ public class PrismMTBDD
 	public static JDDNode NondetReachRewardInterval(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDNode nondetMask, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
 	{
 		long ptr = PM_NondetReachRewardInterval(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), nondetMask.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -519,7 +535,7 @@ public class PrismMTBDD
 	{
 		long mult = (multProbs == null) ? 0 : multProbs.ptr();
 		long ptr = PM_StochBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), time, mult);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 	
@@ -528,7 +544,7 @@ public class PrismMTBDD
 	public static JDDNode StochCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, double time) throws PrismException
 	{
 		long ptr = PM_StochCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 	
@@ -537,7 +553,7 @@ public class PrismMTBDD
 	public static JDDNode StochSteadyState(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols) throws PrismException
 	{
 		long ptr = PM_StochSteadyState(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n());
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 	
@@ -546,7 +562,7 @@ public class PrismMTBDD
 	public static JDDNode StochTransient(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols, double time) throws PrismException
 	{
 		long ptr = PM_StochTransient(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -596,7 +612,7 @@ public class PrismMTBDD
 	public static JDDNode Power(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose) throws PrismException
 	{
 		long ptr = PM_Power(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -605,7 +621,7 @@ public class PrismMTBDD
 	public static JDDNode PowerInterval(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode lower, JDDNode upper, boolean transpose, int flags) throws PrismException
 	{
 		long ptr = PM_PowerInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -614,7 +630,7 @@ public class PrismMTBDD
 	public static JDDNode JOR(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose, double omega) throws PrismException
 	{
 		long ptr = PM_JOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, omega);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
@@ -623,7 +639,7 @@ public class PrismMTBDD
 	public static JDDNode JORInterval(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode lower, JDDNode upper, boolean transpose, double omega, int flags) throws PrismException
 	{
 		long ptr = PM_JORInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, omega, flags);
-		if (ptr == 0) throw new PrismException(getErrorMessage());
+		if (ptr == 0) throw generateExceptionForError();
 		return JDD.ptrToNode(ptr);
 	}
 
