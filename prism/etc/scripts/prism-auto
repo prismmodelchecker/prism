@@ -393,6 +393,7 @@ def printColoured(colour, msg):
         print('\033[' + str(testColours[colour]) + 'm' + msg + '\033[0m')
     else:
         print(msg)
+    sys.stdout.flush()
 
 #
 # Given a switch (-xyz or --xyz), expand to full-length form
@@ -514,6 +515,7 @@ def runPrism(args, dir=""):
         print(' '.join(prismArgs))
         return
     print(' '.join(prismArgs))
+    sys.stdout.flush()
     if options.logDir:
         logFile = os.path.join(options.logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
@@ -559,6 +561,7 @@ def runPrism(args, dir=""):
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
                 print(line.rstrip())
+                sys.stdout.flush()
     if options.test and not options.verboseTest and exitCode != 0:
         # failure, we don't want to cleanup the log (if it was a temporary file)
         # so that the user can inspect it
@@ -576,7 +579,7 @@ def runPrism(args, dir=""):
 
 # call-back function for expiration of the execute timer thread
 def timeout(proc, flag):
-    printColoured('FAILURE', 'Timeout (' + str(options.timeout) + 's)')
+    printColoured('FAILURE', '\nTimeout (' + str(options.timeout) + 's)')
     flag.append(True)
     proc.kill()
 
@@ -619,7 +622,8 @@ def printTestResult(msg):
     msg = str.rstrip(msg)
     countTestResult(msg)
     if not isColourEnabled():
-        print(msg);
+        print(msg)
+        sys.stdout.flush()
         return
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
@@ -634,6 +638,7 @@ def printTestResult(msg):
         printColoured('UNSUPPORTED', msg)
     else:
         print(msg)
+        sys.stdout.flush()
 
 def incrementTestStat(stat):
     global testStats
@@ -703,6 +708,7 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
                 msg = msg + "FAIL (" + os.path.basename(expFile) + " does not match)"
                 print("To see difference, run:")
                 print("diff " + outFile + " " + expFile)
+                sys.stdout.flush()
                 result = False
         else:
             if options.noExportTests:
@@ -927,8 +933,10 @@ def benchmarkPropListFile(propListFile):
 # We first try to stop an existing server (which should fail quickly if there is none running)
 def restartNailGunServer():
     print("Stopping existing nailgun server, if it's running...")
+    sys.stdout.flush()
     subprocess.Popen([options.ngprism, "stop"]).wait()
     print("Starting nailgun server...")
+    sys.stdout.flush()
     os.system(options.prismExec + " -ng &")
     time.sleep(0.5)
 
