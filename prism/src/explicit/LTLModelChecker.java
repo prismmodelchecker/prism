@@ -433,10 +433,16 @@ public class LTLModelChecker extends PrismComponent
 		int daSize = da.size();
 		int numAPs = da.getAPList().size();
 		int modelNumStates = model.getNumStates();
-		int prodNumStates = modelNumStates * daSize;
+		int prodNumStates;
 		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
 		List<State> prodStatesList = null, daStatesList = null;
+
+		try {
+			prodNumStates = Math.multiplyExact(modelNumStates, daSize);
+		} catch (ArithmeticException e) {
+			throw new PrismException("Size of product state space of model and automaton is too large for explicit engine");
+		}
 
 		VarList newVarList = null;
 
