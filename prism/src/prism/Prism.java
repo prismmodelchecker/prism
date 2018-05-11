@@ -3404,8 +3404,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicit.StateValues probs;
 		if (model.getModelType() == ModelType.DTMC) {
 			mcDTMC = new DTMCModelChecker(this);
-			//TODO: probs = mcDTMC.doSteadyState((DTMC) model, fileIn);
-			probs = mcDTMC.doSteadyState((DTMC) model, (File) null);
+			probs = mcDTMC.doSteadyState((DTMC) model, fileIn);
 		} else if (model.getModelType() == ModelType.CTMC) {
 			throw new PrismException("Not implemented yet");
 		} else {
