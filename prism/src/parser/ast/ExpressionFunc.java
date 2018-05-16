@@ -284,10 +284,10 @@ public class ExpressionFunc extends Expression
 		return max;
 	}
 
-	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
+	public Integer evaluateFloor(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Integer(evaluateFloor(getOperand(0).evaluateDouble(ec)));
+			return evaluateFloor(getOperand(0).evaluateDouble(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -296,17 +296,16 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateFloor(double arg) throws PrismLangException
 	{
-		double d = Math.floor(arg);
 		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(d) || Double.isInfinite(d))
-			throw new PrismLangException("Cannot take floor() of " + d);
-		return (int) d;
+		if (Double.isNaN(arg) || Double.isInfinite(arg))
+			throw new PrismLangException("Cannot take floor() of " + arg);
+		return (int) Math.floor(arg);
 	}
 
-	public Object evaluateCeil(EvaluateContext ec) throws PrismLangException
+	public Integer evaluateCeil(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Integer(evaluateCeil(getOperand(0).evaluateDouble(ec)));
+			return evaluateCeil(getOperand(0).evaluateDouble(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
