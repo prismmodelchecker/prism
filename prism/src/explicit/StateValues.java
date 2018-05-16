@@ -1014,6 +1014,9 @@ public class StateValues implements StateVector
 		case ExpressionFunc.CEIL:
 			ceil();
 			break;
+		case ExpressionFunc.ROUND:
+			round();
+			break;
 		default:
 			throw new PrismException("Unknown unary function");
 		}
@@ -1054,6 +1057,25 @@ public class StateValues implements StateVector
 			valuesD = null;
 		} else {
 			throw new PrismException("Function ceil cannot be applied to Boolean vectors");
+		}
+	}
+
+	/**
+	 * Modify the vector by applying 'round'.
+	 */
+	public void round() throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			// Nothing to do
+		} else if (type instanceof TypeDouble) {
+			valuesI = new int[size];
+			type = TypeInt.getInstance();
+			for (int i = 0; i < size; i++) {
+				valuesI[i] = ExpressionFunc.evaluateRound(valuesD[i]);
+			}
+			valuesD = null;
+		} else {
+			throw new PrismException("Function round cannot be applied to Boolean vectors");
 		}
 	}
 
