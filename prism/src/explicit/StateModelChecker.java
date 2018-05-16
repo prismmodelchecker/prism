@@ -738,6 +738,7 @@ public class StateModelChecker extends PrismComponent
 			return checkExpressionFuncNary(model, expr, statesOfInterest);
 		case ExpressionFunc.FLOOR:
 		case ExpressionFunc.CEIL:
+		case ExpressionFunc.ROUND:
 			return checkExpressionFuncUnary(model, expr, statesOfInterest);
 		case ExpressionFunc.POW:
 		case ExpressionFunc.MOD:

@@ -52,10 +52,14 @@ public final class BigRational implements Comparable<BigRational>
 
 	/** the BigRational "1" */
 	public final static BigRational ONE = new BigRational(BigInteger.ONE);
+	/** the BigRational "2" */
+	public final static BigRational TWO = new BigRational(BigInteger.valueOf(2));
 	/** the BigRational "-1" */
 	public final static BigRational MONE = new BigRational(BigInteger.ONE).negate();
 	/** the BigRational "0" */
 	public final static BigRational ZERO = new BigRational(BigInteger.ZERO);
+	/** the BigRational "1/2" */
+	public final static BigRational HALF = ONE.divide(TWO);
 	/** the BigRational "infinity" */
 	public final static BigRational INF = new BigRational(BigInteger.ONE, BigInteger.ZERO);
 	/** the BigRational "-infinity" */
@@ -693,6 +697,20 @@ public final class BigRational implements Comparable<BigRational>
 		default:
 			throw new IllegalStateException("Should not be reached");
 		}
+	}
+
+	/**
+	 * Return round(value), i.e., the integer closest to value with
+	 * ties rounding towards positive infinity.
+	 * @throws PrismLangException for special values (NaN, infinity)
+	 */
+	public BigRational round() throws PrismLangException
+	{
+		if (isSpecial()) {
+			throw new PrismLangException("Can not compute round of " + this);
+		}
+
+		return this.add(HALF).floor();
 	}
 
 	/**

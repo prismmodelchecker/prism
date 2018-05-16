@@ -42,15 +42,16 @@ public class ExpressionFunc extends Expression
 	public static final int MAX = 1;
 	public static final int FLOOR = 2;
 	public static final int CEIL = 3;
-	public static final int POW = 4;
-	public static final int MOD = 5;
-	public static final int LOG = 6;
-	public static final int MULTI = 7;
+	public static final int ROUND = 4;
+	public static final int POW = 5;
+	public static final int MOD = 6;
+	public static final int LOG = 7;
+	public static final int MULTI = 8;
 	// Built-in function names
-	public static final String names[] = { "min", "max", "floor", "ceil", "pow", "mod", "log", "multi" };
+	public static final String names[] = { "min", "max", "floor", "ceil", "round", "pow", "mod", "log", "multi"};
 	// Min/max function arities
-	public static final int minArities[] = { 2, 2, 1, 1, 2, 2, 2, 1 };
-	public static final int maxArities[] = { -1, -1, 1, 1, 2, 2, 2, -1 };
+	public static final int minArities[] = { 2, 2, 1, 1, 1, 2, 2, 2, 1 };
+	public static final int maxArities[] = { -1, -1, 1, 1, 1, 2, 2, 2, -1 };
 
 	// Function name
 	private String name = "";
@@ -181,6 +182,8 @@ public class ExpressionFunc extends Expression
 			return evaluateFloor(ec);
 		case CEIL:
 			return evaluateCeil(ec);
+		case ROUND:
+			return evaluateRound(ec);
 		case POW:
 			return evaluatePow(ec);
 		case MOD:
@@ -203,6 +206,8 @@ public class ExpressionFunc extends Expression
 			return evaluateFloorExact(ec);
 		case CEIL:
 			return evaluateCeilExact(ec);
+		case ROUND:
+			return evaluateRoundExact(ec);
 		case POW:
 			return evaluatePowExact(ec);
 		case MOD:
@@ -314,11 +319,33 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateCeil(double arg) throws PrismLangException
 	{
-		double d = Math.ceil(arg);
 		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(d) || Double.isInfinite(d))
-			throw new PrismLangException("Cannot take ceil() of " + d);
-		return (int) d;
+		if (Double.isNaN(arg) || Double.isInfinite(arg))
+			throw new PrismLangException("Cannot take ceil() of " + arg);
+		return (int) Math.ceil(arg);
+	}
+
+	public Integer evaluateRound(EvaluateContext ec) throws PrismLangException
+	{
+		try {
+			return evaluateRound(getOperand(0).evaluateDouble(ec));
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
+	}
+
+	public static int evaluateRound(double arg) throws PrismLangException
+	{
+		// Check for NaN, otherwise possible errors lost in cast to int
+		if (Double.isNaN(arg))
+			throw new PrismLangException("Cannot take round() of " + arg);
+		return (int) Math.round(arg);
+	}
+
+	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).floor();
 	}
 
 	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
@@ -326,9 +353,9 @@ public class ExpressionFunc extends Expression
 		return getOperand(0).evaluateExact(ec).ceil();
 	}
 
-	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
+	public BigRational evaluateRoundExact(EvaluateContext ec) throws PrismLangException
 	{
-		return getOperand(0).evaluateExact(ec).floor();
+		return getOperand(0).evaluateExact(ec).round();
 	}
 
 	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
