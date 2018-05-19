@@ -105,7 +105,9 @@ void release_string_array_from_java(JNIEnv *env, jstring *strings_jstrings, cons
 
 EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy)
 {
-	FoxGlynnWeights fgw;
+	// construct result struct and zero-initialise
+	// this ensures that fgw.weights = nullptr in case we return early on error
+	FoxGlynnWeights fgw{};
 
 	if (q_tmax == 0.0) {
 		//FIXME: what should happen now?
