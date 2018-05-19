@@ -72,11 +72,11 @@ public final class FoxGlynn
 	private final void run() throws PrismException
 	{
 		if (q_tmax == 0.0) {
-			throw new PrismException("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
+			throw new PrismException("Overflow: TA parameter qtmax = time * maxExitRate = 0");
 		}
 
 		if (accuracy < 1e-10) {
-			throw new PrismException("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
+			throw new PrismException("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10)");
 		}
 
 		if (q_tmax < 400)
