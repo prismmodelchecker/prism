@@ -116,7 +116,14 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 		fgw.right = -1;
 		return fgw;
 	}
-	else if (q_tmax < 400)
+
+	if (accuracy < 1e-10) {
+		printf("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
+		fgw.right = -1;
+		return fgw;
+	}
+
+	if (q_tmax < 400)
 	{ //here naive approach should have better performance than Fox Glynn
 		const double expcoef = exp(-q_tmax); //the "e^-lambda" part of p.m.f. of Poisson dist.
 		int k; //denotes that we work with event "k steps occur"
@@ -133,6 +140,9 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 		//add further steps until you have accumulated enough
 		k = 1;
 		do {
+			// TODO: catch case where lastval gets so small that
+			// accnum never reaches desval due to rounding/floating point precision errors (infinite loop)
+
 			lastval *= q_tmax / k; // invariant: lastval = q_tmax^k / k!
 			accum += lastval;
 			w.push_back(lastval * expcoef);
@@ -154,11 +164,6 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 	}
 	else
 	{ //use actual Fox Glynn for q_tmax>400
-		if (accuracy < 1e-10) {
-			printf("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
-			fgw.right = -1;
-			return fgw;
-		}
 		const double factor = 1e+10;
 
 		const long m = (long) q_tmax; //mode
