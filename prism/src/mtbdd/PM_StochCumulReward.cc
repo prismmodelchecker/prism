@@ -244,7 +244,8 @@ jdouble time		// time bound
 	Cudd_RecursiveDeref(ddman, q);
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
-	
+	if (fgw.weights) delete[] fgw.weights;
+
 	return ptr_to_jlong(sum);
 }
 

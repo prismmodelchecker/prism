@@ -330,6 +330,7 @@ jdouble time		// time bound
 	// nb: we *do* free soln (which was originally init)
 	if (soln) delete[] soln;
 	if (soln2) delete[] soln2;
+	if (fgw.weights) delete[] fgw.weights;
 	
 	return ptr_to_jlong(sum);
 }
