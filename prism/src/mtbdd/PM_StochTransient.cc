@@ -312,7 +312,8 @@ jdouble time				// time
 	Cudd_RecursiveDeref(ddman, sol);
 	// nb: we deref init, even though it is passed in as a param
 	Cudd_RecursiveDeref(ddman, init);
-	
+	if (fgw.weights) delete[] fgw.weights;
+
 	return ptr_to_jlong(sum);
 }
 

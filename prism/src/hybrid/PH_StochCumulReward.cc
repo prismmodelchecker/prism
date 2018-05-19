@@ -336,7 +336,8 @@ jdouble time		// time bound
 	if (diags_dist) delete diags_dist;
 	if (soln) delete[] soln;
 	if (soln2) delete[] soln2;
-	
+	if (fgw.weights) delete[] fgw.weights;
+
 	return ptr_to_jlong(sum);
 }
 
