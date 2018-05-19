@@ -772,7 +772,6 @@ public class CTMCModelChecker extends ProbModelChecker
 		q = ctmc.getDefaultUniformisationRate();
 		qt = q * t;
 		mainLog.println("\nUniformisation: q.t = " + q + " x " + t + " = " + qt);
-		termCritParam = 1e-6;
 		acc = termCritParam / 8.0;
 		fg = new FoxGlynn(qt, 1e-300, 1e+300, acc);
 		left = fg.getLeftTruncationPoint();
