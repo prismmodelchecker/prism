@@ -102,7 +102,9 @@ void release_string_array_from_java(JNIEnv *env, jstring *strings_jstrings, cons
 // Compute poisson probabilities for uniformisation. If q_tmax<400, then a naive implementation
 // is used, otherwise the Fox-Glynn method is used.
 // Note that Fox-Glynn method requires accuracy to be at least 1e-10.
-
+//
+// On error, the member 'right' of the returned object is set to -1 and the member array 'weights'
+// is not allocated (does not need to be freed).
 EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy)
 {
 	// construct result struct and zero-initialise
@@ -110,9 +112,9 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 	FoxGlynnWeights fgw{};
 
 	if (q_tmax == 0.0) {
-		//FIXME: what should happen now?
 		printf("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
 		fgw.right = -1;
+		return fgw;
 	}
 	else if (q_tmax < 400)
 	{ //here naive approach should have better performance than Fox Glynn
@@ -153,9 +155,9 @@ EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflo
 	else
 	{ //use actual Fox Glynn for q_tmax>400
 		if (accuracy < 1e-10) {
-			//FIXME: what should happen now?
 			printf("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
 			fgw.right = -1;
+			return fgw;
 		}
 		const double factor = 1e+10;
 
