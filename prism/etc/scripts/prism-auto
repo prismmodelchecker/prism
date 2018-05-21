@@ -753,7 +753,10 @@ def benchmark(file, args, dir=""):
     modelFileArg = [file] if (file != "") else []
 
     # Loop through benchmark options, if required
-    if options.bmFile and os.path.isfile(os.path.join(options.bmFile)):
+    if options.bmFile:
+        if not os.path.isfile(os.path.join(options.bmFile)):
+            print("Cannot read arguments from non-existing file: " + os.path.join(options.bmFile))
+            sys.exit(1)
         argsLists = getArgsListsFromFile(options.bmFile)
         for bmArgs in argsLists:
             runPrism(modelFileArg + args + bmArgs, dir)
