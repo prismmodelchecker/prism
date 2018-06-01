@@ -1,0 +1,7 @@
+# sanity check for convergence for the different engines
+# mtbdd/sparse/hybrid currently require the switch to the power method for convergence
+-mtbdd -power
+-sparse -power
+-hybrid -power
+-explicit
+-exact
