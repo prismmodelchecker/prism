@@ -92,6 +92,7 @@ public abstract class PrismLog implements Closeable, AutoCloseable
 
 	public abstract void flush();
 
+	@Override
 	public abstract void close();
 
 	public abstract void print(boolean b);
