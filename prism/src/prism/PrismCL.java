@@ -35,6 +35,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import common.StackTraceHelper;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionReward;
@@ -220,14 +221,20 @@ public class PrismCL implements PrismModelListener
 			// we don't want to catch the nailgun exception below,
 			// so we catch it and rethrow
 			throw e;
-		} catch (Exception e) {
-			// We catch Exceptions here ourself to ensure that we actually exit
+		} catch (Exception|StackOverflowError e) {
+			// We catch Exceptions/stack overflows here ourself to ensure that we actually exit
 			// In the presence of thread pools (e.g., in the JAS library when using -exact),
 			// the main thread dying does not necessarily quit the program...
-			StringWriter sw = new StringWriter();
-			sw.append("\n");
-			e.printStackTrace(new PrintWriter(sw));
-			mainLog.print(sw.toString());
+			mainLog.println();
+			if (e instanceof StackOverflowError) {
+				// print exception + limited stack trace for stack overflows
+				mainLog.println(e.toString());
+				mainLog.println(StackTraceHelper.asString(e, StackTraceHelper.DEFAULT_STACK_TRACE_LIMIT));
+				mainLog.println("Try increasing the value of the Java stack size (via the -javastack argument).");
+			} else {
+				// print exception + full stack trace for generic exceptions
+				mainLog.print(e.toString() + "\n" + StackTraceHelper.asString(e, 0));
+			}
 			errorAndExit("Caught unhandled exception, aborting...");
 		}
 	}
