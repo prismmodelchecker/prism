@@ -26,6 +26,7 @@
 
 package userinterface;
 
+import common.StackTraceHelper;
 import prism.*;
 
 /**
@@ -35,7 +36,10 @@ public class GUIComputationThread extends Thread
 {
 	protected GUIPlugin plug;
 	protected Prism prism;
-	
+
+	/** Limit on number of lines for logging a stack trace */
+	protected int STACK_TRACE_LIMIT = StackTraceHelper.DEFAULT_STACK_TRACE_LIMIT;
+
 	/** Creates a new instance of GUIComputationThread */
 	public GUIComputationThread(GUIPlugin plug)
 	{
@@ -50,15 +54,32 @@ public class GUIComputationThread extends Thread
 		errorDialog(s);
 	}
 
-	/** Report an error for an Exception (in log and popup dialog) */
-	public void error(Exception e)
-	{
+	/**
+	 * Report an error for an Exception/Error/Throwable (in log and popup dialog).
+	 * <br>
+	 * In case of a serious error that is unlikely to be recovered from
+	 * (i.e., an Error that is not a StackOverflowError), rethrow the error.
+	 */
+	public void error(Throwable e) {
 		if (e instanceof jdd.JDD.CuddOutOfMemoryException) {
 			error(e.getMessage()+".\nTry increasing the value of \"CUDD max. memory\" in the options and then restart PRISM");
 		} else if (e instanceof PrismException) {
 			error(e.getMessage());
+		} else if (e instanceof StackOverflowError) {
+			String hint = "\nTry increasing the value of the Java stack size (via the -javastack argument)";
+
+			// use message with stack trace for log
+			errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT) + hint);
+
+			// use short message, without stack trace, for dialog
+			errorDialog(e.toString() + hint);
 		} else {
 			error(e.toString()+"\nThis is an unexpected error, it might be a good idea to restart PRISM");
+		}
+
+		// for a serious error, i.e., derived from Error, except stack overflow, rethrow the error
+		if (e instanceof Error && !(e instanceof StackOverflowError)) {
+			throw (Error)e;
 		}
 	}
 
@@ -68,8 +89,8 @@ public class GUIComputationThread extends Thread
 		logln("\nError: " + s + ".");
 	}
 
-	/** Report an Exception error (in log) */
-	public void errorLog(Exception e)
+	/** Report an Exception/Throwable error (in log) */
+	public void errorLog(Throwable e)
 	{
 		if (e instanceof PrismException || e instanceof jdd.JDD.CuddOutOfMemoryException) {
 			logln("\nError: " + e.getMessage() + ".");

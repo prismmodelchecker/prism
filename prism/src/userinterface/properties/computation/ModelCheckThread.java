@@ -107,6 +107,11 @@ public class ModelCheckThread extends GUIComputationThread
 			} catch (Exception e) {
 				result = new Result(e);
 				error(e);
+			} catch (StackOverflowError e) {
+				// convert the StackOverflowError to a PrismException, as the result handling
+				// expects Exception instead of Error objects
+				result = new Result(new PrismException("Stack overflow"));
+				error(e);
 			}
 			ic.interrupt();
 			try {
