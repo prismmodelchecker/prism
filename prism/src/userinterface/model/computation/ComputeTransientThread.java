@@ -78,7 +78,7 @@ public class ComputeTransientThread extends GUIComputationThread
 		// Do Computation
 		try {
 			prism.doTransient(transientTime, exportType, exportFile, null);
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			error(e);
 			SwingUtilities.invokeLater(new Runnable()
 			{

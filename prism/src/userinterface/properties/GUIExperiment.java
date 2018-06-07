@@ -35,6 +35,9 @@ import prism.*;
 import userinterface.*;
 
 import javax.swing.*;
+
+import common.StackTraceHelper;
+
 import java.util.*;
 import userinterface.util.*;
 
@@ -236,6 +239,13 @@ public class GUIExperiment
 						setMultipleErrors(definedMFConstants, null, e);
 						undefinedConstants.iterateModel();
 						continue;
+					} catch (StackOverflowError e) {
+						// in case of stack overflow, report it (in log only),
+						// store as PrismException in result, and go on to the next model
+						errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT));
+						setMultipleErrors(definedMFConstants, null, new PrismException("Stack overflow"));
+						undefinedConstants.iterateModel();
+						continue;
 					}
 
 					// collect information for simulation if required
@@ -290,6 +300,13 @@ public class GUIExperiment
 							setMultipleErrors(definedMFConstants, null, e);
 							undefinedConstants.iterateModel();
 							continue;
+						} catch (StackOverflowError e) {
+							// in case of stack overflow, report it (in log only),
+							// store as PrismException in result, and go on to the next model
+							errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT));
+							setMultipleErrors(definedMFConstants, null, new PrismException("Stack overflow"));
+							undefinedConstants.iterateModel();
+							continue;
 						}
 					} else {
 						// iterate through as many properties as necessary
@@ -326,6 +343,11 @@ public class GUIExperiment
 								// in case of error, report it (in log only), store exception as the result and proceed
 								errorLog(e);
 								res = new Result(e);
+							} catch (StackOverflowError e) {
+								// in case of stack overflow, report it (in log only),
+								// store as PrismException in result, and proceed
+								errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT));
+								res = new Result(new PrismException("Stack overflow"));
 							}
 							// store result of model checking
 							SwingUtilities.invokeAndWait(new Runnable()
