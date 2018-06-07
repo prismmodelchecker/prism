@@ -402,10 +402,11 @@ public class GUIPrism extends JFrame
 	public void passCLArgs(String args[])
 	{
 		// just before we get started, pass any command-line args to all plugins
-		// we first remove the -javamaxmem argument, if present
+		// we first remove the -javamaxmem/-javastack arguments, if present
 		List<String> argsCopy = new ArrayList<String>();
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-javamaxmem")) {
+			if (args[i].equals("-javamaxmem") || args[i].equals("-javastack")) {
+				// ignore argument and subsequent value
 				i++;
 			} else {
 				argsCopy.add(args[i]);
