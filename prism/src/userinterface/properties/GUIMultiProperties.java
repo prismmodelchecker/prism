@@ -1400,6 +1400,16 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						// there is no property yet, open new property editor
 						a_newProperty();
 					}
+				} else if (e.getSource() == consTable || e.getSource() == constantsScroll) {
+					if (consTable.rowAtPoint(e.getPoint()) == -1) {
+						// double-click, not an existing row -> add a new constant
+						a_addConstant();
+					}
+				} else if (e.getSource() == labTable || e.getSource() == labelsScroll) {
+					if (labTable.rowAtPoint(e.getPoint()) == -1) {
+						// double-click, not an existing row -> add a new label
+						a_addLabel();
+					}
 				}
 			}
 		}
