@@ -24,6 +24,8 @@ if [ "$PRISM_JAVA" = "" ]; then
 	fi
 fi
 
+#### Java heap size handling (either via -javamaxmem argument or PRISM_JAVAMAXMEM environment variable)
+
 # If there is a -javamaxmem switch, use it for PRISM_JAVAMAXMEM
 ARGS=( "$@" )
 for ((i=0;i<${#ARGS[@]};i+=1)); do
@@ -47,7 +49,34 @@ else
 	# default
 	PRISM_JAVAMAXMEM="-Xmx1g"
 fi
-PRISM_JAVASTACKSIZE="-Xss4M"
+
+#### Java stack size handling (either via -javastack argument or PRISM_JAVASTACKSIZE environment variable)
+
+# If there is a -javastack switch, use it for PRISM_JAVASTACKSIZE
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+	if [ "${ARGS[$i]}" = "-javastack" ]; then
+		PRISM_JAVASTACKSIZE=${ARGS[$i+1]}
+		PRISM_JAVASTACKSIZE=`echo "$PRISM_JAVASTACKSIZE" | awk /^[0-9]+[kmg]?$/`
+		if [ "$PRISM_JAVASTACKSIZE" = "" ]; then
+			echo; echo "Error: Invalid value for -javastack switch."; exit
+		fi
+	fi
+done
+
+# Stack size for Java
+if [ "$PRISM_JAVASTACKSIZE" != "" ]; then
+	PRISM_JAVASTACKSIZE=`echo "$PRISM_JAVASTACKSIZE" | awk /^[0-9]+[kmg]?$/`
+	if [ "$PRISM_JAVASTACKSIZE" = "" ]; then
+		echo; echo "Error: Environment variable PRISM_JAVASTACKSIZE is invalid."; exit
+	fi
+	PRISM_JAVASTACKSIZE="-Xss$PRISM_JAVASTACKSIZE"
+else
+	# default (4 MB)
+	PRISM_JAVASTACKSIZE="-Xss4m"
+fi
+
+####
+
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)

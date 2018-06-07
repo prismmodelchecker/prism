@@ -1055,10 +1055,10 @@ public class PrismCL implements PrismModelListener
 					}
 					exit();
 				}
-				// java max mem
-				else if (sw.equals("javamaxmem")) {
+				// java max mem & java stack size
+				else if (sw.equals("javamaxmem") || sw.equals("javastack")) {
 					i++;
-					// ignore - this is dealt with before java is launched
+					// ignore argument and subsequent value, this is dealt with before java is launched
 				}
 				// timeout
 				else if (sw.equals("timeout")) {
@@ -2309,7 +2309,8 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-nobuild ....................... Skip model construction (just do parse/export)");
 		mainLog.println("-test .......................... Enable \"test\" mode");
 		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
-		mainLog.println("-javamaxmem .................... Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
+		mainLog.println("-javamaxmem <x>................. Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
+		mainLog.println("-javastack <x> ................. Set the Java stack size [default: 4m]");
 		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
 		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 		mainLog.println();
