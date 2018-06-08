@@ -2062,13 +2062,35 @@ public class PrismCL implements PrismModelListener
 		for (i = 0; i < args.length; i++) {
 			s = args[i];
 			// If necessary add quotes so can be pasted back into a shell
-			// (where "necessary" means contains any non-safe characters)
-			if (s.matches(".*[^_a-zA-Z0-9\\./\\-=].*")) {
-				s = "'" + s + "'";
-			}
+			s = shellQuoteSingleIfNecessary(s);
 			mainLog.print(" " + s);
 		}
 		mainLog.println();
+	}
+
+	/**
+	 * For a command-line argument, returns a quoted version
+	 * with single quotes if it contains unsafe characters.
+	 * Otherwise, just returns the unquoted argument.
+	 */
+	private String shellQuoteSingleIfNecessary(String arg)
+	{
+		if (arg.isEmpty()) {
+			// empty argument needs to be quoted
+			return "''";
+		}
+
+		// If necessary add quotes so can be pasted back into a shell
+		// (where "necessary" means contains any non-safe characters)
+		if (arg.matches(".*[^_a-zA-Z0-9\\./\\-=].*")) {
+			// argument needs quoting, so we surround with single quotes,
+			// which neutralises all characters except '
+			// for that we have to have special handling, replacing ' by '\''
+			// (close quote, escaped-', open quote again)
+			arg = arg.replace("'", "'\\''");
+			arg = "'" + arg + "'";
+		}
+		return arg;
 	}
 
 	// do some processing of the options
