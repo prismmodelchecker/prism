@@ -5,16 +5,17 @@
 #      various options to be passed in         #
 ################################################
 
+.SUFFIXES: .o .c .cc
+
 # Reminder: $@ = target, $* = target without extension, $< = dependency
 
-THIS_DIR = param
+THIS_DIR = cex
 PRISM_DIR_REL = ../..
 
-JAVA_FILES = $(wildcard *.java)
+JAVA_FILES_ALL = $(wildcard *.java)
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
 CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(CLASSES_DIR)/$(THIS_DIR)/%.class)
 
-#PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/lib/commons-math3-3.0.jar:$(THIS_DIR)/$(PRISM_DIR_REL)/lib/blas.jar:$(THIS_DIR)/$(PRISM_DIR_REL)/lib/lapack.jar:$(THIS_DIR)/$(PRISM_DIR_REL)/lib/xerbla.jar:$(THIS_DIR)/$(PRISM_DIR_REL)/lib/f2jutil.jar"
 PRISM_CLASSPATH = "$(THIS_DIR)/$(PRISM_DIR_REL)/$(CLASSES_DIR)$(CLASSPATHSEP)$(THIS_DIR)/$(PRISM_DIR_REL)/lib/*"
 
 default: all

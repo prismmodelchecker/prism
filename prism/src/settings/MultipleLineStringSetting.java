@@ -30,14 +30,7 @@ public class MultipleLineStringSetting extends Setting
 {
     private static MultipleLineStringRenderer renderer;
     private static MultipleLineStringEditor editor;
-    
-    static
-    {
-        renderer = new MultipleLineStringRenderer();
-        editor = new MultipleLineStringEditor();
-    }
-    
-    
+
     /** Creates a new instance of MultipleLineStringSetting */
 	public MultipleLineStringSetting(String name, String value, String comment, SettingOwner owner, boolean editableWhenMultiple)
     {
@@ -51,11 +44,17 @@ public class MultipleLineStringSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new MultipleLineStringEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new MultipleLineStringRenderer();
+        }
         return renderer;
     }
     

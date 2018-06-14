@@ -30,14 +30,7 @@ public class IntegerSetting extends Setting
 {
     private static IntegerRenderer renderer;
     private static IntegerEditor editor;
-    
-    static
-    {
-        renderer = new IntegerRenderer();
-        editor = new IntegerEditor();
-    }
-    
-    
+
     /** Creates a new instance of DoubleSetting */
 	public IntegerSetting(String name, Integer value, String comment, SettingOwner owner, boolean editableWhenMultiple)
     {
@@ -51,11 +44,17 @@ public class IntegerSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new IntegerEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new IntegerRenderer();
+        }
         return renderer;
     }
     

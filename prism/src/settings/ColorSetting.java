@@ -33,13 +33,7 @@ public class ColorSetting extends Setting
 {
 	private static ColorRenderer renderer;
 	private static ColorEditor editor;
-	
-	static
-	{
-		renderer = new ColorRenderer();
-		editor = new ColorEditor();
-	}
-	
+
 	/** Creates a new instance of ColorSetting */
 	public ColorSetting(String name, Color value, String comment, SettingOwner owner, boolean editableWhenMultiple)
 	{
@@ -54,11 +48,17 @@ public class ColorSetting extends Setting
 	
 	public SettingEditor getSettingEditor()
 	{
+		if (editor == null) {
+			editor = new ColorEditor();
+		}
 		return editor;
 	}
 	
 	public SettingRenderer getSettingRenderer()
 	{
+		if (renderer == null) {
+			renderer = new ColorRenderer();
+		}
 		return renderer;
 	}
 	

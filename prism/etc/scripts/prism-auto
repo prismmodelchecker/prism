@@ -14,17 +14,51 @@
 import os,sys,re,subprocess,signal,tempfile,functools,logging,time,platform
 from pipes import quote
 from optparse import OptionParser
+from threading import Timer
 
 #==================================================================================================
 # Global variables
 #==================================================================================================
 
 # statistics about test results
-testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0)
+testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, DUPLICATE = 0, TIMEOUT = 0)
 
 # colour coding for test results
 # for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 testColours = dict(SUCCESS = 32, FAILURE = 31, SKIPPED = 90, UNSUPPORTED = 34, WARNING = 33)
+
+# mapping from PRISM switch shortcuts to the full version (for canonicalisation of arguments)
+# to get a list of abbreviated settings in prism, run   prism --help | grep '(or '
+switchShortcuts = {
+                   # engines:
+                   '-ex':    '-explicit',
+                   '-m':     '-mtbdd',
+                   '-s':     '-sparse',
+                   '-h':     '-hybrid',
+                   # iteration/solver settings:
+                   '-pow':   '-power',
+                   '-pwr':   '-power',
+                   '-jac':   '-jacobi',
+                   '-gs' :   '-gaussseidel',
+                   '-bgs':   '-bgaussseidel',
+                   '-pgs':   '-pgaussseidel',
+                   '-bpgs':  '-bpgaussseidel',
+                   '-ii':    '-intervaliter',
+                   '-lp':    '-linprog',
+                   # epsilon related settings:
+                   '-rel':   '-relative',
+                   '-abs':   '-absolute',
+                   '-e':     '-epsilon',
+                   # other:
+                   '-ss':    '-steadystate',
+                   '-tr':    '-transient',
+                   '-pctl':  '-pf',
+                   '-csl':   '-pf',
+                   '-prop':  '-property',
+                   }
+
+# set of PRISM argument tuples that already ran
+alreadyRan = set()
 
 #==================================================================================================
 # Utility functions
@@ -271,6 +305,15 @@ def renameExports(prefix, args):
     else:
         return args
 
+
+#  Return True if there are any -export... switches
+
+def hasExportSwitches(args):
+    for i in range(len(args)-1):
+        if args[i].startswith("-export"):
+            return True
+    return False
+
 # Find all files that match any -export switch file argument
 # This takes into account that a .all extension corresponds to five different files
 # and that multiple reward structures will result in filenames extended with a number
@@ -350,6 +393,88 @@ def printColoured(colour, msg):
         print('\033[' + str(testColours[colour]) + 'm' + msg + '\033[0m')
     else:
         print(msg)
+    sys.stdout.flush()
+
+#
+# Given a switch (-xyz or --xyz), expand to full-length form
+# using the switchShortcuts mapping.
+# Switches can also have the form -xyz:foo=..., i.e., carrying
+# additional arguments; this is handled as well.
+# Return expanded switch or the original parameter, if not expanded.
+#
+def expandShortcutSwitch(s):
+    xtradash = ''
+    if (s.startswith('--')):
+        xtradash = '-'
+        s = s[1:]
+    # split off extra arguments after a :
+    l = s.split(':',1)
+    # continue with the actual switch name
+    s = l[0]
+    # get entry for s; otherwise, default value is s itself
+    s = switchShortcuts.get(s,s)
+    # add back extra dash, if necessary
+    s = xtradash + s
+    # add back :arg part, if necessary
+    if len(l) == 2:
+        s += ':' + l[1]
+    return s
+
+#
+# Given an argument list, expand short-form switches (-xyz or --xyz)
+# to their full-length form using the switchShortcuts mapping.
+# Returns processed argument list.
+#
+def expandShortcutsInArgs(args):
+    return [expandShortcutSwitch(x) for x in args]
+
+#
+# Given an argument list, remove conflicting settings,
+# e.g., if there are multiple switches for selecting
+# the PRISM engine, only keep the last one, i.e.,
+# the switch that PRISM will actually use.
+# Returns processed argument list.
+#
+def removeConflictingArgs(args, conflicting):
+    seen = False
+    result = []
+    for x in reversed(args):
+        if x in conflicting:
+            if not seen: result.append(x)
+            seen = True
+        else:
+            result.append(x)
+    result.reverse()
+    return list(result)
+
+#
+# Given an argument list, returns a (more or less)
+# canonical version:
+#  * Performs regularisation of --switch to -switch
+#  * Expands short-form switches to long-form version
+#    (if we know about them, see switchShortcuts mapping)
+#  * Removes conflicting switches for
+#     - PRISM engine, as well as -exact and -param setting
+#     - model type override
+#
+def canonicaliseArgs(args):
+    # canonicalise --switch to -switch
+    args = [ x[1:] if x.startswith('--') else x for x in args]
+    # expand the short cuts via switchShortcuts mapping
+    args = expandShortcutsInArgs(args)
+    # remove conflicting engine setting
+    engines = frozenset(['-explicit', '-hybrid', '-sparse', '-mtbdd'])
+    args = removeConflictingArgs(args, engines)
+    # remove conflicting model type overrides
+    args = removeConflictingArgs(args, frozenset(['-mdp', '-dtmc', '-ctmc']))
+    # handle exact / param switches
+    if '-exact' in args or '-param' in args:
+        # remove engines if we are in exact or param mode (normal engines are irrelevant)
+        args = [x for x in args if x not in engines ]
+    if '-param' in args:
+        # remove -exact if we are in param mode (param takes precedence)
+        args = [x for x in args if x != '-exact' ]
+    return args
 
 #==================================================================================================
 # Benchmarking
@@ -358,6 +483,14 @@ def printColoured(colour, msg):
 # Run PRISM with a given list of command-line args
 
 def runPrism(args, dir=""):
+    # check if we can skip
+    if options.skipDuplicates:
+        canonicalArgs = canonicaliseArgs(args)
+        if (tuple(canonicalArgs) in alreadyRan):
+            incrementTestStat('DUPLICATE')
+            return
+        alreadyRan.add(tuple(canonicalArgs))
+
     # keep track if we need to cleanup the log file after use
     cleanupLogFile = False
     if options.test:
@@ -382,11 +515,12 @@ def runPrism(args, dir=""):
         print(' '.join(prismArgs))
         return
     print(' '.join(prismArgs))
+    sys.stdout.flush()
     if options.logDir:
         logFile = os.path.join(options.logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
         prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = subprocess.Popen(prismArgs).wait()
+        exitCode = execute(prismArgs)
         #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
     elif options.test or options.ddWarnings:
         # create logfile
@@ -404,9 +538,9 @@ def runPrism(args, dir=""):
         # we want cleanup when we are done, as this is a real temporary file
         cleanupLogFile = True
         prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = subprocess.Popen(prismArgs).wait()
+        exitCode = execute(prismArgs)
     else:
-        exitCode = subprocess.Popen(prismArgs).wait()
+        exitCode = execute(prismArgs)
     # Extract DD reference count warnings
     if options.ddWarnings:
         for line in open(logFile, 'r').readlines():
@@ -427,6 +561,7 @@ def runPrism(args, dir=""):
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
                 print(line.rstrip())
+                sys.stdout.flush()
     if options.test and not options.verboseTest and exitCode != 0:
         # failure, we don't want to cleanup the log (if it was a temporary file)
         # so that the user can inspect it
@@ -442,6 +577,44 @@ def runPrism(args, dir=""):
         # logFile was a temporary file and we'd like to clean it up
         os.remove(logFile)
 
+# call-back function for expiration of the execute timer thread
+def timeout(proc, flag):
+    printColoured('FAILURE', '\nTimeout (' + str(options.timeout) + 's)')
+    flag.append(True)
+    proc.kill()
+
+# execute the given process, optionally setting a timeout
+def execute(args):
+    if options.timeout is not None:
+        # run program
+        proc = subprocess.Popen(args)
+        # list to serve as indicator that a timeout has occurred
+        flag = []
+        # setup timer to call timeout function with proc and flag as arguments
+        timer = Timer(float(options.timeout), timeout, [proc, flag])
+        try:
+            # start time and wait for process to finish
+            timer.start()
+            exitCode = proc.wait()
+            # here, either the process quit by itself (flag is empty)
+            # or was killed in the timeout function (flag contains one True element)
+            hadTimeout = bool(flag)   # timeout = flag is not empty -> True
+            if hadTimeout:
+                incrementTestStat('TIMEOUT')
+                # in nailgun mode, we have to restart the nailgun server,
+                # as the VM can be in an inconsistent state
+                if options.nailgun: restartNailGunServer()
+                # if we had a timeout, fake exitCode of 0
+                return 0
+            return exitCode
+        finally:
+            timer.cancel()
+    else:
+        proc = subprocess.Popen(args)
+        exitCode = proc.wait()
+        return exitCode
+
+
 # Print a testing-related message, colour coding if needed
 
 def printTestResult(msg):
@@ -449,7 +622,8 @@ def printTestResult(msg):
     msg = str.rstrip(msg)
     countTestResult(msg)
     if not isColourEnabled():
-        print(msg);
+        print(msg)
+        sys.stdout.flush()
         return
     # Coloured-coded...
     if 'Error:' in msg or 'FAIL' in msg:
@@ -464,6 +638,7 @@ def printTestResult(msg):
         printColoured('UNSUPPORTED', msg)
     else:
         print(msg)
+        sys.stdout.flush()
 
 def incrementTestStat(stat):
     global testStats
@@ -480,6 +655,10 @@ def printTestStatistics():
         printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
         printColoured('UNSUPPORTED', ' Unsupported:  ' + str(testStats['UNSUPPORTED']))
         printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
+        if options.skipDuplicates:
+            printColoured('SKIPPED',     ' Skipped dup.: ' + str(testStats['DUPLICATE']) + '  (due to --skip-duplicate-runs)')
+        if options.timeout:
+            printColoured('FAILURE',     ' Timeouts:     ' + str(testStats['TIMEOUT']))
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
@@ -529,6 +708,7 @@ def verifyAndCleanupExports(outFiles, exportPrefix):
                 msg = msg + "FAIL (" + os.path.basename(expFile) + " does not match)"
                 print("To see difference, run:")
                 print("diff " + outFile + " " + expFile)
+                sys.stdout.flush()
                 result = False
         else:
             if options.noExportTests:
@@ -551,6 +731,9 @@ def benchmark(file, args, dir=""):
     # Expand input/output files to full paths
     args = expandFilenames(args, dir)
 
+    if options.skipExportRuns and hasExportSwitches(args):
+        return
+
     # Determine which out files apply to this benchmark from the -export switches (if required)
     if not options.echo and options.test:
         outFiles = getExpectedOutFilesFromArgs(args)
@@ -570,7 +753,10 @@ def benchmark(file, args, dir=""):
     modelFileArg = [file] if (file != "") else []
 
     # Loop through benchmark options, if required
-    if options.bmFile and os.path.isfile(os.path.join(options.bmFile)):
+    if options.bmFile:
+        if not os.path.isfile(os.path.join(options.bmFile)):
+            print("Cannot read arguments from non-existing file: " + os.path.join(options.bmFile))
+            sys.exit(1)
         argsLists = getArgsListsFromFile(options.bmFile)
         for bmArgs in argsLists:
             runPrism(modelFileArg + args + bmArgs, dir)
@@ -750,8 +936,10 @@ def benchmarkPropListFile(propListFile):
 # We first try to stop an existing server (which should fail quickly if there is none running)
 def restartNailGunServer():
     print("Stopping existing nailgun server, if it's running...")
+    sys.stdout.flush()
     subprocess.Popen([options.ngprism, "stop"]).wait()
     print("Starting nailgun server...")
+    sys.stdout.flush()
     os.system(options.prismExec + " -ng &")
     time.sleep(0.5)
 
@@ -792,13 +980,16 @@ parser.add_option("-t", "--test", action="store_true", dest="test", default=Fals
 parser.add_option("--verbose-test", action="store_true", dest="verboseTest", default=False, help="Run in verbose test mode (implies --test)")
 parser.add_option("-w", "--show-warnings", action="store_true", dest="showWarnings", default=False, help="Show warnings (as well as errors) when in test mode")
 parser.add_option("--nailgun", action="store_true", dest="nailgun", default=False, help="Run PRISM in Nailgun mode")
-parser.add_option("--ngprism", dest="ngprism", metavar="FILE", default="ngprism", help="Specify the location of ngprism (for Nailgun mode)")
+parser.add_option("--ngprism", dest="ngprism", metavar="FILE", default=None, help="Specify the location of ngprism (for Nailgun mode) [default: derive from --prog setting]")
 parser.add_option("--test-all", action="store_true", dest="testAll", default=False, help="In test mode, don't stop after an error")
 parser.add_option("--no-renaming", action="store_true", dest="noRenaming", default=False, help="Don't rename files to be exported")
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 parser.add_option("--models-filename", dest="modelsFilename", metavar="X", default="models", help="Read in list of models/parameters for a directory from file X, if present [default=models]")
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
+parser.add_option("--skip-export-runs", action="store_true", dest="skipExportRuns", default=False, help="Skip all runs having exports")
+parser.add_option("--skip-duplicate-runs", action="store_true", dest="skipDuplicates", default=False, help="Skip PRISM runs which have the same arguments as an earlier run (with some heuristics to detect equivalent arguments)")
+parser.add_option("--timeout", dest="timeout", metavar="N", default=None, help='Timeout for each PRISM run (examples values for N: 5 / 5s for seconds, 5m / 5h for minutes / hours)')
 parser.add_option("--dd-warnings", action="store_true", dest="ddWarnings", default=False, help="Print the DD reference count warnings")
 parser.add_option("--colour", dest="colourEnabled", metavar="X", type="choice", choices=["yes","no","auto"], default="auto", help="Whether to colour test results: yes, no, auto (yes iff in terminal mode) [default=auto]")
 (options, args) = parser.parse_args()
@@ -810,10 +1001,34 @@ if options.debug:
 if options.verboseTest:
     # --verbose-test implies --test
     vars(options)['test'] = True
+if options.timeout:
+    # handle time units
+    mult = 1.0
+    if options.timeout.endswith('s'):
+        vars(options)['timeout'] = options.timeout[0:-1]  # strip 's'
+    elif options.timeout.endswith('m'):
+        vars(options)['timeout'] = options.timeout[0:-1]
+        mult =  60.0;
+    elif options.timeout.endswith('h'):
+        vars(options)['timeout'] = options.timeout[0:-1]
+        mult = 3600.0;
+    try:
+        vars(options)['timeout'] = float(options.timeout) * mult
+    except ValueError:
+        print('Illegal parameter value for timeout parameter')
+        sys.exit(1)
 if options.logDir and not os.path.isdir(options.logDir):
     print("Log directory \"" + options.logDir + "\" does not exist")
     sys.exit(1)
 if options.nailgun:
+    if options.ngprism is None:
+        # derive ngprism location from the --prog setting
+        dir = os.path.dirname(options.prismExec)
+        base = os.path.basename(options.prismExec)
+        # we just replace the base part of prismExec by ngprism and hope for the best...
+        base = 'ngprism'
+        options.ngprism = os.path.join(dir, base)
+        print("Derived executable for nailgun server: " + options.ngprism)
     if options.echo or options.echoFull:
         print(options.prismExec + " -ng &")
     else:

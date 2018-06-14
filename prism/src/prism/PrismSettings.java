@@ -627,7 +627,27 @@ public class PrismSettings implements Observer
 			listener.notifySettings(this);
 		}
 	}
-	
+
+	/**
+	 * Get the default location of the settings file.
+	 * <br>
+	 * There is a legacy location (filename '.prism' in the user's
+	 * home directory), and a modern location, which depends on the
+	 * operating system:
+	 * <ul>
+	 * <li>For macOS, the location is $HOME/Library/Preferences/prism.settings</li>
+	 * <li>For Linux, the location depends on the environment variable $XDG_CONFIG_HOME;
+	 * if set, the location is $XDG_CONFIG_HOME/prism.settings;
+	 * if not, it's $HOME/.config/prism.settings</li>
+	 * <li>On Windows, only the legacy location is supported</li>
+	 * </ul>
+	 * <br>
+	 * If the legacy settings file exists, this method returns that location.
+	 * Otherwise, the modern location is returned.
+	 * <br>
+	 * To support different settings files in derived tools (e.g. prism-games),
+	 * the filename is derived from the tool name (see Prism.getToolName()).
+	 */
 	public File getLocationForSettingsFile()
 	{
 		String toolName = Prism.getToolName().toLowerCase();
@@ -676,9 +696,24 @@ public class PrismSettings implements Observer
 	
 	public synchronized void saveSettingsFile(File file) throws PrismException
 	{
-		try
-		{
-			FileWriter out = new FileWriter(file);
+		// first, we ensure the directories for the file that don't exist yet
+		// are created
+		File parent = null;
+		try {
+			parent = file.getAbsoluteFile().getParentFile();
+			if (parent != null && !parent.exists()) {
+				parent.mkdirs();
+			}
+		} catch (Exception e) {
+			if (parent != null) {
+				throw new PrismException("Error creating required directories (" + parent + ") for file " + file + ": " +e.getMessage());
+			} else {
+				throw new PrismException("Error creating required directories for file " + file + ": " +e.getMessage());
+			}
+		}
+
+		// and now, we write the settings to file
+		try (FileWriter out = new FileWriter(file)) {
 			
 			out.write("# " + Prism.getToolName() + " settings file\n");
 			out.write("# (created by version "+Prism.getVersion()+")\n");
@@ -853,7 +888,7 @@ public class PrismSettings implements Observer
 		// If necessary, resave the preferences file
 		if (resaveNeeded) {
 			try {
-				saveSettingsFile();
+				saveSettingsFile(file);
 			}
 			catch (PrismException e) {
 			}

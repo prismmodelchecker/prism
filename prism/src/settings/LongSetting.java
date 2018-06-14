@@ -30,14 +30,7 @@ public class LongSetting extends Setting
 {
     private static LongRenderer renderer;
     private static LongEditor editor;
-    
-    static
-    {
-        renderer = new LongRenderer();
-        editor = new LongEditor();
-    }
-    
-    
+
     /** Creates a new instance of LongSetting */
 	public LongSetting(String name, Long value, String comment, SettingOwner owner, boolean editableWhenMultiple)
     {
@@ -51,11 +44,17 @@ public class LongSetting extends Setting
     
     public SettingEditor getSettingEditor()
     {
+        if (editor == null) {
+            editor = new LongEditor();
+        }
         return editor;
     }
     
     public SettingRenderer getSettingRenderer()
     {
+        if (renderer == null) {
+            renderer = new LongRenderer();
+        }
         return renderer;
     }
     
