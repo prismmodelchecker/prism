@@ -49,6 +49,7 @@ import automata.DA;
 import automata.LTL2DA;
 import dv.DoubleVector;
 
+
 /**
  * Multi-objective model checking functionality
  */
@@ -837,11 +838,17 @@ public class MultiObjModelChecker extends PrismComponent
 		JDD.Deref(a);
 
 		// Disable adversary generation (if it was switched on) for these initial computations
-		PrismNative.setExportAdv(Prism.EXPORT_ADV_NONE);
+		//PrismNative.setExportAdv(Prism.EXPORT_ADV_NONE);
 
 		for (int i = 0; i < dimProb; i++) {
 			double[] result = null;
 
+			// If adversary generation is enabled, we amend the filename so that multiple adversaries can be exported
+			String advFileName = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
+			if (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
+				PrismNative.setExportAdvFilename(PrismUtils.addSuffixToFilename(advFileName, "pre" + (i + 1)));
+			}
+			
 			// Optimise in direction of probability objective i
 			Point direction = new Point(dimProb + dimReward);
 			direction.setCoord(i, 1);
@@ -882,11 +889,18 @@ public class MultiObjModelChecker extends PrismComponent
 			*/
 			targetPoint = new Point(result);
 			mainLog.println("Computed point: " + targetPoint);
+			
 			pointsForInitialTile.add(targetPoint);
 		}
 
 		for (int i = 0; i < dimReward; i++) {
 
+			// If adversary generation is enabled, we amend the filename so that multiple adversaries can be exported
+			String advFileName = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
+			if (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
+				PrismNative.setExportAdvFilename(PrismUtils.addSuffixToFilename(advFileName, "pre" + (dimProb + i + 1)));
+			}
+			
 			double[] result = null;
 			// Optimise in direction of reward objective i
 			Point direction = new Point(dimProb + dimReward);
@@ -918,9 +932,10 @@ public class MultiObjModelChecker extends PrismComponent
 					result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 							modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), probDoubleVectors, probStepBounds,
 							rewSparseMatrices, direction.getCoords(), rewardStepBounds);
+					
+
 				}
 			}
-
 			numberOfPoints++;
 			targetPoint = new Point(result);
 			mainLog.println("Computed point: " + targetPoint);
@@ -932,7 +947,7 @@ public class MultiObjModelChecker extends PrismComponent
 		}
 
 		// Reinstate temporarily-disabled adversary generation setting
-		PrismNative.setExportAdv(exportAdvSetting);
+		//PrismNative.setExportAdv(exportAdvSetting);
 
 		if (verbose)
 			mainLog.println("Points for the initial tile: " + pointsForInitialTile);
@@ -977,6 +992,10 @@ public class MultiObjModelChecker extends PrismComponent
 
 			numberOfPoints++;
 
+			
+			
+			
+			
 			//collect the numbers obtained from methods executed above.
 			Point newPoint = new Point(result);
 
@@ -1185,6 +1204,7 @@ public class MultiObjModelChecker extends PrismComponent
 						rewSparseMatrices, weights, rewardStepBounds);
 			}
 			numberOfPoints++;
+			
 
 			//collect the numbers obtained from methods executed above.
 			Point newPoint = new Point(result);
