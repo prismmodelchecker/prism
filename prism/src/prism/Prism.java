@@ -3050,6 +3050,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
 			mainLog.println("Property constants: " + definedPFConstants);
 
+		if (currentModelType.nondeterministic() && currentModelType.removeNondeterminism() != currentModelType) {
+			mainLog.printWarning("For simulation, nondeterminism in " + currentModelType + " is resolved uniformly (resulting in " + currentModelType.removeNondeterminism() + ").");
+		}
+
 		// Check that property is valid for this model type
 		expr.checkValid(currentModelType);
 
@@ -3093,6 +3097,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("Model constants: " + currentDefinedMFConstants);
 		if (definedPFConstants != null && definedPFConstants.getNumValues() > 0)
 			mainLog.println("Property constants: " + definedPFConstants);
+
+		if (currentModelType.nondeterministic() && currentModelType.removeNondeterminism() != currentModelType) {
+			mainLog.printWarning("For simulation, nondeterminism in " + currentModelType + " is resolved uniformly (resulting in " + currentModelType.removeNondeterminism() + ").");
+		}
 
 		// Check that properties are valid for this model type
 		for (Expression expr : exprs)
