@@ -3076,7 +3076,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 
 		// Check that property is valid for this model type
-		expr.checkValid(currentModelType);
+		expr.checkValid(currentModelType.removeNondeterminism());
 
 		// Do simulation
 		res = getSimulator().modelCheckSingleProperty(currentModulesFile, propertiesFile, expr, initialState, maxPathLength, simMethod);
@@ -3125,7 +3125,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Check that properties are valid for this model type
 		for (Expression expr : exprs)
-			expr.checkValid(currentModelType);
+			expr.checkValid(currentModelType.removeNondeterminism());
 
 		// Do simulation
 		res = getSimulator().modelCheckMultipleProperties(currentModulesFile, propertiesFile, exprs, initialState, maxPathLength, simMethod);
