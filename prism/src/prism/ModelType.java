@@ -72,6 +72,12 @@ public enum ModelType
 		{
 			return RATE;
 		}
+
+		@Override
+		ModelType removeNondeterminism()
+		{
+			return CTMC;
+		}
 	},
 	DTMC("discrete-time Markov chain") {
 		@Override
@@ -92,9 +98,19 @@ public enum ModelType
 		{
 			return NEITHER;
 		}
+
+		@Override
+		ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
 	},
 	MDP("Markov decision process") {
-		
+		@Override
+		ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
 	},
 	PTA("probabilistic timed automaton") {
 		@Override
@@ -109,12 +125,24 @@ public enum ModelType
 		{
 			return true;
 		}
+
+		@Override
+		ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
 	},
 	SMG("stochastic multi-player game") {
 		@Override
 		public boolean multiplePlayers()
 		{
 			return true;
+		}
+
+		@Override
+		ModelType removeNondeterminism()
+		{
+			return DTMC;
 		}
 	};
 
@@ -192,6 +220,19 @@ public enum ModelType
 	public String probabilityOrRate()
 	{
 		return PROBABILITY;
+	}
+
+	/**
+	 * Return the model type that results from removing the nondeterminism
+	 * in this model type.
+	 * <br>
+	 * If there is no nondeterminism (or the removal of nondeterminism is not supported),
+	 * returns the same model type.
+	 */
+	ModelType removeNondeterminism()
+	{
+		// default: same model type
+		return this;
 	}
 
 	public static ModelType parseName(String name)
