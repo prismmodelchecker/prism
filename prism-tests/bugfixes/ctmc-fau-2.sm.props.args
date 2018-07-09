@@ -1,0 +1,3 @@
+-const T=0.2:0.2:1 -transientmethod unif
+-const T=0.2:0.2:1 -transientmethod fau
+
