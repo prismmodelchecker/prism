@@ -1271,11 +1271,11 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 						for (int j = 0; j < numChoices; j++) {
 							int numTransitions = modelGen.getNumTransitions(j);
 							for (int k = 0; k < numTransitions; k++) {
-								String tAction = modelGen.getTransitionAction(j, k).toString();
+								Object tAction = modelGen.getTransitionAction(j, k);
 								if (tAction == null) {
 									tAction = "";
 								}
-								if (tAction.equals(action)) {
+								if (tAction.toString().equals(action)) {
 									sumReward += reward * modelGen.getTransitionProbability(j, k);
 								}
 							}
