@@ -557,20 +557,21 @@ def runPrism(args, dir=""):
                 else:
                     # We don't print it, but we count it
                     countTestResult(line)
+            elif re.match('Error:', line):
+                printTestResult(line)
             elif options.verboseTest:
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
                 print(line.rstrip())
                 sys.stdout.flush()
-    if options.test and not options.verboseTest and exitCode != 0:
-        # failure, we don't want to cleanup the log (if it was a temporary file)
-        # so that the user can inspect it
-        cleanupLogFile = False
-        for line in open(logFile, 'r').readlines():
-            if re.match('Error:', line):
-                printTestResult(line)
-        print("To see log file, run:")
-        print("edit " + logFile)
+    if options.test and exitCode != 0:
+        # failure
+        if not options.verboseTest:
+            # we don't want to cleanup the log (if it was a temporary file)
+            # so that the user can inspect it
+            cleanupLogFile = False
+            print("To see log file, run:")
+            print("edit " + logFile)
         if not options.testAll:
             closeDown(1)
     if cleanupLogFile:
