@@ -167,7 +167,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 	@Override
 	public boolean needsBoundedNumSteps()
 	{
-		// Always bounded (although we don't know the exact num steps, just the time bound)
-		return true;
+		// Bounded if there is a non-finite upper-bound (although we don't know the exact num steps, just the time bound)
+		return ub < Double.POSITIVE_INFINITY;
 	}
 }

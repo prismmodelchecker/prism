@@ -137,7 +137,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 	@Override
 	public boolean needsBoundedNumSteps()
 	{
-		// Always bounded
-		return true;
+		// Bounded if there is an upper bound
+		return haveUpperBound;
 	}
 }
