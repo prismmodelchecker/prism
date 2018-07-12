@@ -557,12 +557,14 @@ def runPrism(args, dir=""):
                 else:
                     # We don't print it, but we count it
                     countTestResult(line)
-            elif re.match('Error:', line):
-                printTestResult(line)
             elif options.verboseTest:
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
-                print(line.rstrip())
+                if re.match('Error:', line):
+                    # highlight lines with error messages
+                    printColoured('FAILURE', line.rstrip())
+                else:
+                    print(line.rstrip())
                 sys.stdout.flush()
     if options.test and exitCode != 0:
         # failure
@@ -570,8 +572,15 @@ def runPrism(args, dir=""):
             # we don't want to cleanup the log (if it was a temporary file)
             # so that the user can inspect it
             cleanupLogFile = False
+            for line in open(logFile, 'r').readlines():
+                if re.match('Error:', line):
+                    printTestResult(line)
             print("To see log file, run:")
             print("edit " + logFile)
+        else:
+            # in verbose test mode, print extra info and increment failure counter
+            printColoured('FAILURE', "\n[Exit code: " + str(exitCode) + "]")
+            incrementTestStat('FAILURE')
         if not options.testAll:
             closeDown(1)
     if cleanupLogFile:
