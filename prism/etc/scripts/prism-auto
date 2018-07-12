@@ -667,7 +667,7 @@ def printTestStatistics():
         printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
         if options.skipDuplicates:
             printColoured('SKIPPED',     ' Skipped dup.: ' + str(testStats['DUPLICATE']) + '  (due to --skip-duplicate-runs)')
-        if options.timeout:
+        if options.timeout is not None:
             printColoured('FAILURE',     ' Timeouts:     ' + str(testStats['TIMEOUT']))
 
 def countTestResult(msg):
