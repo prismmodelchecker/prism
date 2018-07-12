@@ -407,6 +407,10 @@ make_dirs:
 	  (cd $(LIB_DIR) && \
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
+# On Windows, convert the generated JNI headers using dos2unix
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+		(dos2unix include/jni/*.h) \
+	fi;
 
 # Run a single test case
 test:
