@@ -732,6 +732,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propList.deleteAll();
 		consTable.newList();
 		labTable.newList();
+		tabToFront();
 		setModified(false);
 		setActiveFile(null);
 		doEnables();
