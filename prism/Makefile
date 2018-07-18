@@ -559,7 +559,7 @@ clean: checks
 
 celan: clean
 
-clean_all: checks clean_cudd clean
+clean_all: checks clean_cudd clean_ext clean
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && $(MAKE) distclean)
