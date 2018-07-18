@@ -1661,6 +1661,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 							propList = new GUIPropertiesList(getPrism(), this);
 							propList.addListSelectionListener(this);
 							propList.addContainerListener(this);
+							propList.setToolTipText("Double-click or right-click here to create a new property");
 							propScroll.setViewportView(propList);
 						}
 						JScrollPane comScroll = new JScrollPane();
@@ -1680,6 +1681,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 					JSplitPane bottomLeft = new JSplitPane();
 					{
 						constantsScroll = new JScrollPane();
+						constantsScroll.setToolTipText("Double-click or right-click here to create a new constant");
 						{
 							consTable = new GUIPropConstantList(this);
 							consTable.setBackground(Color.white);
@@ -1689,6 +1691,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 							constantsScroll.setBorder(new TitledBorder("Constants"));
 						}
 						labelsScroll = new JScrollPane();
+						labelsScroll.setToolTipText("Double-click or right-click here to create a new label");
 						{
 							labTable = new GUIPropLabelList(this);
 							labTable.setBackground(Color.white);
