@@ -132,7 +132,6 @@ CPP = g++
 LD = $(CPP)
 JAVAC = javac
 JAVACC = javacc
-JAVAH = javah
 
 ##############
 # Flags etc. #
@@ -341,7 +340,6 @@ parser:
 	CLASSES_DIR="$(CLASSES_DIR)" \
 	JAVAC="$(JAVAC) $(JFLAGS)" \
 	JAVACC="$(JAVACC)" \
-	JAVAH="$(JAVAH) $(JFLAGS)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
 
 extpackages: checks
@@ -390,7 +388,6 @@ make_dirs:
 	  LD="$(LD)" \
 	  JAVAC="$(JAVAC) $(JFLAGS)" \
 	  JAVACC="$(JAVACC)" \
-	  JAVAH="$(JAVAH) $(JFLAGS)" \
 	  CFLAGS="$(CFLAGS)" \
 	  CPPFLAGS="$(CPPFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
