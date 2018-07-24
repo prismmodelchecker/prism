@@ -1376,7 +1376,7 @@ public class Modules2MTBDD
 			if (match) {
 				// translate guard
 				guardDDs[l] = translateExpression(command.getGuard());
-				guardDDs[l] = JDD.Apply(JDD.TIMES, guardDDs[l], range.copy());
+				guardDDs[l] = JDD.Times(guardDDs[l], range.copy());
 				// check for false guard
 				if (guardDDs[l].equals(JDD.ZERO)) {
 					// display a warning (unless guard is "false", in which case was probably intentional
@@ -1391,7 +1391,7 @@ public class Modules2MTBDD
 				else {
 					// translate updates and do some checks on probs/rates
 					upDDs[l] = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDDs[l]);
-					upDDs[l] = JDD.Apply(JDD.TIMES, upDDs[l], guardDDs[l].copy());
+					upDDs[l] = JDD.Times(upDDs[l], guardDDs[l].copy());
 					// are all probs/rates non-negative?
 					dmin = JDD.FindMin(upDDs[l]);
 					if (dmin < 0) {
@@ -1516,7 +1516,7 @@ public class Modules2MTBDD
 			// add this command's guard to 'covered'
 			covered = JDD.Or(covered, guardDDs[i].copy());
 			// add transitions
-			transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, guardDDs[i].copy(), upDDs[i].copy()));
+			transDD = JDD.Plus(transDD, JDD.Times(guardDDs[i].copy(), upDDs[i].copy()));
 		}
 		
 		// store result
@@ -1553,7 +1553,7 @@ public class Modules2MTBDD
 			// add this command's guard to 'covered'
 			covered = JDD.Or(covered, guardDDs[i].copy());
 			// add transitions
-			transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, guardDDs[i].copy(), upDDs[i].copy()));
+			transDD = JDD.Plus(transDD, JDD.Times(guardDDs[i].copy(), upDDs[i].copy()));
 		}
 		
 		// store result
@@ -1588,7 +1588,7 @@ public class Modules2MTBDD
 		// find overlaps in guards by adding them all up
 		overlaps = JDD.Constant(0);
 		for (i = 0; i < numCommands; i++) {
-			overlaps = JDD.Apply(JDD.PLUS, overlaps, guardDDs[i].copy());
+			overlaps = JDD.Plus(overlaps, guardDDs[i].copy());
 			// compute bdd of all guards at same time
 			covered = JDD.Or(covered, guardDDs[i].copy());
 		}
@@ -1612,7 +1612,7 @@ public class Modules2MTBDD
 			// add up dds for all commands
 			for (i = 0; i < numCommands; i++) {
 				// add up transitions
-				transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, guardDDs[i].copy(), upDDs[i].copy()));
+				transDD = JDD.Plus(transDD, JDD.Times(guardDDs[i].copy(), upDDs[i].copy()));
 			}
 			compDDs.guards = covered;
 			compDDs.trans = transDD;
@@ -1674,7 +1674,7 @@ public class Modules2MTBDD
 						// if some will fit in...
 						if (!tmp3.equals(JDD.ZERO)) {
 							frees[k] = JDD.And(frees[k], JDD.Not(tmp3.copy()));
-							transDDbits[k] = JDD.Apply(JDD.PLUS, transDDbits[k], JDD.Apply(JDD.TIMES, tmp3.copy(), upDDs[j].copy()));
+							transDDbits[k] = JDD.Plus(transDDbits[k], JDD.Times(tmp3.copy(), upDDs[j].copy()));
 						}
 						// take out the bit just put in this choice
 						tmp2 = JDD.And(tmp2, JDD.Not(tmp3));
@@ -1690,12 +1690,12 @@ public class Modules2MTBDD
 			// now add the nondet. choices for this value of i
 			for (j = 0; j < i; j++) {
 				tmp = JDD.SetVectorElement(JDD.Constant(0), ddChoiceVarsUsed, j, 1);
-				transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, tmp, transDDbits[j]));
+				transDD = JDD.Plus(transDD, JDD.Times(tmp, transDDbits[j]));
 				JDD.Deref(frees[j]);
 			}
 			
 			// take the i bits out of 'overlaps'
-			overlaps = JDD.Apply(JDD.TIMES, overlaps, JDD.Not(equalsi));
+			overlaps = JDD.Times(overlaps, JDD.Not(equalsi));
 		}
 		JDD.Deref(overlaps);
 		
@@ -1737,7 +1737,7 @@ public class Modules2MTBDD
 			p = u.getProbability(i);
 			if (p == null) p = Expression.Double(1.0);
 			pdd = translateExpression(p);
-			udd = JDD.Apply(JDD.TIMES, udd, pdd);
+			udd = JDD.Times(udd, pdd);
 			// check (again) for zero update
 			if (!warned && udd.equals(JDD.ZERO)) {
 				// Use a PrismLangException to get line numbers displayed
@@ -1745,7 +1745,7 @@ public class Modules2MTBDD
 				msg += " of module \"" + moduleNames[m] + "\" doesn't do anything";
 				mainLog.printWarning(new PrismLangException(msg, u.getUpdate(i)).getMessage());
 			}
-			dd = JDD.Apply(JDD.PLUS, dd, udd);
+			dd = JDD.Plus(dd, udd);
 		}
 		
 		return dd;
@@ -1794,20 +1794,20 @@ public class Modules2MTBDD
 				tmp1 = JDD.SetVectorElement(tmp1, varDDColVars[v], j-l, j);
 			}
 			tmp2 = translateExpression(c.getExpression(i));
-			tmp2 = JDD.Apply(JDD.TIMES, tmp2, guard.copy());
+			tmp2 = JDD.Times(tmp2, guard.copy());
 			cl = JDD.Apply(JDD.EQUALS, tmp1, tmp2);
-			cl = JDD.Apply(JDD.TIMES, cl, guard.copy());
+			cl = JDD.Times(cl, guard.copy());
 			// filter out bits not in range
-			cl = JDD.Apply(JDD.TIMES, cl, varColRangeDDs[v].copy());
-			cl = JDD.Apply(JDD.TIMES, cl, range.copy());
-			dd = JDD.Apply(JDD.TIMES, dd, cl);
+			cl = JDD.Times(cl, varColRangeDDs[v].copy());
+			cl = JDD.Times(cl, range.copy());
+			dd = JDD.Times(dd, cl);
 		}
 		// if a variable from this module or a global variable
 		// does not appear in this update assume it does not change value
 		// so multiply by its identity matrix
 		for (i = 0; i < numVars; i++) {	
 			if ((varList.getModule(i) == m || varList.getModule(i) == -1) && !varsUsed[i]) {
-				dd = JDD.Apply(JDD.TIMES, dd, varIdentities[i].copy());
+				dd = JDD.Times(dd, varIdentities[i].copy());
 			}
 		}
 		
@@ -1864,7 +1864,7 @@ public class Modules2MTBDD
 				synch = rs.getSynch(i);
 				if (synch == null) {
 					// restrict rewards to relevant states
-					item = JDD.Apply(JDD.TIMES, states, rewards);
+					item = JDD.Times(states, rewards);
 					// check for infinite/NaN/negative rewards
 					double dmin = JDD.FindMin(item);
 					double dmax = JDD.FindMax(item);
@@ -1887,7 +1887,7 @@ public class Modules2MTBDD
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
 					// add to state rewards
-					stateRewards[j] = JDD.Apply(JDD.PLUS, stateRewards[j], item);
+					stateRewards[j] = JDD.Plus(stateRewards[j], item);
 				}
 				
 				// second case: item corresponds to transition rewards
@@ -1908,9 +1908,9 @@ public class Modules2MTBDD
 						item = compDDs.trans.copy();
 					}
 					// restrict to relevant states
-					item = JDD.Apply(JDD.TIMES, item, states);
+					item = JDD.Times(item, states);
 					// multiply by reward values
-					item = JDD.Apply(JDD.TIMES, item, rewards);
+					item = JDD.Times(item, rewards);
 					// check for infinite/NaN/negative rewards
 					double dmin = JDD.FindMin(item);
 					double dmax = JDD.FindMax(item);
@@ -1933,7 +1933,7 @@ public class Modules2MTBDD
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
 					// add result to rewards
-					compDDs.rewards[j] = JDD.Apply(JDD.PLUS, compDDs.rewards[j], item);
+					compDDs.rewards[j] = JDD.Plus(compDDs.rewards[j], item);
 				}
 			}
 		}
