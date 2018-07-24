@@ -1521,9 +1521,13 @@ public class Modules2MTBDD
 		return new CommandDDs(guardDD, upDD);
 	}
 
-	// go thru guard/updates dds for all commands of a prob. module and combine
-	// also check for any guard overlaps, etc...
-	
+	/**
+	 * Go thru guard/updates dds for all commands of a prob. module and combine.
+	 * Also check for any guard overlaps, etc...
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param commandsDDs array of command dds (guard and updates)
+	 */
 	private ComponentDDs combineCommandsProb(int m, CommandDDs[] commandsDDs)
 	{
 		ComponentDDs compDDs;
@@ -1570,8 +1574,12 @@ public class Modules2MTBDD
 		return compDDs;
 	}
 
-	// go thru guard/updates dds for all commands of a stoch. module and combine
-	
+	/**
+	 * Go thru guard/updates dds for all commands of a stoch. module and combine.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param commandsDDs array of command dds (guard and updates)
+	 */
 	private ComponentDDs combineCommandsStoch(int m, CommandDDs[] commandsDDs)
 	{
 		ComponentDDs compDDs;
@@ -1611,10 +1619,15 @@ public class Modules2MTBDD
 		return compDDs;
 	}
 
-	// go thru guard/updates dds for all commands of a non-det. module,
-	// work out guard overlaps and sort out non determinism accordingly
-	// (non recursive version)
-	
+	/**
+	 * Go thru guard/updates dds for all commands of a non-det. module,
+	 * work out guard overlaps and sort out non determinism accordingly.
+	 * (non recursive version)
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param commandsDDs array of command dds (guard and updates)
+	 * @param synchMin the minimal synch variable that can be used for this module
+	 */
 	private ComponentDDs combineCommandsNondet(int m, CommandDDs[] commandsDDs, int synchMin) throws PrismException
 	{
 		ComponentDDs compDDs;
