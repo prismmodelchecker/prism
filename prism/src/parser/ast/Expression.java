@@ -176,7 +176,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public Object evaluate() throws PrismLangException
 	{
-		return evaluate(new EvaluateContextValues(null, null));
+		return evaluate(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -186,7 +186,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public Object evaluate(Values constantValues) throws PrismLangException
 	{
-		return evaluate(new EvaluateContextValues(constantValues, null));
+		return evaluate(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -268,7 +268,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public int evaluateInt() throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextValues(null, null));
+		return evaluateInt(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -279,7 +279,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public int evaluateInt(Values constantValues) throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextValues(constantValues, null));
+		return evaluateInt(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -372,7 +372,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public double evaluateDouble() throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextValues(null, null));
+		return evaluateDouble(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -383,7 +383,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public double evaluateDouble(Values constantValues) throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextValues(constantValues, null));
+		return evaluateDouble(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -467,7 +467,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public boolean evaluateBoolean() throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextValues(null, null));
+		return evaluateBoolean(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -478,7 +478,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public boolean evaluateBoolean(Values constantValues) throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextValues(constantValues, null));
+		return evaluateBoolean(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -550,7 +550,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public BigRational evaluateExact() throws PrismLangException
 	{
-		return evaluateExact(new EvaluateContextValues(null, null));
+		return evaluateExact(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -561,7 +561,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public BigRational evaluateExact(Values constantValues) throws PrismLangException
 	{
-		return evaluateExact(new EvaluateContextValues(constantValues, null));
+		return evaluateExact(new EvaluateContextConstants(constantValues));
 	}
 
 	/**

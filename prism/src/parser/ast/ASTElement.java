@@ -304,7 +304,7 @@ public abstract class ASTElement
 	 */
 	public ASTElement replaceConstants(Values constantValues) throws PrismLangException
 	{
-		return evaluatePartially(new EvaluateContextValues(constantValues, null));
+		return evaluatePartially(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
