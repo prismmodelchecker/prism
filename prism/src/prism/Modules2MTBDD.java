@@ -1774,8 +1774,15 @@ public class Modules2MTBDD
 		return compDDs;
 	}
 
-	// translate the updates part of a command
-
+	/**
+	 * Translate the updates part of a command.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param l the command index inside the module
+	 * @param u the updates AST element
+	 * @param synch true if this command is synchronising (named action)
+	 * @param guard the guard
+	 */
 	private JDDNode translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
 	{
 		int i, n;
@@ -1817,8 +1824,14 @@ public class Modules2MTBDD
 		return dd;
 	}
 
-	// translate an update
-	
+	/**
+	 * Translate an update.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param c the update AST element
+	 * @param synch true if this command is synchronising (named action)
+	 * @param guard the guard
+	 */
 	private JDDNode translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
 	{
 		int n;
@@ -1893,8 +1906,11 @@ public class Modules2MTBDD
 		return cl;
 	}
 
-	// translate an arbitrary expression
-	
+	/**
+	 * Translate an arbitrary expression.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param e the expression (AST element)
+	 */
 	private JDDNode translateExpression(Expression e) throws PrismException
 	{
 		// pass this work onto the Expression2MTBDD object
