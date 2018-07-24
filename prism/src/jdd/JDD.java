@@ -1064,6 +1064,42 @@ public class JDD
 		return ptrToNode(DD_RestrictToFirst(dd.ptr(), vars.array(), vars.n()));
 	}
 
+	/**
+	 * Returns the value in dd of the first non-zero path (cube) of filter.
+	 * <br>
+	 * This method handles NaN values correctly.
+	 * <br>[ REFS: <i>none</i>, DEREFS: dd, filter ]
+	 */
+	public static double RestrictToFirstValue(JDDNode dd, JDDNode filter)
+	{
+		if (SanityJDD.enabled) {
+			SanityJDD.checkIsZeroOneMTBDD(filter);
+		}
+
+		try {
+			JDDNode d = dd;
+			JDDNode f = filter;
+
+			while (!d.isConstant()) {
+				if (f.isConstant()) {
+					throw new RuntimeException("Invalid filter");
+				}
+				boolean chooseThen = f.getElse().equals(JDD.ZERO);
+
+				if (d.getIndex() == f.getIndex()) {
+					d = chooseThen ? d.getThen() : d.getElse();
+				} else if (d.getIndex() < f.getIndex()) {
+					throw new RuntimeException("Invalid filter");
+				}
+				f = chooseThen ? f.getThen() : f.getElse();
+			}
+
+			return d.getValue();
+		} finally {
+			JDD.Deref(dd, filter);
+		}
+	}
+
 	// wrapper methods for dd_info
 
 	/**
