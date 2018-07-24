@@ -722,7 +722,8 @@ addBddDoInterval(
     statLine(dd);
     /* Check terminal case. */
     if (cuddIsConstant(f)) {
-	return(Cudd_NotCond(DD_ONE(dd),cuddV(f) < cuddV(l) || cuddV(f) > cuddV(u)));
+	// note: do check via !( f>=l && f<=u ) to correctly handle case of f being NaN (is always outside the interval)
+	return(Cudd_NotCond(DD_ONE(dd), !(cuddV(f) >= cuddV(l) && cuddV(f) <= cuddV(u))));
     }
 
     /* Check cache. */
