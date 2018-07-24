@@ -322,6 +322,29 @@ public class JDD
 	}
 
 	/**
+	 * Dereference dd, if the JDDNode is not {@code null}.
+	 * @param dd a JDDNode (may be {@code null})
+	 * <br>[ REFS: <i>none</i>, DEREFS: dd ]
+	 */
+	public static void DerefNonNull(JDDNode dd)
+	{
+		if (dd != null)
+			JDD.Deref(dd);
+	}
+
+	/**
+	 * Dereference dds (if the given JDDNode is not {@code null}), multi-argument variant.
+	 * @param dds a list of JDDNode (some of which may be {@code null})
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>all argument dds</i> ]
+	 */
+	public static void DerefNonNull(JDDNode... dds)
+	{
+		for (JDDNode d : dds) {
+			JDD.DerefNonNull(d);
+		}
+	}
+
+	/**
 	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
 	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
 	 * @param dds the array of JDDNodes
@@ -333,9 +356,34 @@ public class JDD
 			throw new RuntimeException("Mismatch in length of dd array and expected length!");
 		}
 		for (JDDNode dd : dds) {
-			if (dd != null)
-				JDD.Deref(dd);
+			JDD.DerefNonNull(dd);
 		}
+	}
+
+	/**
+	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
+	 * This is a convenience wrapper around JDD.DerefArray that results in a no-op if {@code dds == null}.
+	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
+	 * @param dds the array of JDDNodes (may be {@code null}.
+	 */
+	public static void DerefArrayNonNull(JDDNode[] dds)
+	{
+		if (dds != null)
+			DerefArray(dds, dds.length);
+	}
+
+	/**
+	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
+	 * This is a convenience wrapper around JDD.DerefArray that results in a no-op if {@code dds == null}.
+	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
+	 * @param dds the array of JDDNodes (may be {@code null}.
+	 * @param n the expected length of the array (for detecting problems with refactoring)
+	 */
+	
+	public static void DerefArrayNonNull(JDDNode[] dds, int n)
+	{
+		if (dds != null)
+			DerefArray(dds, n);
 	}
 
 	/**
