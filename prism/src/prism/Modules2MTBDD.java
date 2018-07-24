@@ -1821,63 +1821,76 @@ public class Modules2MTBDD
 	
 	private JDDNode translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
 	{
-		int i, j, n, v, l, h;
-		String s;
-		JDDNode dd, tmp1, tmp2, cl;
+		int n;
 		
 		// clear varsUsed flag array to indicate no vars used yet
-		for (i = 0; i < numVars; i++) {	
+		for (int i = 0; i < numVars; i++) {
 			varsUsed[i] = false;
 		}
 		// take product of clauses
-		dd = JDD.Constant(1);
+		JDDNode dd = JDD.Constant(1);
 		n = c.getNumElements();
-		for (i = 0; i < n; i++) {
-		
-			// get variable
-			s = c.getVar(i);
-			v = varList.getIndex(s);
-			if (v == -1) {
-				throw new PrismLangException("Unknown variable \"" + s + "\" in update", c.getVarIdent(i));
-			}
-			varsUsed[v] = true;
-			// check if the variable to be modified is valid
-			// (i.e. belongs to this module or is global)
-			if (varList.getModule(v) != -1 && varList.getModule(v) != m) {
-				throw new PrismLangException("Cannot modify variable \""+s+"\" from module \""+moduleNames[m]+"\"", c.getVarIdent(i));
-			}
-			// print out a warning if this update is in a command with a synchronising
-			// action AND it modifies a global variable
-			if (varList.getModule(v) == -1 && synch) {
-				throw new PrismLangException("Synchronous command cannot modify global variable", c.getVarIdent(i));
-			}
-			// get some info on the variable
-			l = varList.getLow(v);
-			h = varList.getHigh(v);
-			// create dd
-			tmp1 = JDD.Constant(0);
-			for (j = l; j <= h; j++) {
-				tmp1 = JDD.SetVectorElement(tmp1, varDDColVars[v], j-l, j);
-			}
-			tmp2 = translateExpression(c.getExpression(i));
-			tmp2 = JDD.Times(tmp2, guard.copy());
-			cl = JDD.Apply(JDD.EQUALS, tmp1, tmp2);
-			cl = JDD.Times(cl, guard.copy());
-			// filter out bits not in range
-			cl = JDD.Times(cl, varColRangeDDs[v].copy());
-			cl = JDD.Times(cl, range.copy());
+		for (int i = 0; i < n; i++) {
+			JDDNode cl = translateUpdateElement(m, c, i, synch, guard);
 			dd = JDD.Times(dd, cl);
 		}
 		// if a variable from this module or a global variable
 		// does not appear in this update assume it does not change value
 		// so multiply by its identity matrix
-		for (i = 0; i < numVars; i++) {	
+		for (int i = 0; i < numVars; i++) {
 			if ((varList.getModule(i) == m || varList.getModule(i) == -1) && !varsUsed[i]) {
 				dd = JDD.Times(dd, varIdentities[i].copy());
 			}
 		}
 		
 		return dd;
+	}
+
+	/**
+	 * Translate a single update element, i.e., (x'=...) in an update.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param c the Update AST element
+	 * @param i the element index for the update element in c
+	 * @param synch true if this command is synchronising (named action)
+	 * @param guard the guard for this command
+	 */
+	private JDDNode translateUpdateElement(int m, Update c, int i, boolean synch, JDDNode guard) throws PrismException
+	{
+		// get variable
+		String s = c.getVar(i);
+		int v = varList.getIndex(s);
+		if (v == -1) {
+			throw new PrismLangException("Unknown variable \"" + s + "\" in update", c.getVarIdent(i));
+		}
+		varsUsed[v] = true;
+		// check if the variable to be modified is valid
+		// (i.e. belongs to this module or is global)
+		if (varList.getModule(v) != -1 && varList.getModule(v) != m) {
+			throw new PrismLangException("Cannot modify variable \"" + s + "\" from module \"" + moduleNames[m] + "\"", c.getVarIdent(i));
+		}
+		// print out a warning if this update is in a command with a synchronising
+		// action AND it modifies a global variable
+		if (varList.getModule(v) == -1 && synch) {
+			throw new PrismLangException("Synchronous command cannot modify global variable", c.getVarIdent(i));
+		}
+		// get some info on the variable
+		int l = varList.getLow(v);
+		int h = varList.getHigh(v);
+		// create dd
+		JDDNode tmp1 = JDD.Constant(0);
+		for (int j = l; j <= h; j++) {
+			tmp1 = JDD.SetVectorElement(tmp1, varDDColVars[v], j - l, j);
+		}
+		JDDNode tmp2 = translateExpression(c.getExpression(i));
+		tmp2 = JDD.Times(tmp2, guard.copy());
+		JDDNode cl = JDD.Apply(JDD.EQUALS, tmp1, tmp2);
+		cl = JDD.Times(cl, guard.copy());
+		// filter out bits not in range
+		cl = JDD.Times(cl, varColRangeDDs[v].copy());
+		cl = JDD.Times(cl, range.copy());
+
+		return cl;
 	}
 
 	// translate an arbitrary expression
