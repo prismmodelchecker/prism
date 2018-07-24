@@ -123,31 +123,44 @@ public class Modules2MTBDD
 	// hidden option - do we also store action info for the transition matrix? (supersedes the above)
 	private boolean storeTransActions = true; 
 	
-	// data structure used to store mtbdds and related info
-	// for some component of the whole model
-
+	/**
+	 * Data structure used to store mtbdds and related info
+	 * for some component of the whole model
+	 */
 	private class ComponentDDs
 	{
-		public JDDNode guards;		// bdd for guards
-		public JDDNode trans;		// mtbdd for transitions
-		public JDDNode rewards[];	// mtbdd for rewards
-		public int min; 			// min index of dd vars used for local nondeterminism
-		public int max; 			// max index of dd vars used for local nondeterminism
+		/** BDD for guards */
+		public JDDNode guards;
+		/** MTBDD for transitions */
+		public JDDNode trans;
+		/** MTBDD for each reward structure */
+		public JDDNode rewards[];
+		/** minimal index of dd vars used for local nondeterminism */
+		public int min;
+		/** max index of dd vars used for local nondeterminism */
+		public int max;
+
 		public ComponentDDs()
 		{
 			rewards = new JDDNode[modulesFile.getNumRewardStructs()];
 		}
 	}
-	
-	// data structure used to store mtbdds and related info
-	// for some part of the system definition
 
-	private class SystemDDs
+	/**
+	 * Data structure used to store mtbdds and related info
+	 * for some part of the system definition
+	 */
+	private static class SystemDDs
 	{
-		public ComponentDDs ind;		// for independent bit (i.e. tau action)
-		public ComponentDDs[] synchs;	// for each synchronising action
-		public JDDNode id;	 			// mtbdd for identity matrix
-		public HashSet<String> allSynchs;		// set of all synchs used (syntactic)
+		/** The information for independent bit (i.e. tau action) */
+		public ComponentDDs ind;
+		/** The information for each synchronising action */
+		public ComponentDDs[] synchs;
+		/** MTBDD for identity matrix */
+		public JDDNode id;
+		/** Set of all synchs used (syntactic) */
+		public HashSet<String> allSynchs;
+
 		public SystemDDs(int n)
 		{
 			synchs = new ComponentDDs[n];
