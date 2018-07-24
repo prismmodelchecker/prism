@@ -1515,70 +1515,91 @@ public class Modules2MTBDD
 			// translate updates and do some checks on probs/rates
 			upDD = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDD);
 			upDD = JDD.Times(upDD, guardDD.copy());
-			// are all probs/rates non-negative?
-			double dmin = JDD.FindMin(upDD);
-			if (dmin < 0) {
-				String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
-				s += " in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
-				s += " (" + dmin + ") for some states.\n";
-				s += "Perhaps the guard needs to be strengthened";
-				throw new PrismLangException(s, command);
-			}
-			// only do remaining checks if 'doprobchecks' flag is set
-			if (prism.getDoProbChecks()) {
-				// sum probs/rates in updates
-				JDDNode tmp = JDD.SumAbstract(upDD.copy(), moduleDDColVars[m]);
-				tmp = JDD.SumAbstract(tmp, globalDDColVars);
-				// put 1s in for sums which are not covered by this guard
-				tmp = JDD.ITE(guardDD.copy(), tmp, JDD.Constant(1));
-				// compute min/max sums
-				dmin = JDD.FindMin(tmp);
-				double dmax = JDD.FindMax(tmp);
-				// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
-				if (dmin != dmin || dmax != dmax) {
-					JDD.Deref(tmp);
-					String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
-					s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
-					s += "Check for zeros in divide or modulo operations. ";
-					s += "Perhaps the guard needs to be strengthened";
-					throw new PrismLangException(s, command);
-				}
-				// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
-				if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
-					JDD.Deref(tmp);
-					String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
-					s += " (e.g. " + dmin + ") for some states. ";
-					s += "Perhaps some of the updates give out-of-range values. ";
-					s += "One possible solution is to strengthen the guard";
-					throw new PrismLangException(s, command);
-				}
-				if (modelType == ModelType.CTMC && dmin <= 0) {
-					JDD.Deref(tmp);
-					// note can't sum to less than zero - already checked for negative rates above
-					String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to zero for some states. ";
-					s += "Perhaps some of the updates give out-of-range values. ";
-					s += "One possible solution is to strengthen the guard";
-					throw new PrismLangException(s, command);
-				}
-				// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
-				if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
-					JDD.Deref(tmp);
-					String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
-					s += " (e.g. " + dmax + ") for some states. ";
-					s += "Perhaps the guard needs to be strengthened";
-					throw new PrismLangException(s, command);
-				}
-				if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
-					JDD.Deref(tmp);
-					String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
-					s += "Perhaps the guard needs to be strengthened";
-					throw new PrismLangException(s, command);
-				}
-				JDD.Deref(tmp);
+
+			try {
+				checkCommandProbRates(m, module, l, command, guardDD, upDD);
+			} catch (Throwable e) {
+				JDD.Deref(guardDD, upDD);
+				throw e;
 			}
 		}
 
 		return new CommandDDs(guardDD, upDD);
+	}
+
+	/**
+	 * Check the probabilities/rate of a command for errors (in which case an exception is thrown).
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 * @param m the module index
+	 * @param module the Module AST element
+	 * @param l the command index (inside the module)
+	 * @param command the Command AST element
+	 * @param guardDD the guard dd
+	 * @param upDD the update dd
+	 */
+	private void checkCommandProbRates(int m, parser.ast.Module module, int l, Command command, JDDNode guardDD, JDDNode upDD) throws PrismLangException
+	{
+		// are all probs/rates non-negative?
+		double dmin = JDD.FindMin(upDD);
+		if (dmin < 0) {
+			String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
+			s += " in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
+			s += " (" + dmin + ") for some states.\n";
+			s += "Perhaps the guard needs to be strengthened";
+			throw new PrismLangException(s, command);
+		}
+		// only do remaining checks if 'doprobchecks' flag is set
+		if (prism.getDoProbChecks()) {
+			// sum probs/rates in updates
+			JDDNode tmp = JDD.SumAbstract(upDD.copy(), moduleDDColVars[m]);
+			tmp = JDD.SumAbstract(tmp, globalDDColVars);
+			// put 1s in for sums which are not covered by this guard
+			tmp = JDD.ITE(guardDD.copy(), tmp, JDD.Constant(1));
+			// compute min/max sums
+			dmin = JDD.FindMin(tmp);
+			double dmax = JDD.FindMax(tmp);
+			// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
+			if (dmin != dmin || dmax != dmax) {
+				JDD.Deref(tmp);
+				String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
+				s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
+				s += "Check for zeros in divide or modulo operations. ";
+				s += "Perhaps the guard needs to be strengthened";
+				throw new PrismLangException(s, command);
+			}
+			// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
+			if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
+				JDD.Deref(tmp);
+				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
+				s += " (e.g. " + dmin + ") for some states. ";
+				s += "Perhaps some of the updates give out-of-range values. ";
+				s += "One possible solution is to strengthen the guard";
+				throw new PrismLangException(s, command);
+			}
+			if (modelType == ModelType.CTMC && dmin <= 0) {
+				JDD.Deref(tmp);
+				// note can't sum to less than zero - already checked for negative rates above
+				String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to zero for some states. ";
+				s += "Perhaps some of the updates give out-of-range values. ";
+				s += "One possible solution is to strengthen the guard";
+				throw new PrismLangException(s, command);
+			}
+			// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
+			if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
+				JDD.Deref(tmp);
+				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
+				s += " (e.g. " + dmax + ") for some states. ";
+				s += "Perhaps the guard needs to be strengthened";
+				throw new PrismLangException(s, command);
+			}
+			if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
+				JDD.Deref(tmp);
+				String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
+				s += "Perhaps the guard needs to be strengthened";
+				throw new PrismLangException(s, command);
+			}
+			JDD.Deref(tmp);
+		}
 	}
 
 	/**
