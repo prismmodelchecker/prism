@@ -123,6 +123,10 @@ public class Modules2MTBDD
 	// hidden option - do we also store action info for the transition matrix? (supersedes the above)
 	private boolean storeTransActions = true; 
 	
+
+	/** Flag, tracking whether the model was already constructed (to know how much cleanup we have to do) */
+	private boolean modelWasBuilt = false;
+
 	/** Data structure to store mtbdds for a command */
 	private static class CommandDDs
 	{
@@ -239,34 +243,35 @@ public class Modules2MTBDD
 			throw new PrismException("Symbolic construction of " + modelType + "s not supported");
 		}
 		
-		// allocate dd variables
-		allocateDDVars();
-		sortDDVars();
-		sortIdentities();
-		sortRanges();
-		
-		// create stripped-down StateModelChecker for expression to MTBDD conversions
-		expr2mtbdd = new StateModelChecker(prism, varList, allDDRowVars, varDDRowVars, constantValues);
-		
-		// translate modules file into dd
-		translateModules();
-		
-		// get rid of any nondet dd variables not needed
-		if (modelType == ModelType.MDP) {
-			tmp = JDD.GetSupport(trans);
-			tmp = JDD.ThereExists(tmp, allDDRowVars);
-			tmp = JDD.ThereExists(tmp, allDDColVars);
-			tmp2 = tmp;
-			ddv = new JDDVars();
-			while (!tmp2.equals(JDD.ONE)) {
-				ddv.addVar(JDD.Var(tmp2.getIndex()));
-				tmp2 = tmp2.getThen();
+		try {
+			// allocate dd variables
+			allocateDDVars();
+			sortDDVars();
+			sortIdentities();
+			sortRanges();
+			
+			// create stripped-down StateModelChecker for expression to MTBDD conversions
+			expr2mtbdd = new StateModelChecker(prism, varList, allDDRowVars, varDDRowVars, constantValues);
+			
+			// translate modules file into dd
+			translateModules();
+			
+			// get rid of any nondet dd variables not needed
+			if (modelType == ModelType.MDP) {
+				tmp = JDD.GetSupport(trans);
+				tmp = JDD.ThereExists(tmp, allDDRowVars);
+				tmp = JDD.ThereExists(tmp, allDDColVars);
+				tmp2 = tmp;
+				ddv = new JDDVars();
+				while (!tmp2.equals(JDD.ONE)) {
+					ddv.addVar(JDD.Var(tmp2.getIndex()));
+					tmp2 = tmp2.getThen();
+				}
+				JDD.Deref(tmp);
+				allDDNondetVars.derefAll();
+				allDDNondetVars = ddv;
 			}
-			JDD.Deref(tmp);
-			allDDNondetVars.derefAll();
-			allDDNondetVars = ddv;
-		}
-		
+
 // 		// print dd variables actually used (support of trans)
 // 		mainLog.print("\nMTBDD variables used (" + allDDRowVars.n() + "r, " + allDDRowVars.n() + "c");
 // 		if (type == ModulesFile.NONDETERMINISTIC) mainLog.print(", " + allDDNondetVars.n() + "nd");
@@ -280,106 +285,161 @@ public class Modules2MTBDD
 // 		}
 // 		mainLog.println();
 // 		JDD.Deref(tmp);
+
+			// Print some info (if extraddinfo flag on)
+			if (prism.getExtraDDInfo()) {
+				mainLog.print("Transition matrix (pre-reachability): ");
+				mainLog.print(JDD.GetNumNodes(trans) + " nodes (");
+				mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
+			}
+
+			// build bdd for initial state(s)
+			buildInitialStates();
+
+			// store reward struct names
+			rewardStructNames = new String[numRewardStructs];
+			for (i = 0; i < numRewardStructs; i++) {
+				rewardStructNames[i] = modulesFile.getRewardStruct(i).getName();
+			}
+
+			// create new Model object to be returned
+			if (modelType == ModelType.DTMC) {
+				model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+				                      numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
+				                      numVars, varList, varDDRowVars, varDDColVars, constantValues);
+			}
+			else if (modelType == ModelType.MDP) {
+				model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
+				                        allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
+				                        numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
+				                        numVars, varList, varDDRowVars, varDDColVars, constantValues);
+			}
+			else if (modelType == ModelType.CTMC) {
+				model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+				                       numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
+				                       numVars, varList, varDDRowVars, varDDColVars, constantValues);
+			}
+			modelWasBuilt = true;
+
+			// We also store a copy of the list of action label names
+			model.setSynchs((Vector<String>)synchs.clone());
 		
-		// Print some info (if extraddinfo flag on)
-		if (prism.getExtraDDInfo()) {
-			mainLog.print("Transition matrix (pre-reachability): ");
-			mainLog.print(JDD.GetNumNodes(trans) + " nodes (");
-			mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
+			// For MDPs, we also store the DDs used to construct the part
+			// of the transition matrix that corresponds to each action
+			if (modelType == ModelType.MDP && storeTransParts) {
+				((NondetModel)model).setTransInd(transInd);
+				((NondetModel)model).setTransSynch(transSynch);
+			}
+
+			// If required, we also store info about action labels
+			if (storeTransActions) {
+				// Note: one of these will be null, depending on model type
+				// but this is fine: null = none stored.
+				model.setTransActions(transActions);
+				model.setTransPerAction(transPerAction);
+			}
+
+			// do reachability (or not)
+			if (prism.getDoReach()) {
+				mainLog.print("\nComputing reachable states...\n");
+				model.doReachability();
+				model.filterReachableStates();
+			}
+			else {
+				mainLog.print("\nSkipping reachable state computation.\n");
+				model.skipReachability();
+				model.filterReachableStates();
+			}
+
+			// Print some info (if extraddinfo flag on)
+			if (prism.getExtraDDInfo()) {
+				mainLog.print("Reach: " + JDD.GetNumNodes(model.getReach()) + " nodes\n");
+			}
+
+			// symmetrification
+			if (doSymmetry) doSymmetry(model);
+
+			// find/fix any deadlocks
+			model.findDeadlocks(prism.getFixDeadlocks());
+
+		} catch (Exception e) {
+			// if the model was already built when the exception occurred, clear it.
+			if (model != null)
+				model.clear();
+			throw e;
+		} finally {
+			// always clean up the Modules2MTBDD variables
+			cleanup();
 		}
-		
-		// build bdd for initial state(s)
-		buildInitialStates();
-		
-		// store reward struct names
-		rewardStructNames = new String[numRewardStructs];
-		for (i = 0; i < numRewardStructs; i++) {
-			rewardStructNames[i] = modulesFile.getRewardStruct(i).getName();
-		}
-		
-		// create new Model object to be returned
-		if (modelType == ModelType.DTMC) {
-			model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
-						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
-						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
-		}
-		else if (modelType == ModelType.MDP) {
-			model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
-						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
-						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
-						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
-		}
-		else if (modelType == ModelType.CTMC) {
-			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
-						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
-						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
-		}
-		
-		// We also store a copy of the list of action label names
-		model.setSynchs((Vector<String>)synchs.clone());
-		
-		// For MDPs, we also store the DDs used to construct the part
-		// of the transition matrix that corresponds to each action
-		if (modelType == ModelType.MDP && storeTransParts) {
-			((NondetModel)model).setTransInd(transInd);
-			((NondetModel)model).setTransSynch(transSynch);
-		}
-		
-		// If required, we also store info about action labels
-		if (storeTransActions) {
-			// Note: one of these will be null, depending on model type
-			// but this is fine: null = none stored.
-			model.setTransActions(transActions);
-			model.setTransPerAction(transPerAction);
-		}
-		
-		// do reachability (or not)
-		if (prism.getDoReach()) {
-			mainLog.print("\nComputing reachable states...\n");
-			model.doReachability();
-			model.filterReachableStates();
-		}
-		else {
-			mainLog.print("\nSkipping reachable state computation.\n");
-			model.skipReachability();
-			model.filterReachableStates();
-		}
-		
-		// Print some info (if extraddinfo flag on)
-		if (prism.getExtraDDInfo()) {
-			mainLog.print("Reach: " + JDD.GetNumNodes(model.getReach()) + " nodes\n");
-		}
-		
-		// symmetrification
-		if (doSymmetry) doSymmetry(model);
-		
-		// find/fix any deadlocks
-		model.findDeadlocks(prism.getFixDeadlocks());
-		
-		// deref spare dds
-		globalDDRowVars.derefAll();
-		globalDDColVars.derefAll();
-		JDD.DerefArray(moduleIdentities, numModules);
-		JDD.DerefArray(moduleRangeDDs, numModules);
-		JDD.DerefArray(varIdentities, numVars);
-		JDD.DerefArray(varRangeDDs, numVars);
-		JDD.DerefArray(varColRangeDDs, numVars);
-		JDD.Deref(range);
-		if (modelType == ModelType.MDP) {
-			JDD.DerefArray(ddSynchVars, ddSynchVars.length);
-			JDD.DerefArray(ddSchedVars, ddSchedVars.length);
-			JDD.DerefArray(ddChoiceVars, ddChoiceVars.length);
-		}
-		if (doSymmetry) {
-			JDD.Deref(symm);
-			JDD.DerefArray(nonSymms, numSymmModules-1);
-		}
-		
-		expr2mtbdd.clearDummyModel();
-		
+
 		return model;
 	}
-	
+
+	/**
+	 * Perform dd cleanup after translate call. 
+	 */
+	private void cleanup()
+	{
+		// deref spare dds
+		if (globalDDRowVars != null)
+			globalDDRowVars.derefAll();
+		if (globalDDColVars != null)
+			globalDDColVars.derefAll();
+		JDD.DerefArrayNonNull(moduleIdentities, numModules);
+		JDD.DerefArrayNonNull(moduleRangeDDs, numModules);
+		JDD.DerefArrayNonNull(varIdentities, numVars);
+		JDD.DerefArrayNonNull(varRangeDDs, numVars);
+		JDD.DerefArrayNonNull(varColRangeDDs, numVars);
+		JDD.DerefNonNull(range);
+		JDD.DerefArrayNonNull(ddSynchVars);
+		JDD.DerefArrayNonNull(ddSchedVars);
+		JDD.DerefArrayNonNull(ddChoiceVars);
+
+		if (doSymmetry) {
+			JDD.Deref(symm);
+			JDD.DerefArray(nonSymms, numSymmModules - 1);
+		}
+
+		if (!modelWasBuilt) {
+			// if the Model object was not yet constructed, we have to do more cleanup
+			JDD.DerefNonNull(trans);
+			JDD.DerefNonNull(start);
+			JDD.DerefArrayNonNull(stateRewards, numRewardStructs);
+			JDD.DerefArrayNonNull(transRewards, numRewardStructs);
+			JDD.DerefNonNull(transActions);
+			JDD.DerefArrayNonNull(transPerAction);
+			JDD.DerefNonNull(transInd);
+			JDD.DerefArrayNonNull(transSynch);
+
+			if (allDDRowVars != null)
+				allDDRowVars.derefAll();
+			if (allDDColVars != null)
+				allDDColVars.derefAll();
+			if (allDDSynchVars != null)
+				allDDSynchVars.derefAll();
+			if (allDDSchedVars != null)
+				allDDSchedVars.derefAll();
+			if (allDDChoiceVars != null)
+				allDDChoiceVars.derefAll();
+			if (allDDNondetVars != null)
+				allDDNondetVars.derefAll();
+
+			if (moduleDDRowVars != null)
+				JDDVars.derefAllArray(moduleDDRowVars);
+			if (moduleDDColVars != null)
+				JDDVars.derefAllArray(moduleDDColVars);
+
+			JDDVars.derefAllArray(varDDRowVars);
+			JDDVars.derefAllArray(varDDColVars);
+
+			if (modelVariables != null)
+				modelVariables.clear();
+		}
+
+		if (expr2mtbdd != null)
+			expr2mtbdd.clearDummyModel();
+	}
+
 	// allocate DD vars for system
 	// i.e. decide on variable ordering and request variables from CUDD
 			
