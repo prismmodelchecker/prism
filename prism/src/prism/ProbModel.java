@@ -1125,13 +1125,28 @@ public class ProbModel implements Model
 	}
 
 	/**
-	 * Convert a BDD (over model row variables) representing a single state to a State object. 
+	 * Convert a BDD (over model row variables) representing a single state to a State object.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
 	public State convertBddToState(JDDNode dd)
+	{
+		return convertBddToState(dd, allDDRowVars, varList);
+	}
+
+	/**
+	 * Convert a BDD (over the given row variables, encoding variables according to the varList)
+	 * representing a single state to a State object.
+	 * @param dd 0/1-MTBDD, representing a single state
+	 * @param allDDRowVars the list of row variables
+	 * @param varList the VarList, specifying the encoding of the individual state variables
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
+	 */
+	public static State convertBddToState(JDDNode dd, JDDVars allDDRowVars, VarList varList)
 	{
 		JDDNode ptr;
 		int i, n;
 		BitSet bits;
+
 		// First convert path through BDD to a bit vector
 		ptr = dd;
 		n = allDDRowVars.n();
