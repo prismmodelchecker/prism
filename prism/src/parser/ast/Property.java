@@ -270,7 +270,7 @@ public class Property extends ASTElement
 	 */
 	private boolean checkAgainstExpectedResultString(String strExpected, Values constValues, Object result) throws PrismException
 	{
-		// Check for special "don't case" case
+		// Check for special "don't care" case
 		if (strExpected.equals("?")) {
 			return false;
 		}
