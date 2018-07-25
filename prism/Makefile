@@ -436,6 +436,17 @@ testslocal:
 	  echo "Skipping local tests"; \
 	fi
 
+# Run the tests from ../prism-tests (with different engine settings, picked up from ../prism-tests/all-engines.args)
+# - Export tests are disabled, as there is currently no robust test mechanism for dealing with the
+#   variations in the output of the different engines.
+# - We run with --test-all, as failures for some engines should not abort the tests
+# - We run with a timeout of 1 minute, as some engines take a long time for some properties
+testsfull:
+	cd ../prism-tests && \
+	"$(PWD)"/etc/scripts/prism-auto -t -m . \
+	--skip-export-runs --skip-duplicate-runs --test-all -a all-engines.args --timeout 1m \
+	-p "$(PWD)"/bin/prism --nailgun $(TESTS_ARGS);
+
 bin_scripts:
 	@for target in $(BIN_TARGETS); do \
 	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
