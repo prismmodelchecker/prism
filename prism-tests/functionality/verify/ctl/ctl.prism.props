@@ -104,13 +104,16 @@ A [ G E [ X E [X A [ G s=7 ] ] ] ]
 // RESULT: true
 A [ G E [ X E [X E [ X A [ G s=7 ] ] ] ] ]
 
-// RESULT: Error:bounded CTL operators is not supported
+
+// computation of bounded temporal operators for
+// CTL path formulas currently unsupported
+// RESULT: ?
 E [ F<3 A [ G s=7 ] ]
-// RESULT: Error:bounded CTL operators is not supported
+// RESULT: ?
 E [ G<3 s=0 ]
-// RESULT: Error:bounded CTL operators is not supported
+// RESULT: ?
 E [ s=0 U<3 s=1 ]
-// RESULT: Error:bounded CTL operators is not supported
+// RESULT: ?
 E [ s=0 R<3 s=1 ]
-// RESULT: Error:bounded CTL operators is not supported
+// RESULT: ?
 E [ s=0 W<3 s=1 ]
