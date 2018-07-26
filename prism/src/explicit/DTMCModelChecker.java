@@ -2308,12 +2308,15 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * of the steady-state probability of being in s'
 	 * multiplied by the corresponding probability in the vector {@code multProbs}.
 	 * If {@code multProbs} is null, it is assumed to be all 1s.
+	 * <br>
+	 * Note: This method can also be used to compute the steady-state backwards rewards, i.e.,
+	 * when mult contains the state rewards for the BSCC states.
 	 * @param dtmc The DTMC
-	 * @param multProbs Multiplication vector (optional: null means all 1s)
+	 * @param mult Multiplication vector, used to weight the steady-state probabilities for BSCC states (optional: null means all 1s)
 	 */
-	public ModelCheckerResult computeSteadyStateBackwardsProbs(DTMC dtmc, double multProbs[]) throws PrismException
+	public ModelCheckerResult computeSteadyStateBackwardsProbs(DTMC dtmc, double mult[]) throws PrismException
 	{
-		return computeSteadyStateBackwardsProbs(dtmc, multProbs, null);
+		return computeSteadyStateBackwardsProbs(dtmc, mult, null);
 	}
 
 	/**
@@ -2322,11 +2325,14 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * of the steady-state probability of being in s'
 	 * multiplied by the corresponding probability in the vector {@code multProbs}.
 	 * If {@code multProbs} is null, it is assumed to be all 1s.
+	 * <br>
+	 * Note: This method can also be used to compute the steady-state backwards rewards, i.e.,
+	 * when mult contains the state rewards for the BSCC states.
 	 * @param dtmc The DTMC
-	 * @param multProbs Multiplication vector (optional: null means all 1s)
+	 * @param mult Multiplication vector, used to weight the steady-state probabilities for BSCC states (optional: null means all 1s)
 	 * @param bsccPostProcessor Post-processor for the values of each BSCC (optional: null means no post-processing)
 	 */
-	public ModelCheckerResult computeSteadyStateBackwardsProbs(DTMC dtmc, double multProbs[], BSCCPostProcessor bsccPostProcessor) throws PrismException
+	public ModelCheckerResult computeSteadyStateBackwardsProbs(DTMC dtmc, double mult[], BSCCPostProcessor bsccPostProcessor) throws PrismException
 	{
 		StopWatch watch = new StopWatch().start();
 
@@ -2341,8 +2347,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		BitSet notInBSCCs = sccStore.getNotInBSCCs();
 		int numBSCCs = bsccs.size();
 
-		// Compute steady-state probability for each BSCC...
-		double[] probBSCCs = new double[numBSCCs];
+		// Compute steady-state values for each BSCC...
+		double[] valueBSCCs = new double[numBSCCs];
 		double[] ssProbs = new double[numStates];
 		for (int b = 0; b < numBSCCs; b++) {
 			mainLog.println("\nComputing steady state probabilities for BSCC " + (b + 1));
@@ -2352,21 +2358,21 @@ public class DTMCModelChecker extends ProbModelChecker
 			if (bsccPostProcessor != null) {
 				bsccPostProcessor.apply(ssProbs, bscc);
 			}
-			// Compute weighted sum of probabilities with multProbs
-			probBSCCs[b] = 0.0;
-			if (multProbs == null) {
+			// Compute weighted sum of probabilities with mult
+			valueBSCCs[b] = 0.0;
+			if (mult == null) {
 				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1)) {
-					probBSCCs[b] += ssProbs[i];
+					valueBSCCs[b] += ssProbs[i];
 				}
 			} else {
 				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1)) {
-					probBSCCs[b] += multProbs[i] * ssProbs[i];
+					valueBSCCs[b] += mult[i] * ssProbs[i];
 				}
 			}
-			mainLog.print("\nValue for BSCC " + (b + 1) + ": " + probBSCCs[b] + "\n");
+			mainLog.print("\nValue for BSCC " + (b + 1) + ": " + valueBSCCs[b] + "\n");
 		}
 
-		// Create/initialise prob vector
+		// Create/initialise solution vector
 		double[] soln = new double[numStates];
 		for (int i = 0; i < numStates; i++) {
 			soln[i] = 0.0;
@@ -2378,7 +2384,7 @@ public class DTMCModelChecker extends ProbModelChecker
 			for (int b = 0; b < numBSCCs; b++) {
 				BitSet bscc = bsccs.get(b);
 				for (int i = bscc.nextSetBit(0); i >= 0; i = bscc.nextSetBit(i + 1))
-					soln[i] += probBSCCs[b];
+					soln[i] += valueBSCCs[b];
 			}
 		}
 
@@ -2386,8 +2392,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		else {
 			// Compute probabilities of reaching each BSCC...
 			for (int b = 0; b < numBSCCs; b++) {
-				// Skip BSCCs with zero probability
-				if (probBSCCs[b] == 0.0)
+				// Skip BSCCs with zero value
+				if (valueBSCCs[b] == 0.0)
 					continue;
 				mainLog.println("\nComputing probabilities of reaching BSCC " + (b + 1));
 				BitSet bscc = bsccs.get(b);
@@ -2395,7 +2401,7 @@ public class DTMCModelChecker extends ProbModelChecker
 				double[] reachProbs = computeUntilProbs(dtmc, notInBSCCs, bscc).soln;
 				// Multiply by value for BSCC, add to total
 				for (int i = 0; i < numStates; i++) {
-					soln[i] += reachProbs[i] * probBSCCs[b];
+					soln[i] += reachProbs[i] * valueBSCCs[b];
 				}
 			}
 		}
@@ -2405,6 +2411,23 @@ public class DTMCModelChecker extends ProbModelChecker
 		res.soln = soln;
 		res.timeTaken = watch.elapsedSeconds();
 		return res;
+	}
+
+	/**
+	 * Compute steady-state rewards, i.e., R=?[ S ].
+	 * @param dtmc the DTMC
+	 * @param modelRewards the (state) rewards
+	 */
+	public ModelCheckerResult computeSteadyStateRewards(DTMC dtmc, MCRewards modelRewards) throws PrismException
+	{
+		int n = dtmc.getNumStates();
+		double multRewards[] = new double[n];
+
+		for (int i = 0; i < n; i++) {
+			multRewards[i] = modelRewards.getStateReward(i);
+		}
+
+		return computeSteadyStateBackwardsProbs(dtmc, multRewards);
 	}
 
 	/**

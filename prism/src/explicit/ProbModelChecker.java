@@ -984,6 +984,9 @@ public class ProbModelChecker extends NonProbModelChecker
 					rewards = checkRewardTotal(model, modelRewards, exprTemp, minMax);
 				}
 				break;
+			case ExpressionTemporal.R_S:
+				rewards = checkRewardSteady(model, modelRewards);
+				break;
 			default:
 				throw new PrismNotSupportedException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " reward operator");
 			}
@@ -1104,6 +1107,27 @@ public class ProbModelChecker extends NonProbModelChecker
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
+		}
+		result.setStrategy(res.strat);
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+
+	/**
+	 * Compute expected rewards for a steady-state reward operator.
+	 */
+	protected StateValues checkRewardSteady(Model model, Rewards modelRewards) throws PrismException
+	{
+		// Compute/return the rewards
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+		case DTMC:
+			res = ((DTMCModelChecker) this).computeSteadyStateRewards((DTMC) model, (MCRewards) modelRewards);
+			break;
+		case CTMC:
+			res = ((CTMCModelChecker) this).computeSteadyStateRewards((CTMC) model, (MCRewards) modelRewards);
+			break;
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet handle the steady-state reward operator for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
 		return StateValues.createFromDoubleArray(res.soln, model);
