@@ -861,6 +861,29 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute steady-state rewards, i.e., R=?[ S ].
+	 * @param ctmc the CTMC
+	 * @param modelRewards the (state) rewards
+	 */
+	public ModelCheckerResult computeSteadyStateRewards(CTMC ctmc, MCRewards modelRewards) throws PrismException
+	{
+		int n = ctmc.getNumStates();
+		double multRewards[] = new double[n];
+
+		for (int i = 0; i < n; i++) {
+			multRewards[i] = modelRewards.getStateReward(i);
+		}
+
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		// compute the steady-state rewards in the embedded DTMC, applying the BSCC value post-processing
+		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
+		return createDTMCModelChecker().computeSteadyStateBackwardsProbs(dtmcEmb, multRewards, new SteadyStateBSCCPostProcessor(ctmc));
+	}
+
+	/**
 	 * Compute transient probabilities.
 	 * i.e. compute the probability of being in each state at time {@code t},
 	 * assuming the initial distribution {@code initDist}. 
