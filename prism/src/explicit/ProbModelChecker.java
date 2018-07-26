@@ -1209,6 +1209,8 @@ public class ProbModelChecker extends NonProbModelChecker
 		switch (model.getModelType()) {
 		case DTMC:
 			return ((DTMCModelChecker) this).computeSteadyStateFormula((DTMC) model, b);
+		case CTMC:
+			return ((CTMCModelChecker) this).computeSteadyStateFormula((CTMC) model, b);
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the S operator for " + model.getModelType() + "s");
 		}

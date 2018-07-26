@@ -822,6 +822,25 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute steady-state probabilities for an S operator, i.e., S=?[ b ].
+	 * @param ctmc the CTMC
+	 * @param b the satisfaction set of states for the inner state formula of the operators
+	 */
+	protected StateValues computeSteadyStateFormula(CTMC ctmc, BitSet b) throws PrismException
+	{
+		double multProbs[] = Utils.bitsetToDoubleArray(b, ctmc.getNumStates());
+
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		// compute the steady-state probabilities in the embedded DTMC, applying the BSCC value post-processing
+		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
+		ModelCheckerResult res = createDTMCModelChecker().computeSteadyStateBackwardsProbs(dtmcEmb, multProbs, new SteadyStateBSCCPostProcessor(ctmc));
+		return StateValues.createFromDoubleArray(res.soln, ctmc);
+	}
+
+	/**
 	 * Compute (forwards) steady-state probabilities
 	 * i.e. compute the long-run probability of being in each state,
 	 * assuming the initial distribution {@code initDist}.
