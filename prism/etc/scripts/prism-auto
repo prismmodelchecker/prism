@@ -21,7 +21,7 @@ from threading import Timer
 #==================================================================================================
 
 # statistics about test results
-testStats = dict(SUCCESS = 0, FAILURE = 0, FAIL_NONCONVERGE = 0, SKIPPED = 0, SKIPPED_EXPORT = 0, SKIPPED_DUPLICATE = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, TIMEOUT = 0)
+testStats = dict(SUCCESS = 0, FAILURE = 0, FAIL_NONCONVERGE = 0, SKIPPED = 0, SKIPPED_EXPORT = 0, SKIPPED_DUPLICATE = 0, SKIPPED_NOT_TESTED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, TIMEOUT = 0)
 
 # colour coding for test results
 # for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -668,6 +668,8 @@ def printTestStatistics():
             printColoured('FAILURE',     '  - Non-convergence: ' + str(testStats['FAIL_NONCONVERGE']))
         printColoured('UNSUPPORTED', ' Unsupported:        ' + str(testStats['UNSUPPORTED']))
         printColoured('SKIPPED',     ' Skipped:            ' + str(testStats['SKIPPED']))
+        if testStats['SKIPPED_NOT_TESTED']:
+            printColoured('SKIPPED',     '  - Not tested:      ' + str(testStats['SKIPPED_NOT_TESTED']))
         if options.skipDuplicates:
             printColoured('SKIPPED',     '  - Duplicates:      ' + str(testStats['SKIPPED_DUPLICATE']) + '  (due to --skip-duplicate-runs)')
         if options.skipExportRuns:
@@ -689,6 +691,8 @@ def countTestResult(msg):
     elif 'PASS' in msg:
         incrementTestStat('SUCCESS')
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
+        if 'NOT TESTED' in msg:
+            incrementTestStat('SKIPPED_NOT_TESTED')
         incrementTestStat('SKIPPED')
     elif 'UNSUPPORTED' in msg:
         incrementTestStat('UNSUPPORTED')
