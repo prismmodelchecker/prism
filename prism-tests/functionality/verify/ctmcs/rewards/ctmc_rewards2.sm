@@ -28,3 +28,11 @@ s=2 : 5;
 s=4 : 3;
 [r] true : 17;
 endrewards
+
+rewards "s"
+  true : s;
+endrewards
+
+rewards "s3"
+  s>=3 : s;
+endrewards
