@@ -2157,6 +2157,18 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute steady-state probabilities for an S operator, i.e., S=?[ b ].
+	 * @param dtmc the DTMC
+	 * @param b the satisfaction set of states for the inner state formula of the operators
+	 */
+	protected StateValues computeSteadyStateFormula(DTMC dtmc, BitSet b) throws PrismException
+	{
+		double multProbs[] = Utils.bitsetToDoubleArray(b, dtmc.getNumStates());
+		ModelCheckerResult res = computeSteadyStateBackwardsProbs(dtmc, multProbs);
+		return StateValues.createFromDoubleArray(res.soln, dtmc);
+	}
+
+	/**
 	 * Compute (forwards) steady-state probabilities
 	 * i.e. compute the long-run probability of being in each state,
 	 * assuming the initial distribution {@code initDist}. 

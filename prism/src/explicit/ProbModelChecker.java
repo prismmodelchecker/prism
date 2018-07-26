@@ -1207,16 +1207,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		BitSet b = checkExpression(model, expr, null).getBitSet();
 
 		// Compute/return the probabilities
-		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			double multProbs[] = Utils.bitsetToDoubleArray(b, model.getNumStates());
-			res = ((DTMCModelChecker) this).computeSteadyStateBackwardsProbs((DTMC) model, multProbs);
-			break;
+			return ((DTMCModelChecker) this).computeSteadyStateFormula((DTMC) model, b);
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the S operator for " + model.getModelType() + "s");
 		}
-		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
 	// Utility methods for probability distributions
