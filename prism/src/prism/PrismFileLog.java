@@ -146,7 +146,12 @@ public class PrismFileLog extends PrismLog
 			return;
 		}
 
-		if (!stdout) PrismNative.PN_CloseFile(fp);
+		if (stdout) {
+			// we never close stdout
+			return;
+		}
+
+		PrismNative.PN_CloseFile(fp);
 		// set fp to zero to indicate that the file handle is not valid anymore
 		fp = 0;
 	}
