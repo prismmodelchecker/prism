@@ -42,10 +42,12 @@ public class TypeBool extends Type
 	{		
 	}
 	
-	public boolean equals(Object o)
+	public static TypeBool getInstance()
 	{
-		return (o instanceof TypeBool);
+		return singleton;
 	}
+	
+	// Methods required for Type:
 	
 	@Override
 	public String getTypeString()
@@ -54,14 +56,15 @@ public class TypeBool extends Type
 	}
 	
 	@Override
-	public Object defaultValue()
+	public boolean isPrimitive()
 	{
-		return new Boolean(false);
+		return true;
 	}
 	
-	public static TypeBool getInstance()
+	@Override
+	public Object defaultValue()
 	{
-		return singleton;
+		return false;
 	}
 	
 	@Override
@@ -85,4 +88,11 @@ public class TypeBool extends Type
 		return value.toBoolean();
 	}
 
+	// Standard methods:
+	
+	@Override
+	public boolean equals(Object o)
+	{
+		return (o instanceof TypeBool);
+	}
 }

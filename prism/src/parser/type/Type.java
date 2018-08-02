@@ -37,6 +37,15 @@ public abstract class Type
 	public abstract String getTypeString();
 	
 	/**
+	 * Is this a primitive type (bool, int, etc.)?
+	 */
+	public boolean isPrimitive()
+	{
+		// Assume true by default; override if not
+		return true;
+	}
+	
+	/**
 	 * Returns the default value for this type, assuming no initialisation specified.
 	 */
 	public Object defaultValue()
