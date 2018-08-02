@@ -251,14 +251,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public int evaluateInt(EvaluateContext ec) throws PrismLangException
 	{
-		Object o = evaluate(ec);
-		if (o instanceof Integer) {
-			return ((Integer) o).intValue();
-		}
-		if (o instanceof Boolean) {
-			return ((Boolean) o).booleanValue() ? 1 : 0;
-		}
-		throw new PrismLangException("Cannot evaluate to an integer", this);
+		return evaluateObjectAsInt(evaluate(ec));
 	}
 
 	/**
@@ -341,6 +334,21 @@ public abstract class Expression extends ASTElement
 	public int evaluateInt(Values constantValues, State substate, int[] varMap) throws PrismLangException
 	{
 		return evaluateInt(new EvaluateContextSubstate(constantValues, substate, varMap));
+	}
+
+	/**
+	 * Evaluate this object as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public static int evaluateObjectAsInt(Object o) throws PrismLangException
+	{
+		if (o instanceof Integer) {
+			return ((Integer) o).intValue();
+		}
+		if (o instanceof Boolean) {
+			return ((Boolean) o).booleanValue() ? 1 : 0;
+		}
+		throw new PrismLangException("Cannot evaluate " + o + " to an integer");
 	}
 
 	/**
