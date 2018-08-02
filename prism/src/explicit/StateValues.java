@@ -320,6 +320,17 @@ public class StateValues implements StateVector
 
 	// METHODS TO MODIFY VECTOR
 
+	public void setValue(int i, Object val) throws PrismLangException
+	{
+		if (type instanceof TypeBool) {
+			setBooleanValue(i, ((TypeBool) type).castValueTo(val));
+		} else if (type instanceof TypeInt) {
+			setIntValue(i, ((TypeInt) type).castValueTo(val));
+		} else if (type instanceof TypeDouble) {
+			setDoubleValue(i, ((TypeDouble) type).castValueTo(val).doubleValue());
+		}
+	}
+
 	public void setIntValue(int i, int val)
 	{
 		valuesI[i] = val;
