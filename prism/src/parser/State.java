@@ -176,7 +176,7 @@ public class State implements Comparable<State>
 	public int compareTo(State s, int j)
 	{
 		int i, c, n;
-		Object svv[], o1, o2;
+		Object svv[];
 		
 		// Can't compare to null
 		if (s == null)
@@ -193,44 +193,20 @@ public class State implements Comparable<State>
 		
 		// Go through variables j...n-1
 		for (i = j; i < n; i++) {
-			o1 = varValues[i];
-			o2 = svv[i];
-			if (o1 instanceof Integer && o2 instanceof Integer) {
-				c = ((Integer) o1).compareTo((Integer) o2);
-				if (c != 0)
-					return c;
-				else
-					continue;
-			} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
-				c = ((Boolean) o1).compareTo((Boolean) o2);
-				if (c != 0)
-					return c;
-				else
-					continue;
-			} else {
-				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
-			}
+			c = compareObjects(varValues[i], svv[i]);
+			if (c != 0)
+				return c;
+			else
+				continue;
 		}
 		
 		// Go through variables 0...j
 		for (i = 0; i < j; i++) {
-			o1 = varValues[i];
-			o2 = svv[i];
-			if (o1 instanceof Integer && o2 instanceof Integer) {
-				c = ((Integer) o1).compareTo((Integer) o2);
-				if (c != 0)
-					return c;
-				else
-					continue;
-			} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
-				c = ((Boolean) o1).compareTo((Boolean) o2);
-				if (c != 0)
-					return c;
-				else
-					continue;
-			} else {
-				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
-			}
+			c = compareObjects(varValues[i], svv[i]);
+			if (c != 0)
+				return c;
+			else
+				continue;
 		}
 		
 		return 0;
@@ -304,5 +280,37 @@ public class State implements Comparable<State>
 		}
 		s += ")";
 		return s;
+	}
+	
+	/**
+	 * Utility method for comparing values stored as Objects.
+	 * Return values are as for the standard Comparable.compareTo method.
+	 */
+	@SuppressWarnings("unchecked")
+	public static int compareObjects(Object o1, Object o2)
+	{
+		// Things that already implement Comparable (Integer, Double)
+		if (o1 instanceof Comparable && o2 instanceof Comparable && o1.getClass().equals(o2.getClass())) {
+			return ((Comparable<Object>) o1).compareTo((Comparable<Object>) o2);
+		}
+		// Two lists of comparable objects
+		else if (o1 instanceof List && o2 instanceof List) {
+			List<?> l1 = (List<?>) o1;
+			List<?> l2 = (List<?>) o2;
+			int size = l1.size();
+			if (l2.size() != size) {
+				throw new ClassCastException("Can't compare " + o1 + " and " + o2 + " since their sizes differ");
+			}
+			for (int i = 0; i < size; i++) {
+				int c = compareObjects(l1.get(i), l2.get(i));
+				if (c != 0)
+					return c;
+				else
+					continue;
+			}
+			return 0;
+		} else {
+			throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
+		}
 	}
 }
