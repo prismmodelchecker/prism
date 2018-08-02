@@ -41,43 +41,27 @@ public class DeclarationBool extends DeclarationType
 		setType(TypeBool.getInstance());
 	}
 	
-	/**
-	 * Return the default start value for a variable of this type.
-	 */
+	@Override
 	public Expression getDefaultStart()
 	{
 		return Expression.False();
 	}
-	/*TODO
-	public Expression getStart(ModulesFile parent)
-	{
-		if (parent != null && parent.getInitialStates() != null)
-			return null;
-
-		return start != null ? start : Expression.False();
-	}*/
-
+	
 	// Methods required for ASTElement:
 	
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
-	/**
-	 * Convert to string.
-	 */
+	@Override
 	public String toString()
 	{
 		return "bool";
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
+	@Override
 	public ASTElement deepCopy()
 	{
 		DeclarationBool ret = new DeclarationBool();
