@@ -143,6 +143,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Initialise
 		this.prism = prism;
 		this.varList = varList;
+		this.allDDRowVars = allDDRowVars;
 		this.varDDRowVars = varDDRowVars;
 		this.constantValues = constantValues;
 		// Create dummy model
