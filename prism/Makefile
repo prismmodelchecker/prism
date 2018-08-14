@@ -537,8 +537,14 @@ dist_tidy:
 	@find etc/scripts -type f -exec chmod 755 {} \;
 
 binary:
-	@echo Generating jar file...
+	@echo "Generating JAR file ($(LIB_DIR)/prism.jar)..."
 	@jar cmf $(SRC_DIR)/manifest.txt $(LIB_DIR)/prism.jar -C $(CLASSES_DIR) . -C . $(IMAGES_DIR) $(DTDS_DIR)
+
+source-jar:
+	@echo "Generating sources JAR file ($(LIB_DIR)/prism-sources.jar)..."
+	@find $(SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(SRC_DIR)./-C $(SRC_DIR) /" > prism-sources.txt
+	@jar cf $(LIB_DIR)/prism-sources.jar @prism-sources.txt
+	@rm -f prism-sources.txt
 
 undist:
 	@rm -rf cudd && ln -s ../cudd cudd
@@ -569,6 +575,7 @@ clean: checks
 	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
 	rm -f lib/*jnilib; \
 	rm -f lib/prism.jar; \
+	rm -f $(LIB_DIR)/prism-sources.jar; \
 	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
 
 celan: clean
