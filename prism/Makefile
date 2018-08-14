@@ -282,6 +282,8 @@ CLASSES_DIR =	classes
 OBJ_DIR =		obj
 LIB_DIR =		lib
 INCLUDE_DIR =	include
+IMAGES_DIR =    images
+DTDS_DIR =      dtds
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
@@ -536,7 +538,7 @@ dist_tidy:
 
 binary:
 	@echo Generating jar file...
-	@jar cmf src/manifest.txt lib/prism.jar -C classes . -C . images dtds
+	@jar cmf $(SRC_DIR)/manifest.txt $(LIB_DIR)/prism.jar -C $(CLASSES_DIR) . -C . $(IMAGES_DIR) $(DTDS_DIR)
 
 undist:
 	@rm -rf cudd && ln -s ../cudd cudd
