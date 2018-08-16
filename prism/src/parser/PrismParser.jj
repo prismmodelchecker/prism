@@ -869,9 +869,11 @@ void UpdateElement(Update update) :
 {
 	ExpressionIdent var = null;
 	Expression expr = null;
+	Token begin = null;
 }
 {
-	<LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH> { update.addElement(var, expr); }
+	begin = <LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH>
+	{ UpdateElement ue = new UpdateElement(var, expr); ue.setPosition(begin, getToken(0)); update.addElement(ue); }
 }
 
 // Module renaming
