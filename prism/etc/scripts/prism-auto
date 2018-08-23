@@ -192,7 +192,7 @@ def getMatchingAutoFilesInDir(dir, modelFile):
 # Get a list of all out files in a directory
 
 def getOutFilesInDir(dir):
-    return getFilesInDir(dir, isOutFile, false)
+    return getFilesInDir(dir, isOutFile)
 
 # Get a list of all out files in a directory whose prefix matches a model file name
 
