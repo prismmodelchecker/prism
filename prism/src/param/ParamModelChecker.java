@@ -1124,7 +1124,13 @@ final public class ParamModelChecker extends PrismComponent
 			String action = rewStruct.getSynch(rewItem);
 			boolean isTransitionReward = rewStruct.getRewardStructItem(rewItem).isTransitionReward();
 			for (int state = 0; state < numStates; state++) {
-				if (guard.evaluateBoolean(constantValues, statesList.get(state))) {
+				if (isTransitionReward && model.isDeadlockState(state)) {
+					// As state is a deadlock state, any outgoing transition
+					// was added to "fix" the deadlock and thus does not get a reward.
+					// Skip to next state
+					continue;
+				}
+				if (guard.evaluateExact(constantValues, statesList.get(state)).toBoolean()) {
 					int[] varMap = new int[statesList.get(0).varValues.length];
 					for (int i = 0; i < varMap.length; i++) {
 						varMap[i] = i;

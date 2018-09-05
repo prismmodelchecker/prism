@@ -1,0 +1,13 @@
+// test case for setting exact external constants
+
+dtmc
+
+const double p;
+const double x;  // dummy for parametric
+
+module M1
+  s: [0..2] init 0;
+
+  [] s=0 -> p:(s'=1) + 1-p:(s'=2);
+  [] s>=1 -> true;
+endmodule

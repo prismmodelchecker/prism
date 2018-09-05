@@ -112,7 +112,7 @@ public class ExportBuiltModelThread extends GUIComputationThread
 					}
 				});
 				return;
-			} catch (Exception e2) {
+			} catch (Throwable e2) {
 				error(e2);
 				SwingUtilities.invokeAndWait(new Runnable()
 				{

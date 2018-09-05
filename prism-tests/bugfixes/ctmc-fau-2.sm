@@ -1,0 +1,11 @@
+// test correct handling of multiple enabled commands in CTMC when using fast adaptive uniformisation
+
+ctmc
+
+module m1
+  s: [0..4] init 0;
+
+  [a] s=0 -> 1:(s'=1) + 2:(s'=2);
+  [b] s=0 -> 3:(s'=3) + 4:(s'=4);
+  [] s>0 -> 1:true;
+endmodule

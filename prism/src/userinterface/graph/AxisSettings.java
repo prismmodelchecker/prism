@@ -45,7 +45,7 @@ import org.jfree.chart.axis.*;
 import org.jfree.data.*;
 import org.jfree.data.xy.*;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Element;
 
 /**
  * Representation of an axis of a Graph.

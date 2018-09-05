@@ -161,6 +161,9 @@ public class StateModelChecker extends PrismComponent
 		// If present, initialise settings from PrismSettings
 		if (settings != null) {
 			verbosity = settings.getBoolean(PrismSettings.PRISM_VERBOSE) ? 10 : 1;
+			setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
+			setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));
+			setDoPmaxQuotient(settings.getBoolean(PrismSettings.PRISM_PMAX_QUOTIENT));
 		}
 	}
 
@@ -738,6 +741,7 @@ public class StateModelChecker extends PrismComponent
 			return checkExpressionFuncNary(model, expr, statesOfInterest);
 		case ExpressionFunc.FLOOR:
 		case ExpressionFunc.CEIL:
+		case ExpressionFunc.ROUND:
 			return checkExpressionFuncUnary(model, expr, statesOfInterest);
 		case ExpressionFunc.POW:
 		case ExpressionFunc.MOD:

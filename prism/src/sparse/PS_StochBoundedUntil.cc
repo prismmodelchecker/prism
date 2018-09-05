@@ -335,11 +335,11 @@ jlong __jlongpointer mu	// probs for multiplying
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
 		PS_SetErrorMessage("Out of memory");
-		if (sum) delete sum;
+		if (sum) delete[] sum;
 		sum = 0;
 	} catch (const char *err) {
 		PS_SetErrorMessage("%s", err);
-		if (sum) delete sum;
+		if (sum) delete[] sum;
 		sum = 0;
 	}
 	

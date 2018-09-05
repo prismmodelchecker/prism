@@ -21,7 +21,7 @@ from threading import Timer
 #==================================================================================================
 
 # statistics about test results
-testStats = dict(SUCCESS = 0, FAILURE = 0, SKIPPED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, DUPLICATE = 0, TIMEOUT = 0)
+testStats = dict(SUCCESS = 0, FAILURE = 0, FAIL_NONCONVERGE = 0, SKIPPED = 0, SKIPPED_EXPORT = 0, SKIPPED_DUPLICATE = 0, SKIPPED_NOT_TESTED = 0, UNSUPPORTED = 0, WARNING = 0, DDWARNING = 0, TIMEOUT = 0)
 
 # colour coding for test results
 # for colour values, see https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -192,7 +192,7 @@ def getMatchingAutoFilesInDir(dir, modelFile):
 # Get a list of all out files in a directory
 
 def getOutFilesInDir(dir):
-    return getFilesInDir(dir, isOutFile, false)
+    return getFilesInDir(dir, isOutFile)
 
 # Get a list of all out files in a directory whose prefix matches a model file name
 
@@ -487,7 +487,8 @@ def runPrism(args, dir=""):
     if options.skipDuplicates:
         canonicalArgs = canonicaliseArgs(args)
         if (tuple(canonicalArgs) in alreadyRan):
-            incrementTestStat('DUPLICATE')
+            incrementTestStat('SKIPPED')
+            incrementTestStat('SKIPPED_DUPLICATE')
             return
         alreadyRan.add(tuple(canonicalArgs))
 
@@ -560,17 +561,27 @@ def runPrism(args, dir=""):
             elif options.verboseTest:
                 # in verbose mode, also print the non-matching lines
                 # rstrip to remove newline before printing
-                print(line.rstrip())
+                if re.match('Error:', line):
+                    # highlight lines with error messages
+                    printColoured('FAILURE', line.rstrip())
+                else:
+                    print(line.rstrip())
                 sys.stdout.flush()
-    if options.test and not options.verboseTest and exitCode != 0:
-        # failure, we don't want to cleanup the log (if it was a temporary file)
-        # so that the user can inspect it
-        cleanupLogFile = False
-        for line in open(logFile, 'r').readlines():
-            if re.match('Error:', line):
-                printTestResult(line)
-        print("To see log file, run:")
-        print("edit " + logFile)
+    if options.test and exitCode != 0:
+        # failure
+        if not options.verboseTest:
+            # we don't want to cleanup the log (if it was a temporary file)
+            # so that the user can inspect it
+            cleanupLogFile = False
+            for line in open(logFile, 'r').readlines():
+                if re.match('Error:', line):
+                    printTestResult(line)
+            print("To see log file, run:")
+            print("edit " + logFile)
+        else:
+            # in verbose test mode, print extra info and increment failure counter
+            printColoured('FAILURE', "\n[Exit code: " + str(exitCode) + "]")
+            incrementTestStat('FAILURE')
         if not options.testAll:
             closeDown(1)
     if cleanupLogFile:
@@ -647,21 +658,30 @@ def incrementTestStat(stat):
 def printTestStatistics():
     if options.test and not options.echo:
         print('\nTest results:')
-        printColoured('SUCCESS',     ' Success:      ' + str(testStats['SUCCESS']))
-        printColoured('WARNING',     ' Warnings:     ' + str(testStats['WARNING'])
+        printColoured('SUCCESS',     ' Success:            ' + str(testStats['SUCCESS']))
+        printColoured('WARNING',     ' Warnings:           ' + str(testStats['WARNING'])
                       + ('  (use -w to show)' if (testStats['WARNING']>0 and not options.showWarnings and not options.verboseTest) else ''))
         if (options.ddWarnings):
-            printColoured('WARNING',     '  DD-Warnings: ' + str(testStats['DDWARNING']))
-        printColoured('FAILURE',     ' Failure:      ' + str(testStats['FAILURE']))
-        printColoured('UNSUPPORTED', ' Unsupported:  ' + str(testStats['UNSUPPORTED']))
-        printColoured('SKIPPED',     ' Skipped:      ' + str(testStats['SKIPPED']))
+            printColoured('WARNING',     '  DD-Warnings:       ' + str(testStats['DDWARNING']))
+        printColoured('FAILURE',     ' Failure:            ' + str(testStats['FAILURE']))
+        if testStats['FAIL_NONCONVERGE']:
+            printColoured('FAILURE',     '  - Non-convergence: ' + str(testStats['FAIL_NONCONVERGE']))
+        printColoured('UNSUPPORTED', ' Unsupported:        ' + str(testStats['UNSUPPORTED']))
+        printColoured('SKIPPED',     ' Skipped:            ' + str(testStats['SKIPPED']))
+        if testStats['SKIPPED_NOT_TESTED']:
+            printColoured('SKIPPED',     '  - Not tested:      ' + str(testStats['SKIPPED_NOT_TESTED']))
         if options.skipDuplicates:
-            printColoured('SKIPPED',     ' Skipped dup.: ' + str(testStats['DUPLICATE']) + '  (due to --skip-duplicate-runs)')
-        if options.timeout:
-            printColoured('FAILURE',     ' Timeouts:     ' + str(testStats['TIMEOUT']))
+            printColoured('SKIPPED',     '  - Duplicates:      ' + str(testStats['SKIPPED_DUPLICATE']) + '  (due to --skip-duplicate-runs)')
+        if options.skipExportRuns:
+            printColoured('SKIPPED',     '  - Export:          ' + str(testStats['SKIPPED_EXPORT']) + '  (due to --skip-export-runs)')
+        if options.timeout is not None:
+            printColoured('FAILURE',     ' Timeouts:           ' + str(testStats['TIMEOUT']))
+
 
 def countTestResult(msg):
     if 'Error:' in msg or 'FAIL' in msg:
+        if 'did not converge' in msg:
+            incrementTestStat('FAIL_NONCONVERGE')
         incrementTestStat('FAILURE')
     elif options.ddWarnings and re.match('Warning: CUDD reports .* non-zero references', msg):
         incrementTestStat('WARNING')
@@ -671,6 +691,8 @@ def countTestResult(msg):
     elif 'PASS' in msg:
         incrementTestStat('SUCCESS')
     elif 'SKIPPED' in msg or 'NOT TESTED' in msg:
+        if 'NOT TESTED' in msg:
+            incrementTestStat('SKIPPED_NOT_TESTED')
         incrementTestStat('SKIPPED')
     elif 'UNSUPPORTED' in msg:
         incrementTestStat('UNSUPPORTED')
@@ -732,6 +754,8 @@ def benchmark(file, args, dir=""):
     args = expandFilenames(args, dir)
 
     if options.skipExportRuns and hasExportSwitches(args):
+        incrementTestStat('SKIPPED')
+        incrementTestStat('SKIPPED_EXPORT')
         return
 
     # Determine which out files apply to this benchmark from the -export switches (if required)

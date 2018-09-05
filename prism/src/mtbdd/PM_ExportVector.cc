@@ -76,7 +76,7 @@ jstring fn		// filename
 	
 	// close file, etc.
 	if (export_file) fclose(export_file);
-	env->ReleaseStringUTFChars(na, export_name);
+	if (na) env->ReleaseStringUTFChars(na, export_name);
 	
 	return 0;
 }

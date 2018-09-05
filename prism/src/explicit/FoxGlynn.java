@@ -72,9 +72,14 @@ public final class FoxGlynn
 	private final void run() throws PrismException
 	{
 		if (q_tmax == 0.0) {
-			throw new PrismException("Overflow: TA parameter qtmax = time * maxExitRate = 0.");
+			throw new PrismException("Overflow: TA parameter qtmax = time * maxExitRate = 0");
 		}
-		else if (q_tmax < 400)
+
+		if (accuracy < 1e-10) {
+			throw new PrismException("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10)");
+		}
+
+		if (q_tmax < 400)
 		{ //here naive approach should have better performance than Fox Glynn
 			final double expcoef = Math.exp(-q_tmax); //the "e^-lambda" part of p.m.f. of Poisson dist.
 			int k; //denotes that we work with event "k steps occur"
@@ -91,6 +96,9 @@ public final class FoxGlynn
 			//add further steps until you have accumulated enough
 			k = 1;
 			do {
+				// TODO: catch case where lastval gets so small that
+				// accnum never reaches desval due to rounding/floating point precision errors (infinite loop)
+
 				lastval *= q_tmax / k; // invariant: lastval = q_tmax^k / k!
 				accum += lastval;
 				w.add(lastval * expcoef);
@@ -112,9 +120,6 @@ public final class FoxGlynn
 		}
 		else
 		{ //use actual Fox Glynn for q_tmax>400
-			if (accuracy < 1e-10) {
-				throw new PrismException("Overflow: Accuracy is smaller than Fox Glynn can handle (must be at least 1e-10).");
-			}
 			final double factor = 1e+10; //factor from the paper, it has no real explanation there
 			final int m = (int) q_tmax; //mode
 			//run FINDER to get left, right and weight[m]

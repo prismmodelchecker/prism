@@ -38,6 +38,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 	private Expression right;
 	private int lb;
 	private int ub;
+	private boolean haveUpperBound;
 
 	/**
 	 * Construct a sampler for a (discrete-time) bounded until property.
@@ -68,17 +69,19 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 		}
 		// Upper bound
 		if (expr.getUpperBound() != null) {
+			haveUpperBound = true;
 			ub = expr.getUpperBound().evaluateInt();
 			if (expr.upperBoundIsStrict()) {
 				// Convert to non-strict bound:  <ub  <=>  <=ub-1
 				ub = ub - 1;
 			}
+
+			if (ub < 0) {
+				throw new PrismException("Invalid upper bound in "+expr);
+			}
 		} else {
 			// No upper bound
-			ub = Integer.MAX_VALUE;
-		}
-		if (ub < 0) {
-			throw new PrismException("Invalid upper bound in "+expr);
+			haveUpperBound = false;
 		}
 
 		// Initialise sampler info
@@ -95,7 +98,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 		
 		long pathSize = path.size();
 		// Upper bound exceeded
-		if (pathSize > ub) {
+		if (haveUpperBound && pathSize > ub) {
 			valueKnown = true;
 			value = false;
 		}
@@ -134,7 +137,7 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 	@Override
 	public boolean needsBoundedNumSteps()
 	{
-		// Always bounded
-		return true;
+		// Bounded if there is an upper bound
+		return haveUpperBound;
 	}
 }

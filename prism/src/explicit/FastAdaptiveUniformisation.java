@@ -1175,24 +1175,29 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 			succRates[0] = 1.0;
 			succStates[0] = states.get(state);
 		} else {
-			int nc = modelGen.getNumChoices();
-			succRates = new double[nc];
-			succStates = new StateProp[nc];
-			for (int i = 0; i < nc; i++) {
-				int nt = modelGen.getNumTransitions(i);
-				for (int j = 0; j < nt; j++) {
-					State succState = modelGen.computeTransitionTarget(i, j);
-					StateProp succProp = states.get(succState);
-					if (null == succProp) {
-						addToModel(succState);
-						modelGen.exploreState(state);
-						succProp = states.get(succState);
+			int ntAll = modelGen.getNumTransitions();
+			if (ntAll > 0) {
+				succRates = new double[ntAll];
+				succStates = new StateProp[ntAll];
+
+				int t = 0;
+				for (int i = 0, nc = modelGen.getNumChoices(); i < nc; i++) {
+					for (int j = 0, ntChoice = modelGen.getNumTransitions(i); j < ntChoice; j++) {
+						State succState = modelGen.computeTransitionTarget(i, j);
+						StateProp succProp = states.get(succState);
+						if (null == succProp) {
+							addToModel(succState);
+							succProp = states.get(succState);
+
+							// re-explore state, as call to addToModel may have explored succState
+							modelGen.exploreState(state);
+						}
+						succRates[t] = modelGen.getTransitionProbability(i, j);
+						succStates[t] = succProp;
+						t++;
 					}
-					succRates[i] = modelGen.getTransitionProbability(i, j);
-					succStates[i] = succProp;
 				}
-			}
-			if (nc == 0) {
+			} else {
 				succRates = new double[1];
 				succStates = new StateProp[1];
 				succRates[0] = 1.0;
@@ -1271,11 +1276,11 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 						for (int j = 0; j < numChoices; j++) {
 							int numTransitions = modelGen.getNumTransitions(j);
 							for (int k = 0; k < numTransitions; k++) {
-								String tAction = modelGen.getTransitionAction(j, k).toString();
+								Object tAction = modelGen.getTransitionAction(j, k);
 								if (tAction == null) {
 									tAction = "";
 								}
-								if (tAction.equals(action)) {
+								if (tAction.toString().equals(action)) {
 									sumReward += reward * modelGen.getTransitionProbability(j, k);
 								}
 							}

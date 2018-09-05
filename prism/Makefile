@@ -132,7 +132,6 @@ CPP = g++
 LD = $(CPP)
 JAVAC = javac
 JAVACC = javacc
-JAVAH = javah
 
 ##############
 # Flags etc. #
@@ -283,6 +282,8 @@ CLASSES_DIR =	classes
 OBJ_DIR =		obj
 LIB_DIR =		lib
 INCLUDE_DIR =	include
+IMAGES_DIR =    images
+DTDS_DIR =      dtds
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
@@ -341,7 +342,6 @@ parser:
 	CLASSES_DIR="$(CLASSES_DIR)" \
 	JAVAC="$(JAVAC) $(JFLAGS)" \
 	JAVACC="$(JAVACC)" \
-	JAVAH="$(JAVAH) $(JFLAGS)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
 
 extpackages: checks
@@ -390,7 +390,6 @@ make_dirs:
 	  LD="$(LD)" \
 	  JAVAC="$(JAVAC) $(JFLAGS)" \
 	  JAVACC="$(JAVACC)" \
-	  JAVAH="$(JAVAH) $(JFLAGS)" \
 	  CFLAGS="$(CFLAGS)" \
 	  CPPFLAGS="$(CPPFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
@@ -407,6 +406,10 @@ make_dirs:
 	  (cd $(LIB_DIR) && \
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
+# On Windows, convert the generated JNI headers using dos2unix
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+		(dos2unix include/jni/*.h) \
+	fi;
 
 # Run a single test case
 test:
@@ -434,6 +437,17 @@ testslocal:
 	else \
 	  echo "Skipping local tests"; \
 	fi
+
+# Run the tests from ../prism-tests (with different engine settings, picked up from ../prism-tests/all-engines.args)
+# - Export tests are disabled, as there is currently no robust test mechanism for dealing with the
+#   variations in the output of the different engines.
+# - We run with --test-all, as failures for some engines should not abort the tests
+# - We run with a timeout of 1 minute, as some engines take a long time for some properties
+testsfull:
+	cd ../prism-tests && \
+	"$(PWD)"/etc/scripts/prism-auto -t -m . \
+	--skip-export-runs --skip-duplicate-runs --test-all -a all-engines.args --timeout 1m \
+	-p "$(PWD)"/bin/prism --nailgun $(TESTS_ARGS);
 
 bin_scripts:
 	@for target in $(BIN_TARGETS); do \
@@ -523,8 +537,14 @@ dist_tidy:
 	@find etc/scripts -type f -exec chmod 755 {} \;
 
 binary:
-	@echo Generating jar file...
-	@jar cmf src/manifest.txt lib/prism.jar -C classes . -C . images dtds
+	@echo "Generating JAR file ($(LIB_DIR)/prism.jar)..."
+	@jar cmf $(SRC_DIR)/manifest.txt $(LIB_DIR)/prism.jar -C $(CLASSES_DIR) . -C . $(IMAGES_DIR) $(DTDS_DIR)
+
+source-jar:
+	@echo "Generating sources JAR file ($(LIB_DIR)/prism-sources.jar)..."
+	@find $(SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(SRC_DIR)./-C $(SRC_DIR) /" > prism-sources.txt
+	@jar cf $(LIB_DIR)/prism-sources.jar @prism-sources.txt
+	@rm -f prism-sources.txt
 
 undist:
 	@rm -rf cudd && ln -s ../cudd cudd
@@ -553,13 +573,14 @@ clean: checks
 	  || exit 1; \
 	done; \
 	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
-	rm -f lib/*jnilib; \
-	rm -f lib/prism.jar; \
+	rm -f $(LIB_DIR)/*jnilib; \
+	rm -f $(LIB_DIR)/prism.jar; \
+	rm -f $(LIB_DIR)/prism-sources.jar; \
 	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
 
 celan: clean
 
-clean_all: checks clean_cudd clean
+clean_all: checks clean_cudd clean_ext clean
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && $(MAKE) distclean)

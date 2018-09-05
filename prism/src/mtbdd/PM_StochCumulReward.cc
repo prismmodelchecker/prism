@@ -131,7 +131,14 @@ jdouble time		// time bound
 	// compute poisson probabilities (fox/glynn)
 	PM_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
-	if (fgw.right < 0) { PM_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)"); return 0; }
+	if (fgw.right < 0) {
+		PM_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)");
+		Cudd_RecursiveDeref(ddman, q);
+		Cudd_RecursiveDeref(ddman, diags);
+		Cudd_RecursiveDeref(ddman, sol);
+		Cudd_RecursiveDeref(ddman, sum);
+		return 0;
+	}
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
@@ -244,7 +251,8 @@ jdouble time		// time bound
 	Cudd_RecursiveDeref(ddman, q);
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
-	
+	if (fgw.weights) delete[] fgw.weights;
+
 	return ptr_to_jlong(sum);
 }
 

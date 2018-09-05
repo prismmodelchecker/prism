@@ -34,7 +34,7 @@ import parser.type.*;
 public class ExpressionLiteral extends Expression
 {
 	Object value; // Value
-	String string; // Optionally, keep original string to preserve user formatting
+	String string; // Optionally, keep original string to preserve user formatting and allow exact evaluation
 
 	// Constructor
 	
@@ -92,13 +92,24 @@ public class ExpressionLiteral extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
+		if (value instanceof BigRational) {
+			// cast from BigRational to appropriate Java data type
+			return getType().castFromBigRational((BigRational) value);
+		}
 		return value;
 	}
 
 	@Override
 	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
-		return BigRational.from(value);
+		if (value instanceof BigRational) {
+			// if already a BigRational, return that
+			return (BigRational) value;
+		} else if (value instanceof Boolean) {
+			return BigRational.from(value);
+		}
+		// otherwise, convert from string representation (potentially provides more precision for double literals)
+		return BigRational.from(string);
 	}
 
 	@Override

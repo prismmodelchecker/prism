@@ -41,6 +41,7 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
+import prism.DefinedConstant;
 import prism.Point;
 import prism.Prism;
 import prism.TileList;
@@ -189,7 +190,10 @@ public class Property extends ASTElement
 						match = false;
 					// Check doubles numerically
 					else if (constValToMatch instanceof Double)
-						match = PrismUtils.doublesAreCloseRel(((Double) constValToMatch).doubleValue(), Double.parseDouble(constVal), 1e-10);
+						match = PrismUtils.doublesAreCloseRel(((Double) constValToMatch).doubleValue(), DefinedConstant.parseDouble(constVal), 1e-10);
+					// if constant is exact rational number, compare exactly
+					else if (constValToMatch instanceof BigRational)
+						match = BigRational.from(constVal).equals(constValToMatch);
 					// Otherwise just check for exact string match for now
 					else
 						match = constValToMatch.toString().equals(constVal);
@@ -266,7 +270,7 @@ public class Property extends ASTElement
 	 */
 	private boolean checkAgainstExpectedResultString(String strExpected, Values constValues, Object result) throws PrismException
 	{
-		// Check for special "don't case" case
+		// Check for special "don't care" case
 		if (strExpected.equals("?")) {
 			return false;
 		}

@@ -745,6 +745,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			return checkExpressionFuncNary(expr, statesOfInterest);
 		case ExpressionFunc.FLOOR:
 		case ExpressionFunc.CEIL:
+		case ExpressionFunc.ROUND:
 			return checkExpressionFuncUnary(expr, statesOfInterest);
 		case ExpressionFunc.POW:
 		case ExpressionFunc.MOD:
@@ -785,6 +786,10 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				// NB: Ceil result kept as double, so don't need to check if operand is NaN
 				dd1 = JDD.MonadicApply(JDD.CEIL, dd1);
 				break;
+			case ExpressionFunc.ROUND:
+				// NB: Round result kept as double, so don't need to check if operand is NaN
+				dd1 = JDD.MonadicApply(JDD.FLOOR, JDD.Plus(dd1, JDD.Constant(0.5)));
+				break;
 			}
 			return new StateValuesMTBDD(dd1, model);
 		}
@@ -802,6 +807,11 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				// NB: Ceil result kept as double, so don't need to check if operand is NaN
 				for (i = 0; i < n; i++)
 					dv1.setElement(i, Math.ceil(dv1.getElement(i)));
+				break;
+			case ExpressionFunc.ROUND:
+				// NB: Round result kept as double, so don't need to check if operand is NaN
+				for (i = 0; i < n; i++)
+					dv1.setElement(i, Math.round(dv1.getElement(i)));
 				break;
 			}
 			return new StateValuesDV(dv1, model);

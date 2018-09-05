@@ -156,15 +156,15 @@ public class DebugJDD
 			// Checks:
 			// (1) There is a negative number of Java references for the DdNode pointer
 			if (jrefs < 0) {
-				throw new RuntimeException("DebugJDD: The number of Java references is negative for\n " + toStringVerbose());
+				reportError("DebugJDD: The number of Java references is negative for\n " + toStringVerbose());
 			}
 			// (2) There are more Java references than CUDD references
 			if (jrefs > JDD.DebugJDD_GetRefCount(ptr())) {
-				throw new RuntimeException("DebugJDD: More Java refs than CUDD refs for\n " + toStringVerbose());
+				reportError("DebugJDD: More Java refs than CUDD refs for\n " + toStringVerbose());
 			}
 			// (3) This node has more refs than there are Java refs in total
 			if (jrefs < getNodeRefs()) {
-				throw new RuntimeException("DebugJDD: JDDNode has more refs than Java refs in total?!\n " + toStringVerbose());
+				reportError("DebugJDD: JDDNode has more refs than Java refs in total?!\n " + toStringVerbose());
 			}
 		}
 
@@ -257,6 +257,9 @@ public class DebugJDD
 	/** An optional set of DebugJDDNode IDs that will be traced */
 	protected static HashSet<Long> traceIDs = null;
 
+	/** Did we raise an error? */
+	protected static boolean raisedError = false;
+
 	/** Enable debugging */
 	public static void enable()
 	{
@@ -292,7 +295,7 @@ public class DebugJDD
 	{
 		if (nodes.put(node.getID(), node) != null) {
 			// implementation error, should not happen
-			throw new RuntimeException("DebugJDD: Internal error, adding the same JDDNode multiple times, ID=" + node.getID());
+			reportError("DebugJDD: Internal error, adding the same JDDNode multiple times, ID=" + node.getID());
 		}
 	}
 
@@ -304,6 +307,11 @@ public class DebugJDD
 	 */
 	public static void endLifeCycle()
 	{
+		if (raisedError) {
+			System.out.println("There was a fatal error, skipping DDNode leak checking...");
+			return;
+		}
+
 		// Get the external reference count from CUDD
 		Map<Long, Integer> externalRefCounts = getExternalRefCounts();
 		if (externalRefCounts.size() == 0) {
@@ -350,8 +358,15 @@ public class DebugJDD
 		DebugJDDNode.nextId = 0;
 
 		if (warningsAreFatal) {
-			throw new RuntimeException("DebugJDD: Leaked references");
+			reportError("DebugJDD: Leaked references");
 		}
+	}
+
+	/** Throw an exception with the given message, remember that we have raised an error */
+	private static void reportError(String message)
+	{
+		raisedError = true;
+		throw new RuntimeException(message);
 	}
 
 	/** Get the CUDD reference count for the pointer of the JDDNode */
@@ -444,13 +459,13 @@ public class DebugJDD
 	protected static void Ref(JDDNode node)
 	{
 		if (node instanceof DebugJDDNodeLight) {
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to reference a light-weight JDDNode (obtained from getThen()/getElse()) directly. Use copy() instead");			
+			reportError("DebugJDD: Illegal operation, trying to reference a light-weight JDDNode (obtained from getThen()/getElse()) directly. Use copy() instead");
 		}
 
 		if (!(node instanceof DebugJDDNode)) {
 			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
 			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		DebugJDDNode dNode = (DebugJDDNode) node;
@@ -474,13 +489,13 @@ public class DebugJDD
 	protected static void Deref(JDDNode node)
 	{
 		if (node instanceof DebugJDDNodeLight) {
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to dereference a light-weight JDDNode (obtained from getThen()/getElse()) directly");			
+			reportError("DebugJDD: Illegal operation, trying to dereference a light-weight JDDNode (obtained from getThen()/getElse()) directly");
 		}
 
 		if (!(node instanceof DebugJDDNode)) {
 			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
 			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		DebugJDDNode dNode = (DebugJDDNode) node;
@@ -494,17 +509,17 @@ public class DebugJDD
 				System.out.println("Warning, " + warning);
 				printStack(0);
 			} else if (!warningsOff && warningsAreFatal) {
-				throw new RuntimeException(warning);
+				reportError(warning);
 			}
 		}
 
 		if (getJavaRefCount(node.ptr()) <= 0) {
-			throw new RuntimeException("DebugJDD: Trying to Deref a JDDNode with non-positive Java ref count:\n " + dNode.toStringVerbose());
+			reportError("DebugJDD: Trying to Deref a JDDNode with non-positive Java ref count:\n " + dNode.toStringVerbose());
 		}
 
 		int cuddRefCount = JDD.DebugJDD_GetRefCount(node.ptr());
 		if (cuddRefCount <= 0) {
-			throw new RuntimeException("DebugJDD: Trying to Deref a JDDNode with a non-positive CUDD ref count\n " + dNode.toStringVerbose());
+			reportError("DebugJDD: Trying to Deref a JDDNode with a non-positive CUDD ref count\n " + dNode.toStringVerbose());
 		}
 
 		// decrement reference in DebugJDD
@@ -538,17 +553,17 @@ public class DebugJDD
 		if (!(node instanceof DebugJDDNode)) {
 			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
 			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		DebugJDDNode dNode = (DebugJDDNode) node;
 
 		if (dNode.getNodeRefs() <= 0) {
-			throw new RuntimeException("DebugJDD: Trying to copy a JDDNode with non-positive ref count:\n " + dNode.toStringVerbose());
+			reportError("DebugJDD: Trying to copy a JDDNode with non-positive ref count:\n " + dNode.toStringVerbose());
 		}
 
 		if (getRefCount(dNode) <= 0) {
-			throw new RuntimeException("DebugJDD: Trying to copy a JDDNode with non-positive CUDD ref count:\n " + dNode.toStringVerbose());
+			reportError("DebugJDD: Trying to copy a JDDNode with non-positive CUDD ref count:\n " + dNode.toStringVerbose());
 		}
 
 		DebugJDDNode result = new DebugJDD.DebugJDDNode(dNode.ptr(), true);
@@ -605,17 +620,17 @@ public class DebugJDD
 				System.out.println("Warning, " + warning);
 				printStack(0);
 			} else if (!warningsOff && warningsAreFatal) {
-				throw new RuntimeException(warning);
+				reportError(warning);
 			}
 		}
 
 		if (getJavaRefCount(node.ptr()) <= 0) {
-			throw new RuntimeException("DebugJDD: Trying to use a JDDNode with non-positive Java ref count in a method call:\n " + dNode.toStringVerbose());
+			reportError("DebugJDD: Trying to use a JDDNode with non-positive Java ref count in a method call:\n " + dNode.toStringVerbose());
 		}
 
 		int cuddRefCount = JDD.DebugJDD_GetRefCount(node.ptr());
 		if (cuddRefCount <= 0) {
-			throw new RuntimeException("DebugJDD: Trying to use a JDDNode with a non-positive CUDD ref count in a method call:\n " + dNode.toStringVerbose());
+			reportError("DebugJDD: Trying to use a JDDNode with a non-positive CUDD ref count in a method call:\n " + dNode.toStringVerbose());
 		}
 	}
 
@@ -630,12 +645,12 @@ public class DebugJDD
 	protected static void DD_Method_Argument(JDDNode node)
 	{
 		if (node instanceof DebugJDDNodeLight) {
-			throw new RuntimeException("DebugJDD: Illegal operation, trying to use a light-weight JDDNode (obtained from getThen()/getElse()) in a method call");			
+			reportError("DebugJDD: Illegal operation, trying to use a light-weight JDDNode (obtained from getThen()/getElse()) in a method call");
 		}
 		if (!(node instanceof DebugJDDNode)) {
 			// using a node that is not wrapped in a DebugJDDNode, but when debugging is
 			// enabled all nodes should be either DebugJDDNodeLight or DebugJDDNode
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		DebugJDDNode dNode = (DebugJDDNode) node;
@@ -667,15 +682,15 @@ public class DebugJDD
 		} else if (node instanceof DebugJDDNodeLight) {
 			// nothing to do
 		} else {
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		long ptr = JDDNode.DDN_GetThen(node.ptr());
 		if (ptr == 0) {
 			if (node.isConstant()) {
-				throw new RuntimeException("Trying to access the 'then' child of a constant MTBDD node");
+				reportError("Trying to access the 'then' child of a constant MTBDD node");
 			} else {
-				throw new RuntimeException("getThen: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
+				reportError("getThen: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
 			}
 		}
  		return new DebugJDDNodeLight(ptr);
@@ -693,15 +708,15 @@ public class DebugJDD
 		} else if (node instanceof DebugJDDNodeLight) {
 			// nothing to do
 		} else {
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
 		long ptr = JDDNode.DDN_GetElse(node.ptr());
 		if (ptr == 0) {
 			if (node.isConstant()) {
-				throw new RuntimeException("Trying to access the 'else' child of a constant MTBDD node");
+				reportError("Trying to access the 'else' child of a constant MTBDD node");
 			} else {
-				throw new RuntimeException("getElse: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
+				reportError("getElse: CUDD returned NULL, but node is not a constant node. Out of memory or corrupted MTBDD?");
 			}
 		}
  		return new DebugJDDNodeLight(ptr);
@@ -720,14 +735,13 @@ public class DebugJDD
 		} else if (node instanceof DebugJDDNodeLight) {
 			// nothing to do
 		} else {
-			throw new RuntimeException("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
+			reportError("DebugJDD: Internal error, encountered a node object of type " + node.getClass().getName() + " in debug mode");
 		}
 
-		if (node.isConstant()) {
-			return JDDNode.DDN_GetValue(node.ptr());
-		} else {
-			throw new RuntimeException("Trying to get value of MTBDD node, but is not a constant node");
+		if (!node.isConstant()) {
+			reportError("Trying to get value of MTBDD node, but is not a constant node");
 		}
+		return JDDNode.DDN_GetValue(node.ptr());
 	}
 
 	/* --------------------- TESTING --------------------------------------------

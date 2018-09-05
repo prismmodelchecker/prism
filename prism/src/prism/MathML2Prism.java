@@ -29,7 +29,9 @@ package prism;
 import java.io.*;
 import java.util.*;
 import javax.xml.parsers.*;
-import org.w3c.dom.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.*;
 
 public class MathML2Prism

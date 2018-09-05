@@ -35,6 +35,9 @@ import prism.*;
 import userinterface.*;
 
 import javax.swing.*;
+
+import common.StackTraceHelper;
+
 import java.util.*;
 import userinterface.util.*;
 
@@ -224,16 +227,28 @@ public class GUIExperiment
 					}
 				});
 
+				// are we in exact mode?
+				boolean exact = prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
+				// for simulation, don't use exact mode...
+				exact &= !useSimulation;
+
 				for (i = 0; i < undefinedConstants.getNumModelIterations(); i++) {
 
 					// set values for ModulesFile constants
 					try {
 						definedMFConstants = undefinedConstants.getMFConstantValues();
-						prism.setPRISMModelConstants(definedMFConstants);
+						prism.setPRISMModelConstants(definedMFConstants, exact);
 					} catch (Exception e) {
 						// in case of error, report it (in log only), store as result, and go on to the next model
 						errorLog(e);
 						setMultipleErrors(definedMFConstants, null, e);
+						undefinedConstants.iterateModel();
+						continue;
+					} catch (StackOverflowError e) {
+						// in case of stack overflow, report it (in log only),
+						// store as PrismException in result, and go on to the next model
+						errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT));
+						setMultipleErrors(definedMFConstants, null, new PrismException("Stack overflow"));
 						undefinedConstants.iterateModel();
 						continue;
 					}
@@ -290,6 +305,13 @@ public class GUIExperiment
 							setMultipleErrors(definedMFConstants, null, e);
 							undefinedConstants.iterateModel();
 							continue;
+						} catch (StackOverflowError e) {
+							// in case of stack overflow, report it (in log only),
+							// store as PrismException in result, and go on to the next model
+							errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT));
+							setMultipleErrors(definedMFConstants, null, new PrismException("Stack overflow"));
+							undefinedConstants.iterateModel();
+							continue;
 						}
 					} else {
 						// iterate through as many properties as necessary
@@ -302,7 +324,7 @@ public class GUIExperiment
 								// Set values for PropertiesFile constants
 								if (propertiesFile != null) {
 									definedPFConstants = undefinedConstants.getPFConstantValues();
-									propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+									propertiesFile.setSomeUndefinedConstants(definedPFConstants, exact);
 								}
 								// Normal model checking
 								if (!useSimulation) {
@@ -326,6 +348,11 @@ public class GUIExperiment
 								// in case of error, report it (in log only), store exception as the result and proceed
 								errorLog(e);
 								res = new Result(e);
+							} catch (StackOverflowError e) {
+								// in case of stack overflow, report it (in log only),
+								// store as PrismException in result, and proceed
+								errorLog(e.toString() + "\n" + StackTraceHelper.asString(e, STACK_TRACE_LIMIT));
+								res = new Result(new PrismException("Stack overflow"));
 							}
 							// store result of model checking
 							SwingUtilities.invokeAndWait(new Runnable()

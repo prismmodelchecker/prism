@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
+import common.iterable.IterableInt;
 import prism.Pair;
 import prism.PrismException;
 import explicit.rewards.MCRewards;
@@ -592,19 +593,68 @@ public interface DTMC extends Model
 	 */
 	public default void vmMult(double vect[], double result[])
 	{
-		int i;
-
-		int numStates = getNumStates();
 		// Initialise result to 0
-		for (i = 0; i < numStates; i++) {
-			result[i] = 0;
-		}
-
+		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
-		for (i = 0; i < numStates; i++) {
-			forEachTransition(i, (s, t, prob) -> {
+		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
+			forEachTransition(state, (s, t, prob) -> {
 				result[t] += prob * vect[s];
 			});
 		}
 	}
+
+	/**
+	 * Do a vector-matrix multiplication for steady-state computation with the power method.
+	 * <p>
+	 * Computes<br>
+	 * {@code result = vect * P} with matrix
+	 * {@code P = (Q * deltaT + I)} where<br/>
+	 * {@code Q} is the generator matrix,
+	 * {@code deltaT} the preconditioning factor and
+	 * {@code I} is the the identity matrix.<br/>
+	 * Please refer to <em>William J. Stewart: "Introduction to the Numerical Solution of Markov Chains"</em> p.124 for details.
+	 * </p>
+	 * <p>
+	 * If the {@code states} argument only specifies a subset of the state space,
+	 * only those entries of the {@code result} vector are modified that are either
+	 * states in {@code states} or their successors; other entries remain unchanged.
+	 * Thus, it generally only makes sense to use this method with a state sets that consists
+	 * of (the union of) bottom strongly-connected components (BSCCs).
+	 * </p>
+	 * @param vect Vector to multiply by
+	 * @param result Vector to store result in
+	 * @param diagsQ vector of the diagonal entries of the generator matrix Q, i.e., diagsQ[s] = -sum_{s!=t} prob(s,t)
+	 * @param deltaT deltaT conditioning factor
+	 * @param states subset of states to consider
+	 */
+	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, IterableInt states)
+	{
+		// Recall that the generator matrix Q has entries
+		//       Q(s,s) = -sum_{t!=s} prob(s,t)
+		// and   Q(s,t) = prob(s,t)  for s!=t
+		// The values Q(s,s) are passed in via the diagsQ vector, while the
+		// values Q(s,t) correspond to the normal transitions
+
+		// Initialise result for relevant states to vect[s] * (deltaT * diagsQ[s] + 1),
+		// i.e., handle the product with the diagonal entries of (deltaT * Q) + I
+		for (OfInt it = states.iterator(); it.hasNext(); ) {
+			int state = it.nextInt();
+			result[state] = vect[state] * ((deltaT * diagsQ[state]) + 1.0);
+		}
+
+		// For each relevant state...
+		for (OfInt it = states.iterator(); it.hasNext();) {
+			int state = it.nextInt();
+
+			// ... handle all Q(state,t) entries of the generator matrix
+			forEachTransition(state, (s, t, prob) -> {
+				if (s != t) {
+					// ignore self loop, diagonal entries of the generator matrix handled above
+					// update result vector entry for the *successor* state
+					result[t] += deltaT * prob * vect[s];
+				}
+			});
+		}
+	}
+
 }
