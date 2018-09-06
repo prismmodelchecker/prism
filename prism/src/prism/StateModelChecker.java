@@ -547,7 +547,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			s = e1.getName();
 			v = varList.getIndex(s);
 			if (v == -1) {
-				throw new PrismException("Unknown variable \"" + s + "\"");
+				throw new PrismLangException("Unknown variable \"" + e1.getName() + "\" (no index information)", e1);
 			}
 			// get some info on the variable
 			l = varList.getLow(v);
@@ -599,7 +599,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			s = e2.getName();
 			v = varList.getIndex(s);
 			if (v == -1) {
-				throw new PrismException("Unknown variable \"" + s + "\"");
+				throw new PrismLangException("Unknown variable \"" + e2.getName() + "\" (no index information)", e2);
 			}
 			// get some info on the variable
 			l = varList.getLow(v);
@@ -1036,7 +1036,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// get the variable's index
 		v = varList.getIndex(s);
 		if (v == -1) {
-			throw new PrismException("Unknown variable \"" + s + "\"");
+			throw new PrismLangException("Unknown variable \"" + expr.getName() + "\"", expr);
 		}
 		// get some info on the variable
 		l = varList.getLow(v);
