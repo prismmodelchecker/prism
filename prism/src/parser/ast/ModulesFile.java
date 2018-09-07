@@ -1160,43 +1160,11 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	 * Deprecated: Use getDefaultInitialState() instead
 	 * (or new Values(getDefaultInitialState(), modulesFile)).
 	 */
+	@Deprecated
 	public Values getInitialValues() throws PrismLangException
 	{
-		int i, j, n, n2;
-		Module module;
-		Declaration decl;
-		Values values;
-		Object initialValue;
-
-		if (initStates != null) {
-			throw new PrismLangException("There are multiple initial states");
-		}
-
-		// set up variable list
-		values = new Values();
-
-		// first add all globals
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			decl = getGlobal(i);
-			initialValue = decl.getStartOrDefault().evaluate(constantValues);
-			initialValue = getGlobal(i).getType().castValueTo(initialValue);
-			values.addValue(decl.getName(), initialValue);
-		}
-		// then add all module variables
-		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			module = getModule(i);
-			n2 = module.getNumDeclarations();
-			for (j = 0; j < n2; j++) {
-				decl = module.getDeclaration(j);
-				initialValue = decl.getStartOrDefault().evaluate(constantValues);
-				initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
-				values.addValue(decl.getName(), initialValue);
-			}
-		}
-
-		return values;
+		State stateInit = getDefaultInitialState();
+		return (stateInit == null) ? null : new Values(getDefaultInitialState(), this);
 	}
 
 	/**
