@@ -296,9 +296,9 @@ JAVA_JNI_H_DIR = $(shell \
 JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
 JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
-#########################
-# Main part of Makefile #
-#########################
+##########################################
+# Main part of Makefile: Compiling PRISM #
+##########################################
 
 MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta param strat automata common cex
 
@@ -313,6 +313,7 @@ default: all
 
 all: cuddpackage extpackages prism
 
+# Build our customised version of CUDD
 cuddpackage: checks
 	@if [ "$(CUDD_DIR)" = "" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
 	@if [ ! -d "$(CUDD_DIR)" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
@@ -325,14 +326,14 @@ cuddpackage: checks
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
 
-# use this to force build of cudd (even if dir is just a symlink)
+# Use this to force a build of CUDD, even if dir is just a symlink
 cuddpackageforce: checks
 	  @echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
 	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)";
 
-# use this to force a rebuild (with javacc) of the main parser
+# Use this to force a rebuild (with javacc) of the main parser
 parser:
 	@echo Making parser ...; \
 	cd src/parser && \
@@ -344,6 +345,7 @@ parser:
 	JAVACC="$(JAVACC)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
 
+# Build various external libraries needed by PRISM
 extpackages: checks
 	@for ext in $(EXT_PACKAGES); do \
 	  echo Making $$ext ...; \
@@ -368,8 +370,11 @@ extpackages: checks
 	  ) || exit 1; \
 	done
 
+# Compile main PRISM code
+# (we also do some preparatory checks, and build launch scripts afterwards)
 prism: checks make_dirs bin_scripts
 
+# Compile each (top-level) source directory separately
 make_dirs:
 	@mkdir -p bin classes obj/dd obj/jdd obj/odd obj/dv obj/prism obj/mtbdd obj/sparse obj/hybrid obj/simulator
 	@for dir in $(MAKE_DIRS); do \
@@ -411,11 +416,87 @@ make_dirs:
 		(dos2unix include/jni/*.h) \
 	fi;
 
-# Run a single test case
+# Copy/modify the launch scripts and put in the bin directory
+bin_scripts:
+	@for target in $(BIN_TARGETS); do \
+	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
+	  echo Copying "$(SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
+	  cp $(SRC_DIR)/bin/$$target bin/$$target_trunc; \
+	done;
+	@echo Copying "$(OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
+	cp $(OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
+	@./install.sh silent
+
+# Some checks to make sure that the main settings are valid
+checks:
+	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \
+	  echo "\033[33mTo compile PRISM, the environment variable OSTYPE"; \
+	  echo "must be set to one of: linux, solaris, cygwin or darwin,"; \
+	  echo "depending on which operating system you are using."; \
+	  echo "This is not the case on your system. Please specify"; \
+	  echo "the value of OSTYPE manually to make, e.g.:"; \
+	  echo; \
+	  echo "  make OSTYPE=linux"; \
+	  echo; \
+	  echo "Alternatively, if you wish, you can set the environment"; \
+	  echo "variable yourself (using setenv or export) or you"; \
+	  echo "can edit the value of OSTYPE directly in the Makefile."; \
+	  echo "\033[0m"; \
+	  exit 1; \
+	fi; \
+	if [ "$(JAVA_DIR)" = "" ]; then \
+	  echo "\033[33mPRISM was unable to find the directory which contains"; \
+	  echo "your Java distribution. Please specify this manually to"; \
+	  echo "make, as in these examples:"; \
+	  echo; \
+	  echo "  make JAVA_DIR=/usr/java/j2sdk1.4.2"; \
+	  echo "  make JAVA_DIR=\"/cygdrive/c/Program Files/Java/jdk1.4.2\""; \
+	  echo; \
+	  echo "See the PRISM manual for further information."; \
+	  echo; \
+	  echo "Alternatively, if you wish, you can set the environment"; \
+	  echo "variable yourself (using setenv or export) or you"; \
+	  echo "can edit the value of JAVA_DIR directly in the Makefile."; \
+	  echo "\033[0m"; \
+	  exit 1; \
+	fi; \
+	if [ ! -d "$(JAVA_DIR)" ]; then \
+	  echo "\033[33mJava directory \"$(JAVA_DIR)\" does not exist."; \
+	  echo "\033[0m"; \
+	  exit 1; \
+	fi; \
+	if [ ! -f "$(JAVA_JNI_H_DIR)"/jni.h ]; then \
+	  echo "\033[33mCould not locate JNI header jni.h within \"$(JAVA_DIR)\"."; \
+	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
+	  echo "\033[0m"; \
+	  exit 1; \
+	fi; \
+	if [ ! -f "$(JAVA_JNI_MD_H_DIR)"/jni_md.h ]; then \
+	  echo "\033[33mCould not locate JNI header jni_md.h within \"$(JAVA_DIR)\"."; \
+	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
+	  echo "\033[0m"; \
+	  exit 1; \
+	fi; \
+	echo "VERSION: $(VERSION)"; \
+	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
+	echo "JAVA_DIR: $(JAVA_DIR)"; \
+	echo "JAVA_DIR_BACKUP: $(JAVA_DIR_BACKUP)"; \
+	echo "JAVAC: "`which $(JAVAC)` \
+	)
+
+# Misc: count the number of lines of code
+count_loc:
+	find $(SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+
+###########
+# Testing #
+###########
+
+# Run a single test case from the test suite (useful quick check that the build was ok)
 test:
 	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
 
-# Run all tests (in ../prism-tests and ./tests)
+# Run all tests from the test suite (in ../prism-tests and ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
@@ -449,15 +530,9 @@ testsfull:
 	--skip-export-runs --skip-duplicate-runs --test-all -a all-engines.args --timeout 1m \
 	-p "$(PWD)"/bin/prism --nailgun $(TESTS_ARGS);
 
-bin_scripts:
-	@for target in $(BIN_TARGETS); do \
-	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
-	  echo Copying "$(SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
-	  cp $(SRC_DIR)/bin/$$target bin/$$target_trunc; \
-	done;
-	@echo Copying "$(OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
-	cp $(OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
-	@./install.sh silent
+##########################
+# Building distributions #
+##########################
 
 # Unless VERSION has been passed in (as VERSION=xxx),
 # extract version number from Java code using printversion
@@ -557,14 +632,18 @@ tarcf:
 	echo Building tar file "../"$$TARCF_DIR".tar.gz" && \
 	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
 
-count_loc:
-	find $(SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+# Build Javadoc (and put in javadoc directory)
 
 PRISM_CLASSPATH = "$(CLASSES_DIR)$(CLASSPATHSEP)$(LIB_DIR)/*"
 
 javadoc:
 	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(SRC_DIR)/overview.html -sourcepath $(SRC_DIR) -classpath $(SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
 
+###############
+# Cleaning up #
+###############
+
+# Clean main PRISM build (not CUDD or external libs)
 clean: checks
 	@(for dir in $(MAKE_DIRS); do \
 	  echo Cleaning src/$$dir ...; \
@@ -580,6 +659,7 @@ clean: checks
 
 celan: clean
 
+# Clean PRISM + CUDD and external libs
 clean_all: checks clean_cudd clean_ext clean
 
 clean_cudd:
@@ -593,6 +673,7 @@ clean_ext:
 	  || exit 1; \
 	done )
 
+# Clear individual directories (sometimes useful)
 clean_dd: checks
 	@(cd src/dd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_jdd: checks
@@ -627,61 +708,5 @@ clean_param: checks
 	@(cd src/param && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_strat: checks
 	@(cd src/strat && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-
-checks:
-	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \
-	  echo "\033[33mTo compile PRISM, the environment variable OSTYPE"; \
-	  echo "must be set to one of: linux, solaris, cygwin or darwin,"; \
-	  echo "depending on which operating system you are using."; \
-	  echo "This is not the case on your system. Please specify"; \
-	  echo "the value of OSTYPE manually to make, e.g.:"; \
-	  echo; \
-	  echo "  make OSTYPE=linux"; \
-	  echo; \
-	  echo "Alternatively, if you wish, you can set the environment"; \
-	  echo "variable yourself (using setenv or export) or you"; \
-	  echo "can edit the value of OSTYPE directly in the Makefile."; \
-	  echo "\033[0m"; \
-	  exit 1; \
-	fi; \
-	if [ "$(JAVA_DIR)" = "" ]; then \
-	  echo "\033[33mPRISM was unable to find the directory which contains"; \
-	  echo "your Java distribution. Please specify this manually to"; \
-	  echo "make, as in these examples:"; \
-	  echo; \
-	  echo "  make JAVA_DIR=/usr/java/j2sdk1.4.2"; \
-	  echo "  make JAVA_DIR=\"/cygdrive/c/Program Files/Java/jdk1.4.2\""; \
-	  echo; \
-	  echo "See the PRISM manual for further information."; \
-	  echo; \
-	  echo "Alternatively, if you wish, you can set the environment"; \
-	  echo "variable yourself (using setenv or export) or you"; \
-	  echo "can edit the value of JAVA_DIR directly in the Makefile."; \
-	  echo "\033[0m"; \
-	  exit 1; \
-	fi; \
-	if [ ! -d "$(JAVA_DIR)" ]; then \
-	  echo "\033[33mJava directory \"$(JAVA_DIR)\" does not exist."; \
-	  echo "\033[0m"; \
-	  exit 1; \
-	fi; \
-	if [ ! -f "$(JAVA_JNI_H_DIR)"/jni.h ]; then \
-	  echo "\033[33mCould not locate JNI header jni.h within \"$(JAVA_DIR)\"."; \
-	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
-	  echo "\033[0m"; \
-	  exit 1; \
-	fi; \
-	if [ ! -f "$(JAVA_JNI_MD_H_DIR)"/jni_md.h ]; then \
-	  echo "\033[33mCould not locate JNI header jni_md.h within \"$(JAVA_DIR)\"."; \
-	  echo "You may need to set JAVA_DIR by hand. See the PRISM manual for details."; \
-	  echo "\033[0m"; \
-	  exit 1; \
-	fi; \
-	echo "VERSION: $(VERSION)"; \
-	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
-	echo "JAVA_DIR: $(JAVA_DIR)"; \
-	echo "JAVA_DIR_BACKUP: $(JAVA_DIR_BACKUP)"; \
-	echo "JAVAC: "`which $(JAVAC)` \
-	)
 
 #################################################
