@@ -1164,7 +1164,7 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	public Values getInitialValues() throws PrismLangException
 	{
 		State stateInit = getDefaultInitialState();
-		return (stateInit == null) ? null : new Values(getDefaultInitialState(), this);
+		return (stateInit == null) ? null : new Values(stateInit, this);
 	}
 
 	/**
