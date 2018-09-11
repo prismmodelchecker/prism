@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | FrequentlyAskedQuestions / MemoryProblems 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Frequently Asked Questions</a> /
+</p><h1>Memory Problems</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p><a name='crash' id='crash'></a>
+</p><h3>PRISM crashed or stopped responding. Why?</h3>
+<div class='answer' > 
+<p>When PRISM crashes, the most likely cause is that it has run out of memory.
+Similarly, if PRISM (or the machine you are running it on) becomes very slow or seems to have stopped responding, this is probably because it is using too much of your machine's memory. Probabilistic model checking, much like other formal verification techniques, can be a very resource-intensive process. It is very easy to create a seemingly simple PRISM model that requires a large amount of time and/or memory to construct and analyse. See some of the other questions in this section for tips on how to avoid this.
+</p>
+<p class='vspace'>The other possibility is that you have found a bug.
+If PRISM crashes or freezes whilst not using all/most of the available memory (you can check this with the <code>top</code> command in a Unix/Linux terminal or the Task Manager (via Ctrl-Alt-Delete) on Windows) then please file a <a class='urllink' href='https://github.com/prismmodelchecker/prism/issues'>bug report</a>.
+</p></div>
+<p class='vspace'><a name='memout' id='memout'></a>
+</p><h3>I ran out of memory. What can I do?</h3>
+<div class='answer' > 
+<p>It depends. First, you need to establish at what point in PRISM's operation, you ran out of memory. If you are running the command-line version of PRISM then the output from the tool so far should give an indication of this. If using the GUI, check the log tab for this information. If PRISM crashed because of its memory usage, the error message can be helpful. If using the GUI, you may need to start the GUI from the command-line to see any error messages.
+</p>
+<p class='vspace'>The two main steps that PRISM typically has to perform are:
+</p>
+<div class='vspace'></div><ol><li><strong>Model construction</strong> (conversion of a PRISM language description to the corresponding probabilistic model)
+</li><li><strong>Model checking/analysis</strong> (processing/analysis of a constructed probabilistic model in order to determine the result of a property or to compute steady-state/transient probabilities)
+</li></ol><p class='vspace'>Memory usage issues for each of these steps are discussed in separate sections below. In some cases the process performed prior to step 1 (<strong>model parsing</strong> - reading in a model description in the PRISM language and checking it for correctness) can also be resource intensive. This is also discussed below.
+</p>
+<p class='vspace'>If you are using the <strong>simulator</strong> to generate approximate model checking results then step 1 (model construction) is not performed and step 2 is carried out very differently. Memory consumption is not usually a problem in this case.
+</p></div>
+<p class='vspace'><a name='memout_constr' id='memout_constr'></a>
+</p><h3>I ran out of memory during model construction. What can I do?</h3>
+<div class='answer' > 
+<p>If PRISM has already output this:
+</p>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">Building model...</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>but there is no line of the form:
+</p>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">Time for model construction: 34.3 seconds.</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>and then you get an error like this:
+</p>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># An unexpected error has been detected by Java Runtime Environment:</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;">#  SIGSEGV (0xb) at pc=0xb5249323, pid=19298, tid=3086363536</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># Java VM: Java HotSpot(TM) Client VM (1.6.0-b105 mixed mode, sharing)</span><br/>
+<span style="font-style:italic;"># Problematic frame:</span><br/>
+<span style="font-style:italic;"># C  [libdd.so+0x39323]  Cudd_Ref+0xf</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># An error report file with more information is saved as hs_err_pid19298.log</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;"># If you would like to submit a bug report, please visit:</span><br/>
+<span style="font-style:italic;">#   http://java.sun.com/webapps/bugreport/crash.jsp</span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;">/home/dxp/bin/prism: line 50: 19298 Aborted                 "$PRISM_JAVA" #$PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>or like this:
+</p>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;"># </span><br/>
+<span style="font-style:italic;"># An unexpected error has been detected by HotSpot Virtual Machine: </span><br/>
+<span style="font-style:italic;"># </span><br/>
+<span style="font-style:italic;"># EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x0b1c7da3, pid=2884, tid=2544 </span><br/>
+<span style="font-style:italic;"># </span><br/>
+<span style="font-style:italic;"># Java VM: Java HotSpot(TM) Client VM (1.5.0_06-b05 mixed mode) </span><br/>
+<span style="font-style:italic;"># Problematic frame: </span><br/>
+<span style="font-style:italic;"># C [dd.dll+0x7da3] </span><br/>
+<span style="font-style:italic;">#</span><br/>
+<span style="font-style:italic;">...</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>then PRISM ran out of memory whilst trying to construct the model.
+Model construction in PRISM is performed using BDDs (binary decision diagrams) and MTBDDs (multi-terminal) BDDs which are implemented in the CUDD library.
+The first thing to try in this case is to increase the amount of memory available to CUDD. See the entry "CUDD memory" in the section "<a class='wikilink' href='../ConfiguringPRISM/OtherOptions.html'>Configuring PRISM - Other Options</a>" for details of this.
+</p>
+<p class='vspace'>If increasing this memory limit does not resolve the problem, then you will need to consider ways to reduce the size of your model. You can find some tips on this in the <a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a> section. Bear in mind also that if you are having to increase the CUDD memory limit too high (e.g. close to the physical memory available on your computer) just for model construction, then it is unlikely that you will have enough memory for subsequent model checking operations.
+</p>
+<p class='vspace'>Finally, it is also worth considering the ordering of the modules and variables in your model since this can have a (in some cases dramatic) effect on the size of MTBDD representation of the model. This topic is covered in the "<a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a>" section of this FAQ.
+</p></div>
+<p class='vspace'><a name='memout_check' id='memout_check'></a>
+</p><h3>I ran out of memory during model checking. What can I do?</h3>
+<div class='answer' > 
+<p>If model construction was successfully completed (see previous question) but model checking was not, there are several things you can try. First of all, if the error message you see looks like the one in the previous question or you see a message such as
+</p>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">DD_MatrixMultiply: res is NULL</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>then it may be worth increasing the memory limit for CUDD (as described above). However, if you see an error more like this:
+</p>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">/home/dxp/bin/prism: line 50:  3139 Aborted                 "$PRISM_JAVA" $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>then increasing the memory CUDD probably will not help - PRISM is just trying to allocate more memory than is physically available on your system.
+</p>
+<p class='vspace'>Here are some general tips:
+</p>
+<div class='vspace'></div><ul><li>Try experimenting with using the different <em>engines</em> in PRISM. Read the section "<a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>Configuring PRISM - Computation Engines</a>" for details.
+<div class='vspace'></div></li><li>Look at the detailed output of PRISM for information about memory usage. If you are using the hybrid (or sparse) engine and the limiting factor in terms of memory is creation of the vectors, then you have no choice but to try and reduce the size (number of states) of your model. If you are using the MTBDD engine, it is also well worth considering the variable ordering of your model. Both topics are discussed in the "<a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a>" section of this FAQ.
+<div class='vspace'></div></li><li>Finally, if you can find no way to reduce the size of your model and are happy to consider an approximate (rather than exact) analysis, you may wish to try using PRISM's <a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>discrete-event simulation engine</a> for analysis.
+</li></ul></div>
+<p class='vspace'><a name='memout_parse' id='memout_parse'></a>
+</p><h3>I ran out of memory during model parsing. What can I do?</h3>
+<div class='answer' > 
+<p>This is a less common problem and will only occur if the actual PRISM language description of your model is very large. This may be the case, for example, if you are automatically generating PRISM models in some way. Errors due to lack of memory during parsing usually look like:
+</p>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">Exception in thread "main" java.lang.OutOfMemoryError: Java heap space </span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>or:
+</p>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">Exception in thread "main" java.lang.StackOverflowError</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/FrequentlyAskedQuestions/MemoryProblems?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p>You can resolve this problem by increasing the memory allocated to Java.
+See the entry "Java memory" in the section "<a class='wikilink' href='../ConfiguringPRISM/OtherOptions.html'>Configuring PRISM - Other Options</a>" for details of this.
+</p></div>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Frequently Asked Questions</a></strong>
+</p><ul><li><a class='selflink' href='MemoryProblems.html'>Memory Problems</a>
+</li><li><a class='wikilink' href='PRISMModelling.html'>PRISM Modelling</a>
+</li><li><a class='wikilink' href='PRISMProperties.html'>PRISM Properties</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

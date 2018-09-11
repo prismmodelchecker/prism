@@ -1,0 +1,120 @@
+
+/* Main box */
+
+#prism-unilogo {
+	display:none;
+}
+
+/* Command boxes */
+
+#prism-man-commands1 {
+	float:right;
+	margin:25px;
+	margin-right:25px;
+	color:#333333;
+}
+#prism-man-commands2 {
+	margin-top:30px;
+	color:#333333;
+}
+#prism-man-commands1 p, #prism-man-commands2 p {
+	margin:0;
+	text-align:center;
+}
+#prism-man-commands1 a, #prism-man-commands2 a {
+	padding:2px 5px 2px 5px;
+	background:#eeeeee;
+	color:#333333;
+	border:solid 1px #cccccc;
+}
+
+/* Main box title */
+
+#prism-man-title p {
+	margin-top:1em;
+	margin-bottom:-1em;
+}
+
+/* Last modified */
+
+#prism-man-lastmod {
+	margin-top:30px;
+	text-align:center;
+	font-size:8pt;
+	color:#999999;
+}
+
+/* General CSS for main box content */
+
+#prism-mainbox hr {
+	margin-top:20px;
+	margin-bottom:10px;
+	height:4px;
+}
+
+#wikiedit form { margin:0px; }
+#wikiedit textarea { width:98%; }
+
+code { white-space: normal; }
+
+.big {
+  font-size:28pt;
+  color:#444444;
+  /*border-width:8px 0 8px 0;
+  border-color:#444444;
+  border-style:double;*/
+}
+
+h1 img {
+	vertical-align:middle;
+}
+
+pre.cl {
+  padding:10px;
+  margin-left:10px;
+  margin-right:10px;
+  border:1px dotted #808080;
+  background-color:#F1F0ED;
+}
+
+.answer {
+  padding:10px;
+  margin-left:0px;
+  margin-right:0px;
+  border:2px dotted #808080;
+  background-color:#ddddff;
+}
+
+div.latex2html dt {
+	font-weight:bold;
+}
+
+div.sourceblock {
+  padding:5px 10px 5px 10px;
+  margin:10px 0 10px 0;
+  border:2px dotted #808080;
+  background-color:#F1F0ED;
+  width:90%; /* Need a width or else IE6 gets upset */
+  overflow:auto;
+}
+* html div.sourceblock {
+  padding-bottom:1.5em; /* Nasty hack to fix IE6 scrollbar positioning */
+}
+.sourceblocklink {
+  /*float:right;*/
+  display:none;
+}
+.sourceblocktext {
+  border:none;
+  white-space:nowrap;
+}
+.sourceblocktext div {
+  font-family:monospace;
+  font-size:9pt;
+  line-height:1.2;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font:italic medium serif;
+  padding:0.5em;
+}

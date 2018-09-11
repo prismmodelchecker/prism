@@ -1,0 +1,13 @@
+body,h1,h2,h3,h4,h5,p,ul,a,tr,td,b,i,input { font-family:"Trebuchet MS",Verdana,sans; font-size:10pt; text-align:left; }
+body { font-size:10pt; }
+h1,h2,h1 a,h2 a { font-size:16pt; }
+h3,h4,h3 a,h4 a { font-size:12pt; }
+h5,h5 a { font-size:11pt; }
+pre { font-family:monospace; font-size:9pt; text-align:left }
+.pre { font-family:monospace; }
+a:link { color:#0000ff; text-decoration:none }
+a:visited { color:#000099; text-decoration:none }
+a:hover { color:#0000ff; text-decoration:underline }
+a:active { color:#ff0000; text-decoration:none }
+img { border:0; }
+:focus, :link:focus, :visited:focus { outline:0px; }
