@@ -1,12 +1,9 @@
-======
-README
-======
+# PRISM
 
 This is PRISM (Probabilistic Symbolic Model Checker).
 
-------------
-INSTALLATION
-------------
+
+## INSTALLATION
 
 For detailed installation instructions, check the online manual at:
 
@@ -14,31 +11,30 @@ For detailed installation instructions, check the online manual at:
   
 or see the local copies included in this distribution:
 
-  doc/manual/InstallingPRISM/Instructions.html
-  doc/manual.pdf
+  `doc/manual/InstallingPRISM/Instructions.html`
+  `doc/manual.pdf`
 
 Very abbreviated instructions for installing/running PRISM are as follows:
 
 For Windows binary distributions:
 
- - to install, run prism-XXX-win-installer.exe
- - to run, use Desktop/Start menu shortcuts or double-click bin\xprism.bat
+ - to install, run `prism-XXX-win-installer.exe`
+ - to run, use Desktop/Start menu shortcuts or double-click `bin\xprism.bat`
 
 For other binary distributions:
 
- - to install, enter the PRISM directory, type "./install.sh"
- - to run, execute bin/xprism or bin/prism
+ - to install, enter the PRISM directory, type `./install.sh`
+ - to run, execute `bin/xprism` or `bin/prism`
 
 For source code distributions:
 
- - enter the PRISM directory and type "make"
- - to run, execute bin/xprism or bin/prism
+ - enter the PRISM directory and type `make`
+ - to run, execute `bin/xprism` or `bin/prism`
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
 
--------------
-DOCUMENTATION
--------------
+
+## DOCUMENTATION
 
 The best source of information about using PRISM is the online manual:
 
@@ -46,19 +42,18 @@ The best source of information about using PRISM is the online manual:
 
 You can also view the local copies included in this distribution:
 
-  doc/manual/index.html
-  doc/manual.pdf
+  `doc/manual/index.html`
+  `doc/manual.pdf`
 
 For other PRISM-related information, see the website:
 
   http://www.prismmodelchecker.org/
 
----------
-LICENSING
----------
+
+## LICENSING
 
 PRISM is distributed under the GNU General Public License (GPL).
-A copy of this license can be found in the file COPYING.txt.
+A copy of this license can be found in the file `COPYING.txt``.
 For more information, see:
 
   http://www.gnu.org/licenses/
@@ -69,9 +64,8 @@ library, see:
 
   http://vlsi.colorado.edu/~fabio/CUDD/
 
-----------------
-ACKNOWLEDGEMENTS
-----------------
+
+## ACKNOWLEDGEMENTS
 
 PRISM was created and is still actively maintained by:
 
@@ -106,9 +100,8 @@ For more details see:
 
   http://www.prismmodelchecker.org/people.php
 
--------
-CONTACT
--------
+
+## CONTACT
 
 If you have problems or questions regarding PRISM, please use the help forum provided. See:
 
