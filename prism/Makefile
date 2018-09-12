@@ -304,7 +304,7 @@ MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterfac
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
-.PHONY: clean javadoc tests
+.PHONY: clean javadoc tests release
 
 # inhibit building in parallel (-j option)
 .NOTPARALLEL:
@@ -534,103 +534,59 @@ testsfull:
 # Building distributions #
 ##########################
 
-# Unless VERSION has been passed in (as VERSION=xxx),
-# extract version number from Java code using printversion
-VERSION = $(shell SRC_DIR=$(SRC_DIR) $(SRC_DIR)/scripts/printversion.sh 2> /dev/null)
-
-# Grab svn revision number from svnversion, if possible
-REVISION = $(shell svnversion 2> /dev/null)
-
-# Add Revision.java with current svn revision
-add_rev:
-	@echo "Creating $(SRC_DIR)/prism/Revision.java (REVISION = $(REVISION))"
-	echo 'package prism;\npublic class Revision\n{\n\tpublic static String svnRevision = "$(REVISION)";\n}' > $(SRC_DIR)/prism/Revision.java
-
-dist_src: dist_check_version dist_copy clean_all dist_tidy
-
-dist_bin: JFLAGS += -source 1.8 -target 1.8
-dist_bin: dist_check_version all binary dist_tidy dist_bin_copy
-
-dist_check_version:
-	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; fi
-
-# Unless already present, copy cudd/examples/doc to this dir
-# By default, cudd/examples from svn trunk and doc from ~/prism/prism-doc; other options commented out below
-dist_copy:
-	@if [ -e cudd ]; then \
-	  echo "Warning: Not copying cudd since directory already exists"; \
-	else \
-	  echo "Installing CUDD from svn trunk..."; svn -q export https://www.prismmodelchecker.org/svn/prism/prism/trunk/cudd cudd; \
-	fi
-#	  echo "Installing CUDD from ../cudd..."; (SRC_DIST_DIR=`/bin/pwd`; cd ..; tar cf - cudd | tar xf - -C "$$SRC_DIST_DIR");
-	@if [ -e examples ]; then \
-	  echo "Warning: Not copying examples since directory already exists"; \
-	else \
-	  echo "Installing examples from svn trunk..."; svn -q export https://www.prismmodelchecker.org/svn/prism/prism/trunk/prism-examples examples; \
-	fi
-#	  echo "Installing examples from ../prism-examples..."; (SRC_DIST_DIR=`/bin/pwd`; cd ..; tar cf - prism-examples | tar xf - -C "$$SRC_DIST_DIR"); mv prism-examples examples;
-	@if [ -e doc ]; then \
-	  echo "Warning: Not copying manual since directory doc already exists"; \
-	else \
-	  echo "Installing manual from ~/prism/prism-doc..."; \
-	  mkdir doc; \
-	  (SRC_DIST_DIR=`/bin/pwd`; cd ~/prism/prism-doc; tar cf - manual | tar xf - -C "$$SRC_DIST_DIR"/doc); \
-	  cp ~/prism/prism-doc/manual.pdf doc; \
-	fi
-
-dist_bin_copy:
-	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
-		echo Building NSIS Windows installer...	&& \
-		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR="" src/nsis_script.nsi; \
-	else \
-		BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
-		BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
-		echo Creating binary distribution in $$BIN_DIST_DIR... && \
-		mkdir $$BIN_DIST_DIR && \
-		tar cf - README.txt CHANGELOG.txt COPYING.txt install.sh bin etc lib examples doc | ( cd $$BIN_DIST_DIR; tar xfp -) && \
-		echo Zipping $$BIN_DIST_DIR_NAME... && \
-		(cd $$BIN_DIST_DIR/..; tar cfz $$BIN_DIST_DIR_NAME.tar.gz $$BIN_DIST_DIR_NAME); \
-	fi
-#	(cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME);
-
-dist_tidy:
-	@echo Detecting unwanted files...
-	@find . \( -name '*.o' -o -name '*.so' -o -name '*.dll' -o -name '*.exe' \)
-	@find . \( -name '*~*' -o -name '*bak*' \)
-	@find . -name 'log*' | grep -v userinterface/log || test 1
-	@find . -name '*NOTES*' | grep -v src/parser/NOTES | grep -v cudd/RELEASE.NOTES || test 1
-	@echo Processing text files...
-	@find . -type f -name '*.txt' -exec unix2dos {} {} \; 2> /dev/null
-	@find examples -type f ! -name auto -exec unix2dos {} {} \; 2> /dev/null || test 1
-	@echo Processing file permissions...
-	@find . -type f -exec chmod 644 {} \;
-	@find . \( -type d -o -type s \) -exec chmod 755 {} \;
-	@find . -type f  \( -name '*.sh' -o -name '*.so' -o -name '*.dll' \) -exec chmod 755 {} \;
-	@find examples -type f -name 'auto' -exec chmod 755 {} \; || test 1
-	@find bin -type f -exec chmod 755 {} \; || test 1
-	@find src/bin -type f -exec chmod 755 {} \;
-	@find etc/scripts -type f -exec chmod 755 {} \;
-
+# Build prism.jar
 binary:
 	@echo "Generating JAR file ($(LIB_DIR)/prism.jar)..."
 	@jar cmf $(SRC_DIR)/manifest.txt $(LIB_DIR)/prism.jar -C $(CLASSES_DIR) . -C . $(IMAGES_DIR) $(DTDS_DIR)
 
+# Build prism-sources.jar
 source-jar:
 	@echo "Generating sources JAR file ($(LIB_DIR)/prism-sources.jar)..."
 	@find $(SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(SRC_DIR)./-C $(SRC_DIR) /" > prism-sources.txt
 	@jar cf $(LIB_DIR)/prism-sources.jar @prism-sources.txt
 	@rm -f prism-sources.txt
 
-undist:
-	@rm -rf cudd && ln -s ../cudd cudd
-	@rm -rf doc
-	@rm -rf examples && ln -s ../prism-examples examples
+# Download a local html copy of the manual
+#PRISM_MANUAL_WEBSITE = http://prismmodelchecker.localhost/manual/
+PRISM_MANUAL_WEBSITE = http://www.prismmodelchecker.org/manual/
+doc: clean_doc
+	(cd .. && wget -r -np -k -E -nH --no-cookies --header "Cookie: setskin=offline" --restrict-file-names=windows --reject '*action=sourceblock*' $(PRISM_MANUAL_WEBSITE) $(PRISM_MANUAL_WEBSITE)/pub/skins/offline/images/)
+clean_doc:
+	rm -rf ../manual
 
-tarcf:
-	@TARCF_DIR=`/bin/pwd | sed 's/.\+\///'` && \
-	if [ $$TARCF_DIR = "." ]; then exit 1; fi && \
-	echo Building tar file "../"$$TARCF_DIR".tar.gz" && \
-	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
+# Set up version, in particular for building releases
+# Unless VERSION has been passed in (as VERSION=xxx),
+# extract version number from Java code using printversion
+VERSION = $(shell SRC_DIR=$(SRC_DIR) $(SRC_DIR)/scripts/printversion.sh 2> /dev/null)
+
+# File/dir names for distribution
+BIN_DIST_DIR = prism-$(VERSION)-$(BINDISTSUFFIX)
+BIN_DIST_FILE = $(BIN_DIST_DIR).tar.gz
+BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
+
+# Build a (binary) distribution in the release directory
+
+release: JFLAGS += -source 1.8 -target 1.8
+release: all binary release_check_version build_release clean_binary
+
+release_check_version:
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi
+
+build_release:
+	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
+		echo Creating Windows installer in "release/$(BIN_DIST_INST)"... && \
+		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR="" src/nsis_script.nsi && \
+		mkdir -p release && \
+		mv "$(BIN_DIST_INST)" release; \
+	else \
+		echo Creating binary distribution in "release/$(BIN_DIST_FILE)"... && \
+		mkdir -p release && \
+		rm -rf "release/$(BIN_DIST_DIR)" && \
+		rm -f "release/$(BIN_DIST_FILE)" && \
+		mkdir -p "release/$(BIN_DIST_DIR)" && \
+		tar cf - bin lib install.sh etc -C .. manual prism-examples CHANGELOG.txt COPYING.txt README.md | tar xf - -C "release/$(BIN_DIST_DIR)" && \
+		(cd release && tar cfz "$(BIN_DIST_FILE)" "$(BIN_DIST_DIR)") && rm -rf "$(BIN_DIST_DIR)"; \
+	fi
 
 # Build Javadoc (and put in javadoc directory)
 
@@ -672,6 +628,11 @@ clean_ext:
 	  $(MAKE) -s LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
 	  || exit 1; \
 	done )
+
+# Remove just the prism.jar binary
+clean_binary:
+	@echo "Removing JAR file ($(LIB_DIR)/prism.jar)..."
+	@rm -f $(LIB_DIR)/prism.jar
 
 # Clear individual directories (sometimes useful)
 clean_dd: checks

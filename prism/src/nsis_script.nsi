@@ -65,20 +65,20 @@ Section "${PRISM_NAME}"
     File /r lib\*.*
     
     SetOutPath "$INSTDIR"
-    File "CHANGELOG.txt"
-    File "COPYING.txt"
+    File "..\CHANGELOG.txt"
+    File "..\COPYING.txt"
     FILE "install.sh"
-    FILE "README.txt"
+    FILE "..\README.md"
 
     SetOutPath "$INSTDIR\bin"
     File bin\prism.bat
     File bin\xprism.bat
     
-    SetOutPath "$INSTDIR\examples"
-    File /r examples\*.*
+    SetOutPath "$INSTDIR\prism-examples"
+    File /r ..\prism-examples\*.*
 
-    SetOutPath "$INSTDIR\doc"
-    File /r doc\*.*
+    SetOutPath "$INSTDIR\manual"
+    File /r ..\manual\*.*
 SectionEnd
 
 Section "Desktop shortcut"
@@ -111,7 +111,7 @@ Section "Start menu shortcuts"
     SetOutPath "$INSTDIR\doc"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Manual (local).lnk" \
-                    "$INSTDIR\doc\manual\index.html" ""                            \
+                    "$INSTDIR\manual\index.html" ""                            \
                     "" 0                             \
                     SW_SHOWNORMAL "" "The PRISM manual (local copy)"
 
@@ -142,9 +142,9 @@ Section Uninstall
     Delete "$INSTDIR\CHANGELOG.txt"
     Delete "$INSTDIR\COPYING.txt"
     Delete "$INSTDIR\install.sh"
-    Delete "$INSTDIR\README.txt"
+    Delete "$INSTDIR\README.md"
 
-    RMDir /r "$INSTDIR\examples\"
+    RMDir /r "$INSTDIR\prism-examples\"
 
     RMDIR /r "$INSTDIR\doc\"
 
