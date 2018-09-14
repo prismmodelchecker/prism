@@ -9,8 +9,7 @@
 ; * PRISM X.y" is the name of the program displayed to the user
 ; * prism-3.0 is the4 name of the build (no spaces)
 ; * winXX is win32 or win6
-; The PRISM_DIR variable should be set to "" if the working directory
-; is the prism directory or to the prism directory otherwise (ending with `\').
+; The PRISM_DIR variable should be set to the top-level PRISM dir (usually ..)
 
 # --------------------------------------------------------------------------- #
 
@@ -30,7 +29,7 @@ OutFile         "..\${PRISM_BUILD}-${PRISM_BINDISTSUFFIX}-installer.exe"
 CRCCheck        on
 
 LicenseText     "For your information:" "Next >"
-LicenseData     "${PRISM_DIR}COPYING.txt"
+LicenseData     "${PRISM_DIR}\COPYING.txt"
 
 InstallDir      "$PROGRAMFILES64\${PRISM_BUILD}"
 

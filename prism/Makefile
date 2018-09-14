@@ -575,9 +575,9 @@ release_check_version:
 build_release:
 	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
 		echo Creating Windows installer in "release/$(BIN_DIST_INST)"... && \
-		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR="" src/nsis_script.nsi && \
+		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR=".." src/nsis_script.nsi && \
 		mkdir -p release && \
-		mv "$(BIN_DIST_INST)" release; \
+		mv ../"$(BIN_DIST_INST)" release; \
 	else \
 		echo Creating binary distribution in "release/$(BIN_DIST_FILE)"... && \
 		mkdir -p release && \
