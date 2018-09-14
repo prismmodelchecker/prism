@@ -9,10 +9,9 @@ For detailed installation instructions, check the online manual at:
 
   http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
   
-or see the local copies included in this distribution:
+or see the local copy included in this distribution:
 
- * `doc/manual/InstallingPRISM/Instructions.html`
- * `doc/manual.pdf`
+ * `manual/InstallingPRISM/Instructions.html`
 
 Very abbreviated instructions for installing/running PRISM are as follows:
 
@@ -23,12 +22,12 @@ For Windows binary distributions:
 
 For other binary distributions:
 
- * to install, enter the PRISM directory, type `./install.sh`
+ * to install, enter the PRISM directory and type `./install.sh`
  * to run, execute `bin/xprism` or `bin/prism`
 
 For source code distributions:
 
- * enter the PRISM directory and type `make`
+ * enter the PRISM directory and type `cd prism` then `make`
  * to run, execute `bin/xprism` or `bin/prism`
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
@@ -40,10 +39,9 @@ The best source of information about using PRISM is the online manual:
 
   http://www.prismmodelchecker.org/manual/
 
-You can also view the local copies included in this distribution:
+You can also view the local copy included in this distribution:
 
-  * `doc/manual/index.html`
-  * `doc/manual.pdf`
+  * `manual/index.html`
 
 For other PRISM-related information, see the website:
 
