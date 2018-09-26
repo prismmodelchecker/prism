@@ -370,7 +370,7 @@ public interface Model
 		defaults.attributes().put("shape", "box");
 
 		// Header
-		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode " + defaults.toString() + ";\n");
+		out.print("digraph " + getModelType() + " {\nnode " + defaults.toString() + ";\n");
 		int i, numStates;
 		for (i = 0, numStates = getNumStates(); i < numStates; i++) {
 			// initialize

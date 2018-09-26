@@ -1267,7 +1267,7 @@ public abstract class QuantAbstractRefine extends PrismComponent
 
 		try {
 			FileWriter out = new FileWriter(filename);
-			out.write("digraph " + "STPG" + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+			out.write("digraph " + "STPG" + " {\nnode [shape=box];\n");
 			for (i = 0; i < stpg.getNumStates(); i++) {
 				if (known.get(i))
 					out.write(i + " [label=\"" + i + " {" + lbSoln[i] + "}" + "\" style=filled  fillcolor=\"#cccccc\"");
