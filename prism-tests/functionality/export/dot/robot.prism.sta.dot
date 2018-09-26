@@ -1,5 +1,4 @@
 digraph S {
-size="8,5"
 node [shape=box];
 0 -> n0_0 [ arrowhead=none,label="0:south" ];
 n0_0 [ shape=point,width=0.1,height=0.1,label="" ];

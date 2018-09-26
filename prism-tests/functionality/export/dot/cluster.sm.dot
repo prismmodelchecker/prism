@@ -1,5 +1,4 @@
 digraph R {
-size="8,5"
 node [shape=box];
 0 -> 8 [ label="10" ];
 0 -> 10 [ label="10" ];

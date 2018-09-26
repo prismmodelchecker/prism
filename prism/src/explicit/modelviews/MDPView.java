@@ -275,7 +275,7 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	@Override
 	public void exportToDotFileWithStrat(final PrismLog out, final BitSet mark, final int[] strat)
 	{
-		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
 		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
 			if (mark != null && mark.get(state))
 				out.print(state + " [style=filled  fillcolor=\"#cccccc\"]\n");
