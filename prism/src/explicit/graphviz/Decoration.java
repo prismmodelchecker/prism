@@ -27,6 +27,7 @@
 package explicit.graphviz;
 
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -37,8 +38,32 @@ import java.util.TreeMap;
  */
 public class Decoration
 {
+	/** An indication of how the node or edge's label should be rendered by Graphviz */
+	public enum LabelType
+	{
+		/**
+		 * Plain text
+		 * */
+		PLAIN,
+		/**
+		 * HTML-like (a restricted subset of HTML supported by Graphviz, as documented in the
+		 * <a href="https://graphviz.gitlab.io/_pages/doc/info/shapes.html#html">Node Shapes</a>
+		 * section of the Graphviz manual)
+		 */
+		 HTML
+	}
+
+	private static final EnumMap<LabelType, String[]> LABEL_DELIMITERS = new EnumMap<>(LabelType.class);
+	static
+	{
+		LABEL_DELIMITERS.put(LabelType.PLAIN, new String[]{ "\"", "\\n", "\"" });
+		LABEL_DELIMITERS.put(LabelType.HTML, new String[]{ "<", "<br/>", ">" });
+	}
+
 	/** The label */
 	private String label;
+	/** How the label should be rendered by Graphviz (by plain text, as default) */
+	private LabelType labelType = LabelType.PLAIN;
 	/** Map from attribute keys to values (apart from the label attribute) */
 	private TreeMap<String, String> attributes;
 
@@ -114,7 +139,8 @@ public class Decoration
 	{
 		StringBuffer buf = new StringBuffer();
 
-		append(buf, "label", "\"" + label + "\"");
+		String[] delimiters = LABEL_DELIMITERS.get(labelType);
+		append(buf, "label", delimiters[0] + label + delimiters[2]);
 
 		for (Entry<String, String> e : attributesRO().entrySet()) {
 			if (defaults != null) {
@@ -160,10 +186,27 @@ public class Decoration
 		this.label = label;
 	}
 
+	/** Get the label type */
+	public LabelType getLabelType()
+	{
+		return labelType;
+	}
+
+	/**
+	 * Set the label type (this should be done before calling the {@link labelAddBelow(String) labelAddBelow}
+	 * or {@link labelAddAbove(String) labelAddAbove} methods, to ensure that the correct line delimiter is
+	 * inserted)
+	 */
+	public void setLabelType(LabelType labelType)
+	{
+		this.labelType = labelType;
+	}
+
 	/** Add some additional information below the currently existing label */
 	public void labelAddBelow(String additional)
 	{
-		setLabel(getLabel() + "\\n" + additional);
+		String[] delimiters = LABEL_DELIMITERS.get(labelType);
+		setLabel(getLabel() + delimiters[1] + additional);
 	}
 
 	/**
@@ -172,7 +215,8 @@ public class Decoration
 	 */
 	public void labelAddAbove(String additional)
 	{
-		setLabel(additional + "\\n" + getLabel());
+		String[] delimiters = LABEL_DELIMITERS.get(labelType);
+		setLabel(additional + delimiters[1] + getLabel());
 	}
 
 	/**
