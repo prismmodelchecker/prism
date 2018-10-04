@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 
+import common.SafeCast;
 import param.BigRational;
 import parser.*;
 import parser.visitor.*;
@@ -301,10 +302,11 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateFloor(double arg) throws PrismLangException
 	{
-		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(arg) || Double.isInfinite(arg))
-			throw new PrismLangException("Cannot take floor() of " + arg);
-		return (int) Math.floor(arg);
+		try {
+			return SafeCast.toIntExact(Math.floor(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take floor() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public Integer evaluateCeil(EvaluateContext ec) throws PrismLangException
@@ -319,10 +321,11 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateCeil(double arg) throws PrismLangException
 	{
-		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(arg) || Double.isInfinite(arg))
-			throw new PrismLangException("Cannot take ceil() of " + arg);
-		return (int) Math.ceil(arg);
+		try {
+			return SafeCast.toIntExact(Math.ceil(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take ceil() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public Integer evaluateRound(EvaluateContext ec) throws PrismLangException
@@ -337,10 +340,11 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateRound(double arg) throws PrismLangException
 	{
-		// Check for NaN, otherwise possible errors lost in cast to int
-		if (Double.isNaN(arg))
-			throw new PrismLangException("Cannot take round() of " + arg);
-		return (int) Math.round(arg);
+		try {
+			return SafeCast.toIntExact(Math.round(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take round() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
@@ -377,14 +381,11 @@ public class ExpressionFunc extends Expression
 		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 		if (exp < 0)
 			throw new PrismLangException("Negative exponent not allowed for integer power");
-		double res = Math.pow(base, exp);
-		// Check for overflow
-		if (res > Integer.MAX_VALUE)
-			throw new PrismLangException("Overflow evaluating integer power");
-		// Check for underflow
-		if (res < Integer.MIN_VALUE)
-			throw new PrismLangException("Underflow evaluating integer power");
-		return (int) res;
+		try {
+			return SafeCast.toIntExact(Math.pow(base, exp));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage());
+		}
 	}
 
 	public static double evaluatePowDouble(double base, double exp) throws PrismLangException
