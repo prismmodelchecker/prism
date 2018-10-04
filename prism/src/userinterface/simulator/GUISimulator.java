@@ -1525,7 +1525,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					else if (noSteps == 0)
 						return;
 					// Do backtrack
-					a_backTrack(engine.getPathSize() - noSteps);
+					a_backTrack((int)(engine.getPathSize() - noSteps));
 				} catch (NumberFormatException nfe) {
 					String msg = "The \"" + typeBacktrackCombo.getSelectedItem() + "\" parameter is invalid: ";
 					msg += "it should be a positive integer";
@@ -1829,7 +1829,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 					if (uptoState <= engine.getPathSize())
 						throw new NumberFormatException();
 					// Do simulation
-					a_autoStep(uptoState - engine.getPathSize());
+					a_autoStep((int)(uptoState - engine.getPathSize()));
 				} catch (NumberFormatException nfe) {
 					String msg = "The \"" + typeExploreCombo.getSelectedItem() + "\" parameter is invalid: ";
 					msg += "it should be greater than " + engine.getPathSize();
