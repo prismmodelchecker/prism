@@ -192,19 +192,31 @@ public class ExpressionBinaryOp extends Expression
 			}
 		case PLUS:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) + operand2.evaluateInt(ec);
+				try {
+					return Math.addExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
 				return operand1.evaluateDouble(ec) + operand2.evaluateDouble(ec);
 			}
 		case MINUS:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) - operand2.evaluateInt(ec);
+				try {
+					return Math.subtractExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
 				return operand1.evaluateDouble(ec) - operand2.evaluateDouble(ec);
 			}
 		case TIMES:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) * operand2.evaluateInt(ec);
+				try {
+					return Math.multiplyExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
 				return operand1.evaluateDouble(ec) * operand2.evaluateDouble(ec);
 			}

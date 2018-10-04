@@ -123,7 +123,11 @@ public class ExpressionUnaryOp extends Expression
 			return !operand.evaluateBoolean(ec);
 		case MINUS:
 			if (type instanceof TypeInt) {
-				return -operand.evaluateInt(ec);
+				try {
+					return Math.negateExact(operand.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
 				return -operand.evaluateDouble(ec);
 			}
