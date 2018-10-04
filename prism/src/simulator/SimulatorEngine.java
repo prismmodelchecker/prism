@@ -1338,23 +1338,28 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	public void exportPath(File file, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
 	{
-		PrismLog log;
-		if (path == null)
-			throw new PrismException("There is no path to export");
-		// create new file log or use main log
-		if (file != null) {
-			log = new PrismFileLog(file.getPath());
-			if (!log.ready()) {
-				throw new PrismException("Could not open file \"" + file + "\" for output");
+		PrismLog log = null;
+		try {
+			if (path == null)
+				throw new PrismException("There is no path to export");
+			// create new file log or use main log
+			if (file != null) {
+				log = new PrismFileLog(file.getPath());
+				if (!log.ready()) {
+					throw new PrismException("Could not open file \"" + file + "\" for output");
+				}
+				mainLog.println("\nExporting path to file \"" + file + "\"...");
+			} else {
+				log = mainLog;
+				log.println();
 			}
-			mainLog.println("\nExporting path to file \"" + file + "\"...");
-		} else {
-			log = mainLog;
-			log.println();
+			((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
+			if (file != null)
+				log.close();
+		} finally {
+			if (file != null && log != null)
+				log.close();
 		}
-		((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
-		if (file != null)
-			log.close();
 	}
 
 	/**
