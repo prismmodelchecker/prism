@@ -48,6 +48,7 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
+import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import prism.ResultsCollection;
 import prism.UndefinedConstants;
@@ -329,6 +330,8 @@ public class SimulatorEngine extends PrismComponent
 			// Execute
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
+		default:
+			throw new PrismNotSupportedException(modelType + " not supported");
 		}
 
 		return true;
