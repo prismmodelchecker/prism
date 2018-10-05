@@ -182,11 +182,11 @@ public class SimulatorEngine extends PrismComponent
 	{
 		// No support for PTAs yet
 		if (modulesFile.getModelType() == ModelType.PTA) {
-			throw new PrismException("Sorry - the simulator does not currently support PTAs");
+			throw new PrismNotSupportedException("Sorry - the simulator does not currently support PTAs");
 		}
 		// No support for system...endsystem yet
 		if (modulesFile.getSystemDefn() != null) {
-			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
+			throw new PrismNotSupportedException("Sorry - the simulator does not currently handle the system...endsystem construct");
 		}
 	}
 
@@ -233,7 +233,7 @@ public class SimulatorEngine extends PrismComponent
 			if (modulesFile.getInitialStates() == null) {
 				currentState.copy(modulesFile.getDefaultInitialState());
 			} else {
-				throw new PrismException("Random choice of multiple initial states not yet supported");
+				throw new PrismNotSupportedException("Random choice of multiple initial states not yet supported");
 			}
 		}
 		updater.calculateStateRewards(currentState, tmpStateRewards);
@@ -1391,7 +1391,7 @@ public class SimulatorEngine extends PrismComponent
 	{
 		String errMsg = isPropertyOKForSimulationString(expr);
 		if (errMsg != null)
-			throw new PrismException(errMsg);
+			throw new PrismNotSupportedException(errMsg);
 	}
 
 	/**
