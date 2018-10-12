@@ -50,6 +50,7 @@ import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
 import prism.IntegerBound;
 import prism.OpRelOpBound;
+import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLog;
@@ -1270,6 +1271,10 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		int numStates = model.getNumStates();
 		int nonZeroRews = 0;
+
+		if (exportType != Prism.EXPORT_PLAIN) {
+			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
+		}
 
 		Rewards modelRewards = constructRewards(model, r);
 		switch (model.getModelType()) {
