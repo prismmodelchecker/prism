@@ -161,14 +161,16 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	 * @return The XML description
 	 * @deprecated This method was intended for use in projects.  Projects are no longer going to
 	 * be included in the project.
-	 */	
+	 */
+	@Deprecated
 	public abstract Object getXMLSaveTree();
 	
 	/** Returns an XML tag for this plugin
 	 * @return An XML tag
 	 * @deprecated This method was intended for use in projects.  Projects are no longer going to
 	 * be included in the project.
-	 */	
+	 */
+	@Deprecated
 	public abstract String getXMLIDTag();
 	
 	/** Returns a boolean stating whether this plugin should be displayed as a tab
@@ -250,6 +252,7 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	 * @deprecated This method was intended for use in projects.  Projects are no longer going to
 	 * be included in the project.
 	 */	
+	@Deprecated
 	public abstract void loadXML(Object c); //the object will be an xml parse tree
 	
 	/** A utility method which is simply a wrapper of the corresponding method in the
