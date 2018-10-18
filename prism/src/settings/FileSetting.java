@@ -87,8 +87,7 @@ public class FileSetting extends Setting
 		if(obj instanceof File)
 		{
 			File f = (File)obj;
-			if(f != null) validFile = f.isFile();
-			else validFile = false;
+			validFile = f.isFile();
 		}
 		else 
 			validFile = false;
