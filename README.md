@@ -1,64 +1,57 @@
-======
-README
-======
+# PRISM
 
 This is PRISM (Probabilistic Symbolic Model Checker).
 
-------------
-INSTALLATION
-------------
+
+## Installation
 
 For detailed installation instructions, check the online manual at:
 
   http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
   
-or see the local copies included in this distribution:
+or see the local copy included in this distribution:
 
-  doc/manual/InstallingPRISM/Instructions.html
-  doc/manual.pdf
+ * `manual/InstallingPRISM/Instructions.html`
 
 Very abbreviated instructions for installing/running PRISM are as follows:
 
 For Windows binary distributions:
 
- - to install, run prism-XXX-win-installer.exe
- - to run, use Desktop/Start menu shortcuts or double-click bin\xprism.bat
+ * to install, run `prism-XXX-win-installer.exe`
+ * to run, use Desktop/Start menu shortcuts or double-click `bin\xprism.bat`
 
 For other binary distributions:
 
- - to install, enter the PRISM directory, type "./install.sh"
- - to run, execute bin/xprism or bin/prism
+ * to install, enter the PRISM directory and type `./install.sh`
+ * to run, execute `bin/xprism` or `bin/prism`
 
 For source code distributions:
 
- - enter the PRISM directory and type "make"
- - to run, execute bin/xprism or bin/prism
+ * enter the PRISM directory and type `cd prism` then `make`
+ * to run, execute `bin/xprism` or `bin/prism`
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
 
--------------
-DOCUMENTATION
--------------
+
+## Documentation
 
 The best source of information about using PRISM is the online manual:
 
   http://www.prismmodelchecker.org/manual/
 
-You can also view the local copies included in this distribution:
+You can also view the local copy included in this distribution:
 
-  doc/manual/index.html
-  doc/manual.pdf
+  * `manual/index.html`
 
 For other PRISM-related information, see the website:
 
   http://www.prismmodelchecker.org/
 
----------
-LICENSING
----------
+
+## Licensing
 
 PRISM is distributed under the GNU General Public License (GPL).
-A copy of this license can be found in the file COPYING.txt.
+A copy of this license can be found in the file `COPYING.txt`.
 For more information, see:
 
   http://www.gnu.org/licenses/
@@ -69,9 +62,8 @@ library, see:
 
   http://vlsi.colorado.edu/~fabio/CUDD/
 
-----------------
-ACKNOWLEDGEMENTS
-----------------
+
+## Acknowledgements
 
 PRISM was created and is still actively maintained by:
 
@@ -79,10 +71,15 @@ PRISM was created and is still actively maintained by:
  * Gethin Norman (University of Glasgow)
  * Marta Kwiatkowska (University of Oxford) 
 
+Development of the tool is currently led from Birmingham by Dave Parker. Other current key developers are:
+
+ * Joachim Klein (Technische Universität Dresden)
+
 We gratefully acknowledge contributions to the PRISM code-base from various sources,
 including (in approximately reverse chronological order):
 
- * Joachim Klein: Various bug fixes, especially related to LTL
+ * Steffen Märcker: Fixes and improvements, especially in explicit engine
+ * Chris Novakovic: Build infrastructure improvements
  * Ernst Moritz Hahn: Parametric model checking, fast adaptive uniformisation + various other features
  * Frits Dannenberg: Fast adaptive uniformisation
  * Vojtech Forejt: Various model checking code, including multi-objective + GUI enhancements
@@ -106,9 +103,8 @@ For more details see:
 
   http://www.prismmodelchecker.org/people.php
 
--------
-CONTACT
--------
+
+## Contact
 
 If you have problems or questions regarding PRISM, please use the help forum provided. See:
 
@@ -116,11 +112,11 @@ If you have problems or questions regarding PRISM, please use the help forum pro
 
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 
-  Dave Parker
-  (d.a.parker@cs.bham.ac.uk)
-  School of Computer Science
-  University of Birmingham
-  Edgbaston
-  Birmingham
-  B15 2TT
+  Dave Parker  
+  (d.a.parker@cs.bham.ac.uk)  
+  School of Computer Science  
+  University of Birmingham  
+  Edgbaston  
+  Birmingham  
+  B15 2TT  
   ENGLAND

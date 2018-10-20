@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 
+import common.SafeCast;
 import param.BigRational;
 import parser.*;
 import parser.visitor.*;
@@ -231,7 +232,7 @@ public class ExpressionFunc extends Expression
 				j = getOperand(i).evaluateInt(ec);
 				iMin = (j < iMin) ? j : iMin;
 			}
-			return new Integer(iMin);
+			return iMin;
 		} else {
 			dMin = getOperand(0).evaluateDouble(ec);
 			n = getNumOperands();
@@ -239,7 +240,7 @@ public class ExpressionFunc extends Expression
 				d = getOperand(i).evaluateDouble(ec);
 				dMin = (d < dMin) ? d : dMin;
 			}
-			return new Double(dMin);
+			return dMin;
 		}
 	}
 
@@ -266,7 +267,7 @@ public class ExpressionFunc extends Expression
 				j = getOperand(i).evaluateInt(ec);
 				iMax = (j > iMax) ? j : iMax;
 			}
-			return new Integer(iMax);
+			return iMax;
 		} else {
 			dMax = getOperand(0).evaluateDouble(ec);
 			n = getNumOperands();
@@ -274,7 +275,7 @@ public class ExpressionFunc extends Expression
 				d = getOperand(i).evaluateDouble(ec);
 				dMax = (d > dMax) ? d : dMax;
 			}
-			return new Double(dMax);
+			return dMax;
 		}
 	}
 
@@ -301,10 +302,11 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateFloor(double arg) throws PrismLangException
 	{
-		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(arg) || Double.isInfinite(arg))
-			throw new PrismLangException("Cannot take floor() of " + arg);
-		return (int) Math.floor(arg);
+		try {
+			return SafeCast.toIntExact(Math.floor(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take floor() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public Integer evaluateCeil(EvaluateContext ec) throws PrismLangException
@@ -319,10 +321,11 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateCeil(double arg) throws PrismLangException
 	{
-		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(arg) || Double.isInfinite(arg))
-			throw new PrismLangException("Cannot take ceil() of " + arg);
-		return (int) Math.ceil(arg);
+		try {
+			return SafeCast.toIntExact(Math.ceil(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take ceil() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public Integer evaluateRound(EvaluateContext ec) throws PrismLangException
@@ -337,10 +340,11 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateRound(double arg) throws PrismLangException
 	{
-		// Check for NaN, otherwise possible errors lost in cast to int
-		if (Double.isNaN(arg))
-			throw new PrismLangException("Cannot take round() of " + arg);
-		return (int) Math.round(arg);
+		try {
+			return SafeCast.toIntExact(Math.round(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take round() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
@@ -362,9 +366,9 @@ public class ExpressionFunc extends Expression
 	{
 		try {
 			if (type instanceof TypeInt) {
-				return new Integer(evaluatePowInt(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec)));
+				return evaluatePowInt(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec));
 			} else {
-				return new Double(evaluatePowDouble(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec)));
+				return evaluatePowDouble(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
 			}
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
@@ -377,14 +381,11 @@ public class ExpressionFunc extends Expression
 		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 		if (exp < 0)
 			throw new PrismLangException("Negative exponent not allowed for integer power");
-		double res = Math.pow(base, exp);
-		// Check for overflow
-		if (res > Integer.MAX_VALUE)
-			throw new PrismLangException("Overflow evaluating integer power");
-		// Check for underflow
-		if (res < Integer.MIN_VALUE)
-			throw new PrismLangException("Underflow evaluating integer power");
-		return (int) res;
+		try {
+			return SafeCast.toIntExact(Math.pow(base, exp));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage());
+		}
 	}
 
 	public static double evaluatePowDouble(double base, double exp) throws PrismLangException
@@ -408,7 +409,7 @@ public class ExpressionFunc extends Expression
 	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Integer(evaluateMod(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec)));
+			return evaluateMod(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -439,7 +440,7 @@ public class ExpressionFunc extends Expression
 	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Double(evaluateLog(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec)));
+			return evaluateLog(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;

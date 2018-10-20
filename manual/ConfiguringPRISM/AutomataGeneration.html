@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | ConfiguringPRISM / AutomataGeneration 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for bash
+ * CSS class: , CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2014 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.bash .de1, .bash .de2 {font-family: monospace; font-weight: normal;}
+.bash  {font-family:monospace;}
+.bash .imp {font-weight: bold; color: red;}
+.bash li, .bash .li1 {font-family: monospace; color: black; font-weight: normal;}
+.bash .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.bash .li2 {font-weight: bold;}
+.bash .kw1 {color: #000000; font-weight: bold;}
+.bash .kw2 {color: #c20cb9; font-weight: bold;}
+.bash .kw3 {color: #7a0874; font-weight: bold;}
+.bash .co0 {color: #666666; font-style: italic;}
+.bash .co1 {color: #800000;}
+.bash .co2 {color: #cc0000; font-style: italic;}
+.bash .co3 {color: #000000; font-weight: bold;}
+.bash .co4 {color: #666666;}
+.bash .es1 {color: #000099; font-weight: bold;}
+.bash .es2 {color: #007800;}
+.bash .es3 {color: #007800;}
+.bash .es4 {color: #007800;}
+.bash .es5 {color: #780078;}
+.bash .es_h {color: #000099; font-weight: bold;}
+.bash .br0 {color: #7a0874; font-weight: bold;}
+.bash .sy0 {color: #000000; font-weight: bold;}
+.bash .st0 {color: #ff0000;}
+.bash .st_h {color: #ff0000;}
+.bash .nu0 {color: #000000;}
+.bash .re0 {color: #007800;}
+.bash .re1 {color: #007800;}
+.bash .re2 {color: #007800;}
+.bash .re4 {color: #007800;}
+.bash .re5 {color: #660033;}
+.bash .ln-xtra, .bash li.ln-xtra, .bash div.ln-xtra {background-color: #ffc;}
+.bash span.xtra { display:block; }
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Configuring PRISM</a> /
+</p><h1>Automata Generation</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>When PRISM performs verification of <a class='wikilink' href='../PropertySpecification/ThePOperator.html#ltl'>LTL formulas</a>, it does so by converting the formula into a deterministic omega automaton (such as a Rabin automaton) and then analysing a larger product model, constructed from the model being verified and the omega automaton. For this reason, the size of the omega automaton has an important effect on the efficiency of verification.
+</p>
+<p class='vspace'>By default PRISM uses a port of the <a class='urllink' href='http://www.ltl2dstar.de/'>ltl2dstar</a> library to construct these automata. But it also allows the use of external LTL-to-automata converters producing deterministic automata through support for the <a class='urllink' href='http://adl.github.io/hoaf/'>Hanoi Omega Automaton</a> (HOA) format. From the command line, an example of this is:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AutomataGeneration?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The <code>-ltl2datool</code> switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "<code>exec</code> <code>in-file</code> <code>out-file</code>", where <code>exec</code> is the executable, <code>in-file</code> is the name of a file containing the LTL formula to be converted and <code>out-file</code> is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as <code>hoa-ltl2dstar-for-prism</code> in the above example), which calls an external copy of <code>ltl2dstar</code> in the required fashion (assuming that the <code>ltl2dstar</code> and <a class='urllink' href='http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/'><code>ltl2ba</code></a>  executables are located in the current directory or on the PATH).
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="bash"><span class="co0">#! /bin/bash</span><br />
+ltl2dstar <span class="re5">--output</span>=automaton <span class="re5">--output-format</span>=hoa <span class="st0">&quot;$1&quot;</span> <span class="st0">&quot;$2&quot;</span></div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AutomataGeneration?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>PRISM is known to work with these HOA-enabled tools:
+</p>
+<div class='vspace'></div><ul><li><a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a>
+</li><li><a class='urllink' href='http://sourceforge.net/projects/ltl3dra/'>ltl3dra</a>
+</li><li><a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>
+</li></ul><p class='vspace'>and contains ready-made scripts for calling them in the <code>etc/scripts/hoa</code> directory of the distribution:
+</p>
+<div class='vspace'></div><ul><li><code>hoa-ltl2dstar-with-ltl2ba-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a> using <a class='urllink' href='http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/'><code>ltl2ba</code></a> as the LTL-to-NBA tool)
+</li><li><code>hoa-ltl2dstar-with-ltl2tgba-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a> using <a class='urllink' href='http://spot.lip6.fr/wiki'>Spot</a>'s <a class='urllink' href='http://spot.lip6.fr/userdoc/ltl2tgba.html'><code>ltl2tgba</code></a> as the LTL-to-NBA tool
+</li><li><code>hoa-ltl2dstar-with-ltl3ba-for-prism</code> <br />  (<a class='urllink' href='http://ltl2dstar.de/'>ltl2dstar</a> using <a class='urllink' href='http://sourceforge.net/projects/ltl3ba/'>LTL3BA</a> as the LTL-to-NBA tool
+</li><li><code>hoa-ltl3dra-dra-for-prism</code> <br />  (<a class='urllink' href='http://sourceforge.net/projects/ltl3dra/'>ltl3dra</a>, generating Rabin automata)
+</li><li><code>hoa-ltl3dra-tdgra-for-prism</code> <br />  (<a class='urllink' href='http://sourceforge.net/projects/ltl3dra/'>ltl3dra</a>, generating transition-based generalized Rabin automata)
+</li><li><code>hoa-rabinizer3-dgra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating generalized Rabin automata)
+</li><li><code>hoa-rabinizer3-dra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating Rabin automata)
+</li><li><code>hoa-rabinizer3-tdgra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating transition-based generalized Rabin automata)
+</li><li><code>hoa-rabinizer3-tdra-for-prism</code> <br />  (<a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3</a>, generating transition-based Rabin automata)
+</li></ul><p class='vspace'>There are also scripts for the upcoming <a class='urllink' href='https://www7.in.tum.de/~kretinsk/rabinizer3.html'>Rabinizer 3.1</a>.
+</p>
+<p class='vspace'>See the files themselves for details of any configuration required and for a reminder of the PRISM command-line arguments required.
+</p>
+<p class='vspace'>The <code>-ltl2dasyntax</code> switch is used to specify the textual format for passing the LTL formula to the external converter (i.e., in the file <code>out-file</code>). The options are:
+</p>
+<div class='vspace'></div><ul><li><code>lbt</code> - LBT format
+</li><li><code>spin</code> - SPIN format
+</li><li><code>spot</code> - Spot format
+</li><li><code>rabinizer</code> - Rabinizer format
+</li></ul><p class='vspace'>From the GUI, configuring the external LTL converter is done with the two options 
+"Use external LTL-&gt;DA tool" and "LTL syntax for external LTL-&gt;DA tool".
+</p>
+<p class='vspace'>Another related option is "All path formulas via automata" (command-line switch <code>-pathviaautomata</code>), which forces construction of an automata
+when computing the probability of a path formula, even if it is not needed. This is primarily intended for debugging/testing, not regular use.
+</p>
+<p class='vspace'>As mentioned above, PRISM's external LTL-to-automaton interfacing works using the
+<a class='urllink' href='http://adl.github.io/hoaf/'>HOA</a> format
+(and, in particular,  using the <a class='urllink' href='http://automata.tools/hoa/jhoafparser/'><code>jhoafparser</code></a> HOA parser.
+Currently, PRISM can handle automata in HOA format that are 
+deterministic and complete, with state-based acceptance.
+Automata with transition-based acceptance are converted to state-based acceptance by PRISM.
+For DTMC and  CTMC model checking, generic acceptance conditions are supported, i.e., 
+anything that can be specified as an <code>Acceptance:</code> header in HOA format. 
+For MDP model checking, currently Rabin and generalized Rabin acceptance 
+specified via the <code>acc-name:</code> header are supported. See the <a class='urllink' href='http://adl.github.io/hoaf/'>HOA format specification</a> for details.
+</p>
+<div class='vspace'></div>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Configuring PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Introduction</a>
+</li><li><a class='wikilink' href='ComputationEngines.html'>Computation Engines</a>
+</li><li><a class='wikilink' href='SolutionMethodsAndOptions.html'>Solution Methods And Options</a>
+</li><li><a class='selflink' href='AutomataGeneration.html'>Automata Generation</a>
+</li><li><a class='wikilink' href='OtherOptions.html'>Other Options</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

@@ -160,7 +160,7 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		String nij;
 		Object action;
 		String style;
-		out.print("digraph " + getModelType() + " {\nsize=\"8,5\"\nnode [shape=box];\n");
+		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
 		for (i = 0; i < numStates; i++) {
 			if (mark != null && mark.get(i))
 				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");

@@ -27,6 +27,8 @@
 
 package prism;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -41,13 +43,23 @@ public class PrismNG
 	private static NGContext currentNailGunContext = null;
 
 	/**
-	 * This method is called on the Nailgun server to start a new PRISM instance
-	 * to serve as the counterpart for a client invocation.
+	 * The name of the environment variable that can be used
+	 * to override the default main class (PrismCL).
+	 */
+	private final static String envNameNGMainClass = "NG_MAINCLASS";
+
+	/**
+	 * This method is called on the Nailgun server to start a new PRISM
+	 * command-line instance to serve as the counterpart for a client invocation.
 	 * <br/>
 	 * This method is synchronized to ensure that there can only be a single
 	 * running instance of PRISM in the Nailgun server VM.
 	 * <br/>
 	 * Sets the working directory to that of the client.
+	 * <br/>
+	 * If the environment variable NG_MAINCLASS is defined,
+	 * the {@code main} method of that class is used instead of
+	 * the default {@code PrismCL.main()}.
 	 */
 	public synchronized static void nailMain(NGContext context) throws InterruptedException
 	{
@@ -57,7 +69,43 @@ public class PrismNG
 			System.exit(1);
 		}
 
-		PrismCL.main(context.getArgs());
+		String ngMainClass = null;
+		try {
+			ngMainClass = System.getenv(envNameNGMainClass);
+		} catch (SecurityException e) {
+			// ignore environment variable, proceed with default PRISM invocation
+		}
+
+		if (ngMainClass == null) {
+			// default: start a PRISM command-line instance
+			PrismCL.main(context.getArgs());
+		} else {
+			Class<?> clazz = null;
+			try {
+				clazz = context.getClass().getClassLoader().loadClass(ngMainClass);
+			} catch (ClassNotFoundException e) {
+				System.err.println("PrismNG: Can not find class '" + ngMainClass + "' (from environment variable " + envNameNGMainClass + ")");
+				System.exit(1);
+			}
+
+			String[] args = context.getArgs();
+			Method m = null;
+			try {
+				m = clazz.getMethod("main", args.getClass());
+			} catch (NoSuchMethodException e) {
+				System.err.println("PrismNG: Class '" + ngMainClass + "' (from environment variable " + envNameNGMainClass + ") does not have a suitable main method");
+				System.exit(1);
+			} catch (SecurityException e) {
+				System.err.println("PrismNG: Security exception trying to load main method of class '" + ngMainClass + "' (from environment variable " + envNameNGMainClass + "): " + e.getMessage());
+				System.exit(1);
+			}
+			try {
+				m.invoke(null, new Object[]{args});
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				System.err.println("PrismNG: Exception trying to invoke main method of class '" + ngMainClass + "' (from environment variable " + envNameNGMainClass + "): " + e.getMessage());
+				System.exit(1);
+			}
+		}
 	}
 
 	/**

@@ -48,6 +48,7 @@ import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
+import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import prism.ResultsCollection;
 import prism.UndefinedConstants;
@@ -181,11 +182,11 @@ public class SimulatorEngine extends PrismComponent
 	{
 		// No support for PTAs yet
 		if (modulesFile.getModelType() == ModelType.PTA) {
-			throw new PrismException("Sorry - the simulator does not currently support PTAs");
+			throw new PrismNotSupportedException("Sorry - the simulator does not currently support PTAs");
 		}
 		// No support for system...endsystem yet
 		if (modulesFile.getSystemDefn() != null) {
-			throw new PrismException("Sorry - the simulator does not currently handle the system...endsystem construct");
+			throw new PrismNotSupportedException("Sorry - the simulator does not currently handle the system...endsystem construct");
 		}
 	}
 
@@ -232,7 +233,7 @@ public class SimulatorEngine extends PrismComponent
 			if (modulesFile.getInitialStates() == null) {
 				currentState.copy(modulesFile.getDefaultInitialState());
 			} else {
-				throw new PrismException("Random choice of multiple initial states not yet supported");
+				throw new PrismNotSupportedException("Random choice of multiple initial states not yet supported");
 			}
 		}
 		updater.calculateStateRewards(currentState, tmpStateRewards);
@@ -329,6 +330,8 @@ public class SimulatorEngine extends PrismComponent
 			// Execute
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
+		default:
+			throw new PrismNotSupportedException(modelType + " not supported");
 		}
 
 		return true;
@@ -1335,23 +1338,28 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	public void exportPath(File file, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
 	{
-		PrismLog log;
-		if (path == null)
-			throw new PrismException("There is no path to export");
-		// create new file log or use main log
-		if (file != null) {
-			log = new PrismFileLog(file.getPath());
-			if (!log.ready()) {
-				throw new PrismException("Could not open file \"" + file + "\" for output");
+		PrismLog log = null;
+		try {
+			if (path == null)
+				throw new PrismException("There is no path to export");
+			// create new file log or use main log
+			if (file != null) {
+				log = new PrismFileLog(file.getPath());
+				if (!log.ready()) {
+					throw new PrismException("Could not open file \"" + file + "\" for output");
+				}
+				mainLog.println("\nExporting path to file \"" + file + "\"...");
+			} else {
+				log = mainLog;
+				log.println();
 			}
-			mainLog.println("\nExporting path to file \"" + file + "\"...");
-		} else {
-			log = mainLog;
-			log.println();
+			((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
+			if (file != null)
+				log.close();
+		} finally {
+			if (file != null && log != null)
+				log.close();
 		}
-		((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
-		if (file != null)
-			log.close();
 	}
 
 	/**
@@ -1383,7 +1391,7 @@ public class SimulatorEngine extends PrismComponent
 	{
 		String errMsg = isPropertyOKForSimulationString(expr);
 		if (errMsg != null)
-			throw new PrismException(errMsg);
+			throw new PrismNotSupportedException(errMsg);
 	}
 
 	/**

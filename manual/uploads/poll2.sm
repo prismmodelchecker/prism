@@ -1,0 +1,51 @@
+// polling example [IT90]
+// gxn/dxp 26/01/00
+
+ctmc
+
+const int N = 2;
+
+const double mu		= 1;
+const double gamma	= 200;
+const double lambda	= mu/N;
+
+module server
+	
+	s : [1..2]; // station
+	a : [0..1]; // action: 0=polling, 1=serving
+	
+	[loop1a] (s=1)&(a=0) -> gamma	: (s'=s+1);
+	[loop1b] (s=1)&(a=0) -> gamma	: (a'=1);
+	[serve1] (s=1)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop2a] (s=2)&(a=0) -> gamma	: (s'=1);
+	[loop2b] (s=2)&(a=0) -> gamma	: (a'=1);
+	[serve2] (s=2)&(a=1) -> mu		: (s'=1)&(a'=0);
+	
+endmodule
+
+module station1
+	
+	s1 : [0..1]; // state of station: 0=empty, 1=full
+	
+	[loop1a] (s1=0) -> 1 : (s1'=0);
+	[]       (s1=0) -> lambda : (s1'=1);
+	[loop1b] (s1=1) -> 1 : (s1'=1);
+	[serve1] (s1=1) -> 1 : (s1'=0);
+	
+endmodule
+
+// construct further stations through renaming
+
+module station2 = station1 [ s1=s2, loop1a=loop2a, loop1b=loop2b, serve1=serve2 ] endmodule
+// (cumulative) rewards
+
+// expected time station 1 is waiting to be served
+rewards "waiting"
+	s1=1 & !(s=1 & a=1) : 1;
+endrewards
+
+// expected number of times station 1 is served
+rewards "served"
+	[serve1] true : 1;
+endrewards

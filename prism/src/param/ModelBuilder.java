@@ -210,7 +210,7 @@ public final class ModelBuilder extends PrismComponent
 	{
 		// No model construction for PTAs
 		if (modelGenSym.getModelType() == ModelType.PTA) {
-			throw new PrismNotSupportedException("You cannot build a PTA model explicitly, only perform model checking");
+			throw new PrismNotSupportedException("For " + mode.engine() + ", you cannot build a PTA model explicitly, only perform model checking");
 		}
 
 		// Store model generator and parameter info
@@ -330,7 +330,7 @@ public final class ModelBuilder extends PrismComponent
 		final ModelType modelType;
 
 		if (!modelGenSym.hasSingleInitialState()) {
-			throw new PrismNotSupportedException("Cannot do explicit-state reachability if there are multiple initial states");
+			throw new PrismNotSupportedException("For " + mode.engine() + ", cannot do explicit-state reachability if there are multiple initial states");
 		}
 
 		boolean doProbChecks = getSettings().getBoolean(PrismSettings.PRISM_DO_PROB_CHECKS);
@@ -342,7 +342,7 @@ public final class ModelBuilder extends PrismComponent
 		ParamModel model = new ParamModel();
 		model.setModelType(modelType);
 		if (modelType != ModelType.DTMC && modelType != ModelType.CTMC && modelType != ModelType.MDP) {
-			throw new PrismNotSupportedException("Unsupported model type: " + modelType);
+			throw new PrismNotSupportedException("For " + mode.engine() + ", unsupported model type: " + modelType);
 		}
 		// need? SymbolicEngine engine = new SymbolicEngine(modulesFile, this, functionFactory);
 

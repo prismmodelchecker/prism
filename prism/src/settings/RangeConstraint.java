@@ -33,7 +33,7 @@ public class RangeConstraint extends NumericConstraint
     private double lower, upper;
     private boolean inclusiveLower, inclusiveUpper;
     
-    /** Creates a new instance of DoubleRangeConstraint */
+    /** Creates a new instance of RangeConstraint */
     public RangeConstraint(String parseThis)
     {
 		StringTokenizer tokens = new StringTokenizer(parseThis, ",");

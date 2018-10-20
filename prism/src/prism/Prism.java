@@ -304,6 +304,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Construct a new Prism object.
 	 * @deprecated ({@code techLog} is no longer used, use the {@link #prism.Prism(PrismLog)} constructor instead).
 	 */
+	@Deprecated
 	public Prism(PrismLog mainLog, PrismLog techLog)
 	{
 		this(mainLog);
@@ -3887,6 +3888,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * It is assumed that all constants in the PRISM model file have been defined by now.  
 	 * @param modulesFile Model to build
 	 */
+	@Deprecated
 	public Model buildModel(ModulesFile modulesFile) throws PrismException
 	{
 		loadPRISMModel(modulesFile);
@@ -3900,6 +3902,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param model The model
 	 * @param file File to export to
 	 */
+	@Deprecated
 	public void exportToSpyFile(Model model, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -3912,6 +3915,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param model The model
 	 * @param file File to export to
 	 */
+	@Deprecated
 	public void exportToDotFile(Model model, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -3933,6 +3937,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		exportTransToFile(model, ordered, exportType, file);
@@ -3953,6 +3958,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportTransToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -3970,6 +3976,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportStateRewardsToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -3989,6 +3996,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportTransRewardsToFile(Model model, boolean ordered, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -4005,6 +4013,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportBSCCsToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -4024,6 +4033,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportLabelsToFile(Model model, ModulesFile modulesFile, PropertiesFile propertiesFile, int exportType, File file)
 			throws FileNotFoundException, PrismException
 	{
@@ -4041,6 +4051,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
 	 */
+	@Deprecated
 	public void exportStatesToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
@@ -4054,6 +4065,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
 	 * @param expr The property to check
 	 */
+	@Deprecated
 	public Result modelCheck(Model model, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		loadBuiltModel(model);
@@ -4067,6 +4079,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param propertiesFile Parent property file of property (for labels/constants/...)
 	 * @param expr The property to check
 	 */
+	@Deprecated
 	public Result modelCheckPTA(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr) throws PrismException, PrismLangException
 	{
 		loadPRISMModel(modulesFile);
@@ -4076,6 +4089,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * @deprecated
 	 */
+	@Deprecated
 	public Result modelCheckSimulator(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression expr, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
 	{
@@ -4086,6 +4100,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * @deprecated
 	 */
+	@Deprecated
 	public Result[] modelCheckSimulatorSimultaneously(ModulesFile modulesFile, PropertiesFile propertiesFile, List<Expression> exprs, State initialState,
 			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
@@ -4096,6 +4111,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * @deprecated
 	 */
+	@Deprecated
 	public void modelCheckSimulatorExperiment(ModulesFile modulesFile, PropertiesFile propertiesFile, UndefinedConstants undefinedConstants,
 			ResultsCollection results, Expression propertyToCheck, State initialState, long maxPathLength, SimulationMethod simMethod) throws PrismException,
 			InterruptedException
@@ -4109,6 +4125,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Load (built) model and compute steady-state probabilities (DTMCs/CTMCs only).
 	 * Output probability distribution to log. 
 	 */
+	@Deprecated
 	public void doSteadyState(Model model) throws PrismException
 	{
 		doSteadyState(model, EXPORT_PLAIN, null);
@@ -4120,6 +4137,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Output probability distribution to a file (or, if file is null, to log). 
 	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
 	 */
+	@Deprecated
 	public void doSteadyState(Model model, int exportType, File file) throws PrismException
 	{
 		loadBuiltModel(model);
@@ -4131,6 +4149,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Load (built) model and compute transient probabilities (DTMCs/CTMCs only).
 	 * Output probability distribution to log. 
 	 */
+	@Deprecated
 	public void doTransient(Model model, double time) throws PrismException
 	{
 		doTransient(model, time, EXPORT_PLAIN, null, null);
@@ -4143,6 +4162,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * The exportType should be EXPORT_PLAIN or EXPORT_MATLAB.
 	 * Optionally (if non-null), read in the initial probability distribution from a file.
 	 */
+	@Deprecated
 	public void doTransient(Model model, double time, int exportType, File file, File fileIn) throws PrismException
 	{
 		loadBuiltModel(model);

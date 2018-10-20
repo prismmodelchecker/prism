@@ -273,7 +273,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			return new BigRational((long) value);
 		} else if (value instanceof Boolean) {
 			boolean v = (Boolean)value;
-			return new BigRational(v ? 1 : 0);
+			return v ? BigRational.ONE : BigRational.ZERO;
 		} else if (value instanceof Double) {
 			// TODO: ? might be imprecise, perhaps there
 			// is a way to get the full precision?

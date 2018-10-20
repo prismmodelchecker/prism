@@ -35,19 +35,20 @@ import prism.PrismException;
 import userinterface.properties.*;
 import simulator.*;
 
-public class GUISimPathFormulaeList extends JList
+@SuppressWarnings("serial")
+public class GUISimPathFormulaeList extends JList<GUISimPathFormulaeList.SimPathFormula>
 {
 
 	private GUISimulator guiSim;
 	private SimulatorEngine engine;
-	private DefaultListModel listModel;
+	private DefaultListModel<SimPathFormula> listModel;
 
 	/** Creates a new instance of GUISimPathFormulaeList */
 	public GUISimPathFormulaeList(GUISimulator guiSim)
 	{
 		this.guiSim = guiSim;
 		this.engine = guiSim.getPrism().getSimulator();
-		listModel = new DefaultListModel();
+		listModel = new DefaultListModel<>();
 		setModel(listModel);
 
 		setCellRenderer(new SimPathFormulaRenderer());
@@ -126,7 +127,8 @@ public class GUISimPathFormulaeList extends JList
 
 	// RENDERERS
 
-	class SimPathFormulaRenderer extends JLabel implements ListCellRenderer
+	@SuppressWarnings("serial")
+	class SimPathFormulaRenderer extends JLabel implements ListCellRenderer<SimPathFormula>
 	{
 		String lastText;
 
@@ -141,7 +143,7 @@ public class GUISimPathFormulaeList extends JList
 			return lastText;
 		}
 
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+		public Component getListCellRendererComponent(JList<? extends SimPathFormula> list, SimPathFormula value, int index, boolean isSelected,
 				boolean cellHasFocus)
 		{
 			setBorder(new BottomBorder());

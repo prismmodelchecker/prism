@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | RunningPRISM / Adversaries 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Running PRISM</a> /
+</p><h1>Adversaries</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>When model checking some properties of MDPs, PRISM can also generate an <em>optimal adversary</em>, i.e. one which corresponds to either the minimum or maximum values of the probabilities or rewards computed during verification. Recall that, for MDPs, PRISM quantifies over all possible adversaries, i.e. all possible resolutions of nondeterminism in the model. A typical property would be:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Adversaries?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which computes the maximum probability, over all adversaries, of reaching a state satisfying the label <code>"error"</code>, from all states of the model. When under the control of a specific adversary, the behaviour of an MDP is purely probabilistic, yielding a single value (for each state) for the probability of reaching <code>"error"</code>. In addition to giving the maximum probability value(s), PRISM can produce an adversary of the MDP for which the probabilities (for each state) coincide with the maximum values.
+</p>
+<p class='vspace'>For a probabilistic reachability property, such as the one above, a <em>memoryless</em> adversary suffices, that is one which always makes the same choice in any given state of the model. So, the default form in which PRISM provides an adversary is a DTMC derived by retaining only a single nondeterministic choice in each state of the MDP. This DTMC is given in the same format as when <a class='wikilink' href='ExportingTheModel.html'>exporting</a> the transition matrix of a DTMC, i.e. a list of transitions.
+</p>
+<p class='vspace'>Currently, adversary generation is only implemented in the <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>sparse engine</a>, so you need to make sure this engine is enabled. From the command-line, you specify that an optimal adversary should be generated using the <code>-exportadv</code> switch, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.nm -pctl 'Pmax=? [ F "error" ]' -exportadv adv.tra -s</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Adversaries?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>From the GUI, change the "Adversary export" option (under the "PRISM" settings) from "None" to "DTMC". You can also change the filename for the export adversary which, by default, is <code>adv.tra</code> as in the example above.
+Another option is to export the adversary as an MDP (this is identical to the model produced using the DTMC option, but can be imported back into PRISM as an MDP, if required). Use switch <code>-exportadvmdp</code>, instead of <code>-exportadv</code> form the command-line, or select the "MDP" option from the GUI.
+</p>
+<p class='vspace'>PRISM also supports generation of adversaries for "reachability reward" properties (i.e. the <code><strong>R</strong></code> operator, with argument <code><strong>F</strong></code>) in identical fashion to the case described above.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Running PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Starting PRISM</a>
+</li><li><a class='wikilink' href='LoadingAndBuildingAModel.html'>Loading And Building a Model</a>
+</li><li><a class='wikilink' href='DebuggingModelsWithTheSimulator.html'>Debugging Models With The Simulator</a>
+</li><li><a class='wikilink' href='ExportingTheModel.html'>Exporting The Model</a>
+</li><li><a class='wikilink' href='ModelChecking.html'>Model Checking</a>
+</li><li><a class='wikilink' href='ApproximateModelChecking.html'>Statistical Model Checking</a>
+</li><li><a class='wikilink' href='ComputingSteady-stateAndTransientProbabilities.html'>Computing Steady-state And Transient Probabilities</a>
+</li><li><a class='wikilink' href='Experiments.html'>Experiments</a>
+</li><li><a class='selflink' href='Adversaries.html'>Adversaries</a>
+</li><li><a class='wikilink' href='SupportForPEPAModels.html'>Support For PEPA Models</a>
+</li><li><a class='wikilink' href='SupportForSBML.html'>Support For SBML</a>
+</li><li><a class='wikilink' href='ExplicitModelImport.html'>Explicit Model Import</a>
+</li><li><a class='wikilink' href='ParametricModelChecking.html'>Parametric Model Checking</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>
