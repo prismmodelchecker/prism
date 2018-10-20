@@ -187,7 +187,8 @@ public class ChoiceListFlexi //implements Choice
 					first = false;
 				else
 					s += ", ";
-				s += up.getVar(j) + "'=" + up.getExpression(j).evaluate(currentState);
+				BigRational newValue = up.getExpression(j).evaluateExact(currentState);
+				s += up.getVar(j) + "'=" + up.getExpression(j).getType().castFromBigRational(newValue);
 			}
 		}
 		return s;
@@ -213,14 +214,16 @@ public class ChoiceListFlexi //implements Choice
 	{
 		State newState = new State(currentState);
 		for (Update up : updates.get(i))
-			up.update(currentState, newState);
+			// evaluate and apply update expression (in exact evaluation mode)
+			up.update(currentState, newState, true);
 		return newState;
 	}
 
 	public void computeTarget(int i, State currentState, State newState) throws PrismLangException
 	{
 		for (Update up : updates.get(i))
-			up.update(currentState, newState);
+			// evaluate and apply update expression (in exact evaluation mode)
+			up.update(currentState, newState, true);
 	}
 
 	public Function getProbability(int i)

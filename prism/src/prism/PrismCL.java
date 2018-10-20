@@ -35,6 +35,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
+import common.StackTraceHelper;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionReward;
@@ -201,6 +202,7 @@ public class PrismCL implements PrismModelListener
 	private String[] paramUpperBounds = null;
 	private String[] paramNames = null;
 
+	private boolean exactConstants = false;
 
 	/**
 	 * Entry point: call run method, catch CuddOutOfMemoryException
@@ -219,14 +221,20 @@ public class PrismCL implements PrismModelListener
 			// we don't want to catch the nailgun exception below,
 			// so we catch it and rethrow
 			throw e;
-		} catch (Exception e) {
-			// We catch Exceptions here ourself to ensure that we actually exit
+		} catch (Exception|StackOverflowError e) {
+			// We catch Exceptions/stack overflows here ourself to ensure that we actually exit
 			// In the presence of thread pools (e.g., in the JAS library when using -exact),
 			// the main thread dying does not necessarily quit the program...
-			StringWriter sw = new StringWriter();
-			sw.append("\n");
-			e.printStackTrace(new PrintWriter(sw));
-			mainLog.print(sw.toString());
+			mainLog.println();
+			if (e instanceof StackOverflowError) {
+				// print exception + limited stack trace for stack overflows
+				mainLog.println(e.toString());
+				mainLog.println(StackTraceHelper.asString(e, StackTraceHelper.DEFAULT_STACK_TRACE_LIMIT));
+				mainLog.println("Try increasing the value of the Java stack size (via the -javastack argument).");
+			} else {
+				// print exception + full stack trace for generic exceptions
+				mainLog.print(e.toString() + "\n" + StackTraceHelper.asString(e, 0));
+			}
 			errorAndExit("Caught unhandled exception, aborting...");
 		}
 	}
@@ -252,6 +260,9 @@ public class PrismCL implements PrismModelListener
 			errorAndExit("Parametric model checking requires at least one property to check");
 		}
 
+		// evaluate constants exactly if we are in param or exact computation mode
+		exactConstants = param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED);
+
 		// process info about undefined constants
 		try {
 			// first, see which constants are undefined
@@ -260,9 +271,11 @@ public class PrismCL implements PrismModelListener
 				undefinedMFConstants = new UndefinedConstants(modulesFile, propertiesFile, true);
 			else
 				undefinedMFConstants = new UndefinedConstants(modulesFile, null);
+			undefinedMFConstants.setExactMode(exactConstants);
 			undefinedConstants = new UndefinedConstants[numPropertiesToCheck];
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				undefinedConstants[i] = new UndefinedConstants(modulesFile, propertiesFile, propertiesToCheck.get(i));
+				undefinedConstants[i].setExactMode(exactConstants);
 			}
 			// may need to remove some constants if they are used for parametric methods
 			if (param) {
@@ -292,7 +305,7 @@ public class PrismCL implements PrismModelListener
 			// set values for ModulesFile constants
 			try {
 				definedMFConstants = undefinedMFConstants.getMFConstantValues();
-				prism.setPRISMModelConstants(definedMFConstants);
+				prism.setPRISMModelConstants(definedMFConstants, exactConstants);
 			} catch (PrismException e) {
 				// in case of error, report it, store as result for any properties, and go on to the next model
 				// (might happen for example if overflow or another numerical problem is detected at this stage)
@@ -366,7 +379,7 @@ public class PrismCL implements PrismModelListener
 							// Set values for PropertiesFile constants
 							if (propertiesFile != null) {
 								definedPFConstants = undefinedConstants[j].getPFConstantValues();
-								propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+								propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
 							}
 							// Normal model checking
 							if (!simulate && !param) {
@@ -674,6 +687,25 @@ public class PrismCL implements PrismModelListener
 
 	private void doExports()
 	{
+		if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+			if (exporttrans ||
+			    exportstaterewards ||
+			    exporttransrewards ||
+			    exportstates ||
+			    exportspy ||
+			    exportdot ||
+			    exporttransdot ||
+			    exporttransdotstates ||
+			    exportmodeldotview ||
+			    exportlabels ||
+			    exportsccs ||
+			    exportbsccs ||
+			    exportmecs) {
+				mainLog.printWarning("Skipping exports in parametric / exact model checking mode, currently not supported.");
+				return;
+			}
+		}
+
 		// export transition matrix to a file
 		if (exporttrans) {
 			try {
@@ -809,7 +841,7 @@ public class PrismCL implements PrismModelListener
 			try {
 				if (propertiesFile != null) {
 					definedPFConstants = undefinedMFConstants.getPFConstantValues();
-					propertiesFile.setSomeUndefinedConstants(definedPFConstants);
+					propertiesFile.setSomeUndefinedConstants(definedPFConstants, exactConstants);
 				}
 				File f = (exportLabelsFilename.equals("stdout")) ? null : new File(exportLabelsFilename);
 				prism.exportLabelsToFile(propertiesFile, exportType, f);
@@ -873,6 +905,11 @@ public class PrismCL implements PrismModelListener
 		File exportSteadyStateFile = null;
 
 		if (steadystate) {
+			if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+				mainLog.printWarning("Skipping steady-state computation in parametric / exact model checking mode, currently not supported.");
+				return;
+			}
+
 			try {
 				// Choose destination for output (file or log)
 				if (exportSteadyStateFilename == null || exportSteadyStateFilename.equals("stdout"))
@@ -898,6 +935,11 @@ public class PrismCL implements PrismModelListener
 
 		if (dotransient) {
 			try {
+				if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+					mainLog.printWarning("Skipping transient probability computation in parametric / exact model checking mode, currently not supported.");
+					return;
+				}
+
 				// Choose destination for output (file or log)
 				if (exportTransientFilename == null || exportTransientFilename.equals("stdout"))
 					exportTransientFile = null;
@@ -1055,10 +1097,10 @@ public class PrismCL implements PrismModelListener
 					}
 					exit();
 				}
-				// java max mem
-				else if (sw.equals("javamaxmem")) {
+				// java max mem & java stack size
+				else if (sw.equals("javamaxmem") || sw.equals("javastack")) {
 					i++;
-					// ignore - this is dealt with before java is launched
+					// ignore argument and subsequent value, this is dealt with before java is launched
 				}
 				// timeout
 				else if (sw.equals("timeout")) {
@@ -2062,13 +2104,35 @@ public class PrismCL implements PrismModelListener
 		for (i = 0; i < args.length; i++) {
 			s = args[i];
 			// If necessary add quotes so can be pasted back into a shell
-			// (where "necessary" means contains any non-safe characters)
-			if (s.matches(".*[^_a-zA-Z0-9\\./\\-=].*")) {
-				s = "'" + s + "'";
-			}
+			s = shellQuoteSingleIfNecessary(s);
 			mainLog.print(" " + s);
 		}
 		mainLog.println();
+	}
+
+	/**
+	 * For a command-line argument, returns a quoted version
+	 * with single quotes if it contains unsafe characters.
+	 * Otherwise, just returns the unquoted argument.
+	 */
+	public static String shellQuoteSingleIfNecessary(String arg)
+	{
+		if (arg.isEmpty()) {
+			// empty argument needs to be quoted
+			return "''";
+		}
+
+		// If necessary add quotes so can be pasted back into a shell
+		// (where "necessary" means contains any non-safe characters)
+		if (arg.matches(".*[^_a-zA-Z0-9\\./\\-=].*")) {
+			// argument needs quoting, so we surround with single quotes,
+			// which neutralises all characters except '
+			// for that we have to have special handling, replacing ' by '\''
+			// (close quote, escaped-', open quote again)
+			arg = arg.replace("'", "'\\''");
+			arg = "'" + arg + "'";
+		}
+		return arg;
 	}
 
 	// do some processing of the options
@@ -2309,7 +2373,8 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-nobuild ....................... Skip model construction (just do parse/export)");
 		mainLog.println("-test .......................... Enable \"test\" mode");
 		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
-		mainLog.println("-javamaxmem .................... Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
+		mainLog.println("-javamaxmem <x>................. Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
+		mainLog.println("-javastack <x> ................. Set the Java stack size [default: 4m]");
 		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
 		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 		mainLog.println();

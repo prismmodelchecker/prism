@@ -37,8 +37,59 @@ import java.util.TreeMap;
  */
 public class Decoration
 {
+	/** An indication of how the node or edge's label should be rendered by Graphviz */
+	public static enum LabelType
+	{
+		/**
+		 * Plain text
+		 * */
+		PLAIN("\"", "\"", "\\n"),
+
+		/**
+		 * HTML-like (a restricted subset of HTML supported by Graphviz, as documented in the
+		 * <a href="https://graphviz.gitlab.io/_pages/doc/info/shapes.html#html">Node Shapes</a>
+		 * section of the Graphviz manual)
+		 */
+		 HTML("<", ">", "<br/>");
+
+		/** The symbol to start the label text (for this label type) */
+		private final String labelOpen;
+		/** The symbol to end the label text (for this label type) */
+		private final String labelClose;
+		/** The symbol for creating a new line (for this label type) */
+		private final String newLine;
+
+		/** Constructor, set the correct delimiter symbols */
+		private LabelType(String labelOpen, String labelClose, String newLine)
+		{
+			 this.labelOpen = labelOpen;
+			 this.labelClose = labelClose;
+			 this.newLine = newLine;
+		 }
+
+		/** Returns the symbol for starting the label text */
+		public String getOpen()
+		{
+			return labelOpen;
+		}
+
+		/** Returns the symbol for ending the label text */
+		public String getClose()
+		{
+			return labelClose;
+		}
+
+		/** Returns the symbol for creating a new line in the label text */
+		public String getNewLine()
+		{
+			return newLine;
+		}
+	}
+
 	/** The label */
 	private String label;
+	/** How the label should be rendered by Graphviz (by plain text, as default) */
+	private LabelType labelType = LabelType.PLAIN;
 	/** Map from attribute keys to values (apart from the label attribute) */
 	private TreeMap<String, String> attributes;
 
@@ -114,7 +165,7 @@ public class Decoration
 	{
 		StringBuffer buf = new StringBuffer();
 
-		append(buf, "label", "\"" + label + "\"");
+		append(buf, "label", labelType.getOpen() + label + labelType.getClose());
 
 		for (Entry<String, String> e : attributesRO().entrySet()) {
 			if (defaults != null) {
@@ -148,35 +199,56 @@ public class Decoration
 		buffer.append(value);
 	}
 
-	/** Get the label */
+	/** Get the label text */
 	public String getLabel()
 	{
 		return label;
 	}
 
-	/** Set the label */
+	/** Set the label text. Note: Ensure that the label text is properly quoted for the used label type. */
 	public void setLabel(String label)
 	{
 		this.label = label;
 	}
 
-	/** Add some additional information below the currently existing label */
+	/** Get the label type */
+	public LabelType getLabelType()
+	{
+		return labelType;
+	}
+
+	/**
+	 * Set the label type (this should be done before calling the {@link labelAddBelow(String) labelAddBelow}
+	 * or {@link labelAddAbove(String) labelAddAbove} methods, to ensure that the correct line delimiter is
+	 * inserted)
+	 */
+	public void setLabelType(LabelType labelType)
+	{
+		this.labelType = labelType;
+	}
+
+	/**
+	 * Add some additional information below the currently existing label.
+	 * Note: Ensure that the label text is properly quoted for the used label type.
+	 */
 	public void labelAddBelow(String additional)
 	{
-		setLabel(getLabel() + "\\n" + additional);
+		setLabel(getLabel() + labelType.getNewLine() + additional);
 	}
 
 	/**
 	 * Add some additional information above the currently existing label.
+	 * Note: Ensure that the label text is properly quoted for the used label type.
 	 * @param additional the additional text
 	 */
 	public void labelAddAbove(String additional)
 	{
-		setLabel(additional + "\\n" + getLabel());
+		setLabel(additional + labelType.getNewLine() + getLabel());
 	}
 
 	/**
 	 * Add some additional information to the right of the currently existing label.
+	 * Note: Ensure that the label text is properly quoted for the used label type.
 	 * @param additional the additional text
 	 * @param separator the separator between the old label and the additional text (may be {@code null})
 	 */
@@ -187,6 +259,7 @@ public class Decoration
 
 	/**
 	 * Add some additional information to the left of the currently existing label.
+	 * Note: Ensure that the label text is properly quoted for the used label type.
 	 * @param additional the additional text
 	 * @param separator the separator between the old label and the additional text (may be {@code null})
 	 */

@@ -30,7 +30,9 @@ package userinterface;
 import javax.swing.plaf.metal.*;
 import javax.swing.*;
 import userinterface.util.*;
-import org.w3c.dom.*;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import userinterface.OptionsPanel;
 

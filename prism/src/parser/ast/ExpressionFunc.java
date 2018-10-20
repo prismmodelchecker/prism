@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 
+import common.SafeCast;
 import param.BigRational;
 import parser.*;
 import parser.visitor.*;
@@ -42,16 +43,17 @@ public class ExpressionFunc extends Expression
 	public static final int MAX = 1;
 	public static final int FLOOR = 2;
 	public static final int CEIL = 3;
-	public static final int POW = 4;
-	public static final int MOD = 5;
-	public static final int LOG = 6;
-	public static final int MULTI = 7;
-	public static final int PARTIAL = 8;
+	public static final int ROUND = 4;
+	public static final int POW = 5;
+	public static final int MOD = 6;
+	public static final int LOG = 7;
+	public static final int MULTI = 8;
+	public static final int PARTIAL = 9;
 	// Built-in function names
-	public static final String names[] = { "min", "max", "floor", "ceil", "pow", "mod", "log", "multi", "partial"};
+	public static final String names[] = { "min", "max", "floor", "ceil", "round", "pow", "mod", "log", "multi", "partial" };
 	// Min/max function arities
-	public static final int minArities[] = { 2, 2, 1, 1, 2, 2, 2, 1, 1};
-	public static final int maxArities[] = { -1, -1, 1, 1, 2, 2, 2, -1, -1};
+	public static final int minArities[] = { 2, 2, 1, 1, 1, 2, 2, 2, 1, 1 };
+	public static final int maxArities[] = { -1, -1, 1, 1, 1, 2, 2, 2, -1, -1 };
 
 	// Function name
 	private String name = "";
@@ -182,6 +184,8 @@ public class ExpressionFunc extends Expression
 			return evaluateFloor(ec);
 		case CEIL:
 			return evaluateCeil(ec);
+		case ROUND:
+			return evaluateRound(ec);
 		case POW:
 			return evaluatePow(ec);
 		case MOD:
@@ -204,6 +208,8 @@ public class ExpressionFunc extends Expression
 			return evaluateFloorExact(ec);
 		case CEIL:
 			return evaluateCeilExact(ec);
+		case ROUND:
+			return evaluateRoundExact(ec);
 		case POW:
 			return evaluatePowExact(ec);
 		case MOD:
@@ -227,7 +233,7 @@ public class ExpressionFunc extends Expression
 				j = getOperand(i).evaluateInt(ec);
 				iMin = (j < iMin) ? j : iMin;
 			}
-			return new Integer(iMin);
+			return iMin;
 		} else {
 			dMin = getOperand(0).evaluateDouble(ec);
 			n = getNumOperands();
@@ -235,7 +241,7 @@ public class ExpressionFunc extends Expression
 				d = getOperand(i).evaluateDouble(ec);
 				dMin = (d < dMin) ? d : dMin;
 			}
-			return new Double(dMin);
+			return dMin;
 		}
 	}
 
@@ -262,7 +268,7 @@ public class ExpressionFunc extends Expression
 				j = getOperand(i).evaluateInt(ec);
 				iMax = (j > iMax) ? j : iMax;
 			}
-			return new Integer(iMax);
+			return iMax;
 		} else {
 			dMax = getOperand(0).evaluateDouble(ec);
 			n = getNumOperands();
@@ -270,7 +276,7 @@ public class ExpressionFunc extends Expression
 				d = getOperand(i).evaluateDouble(ec);
 				dMax = (d > dMax) ? d : dMax;
 			}
-			return new Double(dMax);
+			return dMax;
 		}
 	}
 
@@ -285,10 +291,10 @@ public class ExpressionFunc extends Expression
 		return max;
 	}
 
-	public Object evaluateFloor(EvaluateContext ec) throws PrismLangException
+	public Integer evaluateFloor(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Integer(evaluateFloor(getOperand(0).evaluateDouble(ec)));
+			return evaluateFloor(getOperand(0).evaluateDouble(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -297,17 +303,17 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateFloor(double arg) throws PrismLangException
 	{
-		double d = Math.floor(arg);
-		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(d) || Double.isInfinite(d))
-			throw new PrismLangException("Cannot take floor() of " + d);
-		return (int) d;
+		try {
+			return SafeCast.toIntExact(Math.floor(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take floor() of " + arg + ": " + e.getMessage());
+		}
 	}
 
-	public Object evaluateCeil(EvaluateContext ec) throws PrismLangException
+	public Integer evaluateCeil(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Integer(evaluateCeil(getOperand(0).evaluateDouble(ec)));
+			return evaluateCeil(getOperand(0).evaluateDouble(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -316,16 +322,30 @@ public class ExpressionFunc extends Expression
 
 	public static int evaluateCeil(double arg) throws PrismLangException
 	{
-		double d = Math.ceil(arg);
-		// Check for NaN or +/-inf, otherwise possible errors lost in cast to int
-		if (Double.isNaN(d) || Double.isInfinite(d))
-			throw new PrismLangException("Cannot take ceil() of " + d);
-		return (int) d;
+		try {
+			return SafeCast.toIntExact(Math.ceil(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take ceil() of " + arg + ": " + e.getMessage());
+		}
 	}
 
-	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
+	public Integer evaluateRound(EvaluateContext ec) throws PrismLangException
 	{
-		return getOperand(0).evaluateExact(ec).ceil();
+		try {
+			return evaluateRound(getOperand(0).evaluateDouble(ec));
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
+		}
+	}
+
+	public static int evaluateRound(double arg) throws PrismLangException
+	{
+		try {
+			return SafeCast.toIntExact(Math.round(arg));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Cannot take round() of " + arg + ": " + e.getMessage());
+		}
 	}
 
 	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
@@ -333,13 +353,23 @@ public class ExpressionFunc extends Expression
 		return getOperand(0).evaluateExact(ec).floor();
 	}
 
+	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).ceil();
+	}
+
+	public BigRational evaluateRoundExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).round();
+	}
+
 	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
 	{
 		try {
 			if (type instanceof TypeInt) {
-				return new Integer(evaluatePowInt(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec)));
+				return evaluatePowInt(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec));
 			} else {
-				return new Double(evaluatePowDouble(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec)));
+				return evaluatePowDouble(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
 			}
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
@@ -352,14 +382,11 @@ public class ExpressionFunc extends Expression
 		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 		if (exp < 0)
 			throw new PrismLangException("Negative exponent not allowed for integer power");
-		double res = Math.pow(base, exp);
-		// Check for overflow
-		if (res > Integer.MAX_VALUE)
-			throw new PrismLangException("Overflow evaluating integer power");
-		// Check for underflow
-		if (res < Integer.MIN_VALUE)
-			throw new PrismLangException("Underflow evaluating integer power");
-		return (int) res;
+		try {
+			return SafeCast.toIntExact(Math.pow(base, exp));
+		} catch (ArithmeticException e) {
+			throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage());
+		}
 	}
 
 	public static double evaluatePowDouble(double base, double exp) throws PrismLangException
@@ -383,7 +410,7 @@ public class ExpressionFunc extends Expression
 	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Integer(evaluateMod(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec)));
+			return evaluateMod(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -414,7 +441,7 @@ public class ExpressionFunc extends Expression
 	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
 	{
 		try {
-			return new Double(evaluateLog(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec)));
+			return evaluateLog(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;

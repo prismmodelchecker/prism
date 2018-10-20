@@ -195,6 +195,12 @@ public class SCCInfo implements SCCConsumer
 				int sccForState = getSCCIndex(stateIndex);
 				return sccForState == sccIndex;
 			}
+
+			@Override
+			public String toString()
+			{
+				return asString();
+			}
 		};
 	}
 

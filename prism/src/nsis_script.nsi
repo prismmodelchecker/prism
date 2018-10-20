@@ -9,8 +9,7 @@
 ; * PRISM X.y" is the name of the program displayed to the user
 ; * prism-3.0 is the4 name of the build (no spaces)
 ; * winXX is win32 or win6
-; The PRISM_DIR variable should be set to "" if the working directory
-; is the prism directory or to the prism directory otherwise (ending with `\').
+; The PRISM_DIR variable should be set to the top-level PRISM dir (usually ..)
 
 # --------------------------------------------------------------------------- #
 
@@ -30,7 +29,7 @@ OutFile         "..\${PRISM_BUILD}-${PRISM_BINDISTSUFFIX}-installer.exe"
 CRCCheck        on
 
 LicenseText     "For your information:" "Next >"
-LicenseData     "${PRISM_DIR}COPYING.txt"
+LicenseData     "${PRISM_DIR}\COPYING.txt"
 
 InstallDir      "$PROGRAMFILES64\${PRISM_BUILD}"
 
@@ -65,20 +64,20 @@ Section "${PRISM_NAME}"
     File /r lib\*.*
     
     SetOutPath "$INSTDIR"
-    File "CHANGELOG.txt"
-    File "COPYING.txt"
+    File "..\CHANGELOG.txt"
+    File "..\COPYING.txt"
     FILE "install.sh"
-    FILE "README.txt"
+    FILE "..\README.md"
 
     SetOutPath "$INSTDIR\bin"
     File bin\prism.bat
     File bin\xprism.bat
     
-    SetOutPath "$INSTDIR\examples"
-    File /r examples\*.*
+    SetOutPath "$INSTDIR\prism-examples"
+    File /r ..\prism-examples\*.*
 
-    SetOutPath "$INSTDIR\doc"
-    File /r doc\*.*
+    SetOutPath "$INSTDIR\manual"
+    File /r ..\manual\*.*
 SectionEnd
 
 Section "Desktop shortcut"
@@ -111,7 +110,7 @@ Section "Start menu shortcuts"
     SetOutPath "$INSTDIR\doc"
 
     CreateShortCut  "$SMPROGRAMS\${PRISM_NAME}\Manual (local).lnk" \
-                    "$INSTDIR\doc\manual\index.html" ""                            \
+                    "$INSTDIR\manual\index.html" ""                            \
                     "" 0                             \
                     SW_SHOWNORMAL "" "The PRISM manual (local copy)"
 
@@ -142,9 +141,9 @@ Section Uninstall
     Delete "$INSTDIR\CHANGELOG.txt"
     Delete "$INSTDIR\COPYING.txt"
     Delete "$INSTDIR\install.sh"
-    Delete "$INSTDIR\README.txt"
+    Delete "$INSTDIR\README.md"
 
-    RMDir /r "$INSTDIR\examples\"
+    RMDir /r "$INSTDIR\prism-examples\"
 
     RMDIR /r "$INSTDIR\doc\"
 

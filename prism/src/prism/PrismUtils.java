@@ -36,6 +36,8 @@ import java.util.PrimitiveIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import common.iterable.IterableInt;
+
 /**
  * Various general-purpose utility methods in Java
  */
@@ -118,20 +120,30 @@ public class PrismUtils
 	 */
 	public static boolean doublesAreClose(double d1[], double d2[], double epsilon, boolean abs)
 	{
-		int i, n;
-		n = Math.min(d1.length, d2.length);
+		int n = Math.min(d1.length, d2.length);
 		if (abs) {
-			for (i = 0; i < n; i++) {
-				if (!PrismUtils.doublesAreCloseAbs(d1[i], d2[i], epsilon))
+			for (int i = 0; i < n; i++) {
+				if (!doublesAreCloseAbs(d1[i], d2[i], epsilon))
 					return false;
 			}
 		} else {
-			for (i = 0; i < n; i++) {
-				if (!PrismUtils.doublesAreCloseRel(d1[i], d2[i], epsilon))
+			for (int i = 0; i < n; i++) {
+				if (!doublesAreCloseRel(d1[i], d2[i], epsilon))
 					return false;
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * See if, for all the entries given by the {@code indizes}
+	 * iterator, two arrays of doubles are all within epsilon of each other (relative or absolute error).
+	 * <br>
+	 * Considers Inf == Inf and -Inf == -Inf.
+	 */
+	public static boolean doublesAreClose(double d1[], double d2[], IterableInt indizes, double epsilon, boolean abs)
+	{
+		return doublesAreClose(d1, d2, indizes.iterator(), epsilon, abs);
 	}
 
 	/**
@@ -145,13 +157,13 @@ public class PrismUtils
 		if (abs) {
 			while (indizes.hasNext()) {
 				int i = indizes.nextInt();
-				if (!PrismUtils.doublesAreCloseAbs(d1[i], d2[i], epsilon))
+				if (!doublesAreCloseAbs(d1[i], d2[i], epsilon))
 					return false;
 			}
 		} else {
 			while (indizes.hasNext()) {
 				int i = indizes.nextInt();
-				if (!PrismUtils.doublesAreCloseRel(d1[i], d2[i], epsilon))
+				if (!doublesAreCloseRel(d1[i], d2[i], epsilon))
 					return false;
 			}
 		}
@@ -393,7 +405,31 @@ public class PrismUtils
 	}
 
 	/**
-	 * Format a large integer, represented by a double, as a string. 
+	 * Normalise the given entries in the vector in-place such that that they sum to 1,
+	 * I.e., for all indizes of entries, set<br>
+	 * {@code vector[s] = vector[s] / sum}, where<br>
+	 * {@code sum = sum_{s in entries} (vector[s])<br>
+	 * If {@code sum = 0.0}, all entries are set to {@code NaN}.
+	 * @param vector the vector
+	 * @param entries Iterable over the entries (must not contain duplicates)
+	 * @return the altered vector
+	 */
+	public static double[] normalise(double[] vector, IterableInt entries)
+	{
+		double sum = 0.0;
+		for (PrimitiveIterator.OfInt iter = entries.iterator(); iter.hasNext();) {
+			int state = iter.nextInt();
+			sum += vector[state];
+		}
+		for (PrimitiveIterator.OfInt iter = entries.iterator(); iter.hasNext();) {
+			int state = iter.nextInt();
+			vector[state] /= sum;
+		}
+		return vector;
+	}
+
+	/**
+	 * Format a large integer, represented by a double, as a string. Un
 	 */
 	public static String bigIntToString(double d)
 	{

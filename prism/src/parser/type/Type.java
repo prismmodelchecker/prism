@@ -26,6 +26,7 @@
 
 package parser.type;
 
+import param.BigRational;
 import prism.PrismLangException;
 
 public abstract class Type 
@@ -64,7 +65,21 @@ public abstract class Type
 		// Play safe: assume error unless explicitly overridden.
 		throw new PrismLangException("Cannot cast a value to type " + getTypeString());
 	}
-	
+
+	/**
+	 * Cast a BigRational value to the Java data type (Boolean, Integer, Double, ...)
+	 * corresponding to this type.
+	 * <br>
+	 * For boolean and integer, this throws an exception if the value can not be
+	 * precisely represented by the Java data type; for double, loss of precision
+	 * is expected and does not raise an exception.
+	 */
+	public Object castFromBigRational(BigRational value) throws PrismLangException
+	{
+		// Play safe: assume error unless explicitly overridden.
+		throw new PrismLangException("Cannot cast rational number to type " + getTypeString());
+	}
+
 	@Override
 	public String toString()
 	{

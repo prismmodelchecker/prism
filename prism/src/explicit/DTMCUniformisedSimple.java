@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -281,29 +282,23 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	@Override
 	public void vmMult(double vect[], double result[])
 	{
-		int i, j;
-		double prob, sum;
-		Distribution distr;
-		
 		// Initialise result to 0
-		for (j = 0; j < numStates; j++) {
-			result[j] = 0;
-		}
+		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
-		for (i = 0; i < numStates; i++) {
-			distr = ctmc.getTransitions(i);
-			sum = 0.0;
-			for (Map.Entry<Integer, Double> e : distr) {
-				j = (Integer) e.getKey();
-				prob = (Double) e.getValue();
+		for (int state = 0; state < numStates; state++) {
+			double sum = 0.0;
+			for (Iterator<Entry<Integer, Double>> transitions = ctmc.getTransitionsIterator(state); transitions.hasNext();) {
+				Entry<Integer, Double> trans = transitions.next();
+				int target  = trans.getKey();
+				double prob = trans.getValue() / q;
 				// Non-diagonal entries only
-				if (j != i) {
+				if (target != state) {
 					sum += prob;
-					result[j] += (prob / q) * vect[i];
+					result[target] += prob * vect[state];
 				}
 			}
-			// Diagonal entry is 1 - sum/q
-			result[i] += (1 - sum / q) * vect[i];
+			// Diagonal entry is 1 - sum
+			result[state] += (1 - sum) * vect[state];
 		}
 	}
 

@@ -147,69 +147,81 @@ public class ExpressionBinaryOp extends Expression
 	{
 		switch (op) {
 		case IMPLIES:
-			return new Boolean(!operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec));
+			return !operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec);
 		case IFF:
-			return new Boolean(operand1.evaluateBoolean(ec) == operand2.evaluateBoolean(ec));
+			return operand1.evaluateBoolean(ec) == operand2.evaluateBoolean(ec);
 		case OR:
-			return new Boolean(operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec));
+			return operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec);
 		case AND:
-			return new Boolean(operand1.evaluateBoolean(ec) && operand2.evaluateBoolean(ec));
+			return operand1.evaluateBoolean(ec) && operand2.evaluateBoolean(ec);
 		case EQ:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Boolean(operand1.evaluateInt(ec) == operand2.evaluateInt(ec));
+				return operand1.evaluateInt(ec) == operand2.evaluateInt(ec);
 			} else {
-				return new Boolean(operand1.evaluateDouble(ec) == operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) == operand2.evaluateDouble(ec);
 			}
 		case NE:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Boolean(operand1.evaluateInt(ec) != operand2.evaluateInt(ec));
+				return operand1.evaluateInt(ec) != operand2.evaluateInt(ec);
 			} else {
-				return new Boolean(operand1.evaluateDouble(ec) != operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) != operand2.evaluateDouble(ec);
 			}
 		case GT:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Boolean(operand1.evaluateInt(ec) > operand2.evaluateInt(ec));
+				return operand1.evaluateInt(ec) > operand2.evaluateInt(ec);
 			} else {
-				return new Boolean(operand1.evaluateDouble(ec) > operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) > operand2.evaluateDouble(ec);
 			}
 		case GE:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Boolean(operand1.evaluateInt(ec) >= operand2.evaluateInt(ec));
+				return operand1.evaluateInt(ec) >= operand2.evaluateInt(ec);
 			} else {
-				return new Boolean(operand1.evaluateDouble(ec) >= operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) >= operand2.evaluateDouble(ec);
 			}
 		case LT:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Boolean(operand1.evaluateInt(ec) < operand2.evaluateInt(ec));
+				return operand1.evaluateInt(ec) < operand2.evaluateInt(ec);
 			} else {
-				return new Boolean(operand1.evaluateDouble(ec) < operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) < operand2.evaluateDouble(ec);
 			}
 		case LE:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Boolean(operand1.evaluateInt(ec) <= operand2.evaluateInt(ec));
+				return operand1.evaluateInt(ec) <= operand2.evaluateInt(ec);
 			} else {
-				return new Boolean(operand1.evaluateDouble(ec) <= operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) <= operand2.evaluateDouble(ec);
 			}
 		case PLUS:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Integer(operand1.evaluateInt(ec) + operand2.evaluateInt(ec));
+				try {
+					return Math.addExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
-				return new Double(operand1.evaluateDouble(ec) + operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) + operand2.evaluateDouble(ec);
 			}
 		case MINUS:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Integer(operand1.evaluateInt(ec) - operand2.evaluateInt(ec));
+				try {
+					return Math.subtractExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
-				return new Double(operand1.evaluateDouble(ec) - operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) - operand2.evaluateDouble(ec);
 			}
 		case TIMES:
 			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return new Integer(operand1.evaluateInt(ec) * operand2.evaluateInt(ec));
+				try {
+					return Math.multiplyExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException(e.getMessage(), this);
+				}
 			} else {
-				return new Double(operand1.evaluateDouble(ec) * operand2.evaluateDouble(ec));
+				return operand1.evaluateDouble(ec) * operand2.evaluateDouble(ec);
 			}
 		case DIVIDE:
-			return new Double(operand1.evaluateDouble(ec) / operand2.evaluateDouble(ec));
+			return operand1.evaluateDouble(ec) / operand2.evaluateDouble(ec);
 		}
 		throw new PrismLangException("Unknown binary operator", this);
 	}

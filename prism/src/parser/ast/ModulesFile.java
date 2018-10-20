@@ -28,6 +28,7 @@ package parser.ast;
 
 import java.util.*;
 
+import param.BigRational;
 import parser.*;
 import parser.visitor.*;
 import prism.ModelInfo;
@@ -686,7 +687,9 @@ public class ModulesFile extends ASTElement implements ModelInfo
 		// NB: Can't call setUndefinedConstants if there are undefined constants
 		// because semanticCheckAfterConstants may fail. 
 		if (getUndefinedConstants().isEmpty()) {
-			setUndefinedConstants(null);
+			// we use non-exact constant evaluation by default,
+			// for exact mode constants will be reevaluated later on
+			setUndefinedConstants(null, false);
 		}
 	}
 
@@ -1011,24 +1014,43 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
 	 * Calling this method also triggers some additional semantic checks
 	 * that can only be done once constant values have been specified.
+	 * <br>
+	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismLangException
 	{
-		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		constantValues = constantList.evaluateConstants(someValues, null);
-		doSemanticChecksAfterConstants();
+		setUndefinedConstants(someValues, false);
 	}
 
 	/**
-	 * Set values for *some* undefined constants and then evaluate all constants where possible.
+	 * Set values for *all* undefined constants and then evaluate all constants.
 	 * If there are no undefined constants, {@code someValues} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}.
+	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
+	 * Calling this method also triggers some additional semantic checks
+	 * that can only be done once constant values have been specified.
+	 * <br>
+	 * Constant values are evaluated using either standard (integer, floating-point) arithmetic
+	 * or exact arithmetic, depending on the value of the {@code exact} flag.
 	 */
-	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
 	{
 		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		constantValues = constantList.evaluateSomeConstants(someValues, null);
+		constantValues = constantList.evaluateConstants(someValues, null, exact);
+		doSemanticChecksAfterConstants();
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	{
+		setSomeUndefinedConstants(someValues, false);
+	}
+
+	@Override
+	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
+	{
+		undefinedConstantValues = someValues == null ? null : new Values(someValues);
+		constantValues = constantList.evaluateSomeConstants(someValues, null, exact);
 		doSemanticChecksAfterConstants();
 	}
 
@@ -1067,8 +1089,25 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	 * Assumes that values for constants have been provided for the model.
 	 * Note: This method replaces the old getInitialValues() method,
 	 * since State objects are now preferred to Values objects for efficiency.
+	 * <br>
+	 * The init expression is evaluated using the default evaluate, i.e.,
+	 * not using exact arithmetic.
 	 */
 	public State getDefaultInitialState() throws PrismLangException
+	{
+		return getDefaultInitialState(false);
+	}
+
+	/**
+	 * Create a State object representing the default initial state of this model.
+	 * If there are potentially multiple initial states (because the model has an
+	 * init...endinit specification), this method returns null;
+	 * Assumes that values for constants have been provided for the model.
+	 * Note: This method replaces the old getInitialValues() method,
+	 * since State objects are now preferred to Values objects for efficiency.
+	 * @param exact use exact arithmetic in evaluation of init expression?
+	 */
+	public State getDefaultInitialState(boolean exact) throws PrismLangException
 	{
 		int i, j, count, n, n2;
 		Module module;
@@ -1087,8 +1126,13 @@ public class ModulesFile extends ASTElement implements ModelInfo
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			decl = getGlobal(i);
-			initialValue = decl.getStartOrDefault().evaluate(constantValues);
-			initialValue = getGlobal(i).getType().castValueTo(initialValue);
+			if (exact) {
+				BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
+				initialValue = getGlobal(i).getType().castFromBigRational(r);
+			} else {
+				initialValue = decl.getStartOrDefault().evaluate(constantValues);
+				initialValue = getGlobal(i).getType().castValueTo(initialValue);
+			}
 			initialState.setValue(count++, initialValue);
 		}
 		n = getNumModules();
@@ -1097,8 +1141,13 @@ public class ModulesFile extends ASTElement implements ModelInfo
 			n2 = module.getNumDeclarations();
 			for (j = 0; j < n2; j++) {
 				decl = module.getDeclaration(j);
-				initialValue = decl.getStartOrDefault().evaluate(constantValues);
-				initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
+				if (exact) {
+					BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
+					initialValue = module.getDeclaration(j).getType().castFromBigRational(r);
+				} else {
+					initialValue = decl.getStartOrDefault().evaluate(constantValues);
+					initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
+				}
 				initialState.setValue(count++, initialValue);
 			}
 		}
@@ -1111,43 +1160,11 @@ public class ModulesFile extends ASTElement implements ModelInfo
 	 * Deprecated: Use getDefaultInitialState() instead
 	 * (or new Values(getDefaultInitialState(), modulesFile)).
 	 */
+	@Deprecated
 	public Values getInitialValues() throws PrismLangException
 	{
-		int i, j, n, n2;
-		Module module;
-		Declaration decl;
-		Values values;
-		Object initialValue;
-
-		if (initStates != null) {
-			throw new PrismLangException("There are multiple initial states");
-		}
-
-		// set up variable list
-		values = new Values();
-
-		// first add all globals
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			decl = getGlobal(i);
-			initialValue = decl.getStartOrDefault().evaluate(constantValues);
-			initialValue = getGlobal(i).getType().castValueTo(initialValue);
-			values.addValue(decl.getName(), initialValue);
-		}
-		// then add all module variables
-		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			module = getModule(i);
-			n2 = module.getNumDeclarations();
-			for (j = 0; j < n2; j++) {
-				decl = module.getDeclaration(j);
-				initialValue = decl.getStartOrDefault().evaluate(constantValues);
-				initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
-				values.addValue(decl.getName(), initialValue);
-			}
-		}
-
-		return values;
+		State stateInit = getDefaultInitialState();
+		return (stateInit == null) ? null : new Values(stateInit, this);
 	}
 
 	/**

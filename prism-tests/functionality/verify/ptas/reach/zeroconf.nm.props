@@ -1,3 +1,3 @@
 // Maximum probability of configuring IP address incorrectly
-// RESULT: 0.001301514
+// RESULT: 130321/100130321
 "incorrect": Pmax=? [ F s=2 & ip=2 ];

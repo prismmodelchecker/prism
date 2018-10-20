@@ -1,5 +1,4 @@
 digraph P {
-size="8,5"
 node [shape=box];
 0 -> 1 [ label="0.5" ];
 0 -> 2 [ label="0.5" ];

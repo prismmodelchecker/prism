@@ -132,7 +132,6 @@ CPP = g++
 LD = $(CPP)
 JAVAC = javac
 JAVACC = javacc
-JAVAH = javah
 
 ##############
 # Flags etc. #
@@ -283,6 +282,8 @@ CLASSES_DIR =	classes
 OBJ_DIR =		obj
 LIB_DIR =		lib
 INCLUDE_DIR =	include
+IMAGES_DIR =    images
+DTDS_DIR =      dtds
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
@@ -295,15 +296,15 @@ JAVA_JNI_H_DIR = $(shell \
 JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
 JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
-#########################
-# Main part of Makefile #
-#########################
+##########################################
+# Main part of Makefile: Compiling PRISM #
+##########################################
 
 MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta param strat automata common cex
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
-.PHONY: clean javadoc tests
+.PHONY: clean javadoc tests release
 
 # inhibit building in parallel (-j option)
 .NOTPARALLEL:
@@ -312,6 +313,7 @@ default: all
 
 all: cuddpackage extpackages prism
 
+# Build our customised version of CUDD
 cuddpackage: checks
 	@if [ "$(CUDD_DIR)" = "" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
 	@if [ ! -d "$(CUDD_DIR)" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
@@ -324,14 +326,14 @@ cuddpackage: checks
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
 
-# use this to force build of cudd (even if dir is just a symlink)
+# Use this to force a build of CUDD, even if dir is just a symlink
 cuddpackageforce: checks
 	  @echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
 	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)";
 
-# use this to force a rebuild (with javacc) of the main parser
+# Use this to force a rebuild (with javacc) of the main parser
 parser:
 	@echo Making parser ...; \
 	cd src/parser && \
@@ -341,9 +343,9 @@ parser:
 	CLASSES_DIR="$(CLASSES_DIR)" \
 	JAVAC="$(JAVAC) $(JFLAGS)" \
 	JAVACC="$(JAVACC)" \
-	JAVAH="$(JAVAH) $(JFLAGS)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
 
+# Build various external libraries needed by PRISM
 extpackages: checks
 	@for ext in $(EXT_PACKAGES); do \
 	  echo Making $$ext ...; \
@@ -368,8 +370,11 @@ extpackages: checks
 	  ) || exit 1; \
 	done
 
+# Compile main PRISM code
+# (we also do some preparatory checks, and build launch scripts afterwards)
 prism: checks make_dirs bin_scripts
 
+# Compile each (top-level) source directory separately
 make_dirs:
 	@mkdir -p bin classes obj/dd obj/jdd obj/odd obj/dv obj/prism obj/mtbdd obj/sparse obj/hybrid obj/simulator
 	@for dir in $(MAKE_DIRS); do \
@@ -390,7 +395,6 @@ make_dirs:
 	  LD="$(LD)" \
 	  JAVAC="$(JAVAC) $(JFLAGS)" \
 	  JAVACC="$(JAVACC)" \
-	  JAVAH="$(JAVAH) $(JFLAGS)" \
 	  CFLAGS="$(CFLAGS)" \
 	  CPPFLAGS="$(CPPFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
@@ -407,34 +411,12 @@ make_dirs:
 	  (cd $(LIB_DIR) && \
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
+# On Windows, convert the generated JNI headers using dos2unix
+	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
+		(dos2unix include/jni/*.h) \
+	fi;
 
-# Run a single test case
-test:
-	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
-
-# Run all tests (in ../prism-tests and ./tests)
-# Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
-tests: testslocal
-	@if [ -d ../prism-tests ]; then \
-	  cd ../prism-tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
-	else \
-	  echo "Skipping tests"; \
-	fi
-
-# Just display the command to run the test suite on this version of PRISM
-# Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
-testsecho:
-	@echo etc/scripts/prism-auto -t -m --nailgun --ngprism bin/ngprism ../prism-tests -p bin/prism $(TESTS_ARGS)
-
-# Run local tests (in ./tests)
-# Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
-testslocal:
-	@if [ -d tests ]; then \
-	  cd tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
-	else \
-	  echo "Skipping local tests"; \
-	fi
-
+# Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
 	@for target in $(BIN_TARGETS); do \
 	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
@@ -445,168 +427,7 @@ bin_scripts:
 	cp $(OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
 	@./install.sh silent
 
-# Unless VERSION has been passed in (as VERSION=xxx),
-# extract version number from Java code using printversion
-VERSION = $(shell SRC_DIR=$(SRC_DIR) $(SRC_DIR)/scripts/printversion.sh 2> /dev/null)
-
-# Grab svn revision number from svnversion, if possible
-REVISION = $(shell svnversion 2> /dev/null)
-
-# Add Revision.java with current svn revision
-add_rev:
-	@echo "Creating $(SRC_DIR)/prism/Revision.java (REVISION = $(REVISION))"
-	echo 'package prism;\npublic class Revision\n{\n\tpublic static String svnRevision = "$(REVISION)";\n}' > $(SRC_DIR)/prism/Revision.java
-
-dist_src: dist_check_version dist_copy clean_all dist_tidy
-
-dist_bin: JFLAGS += -source 1.8 -target 1.8
-dist_bin: dist_check_version all binary dist_tidy dist_bin_copy
-
-dist_check_version:
-	@if [ "$(VERSION)" = "" ]; then echo "Usage: make dist_src/dist_bin VERSION=3.1"; exit 1; fi
-
-# Unless already present, copy cudd/examples/doc to this dir
-# By default, cudd/examples from svn trunk and doc from ~/prism/prism-doc; other options commented out below
-dist_copy:
-	@if [ -e cudd ]; then \
-	  echo "Warning: Not copying cudd since directory already exists"; \
-	else \
-	  echo "Installing CUDD from svn trunk..."; svn -q export https://www.prismmodelchecker.org/svn/prism/prism/trunk/cudd cudd; \
-	fi
-#	  echo "Installing CUDD from ../cudd..."; (SRC_DIST_DIR=`/bin/pwd`; cd ..; tar cf - cudd | tar xf - -C "$$SRC_DIST_DIR");
-	@if [ -e examples ]; then \
-	  echo "Warning: Not copying examples since directory already exists"; \
-	else \
-	  echo "Installing examples from svn trunk..."; svn -q export https://www.prismmodelchecker.org/svn/prism/prism/trunk/prism-examples examples; \
-	fi
-#	  echo "Installing examples from ../prism-examples..."; (SRC_DIST_DIR=`/bin/pwd`; cd ..; tar cf - prism-examples | tar xf - -C "$$SRC_DIST_DIR"); mv prism-examples examples;
-	@if [ -e doc ]; then \
-	  echo "Warning: Not copying manual since directory doc already exists"; \
-	else \
-	  echo "Installing manual from ~/prism/prism-doc..."; \
-	  mkdir doc; \
-	  (SRC_DIST_DIR=`/bin/pwd`; cd ~/prism/prism-doc; tar cf - manual | tar xf - -C "$$SRC_DIST_DIR"/doc); \
-	  cp ~/prism/prism-doc/manual.pdf doc; \
-	fi
-
-dist_bin_copy:
-	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
-		echo Building NSIS Windows installer...	&& \
-		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR="" src/nsis_script.nsi; \
-	else \
-		BIN_DIST_DIR=`/bin/pwd | sed 's/-src$$//'`"-$(BINDISTSUFFIX)" && \
-		BIN_DIST_DIR_NAME=`basename $$BIN_DIST_DIR` && \
-		echo Creating binary distribution in $$BIN_DIST_DIR... && \
-		mkdir $$BIN_DIST_DIR && \
-		tar cf - README.txt CHANGELOG.txt COPYING.txt install.sh bin etc lib examples doc | ( cd $$BIN_DIST_DIR; tar xfp -) && \
-		echo Zipping $$BIN_DIST_DIR_NAME... && \
-		(cd $$BIN_DIST_DIR/..; tar cfz $$BIN_DIST_DIR_NAME.tar.gz $$BIN_DIST_DIR_NAME); \
-	fi
-#	(cd $$BIN_DIST_DIR/..; zip -rq $$BIN_DIST_DIR_NAME.zip $$BIN_DIST_DIR_NAME);
-
-dist_tidy:
-	@echo Detecting unwanted files...
-	@find . \( -name '*.o' -o -name '*.so' -o -name '*.dll' -o -name '*.exe' \)
-	@find . \( -name '*~*' -o -name '*bak*' \)
-	@find . -name 'log*' | grep -v userinterface/log || test 1
-	@find . -name '*NOTES*' | grep -v src/parser/NOTES | grep -v cudd/RELEASE.NOTES || test 1
-	@echo Processing text files...
-	@find . -type f -name '*.txt' -exec unix2dos {} {} \; 2> /dev/null
-	@find examples -type f ! -name auto -exec unix2dos {} {} \; 2> /dev/null || test 1
-	@echo Processing file permissions...
-	@find . -type f -exec chmod 644 {} \;
-	@find . \( -type d -o -type s \) -exec chmod 755 {} \;
-	@find . -type f  \( -name '*.sh' -o -name '*.so' -o -name '*.dll' \) -exec chmod 755 {} \;
-	@find examples -type f -name 'auto' -exec chmod 755 {} \; || test 1
-	@find bin -type f -exec chmod 755 {} \; || test 1
-	@find src/bin -type f -exec chmod 755 {} \;
-	@find etc/scripts -type f -exec chmod 755 {} \;
-
-binary:
-	@echo Generating jar file...
-	@jar cmf src/manifest.txt lib/prism.jar -C classes . -C . images dtds
-
-undist:
-	@rm -rf cudd && ln -s ../cudd cudd
-	@rm -rf doc
-	@rm -rf examples && ln -s ../prism-examples examples
-
-tarcf:
-	@TARCF_DIR=`/bin/pwd | sed 's/.\+\///'` && \
-	if [ $$TARCF_DIR = "." ]; then exit 1; fi && \
-	echo Building tar file "../"$$TARCF_DIR".tar.gz" && \
-	(cd ..; tar cfz $$TARCF_DIR".tar.gz" $$TARCF_DIR)
-
-count_loc:
-	find $(SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
-
-PRISM_CLASSPATH = "$(CLASSES_DIR)$(CLASSPATHSEP)$(LIB_DIR)/*"
-
-javadoc:
-	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(SRC_DIR)/overview.html -sourcepath $(SRC_DIR) -classpath $(SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
-
-clean: checks
-	@(for dir in $(MAKE_DIRS); do \
-	  echo Cleaning src/$$dir ...; \
-	  (cd src/$$dir && \
-	  $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
-	  || exit 1; \
-	done; \
-	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
-	rm -f lib/*jnilib; \
-	rm -f lib/prism.jar; \
-	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
-
-celan: clean
-
-clean_all: checks clean_cudd clean
-
-clean_cudd:
-	@(cd $(CUDD_DIR) && $(MAKE) distclean)
-
-clean_ext:
-	@(for ext in $(EXT_PACKAGES); do \
-	  echo Cleaning $$ext ...; \
-	  (cd ext/$$ext && \
-	  $(MAKE) -s LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
-	  || exit 1; \
-	done )
-
-clean_dd: checks
-	@(cd src/dd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_jdd: checks
-	@(cd src/jdd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_odd: checks
-	@(cd src/odd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_dv: checks
-	@(cd src/dv && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_prism: checks
-	@(cd src/prism && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_mtbdd: checks
-	@(cd src/mtbdd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_sparse: checks
-	@(cd src/sparse && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_hybrid: checks
-	@(cd src/hybrid && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_parser: checks
-	@(cd src/parser && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_userinterface: checks
-	@(cd src/userinterface && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_simulator: checks
-	@(cd src/simulator && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_jltl2ba: checks
-	@(cd src/jltl2ba && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_jltl2dstar: checks
-	@(cd src/jltl2dstar && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_explicit: checks
-	@(cd src/explicit && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_pta: checks
-	@(cd src/pta && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_param: checks
-	@(cd src/param && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_strat: checks
-	@(cd src/strat && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-
+# Some checks to make sure that the main settings are valid
 checks:
 	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \
 	  echo "\033[33mTo compile PRISM, the environment variable OSTYPE"; \
@@ -662,5 +483,191 @@ checks:
 	echo "JAVA_DIR_BACKUP: $(JAVA_DIR_BACKUP)"; \
 	echo "JAVAC: "`which $(JAVAC)` \
 	)
+
+# Misc: count the number of lines of code
+count_loc:
+	find $(SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+
+###########
+# Testing #
+###########
+
+# Run a single test case from the test suite (useful quick check that the build was ok)
+test:
+	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
+
+# Run all tests from the test suite (in ../prism-tests and ./tests)
+# Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
+tests: testslocal
+	@if [ -d ../prism-tests ]; then \
+	  cd ../prism-tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
+	else \
+	  echo "Skipping tests"; \
+	fi
+
+# Just display the command to run the test suite on this version of PRISM
+# Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
+testsecho:
+	@echo etc/scripts/prism-auto -t -m --nailgun --ngprism bin/ngprism ../prism-tests -p bin/prism $(TESTS_ARGS)
+
+# Run local tests (in ./tests)
+# Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
+testslocal:
+	@if [ -d tests ]; then \
+	  cd tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
+	else \
+	  echo "Skipping local tests"; \
+	fi
+
+# Run the tests from ../prism-tests (with different engine settings, picked up from ../prism-tests/all-engines.args)
+# - Export tests are disabled, as there is currently no robust test mechanism for dealing with the
+#   variations in the output of the different engines.
+# - We run with --test-all, as failures for some engines should not abort the tests
+# - We run with a timeout of 1 minute, as some engines take a long time for some properties
+testsfull:
+	cd ../prism-tests && \
+	"$(PWD)"/etc/scripts/prism-auto -t -m . \
+	--skip-export-runs --skip-duplicate-runs --test-all -a all-engines.args --timeout 1m \
+	-p "$(PWD)"/bin/prism --nailgun $(TESTS_ARGS);
+
+##########################
+# Building distributions #
+##########################
+
+# Build prism.jar
+binary:
+	@echo "Generating JAR file ($(LIB_DIR)/prism.jar)..."
+	@jar cmf $(SRC_DIR)/manifest.txt $(LIB_DIR)/prism.jar -C $(CLASSES_DIR) . -C . $(IMAGES_DIR) $(DTDS_DIR)
+
+# Build prism-sources.jar
+source-jar:
+	@echo "Generating sources JAR file ($(LIB_DIR)/prism-sources.jar)..."
+	@find $(SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(SRC_DIR)./-C $(SRC_DIR) /" > prism-sources.txt
+	@jar cf $(LIB_DIR)/prism-sources.jar @prism-sources.txt
+	@rm -f prism-sources.txt
+
+# Download a local html copy of the manual
+#PRISM_MANUAL_WEBSITE = http://prismmodelchecker.localhost/manual/
+PRISM_MANUAL_WEBSITE = http://www.prismmodelchecker.org/manual/
+doc: clean_doc
+	(cd .. && wget -r -np -k -E -nH --no-cookies --header "Cookie: setskin=offline" --restrict-file-names=windows --reject '*action=sourceblock*' $(PRISM_MANUAL_WEBSITE) $(PRISM_MANUAL_WEBSITE)/pub/skins/offline/images/)
+clean_doc:
+	rm -rf ../manual
+
+# Set up version, in particular for building releases
+# Unless VERSION has been passed in (as VERSION=xxx),
+# extract version number from Java code using printversion
+VERSION = $(shell SRC_DIR=$(SRC_DIR) $(SRC_DIR)/scripts/printversion.sh 2> /dev/null)
+
+# File/dir names for distribution
+BIN_DIST_DIR = prism-$(VERSION)-$(BINDISTSUFFIX)
+BIN_DIST_FILE = $(BIN_DIST_DIR).tar.gz
+BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
+
+# Build a (binary) distribution in the release directory
+
+release: JFLAGS += -source 1.8 -target 1.8
+release: all binary release_check_version build_release clean_binary
+
+release_check_version:
+	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi
+
+build_release:
+	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
+		echo Creating Windows installer in "release/$(BIN_DIST_INST)"... && \
+		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR=".." src/nsis_script.nsi && \
+		mkdir -p release && \
+		mv ../"$(BIN_DIST_INST)" release; \
+	else \
+		echo Creating binary distribution in "release/$(BIN_DIST_FILE)"... && \
+		mkdir -p release && \
+		rm -rf "release/$(BIN_DIST_DIR)" && \
+		rm -f "release/$(BIN_DIST_FILE)" && \
+		mkdir -p "release/$(BIN_DIST_DIR)" && \
+		tar cf - bin lib install.sh etc -C .. manual prism-examples CHANGELOG.txt COPYING.txt README.md | tar xf - -C "release/$(BIN_DIST_DIR)" && \
+		(cd release && tar cfz "$(BIN_DIST_FILE)" "$(BIN_DIST_DIR)") && rm -rf "$(BIN_DIST_DIR)"; \
+	fi
+
+# Build Javadoc (and put in javadoc directory)
+
+PRISM_CLASSPATH = "$(CLASSES_DIR)$(CLASSPATHSEP)$(LIB_DIR)/*"
+
+javadoc:
+	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(SRC_DIR)/overview.html -sourcepath $(SRC_DIR) -classpath $(SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
+
+###############
+# Cleaning up #
+###############
+
+# Clean main PRISM build (not CUDD or external libs)
+clean: checks
+	@(for dir in $(MAKE_DIRS); do \
+	  echo Cleaning src/$$dir ...; \
+	  (cd src/$$dir && \
+	  $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
+	  || exit 1; \
+	done; \
+	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
+	rm -f $(LIB_DIR)/*jnilib; \
+	rm -f $(LIB_DIR)/prism.jar; \
+	rm -f $(LIB_DIR)/prism-sources.jar; \
+	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
+
+celan: clean
+
+# Clean PRISM + CUDD and external libs
+clean_all: checks clean_cudd clean_ext clean
+
+clean_cudd:
+	@(cd $(CUDD_DIR) && $(MAKE) distclean)
+
+clean_ext:
+	@(for ext in $(EXT_PACKAGES); do \
+	  echo Cleaning $$ext ...; \
+	  (cd ext/$$ext && \
+	  $(MAKE) -s LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
+	  || exit 1; \
+	done )
+
+# Remove just the prism.jar binary
+clean_binary:
+	@echo "Removing JAR file ($(LIB_DIR)/prism.jar)..."
+	@rm -f $(LIB_DIR)/prism.jar
+
+# Clear individual directories (sometimes useful)
+clean_dd: checks
+	@(cd src/dd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_jdd: checks
+	@(cd src/jdd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_odd: checks
+	@(cd src/odd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_dv: checks
+	@(cd src/dv && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_prism: checks
+	@(cd src/prism && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_mtbdd: checks
+	@(cd src/mtbdd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_sparse: checks
+	@(cd src/sparse && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_hybrid: checks
+	@(cd src/hybrid && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_parser: checks
+	@(cd src/parser && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_userinterface: checks
+	@(cd src/userinterface && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_simulator: checks
+	@(cd src/simulator && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_jltl2ba: checks
+	@(cd src/jltl2ba && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_jltl2dstar: checks
+	@(cd src/jltl2dstar && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_explicit: checks
+	@(cd src/explicit && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_pta: checks
+	@(cd src/pta && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_param: checks
+	@(cd src/param && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+clean_strat: checks
+	@(cd src/strat && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 
 #################################################

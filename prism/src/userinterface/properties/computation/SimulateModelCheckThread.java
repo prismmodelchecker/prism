@@ -121,6 +121,11 @@ public class SimulateModelCheckThread extends GUIComputationThread
 				// in the case of an error which affects all props, store/report it
 				resultError = e;
 				error(e);
+			} catch (StackOverflowError e) {
+				// in the case of an error which affects all props, store/report it
+				// convert to a PrismException for result
+				resultError = new PrismException("Stack overflow");
+				error(e);
 			}
 			//after collecting the results stop all of the clock icons
 			for (int i = 0; i < clkThreads.size(); i++) {
@@ -164,9 +169,13 @@ public class SimulateModelCheckThread extends GUIComputationThread
 					// do simulation
 					result = prism.modelCheckSimulator(pf, pf.getProperty(i), definedPFConstants, initialState, maxPathLength, method);
 					method.reset();
-				} catch (PrismException e) {
+				} catch (Exception e) {
 					result = new Result(e);
-					error(e.getMessage());
+					error(e);
+				} catch (StackOverflowError e) {
+					// store as PrismException in result
+					result = new Result(new PrismException("Stack overflow"));
+					error(e);
 				}
 				ict.interrupt();
 				while (!ict.canContinue) {

@@ -411,6 +411,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 					}
 					// see if the combined reward value is the min/max so far
 					bool pickThis = first || (min&&(d2<d1)) || (!min&&(d2>d1));
+
 					// if it equals the min/max do far for the combined reward value,
 					// but it is better for some individual reward, we choose it.
 					// not sure why
@@ -430,19 +431,28 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 						for (int it = 0; it < lenRew + lenProb; it++)
 							if (it != ignoredWeight)
 								pd1[it] = pd2[it];
-						// if adversary generation is enabled, remember optimal choice
+						// if adversary generation is enabled, store optimal choice
 						if (export_adv_enabled != EXPORT_ADV_NONE) {
-							// for max, only remember strictly better choices
-							// (this resolves problems with end components)
-							if (!min) {
-								if (adv[i] == -1 || (d1>soln[i])) {
+							// if this is the first choice to be picked, always store it
+							if (adv[i] == -1) {
+								adv[i] = j;
+							} else {
+								// otherwise it depends whether we're doing min or max
+								// (but sometimes min is max with negative rewards)
+								bool minAdv = min ? d1>0 : d1<0;
+								// for max, only remember strictly better choices
+								// (this resolves problems with end components)
+								// (note use of absolute values because values may be negative)
+								if (!minAdv) {
+									if (fabs(d1)>fabs(soln[i])) {
+										adv[i] = j;
+									}
+								}
+								// for min, always store the value
+								// (in fact, could do it at the end of value iteration, but we don't)
+								else {
 									adv[i] = j;
 								}
-							}
-							// for min, this is straightforward
-							// (in fact, could do it at the end of value iteration, but we don't)
-							else {
-								adv[i] = j;
 							}
 						}
 					}

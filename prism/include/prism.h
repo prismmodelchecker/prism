@@ -37,7 +37,7 @@
 	#define EXPORT
 #endif
 
-// Fox-Glynn wieghts struct
+// Fox-Glynn weights struct
 typedef struct FoxGlynnWeights
 {
 	long left;

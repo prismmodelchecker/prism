@@ -106,6 +106,23 @@ public interface IntSet extends Iterable<Integer>
 				false);
 	}
 
+	/** Return this set as a String */
+	public default String asString()
+	{
+		// can't overload toString() with a default method in interface
+		StringBuffer sb = new StringBuffer();
+		sb.append("{");
+		boolean first = true;
+		for (OfInt it = iterator(); it.hasNext(); ) {
+			if (!first)
+				sb.append(",");
+			first = false;
+			sb.append(it.nextInt());
+		}
+		sb.append("}");
+		return sb.toString();
+	}
+
 	/**
 	 * Wrapper class for obtaining an IntSet from a BitSet.
 	 * <p>
@@ -157,6 +174,12 @@ public interface IntSet extends Iterable<Integer>
 		public boolean contains(int index)
 		{
 			return bs.get(index);
+		}
+
+		@Override
+		public String toString()
+		{
+			return asString();
 		}
 	};
 
@@ -212,6 +235,13 @@ public interface IntSet extends Iterable<Integer>
 		{
 			return index == singleMember;
 		}
+
+		@Override
+		public String toString()
+		{
+			return "{" + singleMember + "}";
+		}
+
 	}
 
 	/**

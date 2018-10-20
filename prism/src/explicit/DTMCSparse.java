@@ -38,6 +38,7 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.function.Function;
 
 import common.IterableStateSet;
+import common.iterable.IterableInt;
 import common.iterable.MappingIterator;
 import explicit.rewards.MCRewards;
 import prism.PrismException;
@@ -349,9 +350,42 @@ public class DTMCSparse extends DTMCExplicit
 		// Go through matrix elements (by row)
 		for (int state = 0; state < numStates; state++) {
 			for (int i=rows[state], stop=rows[state+1]; i < stop; i++) {
-				final int target = columns[i];
-				final double probability = probabilities[i];
+				int target = columns[i];
+				double probability = probabilities[i];
 				result[target] += probability * vect[state];
+			}
+		}
+	}
+
+	@Override
+	public void vmMultPowerSteadyState(double vect[], double result[], double[] diagsQ, double deltaT, IterableInt states)
+	{
+		// Recall that the generator matrix Q has entries
+		//       Q(s,s) = -sum_{t!=s} prob(s,t)
+		// and   Q(s,t) = prob(s,t)  for s!=t
+		// The values Q(s,s) are passed in via the diagsQ vector, while the
+		// values Q(s,t) correspond to the normal transitions
+
+		// Initialise result for relevant states to vect[s] * (deltaT * diagsQ[s] + 1),
+		// i.e., handle the product with the diagonal entries of (deltaT * Q) + I
+		for (OfInt it = states.iterator(); it.hasNext(); ) {
+			int state = it.nextInt();
+			result[state] = vect[state] * ((deltaT * diagsQ[state]) + 1.0);
+		}
+
+		// For each relevant state...
+		for (OfInt it = states.iterator(); it.hasNext(); ) {
+			int state = it.nextInt();
+
+			// ... handle all Q(state,t) entries of the generator matrix
+			for (int i=rows[state], stop=rows[state+1]; i < stop; i++) {
+				int target = columns[i];
+				double prob = probabilities[i];
+				if (state != target) {
+					// ignore self loop, diagonal entries of the generator matrix handled above
+					// update result vector entry for the *successor* state
+					result[target] += deltaT * prob * vect[state];
+				}
 			}
 		}
 	}

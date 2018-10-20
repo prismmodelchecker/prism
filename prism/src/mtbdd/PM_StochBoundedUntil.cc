@@ -183,7 +183,21 @@ jlong __jlongpointer mu	// probs for multiplying
 	// compute poisson probabilities (fox/glynn)
 	PM_PrintToMainLog(env, "\nUniformisation: q.t = %f x %f = %f\n", unif, time, unif * time);
 	fgw = fox_glynn(unif * time, 1.0e-300, 1.0e+300, term_crit_param_unif);
-	if (fgw.right < 0) { PM_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)"); return 0; }
+	if (fgw.right < 0) {
+		PM_SetErrorMessage("Overflow in Fox-Glynn computation (time bound too big?)");
+
+		if (combine) {
+			// METHOD 1
+			Cudd_RecursiveDeref(ddman, q);
+		}
+		else {
+			// METHOD 2
+			Cudd_RecursiveDeref(ddman, r);
+			Cudd_RecursiveDeref(ddman, d);
+		}
+		Cudd_RecursiveDeref(ddman, diags);
+		return 0;
+	}
 	for (i = fgw.left; i <= fgw.right; i++) {
 		fgw.weights[i-fgw.left] /= fgw.total_weight;
 	}
@@ -331,7 +345,6 @@ jlong __jlongpointer mu	// probs for multiplying
 	}
 	Cudd_RecursiveDeref(ddman, diags);
 	Cudd_RecursiveDeref(ddman, sol);
-
 	if (fgw.weights) delete[] fgw.weights;
 	
 	return ptr_to_jlong(sum);

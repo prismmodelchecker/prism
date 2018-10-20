@@ -30,13 +30,13 @@ R{"a"}=? [ I=1 ]
 R{"a"}=? [ F s=0 ]
 // RESULT: 3.4
 R{"a"}=? [ F s=1 ]
-// RESULT: 11.11429
+// RESULT: 389/35
 R{"a"}=? [ F s=2 ]
-// RESULT: 12.11429
+// RESULT: 424/35
 R{"a"}=? [ F s>2 ]
 
 // RESULT: 0.0
 R{"a"}=? [ S ];
 
 // RESULT: 0.0
-R{"a"}=? [ S ]
+R{"a_state"}=? [ S ]

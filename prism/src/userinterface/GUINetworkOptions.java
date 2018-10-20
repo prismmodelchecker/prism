@@ -29,7 +29,9 @@ package userinterface;
 import userinterface.util.*;
 
 import java.util.*;
-import org.w3c.dom.*;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class GUINetworkOptions extends OptionsPanel
 {

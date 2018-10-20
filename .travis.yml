@@ -6,13 +6,22 @@ dist: trusty
 sudo: required
 language: java
 
-# we test for JDK8 and JDK9
+# we test for JDK 8,9,10,11
 jdk:
   - oraclejdk8
   - oraclejdk9
+  - openjdk10
+  - openjdk11
   
 # compile and run the test suite
-script: cd prism && make && echo 'Compilation successful, running test suite....' && echo && make tests && echo && echo 'Yay'
+# we manually set PRISM_JAVA to the java on the PATH as the python invocation of prism-auto fiddles with the PATH variable...  
+script: >
+  cd prism &&
+  make &&
+  echo 'Compilation successful, running test suite....' && echo &&
+  export PRISM_JAVA=`which java` &&
+  make tests &&
+  echo && echo 'Yay'
 
 
 # notifications

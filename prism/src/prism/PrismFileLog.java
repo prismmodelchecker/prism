@@ -132,13 +132,28 @@ public class PrismFileLog extends PrismLog
 	@Override
 	public void flush()
 	{
+		if (fp == 0) {
+			throw new IllegalStateException("Trying to flush an invalid file handle (already closed?)");
+		}
 		PrismNative.PN_FlushFile(fp);
 	}
 
 	@Override
 	public void close()
 	{
-		if (!stdout) PrismNative.PN_CloseFile(fp);
+		if (fp == 0) {
+			// already closed, ignore (as specified by Closable contract)
+			return;
+		}
+
+		if (stdout) {
+			// we never close stdout
+			return;
+		}
+
+		PrismNative.PN_CloseFile(fp);
+		// set fp to zero to indicate that the file handle is not valid anymore
+		fp = 0;
 	}
 	
 	@Override
@@ -200,6 +215,10 @@ public class PrismFileLog extends PrismLog
 	 */
 	private void printToLog(String s)
 	{
+		if (fp == 0) {
+			throw new IllegalStateException("Trying to write to an invalid file handle (already closed?)");
+		}
+
 		PrismNative.PN_PrintToFile(fp, s);
 	}
 }

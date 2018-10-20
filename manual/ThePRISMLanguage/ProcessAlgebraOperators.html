@@ -1,0 +1,152 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | ThePRISMLanguage / ProcessAlgebraOperators 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
+</p><h1>Process Algebra Operators</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>To make the concept of synchronisation described above more powerful,
+PRISM allows you to define precisely the way in which the set of modules are composed in parallel.
+This is specified using the <code><strong>system</strong> ... <strong>endsystem</strong></code> construct,
+placed at the end of the model description, which should contain a process-algebraic expression.
+This expression should feature each module exactly once, and can use the following (CSP-based) operators:
+</p>
+<div class='vspace'></div><ul><li><code>M1 || M2</code> : alphabetised parallel composition of modules <code>M1</code> and <code>M2</code> (synchronising on only actions appearing in both <code>M1</code> and <code>M2</code>)
+<div class='vspace'></div></li><li><code>M1 ||| M2</code> : asynchronous parallel composition of <code>M1</code> and <code>M2</code> (fully interleaved, no synchronisation)
+<div class='vspace'></div></li><li><code>M1 |[a,b,...]| M2</code> : restricted parallel composition of modules <code>M1</code> and <code>M2</code> (synchronising only on actions from the set {<code>a</code>, <code>b</code>,...})
+<div class='vspace'></div></li><li><code>M / {a,b,...</code>} : hiding of actions {<code>a</code>, <code>b</code>, ...} in module <code>M</code>
+<div class='vspace'></div></li><li><code>M {a&lt;-b,c&lt;-d,...</code>} : renaming of actions <code>a</code> to <code>b</code>, <code>c</code> to <code>d</code>, etc. in module <code>M</code>.
+</li></ul><p class='vspace'>The first two types of parallel composition (<code>||</code> and <code>|||</code>) are associative and can be applied to more than two modules at once.
+When evaluating the expression, the hiding and renaming operators bind more tightly than the three parallel composition operators.
+No other rules of precedence are defined and parentheses should be used to specify the order in which modules are composed.
+</p>
+<p class='vspace'>Some examples of expressions which could be included in the <code><strong>system</strong> ... <strong>endsystem</strong></code> construct are as follows:
+</p>
+<div class='vspace'></div><ul><li><code>(station1 ||| station2 ||| station3) |[serve]| server</code>
+</li><li><code>((P1 |[a]| P2) / {a}) || Q</code>
+</li><li><code>((P1 |[a]| P2) {a&lt;-b}) |[b]| Q</code>
+</li></ul><p class='vspace'>When no parallel composition is specified by the user,
+PRISM implicitly assumes an expression of the form <code>M1 || M2 || ...</code> containing all of the modules in the model.
+For a more formal definition of the process algebra operators described above, check the semantics of the PRISM language, available from the "<a class='urllink' href='http://www.prismmodelchecker.org/doc/'>Documentation</a>" section of the PRISM web site.
+</p>
+<p class='vspace'>PRISM is also able to <a class='wikilink' href='../RunningPRISM/SupportForPEPAModels.html'>import</a> model descriptions written in (a subset of) the stochastic process algebra <a class='urllink' href='http://www.dcs.ed.ac.uk/pepa/'>PEPA</a> [<a class='wikilink' href='../Main/References.html#Hil96'>Hil96</a>].
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>The PRISM Language</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Introduction</a>
+</li><li><a class='wikilink' href='Example1.html'>Example 1</a>
+</li><li><a class='wikilink' href='ModelType.html'>Model Type</a>
+</li><li><a class='wikilink' href='ModulesAndVariables.html'>Modules And Variables</a>
+</li><li><a class='wikilink' href='Commands.html'>Commands</a>
+</li><li><a class='wikilink' href='ParallelComposition.html'>Parallel Composition</a>
+</li><li><a class='wikilink' href='LocalNondeterminism.html'>Local Nondeterminism</a>
+</li><li><a class='wikilink' href='CTMCs.html'>CTMCs</a>
+</li><li><a class='wikilink' href='Example2.html'>Example 2</a>
+</li><li><a class='wikilink' href='Constants.html'>Constants</a>
+</li><li><a class='wikilink' href='Expressions.html'>Expressions</a>
+</li><li><a class='wikilink' href='Synchronisation.html'>Synchronisation</a>
+</li><li><a class='wikilink' href='ModuleRenaming.html'>Module Renaming</a>
+</li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
+</li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
+</li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
+</li><li><a class='wikilink' href='PTAs.html'>PTAs</a>
+</li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>
+</li><li><a class='selflink' href='ProcessAlgebraOperators.html'>Process Algebra Operators</a>
+</li><li><a class='wikilink' href='PRISMModelFiles.html'>PRISM Model Files</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>
