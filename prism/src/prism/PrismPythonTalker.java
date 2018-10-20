@@ -51,33 +51,34 @@ public class PrismPythonTalker
 	public PrismPythonTalker(int port, String workDir, String prismFile){
 		try{
 			PrismLog mainLog;
-
+			
 			//init socket
 			socketPort=port;
 			server = new ServerSocket(socketPort);
 			System.out.println("PRISM server running on port " + socketPort);
-
+			
+			
 			fileName=prismFile;
 			directory=workDir;
-
+			            
 			// Init PRISM
-			mainLog = new PrismDevNullLog(); 
-			prism = new Prism(mainLog);
+			//mainLog = new PrismDevNullLog();
+			mainLog = new PrismFileLog("stdout");
+			prism = new Prism( mainLog);
 			prism.initialise();
-			
-			}
-			catch (PrismException e) {
-				System.out.println("Error: " + e.getMessage());
-			}
-			catch (IOException e) {
-				System.out.println("Error: " + e.getMessage());
+			setExports();
+			prism.setEngine(Prism.EXPLICIT);
+		} catch (PrismException e) {
+			System.out.println("Error: " + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("Error: " + e.getMessage());
 		}
 	}
 
 	public Prism getPrism(){
 		return prism;
 	}
-	
+
 	public ModulesFile getCurrentModel(){
 		return currentModel;
 	}
@@ -85,11 +86,30 @@ public class PrismPythonTalker
 	public ServerSocket getServer(){
 		return server;
 	}
-	
+
 	public int getSocketPort(){
 		return socketPort;
+	} 
+
+	public void setExports(){
+		try {
+			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
+			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME,directory + "/adv.tra");
+			prism.setExportProductStates(true);
+			prism.setExportProductStatesFilename(directory  + "/prod.sta");
+			prism.setExportProductTrans(true);
+			prism.setExportProductTransFilename(directory + "/prod.tra");
+			prism.setExportTarget(true);
+			prism.setExportTargetFilename(directory +  "/prod.lab");
+			prism.getSettings().setExportPropAut(true);
+			prism.getSettings().setExportPropAutFilename(directory + "/prod.aut");
+			prism.setExportProductVector(true);
+			prism.setExportProductVectorFilename(directory + "/guarantees.vect");
+		} catch (PrismException e) {
+			System.out.println("File not found Error: " + e.getMessage());
+		}
 	}
-	
+
 	public boolean loadPrismModelFile(){
 		try{
 			currentModel = prism.parseModelFile(new File(directory+fileName));
@@ -98,17 +118,37 @@ public class PrismPythonTalker
 		} catch (FileNotFoundException e) {
 			System.out.println("Error: " + e.getMessage());
 			return false;
-		} catch (PrismException e) {
-		System.out.println("Error: " + e.getMessage());
-		return false;
+		}
+		catch (PrismException e) {
+			System.out.println("Error: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean callPrismPartial(String ltlString) {
+		try {
+			Result result;
+			PropertiesFile prismSpec;
+			if (loadPrismModelFile()) {
+				prismSpec=prism.parsePropertiesString(currentModel, ltlString);
+				result = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+		catch (PrismException e) {
+			System.out.println("Error: " + e.getMessage());
+			return false;
 		}
 	}
 
 	public Result callPrism(String ltlString, boolean generatePolicy, boolean getStateVector)  {
 		try {
 			PropertiesFile prismSpec;
-			Result result;        
-			prism.setStoreVector(getStateVector);    
+			Result result;
+			prism.setStoreVector(getStateVector);
 			
 			if(generatePolicy){
 				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
@@ -143,12 +183,13 @@ public class PrismPythonTalker
 
 	public static void main(String args[]) throws Exception {
 		String command;
-		List<String> commands=Arrays.asList(new String[] {"check", "plan", "get_vector", "shutdown"});
-		String ack;        
+		List<String> commands=Arrays.asList(new String[] {"check", "plan", "get_vector", "partial_sat_guarantees", "shutdown"});
+		String ack;
 		String toClient;
-		String ltlString;   
+		String ltlString;
 		Socket client;
 		Result result;
+		boolean success;
 		
 		PrismPythonTalker talker=new PrismPythonTalker(Integer.parseInt(args[0]), args[1], args[2]); 
 		client = talker.server.accept();
@@ -177,12 +218,12 @@ public class PrismPythonTalker
 					continue;
 				}
 				if (command.equals("plan")){
-					ltlString=in.readLine();
-					result=talker.callPrism(ltlString,true, false);
-					toClient =  result.getResult().toString();
-					System.out.println("planned");
-					out.println(toClient);
-					continue;
+						ltlString=in.readLine();
+						result=talker.callPrism(ltlString,true, false);
+						toClient =  result.getResult().toString();
+						System.out.println("planned");
+						out.println(toClient);
+						continue;
 				}
 				if (command.equals("get_vector")){
 					ltlString=in.readLine();
@@ -211,6 +252,16 @@ public class PrismPythonTalker
 					out.println("end");
 					continue;
 				}
+				if (command.equals("partial_sat_guarantees")){
+					ltlString=in.readLine();
+					success = talker.callPrismPartial(ltlString);
+					if (success){
+						out.println("success");
+					} else {
+						out.println("failure");
+					}
+					continue;
+				}
 				if (command.equals("shutdown")){
 					run=false;
 					client.close();
@@ -223,5 +274,6 @@ public class PrismPythonTalker
 		System.exit(0);
 	}
 }
+
 
 
