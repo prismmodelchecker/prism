@@ -2057,7 +2057,11 @@ public class NondetModelChecker extends NonProbModelChecker
 					}
 					if (doIntervalIteration) {
 						if (transform != null) {
-							strat = null;  // strategy generation with the quotient not yet supported
+							// strategy generation with the quotient not yet supported
+							if (strat != null) {
+								strat.clear();
+								strat = null;
+							}
 							probsDV = PrismSparse.NondetUntilInterval(transformed.getTrans(),
 							                                          transformed.getTransActions(),
 							                                          transformed.getSynchs(),
@@ -2077,7 +2081,11 @@ public class NondetModelChecker extends NonProbModelChecker
 						}
 					} else {
 						if (transform != null) {
-							strat = null;  // strategy generation with the quotient not yet supported
+							// strategy generation with the quotient not yet supported
+							if (strat != null) {
+								strat.clear();
+								strat = null;
+							}
 							probsDV = PrismSparse.NondetUntil(transformed.getTrans(),
 							                                  transformed.getTransActions(),
 							                                  transformed.getSynchs(),
