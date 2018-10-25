@@ -2048,7 +2048,10 @@ public class NondetModelChecker extends NonProbModelChecker
 				case Prism.SPARSE:
 					IntegerVector strat = null;
 					if (genStrat) {
-						JDDNode ddStrat = JDD.ITE(yes, JDD.Constant(-2), JDD.Constant(-1));
+						// prepare strategy storage for the sparse engine computation
+						JDDNode ddStrat = JDD.ITE(yes.copy(), JDD.Constant(-2), JDD.Constant(-1));
+						// restrict to the reachable state space of the model (required for conversion to integer array)
+						ddStrat = JDD.Times(ddStrat, reach.copy());
 						strat = new IntegerVector(ddStrat, allDDRowVars, odd);
 						JDD.Deref(ddStrat);
 					}
