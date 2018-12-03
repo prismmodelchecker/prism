@@ -75,13 +75,19 @@ public abstract class Expression extends ASTElement
 	 * when evaluated during model checking?
 	 */
 	public abstract boolean returnsSingleValue();
-	
-	// Override version of deepCopy() from superclass ASTElement (to reduce casting).
 
+	// Override version of deepCopy() from superclass (to reduce casting).
 	@Override
 	public Expression deepCopy()
 	{
 		return (Expression) super.deepCopy();
+	}
+
+	// Override version of clone() from superclass (to reduce casting).
+	@Override
+	public Expression clone()
+	{
+		return (Expression) super.clone();
 	}
 
 	// Utility methods:
