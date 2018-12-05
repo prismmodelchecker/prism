@@ -60,6 +60,8 @@ public class ConstructModel extends PrismComponent
 	protected boolean findDeadlocks = true;
 	/** Automatically fix deadlocks? */
 	protected boolean fixDeadlocks = true;
+	/** Sort the reachable states before constructing the model? */
+	protected boolean sortStates = true;
 	/** Build a sparse representation, if possible?
 	 *  (e.g. MDPSparse rather than MDPSimple data structure) */
 	protected boolean buildSparse = true;
@@ -93,6 +95,14 @@ public class ConstructModel extends PrismComponent
 	public void setFixDeadlocks(boolean fixDeadlocks)
 	{
 		this.fixDeadlocks = fixDeadlocks;
+	}
+
+	/**
+	 * Sort the reachable states before constructing the model?
+	 */
+	public void setSortStates(boolean sortStates)
+	{
+		this.sortStates = sortStates;
 	}
 
 	/**
@@ -308,10 +318,9 @@ public class ConstructModel extends PrismComponent
 			modelSimple.findDeadlocks(fixDeadlocks);
 		}
 
-		boolean sort = true;
 		int permut[] = null;
 
-		if (sort) {
+		if (sortStates) {
 			// Sort states and convert set to list
 			mainLog.println("Sorting reachable states list...");
 			permut = states.buildSortingPermutation();
@@ -324,28 +333,28 @@ public class ConstructModel extends PrismComponent
 		states = null;
 		//mainLog.println(statesList);
 
-		// Construct new explicit-state model (with correct state ordering)
+		// Construct new explicit-state model (with correct state ordering, if desired)
 		if (!justReach) {
 			switch (modelType) {
 			case DTMC:
 				if (buildSparse) {
-					model = sort ? new DTMCSparse(dtmc, permut) : new DTMCSparse(dtmc);
+					model = sortStates ? new DTMCSparse(dtmc, permut) : new DTMCSparse(dtmc);
 				} else {
-					model = sort ? new DTMCSimple(dtmc, permut) : (DTMCSimple) dtmc;
+					model = sortStates ? new DTMCSimple(dtmc, permut) : (DTMCSimple) dtmc;
 				}
 				break;
 			case CTMC:
-				model = sort ? new CTMCSimple(ctmc, permut) : (CTMCSimple) ctmc;
+				model = sortStates ? new CTMCSimple(ctmc, permut) : (CTMCSimple) ctmc;
 				break;
 			case MDP:
 				if (buildSparse) {
-					model = sort ? new MDPSparse(mdp, true, permut) : new MDPSparse(mdp);
+					model = sortStates ? new MDPSparse(mdp, true, permut) : new MDPSparse(mdp);
 				} else {
-					model = sort ? new MDPSimple(mdp, permut) : mdp;
+					model = sortStates ? new MDPSimple(mdp, permut) : mdp;
 				}
 				break;
 			case CTMDP:
-				model = sort ? new CTMDPSimple(ctmdp, permut) : mdp;
+				model = sortStates ? new CTMDPSimple(ctmdp, permut) : mdp;
 				break;
 			case STPG:
 			case SMG:
@@ -411,6 +420,7 @@ public class ConstructModel extends PrismComponent
 				undefinedConstants.defineUsingConstSwitch(args[2]);
 			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
 			ConstructModel constructModel = new ConstructModel(prism);
+			constructModel.setSortStates(true);
 			simulator.ModulesFileModelGenerator modelGen = new simulator.ModulesFileModelGenerator(modulesFile, constructModel);
 			Model model = constructModel.constructModel(modelGen);
 			model.exportToPrismExplicitTra(args[1]);
