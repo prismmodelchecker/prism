@@ -2174,9 +2174,16 @@ public class NondetModelChecker extends NonProbModelChecker
 	{
 		DoubleVector rewardsDV;
 		StateValues rewards = null;
+		// Local copy of setting
+		int engine = this.engine;
 
 		// compute rewards
 		mainLog.println("\nComputing rewards...");
+		// switch engine, if necessary
+		if (engine == Prism.HYBRID) {
+			mainLog.println("Switching engine since hybrid engine does yet support this computation...");
+			engine = Prism.SPARSE;
+		}
 		mainLog.println("Engine: " + Prism.getEngineString(engine));
 		try {
 			switch (engine) {
