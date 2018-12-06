@@ -2,6 +2,9 @@
 
 # Script for installation of PRISM on a clean install of Ubuntu
 
+set -e # Abort if one of the commands fail
+set -x # Print commands as they are executed
+
 # Install dependencies: make/gcc/Java
 sudo apt-get update
 sudo apt -y install make gcc g++ default-jdk
