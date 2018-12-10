@@ -74,7 +74,7 @@ public enum ModelType
 		}
 
 		@Override
-		ModelType removeNondeterminism()
+		public ModelType removeNondeterminism()
 		{
 			return CTMC;
 		}
@@ -100,14 +100,14 @@ public enum ModelType
 		}
 
 		@Override
-		ModelType removeNondeterminism()
+		public ModelType removeNondeterminism()
 		{
 			return DTMC;
 		}
 	},
 	MDP("Markov decision process") {
 		@Override
-		ModelType removeNondeterminism()
+		public ModelType removeNondeterminism()
 		{
 			return DTMC;
 		}
@@ -127,7 +127,7 @@ public enum ModelType
 		}
 
 		@Override
-		ModelType removeNondeterminism()
+		public ModelType removeNondeterminism()
 		{
 			return DTMC;
 		}
@@ -140,7 +140,7 @@ public enum ModelType
 		}
 
 		@Override
-		ModelType removeNondeterminism()
+		public ModelType removeNondeterminism()
 		{
 			return DTMC;
 		}
@@ -229,7 +229,7 @@ public enum ModelType
 	 * If there is no nondeterminism (or the removal of nondeterminism is not supported),
 	 * returns the same model type.
 	 */
-	ModelType removeNondeterminism()
+	public ModelType removeNondeterminism()
 	{
 		// default: same model type
 		return this;
