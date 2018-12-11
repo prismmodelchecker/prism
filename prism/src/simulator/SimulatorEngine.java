@@ -1542,6 +1542,14 @@ public class SimulatorEngine extends PrismComponent
 			}
 		}
 
+		String resultNote = "";
+		if (results.length > 0) {
+			ModelType currentModelType = modulesFile.getModelType();
+			if (currentModelType.nondeterministic() && currentModelType.removeNondeterminism() != currentModelType) {
+				resultNote += " (with nondeterminism in " + currentModelType.name() + " being resolved uniformly)";
+			}
+		}
+
 		// Display results to log
 		if (results.length == 1) {
 			mainLog.print("\nSimulation method parameters: ");
@@ -1549,7 +1557,7 @@ public class SimulatorEngine extends PrismComponent
 			mainLog.print("\nSimulation result details: ");
 			mainLog.println((indices[0] == -1) ? "no simulation" : propertySamplers.get(indices[0]).getSimulationMethodResultExplanation());
 			if (!(results[0] instanceof PrismException))
-				mainLog.println("\nResult: " + results[0]);
+				mainLog.println("\nResult: " + results[0] + resultNote);
 		} else {
 			mainLog.println("\nSimulation method parameters:");
 			for (int i = 0; i < results.length; i++) {
@@ -1563,7 +1571,7 @@ public class SimulatorEngine extends PrismComponent
 			}
 			mainLog.println("\nResults:");
 			for (int i = 0; i < results.length; i++)
-				mainLog.println(exprs.get(i) + " : " + results[i]);
+				mainLog.println(exprs.get(i) + " : " + results[i] + resultNote);
 		}
 
 		return results;
