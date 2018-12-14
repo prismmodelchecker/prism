@@ -1325,7 +1325,18 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	public void exportPath(File file) throws PrismException
 	{
-		exportPath(file, false, " ", null);
+		exportPath(file, false);
+	}
+
+	/**
+	 * Export the current path to a file in a simple space separated format.
+	 * (Not applicable for on-the-fly paths)
+	 * @param file File to which the path should be exported to (mainLog if null).
+	 * @param showRewards Export reward information with the path
+	 */
+	public void exportPath(File file, boolean showRewards) throws PrismException
+	{
+		exportPath(file, false, showRewards, " ", null);
 	}
 
 	/**
@@ -1337,6 +1348,20 @@ public class SimulatorEngine extends PrismComponent
 	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
 	 */
 	public void exportPath(File file, boolean timeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
+	{
+		exportPath(file, timeCumul, false, colSep, vars);
+	}
+
+	/**
+	 * Export the current path to a file.
+	 * (Not applicable for on-the-fly paths)
+	 * @param file File to which the path should be exported to (mainLog if null).
+	 * @param timeCumul Show time in cumulative form?
+	 * @param showRewards Export reward information with the path
+	 * @param colSep String used to separate columns in display
+	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
+	 */
+	public void exportPath(File file, boolean timeCumul, boolean showRewards, String colSep, ArrayList<Integer> vars) throws PrismException
 	{
 		PrismLog log = null;
 		try {
@@ -1353,7 +1378,7 @@ public class SimulatorEngine extends PrismComponent
 				log = mainLog;
 				log.println();
 			}
-			((PathFull) path).exportToLog(log, timeCumul, colSep, vars);
+			((PathFull) path).exportToLog(log, timeCumul, showRewards, colSep, vars);
 			if (file != null)
 				log.close();
 		} finally {
