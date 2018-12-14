@@ -761,10 +761,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_exportPath()
 	{
 		try {
+			boolean exportRewards = false;
+			if (parsedModel != null && parsedModel.getNumRewardStructs() > 0) {
+				exportRewards = (question("Export the path with or without reward information?", new String[]{"With rewards", "Without rewards"}) == 0);
+			}
+
 			if (showSaveFileDialog(textFilter) != JFileChooser.APPROVE_OPTION)
 				return;
+
 			setComputing(true);
-			engine.exportPath(getChooserFile());
+			engine.exportPath(getChooserFile(), exportRewards);
 		} catch (PrismException e) {
 			error(e.getMessage());
 		} finally {
