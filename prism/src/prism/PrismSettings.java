@@ -79,6 +79,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_PROB1							= "prism.prob1";
 	public static final	String PRISM_PRE_REL					= "prism.preRel";
 	public static final	String PRISM_FIX_DEADLOCKS					= "prism.fixDeadlocks";
+	public static final	String PRISM_SORT_STATES					= "prism.sortStates";
 	public static final	String PRISM_DO_PROB_CHECKS					= "prism.doProbChecks";
 	public static final	String PRISM_SUM_ROUND_OFF					= "prism.sumRoundOff";
 	public static final	String PRISM_COMPACT						= "prism.compact";
@@ -278,6 +279,8 @@ public class PrismSettings implements Observer
 																			"Constrain to fair adversaries when model checking MDPs." },
 			{ BOOLEAN_TYPE,		PRISM_FIX_DEADLOCKS,					"Automatically fix deadlocks",			"4.0.3",		new Boolean(true),															"",																							
 																			"Automatically fix deadlocks, where necessary, when constructing probabilistic models." },
+			{ BOOLEAN_TYPE,		PRISM_SORT_STATES,						"Sort reachable states",				"4.4",			new Boolean(true),															"",
+																			"Sort the list of reachable states when constructing probabilistic models." },
 			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			new Boolean(true),															"",																							
 																			"Perform sanity checks on model probabilities/rates when constructing probabilistic models." },
 			{ DOUBLE_TYPE,		PRISM_SUM_ROUND_OFF,					"Probability sum threshold",					"2.1",			new Double(1.0E-5),													"0.0,",
