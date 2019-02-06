@@ -18,6 +18,7 @@ Where appropriate, comments/instructions are included in the files themselves.
      automatically completes options for PRISM when run in Bash.
    - prism-auto - automates PRISM execution for testing/benchmarking
    - prism-test - automates running PRISM in test mode
+   - prism-install-* - install scripts for building PRISM on clean OS installs
 
  * scripts/hoa/ - Scripts for attaching external LTL-to-automaton translators
    to PRISM via the HOA (Hanoi Omega Automata) format. See:

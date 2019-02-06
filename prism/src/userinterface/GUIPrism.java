@@ -226,7 +226,6 @@ public class GUIPrism extends JFrame
 		}
 
 		// Create new file chooser which starts in current directory
-		choose = new JFileChooser();
 		File currentDir = new File(".");
 		// If current directory is the bin directory, go up one level (mainly for Windows version)
 		try {
@@ -236,7 +235,8 @@ public class GUIPrism extends JFrame
 		} catch (IOException e) {
 			currentDir = new File(".");
 		}
-		choose.setCurrentDirectory(currentDir);
+		// create the chooser
+		choose = new JFileChooser(currentDir);
 
 		logPlug = null;
 		eventHandle = new GUIEventHandler(this);

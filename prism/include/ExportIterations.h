@@ -58,12 +58,12 @@ public:
 		fprintf(fp, "<!-- For visualising the individual steps of a value iteration computation -->\n");
 		fprintf(fp, "<!-- Loads supporting Javascript and CSS from www.prismmodelchecker.org -->\n");
 		fprintf(fp, "<title>%s</title>\n", title);
-		fprintf(fp, "<link rel='stylesheet' href='http://www.prismmodelchecker.org/js/res/iteration-vis-v1.css'>\n");
-		fprintf(fp, "<script src=\"http://www.prismmodelchecker.org/js/res/d3.js-v4/d3.min.js\"></script>\n");
+		fprintf(fp, "<link rel='stylesheet' href='https://www.prismmodelchecker.org/js/res/iteration-vis-v1.css'>\n");
+		fprintf(fp, "<script src=\"https://www.prismmodelchecker.org/js/res/d3.js-v4/d3.min.js\"></script>\n");
 		fprintf(fp, "<body onload='init();'>\n");
 		fprintf(fp, "<h1>%s</h1>\n", title);
 		fprintf(fp, "<svg></svg>\n");
-		fprintf(fp, "<script src=\"http://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>\n");
+		fprintf(fp, "<script src=\"https://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>\n");
 	}
 
 	/**

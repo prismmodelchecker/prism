@@ -105,13 +105,18 @@ jlong __jlongpointer m	// 'maybe' states
 	sol = NULL;
 	switch (lin_eq_method) {
 		case LIN_EQ_METHOD_POWER:
-			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false)); break;
+			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false));
+			break;
 		case LIN_EQ_METHOD_JACOBI:
-			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, 1.0)); break;
+			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, 1.0));
+			break;
 		case LIN_EQ_METHOD_JOR:
-			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, lin_eq_method_param)); break;
+			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(state_rewards), false, lin_eq_method_param));
+			break;
 		default:
-			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine"); return 0;
+			// set error message and return NULL pointer after cleanup, below
+			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
+			break;
 	}
 	
 	// set reward for infinity states to infinity
