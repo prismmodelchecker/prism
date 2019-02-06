@@ -120,13 +120,18 @@ jint flags
 	sol = NULL;
 	switch (lin_eq_method) {
 		case LIN_EQ_METHOD_POWER:
-			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1PowerInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(lower), ptr_to_jlong(upper), false, flags)); break;
+			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1PowerInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(lower), ptr_to_jlong(upper), false, flags));
+			break;
 		case LIN_EQ_METHOD_JACOBI:
-			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JORInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(lower), ptr_to_jlong(upper), false, 1.0, flags)); break;
+			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JORInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(lower), ptr_to_jlong(upper), false, 1.0, flags));
+			break;
 		case LIN_EQ_METHOD_JOR:
-			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JORInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(lower), ptr_to_jlong(upper), false, lin_eq_method_param, flags)); break;
+			sol = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JORInterval(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(state_rewards), ptr_to_jlong(lower), ptr_to_jlong(upper), false, lin_eq_method_param, flags));
+			break;
 		default:
-			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine"); return 0;
+			// set error message and return NULL pointer after cleanup, below
+			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
+			break;
 	}
 	
 	// set reward for infinity states to infinity

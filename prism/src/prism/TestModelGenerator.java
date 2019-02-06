@@ -196,6 +196,7 @@ public class TestModelGenerator implements ModelGenerator
 				// Direct usage of model constructor/checker 
 				TestModelGenerator modelGen = new TestModelGenerator(10);
 				ConstructModel constructModel = new ConstructModel(prism);
+				constructModel.setSortStates(true);
 				explicit.Model model = constructModel.constructModel(modelGen);
 				model.exportToDotFile(new PrismFileLog("test.dot"), null, true);
 				DTMCModelChecker mc = new DTMCModelChecker(prism);

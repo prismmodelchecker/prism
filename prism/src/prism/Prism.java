@@ -2936,7 +2936,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 		}
 		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
-			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL mocel checking.");
+			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL model checking.");
 			engineSwitch = true;
 			lastEngine = getEngine();
 			setEngine(Prism.EXPLICIT);
@@ -2951,6 +2951,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					throw new PrismException("Cannot generate strategies with the current engine "
 							+ "because some state of the model do not have unique action labels for each choice. "
 							+ "Either switch to the explicit engine or add more action labels to the model");
+			}
+
+			if (!getExplicit() && !engineSwitch) {
+				// check if we need to switch to MTBDD engine
+				long n = currentModel.getNumStates();
+				if (n == -1 || n > Integer.MAX_VALUE) {
+					mainLog.printWarning("Switching to MTBDD engine, as number of states is too large for " + engineStrings[getEngine()] + " engine.");
+					engineSwitch = true;
+					lastEngine = getEngine();
+					setEngine(Prism.MTBDD);
+				}
 			}
 
 			// Create new model checker object and do model checking

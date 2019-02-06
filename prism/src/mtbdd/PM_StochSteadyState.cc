@@ -101,13 +101,18 @@ jint num_cvars
 	soln = NULL;
 	switch (lin_eq_method) {
 		case LIN_EQ_METHOD_POWER:
-			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true)); break;
+			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1Power(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true));
+			break;
 		case LIN_EQ_METHOD_JACOBI:
-			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true, 1.0)); break;
+			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true, 1.0));
+			break;
 		case LIN_EQ_METHOD_JOR:
-			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true, lin_eq_method_param)); break;
+			soln = jlong_to_DdNode(Java_mtbdd_PrismMTBDD_PM_1JOR(env, cls, ptr_to_jlong(odd), ptr_to_jlong(rvars), num_rvars, ptr_to_jlong(cvars), num_cvars, ptr_to_jlong(a), ptr_to_jlong(b), ptr_to_jlong(init), true, lin_eq_method_param));
+			break;
 		default:
-			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine"); return 0;
+			// set error message and return NULL pointer after cleanup, below
+			PM_SetErrorMessage("Gauss-Seidel and its variants are currently not supported by the MTBDD engine");
+			break;
 	}
 	
 	// normalise

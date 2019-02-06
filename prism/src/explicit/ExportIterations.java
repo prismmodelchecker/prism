@@ -66,12 +66,12 @@ public class ExportIterations {
 		log.println("<!-- For visualising the individual steps of a value iteration computation -->");
 		log.println("<!-- Loads supporting Javascript and CSS from www.prismmodelchecker.org -->");
 		log.println("<title>" + title + "</title>");
-		log.println("<link rel='stylesheet' href='http://www.prismmodelchecker.org/js/res/iteration-vis-v1.css'>");
-		log.println("<script src=\"http://www.prismmodelchecker.org/js/res/d3.js-v4/d3.min.js\"></script>");
+		log.println("<link rel='stylesheet' href='https://www.prismmodelchecker.org/js/res/iteration-vis-v1.css'>");
+		log.println("<script src=\"https://www.prismmodelchecker.org/js/res/d3.js-v4/d3.min.js\"></script>");
 		log.println("<body onload='init();'>");
 		log.println("<h1>" + title + "</h1>");
 		log.println("<svg></svg>");
-		log.println("<script src=\"http://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>");
+		log.println("<script src=\"https://www.prismmodelchecker.org/js/res/iteration-vis-v1.js\"></script>");
 		log.flush();
 	}
 

@@ -144,7 +144,7 @@ public class ExpressionUnaryOp extends Expression
 		case NOT:
 			return BigRational.from(!operand.evaluateExact(ec).toBoolean());
 		case MINUS:
-			return operand.evaluateExact().negate();
+			return operand.evaluateExact(ec).negate();
 		case PARENTH:
 			return operand.evaluateExact(ec);
 		}
