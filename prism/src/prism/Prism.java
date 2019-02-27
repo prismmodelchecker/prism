@@ -2953,7 +2953,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							+ "Either switch to the explicit engine or add more action labels to the model");
 			}
 
-			if (!getExplicit() && !engineSwitch) {
+			if (!getExplicit() && !engineSwitch && getEngine() != MTBDD) {
 				// check if we need to switch to MTBDD engine
 				long n = currentModel.getNumStates();
 				if (n == -1 || n > Integer.MAX_VALUE) {
