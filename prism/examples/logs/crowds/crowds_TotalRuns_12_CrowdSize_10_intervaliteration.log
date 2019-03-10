@@ -1,0 +1,209 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 22:33:35 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/crowds/crowds.pm ../models/crowds/positive.pctl -const 'TotalRuns=12,CrowdSize=10' -s -ii -epsilon 1e-10 -nocompact
+
+Parsing model file "../models/crowds/crowds.pm"...
+
+Parsing properties file "../models/crowds/positive.pctl"...
+
+1 property:
+(1) P=? [ F observe0>1 ]
+
+Type:        DTMC
+Modules:     crowds 
+Variables:   launch new runCount start run lastSeen good bad recordLast badObserve deliver done observe0 observe1 observe2 observe3 observe4 observe5 observe6 observe7 observe8 observe9 observe10 observe11 observe12 observe13 observe14 observe15 observe16 observe17 observe18 observe19 
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F observe0>1 ]
+Model constants: TotalRuns=12,CrowdSize=10
+
+Building model...
+Model constants: TotalRuns=12,CrowdSize=10
+
+Warning: Guard for command 6 of module "crowds" is never satisfied.
+
+Warning: Guard for command 7 of module "crowds" is never satisfied.
+
+Warning: Guard for command 8 of module "crowds" is never satisfied.
+
+Warning: Guard for command 10 of module "crowds" is never satisfied.
+
+Warning: Guard for command 11 of module "crowds" is never satisfied.
+
+Warning: Guard for command 2 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 3 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 4 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 5 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 9 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 12 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 13 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 14 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 15 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 16 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 17 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 18 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 19 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 20 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 21 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 22 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 23 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 24 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 25 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 26 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 27 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 28 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 29 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 30 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 31 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 32 of module "crowds" overlaps with previous commands.
+
+Warning: Guard for command 33 of module "crowds" overlaps with previous commands.
+
+Computing reachable states...
+
+Reachability (BFS): 110 iterations in 0.58 seconds (average 0.005273, setup 0.00)
+
+Time for model construction: 0.771 seconds.
+
+Warning: Deadlocks detected and fixed in 646646 states
+
+Type:        DTMC
+States:      54964911 (1 initial)
+Transitions: 132562431
+
+Transition matrix: 35332 nodes (7 terminal), 132562431 minterms, vars: 99r/99c
+
+Prob0: 14 iterations in 0.10 seconds (average 0.006857, setup 0.00)
+
+Prob1: 79 iterations in 0.32 seconds (average 0.004101, setup 0.00)
+
+yes = 13663546, no = 21119202, maybe = 20182163
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=54964911, nnz=60828483] [748.5 MB]
+Creating vector for diagonals... [419.3 MB]
+Creating vector for RHS... [419.3 MB]
+Allocating iteration vectors... [4 x 419.3 MB]
+TOTAL: [3.2 GB]
+
+Starting iterations...
+Iteration 7: max relative diff=1.000000, 5.72 sec so far
+Iteration 14: max relative diff=0.997151, 11.51 sec so far
+Iteration 21: max relative diff=0.991287, 17.30 sec so far
+Iteration 28: max relative diff=0.983362, 23.09 sec so far
+Iteration 35: max relative diff=0.973053, 28.88 sec so far
+Iteration 42: max relative diff=0.961164, 34.67 sec so far
+Iteration 49: max relative diff=0.948117, 40.47 sec so far
+Iteration 56: max relative diff=0.933784, 46.26 sec so far
+Iteration 63: max relative diff=0.918200, 52.04 sec so far
+Iteration 70: max relative diff=0.901653, 57.83 sec so far
+Iteration 77: max relative diff=0.884360, 63.63 sec so far
+Iteration 84: max relative diff=0.866399, 69.41 sec so far
+Iteration 91: max relative diff=0.847837, 75.20 sec so far
+Iteration 98: max relative diff=0.828724, 81.00 sec so far
+Iteration 105: max relative diff=0.808941, 86.79 sec so far
+Iteration 112: max relative diff=0.788125, 92.58 sec so far
+Iteration 119: max relative diff=0.765639, 98.38 sec so far
+Iteration 126: max relative diff=0.740656, 104.16 sec so far
+Iteration 133: max relative diff=0.712371, 109.95 sec so far
+Iteration 140: max relative diff=0.679837, 115.74 sec so far
+Iteration 147: max relative diff=0.642354, 121.54 sec so far
+Iteration 154: max relative diff=0.599649, 127.32 sec so far
+Iteration 161: max relative diff=0.551406, 133.11 sec so far
+Iteration 168: max relative diff=0.498148, 138.90 sec so far
+Iteration 175: max relative diff=0.441143, 144.69 sec so far
+Iteration 182: max relative diff=0.381661, 150.48 sec so far
+Iteration 189: max relative diff=0.322890, 156.28 sec so far
+Iteration 196: max relative diff=0.267517, 162.07 sec so far
+Iteration 203: max relative diff=0.215715, 167.86 sec so far
+Iteration 210: max relative diff=0.169405, 173.66 sec so far
+Iteration 217: max relative diff=0.129808, 179.44 sec so far
+Iteration 224: max relative diff=0.097009, 185.23 sec so far
+Iteration 231: max relative diff=0.070905, 191.02 sec so far
+Iteration 238: max relative diff=0.050845, 196.82 sec so far
+Iteration 245: max relative diff=0.035762, 202.61 sec so far
+Iteration 252: max relative diff=0.024749, 208.40 sec so far
+Iteration 259: max relative diff=0.016898, 214.18 sec so far
+Iteration 266: max relative diff=0.011372, 219.96 sec so far
+Iteration 273: max relative diff=0.007564, 225.74 sec so far
+Iteration 280: max relative diff=0.004982, 231.53 sec so far
+Iteration 287: max relative diff=0.003245, 237.33 sec so far
+Iteration 294: max relative diff=0.002094, 243.12 sec so far
+Iteration 301: max relative diff=0.001341, 248.92 sec so far
+Iteration 308: max relative diff=0.000851, 254.71 sec so far
+Iteration 315: max relative diff=0.000536, 260.49 sec so far
+Iteration 322: max relative diff=0.000336, 266.28 sec so far
+Iteration 329: max relative diff=0.000208, 272.06 sec so far
+Iteration 336: max relative diff=0.000129, 277.85 sec so far
+Iteration 343: max relative diff=0.000079, 283.65 sec so far
+Iteration 350: max relative diff=0.000048, 289.45 sec so far
+Iteration 356: max relative diff=0.000031, 294.50 sec so far
+Iteration 362: max relative diff=0.000020, 299.60 sec so far
+Iteration 368: max relative diff=0.000013, 304.83 sec so far
+Iteration 375: max relative diff=0.000008, 310.64 sec so far
+Iteration 381: max relative diff=0.000005, 315.65 sec so far
+Iteration 388: max relative diff=0.000003, 321.47 sec so far
+Iteration 395: max relative diff=0.000002, 327.27 sec so far
+Iteration 402: max relative diff=0.000001, 333.07 sec so far
+Iteration 409: max relative diff=0.000001, 338.86 sec so far
+Iteration 416: max relative diff=0.000000, 344.65 sec so far
+Iteration 423: max relative diff=0.000000, 350.43 sec so far
+Iteration 430: max relative diff=0.000000, 356.23 sec so far
+Iteration 437: max relative diff=0.000000, 362.03 sec so far
+Iteration 444: max relative diff=0.000000, 367.83 sec so far
+Iteration 451: max relative diff=0.000000, 373.62 sec so far
+Iteration 458: max relative diff=0.000000, 379.41 sec so far
+Iteration 465: max relative diff=0.000000, 385.20 sec so far
+Iteration 472: max relative diff=0.000000, 391.00 sec so far
+Iteration 479: max relative diff=0.000000, 396.79 sec so far
+Iteration 486: max relative diff=0.000000, 402.58 sec so far
+Iteration 493: max relative diff=0.000000, 408.38 sec so far
+Iteration 500: max relative diff=0.000000, 414.17 sec so far
+Iteration 507: max relative diff=0.000000, 419.96 sec so far
+Iteration 514: max relative diff=0.000000, 425.76 sec so far
+Max relative diff between upper and lower bound on convergence: 9.58846E-11
+Jacobi (interval iteration): 518 iterations in 695.32 seconds (average 0.828301, setup 266.26)
+
+Value in the initial state: 0.4103478733115655
+
+Time for model checking: 696.009 seconds.
+
+Result: 0.4103478733115655 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 33 warnings during computation.
+

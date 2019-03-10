@@ -1,0 +1,110 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 20:30:17 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/brp/brp.pm ../models/brp/brp.pctl -s -prop 3 -maxiters 50000000 -nocompact -gs -const 'N=8192,MAX=4' -epsilon 1e-8
+
+Parsing model file "../models/brp/brp.pm"...
+
+Parsing properties file "../models/brp/brp.pctl"...
+
+7 properties:
+(1) P=? [ true U srep=1&rrep=3&recv ]
+(2) P=? [ true U srep=3&!(rrep=3)&recv ]
+(3) P=? [ true U s=5 ]
+(4) P=? [ true U s=5&srep=2 ]
+(5) P=? [ true U s=5&srep=1&i>8 ]
+(6) P=? [ true U !(srep=0)&!recv ]
+(7) R=? [ F "deadlock" ]
+
+Type:        DTMC
+Modules:     sender receiver checker channelK channelL 
+Variables:   s srep nrtr i bs s_ab fs ls r rrep fr lr br r_ab recv T k l 
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ true U s=5 ]
+Model constants: N=8192,MAX=4
+
+Building model...
+Model constants: N=8192,MAX=4
+
+Computing reachable states...
+
+Reachability (BFS): 49165 iterations in 23.63 seconds (average 0.000481, setup 0.00)
+
+Time for model construction: 63.131 seconds.
+
+Warning: Deadlocks detected and fixed in 16389 states
+
+Type:        DTMC
+States:      557063 (1 initial)
+Transitions: 737283
+
+Transition matrix: 3047 nodes (6 terminal), 737283 minterms, vars: 42r/42c
+
+Prob0: 15 iterations in 0.01 seconds (average 0.000800, setup 0.00)
+
+Prob1: 49153 iterations in 20.37 seconds (average 0.000414, setup 0.00)
+
+yes = 57344, no = 32783, maybe = 466936
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=557063, nnz=647156] [7.9 MB]
+Creating vector for diagonals... [4.3 MB]
+Creating vector for RHS... [4.3 MB]
+Allocating iteration vector... [4.3 MB]
+TOTAL: [20.7 MB]
+
+Starting iterations...
+Iteration 1013: max relative diff=0.000996, 5.01 sec so far
+Iteration 2031: max relative diff=0.000495, 10.01 sec so far
+Iteration 3048: max relative diff=0.000329, 15.02 sec so far
+Iteration 4059: max relative diff=0.000247, 20.02 sec so far
+Iteration 5075: max relative diff=0.000197, 25.02 sec so far
+Iteration 6096: max relative diff=0.000164, 30.03 sec so far
+Iteration 7121: max relative diff=0.000141, 35.04 sec so far
+Iteration 8148: max relative diff=0.000123, 40.04 sec so far
+Iteration 9175: max relative diff=0.000109, 45.05 sec so far
+Iteration 10203: max relative diff=0.000098, 50.05 sec so far
+Iteration 11235: max relative diff=0.000089, 55.06 sec so far
+Iteration 12268: max relative diff=0.000082, 60.06 sec so far
+Iteration 13301: max relative diff=0.000075, 65.06 sec so far
+Iteration 14339: max relative diff=0.000070, 70.07 sec so far
+Iteration 15379: max relative diff=0.000065, 75.08 sec so far
+Iteration 16419: max relative diff=0.000061, 80.08 sec so far
+Iteration 17464: max relative diff=0.000057, 85.09 sec so far
+Iteration 18511: max relative diff=0.000054, 90.09 sec so far
+Iteration 19557: max relative diff=0.000051, 95.10 sec so far
+Iteration 20606: max relative diff=0.000049, 100.10 sec so far
+Iteration 21655: max relative diff=0.000046, 105.10 sec so far
+Iteration 22708: max relative diff=0.000044, 110.11 sec so far
+Iteration 23761: max relative diff=0.000042, 115.11 sec so far
+Iteration 24817: max relative diff=0.000040, 120.12 sec so far
+Iteration 25877: max relative diff=0.000039, 125.12 sec so far
+Iteration 26940: max relative diff=0.000037, 130.12 sec so far
+Iteration 28005: max relative diff=0.000036, 135.13 sec so far
+Iteration 29071: max relative diff=0.000034, 140.13 sec so far
+Iteration 30139: max relative diff=0.000033, 145.14 sec so far
+Iteration 31209: max relative diff=0.000032, 150.14 sec so far
+Iteration 32281: max relative diff=0.000031, 155.14 sec so far
+
+Gauss-Seidel: 33192 iterations in 159.39 seconds (average 0.004802, setup 0.65)
+
+Number of state Updates: -1681M 
+
+Value in the initial state: 1.9249942685268723E-4
+
+Time for model checking: 180.565 seconds.
+
+Result: 1.9249942685268723E-4 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

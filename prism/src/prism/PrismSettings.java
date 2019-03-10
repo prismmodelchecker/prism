@@ -241,7 +241,7 @@ public class PrismSettings implements Observer
 			{ CHOICE_TYPE,		PRISM_TRANSIENT_METHOD,					"Transient probability computation method",	"3.3",		"Uniformisation",															"Uniformisation,Fast adaptive uniformisation",																
 																			"Which method to use for computing transient probabilities in CTMCs." },
 			// NUMERICAL SOLUTION OPTIONS:
-			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"Linear equations method",				"2.1",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",
+			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"Linear equations method",				"2.1",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR,Improved Gauss-Seidel",
 																			"Which iterative method to use when solving linear equation systems." },
 			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"Over-relaxation parameter",			"2.1",			new Double(0.9),															"",																							
 																			"Over-relaxation parameter for iterative numerical methods such as JOR/SOR." },
@@ -249,11 +249,11 @@ public class PrismSettings implements Observer
 																			"Use topological value iteration in iterative numerical methods."},
 			{ BOOLEAN_TYPE,		PRISM_PMAX_QUOTIENT,				"For Pmax computations, compute in the MEC quotient",				"4.3.1",		false,																		"",
 																				"For Pmax computations, compute in the MEC quotient."},
-			{ BOOLEAN_TYPE,		PRISM_INTERVAL_ITER,				"Use interval iteration",				"4.3.1",		false,																		"",
+			{ BOOLEAN_TYPE,		PRISM_INTERVAL_ITER,				"Use interval iterations",				"4.3.1",		false,																		"",
 																				"Use interval iteration (from above and below) in iterative numerical methods."},
 			{ STRING_TYPE,		PRISM_INTERVAL_ITER_OPTIONS,				"Interval iteration options",				"4.3.1",		"",																		"",
 																	"Interval iteration options, a comma-separated list of the following:\n" + OptionsIntervalIteration.getOptionsDescription() },
-			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
+			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming,Improved Modified policy iteration,Improved Bounded",
 																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_MDP_MULTI_SOLN_METHOD,			"MDP multi-objective solution method",				"4.0.3",			"Value iteration",											"Value iteration,Gauss-Seidel,Linear programming",
 																			"Which method to use when solving multi-objective queries on Markov decision processes." },
@@ -980,6 +980,8 @@ public class PrismSettings implements Observer
 			set(PRISM_LIN_EQ_METHOD, "Backwards Pseudo-Gauss-Seidel");
 		} else if (sw.equals("jor")) {
 			set(PRISM_LIN_EQ_METHOD, "JOR");
+		} else if (sw.equals("improvedgs")) {
+			set(PRISM_LIN_EQ_METHOD, "Improved Gauss-Seidel");
 		} else if (sw.equals("sor")) {
 			set(PRISM_LIN_EQ_METHOD, "SOR");
 		} else if (sw.equals("bsor")) {
@@ -995,6 +997,10 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
 		} else if (sw.equals("modpoliter")) {
 			set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration");
+		} else if (sw.equals("improvedmodpoliter")) {
+			set(PRISM_MDP_SOLN_METHOD, "Improved Modified policy iteration");
+		} else if (sw.equals("improvedbounded")) {
+			set(PRISM_MDP_SOLN_METHOD, "Improved Bounded");
 		} else if (sw.equals("linprog") || sw.equals("lp")) {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");

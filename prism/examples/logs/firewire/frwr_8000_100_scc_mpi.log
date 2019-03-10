@@ -1,0 +1,68 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Mon Mar 12 17:10:42 GMT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=2.0g
+Command line: prism ../models/firewire/abst/deadline.nm ../models/firewire/abst/deadline.pctl -s -const 'delay=100,deadline=8000,fast=.1' -javamaxmem 2350m -modpoliter -topological
+
+Parsing model file "../models/firewire/abst/deadline.nm"...
+
+Parsing properties file "../models/firewire/abst/deadline.pctl"...
+
+1 property:
+(1) Pmin=? [ true U (s=10) ]
+
+Type:        MDP
+Modules:     abstract_firewire 
+Variables:   y x s 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ true U (s=10) ]
+Model constants: deadline=8000,delay=100,fast=0.1
+
+Building model...
+Model constants: deadline=8000,delay=100,fast=0.1
+
+Computing reachable states...
+
+Reachability (BFS): 8094 iterations in 3.50 seconds (average 0.000432, setup 0.00)
+
+Time for model construction: 291.073 seconds.
+
+Type:        MDP
+States:      8661330 (1 initial)
+Transitions: 21551683
+Choices:     16778221
+
+Transition matrix: 8635 nodes (4 terminal), 21551683 minterms, vars: 25r/25c/2nd
+
+Prob0E: 440 iterations in 1.52 seconds (average 0.003455, setup 0.00)
+
+Prob1A: 7656 iterations in 4.62 seconds (average 0.000604, setup 0.00)
+
+yes = 2640226, no = 224239, maybe = 5796865
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=8661330, nc=12011918, nnz=16653272, k=3] [210.3 MB]
+Creating vector for yes... [66.1 MB]
+Allocating iteration vectors... [2 x 66.1 MB]
+TOTAL: [408.5 MB]
+
+Starting iterations...
+
+Iterative method: 11593730 iterations in 1.43 seconds (average 0.000000, setup 2.66)
+
+
+Number of state Updates: 11M 
+
+Value in the initial state: 0.9970042213744498
+
+Time for model checking: 10.342 seconds.
+
+Result: 0.9970042213744498 (value in the initial state)
+

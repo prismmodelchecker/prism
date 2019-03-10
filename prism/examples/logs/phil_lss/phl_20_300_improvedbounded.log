@@ -1,0 +1,83 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 13:24:07 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/phil_lss/phil_lss3.nm ../models/phil_lss/phil_lss3.pctl -prop 2 -const 'K=20,L=300' -s -improvedbounded
+
+Parsing model file "../models/phil_lss/phil_lss3.nm"...
+
+Parsing properties file "../models/phil_lss/phil_lss3.pctl"...
+
+3 properties:
+(1) filter(forall, "trying"=>P>=1 [ true U "entered" ])
+(2) Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+(3) Rmax=? [ F "entered" {"trying"}{max} ]
+
+Type:        MDP
+Modules:     counter phil1 phil2 phil3 
+Variables:   c1 c2 c3 p1 p2 p3 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+Model constants: K=20
+Property constants: L=300
+
+Building model...
+Model constants: K=20
+
+Computing reachable states...
+
+Reachability (BFS): 42 iterations in 1.61 seconds (average 0.038286, setup 0.00)
+
+Time for model construction: 1.805 seconds.
+
+Type:        MDP
+States:      870494 (1 initial)
+Transitions: 3093114
+Choices:     2756310
+
+Transition matrix: 37400 nodes (3 terminal), 3093114 minterms, vars: 27r/27c/4nd
+
+Prob0E: 87 iterations in 2.75 seconds (average 0.031586, setup 0.00)
+
+yes = 556704, no = 8, maybe = 313782
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=870494, nc=969558, nnz=1109352, k=5] [14.5 MB]
+Creating vector for yes... [6.6 MB]
+Allocating iteration vectors... [2 x 6.6 MB]
+TOTAL: [34.4 MB]
+
+Starting iterations...
+	Top = 313782 
+
+
+Iterative method: 300 iterations in 1.40 seconds (average 0.004680, setup 0.38)
+
+States satisfying filter "trying": 858702
+
+Minimum value over states satisfying filter: 0.9844898553419625
+
+There are 12 states with (approximately) this value.
+The first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.
+220:(0,0,1,0,13,6)
+385:(0,0,1,13,0,7)
+473:(0,0,1,13,13,6)
+474:(0,0,1,13,13,7)
+8255:(0,1,0,0,7,13)
+8501:(0,1,0,13,6,0)
+8502:(0,1,0,13,6,13)
+8509:(0,1,0,13,7,13)
+298522:(1,0,0,6,0,13)
+298529:(1,0,0,6,13,13)
+
+Time for model checking: 4.684 seconds.
+
+Result: 0.9844898553419625 (minimum value over states satisfying filter)
+

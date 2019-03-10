@@ -1,0 +1,70 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Wed Mar 28 15:20:27 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/zeroconf/zeroconf.nm ../models/zeroconf/zeroconf.pctl -s -const 'N=20,K=16,reset=false,err=.1' -prop 2 -topological -improvedmodpoliter -epsilon 1e-8
+
+Parsing model file "../models/zeroconf/zeroconf.nm"...
+
+Parsing properties file "../models/zeroconf/zeroconf.pctl"...
+
+4 properties:
+(1) Pmin=? [ true U (l=4&ip=1) ]
+(2) Pmax=? [ true U (l=4&ip=1) ]
+(3) Rmin=? [ F l=4 ]
+(4) Rmax=? [ F l=4 ]
+
+Type:        MDP
+Modules:     environment host0 
+Variables:   b_ip7 b_ip6 b_ip5 b_ip4 b_ip3 b_ip2 b_ip1 b_ip0 n n0 n1 b z ip_mess x y coll probes mess defend ip l 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ true U (l=4&ip=1) ]
+Model constants: reset=false,N=20,K=16,err=0.1
+
+Building model...
+Model constants: reset=false,N=20,K=16,err=0.1
+
+Computing reachable states...
+
+Reachability (BFS): 897 iterations in 214.90 seconds (average 0.239572, setup 0.00)
+
+Time for model construction: 216.556 seconds.
+
+Type:        MDP
+States:      5010803 (1 initial)
+Transitions: 11325290
+Choices:     9235429
+
+Transition matrix: 279357 nodes (6 terminal), 11325290 minterms, vars: 59r/59c/7nd
+
+Prob0A: 164 iterations in 8.92 seconds (average 0.054415, setup 0.00)
+
+Prob1E: 2754 iterations in 164.18 seconds (average 0.059617, setup 0.00)
+
+yes = 149488, no = 1212928, maybe = 3648387
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=5010803, nc=6770731, nnz=8325693, k=4] [106.5 MB]
+Creating vector for yes... [38.2 MB]
+Allocating iteration vectors... [2 x 38.2 MB]
+TOTAL: [221.2 MB]
+
+Starting iterations...
+
+Iterative method: 2889 iterations in 16.42 seconds (average 0.005684, setup 7.06)
+
+Number of updates: 433M 
+
+Value in the initial state: 1.6062979464568147E-15
+
+Time for model checking: 196.809 seconds.
+
+Result: 1.6062979464568147E-15 (value in the initial state)
+

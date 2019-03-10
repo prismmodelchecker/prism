@@ -1,0 +1,99 @@
+// Lehmann-Rabin algorithm [LR82] (dining philosophers)
+// we suppose an action takes 1 time unit 
+// an a process can wait at most K time units before making a transition
+// gxn/dxp 01/02/00
+
+mdp
+
+// CONSTANTS
+const K;
+
+// COUNTER FORMULAE
+// ci number of steps since process last moved
+// removing trying and remainder states since
+// these are controlled by the process not the adversary
+
+// process can go if it does not stop one of the other processes round counter reaching K+1
+// added complication if two processes counter equals K-1, then if neither makes a transition
+// both reach K, and hence one must reach K+1 which we must disallow
+formula can1 = !((c2=K) | (c3=K) | ((c2=K-1) & (c3=K-1)));
+formula can2 = !((c1=K) | (c3=K) | ((c1=K-1) & (c3=K-1)));
+formula can3 = !((c1=K) | (c2=K) | ((c1=K-1) & (c2=K-1)));
+
+// when a process moves the counters of the other processes increase 
+// but only when they are not in trying or remainder
+formula count1  = (p1!=13) & (p1!=0);
+formula count2  = (p2!=13) & (p2!=0);
+formula count3  = (p3!=13) & (p3!=0);
+formula ncount1 = (p1=13) | (p1=0);
+formula ncount2 = (p2=13) | (p2=0);
+formula ncount3 = (p3=13) | (p3=0);
+
+module counter
+
+	c1 : [0..K];
+	c2 : [0..K];
+	c3 : [0..K];
+	
+	// process 1 moves	
+	[s1] count2  & count3  & can1 -> (c1'=0) & (c2'=c2+1) & (c3'=c3+1);	
+	[s1] ncount2 & count3  & can1 -> (c1'=0) & (c3'=c3+1);	
+	[s1] count2  & ncount3 & can1 -> (c1'=0) & (c2'=c2+1);	
+	[s1] ncount2 & ncount3 & can1 -> (c1'=0);	
+	// process 2 moves
+	[s2] count1  & count3  & can2 -> (c2'=0) & (c1'=c1+1) & (c3'=c3+1);	
+	[s2] ncount1 & count3  & can2 -> (c2'=0) & (c3'=c3+1);	
+	[s2] count1  & ncount3 & can2 -> (c2'=0) & (c1'=c1+1);	
+	[s2] ncount1 & ncount3 & can2 -> (c2'=0);	
+	// process 3 moves
+	[s3] count1  & count2  & can3 -> (c3'=0) & (c1'=c1+1) & (c2'=c2+1);
+	[s3] ncount1 & count2  & can3 -> (c3'=0) & (c2'=c2+1);
+	[s3] count1  & ncount2 & can3 -> (c3'=0) & (c1'=c1+1);
+	[s3] ncount1 & ncount2 & can3 -> (c3'=0);
+	
+endmodule
+ 
+// PHILOSOPHER 1
+// atomic formule 
+// left fork and right fork free resp.
+formula lfree = p2>=0&p2<=4|p2=6|p2=11|p2=13;
+formula rfree = p3>=0&p3<=3|p3=5|p3=7|p3=12|p3=13;
+
+module phil1
+
+	p1 : [0..13];
+
+	[s1] (p1=0) -> (p1'=0); // try 
+	[s1] (p1=0) -> (p1'=1);
+	[s1] (p1=1) -> 0.5 : (p1'=2) + 0.5 : (p1'=3); // flip
+	[s1] (p1=2) &  lfree -> (p1'=4); // wl and l free
+	[s1] (p1=2) & !lfree -> (p1'=2); // wl and l taken
+	[s1] (p1=3) &  rfree -> (p1'=5); // wr and r free
+	[s1] (p1=3) & !rfree -> (p1'=3); // wr and r taken
+	[s1] (p1=4) &  rfree -> (p1'=8); // l and r free
+	[s1] (p1=4) & !rfree -> (p1'=6); // l and r taken
+	[s1] (p1=5) &  lfree -> (p1'=8); // r and l free
+	[s1] (p1=5) & !lfree -> (p1'=7); // r and l taken
+	[s1] (p1=6)  -> (p1'=1); // nr
+	[s1] (p1=7)  -> (p1'=1); // nl
+	[s1] (p1=8)  -> (p1'=9); // pre_crit
+	[s1] (p1=9)  -> (p1'=10); // crit
+	[s1] (p1=10) -> (p1'=11); // exit
+	[s1] (p1=10) -> (p1'=12);
+	[s1] (p1=11) -> (p1'=13); // put down left first
+	[s1] (p1=12) -> (p1'=13); // put down right first
+	[s1] (p1=13) -> (p1'=0); // remainder
+	[s1] (p1=13) -> (p1'=13);
+
+endmodule
+
+// construct further processes through renaming
+module phil2=phil1 [p1=p2, p2=p3, p3=p1, s1=s2] endmodule
+module phil3=phil1 [p1=p3, p2=p1, p3=p2, s1=s3] endmodule
+
+// reward structure - number of steps
+rewards "steps"
+	[s1] true : 1;
+	[s2] true : 1;
+	[s3] true : 1;
+endrewards

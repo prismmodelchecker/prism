@@ -1,0 +1,22 @@
+#!/bin/csh
+ 
+# example command for minimum probabilistic reachability
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=true  -prop 1 
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=false -prop 1
+
+# example command for maximum probabilistic reachability
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=true  -prop 1 
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=false -prop 1
+
+# example command for minimum expected reachability
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=true  -prop 1 
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=false -prop 1
+
+# example command for maximum expected reachability
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=true  -prop 1 
+prism zeroconf.nm zeroconf.pctl -const N=1000,K=4,err=0,reset=false -prop 1
+
+# example command for time bounded reachability
+prism zeroconf_time_bounded.nm zeroconf_time_bounded.pctl -const N=1000,K=1,T=11,bound=10,reset=true -fixdl
+prism zeroconf_time_bounded.nm zeroconf_time_bounded.pctl -const N=1000,K=1,T=11,bound=10,reset=false -fixdl
+

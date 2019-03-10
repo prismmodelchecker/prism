@@ -1,0 +1,17 @@
+#!/bin/csh
+
+# liveness
+prism firewire.nm liveness.pctl -const delay=36,fast=0.5
+
+# maximum expected time
+prism firewire.nm expected.pctl -const delay=3,fast=0.2:0.1:0.8 -prop 1
+prism firewire.nm expected.pctl -const delay=36,fast=0.2:0.1:0.8  -prop 1
+
+# maximum expected time
+prism firewire.nm expected.pctl -const delay=3,fast=0.2:0.1:0.8 -prop 2 
+prism firewire.nm expected.pctl -const delay=36,fast=0.2:0.1:0.8 -prop 2 
+
+# deadline properties
+foreach deadline (200 300 400 500 600) # 800 1000)
+	prism deadline.nm deadline.pctl -const deadline=$deadline,delay=36,fast=0.5 -m
+end

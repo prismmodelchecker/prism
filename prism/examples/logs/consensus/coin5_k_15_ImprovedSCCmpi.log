@@ -1,0 +1,74 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 02:28:14 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/consensus/coin5.nm ../models/consensus/coin.pctl -s -prop 4 -const K=15 -improvedmodpoliter -topological -maxiters 25000000 -epsilon 1e-8
+
+Parsing model file "../models/consensus/coin5.nm"...
+
+Parsing properties file "../models/consensus/coin.pctl"...
+
+8 properties:
+(1) P>=1 [ F "finished" ]
+(2) Pmin=? [ F "finished"&"all_coins_equal_0" ]
+(3) Pmin=? [ F "finished"&"all_coins_equal_1" ]
+(4) Pmax=? [ F "finished"&!"agree" ]
+(5) Pmin=? [ F<=k "finished" ]
+(6) Pmax=? [ F<=k "finished" ]
+(7) R{"steps"}min=? [ F "finished" ]
+(8) R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 pc5 coin5 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ F "finished"&!"agree" ]
+Model constants: K=15
+
+Building model...
+Model constants: K=15
+
+Computing reachable states...
+
+Reachability (BFS): 904 iterations in 0.23 seconds (average 0.000257, setup 0.00)
+
+Time for model construction: 0.347 seconds.
+
+Type:        MDP
+States:      1179776 (1 initial)
+Transitions: 4927120
+Choices:     3944320
+
+Transition matrix: 4379 nodes (3 terminal), 4927120 minterms, vars: 23r/23c/5nd
+
+Prob0A: 681 iterations in 1.03 seconds (average 0.001515, setup 0.00)
+
+Prob1E: 45940 iterations in 139.49 seconds (average 0.003036, setup 0.00)
+
+yes = 392590, no = 5042, maybe = 782144
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=1179776, nc=2978110, nnz=3724200, k=5] [46.6 MB]
+Creating vector for yes... [9.0 MB]
+Allocating iteration vectors... [2 x 9.0 MB]
+TOTAL: [73.6 MB]
+
+Starting iterations...
+
+Iterative method: 1613110 iterations in 69.50 seconds (average 0.000043, setup 0.84)
+
+Number of updates: 5526M 
+
+Value in the initial state: 0.046665739176392856
+
+Time for model checking: 210.894 seconds.
+
+Result: 0.046665739176392856 (value in the initial state)
+

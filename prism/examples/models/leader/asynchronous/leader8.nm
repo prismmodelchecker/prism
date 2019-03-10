@@ -1,0 +1,101 @@
+// asynchronous leader election
+// 4 processes
+// gxn/dxp 29/01/01
+
+mdp
+
+const N= 8; // number of processes
+
+//----------------------------------------------------------------------------------------------------------------------------
+module process1
+	
+	// COUNTER
+	c1 : [0..8-1];
+	
+	// STATES
+	s1 : [0..4];
+	// 0  make choice
+	// 1 have not received neighbours choice
+	// 2 active
+	// 3 inactive
+	// 4 leader
+	
+	// PREFERENCE
+	p1 : [0..1];
+	
+	// VARIABLES FOR SENDING AND RECEIVING
+	receive1 : [0..2];
+	// not received anything
+	// received choice
+	// received counter
+	sent1 : [0..2];
+	// not send anything
+	// sent choice
+	// sent counter
+	
+	// pick value
+	[] (s1=0) -> 0.5 : (s1'=1) & (p1'=0) + 0.5 : (s1'=1) & (p1'=1);
+	
+	// send preference
+	[p12] (s1=1) & (sent1=0) -> (sent1'=1);
+	// receive preference
+	// stay active
+	[p81] (s1=1) & (receive1=0) & !( (p1=0) & (p8=1) ) -> (s1'=2) & (receive1'=1);
+	// become inactive
+	[p81] (s1=1) & (receive1=0) & (p1=0) & (p8=1) -> (s1'=3) & (receive1'=1);
+	
+	// send preference (can now reset preference)
+	[p12] (s1=2) & (sent1=0) -> (sent1'=1) & (p1'=0);
+	// send counter (already sent preference)
+	// not received counter yet
+	[c12] (s1=2) & (sent1=1) & (receive1=1) -> (sent1'=2);
+	// received counter (pick again)
+	[c12] (s1=2) & (sent1=1) & (receive1=2) -> (s1'=0) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	
+	// receive counter and not sent yet (note in this case do not pass it on as will send own counter)
+	[c81] (s1=2) & (receive1=1) & (sent1<2) -> (receive1'=2);
+	// receive counter and sent counter
+	// only active process (decide)
+	[c81] (s1=2) & (receive1=1) & (sent1=2) & (c8=N-1) -> (s1'=4) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	// other active process (pick again)
+	[c81] (s1=2) & (receive1=1) & (sent1=2) & (c8<N-1) -> (s1'=0) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	
+	// send preference (must have received preference) and can now reset
+	[p12] (s1=3) & (receive1>0) & (sent1=0) -> (sent1'=1) & (p1'=0);
+	// send counter (must have received counter first) and can now reset
+	[c12] (s1=3) & (receive1=2) & (sent1=1) ->  (s1'=3) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	
+	// receive preference
+	[p81] (s1=3) & (receive1=0) -> (p1'=p8) & (receive1'=1);
+	// receive counter
+	[c81] (s1=3) & (receive1=1) & (c8<N-1) -> (c1'=c8+1) & (receive1'=2);
+		
+	// done
+	[done] (s1=4) -> (s1'=s1);
+	// add loop for processes who are inactive
+	[done] (s1=3) -> (s1'=s1);
+
+endmodule
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+// construct further stations through renaming
+module process2=process1[s1=s2,p1=p2,c1=c2,sent1=sent2,receive1=receive2,p12=p23,p81=p12,c12=c23,c81=c12,p8=p1,c8=c1] endmodule
+module process3=process1[s1=s3,p1=p3,c1=c3,sent1=sent3,receive1=receive3,p12=p34,p81=p23,c12=c34,c81=c23,p8=p2,c8=c2] endmodule
+module process4=process1[s1=s4,p1=p4,c1=c4,sent1=sent4,receive1=receive4,p12=p45,p81=p34,c12=c45,c81=c34,p8=p3,c8=c3] endmodule
+module process5=process1[s1=s5,p1=p5,c1=c5,sent1=sent5,receive1=receive5,p12=p56,p81=p45,c12=c56,c81=c45,p8=p4,c8=c4] endmodule
+module process6=process1[s1=s6,p1=p6,c1=c6,sent1=sent6,receive1=receive6,p12=p67,p81=p56,c12=c67,c81=c56,p8=p5,c8=c5] endmodule
+module process7=process1[s1=s7,p1=p7,c1=c7,sent1=sent7,receive1=receive7,p12=p78,p81=p67,c12=c78,c81=c67,p8=p6,c8=c6] endmodule
+module process8=process1[s1=s8,p1=p8,c1=c8,sent1=sent8,receive1=receive8,p12=p81,p81=p78,c12=c81,c81=c78,p8=p7,c8=c7] endmodule
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+// reward - expected number of rounds (equals the number of times a process receives a counter)
+rewards
+	[c12] true : 1;
+endrewards
+
+//----------------------------------------------------------------------------------------------------------------------------
+formula leaders = (s1=4?1:0)+(s2=4?1:0)+(s3=4?1:0)+(s4=4?1:0)+(s5=4?1:0)+(s6=4?1:0)+(s7=4?1:0)+(s8=4?1:0);
+label "elected" = s1=4|s2=4|s3=4|s4=4|s5=4|s6=4|s7=4|s8=4;
+

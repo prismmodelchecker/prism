@@ -1,0 +1,66 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 23:59:37 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/leader/asynchronous/leader7.nm ../models/leader/asynchronous/leader.pctl -s -prop 3 -const K=75
+
+Parsing model file "../models/leader/asynchronous/leader7.nm"...
+
+Parsing properties file "../models/leader/asynchronous/leader.pctl"...
+
+5 properties:
+(1) P>=1 [ F "elected" ]
+(2) Pmin=? [ F<=K "elected" ]
+(3) Pmax=? [ F<=K "elected" ]
+(4) Rmin=? [ F "elected" ]
+(5) Rmax=? [ F "elected" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 process6 process7 
+Variables:   c1 s1 p1 receive1 sent1 c2 s2 p2 receive2 sent2 c3 s3 p3 receive3 sent3 c4 s4 p4 receive4 sent4 c5 s5 p5 receive5 sent5 c6 s6 p6 receive6 sent6 c7 s7 p7 receive7 sent7 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ F<=K "elected" ]
+Property constants: K=75
+
+Building model...
+
+Computing reachable states...
+
+Reachability (BFS): 77 iterations in 4.04 seconds (average 0.052519, setup 0.00)
+
+Time for model construction: 4.633 seconds.
+
+Type:        MDP
+States:      2095783 (1 initial)
+Transitions: 7714385
+Choices:     6729940
+
+Transition matrix: 180361 nodes (3 terminal), 7714385 minterms, vars: 77r/77c/21nd
+
+Prob0A: 76 iterations in 9.72 seconds (average 0.127895, setup 0.00)
+
+yes = 7, no = 0, maybe = 2095776
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=2095783, nc=6729933, nnz=7714378, k=7] [96.7 MB]
+Creating vector for yes... [16.0 MB]
+Allocating iteration vectors... [2 x 16.0 MB]
+TOTAL: [144.7 MB]
+
+Starting iterations...
+
+Iterative method: 75 iterations in 2.02 seconds (average 0.026933, setup 5.98)
+
+Value in the initial state: 0.140777587890625
+
+Time for model checking: 17.794 seconds.
+
+Result: 0.140777587890625 (value in the initial state)
+

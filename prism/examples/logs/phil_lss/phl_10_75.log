@@ -1,0 +1,81 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 13:23:02 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/phil_lss/phil_lss3.nm ../models/phil_lss/phil_lss3.pctl -prop 2 -const 'K=10,L=75' -s
+
+Parsing model file "../models/phil_lss/phil_lss3.nm"...
+
+Parsing properties file "../models/phil_lss/phil_lss3.pctl"...
+
+3 properties:
+(1) filter(forall, "trying"=>P>=1 [ true U "entered" ])
+(2) Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+(3) Rmax=? [ F "entered" {"trying"}{max} ]
+
+Type:        MDP
+Modules:     counter phil1 phil2 phil3 
+Variables:   c1 c2 c3 p1 p2 p3 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+Model constants: K=10
+Property constants: L=75
+
+Building model...
+Model constants: K=10
+
+Computing reachable states...
+
+Reachability (BFS): 32 iterations in 0.54 seconds (average 0.016750, setup 0.00)
+
+Time for model construction: 0.658 seconds.
+
+Type:        MDP
+States:      206864 (1 initial)
+Transitions: 686820
+Choices:     612600
+
+Transition matrix: 28506 nodes (3 terminal), 686820 minterms, vars: 24r/24c/4nd
+
+Prob0E: 47 iterations in 1.07 seconds (average 0.022809, setup 0.00)
+
+yes = 132474, no = 8, maybe = 74382
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=206864, nc=215058, nnz=245988, k=5] [3.2 MB]
+Creating vector for yes... [1.6 MB]
+Allocating iteration vectors... [2 x 1.6 MB]
+TOTAL: [8.0 MB]
+
+Starting iterations...
+
+Iterative method: 75 iterations in 0.14 seconds (average 0.001920, setup 0.10)
+
+States satisfying filter "trying": 203892
+
+Minimum value over states satisfying filter: 0.70849609375
+
+There are 540 states with (approximately) this value.
+The first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.
+4642:(0,1,2,2,2,2)
+4730:(0,1,2,3,3,3)
+5291:(0,1,3,2,2,2)
+5389:(0,1,3,3,3,3)
+5974:(0,1,4,2,2,2)
+6075:(0,1,4,3,3,3)
+6683:(0,1,5,2,2,2)
+6786:(0,1,5,3,3,3)
+7406:(0,1,6,2,2,2)
+7509:(0,1,6,3,3,3)
+
+Time for model checking: 1.403 seconds.
+
+Result: 0.70849609375 (minimum value over states satisfying filter)
+

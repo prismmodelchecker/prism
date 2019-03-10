@@ -1,0 +1,80 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 20:34:21 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/brp/brp.pm ../models/brp/brp.pctl -s -prop 3 -maxiters 50000000 -nocompact -improvedgs -const 'N=8192,MAX=4' -epsilon 1e-8
+
+Parsing model file "../models/brp/brp.pm"...
+
+Parsing properties file "../models/brp/brp.pctl"...
+
+7 properties:
+(1) P=? [ true U srep=1&rrep=3&recv ]
+(2) P=? [ true U srep=3&!(rrep=3)&recv ]
+(3) P=? [ true U s=5 ]
+(4) P=? [ true U s=5&srep=2 ]
+(5) P=? [ true U s=5&srep=1&i>8 ]
+(6) P=? [ true U !(srep=0)&!recv ]
+(7) R=? [ F "deadlock" ]
+
+Type:        DTMC
+Modules:     sender receiver checker channelK channelL 
+Variables:   s srep nrtr i bs s_ab fs ls r rrep fr lr br r_ab recv T k l 
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ true U s=5 ]
+Model constants: N=8192,MAX=4
+
+Building model...
+Model constants: N=8192,MAX=4
+
+Computing reachable states...
+
+Reachability (BFS): 49165 iterations in 23.33 seconds (average 0.000474, setup 0.00)
+
+Time for model construction: 62.915 seconds.
+
+Warning: Deadlocks detected and fixed in 16389 states
+
+Type:        DTMC
+States:      557063 (1 initial)
+Transitions: 737283
+
+Transition matrix: 3047 nodes (6 terminal), 737283 minterms, vars: 42r/42c
+
+Prob0: 15 iterations in 0.01 seconds (average 0.000533, setup 0.00)
+
+Prob1: 49153 iterations in 20.09 seconds (average 0.000409, setup 0.00)
+
+yes = 57344, no = 32783, maybe = 466936
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=557063, nnz=647156] [7.9 MB]
+Creating vector for diagonals... [4.3 MB]
+Creating vector for RHS... [4.3 MB]
+Allocating iteration vector... [4.3 MB]
+TOTAL: [20.7 MB]
+
+Starting iterations...
+Iteration 8325: max relative diff=0.000000, 16.06 sec so far
+
+Gauss-Seidel: 8325 iterations in 16.06 seconds (average 0.001929, setup 0.65)
+
+Number of state Updates: 1500M 
+
+Value in the initial state: 1.9249943464795644E-4
+
+Time for model checking: 36.796 seconds.
+
+Result: 1.9249943464795644E-4 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

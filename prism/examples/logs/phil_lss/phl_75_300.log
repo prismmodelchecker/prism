@@ -1,0 +1,87 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 13:54:28 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/phil_lss/phil_lss3.nm ../models/phil_lss/phil_lss3.pctl -prop 2 -const 'K=75,L=300' -s
+
+Parsing model file "../models/phil_lss/phil_lss3.nm"...
+
+Parsing properties file "../models/phil_lss/phil_lss3.pctl"...
+
+3 properties:
+(1) filter(forall, "trying"=>P>=1 [ true U "entered" ])
+(2) Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+(3) Rmax=? [ F "entered" {"trying"}{max} ]
+
+Type:        MDP
+Modules:     counter phil1 phil2 phil3 
+Variables:   c1 c2 c3 p1 p2 p3 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+Model constants: K=75
+Property constants: L=300
+
+Building model...
+Model constants: K=75
+
+Computing reachable states...
+
+Reachability (BFS): 97 iterations in 10.62 seconds (average 0.109485, setup 0.00)
+
+Time for model construction: 10.937 seconds.
+
+Type:        MDP
+States:      12725084 (1 initial)
+Transitions: 47408814
+Choices:     42227940
+
+Transition matrix: 59784 nodes (3 terminal), 47408814 minterms, vars: 33r/33c/4nd
+
+Prob0E: 307 iterations in 12.76 seconds (average 0.041577, setup 0.00)
+
+yes = 8134494, no = 8, maybe = 4590582
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=12725084, nc=14857608, nnz=17001162, k=5] [220.9 MB]
+Creating vector for yes... [97.1 MB]
+Allocating iteration vectors... [2 x 97.1 MB]
+TOTAL: [512.1 MB]
+
+Starting iterations...
+Iteration 42 (of 300): 5.08 sec so far
+Iteration 85 (of 300): 10.16 sec so far
+Iteration 128 (of 300): 15.23 sec so far
+Iteration 171 (of 300): 20.31 sec so far
+Iteration 214 (of 300): 25.38 sec so far
+Iteration 257 (of 300): 30.46 sec so far
+
+Iterative method: 300 iterations in 35.42 seconds (average 0.118080, setup 4.37)
+
+States satisfying filter "trying": 12557532
+
+Minimum value over states satisfying filter: 0.0
+
+There are 482844 states with (approximately) this value.
+The first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.
+220:(0,0,1,0,13,6)
+385:(0,0,1,13,0,7)
+473:(0,0,1,13,13,6)
+474:(0,0,1,13,13,7)
+485:(0,0,2,0,0,6)
+486:(0,0,2,0,0,7)
+577:(0,0,2,0,13,6)
+578:(0,0,2,0,13,7)
+623:(0,0,2,2,13,6)
+668:(0,0,2,4,13,6)
+
+Time for model checking: 53.58 seconds.
+
+Result: 0.0 (minimum value over states satisfying filter)
+

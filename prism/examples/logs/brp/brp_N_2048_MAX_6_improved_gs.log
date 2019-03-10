@@ -1,0 +1,79 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 20:44:52 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/brp/brp.pm ../models/brp/brp.pctl -s -prop 3 -maxiters 50000000 -nocompact -improvedgs -const 'N=2048,MAX=6' -epsilon 1e-8
+
+Parsing model file "../models/brp/brp.pm"...
+
+Parsing properties file "../models/brp/brp.pctl"...
+
+7 properties:
+(1) P=? [ true U srep=1&rrep=3&recv ]
+(2) P=? [ true U srep=3&!(rrep=3)&recv ]
+(3) P=? [ true U s=5 ]
+(4) P=? [ true U s=5&srep=2 ]
+(5) P=? [ true U s=5&srep=1&i>8 ]
+(6) P=? [ true U !(srep=0)&!recv ]
+(7) R=? [ F "deadlock" ]
+
+Type:        DTMC
+Modules:     sender receiver checker channelK channelL 
+Variables:   s srep nrtr i bs s_ab fs ls r rrep fr lr br r_ab recv T k l 
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ true U s=5 ]
+Model constants: N=2048,MAX=6
+
+Building model...
+Model constants: N=2048,MAX=6
+
+Computing reachable states...
+
+Reachability (BFS): 12305 iterations in 5.77 seconds (average 0.000469, setup 0.00)
+
+Time for model construction: 8.076 seconds.
+
+Warning: Deadlocks detected and fixed in 4103 states
+
+Type:        DTMC
+States:      192521 (1 initial)
+Transitions: 258051
+
+Transition matrix: 2871 nodes (6 terminal), 258051 minterms, vars: 40r/40c
+
+Prob0: 19 iterations in 0.01 seconds (average 0.000421, setup 0.00)
+
+Prob1: 12289 iterations in 4.74 seconds (average 0.000385, setup 0.00)
+
+yes = 14336, no = 8213, maybe = 169972
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=192521, nnz=235502] [2.9 MB]
+Creating vector for diagonals... [1.5 MB]
+Creating vector for RHS... [1.5 MB]
+Allocating iteration vector... [1.5 MB]
+TOTAL: [7.3 MB]
+
+Starting iterations...
+
+Gauss-Seidel: 2101 iterations in 1.34 seconds (average 0.000640, setup 0.23)
+
+Number of state Updates: 137M 
+
+Value in the initial state: 4.2740912428120234E-8
+
+Time for model checking: 6.33 seconds.
+
+Result: 4.2740912428120234E-8 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

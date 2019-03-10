@@ -1,0 +1,106 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 11:09:53 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/consensus/coin6.nm ../models/consensus/coin.pctl -s -prop 4 -const K=4 -modpoliter -maxiters 25000000 -epsilon 1e-8
+
+Parsing model file "../models/consensus/coin6.nm"...
+
+Parsing properties file "../models/consensus/coin.pctl"...
+
+8 properties:
+(1) P>=1 [ F "finished" ]
+(2) Pmin=? [ F "finished"&"all_coins_equal_0" ]
+(3) Pmin=? [ F "finished"&"all_coins_equal_1" ]
+(4) Pmax=? [ F "finished"&!"agree" ]
+(5) Pmin=? [ F<=k "finished" ]
+(6) Pmax=? [ F<=k "finished" ]
+(7) R{"steps"}min=? [ F "finished" ]
+(8) R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 process6 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 pc5 coin5 pc6 coin6 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ F "finished"&!"agree" ]
+Model constants: K=4
+
+Building model...
+Model constants: K=4
+
+Computing reachable states...
+
+Reachability (BFS): 293 iterations in 0.14 seconds (average 0.000464, setup 0.00)
+
+Time for model construction: 0.201 seconds.
+
+Type:        MDP
+States:      2376448 (1 initial)
+Transitions: 11835456
+Choices:     9487104
+
+Transition matrix: 7055 nodes (3 terminal), 11835456 minterms, vars: 24r/24c/6nd
+
+Prob0A: 223 iterations in 1.31 seconds (average 0.005883, setup 0.00)
+
+Prob1E: 5951 iterations in 66.25 seconds (average 0.011132, setup 0.00)
+
+yes = 1050516, no = 27270, maybe = 1298662
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix (FOR POLICY ITERASION)... [n=2376448, nc=6007404, nnz=7519500, k=6] [94.0 MB]
+Creating vector for yes...[18.1 MB]
+Allocating iteration vectors... [2 x 18.1 MB]
+TOTAL: [148.4 MB]
+
+Starting iterations...
+Iteration 303: max relative diff=1.000000, 5.30 sec so far
+Iteration 606: max relative diff=0.156382, 10.85 sec so far
+Iteration 909: max relative diff=0.058216, 16.25 sec so far
+Iteration 1212: max relative diff=0.003101, 21.61 sec so far
+Iteration 1515: max relative diff=0.001732, 26.95 sec so far
+Iteration 1818: max relative diff=0.001037, 32.30 sec so far
+Iteration 2121: max relative diff=0.000645, 37.65 sec so far
+Iteration 2424: max relative diff=0.000410, 42.99 sec so far
+Iteration 2727: max relative diff=0.000264, 48.33 sec so far
+Iteration 3030: max relative diff=0.000171, 53.68 sec so far
+Iteration 3333: max relative diff=0.000111, 59.02 sec so far
+Iteration 3636: max relative diff=0.000073, 64.36 sec so far
+Iteration 3939: max relative diff=0.000047, 69.71 sec so far
+Iteration 4242: max relative diff=0.000031, 75.05 sec so far
+Iteration 4545: max relative diff=0.000020, 80.39 sec so far
+Iteration 4848: max relative diff=0.000013, 85.74 sec so far
+Iteration 5151: max relative diff=0.000009, 91.08 sec so far
+Iteration 5454: max relative diff=0.000006, 96.42 sec so far
+Iteration 5757: max relative diff=0.000004, 101.76 sec so far
+Iteration 6060: max relative diff=0.000002, 107.10 sec so far
+Iteration 6363: max relative diff=0.000002, 112.44 sec so far
+Iteration 6666: max relative diff=0.000001, 117.79 sec so far
+Iteration 6969: max relative diff=0.000001, 123.13 sec so far
+Iteration 7272: max relative diff=0.000000, 128.48 sec so far
+Iteration 7575: max relative diff=0.000000, 133.82 sec so far
+Iteration 7878: max relative diff=0.000000, 139.16 sec so far
+Iteration 8181: max relative diff=0.000000, 144.51 sec so far
+Iteration 8484: max relative diff=0.000000, 149.85 sec so far
+Iteration 8787: max relative diff=0.000000, 155.20 sec so far
+Iteration 9090: max relative diff=0.000000, 160.54 sec so far
+Iteration 9393: max relative diff=0.000000, 165.88 sec so far
+Iteration 9696: max relative diff=0.000000, 171.23 sec so far
+
+Iterative method: 9886 iterations in 174.56 seconds (average 0.017658, setup 1.72)
+
+Number of updates: 12838M 
+
+Value in the initial state: 0.18748142410052399
+
+Time for model checking: 243.854 seconds.
+
+Result: 0.18748142410052399 (value in the initial state)
+

@@ -1,0 +1,89 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Sun Apr 08 08:02:06 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/consensus/coin6.nm ../models/consensus/coin.pctl -s -prop 5 -const 'K=28,k=300'
+
+Parsing model file "../models/consensus/coin6.nm"...
+
+Parsing properties file "../models/consensus/coin.pctl"...
+
+8 properties:
+(1) P>=1 [ F "finished" ]
+(2) Pmin=? [ F "finished"&"all_coins_equal_0" ]
+(3) Pmin=? [ F "finished"&"all_coins_equal_1" ]
+(4) Pmax=? [ F "finished"&!"agree" ]
+(5) Pmin=? [ F<=k "finished" ]
+(6) Pmax=? [ F<=k "finished" ]
+(7) R{"steps"}min=? [ F "finished" ]
+(8) R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 process6 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 pc5 coin5 pc6 coin6 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ F<=k "finished" ]
+Model constants: K=28
+Property constants: k=300
+
+Building model...
+Model constants: K=28
+
+Computing reachable states...
+
+Reachability (BFS): 2021 iterations in 0.77 seconds (average 0.000380, setup 0.00)
+
+Time for model construction: 1.182 seconds.
+
+Type:        MDP
+States:      15794944 (1 initial)
+Transitions: 79020096
+Choices:     63234816
+
+Transition matrix: 7259 nodes (3 terminal), 79020096 minterms, vars: 27r/27c/6nd
+
+Prob0E: 532 iterations in 1.88 seconds (average 0.003541, setup 0.00)
+
+yes = 384, no = 0, maybe = 15794560
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=15794944, nc=63234432, nnz=79019712, k=6] [979.7 MB]
+Creating vector for yes... [120.5 MB]
+Allocating iteration vectors... [2 x 120.5 MB]
+TOTAL: [1.3 GB]
+
+Starting iterations...
+Iteration 15 (of 300): 5.04 sec so far
+Iteration 31 (of 300): 10.08 sec so far
+Iteration 47 (of 300): 15.12 sec so far
+Iteration 63 (of 300): 20.16 sec so far
+Iteration 79 (of 300): 25.20 sec so far
+Iteration 95 (of 300): 30.24 sec so far
+Iteration 111 (of 300): 35.28 sec so far
+Iteration 127 (of 300): 40.32 sec so far
+Iteration 143 (of 300): 45.36 sec so far
+Iteration 159 (of 300): 50.40 sec so far
+Iteration 175 (of 300): 55.44 sec so far
+Iteration 191 (of 300): 60.47 sec so far
+Iteration 207 (of 300): 65.51 sec so far
+Iteration 223 (of 300): 70.54 sec so far
+Iteration 239 (of 300): 75.58 sec so far
+Iteration 255 (of 300): 80.62 sec so far
+Iteration 271 (of 300): 85.65 sec so far
+Iteration 287 (of 300): 90.69 sec so far
+
+Iterative method: 300 iterations in 94.47 seconds (average 0.314893, setup 14.98)
+
+Value in the initial state: 0.0
+
+Time for model checking: 111.463 seconds.
+
+Result: 0.0 (value in the initial state)
+

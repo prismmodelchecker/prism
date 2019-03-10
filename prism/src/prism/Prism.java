@@ -118,6 +118,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int BSOR = 9;
 	public static final int PSOR = 10;
 	public static final int BPSOR = 11;
+	public static final int IMPGAUSSSEIDEL = 12;
+
 
 	// methods for solving MDPs
 	public static final int MDP_VALITER = 1;
@@ -125,6 +127,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int MDP_POLITER = 3;
 	public static final int MDP_MODPOLITER = 4;
 	public static final int MDP_LP = 5;
+	public static final int MDP_IMPROVEDMODPOLITER = 6;
+	public static final int MDP_IMPROVEDBOUNDED = 7;
+
+
 
 	// methods for solving multi-objective queries on MDPs
 	public static final int MDP_MULTI_VALITER = 1;
@@ -200,7 +206,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Generate/store a strategy during model checking?
 	protected boolean genStrat = false;
 	// Should any generated strategies should be restricted to the states reachable under them?
-	protected boolean restrictStratToReach = true;
+	protected boolean restrictStratToReach = false;
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
@@ -2419,8 +2425,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		int numRewardStructs = currentModelInfo.getNumRewardStructs();
 		if (numRewardStructs == 0) {
-			mainLog.println("\nOmitting transition reward export as there are no reward structures");
-			return;
+			mainLog.println("\nOmitting state reward export as there are no reward structures");
 		}
 		
 		if (getExplicit())
@@ -2850,7 +2855,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public Result modelCheck(String propertyString) throws PrismException
 	{
-		PropertiesFile propertiesFile = parsePropertiesString(currentModelInfo, propertyString);
+		PropertiesFile propertiesFile = parsePropertiesString(currentModelGenerator, propertyString);
 		if (propertiesFile.getNumProperties() != 1) {
 			throw new PrismException("There should be exactly one property to check (there are " + propertiesFile.getNumProperties() + ")");
 		}
@@ -2908,10 +2913,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Auto-switch engine if required
 		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
-				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				setEngine(Prism.EXPLICIT);
+				//mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
+				//engineSwitch = true;
+				//lastEngine = getEngine();
+				//setEngine(Prism.EXPLICIT);
 			}
 		}
 		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
@@ -3196,6 +3201,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println(" As floating point: " + ((BigRational)result.getResult()).toApproximateString());
 		}
 
+
 		return result;
 	}
 
@@ -3215,10 +3221,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			throw new PrismException("Must specify some parameters when using " + "the parametric analysis");
 		}
 		if (!(currentModelType == ModelType.DTMC || currentModelType == ModelType.CTMC || currentModelType == ModelType.MDP))
-			throw new PrismNotSupportedException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
-
-		if (currentModelType == ModelType.MDP && getFairness())
-			throw new PrismNotSupportedException("Parametric model checking does not support checking MDPs under fairness");
+			throw new PrismException("Parametric model checking is only supported for DTMCs, CTMCs and MDPs");
 
 		Values definedPFConstants = propertiesFile.getConstantValues();
 		Values constlist = currentModulesFile.getConstantValues();
@@ -3782,7 +3785,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mc.setExportProductVectorFilename(exportProductVectorFilename);
 		mc.setStoreVector(storeVector);
 		mc.setGenStrat(genStrat);
-		mc.setRestrictStratToReach(restrictStratToReach);
 		mc.setDoBisim(doBisim);
 		mc.setDoIntervalIteration(settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER));
 		mc.setDoTopologicalValueIteration(settings.getBoolean(PrismSettings.PRISM_TOPOLOGICAL_VI));

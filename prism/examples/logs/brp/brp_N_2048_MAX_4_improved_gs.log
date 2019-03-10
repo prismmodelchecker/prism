@@ -1,0 +1,79 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 20:17:31 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/brp/brp.pm ../models/brp/brp.pctl -s -prop 3 -maxiters 50000000 -nocompact -improvedgs -const 'N=2048,MAX=4' -epsilon 1e-8
+
+Parsing model file "../models/brp/brp.pm"...
+
+Parsing properties file "../models/brp/brp.pctl"...
+
+7 properties:
+(1) P=? [ true U srep=1&rrep=3&recv ]
+(2) P=? [ true U srep=3&!(rrep=3)&recv ]
+(3) P=? [ true U s=5 ]
+(4) P=? [ true U s=5&srep=2 ]
+(5) P=? [ true U s=5&srep=1&i>8 ]
+(6) P=? [ true U !(srep=0)&!recv ]
+(7) R=? [ F "deadlock" ]
+
+Type:        DTMC
+Modules:     sender receiver checker channelK channelL 
+Variables:   s srep nrtr i bs s_ab fs ls r rrep fr lr br r_ab recv T k l 
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ true U s=5 ]
+Model constants: N=2048,MAX=4
+
+Building model...
+Model constants: N=2048,MAX=4
+
+Computing reachable states...
+
+Reachability (BFS): 12301 iterations in 5.42 seconds (average 0.000441, setup 0.00)
+
+Time for model construction: 7.834 seconds.
+
+Warning: Deadlocks detected and fixed in 4101 states
+
+Type:        DTMC
+States:      139271 (1 initial)
+Transitions: 184323
+
+Transition matrix: 2867 nodes (6 terminal), 184323 minterms, vars: 40r/40c
+
+Prob0: 15 iterations in 0.01 seconds (average 0.000533, setup 0.00)
+
+Prob1: 12289 iterations in 4.76 seconds (average 0.000388, setup 0.00)
+
+yes = 14336, no = 8207, maybe = 116728
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=139271, nnz=161780] [2.0 MB]
+Creating vector for diagonals... [1.1 MB]
+Creating vector for RHS... [1.1 MB]
+Allocating iteration vector... [1.1 MB]
+TOTAL: [5.2 MB]
+
+Starting iterations...
+
+Gauss-Seidel: 2099 iterations in 0.84 seconds (average 0.000398, setup 0.16)
+
+Number of state Updates: 94M 
+
+Value in the initial state: 4.8128333533174106E-5
+
+Time for model checking: 5.78 seconds.
+
+Result: 4.8128333533174106E-5 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

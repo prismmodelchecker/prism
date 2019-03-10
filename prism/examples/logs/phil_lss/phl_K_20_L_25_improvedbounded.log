@@ -1,0 +1,81 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Fri Mar 30 01:20:10 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/phil_lss/phil_lss3.nm ../models/phil_lss/phil_lss3.pctl -prop 2 -const 'K=20,L=25' -s -improvedbounded
+
+Parsing model file "../models/phil_lss/phil_lss3.nm"...
+
+Parsing properties file "../models/phil_lss/phil_lss3.pctl"...
+
+3 properties:
+(1) filter(forall, "trying"=>P>=1 [ true U "entered" ])
+(2) Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+(3) Rmax=? [ F "entered" {"trying"}{max} ]
+
+Type:        MDP
+Modules:     counter phil1 phil2 phil3 
+Variables:   c1 c2 c3 p1 p2 p3 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ true U<=L "entered" {"trying"}{min} ]
+Model constants: K=20
+Property constants: L=25
+
+Building model...
+Model constants: K=20
+
+Computing reachable states...
+
+Reachability (BFS): 42 iterations in 1.28 seconds (average 0.030381, setup 0.00)
+
+Time for model construction: 1.42 seconds.
+
+Type:        MDP
+States:      870494 (1 initial)
+Transitions: 3093114
+Choices:     2756310
+
+Transition matrix: 37400 nodes (3 terminal), 3093114 minterms, vars: 27r/27c/4nd
+
+Prob0E: 87 iterations in 2.22 seconds (average 0.025517, setup 0.00)
+
+yes = 556704, no = 8, maybe = 313782
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=870494, nc=969558, nnz=1109352, k=5] [14.5 MB]
+Creating vector for yes... [6.6 MB]
+Allocating iteration vectors... [2 x 6.6 MB]
+TOTAL: [34.4 MB]
+
+Starting iterations...
+
+Iterative method: 25 iterations in 0.06 seconds (average 0.002560, setup 0.28)
+
+States satisfying filter "trying": 858702
+
+Minimum value over states satisfying filter: 0.0
+
+There are 170502 states with (approximately) this value.
+The first 10 states are displayed below. To view them all, enable verbose mode or use a print filter.
+1:(0,0,0,0,0,1)
+2:(0,0,0,0,0,2)
+3:(0,0,0,0,0,3)
+12:(0,0,0,0,1,0)
+13:(0,0,0,0,1,13)
+14:(0,0,0,0,2,0)
+15:(0,0,0,0,2,13)
+16:(0,0,0,0,3,0)
+17:(0,0,0,0,3,13)
+33:(0,0,0,0,13,1)
+
+Time for model checking: 2.668 seconds.
+
+Result: 0.0 (minimum value over states satisfying filter)
+

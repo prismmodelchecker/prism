@@ -1,0 +1,68 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 17:29:05 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/nand/nand.pm ../models/nand/nand.pctl -s -const 'K=5,N=50' -improvedgs -nocompact -epsilon 1e-8
+
+Parsing model file "../models/nand/nand.pm"...
+
+Parsing properties file "../models/nand/nand.pctl"...
+
+1 property:
+(1) "reliable": P=? [ F s=4&z/N<0.1 ]
+
+Type:        DTMC
+Modules:     multiplex 
+Variables:   u c s z zx zy x y 
+
+---------------------------------------------------------------------
+
+Model checking: "reliable": P=? [ F s=4&z/N<0.1 ]
+Model constants: N=50,K=5
+
+Building model...
+Model constants: N=50,K=5
+
+Computing reachable states...
+
+Reachability (BFS): 2202 iterations in 12.51 seconds (average 0.005680, setup 0.00)
+
+Time for model construction: 12.816 seconds.
+
+Type:        DTMC
+States:      11683552 (1 initial)
+Transitions: 18433227
+
+Transition matrix: 71537 nodes (775 terminal), 18433227 minterms, vars: 33r/33c
+
+Prob0: 2202 iterations in 11.20 seconds (average 0.005084, setup 0.00)
+
+Prob1: 2021 iterations in 10.23 seconds (average 0.005061, setup 0.00)
+
+yes = 295, no = 874637, maybe = 10808620
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=11683552, nnz=17054740] [206.3 MB]
+Creating vector for diagonals... [89.1 MB]
+Creating vector for RHS... [89.1 MB]
+Allocating iteration vector... [89.1 MB]
+TOTAL: [473.7 MB]
+
+Starting iterations...
+Iteration 1138: max relative diff=0.000000, 61.08 sec so far
+
+Gauss-Seidel: 1138 iterations in 61.08 seconds (average 0.053677, setup 4.10)
+
+Number of state Updates: -1481M 
+
+Value in the initial state: 0.6808131198339749
+
+Time for model checking: 87.011 seconds.
+
+Result: 0.6808131198339749 (value in the initial state)
+

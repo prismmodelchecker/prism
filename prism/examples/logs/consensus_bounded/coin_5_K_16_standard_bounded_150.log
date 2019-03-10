@@ -1,0 +1,71 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Sun Apr 08 07:40:10 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/consensus/coin5.nm ../models/consensus/coin.pctl -s -prop 5 -const 'K=16,k=150'
+
+Parsing model file "../models/consensus/coin5.nm"...
+
+Parsing properties file "../models/consensus/coin.pctl"...
+
+8 properties:
+(1) P>=1 [ F "finished" ]
+(2) Pmin=? [ F "finished"&"all_coins_equal_0" ]
+(3) Pmin=? [ F "finished"&"all_coins_equal_1" ]
+(4) Pmax=? [ F "finished"&!"agree" ]
+(5) Pmin=? [ F<=k "finished" ]
+(6) Pmax=? [ F<=k "finished" ]
+(7) R{"steps"}min=? [ F "finished" ]
+(8) R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 pc5 coin5 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ F<=k "finished" ]
+Model constants: K=16
+Property constants: k=150
+
+Building model...
+Model constants: K=16
+
+Computing reachable states...
+
+Reachability (BFS): 964 iterations in 0.18 seconds (average 0.000183, setup 0.00)
+
+Time for model construction: 0.267 seconds.
+
+Type:        MDP
+States:      1257216 (1 initial)
+Transitions: 5251120
+Choices:     4203520
+
+Transition matrix: 4411 nodes (3 terminal), 5251120 minterms, vars: 23r/23c/5nd
+
+Prob0E: 263 iterations in 0.38 seconds (average 0.001430, setup 0.00)
+
+yes = 160, no = 0, maybe = 1257056
+
+Computing probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=1257216, nc=4203360, nnz=5250960, k=5] [65.3 MB]
+Creating vector for yes... [9.6 MB]
+Allocating iteration vectors... [2 x 9.6 MB]
+TOTAL: [94.1 MB]
+
+Starting iterations...
+
+Iterative method: 150 iterations in 2.17 seconds (average 0.014480, setup 0.69)
+
+Value in the initial state: 0.0
+
+Time for model checking: 3.256 seconds.
+
+Result: 0.0 (value in the initial state)
+

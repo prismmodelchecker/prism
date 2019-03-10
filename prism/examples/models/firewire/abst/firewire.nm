@@ -1,0 +1,77 @@
+// integer semantics version of abstract firewire protocol
+// gxn 23/05/2001
+
+mdp
+
+// wire delay
+const int delay;
+
+// probability of choosing fast and slow
+const double fast;
+const double slow = 1-fast;
+
+// largest constant the clock of the system is compared to
+const int kx = 167;
+
+module abstract_firewire
+	
+	// clock 
+	x : [0..kx+1];
+	
+	// local state
+	s : [0..9];
+	// 0 -start_start
+	// 1 -fast_start
+	// 2 -start_fast
+	// 3 -start_slow
+	// 4 -slow_start
+	// 5 -fast_fast
+	// 6 -fast_slow
+	// 7 -slow_fast
+	// 8 -slow_slow
+	// 9 -done
+	
+	// initial state
+	[time] s=0 & x<delay -> (x'=min(x+1,kx+1));
+	[round] s=0 -> fast : (s'=1) + slow : (s'=4);
+	[round] s=0 -> fast : (s'=2) + slow : (s'=3);
+	// fast_start
+	[time] s=1 & x<delay -> (x'=min(x+1,kx+1));
+	[] s=1 -> fast : (s'=5) & (x'=0) + slow : (s'=6) & (x'=0);
+	// start_fast
+	[time] s=2 & x<delay -> (x'=min(x+1,kx+1));
+	[] s=2 -> fast : (s'=5) & (x'=0) + slow : (s'=7) & (x'=0);
+	// start_slow
+	[time] s=3 & x<delay -> (x'=min(x+1,kx+1));
+	[] s=3 -> fast : (s'=6) & (x'=0) + slow : (s'=8) & (x'=0);
+	// slow_start
+	[time] s=4 & x<delay -> (x'=min(x+1,kx+1));
+	[] s=4 -> fast : (s'=7) & (x'=0) + slow : (s'=8) & (x'=0);
+	// fast_fast
+	[time] s=5 & (x<85) -> (x'=min(x+1,kx+1));
+	[] s=5 & (x>=76) -> (s'=0) & (x'=0);
+	[] s=5 & (x>=76-delay) -> (s'=9) & (x'=0);
+	// fast_slow
+	[time] s=6 & x<167 -> (x'=min(x+1,kx+1));
+	[] s=6 & x>=159-delay -> (s'=9) & (x'=0);
+	// slow_fast
+	[time] s=7 & x<167 -> (x'=min(x+1,kx+1));
+	[] s=7 & x>=159-delay -> (s'=9) & (x'=0);
+	// slow_slow
+	[time] s=8 & x<167 -> (x'=min(x+1,kx+1));
+	[] s=8 & x>=159 -> (s'=0) & (x'=0);
+	[] s=8 & x>=159-delay -> (s'=9) & (x'=0);
+	// done
+	[] s=9 -> (s'=s);
+	
+endmodule
+
+//reward structures
+// time
+rewards "time"
+	[time] true : 1;
+endrewards
+// number of rounds
+rewards "rounds"
+	[round] true : 1;
+endrewards

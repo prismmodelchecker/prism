@@ -1,0 +1,16 @@
+#!/bin/csh
+
+prism coin2.nm coin.pctl -const K=2,k=10 -m
+prism coin2.nm coin.pctl -const K=4,k=10 -m
+#prism coin2.nm coin.pctl -const K=8,k=10 -m -maxiters 100000
+#prism coin2.nm coin.pctl -const K=16,k=10 -m -maxiters 100000
+
+prism coin4.nm coin.pctl -const K=2,k=10 -m
+prism coin4.nm coin.pctl -const K=4,k=10 -m
+
+#prism coin6.nm coin.pctl -const K=2,k=10 -m
+
+#prism coin8.nm coin.pctl -const K=2,k=10 -m
+
+#prism coin10.nm coin.pctl -const K=2,k=10 -m
+

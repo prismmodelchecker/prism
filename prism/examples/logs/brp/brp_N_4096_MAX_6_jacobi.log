@@ -1,0 +1,99 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Tue Mar 27 20:45:56 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/brp/brp.pm ../models/brp/brp.pctl -s -prop 3 -maxiters 50000000 -nocompact -jacobi -const 'N=4096,MAX=6' -epsilon 1e-8
+
+Parsing model file "../models/brp/brp.pm"...
+
+Parsing properties file "../models/brp/brp.pctl"...
+
+7 properties:
+(1) P=? [ true U srep=1&rrep=3&recv ]
+(2) P=? [ true U srep=3&!(rrep=3)&recv ]
+(3) P=? [ true U s=5 ]
+(4) P=? [ true U s=5&srep=2 ]
+(5) P=? [ true U s=5&srep=1&i>8 ]
+(6) P=? [ true U !(srep=0)&!recv ]
+(7) R=? [ F "deadlock" ]
+
+Type:        DTMC
+Modules:     sender receiver checker channelK channelL 
+Variables:   s srep nrtr i bs s_ab fs ls r rrep fr lr br r_ab recv T k l 
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ true U s=5 ]
+Model constants: N=4096,MAX=6
+
+Building model...
+Model constants: N=4096,MAX=6
+
+Computing reachable states...
+
+Reachability (BFS): 24593 iterations in 12.00 seconds (average 0.000488, setup 0.00)
+
+Time for model construction: 20.853 seconds.
+
+Warning: Deadlocks detected and fixed in 8199 states
+
+Type:        DTMC
+States:      385033 (1 initial)
+Transitions: 516099
+
+Transition matrix: 2961 nodes (6 terminal), 516099 minterms, vars: 41r/41c
+
+Prob0: 19 iterations in 0.01 seconds (average 0.000632, setup 0.00)
+
+Prob1: 24577 iterations in 9.81 seconds (average 0.000399, setup 0.00)
+
+yes = 28672, no = 16405, maybe = 339956
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=385033, nnz=471022] [5.8 MB]
+Creating vector for diagonals... [2.9 MB]
+Creating vector for RHS... [2.9 MB]
+Allocating iteration vectors... [2 x 2.9 MB]
+TOTAL: [17.5 MB]
+
+Starting iterations...
+Iteration 1159: max relative diff=0.001645, 5.00 sec so far
+Iteration 2322: max relative diff=0.000815, 10.01 sec so far
+Iteration 3493: max relative diff=0.000540, 15.01 sec so far
+Iteration 4673: max relative diff=0.000403, 20.02 sec so far
+Iteration 5863: max relative diff=0.000321, 25.02 sec so far
+Iteration 7061: max relative diff=0.000267, 30.02 sec so far
+Iteration 8271: max relative diff=0.000227, 35.03 sec so far
+Iteration 9489: max relative diff=0.000198, 40.03 sec so far
+Iteration 10718: max relative diff=0.000175, 45.04 sec so far
+Iteration 11955: max relative diff=0.000157, 50.04 sec so far
+Iteration 13202: max relative diff=0.000142, 55.04 sec so far
+Iteration 14460: max relative diff=0.000130, 60.05 sec so far
+Iteration 15730: max relative diff=0.000119, 65.05 sec so far
+Iteration 17011: max relative diff=0.000110, 70.06 sec so far
+Iteration 18302: max relative diff=0.000103, 75.06 sec so far
+Iteration 19608: max relative diff=0.000096, 80.06 sec so far
+Iteration 20926: max relative diff=0.000090, 85.07 sec so far
+Iteration 22256: max relative diff=0.000084, 90.07 sec so far
+Iteration 23589: max relative diff=0.000080, 95.08 sec so far
+Iteration 24945: max relative diff=0.000022, 100.08 sec so far
+
+Jacobi: 25053 iterations in 100.48 seconds (average 0.004011, setup 0.46)
+
+Number of state Updates: -73M 
+
+Value in the initial state: 8.548181995773746E-8
+
+Time for model checking: 110.87 seconds.
+
+Result: 8.548181995773746E-8 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

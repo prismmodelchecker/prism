@@ -1,0 +1,75 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 09:46:38 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/consensus/coin5.nm ../models/consensus/coin.pctl -s -prop 4 -const K=32 -modpoliter -topological -maxiters 25000000 -epsilon 1e-8
+
+Parsing model file "../models/consensus/coin5.nm"...
+
+Parsing properties file "../models/consensus/coin.pctl"...
+
+8 properties:
+(1) P>=1 [ F "finished" ]
+(2) Pmin=? [ F "finished"&"all_coins_equal_0" ]
+(3) Pmin=? [ F "finished"&"all_coins_equal_1" ]
+(4) Pmax=? [ F "finished"&!"agree" ]
+(5) Pmin=? [ F<=k "finished" ]
+(6) Pmax=? [ F<=k "finished" ]
+(7) R{"steps"}min=? [ F "finished" ]
+(8) R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 pc5 coin5 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ F "finished"&!"agree" ]
+Model constants: K=32
+
+Building model...
+Model constants: K=32
+
+Computing reachable states...
+
+Reachability (BFS): 1924 iterations in 0.48 seconds (average 0.000247, setup 0.00)
+
+Time for model construction: 0.795 seconds.
+
+Type:        MDP
+States:      2496256 (1 initial)
+Transitions: 10435120
+Choices:     8350720
+
+Transition matrix: 4470 nodes (3 terminal), 10435120 minterms, vars: 24r/24c/5nd
+
+Prob0A: 1446 iterations in 2.12 seconds (average 0.001466, setup 0.00)
+
+Prob1E: 199960 iterations in 558.56 seconds (average 0.002793, setup 0.00)
+
+yes = 820990, no = 5042, maybe = 1670224
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=2496256, nc=6357710, nnz=7948700, k=5] [99.4 MB]
+Creating vector for yes... [19.0 MB]
+Allocating iteration vectors... [2 x 19.0 MB]
+TOTAL: [156.5 MB]
+
+Starting iterations...
+
+Iterative method: 6395814 iterations in 2048.26 seconds (average 0.000320, setup 1.76)
+
+
+Number of state Updates: 171823M 
+
+Value in the initial state: 0.021871442624281527
+
+Time for model checking: 2610.427 seconds.
+
+Result: 0.021871442624281527 (value in the initial state)
+

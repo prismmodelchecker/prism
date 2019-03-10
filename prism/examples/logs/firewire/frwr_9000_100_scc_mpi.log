@@ -1,0 +1,80 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Mon Mar 12 18:19:35 GMT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=2.0g
+Command line: prism ../models/firewire/abst/deadline.nm ../models/firewire/abst/deadline.pctl -s -const 'delay=100,deadline=9000,fast=.1' -javamaxmem 2350m -modpoliter -topological
+
+Parsing model file "../models/firewire/abst/deadline.nm"...
+
+Parsing properties file "../models/firewire/abst/deadline.pctl"...
+
+1 property:
+(1) Pmin=? [ true U (s=10) ]
+
+Type:        MDP
+Modules:     abstract_firewire 
+Variables:   y x s 
+
+---------------------------------------------------------------------
+
+Model checking: Pmin=? [ true U (s=10) ]
+Model constants: deadline=9000,delay=100,fast=0.1
+
+Building model...
+Model constants: deadline=9000,delay=100,fast=0.1
+
+Computing reachable states...
+
+Reachability (BFS): 9106 iterations in 3.84 seconds (average 0.000421, setup 0.00)
+
+Time for model construction: 382.129 seconds.
+
+Type:        MDP
+States:      9757330 (1 initial)
+Transitions: 24282683
+Choices:     18903221
+
+Transition matrix: 8658 nodes (4 terminal), 24282683 minterms, vars: 26r/26c/2nd
+
+Prob0E: 440 iterations in 1.51 seconds (average 0.003427, setup 0.00)
+
+Prob1A: 8668 iterations in 5.30 seconds (average 0.000612, setup 0.00)
+
+yes = 2977226, no = 224239, maybe = 6555865
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=9757330, nc=13583918, nnz=18831272, k=3] [237.8 MB]
+Creating vector for yes... [74.4 MB]
+Allocating iteration vectors... [2 x 74.4 MB]
+TOTAL: [461.1 MB]
+
+Starting iterations...
+
+
+Number of state Updates: 0M 
+
+Error: Out of memory.
+
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x00007f23391fb512, pid=4725, tid=0x00007f2339958700
+#
+# JRE version: OpenJDK Runtime Environment (8.0_131-b11) (build 1.8.0_131-8u131-b11-2ubuntu1.16.04.3-b11)
+# Java VM: OpenJDK 64-Bit Server VM (25.131-b11 mixed mode linux-amd64 compressed oops)
+# Problematic frame:
+# C  [libc.so.6+0x84512]  cfree+0x22
+#
+# Failed to write core dump. Core dumps have been disabled. To enable core dumping, try "ulimit -c unlimited" before starting Java again
+#
+# An error report file with more information is saved as:
+# /home/sadegh/Documents/3rd/prism-DiracBased-Improving/prism/examples/scripts/hs_err_pid4725.log
+#
+# If you would like to submit a bug report, please visit:
+#   http://bugreport.java.com/bugreport/crash.jsp
+#

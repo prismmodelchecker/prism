@@ -1,0 +1,74 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Thu Mar 29 12:54:34 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/consensus/coin6.nm ../models/consensus/coin.pctl -s -prop 4 -const K=8 -improvedmodpoliter -topological -maxiters 25000000 -epsilon 1e-8
+
+Parsing model file "../models/consensus/coin6.nm"...
+
+Parsing properties file "../models/consensus/coin.pctl"...
+
+8 properties:
+(1) P>=1 [ F "finished" ]
+(2) Pmin=? [ F "finished"&"all_coins_equal_0" ]
+(3) Pmin=? [ F "finished"&"all_coins_equal_1" ]
+(4) Pmax=? [ F "finished"&!"agree" ]
+(5) Pmin=? [ F<=k "finished" ]
+(6) Pmax=? [ F<=k "finished" ]
+(7) R{"steps"}min=? [ F "finished" ]
+(8) R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 process5 process6 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 pc5 coin5 pc6 coin6 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ F "finished"&!"agree" ]
+Model constants: K=8
+
+Building model...
+Model constants: K=8
+
+Computing reachable states...
+
+Reachability (BFS): 581 iterations in 0.25 seconds (average 0.000427, setup 0.00)
+
+Time for model construction: 0.335 seconds.
+
+Type:        MDP
+States:      4612864 (1 initial)
+Transitions: 23032896
+Choices:     18445056
+
+Transition matrix: 7125 nodes (3 terminal), 23032896 minterms, vars: 25r/25c/6nd
+
+Prob0A: 439 iterations in 1.89 seconds (average 0.004301, setup 0.00)
+
+Prob1E: 20483 iterations in 185.07 seconds (average 0.009035, setup 0.00)
+
+yes = 1983636, no = 27270, maybe = 2601958
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building sparse matrix... [n=4612864, nc=12027756, nnz=15044940, k=6] [188.0 MB]
+Creating vector for yes... [35.2 MB]
+Allocating iteration vectors... [2 x 35.2 MB]
+TOTAL: [293.6 MB]
+
+Starting iterations...
+
+Iterative method: 1491043 iterations in 128.00 seconds (average 0.000086, setup 3.32)
+
+Number of updates: 7845M 
+
+Value in the initial state: 0.09374938011486779
+
+Time for model checking: 318.426 seconds.
+
+Result: 0.09374938011486779 (value in the initial state)
+

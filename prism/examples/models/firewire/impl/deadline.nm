@@ -1,0 +1,175 @@
+// full firewire protocol with integer semantics
+// dxp/gxn 14/06/01
+
+// CLOCKS
+// x1 clock for node1
+// x2 clock for node2
+// y1 and y2 clocks for wire12
+// z1 and z2 clocks for wire21
+
+// deadline
+const int deadline;
+
+// maximum and minimum delays
+// for fast
+const int rc_fast_max = 85;
+const int rc_fast_min = 76;
+// for slow
+const int rc_slow_max = 167;
+const int rc_slow_min = 159;
+// wire
+const int delay;
+// probability of chooisng fast
+const double fast;
+const double slow=1-fast;
+
+module wire12
+	
+	w12 : [0..10];
+	// 0 - empty
+	// 1 -	rec_req
+	// 2 -  rec_req_ack
+	// 3 -	rec_ack
+	// 4 -	rec_ack_idle
+	// 5 -	rec_idle
+	// 6 -	rec_idle_req
+	// 7 -	rec_ack_req
+	// 8 -	rec_req_idle
+	// 9 -	rec_idle_ack
+	
+	// clock for wire12
+	y1 : [0..37];
+	y2 : [0..37];
+	
+	// empty
+	// do not need y1 and y2 to increase as always reset when this state is left
+	// similarly can reset y1 and y2 when we re-enter this state
+	[snd_req12]  (w12=0) -> (w12'=1) & (y1'=0) & (y2'=0);
+	[snd_ack12]  (w12=0) -> (w12'=3) & (y1'=0) & (y2'=0);
+	[snd_idle12] (w12=0) -> (w12'=5) & (y1'=0) & (y2'=0);
+	[time]       (w12=0) -> (w12'=w12);
+	// rec_req
+	[snd_req12]  (w12=1) -> (w12'=1);
+	[rec_req12]  (w12=1) -> (w12'=0) & (y1'=0) & (y2'=0);
+	[snd_ack12]  (w12=1) -> (w12'=2) & (y2'=0);
+	[snd_idle12] (w12=1) -> (w12'=8) & (y2'=0);
+	[time]       (w12=1) & (y2<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_req_ack
+	[snd_ack12] (w12=2) -> (w12'=2);
+	[rec_req12] (w12=2) -> (w12'=3);
+	[time]      (w12=2) & (y1<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_ack
+	[snd_ack12]  (w12=3) -> (w12'=3);
+	[rec_ack12]  (w12=3) -> (w12'=0) & (y1'=0) & (y2'=0);
+	[snd_idle12] (w12=3) -> (w12'=4) & (y2'=0);
+	[snd_req12]  (w12=3) -> (w12'=7) & (y2'=0);
+	[time]       (w12=3) & (y2<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_ack_idle
+	[snd_idle12] (w12=4) -> (w12'=4);
+	[rec_ack12]  (w12=4)  -> (w12'=5);
+	[time]       (w12=4) & (y1<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_idle
+	[snd_idle12] (w12=5) -> (w12'=5);
+	[rec_idle12] (w12=5) -> (w12'=0) & (y1'=0) & (y2'=0);
+	[snd_req12]  (w12=5) -> (w12'=6) & (y2'=0);
+	[snd_ack12]  (w12=5) -> (w12'=9) & (y2'=0);
+	[time]       (w12=5) & (y2<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_idle_req
+	[snd_req12]  (w12=6)  -> (w12'=6);
+	[rec_idle12] (w12=6) -> (w12'=1);
+	[time]       (w12=6) & (y1<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_ack_req
+	[snd_req12] (w12=7) -> (w12'=7);
+	[rec_ack12] (w12=7) -> (w12'=1);
+	[time]      (w12=7) & (y1<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_req_idle
+	[snd_idle12] (w12=8) -> (w12'=8);
+	[rec_req12]  (w12=8)  -> (w12'=5);
+	[time]       (w12=8) & (y1<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	// rec_idle_ack
+	[snd_ack12]  (w12=9)  -> (w12'=9);
+	[rec_idle12] (w12=9) -> (w12'=3);
+	[time]       (w12=9) & (y1<delay) ->  (y1'=min(y1+1,37)) & (y2'=min(y2+1,37));
+	
+endmodule
+
+module node1
+
+	// clock for node1
+	x1 : [0..168];
+	// local state
+	s1 : [0..8];
+	// 0 - root contention
+	// 1 - rec_idle
+	// 2 - rec_req_fast
+	// 3 - rec_req_slow
+	// 4 - rec_idle_fast
+	// 5 - rec_idle_slow
+	// 6 - snd_req
+	// 7- almost_root
+	// 8 - almost_child
+	
+	// added resets to x1 when not considered again until after rest
+	
+	// root contention (immediate state)
+	[snd_idle12] (s1=0) -> fast : (s1'=2) & (x1'=0) +  slow : (s1'=3) & (x1'=0);
+	[rec_idle21] (s1=0) -> (s1'=1);
+	// rec_idle (immediate state)
+	[snd_idle12] (s1=1) -> fast : (s1'=4) & (x1'=0) +  slow : (s1'=5) & (x1'=0);
+	[rec_req21]  (s1=1) -> (s1'=0);
+	// rec_req_fast
+	[rec_idle21] (s1=2) -> (s1'=4);
+	[snd_ack12]  (s1=2) & (x1>=rc_fast_min) -> (s1'=7) & (x1'=0);
+	[time]       (s1=2) & (x1<rc_fast_max) -> (x1'=min(x1+1,168));
+	// rec_req_slow
+	[rec_idle21] (s1=3) -> (s1'=5);
+	[snd_ack12]  (s1=3) & (x1>=rc_slow_min) -> (s1'=7) & (x1'=0);
+	[time]       (s1=3) & (x1<rc_slow_max) -> (x1'=min(x1+1,168));
+	// rec_idle_fast
+	[rec_req21] (s1=4) -> (s1'=2);
+	[snd_req12] (s1=4) & (x1>=rc_fast_min) -> (s1'=6) & (x1'=0);
+	[time]      (s1=4) & (x1<rc_fast_max) -> (x1'=min(x1+1,168));
+	// rec_idle_slow
+	[rec_req21] (s1=5) -> (s1'=3);
+	[snd_req12] (s1=5) & (x1>=rc_slow_min) -> (s1'=6) & (x1'=0);
+	[time]      (s1=5) & (x1<rc_slow_max) -> (x1'=min(x1+1,168));
+	// snd_req 
+	// do not use x1 until reset (in state 0 or in state 1) so do not need to increase x1
+	// also can set x1 to 0 upon entering this state
+	[rec_req21] (s1=6) -> (s1'=0);
+	[rec_ack21] (s1=6) -> (s1'=8);
+	[time]      (s1=6) -> (s1'=s1);
+	// almost root (immediate) 
+	// loop in final states to remove deadlock
+	// (wait until both process have decided otherwise need fairness)
+	[] (s1=7) & (s2=8) -> (s1'=s1);
+	[time] (s1=7) -> (s1'=s1);
+	[] (s1=8) & (s2=7) -> (s1'=s1);
+	[time] (s1=8) -> (s1'=s1);
+	
+endmodule
+
+// wire21
+module wire21=wire12[w12=w21, y1=z1, y2=z2, snd_req12=snd_req21, snd_idle12=snd_idle21, snd_ack12=snd_ack21, 
+                                            rec_req12=rec_req21, rec_idle12=rec_idle21, rec_ack12=rec_ack21] endmodule
+
+// node2
+module node2=node1[s1=s2, s2=s1, x1=x2, rec_req21=rec_req12, rec_idle21=rec_idle12, rec_ack21=rec_ack12, 
+                                        snd_req12=snd_req21, snd_idle12=snd_idle21, snd_ack12=snd_ack21] endmodule
+
+// timer
+module timer
+	
+	// global time
+	t : [0..deadline+1];
+	
+	// time increases
+	[time] (t<deadline) -> (t'=min(t+1,deadline+1));
+	// loop when time passes deadline
+	[] (t>=deadline) -> (t'=t);
+	// note that since we are finding the minimum probability
+	// when t>=deadline  the adversary which gives the minimum probability
+	// will always choose this transition, and hence the states of the 
+	// nodes and the wires will no longer change 
+	
+endmodule

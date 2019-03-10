@@ -381,11 +381,6 @@ public class NondetModelChecker extends NonProbModelChecker
 	 */
 	protected StateValues checkExpressionMultiObjective(List<Expression> exprs, boolean forAll, JDDNode statesOfInterest) throws PrismException
 	{
-		if (fairness) {
-			JDD.Deref(statesOfInterest);
-			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
-		}
-
 		// For now, just support a single expression (which may encode a Boolean combination of objectives)
 		if (exprs.size() > 1) {
 			JDD.Deref(statesOfInterest);
@@ -494,13 +489,7 @@ public class NondetModelChecker extends NonProbModelChecker
 		boolean hasMaxReward = false;
 		//boolean hasLTLconstraint = false;
 
-		if (fairness) {
-			JDD.Deref(statesOfInterest);
-			throw new PrismNotSupportedException("Multi-objective reasoning under fairness currently not supported");
-		}
-
 		if (doIntervalIteration) {
-			JDD.Deref(statesOfInterest);
 			throw new PrismNotSupportedException("Interval iteration currently not supported for multi-objective reasoning");
 		}
 
@@ -1434,12 +1423,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDDNode b;
 		StateValues rewards = null;
 
-		if (fairness && !min) {
-			// Rmax with fairness not supported; Rmin computation is unaffected
-			JDD.Deref(statesOfInterest);
-			throw new PrismNotSupportedException("Maximum reward computation currently not supported under fairness.");
-		}
-
 		// currently, ignore statesOfInterest
 		JDD.Deref(statesOfInterest);
 
@@ -1483,12 +1466,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		LTLProduct<NondetModel> modelProduct;
 		NondetModelChecker mcProduct;
 		long l;
-
-		if (fairness && !min) {
-			// Rmax with fairness not supported; Rmin computation is unaffected
-			JDD.Deref(statesOfInterest);
-			throw new PrismNotSupportedException("Maximum reward computation currently not supported under fairness.");
-		}
 
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
@@ -1730,8 +1707,16 @@ public class NondetModelChecker extends NonProbModelChecker
 					probs = new StateValuesMTBDD(probsMTBDD, model);
 					break;
 				case Prism.SPARSE:
+				if(prism.getMDPSolnMethod() == prism.MDP_IMPROVEDBOUNDED)
+				{
+					probsDV = PrismSparse.ImprovedNondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
+					probs = new StateValuesDV(probsDV, model);
+				}
+				else
+				{
 					probsDV = PrismSparse.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
 					probs = new StateValuesDV(probsDV, model);
+				}
 					break;
 				case Prism.HYBRID:
 					probsDV = PrismHybrid.NondetBoundedUntil(tr, odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, time, min);
@@ -2052,6 +2037,32 @@ public class NondetModelChecker extends NonProbModelChecker
 						strat = new IntegerVector(ddStrat, allDDRowVars, odd);
 						JDD.Deref(ddStrat);
 					}
+					if(doTopologicalVI)
+					{
+						if(prism.getMDPSolnMethod() == prism.MDP_GAUSSSEIDEL)
+						{
+							probsDV = PrismSparse.NondetUntilTopologicalGS(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+							probs = new StateValuesDV(probsDV, model);
+						}else
+						if(prism.getMDPSolnMethod() == prism.MDP_MODPOLITER)
+						{
+							probsDV = PrismSparse.NondetUntilTopologicalMPI(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+							probs = new StateValuesDV(probsDV, model);
+						}
+						else 
+						if(prism.getMDPSolnMethod() == prism.MDP_IMPROVEDMODPOLITER)
+						{
+							probsDV = PrismSparse.NondetUntilImprovedTopologicalMPI(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+							probs = new StateValuesDV(probsDV, model);
+						}
+						else
+						{
+							probsDV = PrismSparse.NondetUntilTopological(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+							probs = new StateValuesDV(probsDV, model);
+						}
+					}
+					else
+
 					if (doIntervalIteration) {
 						if (transform != null) {
 							strat = null;  // strategy generation with the quotient not yet supported
@@ -2088,6 +2099,19 @@ public class NondetModelChecker extends NonProbModelChecker
 							                                  strat);
 							probs = new StateValuesDV(probsDV, transformed);
 						} else {
+							if(prism.getMDPSolnMethod() == prism.MDP_GAUSSSEIDEL) {
+							probsDV = PrismSparse.NondetUntilGS(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);}
+						else
+							if(prism.getMDPSolnMethod() == prism.MDP_IMPROVEDMODPOLITER){	
+						
+							probsDV = PrismSparse.NondetUntilImprovedModPI(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
+							probs = new StateValuesDV(probsDV, model);
+							}
+							else
+							if(prism.getMDPSolnMethod() == prism.MDP_MODPOLITER) {
+							probsDV = PrismSparse.NondetUntilModPI(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);}
+							else
+
 							probsDV = PrismSparse.NondetUntil(tr, tra, model.getSynchs(), odd, allDDRowVars, allDDColVars, allDDNondetVars, yes, maybe, min, strat);
 							probs = new StateValuesDV(probsDV, model);
 						}
@@ -2207,8 +2231,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		StateValues rewards = null;
 		// Local copy of setting
 		int engine = this.engine;
-
-		// For Rmax[ C ] computation, fairness does not affect the result
 
 		if (doIntervalIteration) {
 			throw new PrismNotSupportedException("Interval iteration for total rewards is currently not supported");
@@ -2567,9 +2589,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		if (doIntervalIteration) {
 			double max_v = rewards.maxFiniteOverBDD(maybe);
-			if (max_v != Double.NEGATIVE_INFINITY) {
-				mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
-			}
+			mainLog.println("Maximum finite value in solution vector at end of interval iteration: " + max_v);
 		}
 
 		// derefs

@@ -1,0 +1,8 @@
+#!/bin/csh
+
+foreach N ( 2 4 6 8 10 )
+  echo "Generating for N=$N"
+  prismpp .coinN.nm.pp $N >! coin"$N".nm
+  unix2dos coin"$N".nm
+end
+

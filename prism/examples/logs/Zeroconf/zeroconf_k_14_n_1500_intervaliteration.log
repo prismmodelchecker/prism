@@ -1,0 +1,60 @@
+PRISM
+=====
+
+Version: 4.4.dev
+Date: Wed Mar 28 14:45:34 IRDT 2018
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../models/zeroconf/zeroconf.nm ../models/zeroconf/zeroconf.pctl -s -const 'N=1500,K=14,reset=false,err=.1' -prop 2 -ii -epsilon 1e-10
+
+Parsing model file "../models/zeroconf/zeroconf.nm"...
+
+Parsing properties file "../models/zeroconf/zeroconf.pctl"...
+
+4 properties:
+(1) Pmin=? [ true U (l=4&ip=1) ]
+(2) Pmax=? [ true U (l=4&ip=1) ]
+(3) Rmin=? [ F l=4 ]
+(4) Rmax=? [ F l=4 ]
+
+Type:        MDP
+Modules:     environment host0 
+Variables:   b_ip7 b_ip6 b_ip5 b_ip4 b_ip3 b_ip2 b_ip1 b_ip0 n n0 n1 b z ip_mess x y coll probes mess defend ip l 
+
+---------------------------------------------------------------------
+
+Model checking: Pmax=? [ true U (l=4&ip=1) ]
+Model constants: reset=false,N=1500,K=14,err=0.1
+
+Building model...
+Model constants: reset=false,N=1500,K=14,err=0.1
+
+Computing reachable states...
+
+Reachability (BFS): 779 iterations in 168.17 seconds (average 0.215877, setup 0.00)
+
+Time for model construction: 169.543 seconds.
+
+Type:        MDP
+States:      4427159 (1 initial)
+Transitions: 10009768
+Choices:     8157565
+
+Transition matrix: 245227 nodes (6 terminal), 10009768 minterms, vars: 58r/58c/7nd
+
+Prob0A: 156 iterations in 7.39 seconds (average 0.047385, setup 0.00)
+
+Prob1E: 2665 iterations in 152.97 seconds (average 0.057400, setup 0.00)
+
+yes = 171851, no = 1160964, maybe = 3094344
+
+Computing remaining probabilities...
+Engine: Sparse
+
+Building quotient MDP, collapsing maximal end components as well as yes and no states...
+Time for computing maximal end components: 5.836 seconds, found 0 MECs.
+
+Error: Not enough extra action variables preallocated, please increase using -ddextraactionvars switch!.
+
+Warning: CUDD reports 132350 non-zero references.
+

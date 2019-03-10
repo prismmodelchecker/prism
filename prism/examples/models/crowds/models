@@ -1,0 +1,20 @@
+crowds.pm -const TotalRuns=3,CrowdSize=5
+crowds.pm -const TotalRuns=4,CrowdSize=5
+crowds.pm -const TotalRuns=5,CrowdSize=5
+crowds.pm -const TotalRuns=6,CrowdSize=5
+
+crowds.pm -const TotalRuns=3,CrowdSize=10
+crowds.pm -const TotalRuns=4,CrowdSize=10
+crowds.pm -const TotalRuns=5,CrowdSize=10
+crowds.pm -const TotalRuns=6,CrowdSize=10
+
+crowds.pm -const TotalRuns=3,CrowdSize=15
+crowds.pm -const TotalRuns=4,CrowdSize=15
+crowds.pm -const TotalRuns=5,CrowdSize=15
+crowds.pm -const TotalRuns=6,CrowdSize=15
+
+crowds.pm -const TotalRuns=3,CrowdSize=20
+crowds.pm -const TotalRuns=4,CrowdSize=20
+crowds.pm -const TotalRuns=5,CrowdSize=20
+crowds.pm -const TotalRuns=6,CrowdSize=20
+
