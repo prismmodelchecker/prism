@@ -43,9 +43,9 @@
 
 //------------------------------------------------------------------------------
 
-// solve the linear equation system Ax=b with Jacobi/JOR
+// solve the linear equation system Ax=b with Gauss-Seidel/SOR
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1JOR
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1IMPROVEDSOR
 (
 JNIEnv *env,
 jclass cls,
@@ -59,7 +59,8 @@ jlong __jlongpointer _b,	// vector b (if null, assume all zero)
 jlong __jlongpointer _init,	// init soln
 jboolean transpose,	// transpose A? (i.e. solve xA=b not Ax=b?)
 jboolean row_sums,	// use row sums for diags instead? (strictly speaking: negative sum of non-diagonal row elements)
-jdouble omega		// omega (over-relaxation parameter)
+jdouble omega,		// omega (over-relaxation parameter)
+jboolean forwards	// forwards or backwards?
 )
 {
 	// cast function parameters
@@ -69,8 +70,7 @@ jdouble omega		// omega (over-relaxation parameter)
 	DdNode *a = jlong_to_DdNode(_a);		// matrix A
 	DdNode *b = jlong_to_DdNode(_b);		// vector b
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
-
-	int maybe_states = 0;	
+	int maybe_states = 0, M0;	
 
 	// mtbdds
 	DdNode *reach = NULL, *diags = NULL, *id = NULL;
@@ -83,18 +83,18 @@ jdouble omega		// omega (over-relaxation parameter)
 	RMSparseMatrix *rmsm = NULL;
 	CMSRSparseMatrix *cmsrsm = NULL;
 	// vectors
-	double *diags_vec = NULL, *b_vec = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL;
+	double *diags_vec = NULL, *b_vec = NULL, *soln = NULL;
 	DistVector *diags_dist = NULL, *b_dist = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, l, h, iters;
+	int i, j, fb, l, h, iters;
 	double d, kb, kbt;
 	bool done;
 	// measure for convergence termination check
 	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
-
+	
 	// exception handling around whole function
 	try {
 	
@@ -139,7 +139,7 @@ jdouble omega		// omega (over-relaxation parameter)
 	}
 	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%ld%s] ", n, nnz, compact_a?", compact":"");
+	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, compact_a?", compact":"");
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diags, either by extracting from mtbdd or
@@ -194,22 +194,21 @@ jdouble omega		// omega (over-relaxation parameter)
 	}
 	
 	// create solution/iteration vectors
-	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
+	PS_PrintToMainLog(env, "Allocating iteration vector... ");
 	soln = mtbdd_to_double_vector(ddman, init, rvars, num_rvars, odd);
-	soln2 = new double[n];
 	kb = n*8.0/1024.0;
-	kbt += 2*kb;
-	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
+	kbt += kb;
+	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 
 	std::unique_ptr<ExportIterations> iterationExport;
 	if (PS_GetFlagExportIterations()) {
-		std::string title("PS_JOR (");
-		title += (omega == 1.0)?"Jacobi": ("JOR omega=" + std::to_string(omega));
+		std::string title("PS_SOR (");
+		title += forwards?"":"Backwards ";
+		title += (omega == 1.0)?"Gauss-Seidel":("SOR omega=" + std::to_string(omega));
 		title += ")";
-
 		iterationExport.reset(new ExportIterations(title.c_str()));
 		iterationExport->exportVector(soln, n, 0);
 	}
@@ -224,55 +223,168 @@ jdouble omega		// omega (over-relaxation parameter)
 	iters = 0;
 	done = false;
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
+	double *non_zeros;
+	unsigned char *row_counts;
+	int *row_starts;
+	bool use_counts;
+	unsigned int *cols;
+	double *dist;
+	int dist_shift;
+	int dist_mask;
+	if (!compact_a) {
+		non_zeros = rmsm->non_zeros;
+		row_counts = rmsm->row_counts;
+		
+		use_counts = rmsm->use_counts;
+		cols = rmsm->cols;
+		if(use_counts)
+		{
+			row_starts = new int[n+1]; 
+			row_starts[0] = 0;
+			for(i = 1; i <= n; i++)
+				row_starts[i] = row_starts[i - 1] + row_counts[i-1]; 
+		}
+		else
+			row_starts = (int *)rmsm->row_counts;;		
+		} else {
+		row_counts = cmsrsm->row_counts;
+		row_starts = (int *)cmsrsm->row_counts;
+		use_counts = cmsrsm->use_counts;
+		cols = cmsrsm->cols;
+		dist = cmsrsm->dist;
+		dist_shift = cmsrsm->dist_shift;
+		dist_mask = cmsrsm->dist_mask;
+	}
 
+	int top, kk, M1, M2, l2, h2, m;
+	int num_trans = row_starts[n];
+	int* dirac_group = new int[n + 2];
+	int* stack = new int[n + 2];
+	bool* stacked = new bool[n + 2];
+	int* useful_states = new int[n];
+	int* uf_choice_strt = new int[n];
+	int* uf_cols = new int[num_trans];
+	double* uf_nnz = new double[num_trans];
+	double sup_norm, x;
+	
+	for(i = 0; i < n; i++)
+	{
+		if(row_starts[i+1] <= row_starts[i])
+		{
+			dirac_group[i] = i;
+			stacked[i] = true;		
+		}
+		else
+		{
+			dirac_group[i] = -1;
+			stacked[i] = false;
+		}
+	}
+	for(i = 0; i < n; i++)
+		if(dirac_group[i] == -1)
+		{
+			top = 0;
+			kk = i;
+			while(stacked[kk] == false)	
+			{
+				stacked[kk] = true;
+				stack[top++] = kk;
+				l2 = row_starts[kk];
+				h2 = row_starts[1 + kk];
+				if(h2 - l2 == 1)
+					kk = cols[l2];
+				else
+					break;
+			}
+			if(dirac_group[kk] < 0)
+				dirac_group[kk] = kk;
+			j = dirac_group[kk];
+			while(top-- > 0)
+			{
+				kk = stack[top];
+				dirac_group[kk] = j;
+			}
+		}
+
+	M0 = M1 = M2 = 0;
+	for(i = 0; i < n; i++)
+	{			
+		if(row_starts[i] >= row_starts[i+1])
+			continue;
+		if(dirac_group[i] == i)
+		{
+			useful_states[M0] = i;
+			uf_choice_strt[M0] = M1;
+			for(j = 0; j < row_starts[1 + i] - row_starts[i]; j++)
+			{
+				M2 = row_starts[i];
+				if(dirac_group[cols[M2 + j]] >= 0)
+				   	uf_cols[M1 + j] = dirac_group[cols[M2 + j]];
+				else
+					uf_cols[M1 + j] = cols[M2 + j];
+				uf_nnz[M1 + j] = non_zeros[M2 + j];
+			}
+			M0++;
+			M1 += j;
+		}
+		uf_choice_strt[M0] = M1;
+	}
+
+		while(!done)
+		{
+			iters++;
+			sup_norm = 0;
+		
+			for(m = 0; m < M0; m++){	
+				i = useful_states[m];
+				
+				d = (b == NULL) ? 0.0 : ((!compact_b) ? b_vec[i] : b_dist->dist[b_dist->ptrs[i]]);
+				if(row_starts[i] >= row_starts[i+1] || i != dirac_group[i])
+					continue;	
+
+				l = uf_choice_strt[m];
+				h = uf_choice_strt[m + 1];
+
+				for(j = l; j < h; j++)
+					d -= uf_nnz[j] * soln[uf_cols[j]];
+
+				x = (d - soln[i]);
+				soln[i] = d;
+				if (term_crit == TERM_CRIT_RELATIVE && soln[i] > 0) {
+					x /= soln[i];
+				}
+				if (x > sup_norm) 
+					sup_norm = x;
+			}
+			if (sup_norm < term_crit_param) 
+				done = true;					
+		}
+		for(i = 0; i < n; i++)		
+		{
+			if(row_starts[i] < row_starts[i+1])
+			if(dirac_group[i] > 0)			
+				soln[i] = soln[dirac_group[i]];
+		}
+
+
+	done = false;
 	while (!done && iters < max_iters) {
 		
 		iters++;
 		
+		measure.reset();
+		
 		// store local copies of stuff
-		double *non_zeros;
-		unsigned char *row_counts;
-		int *row_starts;
-		bool use_counts;
-		unsigned int *cols;
-		double *dist;
-		int dist_shift;
-		int dist_mask;
-		if (!compact_a) {
-			non_zeros = rmsm->non_zeros;
-			row_counts = rmsm->row_counts;
-			row_starts = (int *)rmsm->row_counts;
-			use_counts = rmsm->use_counts;
-			cols = rmsm->cols;
-		} else {
-			row_counts = cmsrsm->row_counts;
-			row_starts = (int *)cmsrsm->row_counts;
-			use_counts = cmsrsm->use_counts;
-			cols = cmsrsm->cols;
-			dist = cmsrsm->dist;
-			dist_shift = cmsrsm->dist_shift;
-			dist_mask = cmsrsm->dist_mask;
-		}
-		if(iters == 1)
-		{
-			for(i = 0; i < n; i++)
-				if(!use_counts)
-				{
-					if(row_starts[i+1] > row_starts[i])
-						maybe_states++;
-				}
-				else
-					if(row_counts[i] > 0)
-						maybe_states++;
-		}		
-
+		
 		// matrix multiply
-		h = 0;
+		l = nnz; h = 0;
 		for (i = 0; i < n; i++) {
 			
+			// loop actually over i
+			// (can do forwards or backwards sor/gs)
+			
 			d = (b == NULL) ? 0.0 : ((!compact_b) ? b_vec[i] : b_dist->dist[b_dist->ptrs[i]]);
-			if (!use_counts) { l = row_starts[i]; h = row_starts[i+1]; }
-			else { l = h; h += row_counts[i]; }
+			l = row_starts[i]; h = row_starts[i+1]; 
 			// "row major" version
 			if (!compact_a) {
 				for (j = l; j < h; j++) {
@@ -290,31 +402,27 @@ jdouble omega		// omega (over-relaxation parameter)
 			if (omega != 1.0) {
 				d = ((1-omega) * soln[i]) + (omega * d);
 			}
+			// compute norm for convergence
+			// (note we must do this inside the loop because we only store one vector for sor/gauss-seidel)
+			measure.measure(soln[i], d);
 			// set vector element
-			soln2[i] = d;
+			soln[i] = d;
 		}
 
 		if (iterationExport)
-			iterationExport->exportVector(soln2, n, 0);
+			iterationExport->exportVector(soln, n, 0);
 
 		// check convergence
-		measure.reset();
-		measure.measure(soln, soln2, n);
 		if (measure.value() < term_crit_param) {
 			done = true;
 		}
-
+		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
 			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
 			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
-		
-		// prepare for next iteration
-		tmpsoln = soln;
-		soln = soln2;
-		soln2 = tmpsoln;		
 	}
 	
 	// stop clocks
@@ -323,7 +431,7 @@ jdouble omega		// omega (over-relaxation parameter)
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	PS_PrintToMainLog(env, "\n%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", (omega == 1.0)?"Jacobi":"JOR", iters, time_for_iters, time_for_iters/iters, time_for_setup);
+	PS_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_for_iters, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
@@ -345,10 +453,8 @@ jdouble omega		// omega (over-relaxation parameter)
 	if (diags_dist) delete diags_dist;
 	if (b_vec) delete[] b_vec;
 	if (b_dist) delete b_dist;
-	if (soln2) delete[] soln2;
-
-	printf("\nNumber of state Updates: %dM \n", (int) ((maybe_states * iters) / 1000000));
-
+	printf("\nNumber of state Updates: %dM \n", (int) ((M0 * iters) / 1000000));
+	
 	return ptr_to_jlong(soln);
 }
 

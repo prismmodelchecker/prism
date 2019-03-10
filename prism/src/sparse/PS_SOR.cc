@@ -70,6 +70,7 @@ jboolean forwards	// forwards or backwards?
 	DdNode *a = jlong_to_DdNode(_a);		// matrix A
 	DdNode *b = jlong_to_DdNode(_b);		// vector b
 	DdNode *init = jlong_to_DdNode(_init);		// init soln
+	int maybe_states = 0;	
 
 	// mtbdds
 	DdNode *reach = NULL, *diags = NULL, *id = NULL;
@@ -253,7 +254,19 @@ jboolean forwards	// forwards or backwards?
 			dist_shift = cmsrsm->dist_shift;
 			dist_mask = cmsrsm->dist_mask;
 		}
-		
+
+		if(iters == 1)
+		{
+			for(i = 0; i < n; i++)
+				if(!use_counts)
+				{
+					if(row_starts[i+1] > row_starts[i])
+						maybe_states++;
+				}
+				else
+					if(row_counts[i] > 0)
+						maybe_states++;
+		}
 		// matrix multiply
 		l = nnz; h = 0;
 		for (fb = 0; fb < n; fb++) {
@@ -312,7 +325,7 @@ jboolean forwards	// forwards or backwards?
 	time_taken = (double)(stop - start1)/1000;
 	
 	// print iters/timing info
-	PS_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_taken, time_for_iters/iters, time_for_setup);
+	PS_PrintToMainLog(env, "\n%s%s: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", forwards?"":"Backwards ", (omega == 1.0)?"Gauss-Seidel":"SOR", iters, time_for_iters, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
@@ -334,7 +347,8 @@ jboolean forwards	// forwards or backwards?
 	if (diags_dist) delete diags_dist;
 	if (b_vec) delete[] b_vec;
 	if (b_dist) delete b_dist;
-	
+	printf("\nNumber of state Updates: %dM \n", (int) ((maybe_states * iters) / 1000000));
+
 	return ptr_to_jlong(soln);
 }
 

@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include <cmath>
+#include <math.h>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -37,14 +37,11 @@
 #include "PrismNativeGlob.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
-#include "Measures.h"
-#include "ExportIterations.h"
 #include <new>
-#include <memory>
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetUntil
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetUntilGS
 (
 JNIEnv *env,
 jclass cls,
@@ -75,8 +72,6 @@ jlong _strat				// strategy storage
 	DdNode *maybe = jlong_to_DdNode(m); 			// 'maybe' states
 	int *strat = (int *)jlong_to_ptr(_strat);		// strategy storage
 	int maybe_states;
-	double updates;
-
 	// mtbdds
 	DdNode *a = NULL, *tmp = NULL;
 	// model stats
@@ -85,14 +80,16 @@ jlong _strat				// strategy storage
 	// sparse matrix
 	NDSparseMatrix *ndsm = NULL;
 	// vectors
-	double *yes_vec = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL;
+	double *yes_vec = NULL, *soln = NULL, /**soln2 = NULL,*/ *tmpsoln = NULL;
 	// timing stuff
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// adversary stuff
 	int export_adv_enabled = export_adv;
+	bool adv_loop = false;
 	FILE *fp_adv = NULL;
 	int adv_j;
+	bool adv_new;
 	int *adv = NULL;
 	// action info
 	jstring *action_names_jstrings;
@@ -100,11 +97,9 @@ jlong _strat				// strategy storage
 	int num_actions;
 	// misc
 	int i, j, k, l1, h1, l2, h2, iters;
-	double d1, d2, kb, kbt;
+	double d1, d2, x, sup_norm, kb, kbt;
 	bool done, first;
-	// measure for convergence termination check
-	MeasureSupNorm measure(term_crit == TERM_CRIT_RELATIVE);
-
+	
 	// exception handling around whole function
 	try {
 	
@@ -165,7 +160,7 @@ jlong _strat				// strategy storage
 	}
 	
 	// get vector for yes
-	PS_PrintToMainLog(env, "Creating vector for yes... ");
+	PS_PrintToMainLog(env, "Creating vector for yes...");
 	yes_vec = mtbdd_to_double_vector(ddman, yes, rvars, num_rvars, odd);
 	kb = n*8.0/1024.0;
 	kbt += kb;
@@ -174,7 +169,7 @@ jlong _strat				// strategy storage
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
 	soln = new double[n];
-	soln2 = new double[n];
+//	soln2 = new double[n];		Canceled for Gauss-Seidel.
 	kb = n*8.0/1024.0;
 	kbt += 2*kb;
 	PS_PrintMemoryToMainLog(env, "[2 x ", kb, "]\n");
@@ -200,24 +195,18 @@ jlong _strat				// strategy storage
 	// print total memory usage
 	PS_PrintMemoryToMainLog(env, "TOTAL: [", kbt, "]\n");
 	
-	// initial solution is yes
+	// initial solution is yes 
 	for (i = 0; i < n; i++) {
 		soln[i] = yes_vec[i];
-//		if (soln[i]) printf("yes[%d] := %f;\n", i+1, yes[i]);
+		//if (soln[i]) printf("yes[%d] := %f;\n", i+1, yes[i]);
 	}
-
-	std::unique_ptr<ExportIterations> iterationExport;
-	if (PS_GetFlagExportIterations()) {
-		iterationExport.reset(new ExportIterations("PS_NondetUntil"));
-		iterationExport->exportVector(soln, n, 0);
-	}
-
+	
 	// get setup time
 	stop = util_cpu_time();
 	time_for_setup = (double)(stop - start2)/1000;
 	start2 = stop;
 	start3 = stop;
-
+	
 	// start iterations
 	iters = 0;
 	done = false;
@@ -226,7 +215,9 @@ jlong _strat				// strategy storage
 	// open file to store adversary (if required)
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		fp_adv = fopen(export_adv_filename, "w");
-		if (!fp_adv) {
+		if (fp_adv) {
+			fprintf(fp_adv, "%d ?\n", n);
+		} else {
 			PS_PrintWarningToMainLog(env, "Adversary generation cancelled (could not open file \"%s\").", export_adv_filename);
 			export_adv_enabled = EXPORT_ADV_NONE;
 		}
@@ -255,12 +246,13 @@ jlong _strat				// strategy storage
 	while (!done && iters < max_iters) {
 		
 		iters++;
-		
+		sup_norm = 0.0;
 		// do matrix multiplication and min/max
 		h1 = h2 = 0;
 		for (i = 0; i < n; i++) {
 			d1 = 0.0; // initial value doesn't matter
 			first = true; // (because we also remember 'first')
+			adv_new = false;
 			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
 			else { l1 = h1; h1 += row_counts[i]; }
 			for (j = l1; j < h1; j++) {
@@ -292,67 +284,51 @@ jlong _strat				// strategy storage
 			}
 			// set vector element
 			// (if no choices, use value of yes)
-			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
+			x = (h1 > l1) ? fabs(d1 - soln[i]) : 0;
+			soln[i] = (h1 > l1) ? d1 : yes_vec[i];
+			if (term_crit == TERM_CRIT_RELATIVE) {
+				x /= soln[i];
+			}
+			if (x > sup_norm) sup_norm = x;
+
 		}
+		
 
-		if (iterationExport)
-			iterationExport->exportVector(soln2, n, 0);
-
-		// check convergence 
-		measure.reset();
-		measure.measure(soln, soln2, n);
-		if (measure.value() < term_crit_param) {
+		if (sup_norm < term_crit_param) {
 			done = true;
 		}
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, measure.isRelative()?"relative ":"", measure.value());
+			PS_PrintToMainLog(env, "Iteration %d: max %sdiff=%f", iters, (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
 			PS_PrintToMainLog(env, ", %.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
 			start3 = util_cpu_time();
 		}
 		
-		// prepare for next iteration
 		tmpsoln = soln;
-		soln = soln2;
-		soln2 = tmpsoln;
 	}
 	
 	// Traverse matrix to extract adversary
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
-		// Do two passes: first to compute the number of transitions,
-		// the second to actually do the export
-		int num_trans = 0;
-		for (int pass = 1; pass <= 2; pass++) {
-			if (pass == 2) {
-				fprintf(fp_adv, "%d %d\n", n, num_trans);
-			}
-			h1 = h2 = 0;
-			for (i = 0; i < n; i++) {
-				if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
-				else { l1 = h1; h1 += row_counts[i]; }
-				// Have to loop through all choices (to compute offsets)
-				for (j = l1; j < h1; j++) {
-					if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
-					else { l2 = h2; h2 += choice_counts[j]; }
-					// But only output a choice if it is in the adversary
-					if (j == adv[i]) {
-						switch (pass) {
-						case 1:
-							num_trans += (h2-l2);
-							break;
-						case 2:
-							for (k = l2; k < h2; k++) {
-								switch (export_adv_enabled) {
-								case EXPORT_ADV_DTMC:
-									fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]); break;
-								case EXPORT_ADV_MDP:
-									fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
-								}
-								if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
-								fprintf(fp_adv, "\n");
-							}
+		h1 = h2 = 0;
+		for (i = 0; i < n; i++) {
+			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
+			else { l1 = h1; h1 += row_counts[i]; }
+			// Have to loop through all choices (to compute offsets)
+			for (j = l1; j < h1; j++) {
+				if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
+				else { l2 = h2; h2 += choice_counts[j]; }
+				// But only output a choice if it is in the adversary
+				if (j == adv[i]) {
+					for (k = l2; k < h2; k++) {
+						switch (export_adv_enabled) {
+						case EXPORT_ADV_DTMC:
+							fprintf(fp_adv, "%d %d %g", i, cols[k], non_zeros[k]); break;
+						case EXPORT_ADV_MDP:
+							fprintf(fp_adv, "%d 0 %d %g", i, cols[k], non_zeros[k]); break;
 						}
+						if (ndsm->actions != NULL) fprintf(fp_adv, " %s", ndsm->actions[j]>0?action_names[ndsm->actions[j]-1]:"");
+						fprintf(fp_adv, "\n");
 					}
 				}
 			}
@@ -368,7 +344,7 @@ jlong _strat				// strategy storage
 	PS_PrintToMainLog(env, "\nIterative method: %d iterations in %.2f seconds (average %.6f, setup %.2f)\n", iters, time_taken, time_for_iters/iters, time_for_setup);
 	
 	// if the iterative method didn't terminate, this is an error
-	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
+	if (!done) { delete soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
 	// close file to store adversary (if required)
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
@@ -394,12 +370,12 @@ jlong _strat				// strategy storage
 	if (a) Cudd_RecursiveDeref(ddman, a);
 	if (ndsm) delete ndsm;
 	if (yes_vec) delete[] yes_vec;
-	if (soln2) delete[] soln2;
+//	if (soln2) delete[] soln2;
 	if (strat == NULL && adv) delete[] adv;
 	if (action_names != NULL) {
 		release_string_array_from_java(env, action_names_jstrings, action_names, num_actions);
 	}
-	printf("\nNumber of updates = %d M \n", (int)(((double)iters * maybe_states)/1000000));	
+	printf("\nNumber of updates = %d M \n", (int)(((double)iters * maybe_states)/1000000));		
 	return ptr_to_jlong(soln);
 }
 

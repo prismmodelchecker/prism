@@ -11,7 +11,7 @@
 //	PRISM is free software; you can redistribute it and/or modify
 //	it under the terms of the GNU General Public License as published by
 //	the Free Software Foundation; either version 2 of the License, or
-//	(at your option) any later version. 
+//	(at your option) any later version.
 //	
 //	PRISM is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include <cmath>
+#include <math.h>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
@@ -40,7 +40,7 @@
 
 //------------------------------------------------------------------------------
 
-JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1NondetBoundedUntil
+JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1ImprovedNondetBoundedUntil
 (
 JNIEnv *env,
 jclass cls,
@@ -80,7 +80,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	long start1, start2, start3, stop;
 	double time_taken, time_for_setup, time_for_iters;
 	// misc
-	int i, j, k, l1, h1, l2, h2, iters;
+	int i, j, k, l1, h1, l2, h2, iters, counter;
 	double d1, d2, kb, kbt;
 	
 	// exception handling around whole function
@@ -129,7 +129,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	
 	// initial solution is yes
 	for (i = 0; i < n; i++) {
-		soln[i] = yes_vec[i];
+		soln2[i] = soln[i] = yes_vec[i];
 	}
 	
 	// get setup time
@@ -141,41 +141,207 @@ jboolean min		// min or max probabilities (true = min, false = max)
 	// start iterations
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
 	
+	// store local copies of stuff
+	// store local copies of stuff
+	double *non_zeros = ndsm->non_zeros;
+	unsigned char *row_counts = ndsm->row_counts;
+	bool use_counts = ndsm->use_counts;
+	unsigned char *choice_counts = ndsm->choice_counts;
+	unsigned int *cols = ndsm->cols;
+
+	
+	int *row_starts; 
+	int *adv_starts; 
+	int *choice_starts;
+	
+	if(use_counts)
+	{
+		row_starts = new int[n+1]; //(int *)ndsm->row_counts;  
+		choice_starts;
+		row_starts[0] = 0;
+		for(i = 1; i <= n; i++)
+			row_starts[i] = row_starts[i - 1] + row_counts[i-1]; 
+
+		choice_starts = new int[row_starts[n]+1]; 
+		choice_starts[0] = 0;
+
+		for(i = 1; i <= row_starts[n]; i++)
+			choice_starts[i] = choice_starts[i - 1] + choice_counts[i-1]; 
+
+	}
+	else
+	{
+		row_starts = (int *)ndsm->row_counts;
+		choice_starts = (int *)ndsm->choice_counts;
+	}
+
+
+	int* useful_state = new int[n];
+	int top = 0;
+	int num_of_trans = choice_starts[row_starts[n]];
+
+	int* back_start, *back_state;
+	back_start = new int[n + 1];
+	int *back_freq = new int[n + 1];
+	back_state = new int[num_of_trans+10];
+
+	int _not = 0;
+
+	for(i = 0; i < n; i++)
+		back_freq[i] = 0;
+
+	for(i = 0; i < n; i++)
+	{
+		for(j = row_starts[i]; j < row_starts[i + 1]; j++)
+			for(k = choice_starts[j]; k < choice_starts[j+1]; k++)
+				back_freq[cols[k]]++;	
+	}
+
+	back_start[0] = 0;
+	for(i = 1; i <= n; i++)
+		back_start[i] = back_start[i-1] + back_freq[i-1];
+
+	for(i = 0; i <= n; i++)
+		back_freq[i] = back_start[i];
+
+	for(i = 0; i < n; i++)
+		for(j = row_starts[i]; j < row_starts[i+1]; j++)
+			for(k = choice_starts[j]; k < choice_starts[j+1]; k++){
+				back_state[back_freq[cols[k]]++] = i;				
+			}
+
+	int *Dir_row_starts = new int[n+1];
+	int *Non_Dir_row_starts = new int[n+1];
+	Dir_row_starts[0] = 0;
+	Non_Dir_row_starts[0] = 0;
+
+	int *selected = new int[n];
+	for(i = 0; i < n; i++)
+		selected[i] = 0;
+//	for(i = 0; i < n; i++)
+//		if(yes_vec[i] >= 1)
+//			for(j = back_start[i]; j < back_start[i+1]; j++)
+//				selected[back_state[j]] = 0;
+	
+
+	double* Dir_nnz = new double[row_starts[n]+1];
+	double* Non_Dir_nnz = new double[row_starts[n]+1];
+	
+	int* Dir_cols = new int[row_starts[n]+1];
+	int* Non_Dir_cols = new int[row_starts[n]+1];	
+
+	int *Dir_choice_starts = new int[row_starts[n]+1];
+	int *Non_Dir_choice_starts = new int[row_starts[n]+1];
+	Non_Dir_choice_starts[0] = 0;
+	
+	int Dir_ind, Non_Dir_ind, Non_Dir_chs, m;
+	Dir_ind = Non_Dir_ind = Non_Dir_chs = 0;
+	for(i = 0; i < n; i++)
+	{
+		if(row_starts[i] < row_starts[i+1])
+			useful_state[top++] = i;
+
+		for(j = row_starts[i]; j < row_starts[i+1]; j++)
+			if(choice_starts[j+1] - choice_starts[j] == 1)
+			{
+				Dir_cols[Dir_ind++] = cols[choice_starts[j]];
+			}
+			else
+			{
+				for(k = choice_starts[j]; k < choice_starts[j+1]; k++)
+				{	
+					Non_Dir_cols[Non_Dir_ind] = cols[k];
+					Non_Dir_nnz[Non_Dir_ind++] = non_zeros[k];				
+				}
+				Non_Dir_choice_starts[++Non_Dir_chs] = Non_Dir_ind;
+			}
+		Dir_row_starts[i + 1] = Dir_ind;
+		Non_Dir_row_starts[i + 1] = Non_Dir_chs;
+ 
+	}
+	bool flag = true;
+	double d3;
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 0; iters < bound; iters++) {
 		
-		// store local copies of stuff
-		double *non_zeros = ndsm->non_zeros;
-		unsigned char *row_counts = ndsm->row_counts;
-		int *row_starts = (int *)ndsm->row_counts;
-		unsigned char *choice_counts = ndsm->choice_counts;
-		int *choice_starts = (int *)ndsm->choice_counts;
-		bool use_counts = ndsm->use_counts;
-		unsigned int *cols = ndsm->cols;
-		
+		if(flag && iters % 10 == 5)
+		{
+			counter = 0;
+			for(i = 0; i < n; i++)
+				if(selected[i] == iters) counter++;
+			if(counter > top * .3)
+				flag = false;
+		}	
+		//printf("\n %d", counter);	
 		// do matrix multiplication and min/max
 		h1 = h2 = 0;
-		for (i = 0; i < n; i++) {
+		if(flag)
+		for (m = 0; m < top; m++) {
+			i = useful_state[m];
+			if(selected[i] < iters)
+			{
+				soln2[i] = soln[i];
+				continue;
+			}	
 			d1 = min ? 2 : -1;
-			if (!use_counts) { l1 = row_starts[i]; h1 = row_starts[i+1]; }
-			else { l1 = h1; h1 += row_counts[i]; }
-			for (j = l1; j < h1; j++) {
+			for(j = Non_Dir_row_starts[i]; j < Non_Dir_row_starts[i+1]; j++)
+			{
 				d2 = 0;
-				if (!use_counts) { l2 = choice_starts[j]; h2 = choice_starts[j+1]; }
-				else { l2 = h2; h2 += choice_counts[j]; }
-				for (k = l2; k < h2; k++) {
-					d2 += non_zeros[k] * soln[cols[k]];
-				}
-				if (min) {
-					if (d2 < d1) d1 = d2;
-				} else {
-					if (d2 > d1) d1 = d2;
-				}
+				for(k = Non_Dir_choice_starts[j]; k < Non_Dir_choice_starts[j + 1]; k++)
+					d2 += Non_Dir_nnz[k] * soln[Non_Dir_cols[k]];
+				if (min){ 
+					if (d2 < d1) d1 = d2;}
+				else 
+					if (d2 > d1) d1 = d2;				
 			}
+			for(j = Dir_row_starts[i]; j < Dir_row_starts[i + 1]; j++)
+			{
+				d2 = soln[Dir_cols[j]];
+				if (min) 
+					{if (d2 < d1) d1 = d2;}
+				else
+					if (d2 > d1) d1 = d2;
+			}
+
 			// set vector element
 			// (if no choices, use value of yes)
+			l1 = row_starts[i]; h1 = row_starts[i+1];
+			if(d1 > soln2[i])
+			{
+				for(j = back_start[i]; j < back_start[i+1]; j++)
+					selected[back_state[j]] = iters + 1;		
+			}
 			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
 		}
+		else
+			for (i = 0; i < n; i++) {
+			d1 = min ? 2 : -1;
+			for(j = Non_Dir_row_starts[i]; j < Non_Dir_row_starts[i+1]; j++)
+			{
+				d2 = 0;
+				for(k = Non_Dir_choice_starts[j]; k < Non_Dir_choice_starts[j + 1]; k++)
+					d2 += Non_Dir_nnz[k] * soln[Non_Dir_cols[k]];
+				if (min){ 
+					if (d2 < d1) d1 = d2;}
+				else 
+					if (d2 > d1) d1 = d2;				
+			}
+			for(j = Dir_row_starts[i]; j < Dir_row_starts[i + 1]; j++)
+			{
+				d2 = soln[Dir_cols[j]];
+				if (min) 
+					{if (d2 < d1) d1 = d2;}
+				else
+					if (d2 > d1) d1 = d2;
+			}
+
+			// set vector element
+			// (if no choices, use value of yes)
+			l1 = row_starts[i]; h1 = row_starts[i+1];
+			soln2[i] = (h1 > l1) ? d1 : yes_vec[i];
+		}
+
+
 		
 		// print occasional status update
 		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
@@ -189,6 +355,7 @@ jboolean min		// min or max probabilities (true = min, false = max)
 		soln = soln2;
 		soln2 = tmpsoln;
 	}
+
 	
 	// stop clocks
 	stop = util_cpu_time();
