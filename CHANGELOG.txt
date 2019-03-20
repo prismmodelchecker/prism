@@ -14,6 +14,7 @@ Changes since version 4.4 (up-to-date wrt c0533b0b)
   - PRISM GUI settings file (.prism) moved to more standard locations
   - ITE supported in exact/parametric mode
   - various improvements to model checking in "exact" mode
+  - bugfix for incorrect model construction during fast adaptive uniformisation
   - faster explicit construction of models with no labels
   - command-line -exportsteadystates switch implies -steadystate
   - GUI shortcuts: double-clicks for addition of constants, labels
