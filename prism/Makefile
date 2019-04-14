@@ -127,11 +127,11 @@ JAVA_DIR_BACKUP = $(shell \
 # Compilers etc. #
 ##################
 
-CC = gcc
-CXX = g++
-LD = $(CXX)
-JAVAC = javac
-JAVACC = javacc
+export CC = gcc
+export CXX = g++
+export LD = $(CXX)
+export JAVAC = javac
+export JAVACC = javacc
 
 ##############
 # Flags etc. #
@@ -320,8 +320,7 @@ cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  $(MAKE) CC="$(CC)" CXX="$(CXX)" \
-	  XCFLAGS="$(CUDD_XCFLAGS)"; \
+	  $(MAKE) XCFLAGS="$(CUDD_XCFLAGS)"; \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
 	fi)
@@ -330,8 +329,7 @@ cuddpackage: checks
 cuddpackageforce: checks
 	  @echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  $(MAKE) CC="$(CC)" CXX="$(CXX)" \
-	  XCFLAGS="$(CUDD_XCFLAGS)";
+	  $(MAKE) XCFLAGS="$(CUDD_XCFLAGS)";
 
 # Use this to force a rebuild (with javacc) of the main parser
 parser:
@@ -339,8 +337,7 @@ parser:
 	cd src/parser && \
 	$(MAKE) touch && \
 	$(MAKE) \
-	JAVAC="$(JAVAC) $(JFLAGS)" \
-	JAVACC="$(JAVACC)" \
+	JFLAGS="$(JFLAGS)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
 
 # Build various external libraries needed by PRISM
@@ -351,9 +348,6 @@ extpackages: checks
 	  $(MAKE) \
 	  OSTYPE="$(OSTYPE)" \
 	  ARCH="$(ARCH)" \
-	  CC="$(CC)" \
-	  CXX="$(CXX)" \
-	  LD="$(LD)" \
 	  CFLAGS="$(CFLAGS)" \
 	  CXXFLAGS="$(CXXFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
@@ -383,11 +377,7 @@ make_dirs:
 	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
 	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
 	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
-	  CC="$(CC)" \
-	  CXX="$(CXX)" \
-	  LD="$(LD)" \
-	  JAVAC="$(JAVAC) $(JFLAGS)" \
-	  JAVACC="$(JAVACC)" \
+	  JFLAGS="$(JFLAGS)" \
 	  CFLAGS="$(CFLAGS)" \
 	  CXXFLAGS="$(CXXFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
