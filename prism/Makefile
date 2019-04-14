@@ -127,11 +127,24 @@ JAVA_DIR_BACKUP = $(shell \
 # Compilers etc. #
 ##################
 
-export CC = gcc
-export CXX = g++
-export LD = $(CXX)
-export JAVAC = javac
-export JAVACC = javacc
+ifeq ($(OSTYPE),cygwin)
+	ifeq ($(ARCH),x86_64)
+		CC = /usr/bin/x86_64-w64-mingw32-gcc
+		CXX = /usr/bin/x86_64-w64-mingw32-g++
+	else
+		CC = /usr/bin/i686-w64-mingw32-gcc
+		CXX = /usr/bin/i686-w64-mingw32-g++
+	endif
+	JAVACC = javacc.bat
+else
+	CC = gcc
+	CXX = g++
+	JAVACC = javacc
+endif
+LD = $(CXX)
+JAVAC = javac
+
+export CC CXX LD JAVAC JAVACC
 
 ##############
 # Flags etc. #
@@ -209,8 +222,6 @@ endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
-		CC = /usr/bin/x86_64-w64-mingw32-gcc
-		CXX = /usr/bin/x86_64-w64-mingw32-g++
 		CUDD_XCFLAGS = -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 $(DEBUG) $(WARNINGS) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
@@ -218,8 +229,6 @@ ifeq ($(OSTYPE),cygwin)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
 	else
-		CC = /usr/bin/i686-w64-mingw32-gcc
-		CXX = /usr/bin/i686-w64-mingw32-g++
 		CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) $(WARNINGS) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
@@ -229,7 +238,6 @@ ifeq ($(OSTYPE),cygwin)
 	endif
 	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
 	JFLAGS = -encoding UTF8
-	JAVACC = javacc.bat
 	SHARED = -shared
 	#SHARED = -G
 	EXE = .exe
