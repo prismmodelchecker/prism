@@ -53,7 +53,7 @@ $(PRISM_DIR_REL)/$(PRISM_LIB_DIR)/$(LIBPREFIX)jdd$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)
 
 $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
-	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(INCLUDES)
 
 clean: checks
 	@rm -f $(CLASS_FILES) $(PRISM_DIR_REL)/$(PRISM_LIB_DIR)/$(LIBPREFIX)jdd$(LIBSUFFIX) $(O_FILES)

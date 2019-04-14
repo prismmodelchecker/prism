@@ -47,7 +47,7 @@ $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/dd_test$(EXE): $(PRISM_DIR_REL)/$(
 	$(LD) $(LDFLAGS) -o $@ $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/dd_test.o -L$(PRISM_DIR_REL)/$(PRISM_LIB_DIR) -ldd
 
 $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
-	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(INCLUDES)
 
 clean: checks
 	@rm -f $(PRISM_DIR_REL)/$(PRISM_LIB_DIR)/$(LIBPREFIX)dd$(LIBSUFFIX) $(O_FILES) $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/dd_test$(EXE)
