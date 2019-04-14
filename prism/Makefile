@@ -277,13 +277,13 @@ endif
 CUDD_DIR =		$(shell if [ -d cudd ]; then echo cudd; else echo ../cudd; fi )
 #CUDD_DIR =		cudd
 
-SRC_DIR =		src
-CLASSES_DIR =	classes
-OBJ_DIR =		obj
-LIB_DIR =		lib
-INCLUDE_DIR =	include
-IMAGES_DIR =    images
-DTDS_DIR =      dtds
+PRISM_SRC_DIR     = src
+PRISM_CLASSES_DIR = classes
+PRISM_OBJ_DIR     = obj
+PRISM_LIB_DIR     = lib
+PRISM_INCLUDE_DIR = include
+PRISM_IMAGES_DIR  = images
+PRISM_DTDS_DIR    = dtds
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
@@ -337,10 +337,10 @@ cuddpackageforce: checks
 parser:
 	@echo Making parser ...; \
 	cd src/parser && \
-	$(MAKE) SRC_DIR="$(SRC_DIR)" touch && \
+	$(MAKE) PRISM_SRC_DIR="$(PRISM_SRC_DIR)" touch && \
 	$(MAKE) \
-	SRC_DIR="$(SRC_DIR)" \
-	CLASSES_DIR="$(CLASSES_DIR)" \
+	PRISM_SRC_DIR="$(PRISM_SRC_DIR)" \
+	PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" \
 	JAVAC="$(JAVAC) $(JFLAGS)" \
 	JAVACC="$(JAVACC)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
@@ -382,11 +382,11 @@ make_dirs:
 	  (cd src/$$dir && \
 	  $(MAKE) \
 	  CUDD_DIR="$(CUDD_DIR)" \
-	  SRC_DIR="$(SRC_DIR)" \
-	  CLASSES_DIR="$(CLASSES_DIR)" \
-	  OBJ_DIR="$(OBJ_DIR)" \
-	  LIB_DIR="$(LIB_DIR)" \
-	  INCLUDE_DIR="$(INCLUDE_DIR)" \
+	  PRISM_SRC_DIR="$(PRISM_SRC_DIR)" \
+	  PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" \
+	  PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" \
+	  PRISM_LIB_DIR="$(PRISM_LIB_DIR)" \
+	  PRISM_INCLUDE_DIR="$(PRISM_INCLUDE_DIR)" \
 	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
 	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
 	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
@@ -408,7 +408,7 @@ make_dirs:
 	done; \
 	if [ "$(OSTYPE)" = "darwin" ]; then \
 	  echo Creating shared library symlinks...; \
-	  (cd $(LIB_DIR) && \
+	  (cd $(PRISM_LIB_DIR) && \
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
 # On Windows, convert the generated JNI headers using dos2unix
@@ -420,11 +420,11 @@ make_dirs:
 bin_scripts:
 	@for target in $(BIN_TARGETS); do \
 	  target_trunc=`echo $$target | sed 's/\.[^.]*$$//'` && \
-	  echo Copying "$(SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
-	  cp $(SRC_DIR)/bin/$$target bin/$$target_trunc; \
+	  echo Copying "$(PRISM_SRC_DIR)/bin/$$target -> bin/$$target_trunc" && \
+	  cp $(PRISM_SRC_DIR)/bin/$$target bin/$$target_trunc; \
 	done;
-	@echo Copying "$(OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
-	cp $(OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
+	@echo Copying "$(PRISM_OBJ_DIR)/prism/ngprism$(EXE) -> bin/ngprism$(EXE)" && \
+	cp $(PRISM_OBJ_DIR)/prism/ngprism$(EXE) bin/ngprism$(EXE)
 	@./install.sh silent
 
 # Some checks to make sure that the main settings are valid
@@ -486,7 +486,7 @@ checks:
 
 # Misc: count the number of lines of code
 count_loc:
-	find $(SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
+	find $(PRISM_SRC_DIR) -name '*.java' -o -name '*.cc' | xargs wc -l
 
 ###########
 # Testing #
@@ -536,14 +536,14 @@ testsfull:
 
 # Build prism.jar
 binary:
-	@echo "Generating JAR file ($(LIB_DIR)/prism.jar)..."
-	@jar cmf $(SRC_DIR)/manifest.txt $(LIB_DIR)/prism.jar -C $(CLASSES_DIR) . -C . $(IMAGES_DIR) $(DTDS_DIR)
+	@echo "Generating JAR file ($(PRISM_LIB_DIR)/prism.jar)..."
+	@jar cmf $(PRISM_SRC_DIR)/manifest.txt $(PRISM_LIB_DIR)/prism.jar -C $(PRISM_CLASSES_DIR) . -C . $(PRISM_IMAGES_DIR) $(PRISM_DTDS_DIR)
 
 # Build prism-sources.jar
 source-jar:
-	@echo "Generating sources JAR file ($(LIB_DIR)/prism-sources.jar)..."
-	@find $(SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(SRC_DIR)./-C $(SRC_DIR) /" > prism-sources.txt
-	@jar cf $(LIB_DIR)/prism-sources.jar @prism-sources.txt
+	@echo "Generating sources JAR file ($(PRISM_LIB_DIR)/prism-sources.jar)..."
+	@find $(PRISM_SRC_DIR) -type f -name '*.java' -o -name '*.form' -o -name '*.jj' | sed -e "s/^$(PRISM_SRC_DIR)./-C $(PRISM_SRC_DIR) /" > prism-sources.txt
+	@jar cf $(PRISM_LIB_DIR)/prism-sources.jar @prism-sources.txt
 	@rm -f prism-sources.txt
 
 # Download a local html copy of the manual
@@ -557,7 +557,7 @@ clean_doc:
 # Set up version, in particular for building releases
 # Unless VERSION has been passed in (as VERSION=xxx),
 # extract version number from Java code using printversion
-VERSION = $(shell SRC_DIR=$(SRC_DIR) $(SRC_DIR)/scripts/printversion.sh 2> /dev/null)
+VERSION = $(shell PRISM_SRC_DIR=$(PRISM_SRC_DIR) $(PRISM_SRC_DIR)/scripts/printversion.sh 2> /dev/null)
 
 # Default branch for building source releases
 BRANCH = master
@@ -606,10 +606,10 @@ build_release_source:
 
 # Build Javadoc (and put in javadoc directory)
 
-PRISM_CLASSPATH = "$(CLASSES_DIR)$(CLASSPATHSEP)$(LIB_DIR)/*"
+PRISM_CLASSPATH = "$(PRISM_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_LIB_DIR)/*"
 
 javadoc:
-	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(SRC_DIR)/overview.html -sourcepath $(SRC_DIR) -classpath $(SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
+	@JAVADOC_DIRS=`echo $(MAKE_DIRS) | sed 's/\//./g' | sed 's/ /:/g'` && \mkdir -p javadoc; javadoc $(JFLAGS) -d javadoc -overview $(PRISM_SRC_DIR)/overview.html -sourcepath $(PRISM_SRC_DIR) -classpath $(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_CLASSPATH) -subpackages $$JAVADOC_DIRS -exclude parser
 
 ###############
 # Cleaning up #
@@ -620,13 +620,13 @@ clean: checks
 	@(for dir in $(MAKE_DIRS); do \
 	  echo Cleaning src/$$dir ...; \
 	  (cd src/$$dir && \
-	  $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
+	  $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
 	  || exit 1; \
 	done; \
-	find $(CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
-	rm -f $(LIB_DIR)/*jnilib; \
-	rm -f $(LIB_DIR)/prism.jar; \
-	rm -f $(LIB_DIR)/prism-sources.jar; \
+	find $(PRISM_CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
+	rm -f $(PRISM_LIB_DIR)/*jnilib; \
+	rm -f $(PRISM_LIB_DIR)/prism.jar; \
+	rm -f $(PRISM_LIB_DIR)/prism-sources.jar; \
 	rm -f $(BIN_PRISM) $(BIN_XPRISM) $(BIN_PRISM_BAT) $(BIN_XPRISM_BAT) )
 
 celan: clean
@@ -647,43 +647,43 @@ clean_ext:
 
 # Remove just the prism.jar binary
 clean_binary:
-	@echo "Removing JAR file ($(LIB_DIR)/prism.jar)..."
-	@rm -f $(LIB_DIR)/prism.jar
+	@echo "Removing JAR file ($(PRISM_LIB_DIR)/prism.jar)..."
+	@rm -f $(PRISM_LIB_DIR)/prism.jar
 
 # Clear individual directories (sometimes useful)
 clean_dd: checks
-	@(cd src/dd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/dd && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_jdd: checks
-	@(cd src/jdd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/jdd && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_odd: checks
-	@(cd src/odd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/odd && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_dv: checks
-	@(cd src/dv && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/dv && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_prism: checks
-	@(cd src/prism && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/prism && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_mtbdd: checks
-	@(cd src/mtbdd && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/mtbdd && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_sparse: checks
-	@(cd src/sparse && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/sparse && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_hybrid: checks
-	@(cd src/hybrid && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/hybrid && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_parser: checks
-	@(cd src/parser && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/parser && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_userinterface: checks
-	@(cd src/userinterface && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/userinterface && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_simulator: checks
-	@(cd src/simulator && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/simulator && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_jltl2ba: checks
-	@(cd src/jltl2ba && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/jltl2ba && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_jltl2dstar: checks
-	@(cd src/jltl2dstar && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/jltl2dstar && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_explicit: checks
-	@(cd src/explicit && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/explicit && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_pta: checks
-	@(cd src/pta && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/pta && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_param: checks
-	@(cd src/param && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/param && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_strat: checks
-	@(cd src/strat && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/strat && $(MAKE) -s PRISM_SRC_DIR="$(PRISM_SRC_DIR)" PRISM_CLASSES_DIR="$(PRISM_CLASSES_DIR)" PRISM_OBJ_DIR="$(PRISM_OBJ_DIR)" PRISM_LIB_DIR="$(PRISM_LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 
 #################################################
