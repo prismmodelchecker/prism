@@ -550,7 +550,7 @@ clean_doc:
 # Set up version, in particular for building releases
 # Unless VERSION has been passed in (as VERSION=xxx),
 # extract version number from Java code using printversion
-VERSION = $(shell PRISM_SRC_DIR=$(PRISM_SRC_DIR) $(PRISM_SRC_DIR)/scripts/printversion.sh 2> /dev/null)
+VERSION = $(shell $(PRISM_SRC_DIR)/scripts/printversion.sh $(PRISM_SRC_DIR) 2> /dev/null)
 
 # Default branch for building source releases
 BRANCH = master

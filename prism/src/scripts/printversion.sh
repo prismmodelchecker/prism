@@ -4,13 +4,11 @@
 # based on extraction of the info from Java files.
 # Mirrors what is done (in Java) in prism.getVersion().
 
-# If given, PRISM_SRC_DIR is assumed to point to the
-# "src" directory in a PRISM source distribution. The
-# default is just "src".
+# If given, the first argument to the script is assumed
+# to point to the "src" directory in a PRISM source
+# distribution. The default is just "src".
 
-if [ "$PRISM_SRC_DIR" = "" ]; then
-	PRISM_SRC_DIR=src;
-fi
+PRISM_SRC_DIR="${1:-src}"
 
 if [ -f "$PRISM_SRC_DIR"/prism/Version.java ]; then
 	VERSION_NUM=`grep versionString "$PRISM_SRC_DIR"/prism/Version.java | sed -E 's/[^"]+"([^"]+)"[^"]+/\1/'`
