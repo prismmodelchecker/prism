@@ -51,14 +51,14 @@ $(PRISM_DIR_REL)/$(PRISM_LIB_DIR)/$(LIBPREFIX)prism$(LIBSUFFIX): $(O_FILES)
 	$(LD) $(SHARED) $(LDFLAGS) -o $@ $(O_FILES) $(LIBRARIES)
 
 $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/%.o: %.cc
-	$(CPP) $(CPPFLAGS) -c $< -o $@ $(INCLUDES)
+	$(CXX) $(CXXFLAGS) -c $< -o $@ $(INCLUDES)
 
 $(PRISM_DIR_REL)/$(PRISM_OBJ_DIR)/$(THIS_DIR)/ngprism$(EXE): ngprism.c
 # For ngprism on Windows, link winsocket library (ws2_32)
 	@if [ "$(EXE)" = "" ]; then \
-	  $(C) $(LDFLAGS) $(CFLAGS) -o $@ $<; \
+	  $(CC) $(LDFLAGS) $(CFLAGS) -o $@ $<; \
 	else \
-	  $(C) $(LDFLAGS) $(CFLAGS) -o $@ $< -lws2_32; \
+	  $(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< -lws2_32; \
 	fi;
 
 clean: checks

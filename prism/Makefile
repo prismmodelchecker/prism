@@ -127,9 +127,9 @@ JAVA_DIR_BACKUP = $(shell \
 # Compilers etc. #
 ##################
 
-C = gcc
-CPP = g++
-LD = $(CPP)
+CC = gcc
+CXX = g++
+LD = $(CXX)
 JAVAC = javac
 JAVACC = javacc
 
@@ -160,7 +160,7 @@ ifeq ($(OSTYPE),linux)
 		# Position Independent Code required on AMD64/Itanium
 		CUDD_XCFLAGS = -m64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(WARNINGS)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		BINDISTSUFFIX = linux64
 	else
@@ -169,13 +169,13 @@ ifeq ($(OSTYPE),linux)
 		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
 		CUDD_XCFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(WARNINGS)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		BINDISTSUFFIX = linux64
 	else
 		CUDD_XCFLAGS = -m32 -malign-double -DHAVE_IEEE_754 -DBSD $(DEBUG) $(WARNINGS)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		BINDISTSUFFIX = linux32
 	endif
@@ -194,7 +194,7 @@ endif
 ifeq ($(OSTYPE),solaris)
 	CUDD_XCFLAGS = -mcpu=ultrasparc -DHAVE_IEEE_754 -DUNIX100 -DEPD_BIG_ENDIAN $(DEBUG) $(WARNINGS)
 	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-	CPPFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
+	CXXFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
 	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 	BINDISTSUFFIX = solaris
 	BIN_TARGETS=prism.linux xprism.linux
@@ -209,21 +209,21 @@ endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
-		C = /usr/bin/x86_64-w64-mingw32-gcc
-		CPP = /usr/bin/x86_64-w64-mingw32-g++
+		CC = /usr/bin/x86_64-w64-mingw32-gcc
+		CXX = /usr/bin/x86_64-w64-mingw32-g++
 		CUDD_XCFLAGS = -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 $(DEBUG) $(WARNINGS) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
-		CPPFLAGS = --std=c++11 -DWIN32 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 -DWIN32 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
 	else
-		C = /usr/bin/i686-w64-mingw32-gcc
-		CPP = /usr/bin/i686-w64-mingw32-g++
+		CC = /usr/bin/i686-w64-mingw32-gcc
+		CXX = /usr/bin/i686-w64-mingw32-g++
 		CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) $(WARNINGS) -static-libgcc -static-libstdc++
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
-		CPPFLAGS = --std=c++11 -DWIN32 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 -DWIN32 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win32
 	endif
@@ -243,14 +243,14 @@ ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
 		CUDD_XCFLAGS = -arch x86_64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG) $(WARNINGS)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx64
 		BIN_TARGETS=prism.darwin64 xprism.linux
 	else
 		CUDD_XCFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG) $(WARNINGS)
 		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
+		CXXFLAGS = --std=c++11 $(CUDD_XCFLAGS) $(OPTIMISE)
 		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx32
 		BIN_TARGETS=prism.darwin32 xprism.linux
@@ -320,7 +320,7 @@ cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" CXX="$(CPP)" \
+	  $(MAKE) CC="$(CC)" CXX="$(CXX)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)"; \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
@@ -330,7 +330,7 @@ cuddpackage: checks
 cuddpackageforce: checks
 	  @echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
+	  $(MAKE) CC="$(CC)" CXX="$(CXX)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)";
 
 # Use this to force a rebuild (with javacc) of the main parser
@@ -351,11 +351,11 @@ extpackages: checks
 	  $(MAKE) \
 	  OSTYPE="$(OSTYPE)" \
 	  ARCH="$(ARCH)" \
-	  C="$(C)" \
-	  CPP="$(CPP)" \
+	  CC="$(CC)" \
+	  CXX="$(CXX)" \
 	  LD="$(LD)" \
 	  CFLAGS="$(CFLAGS)" \
-	  CPPFLAGS="$(CPPFLAGS)" \
+	  CXXFLAGS="$(CXXFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
 	  SHARED="$(SHARED)" \
 	  LIBPREFIX="$(LIBPREFIX)" \
@@ -383,13 +383,13 @@ make_dirs:
 	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
 	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
 	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
-	  C="$(C)" \
-	  CPP="$(CPP)" \
+	  CC="$(CC)" \
+	  CXX="$(CXX)" \
 	  LD="$(LD)" \
 	  JAVAC="$(JAVAC) $(JFLAGS)" \
 	  JAVACC="$(JAVACC)" \
 	  CFLAGS="$(CFLAGS)" \
-	  CPPFLAGS="$(CPPFLAGS)" \
+	  CXXFLAGS="$(CXXFLAGS)" \
 	  LDFLAGS="$(LDFLAGS)" \
 	  SHARED="$(SHARED)" \
 	  EXE="$(EXE)" \
