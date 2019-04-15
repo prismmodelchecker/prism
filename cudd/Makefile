@@ -7,7 +7,7 @@
 # be overridden from the command line.
 
 # C++ compiler
-CXX	= g++
+#CXX	= g++
 #CXX	= icpc
 #CXX	= ecpc
 #CXX	= CC
@@ -15,7 +15,7 @@ CXX	= g++
 #CXX	= cxx
 
 # Specific options for compilation of C++ files.
-CXXFLAGS =
+#CXXFLAGS =
 # Stricter standard conformance for g++.
 #CXXFLAGS = -std=c++98
 # For Sun CC version 5, this invokes compatibility mode.
@@ -27,7 +27,7 @@ CXXFLAGS =
 # C compiler used for all targets except optimize_dec, which always uses cc.
 #CC	= cc
 #CC	= /usr/local/opt/SUNWspro/bin/cc
-CC	= gcc
+#CC	= gcc
 #CC	= icc
 #CC	= ecc
 #CC	= /usr/ucb/cc
@@ -165,7 +165,7 @@ DDDEBUG	=
 MTRDEBUG =
 
 # Loader options.
-LDFLAGS	=
+#LDFLAGS	=
 # This may produce faster code on the DECstations.
 #LDFLAGS	= -jmpopt -Olimit 1000
 # This may be necessary under some old versions of Linux.
@@ -185,7 +185,7 @@ PURE =
 
 # Define EXE as .exe for MS-DOS and derivatives.  Not required by recent
 # versions of cygwin.
-EXE	=
+#EXE	=
 #EXE	= .exe
 
 # End of the configuration section.

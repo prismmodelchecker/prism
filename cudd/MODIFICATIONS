@@ -28,7 +28,10 @@ Details
 [Makefile]
 
 * Disabled building of nanotrav/mnemosyne packages (don't need)
-  (original makefile is in Makefile.orig)
+* Removed definitions of the CC, CXX, CXXFLAGS, LDFLAGS and EXE variables,
+  allowing their values to be inherited from the environment
+
+(original makefile is in Makefile.orig)
 
 ------------------
 
