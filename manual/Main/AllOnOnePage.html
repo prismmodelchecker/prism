@@ -178,7 +178,7 @@ a.varlink { text-decoration:none; }
 
 <!--PageTitleFmt--><!--PageText-->
 <div id='wikitext'>
-<div class='vspace'></div><h1><span class='big'>PRISM Manual</span> &nbsp; version 4.4</h1>
+<div class='vspace'></div><h1><span class='big'>PRISM Manual</span> &nbsp; version 4.5</h1>
 <hr />
 <h1><span class='big'>Contents</span></h1>
 <hr />
@@ -277,21 +277,26 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
 <hr />
 <h1>Instructions</h1>
 <h3>Prerequisites</h3>
-<p>PRISM is known to run on Linux, Windows, Mac OS X and Solaris, including 64-bit variants of these operating systems.
+<p>PRISM is known to run on Linux, Windows and Mac OS X, including 64-bit variants of these operating systems.
 </p>
 <p class='vspace'>You will need <strong>Java</strong>, version 8 or above. The tool is known to compile and run with both the <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a> and <a class='urllink' href='http://openjdk.java.net/'>OpenJDK</a>  versions of Java. To run binary versions of PRISM, you only need the Java Runtime Environment (JRE), not the full Java Development Kit (JDK).
 </p>
 <p class='vspace'>To compile PRISM from source, you need the Java Development Kit (JDK), GNU make and a C/C++ compiler (e.g. gcc/g++). For compilation under Windows, you will need Cygwin. See below for more information:
 </p>
-<div class='vspace'></div><ul><li><a href='AllOnOnePage.html#windows'>Installation on Windows (32-bit)</a>
-</li><li><a href='AllOnOnePage.html#windows64'>Installation on Windows (64-bit)</a>
+<div class='vspace'></div><ul><li><a href='AllOnOnePage.html#windows'>Installation on Windows</a>
 </li><li><a href='AllOnOnePage.html#binaries'>Installation of Linux/Mac binary versions</a>
 </li><li><a href='AllOnOnePage.html#source'>Building PRISM from source (non-Windows)</a>
 </li><li><a href='AllOnOnePage.html#cygwin'>Building PRISM from source on Windows using Cygwin</a>
 </li><li><a href='AllOnOnePage.html#msys'>Building PRISM from source on Windows using MSYS</a>
+</li></ul><p class='vspace'>If you are installing on a completely fresh operating system installation (e.g. in a virtual machine), you may find the following scripts useful,
+which install the required dependencies and PRISM itself. They can be found in the <code>prism/etc/scripts</code> directory:
+</p>
+<div class='vspace'></div><ul><li><a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-ubuntu'>script to build on a clean install of Ubuntu</a>
+</li><li><a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-rhel'>script to build on clean install of RHEL/CentOS/etc Linux</a>
 </li></ul><div class='vspace'></div><hr />
 <p class='vspace'><a name='windows' id='windows'></a>
-</p><h3>Installation on Windows (32-bit)</h3>
+<a name='windows64' id='windows64'></a>
+</p><h3>Installation on Windows</h3>
 <p>To install PRISM on Windows, just run the self-extracting installer which you <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>downloaded</a>. You do <strong>not</strong> need administrator privileges for this, just write-access to the directory chosen for installation.
 </p>
 <p class='vspace'>If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run by PRISM double-clicking the file <code>xprism.bat</code> (which may just appear as <code>xprism</code>) in the <code>bin</code> folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type <code>cd bin</code>, then <code>xprism.bat</code> and examine the resulting error. If you want to create shortcuts to <code>xprism.bat</code> manually, you will find some PRISM icons in the <code>etc</code> folder.
@@ -300,7 +305,7 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.0-win\bin"</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.5-win\bin"</span><br/>
 <span style="font-weight:bold;">prism ..\examples\dice\dice.pm</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -311,30 +316,17 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
 <p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='../InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
 </p>
 <div class='vspace'></div><hr />
-<p class='vspace'><a name='windows64' id='windows64'></a>
-</p><h3>Installation on Windows (64-bit)</h3>
-<p>PRISM is known to run on 64-bit versions of Windows. Since we currently only provide 32-bit binary versions, you will need to install and use a 32-bit, rather than 64-bit version of Java. If not, you may see strange error messages like "<code>Can't load IA 32-bit .dll on a AMD 64-bit platform</code>".
-</p>
-<p class='vspace'>You will probably also need to update <code>bin\xprism.bat</code> (and <code>bin\prism.bat</code>, if you use it), changing <code>javaw</code> on the last line to include the full path to the 32-bit executable.
-</p>
-<p class='vspace'>Other than this, installing and running PRISM is as for the 32-bit case described above.
-</p>
-<p class='vspace'>If this is not possible for some reason, an alternative is to build PRISM from source using Cygwin (See below).
-</p>
-<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='../InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
-</p>
-<div class='vspace'></div><hr />
 <p class='vspace'><a name='binaries' id='binaries'></a>
 </p><h3>Installation of Linux/Mac binary versions</h3>
-<p>To ensure compatibility, we recommend that you compile PRISM from source on non-Windows platforms. See below for instructions. However, we do <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>provide</a> pre-compiled binary distributions for Linux (32-bit) and, depending on availability, other operating systems such as Mac OS X and Solaris.
+<p>To ensure compatibility, we recommend that you compile PRISM from source on non-Windows platforms. See below for instructions. However, we do <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>provide</a> pre-compiled binary distributions for Linux and Mac OS X.
 </p>
 <p class='vspace'>To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the <code>install.sh</code> script, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.0-linux.tar.gz</span><br/>
-<span style="font-weight:bold;">tar xf prism-4.0-linux.tar</span><br/>
-<span style="font-weight:bold;">cd prism-4.0-linux</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.5-linux64.tar.gz</span><br/>
+<span style="font-weight:bold;">tar xf prism-4.5-linux64.tar</span><br/>
+<span style="font-weight:bold;">cd prism-4.5-linux64</span><br/>
 <span style="font-weight:bold;">./install.sh</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -360,9 +352,9 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.0-src.tar.gz</span><br/>
-<span style="font-weight:bold;">tar xf prism-4.0-src.tar</span><br/>
-<span style="font-weight:bold;">cd prism-4.0-src</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.5-src.tar.gz</span><br/>
+<span style="font-weight:bold;">tar xf prism-4.5-src.tar</span><br/>
+<span style="font-weight:bold;">cd prism-4.5-src/prism</span><br/>
 <span style="font-weight:bold;">make</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -423,7 +415,11 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
 </p>
 <p class='vspace'>One thing to note: make sure you unzip the PRISM distribution from within Cygwin (e.g. using <code>tar xfz prism-XXX-src.tar.gz</code>). Don't use a Windows program (Winzip, etc.) since this can cause problems.
 </p>
-<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='../InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+<p class='vspace'>If you use git to checkout the PRISM repository, we recommend that you use the version of git provided by Cygwin.
+If you use a native Windows version of git, you may want to disable the Unix-to-Windows line-ending conversion, e.g., via
+</p>
+<div class='vspace'></div><ul><li><code>git config --global core.autocrlf false</code>
+</li></ul><p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='../InstallingPRISM/CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
 </p>
 <div class='vspace'></div><hr />
 <p class='vspace'><a name='msys' id='msys'></a>
@@ -438,7 +434,7 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>At some point it will fail, saying that it cannot find the CUDD library, this is due to the failing symlinks. We can solve this by means of a few commands: 
+<p class='vspace'>At some point it will fail, saying that it cannot find the CUDD library, this is due to the failing symlinks. You can solve this as follows: 
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock8'>
@@ -472,7 +468,7 @@ Models are supplied to the tool by writing descriptions in the <a class='wikilin
 <p class='vspace'><strong>When I try to run PRISM on Windows, I get an error of the form:<br /><code>Can't load IA 32-bit .dll on a AMD 64-bit platform</code></strong>
 </p>
 <div class='vspace'></div><div class='answer' > 
-<p>You are probably running a 32-bit Windows binary using a 64-bit version of Java. You need to use a 32-bit version. Make sure you have a 32-bit version installed, and then either make sure it is first in your path or update the <code>bin\xprism.bat</code> (or <code>bin\prism.bat</code>) script, giving the full path to <code>javaw</code> at the end of the file.
+<p>You are probably running a 32-bit Windows binary using a 64-bit version of Java. The version of PRISM (32- or 64-bit) needs to match Java. Either download the 64-bit binary for PRISM, or use a 32-bit version of Java. For the latter case, either make sure the right version of Java is first in your path or update the <code>bin\xprism.bat</code> (or <code>bin\prism.bat</code>) script, giving the full path to <code>javaw</code> at the end of the file.
 </p></div>
 <div class='vspace'></div><hr />
 <div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
@@ -1076,6 +1072,7 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 </p>
 <div class='vspace'></div><ul><li><code>min(...)</code> and <code>max(...)</code>, which select the minimum and maximum value, respectively, of two or more numbers;
 </li><li><code>floor(x)</code> and <code>ceil(x)</code>, which round <code>x</code> down and up, respectively, to the nearest integer;
+</li><li><code>round(x)</code>, which rounds <code>x</code> to the nearest integer;
 </li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code>;
 </li><li><code>mod(i,n)</code> for integer modulo operations;
 </li><li><code>log(x,b)</code>, which computes the logarithm of <code>x</code> to base <code>b</code>.
@@ -1087,6 +1084,7 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 <span class="prismkeyword">max</span>(<span class="prismident">a</span>,<span class="prismident">b</span>,<span class="prismident">c</span>)<br/>
 <span class="prismident">floor</span>(<span class="prismnum">13.5</span>)<br/>
 <span class="prismident">ceil</span>(<span class="prismnum">13.5</span>)<br/>
+<span class="prismident">round</span>(<span class="prismnum">13.5</span>)<br/>
 <span class="prismident">pow</span>(<span class="prismnum">2</span>, <span class="prismnum">8</span>)<br/>
 <span class="prismident">pow</span>(<span class="prismnum">9.0</span>, <span class="prismnum">0.5</span>)<br/>
 <span class="prismident">mod</span>(<span class="prismnum">1977</span>, <span class="prismnum">100</span>)<br/>
@@ -3434,8 +3432,18 @@ Before any verification can be performed, values must be provided for any such c
 </div>
 
 <p class='vspace'>where <code>N=4:6</code> means that values of 4,5 and 6 are used for <code>N</code>,
-and <code>T=60:10:100</code> means that values of 60, 70, 80, 90 and 100 (i.e. steps of 10) are used for <code>T</code>. For convenience, constant specifications can be split across separate instances of the <code>-const</code> switch, if desired.
+and <code>T=60:10:100</code> means that values of 60, 70, 80, 90 and 100 (i.e. steps of 10) are used for <code>T</code>.
 </p>
+<p class='vspace'>For convenience, constant specifications can be split across separate instances of the <code>-const</code> switch, if desired.
+You can also specify double-valued constants as fractions rather than decimals. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock162'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4,T=85.9 -const p=1/3</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=162' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
 <p class='vspace'>From the GUI, the same thing can be achieved by selecting a single property,
 right clicking on it and selecting "New experiment"
 (or alternatively using the popup menu in the "Experiments" panel).
@@ -3467,19 +3475,19 @@ or as code which can be used to generate the graph in Matlab.
 <p>You can export all the results from an experiment to a file or to the screen. From the command-line, use the <code>-exportresults</code> switch, for example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock162'>
+<div class='sourceblock ' id='sourceblock163'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=162' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=163' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>to send to output file <code>res.txt</code>, or:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock163'>
+<div class='sourceblock ' id='sourceblock164'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults stdout</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=163' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=164' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>to send the results straight to the screen. From the GUI, right click on the experiment and select "Export results".
@@ -3487,7 +3495,7 @@ or as code which can be used to generate the graph in Matlab.
 <p class='vspace'>The default behaviour is to export a <em>list</em> of results in <em>text</em> form, using tabs to separate items. The above examples produce:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock164'>
+<div class='sourceblock ' id='sourceblock165'>
   <div class='sourceblocktext'><div class="text">N &nbsp; &nbsp; &nbsp; T &nbsp; &nbsp; &nbsp; Result<br />
 4 &nbsp; &nbsp; &nbsp; 0 &nbsp; &nbsp; &nbsp; 0.0<br />
 4 &nbsp; &nbsp; &nbsp; 10&nbsp; &nbsp; &nbsp; 4.707364688019771E-6<br />
@@ -3495,20 +3503,20 @@ or as code which can be used to generate the graph in Matlab.
 5 &nbsp; &nbsp; &nbsp; 0 &nbsp; &nbsp; &nbsp; 0.0<br />
 5 &nbsp; &nbsp; &nbsp; 10&nbsp; &nbsp; &nbsp; 3.267731327728599E-6<br />
 5 &nbsp; &nbsp; &nbsp; 20&nbsp; &nbsp; &nbsp; 8.343575060356386E-6</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=164' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=165' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can change the format in which the results are exported by appending one or more comma-separated options to the end of the <code>-exportresults</code> switch, for example to export in CSV (comma-separated values) format:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock165'>
+<div class='sourceblock ' id='sourceblock166'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=165' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=166' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock166'>
+<div class='sourceblock ' id='sourceblock167'>
   <div class='sourceblocktext'><div class="text">N, T, Result<br />
 4, 0, 0.0<br />
 4, 10, 4.707364688019771E-6<br />
@@ -3516,26 +3524,26 @@ or as code which can be used to generate the graph in Matlab.
 5, 0, 0.0<br />
 5, 10, 3.267731327728599E-6<br />
 5, 20, 8.343575060356386E-6</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=166' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=167' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can also add the <code>matrix</code> option, to export the results as one or more 2D matrices, rather than a list.
 This is particularly useful if you want to create a surface plot from results that vary over two constants.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock167'>
+<div class='sourceblock ' id='sourceblock168'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv,matrix</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=167' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=168' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock168'>
+<div class='sourceblock ' id='sourceblock169'>
   <div class='sourceblocktext'><div class="text">&quot;N\T&quot;<br />
 , 0.0, 10.0, 20.0<br />
 4, 0.0, 4.707364688019771E-6, 1.3126420636755292E-5<br />
 5, 0.0, 3.267731327728599E-6, 8.343575060356386E-6</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=168' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=169' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The <code>matrix</code> option is also available in normal (non-CSV) mode.
@@ -3543,14 +3551,14 @@ This is particularly useful if you want to create a surface plot from results th
 <p class='vspace'>Finally, you can export results in the form of comments, used by PRISM's  functionality:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock169'>
+<div class='sourceblock ' id='sourceblock170'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:comment</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=169' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=170' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock170'>
+<div class='sourceblock ' id='sourceblock171'>
   <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// RESULT (N=4,T=0): 0.0</span><br/>
 <span class="prismcomment">// RESULT (N=4,T=10): 4.707364688019771E-6</span><br/>
 <span class="prismcomment">// RESULT (N=4,T=20): 1.3126420636755292E-5</span><br/>
@@ -3558,7 +3566,7 @@ This is particularly useful if you want to create a surface plot from results th
 <span class="prismcomment">// RESULT (N=5,T=10): 3.267731327728599E-6</span><br/>
 <span class="prismcomment">// RESULT (N=5,T=20): 8.343575060356386E-6</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=170' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=171' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <hr />
@@ -3566,10 +3574,10 @@ This is particularly useful if you want to create a surface plot from results th
 <p>When model checking some properties of MDPs, PRISM can also generate an <em>optimal adversary</em>, i.e. one which corresponds to either the minimum or maximum values of the probabilities or rewards computed during verification. Recall that, for MDPs, PRISM quantifies over all possible adversaries, i.e. all possible resolutions of nondeterminism in the model. A typical property would be:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock171'>
+<div class='sourceblock ' id='sourceblock172'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=171' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=172' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which computes the maximum probability, over all adversaries, of reaching a state satisfying the label <code>"error"</code>, from all states of the model. When under the control of a specific adversary, the behaviour of an MDP is purely probabilistic, yielding a single value (for each state) for the probability of reaching <code>"error"</code>. In addition to giving the maximum probability value(s), PRISM can produce an adversary of the MDP for which the probabilities (for each state) coincide with the maximum values.
@@ -3579,10 +3587,10 @@ This is particularly useful if you want to create a surface plot from results th
 <p class='vspace'>Currently, adversary generation is only implemented in the <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>sparse engine</a>, so you need to make sure this engine is enabled. From the command-line, you specify that an optimal adversary should be generated using the <code>-exportadv</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock172'>
+<div class='sourceblock ' id='sourceblock173'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.nm -pctl 'Pmax=? [ F "error" ]' -exportadv adv.tra -s</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=172' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=173' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>From the GUI, change the "Adversary export" option (under the "PRISM" settings) from "None" to "DTMC". You can also change the filename for the export adversary which, by default, is <code>adv.tra</code> as in the example above.
@@ -3629,7 +3637,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <p>An SBML file comprises a set of <em>species</em> and a set of <em>reactions</em> which they undergo. Below is the SBML file for the simple reversible reaction: <strong>Na + Cl &#8596; Na<sup>+</sup> + Cl<sup>-</sup></strong>, where there are initially 100 Na and Cl atoms and no ions, and the base rates for the forwards and backwards reactions are 100 and 10, respectively.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock173'>
+<div class='sourceblock ' id='sourceblock174'>
   <div class='sourceblocktext'><div class="xml"><span class="sc3"><span class="re1">&lt;?xml</span> <span class="re0">version</span>=<span class="st0">&quot;1.0&quot;</span> <span class="re0">encoding</span>=<span class="st0">&quot;UTF-8&quot;</span><span class="re2">?&gt;</span></span><br />
 <span class="sc3"><span class="re1">&lt;sbml</span> <span class="re0">xmlns</span>=<span class="st0">&quot;http://www.sbml.org/sbml/level2&quot;</span> <span class="re0">metaid</span>=<span class="st0">&quot;_000000&quot;</span> <span class="re0">level</span>=<span class="st0">&quot;2&quot;</span> <span class="re0">version</span>=<span class="st0">&quot;1&quot;</span><span class="re2">&gt;</span></span><br />
 &nbsp; <span class="sc3"><span class="re1">&lt;model</span> <span class="re0">id</span>=<span class="st0">&quot;nacl&quot;</span> <span class="re0">name</span>=<span class="st0">&quot;Na+Cl&quot;</span><span class="re2">&gt;</span></span><br />
@@ -3689,13 +3697,13 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <br />
 &nbsp; <span class="sc3"><span class="re1">&lt;/model<span class="re2">&gt;</span></span></span><br />
 <span class="sc3"><span class="re1">&lt;/sbml<span class="re2">&gt;</span></span></span></div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=173' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=174' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>And here is the resulting PRISM code:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock174'>
+<div class='sourceblock ' id='sourceblock175'>
   <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// File generated by automatic SBML-to-PRISM conversion</span><br/>
 <span class="prismcomment">// Original SBML file: nacl.xml</span><br/>
 <br/>
@@ -3782,7 +3790,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <span class="prismcomment">// 4</span><br/>
 <span class="prismkeyword">rewards</span> "<span class="prismident">cl_minus</span>" <span class="prismkeyword">true</span> : <span class="prismident">cl_minus</span>; <span class="prismkeyword">endrewards</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=174' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=175' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>From the latter, we can use PRISM to generate a simple plot of the expected amount of Na and Na+ over time (using both model checking and a single random trace from the simulator):
@@ -3793,11 +3801,11 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <p>At present, the SBML-to-PRISM translator is included in the PRISM code-base, but not integrated into the application itself.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock175'>
+<div class='sourceblock ' id='sourceblock176'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd prism</span><br/>
 <span style="font-weight:bold;">java -cp classes prism.SBML2Prism sbml_file.xml &gt; prism_file.sm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=175' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=176' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>If you are using a binary (rather than source code) distribution of PRISM, replace <code>classes</code> with <code>lib/prism.jar</code> in the above.
@@ -3805,7 +3813,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <p class='vspace'>Alternatively (on Linux or Mac OS X), ensure <code>prism</code> is in your path and then save the script below as an executable file called <code>sbml2prism</code>:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock176'>
+<div class='sourceblock ' id='sourceblock177'>
   <div class='sourceblocktext'><div class="bash"><span class="co0">#!/bin/sh</span><br />
 <br />
 <span class="co0"># Startup script for SBML-to-PRISM translator</span><br />
@@ -3814,28 +3822,28 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <span class="re2">PRISM_MAINCLASS</span>=<span class="st0">&quot;prism.SBML2Prism&quot;</span><br />
 <span class="kw3">export</span> PRISM_MAINCLASS<br />
 prism <span class="st0">&quot;$@&quot;</span></div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=176' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=177' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Then use:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock177'>
+<div class='sourceblock ' id='sourceblock178'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">sbml2prism sbml_file.xml &gt; prism_file.sm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=177' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=178' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The following PRISM properties file will also be useful:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock178'>
+<div class='sourceblock ' id='sourceblock179'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">c</span>;<br/>
 <br/>
 <span class="prismkeyword">R</span>{<span class="prismident">c</span>}=? [<span class="prismkeyword">I</span>=<span class="prismident">T</span>]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=178' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=179' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This contains a single property which, based on the reward structures in the PRISM model generated by the translator, means "the expected amount of species <em>c</em> at time <em>T</em>". The constant <em>c</em> is an integer index which can range between 1 and <em>N</em>, where <em>N</em> is the number of species in the model. To view the expected amount of each species over time, create an <a class='wikilink' href='../RunningPRISM/Experiments.html'>experiment</a> in PRISM which varies <em>c</em> from 1 to <em>N</em> and <em>T</em> over the desired time range.
@@ -3852,11 +3860,11 @@ prism <span class="st0">&quot;$@&quot;</span></div></div>
 <p class='vspace'>Furthermore, since PRISM is primarily a model checking (rather than simulation) tool, it is important that the amount of each species also has an upper bound (to ensure a finite state space). When model checking, the efficiency (or even feasibility) of the process is likely to be very sensitive to the upper bound(s) chosen. When using the discrete-event simulation functionality of PRISM, this is not the case and the bounds can can be set much higher. By default the translator uses an upper bound of 100 (which is increased if the initial amount exceeds this). A different value can specified through a second command-line argument as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock179'>
+<div class='sourceblock ' id='sourceblock180'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd prism</span><br/>
 <span style="font-weight:bold;">java -cp classes prism.SBML2Prism sbml_file.xml 1000 &gt; prism_file.sm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=179' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=180' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Alternatively, upper bounds can be modified manually after the translation process.
@@ -3877,10 +3885,10 @@ If this is not the case, the model type can be overwritten using the <code>-dtmc
 For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock180'>
+<div class='sourceblock ' id='sourceblock181'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=180' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=181' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Please note that this method of constructing models in PRISM is typically less efficient than using the PRISM language.
@@ -3893,20 +3901,20 @@ The following example shows how PRISM could be used to build, export and then re
 (not a good strategy in general):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock181'>
+<div class='sourceblock ' id='sourceblock182'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exporttrans poll2.tra -exportstates poll2.sta</span><br/>
 <span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=181' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=182' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can also import label information using the switch <code>-importlabels</code>, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock182'>
+<div class='sourceblock ' id='sourceblock183'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=182' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=183' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where the labels file (<code>poll2.lab</code> above) is in the format generated by the <code>-exportlabels</code> <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html'>export option</a> of PRISM.
@@ -3919,19 +3927,19 @@ If not, the default is to assume a single initial state, in which all variables 
 <p class='vspace'>Lastly, state (but currently not transition) rewards can also be imported, using the <code>-importstaterewards</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock183'>
+<div class='sourceblock ' id='sourceblock184'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -importstaterewards poll2.srew -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=183' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=184' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In a similar style to PRISM's <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html'><code>-exportmodel</code></a> switch, you can import several several files for a model using a single <code>-importmodel</code> switch. For example, this is equivalent to the command given above:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock184'>
+<div class='sourceblock ' id='sourceblock185'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra,sta,lab,srew -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=184' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=185' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The contents of each file is determined by its extension:
@@ -3944,10 +3952,10 @@ Possible file extensions are:
 <p class='vspace'>Use the extension <code>.all</code> to import from all of these files:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock185'>
+<div class='sourceblock ' id='sourceblock186'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.all -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=185' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=186' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p><br /><br />
@@ -3957,36 +3965,41 @@ Possible file extensions are:
 <h1>Introduction</h1>
 <p>The operation of PRISM can be configured in a number of ways. From the GUI, select "Options" from the main menu to bring up the "Options" dialog. The settings are grouped under several tabs. Those which affect the basic model checking functionality of the tool are under the heading "PRISM". Separate settings are available for the simulator and various aspects of the GUI (the model editor, the property editor and the log).
 </p>
-<p class='vspace'>User options and settings for the GUI are saved locally and reused. They are stored in the file <code>.prism</code>, which can be found in your home directory (<code>~</code>) under Unix, Linux or Mac OS X and in e.g. <code>C:\Documents and Settings\username</code> under Windows. Currently the "Options" dialog in the GUI represents the easiest way to modify the settings, but the <code>.prism</code> file is in a simple textual format and can be edited by hand. To restore the default options for PRISM, click "Load Defaults" and then "Save Options" from the "Options" dialog in the GUI. Alternatively, delete the <code>.prism</code> file and then re-launch the GUI.
+<p class='vspace'>User options and settings for the GUI are saved in a file locally and reused. Currently the "Options" dialog in the GUI represents the easiest way to modify the settings, but the settings file is in a simple textual format and can also be edited by hand. To restore the default options for PRISM, click "Load Defaults" and then "Save Options" from the "Options" dialog in the GUI. Alternatively, delete the settings file re-launch the GUI. The location of the settings file depends on the operating system. As of PRISM 4.5, it is stored in:
 </p>
-<p class='vspace'>From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
+<div class='vspace'></div><ul><li><code>$XDG_CONFIG_HOME/prism.settings</code> (on Linux, if that environment variable is set)
+</li><li><code>$HOME/.config/prism.settings</code> (on Linux, if <code>$XDG_CONFIG_HOME</code> is not set)
+</li><li><code>$HOME/Library/Preferences/prism.settings</code> (on Mac OS)
+</li><li><code>.prism</code> in the user's home directory, e.g. <code>C:\Documents and Settings\username</code> (on Windows)
+</li><li><code>$HOME/.prism</code> (if the settings file was already created by an older version of PRISM)
+</li></ul><p class='vspace'>From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock186'>
+<div class='sourceblock ' id='sourceblock187'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -help</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=186' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=187' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For some switches, whose format is not straightforward, there is additional help available on the command-line, using <code>-help switch</code>. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock187'>
+<div class='sourceblock ' id='sourceblock188'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -help const</span><br/>
 <span style="font-weight:bold;">prism -help simpath</span><br/>
 <span style="font-weight:bold;">prism -help exportresults</span><br/>
 <span style="font-weight:bold;">prism -help exportmodel</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=187' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=188' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>The <code>.prism</code> settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
+<p class='vspace'>The settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock188'>
+<div class='sourceblock ' id='sourceblock189'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -settings ~/.prism</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=188' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=189' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In the following sections, we give a brief description of the most important configuration options available.
@@ -4035,13 +4048,13 @@ Performance (time and space), however, may vary significantly and if you are usi
 </li></ul><p class='vspace'>When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the <code>-mtbdd</code>, <code>-sparse</code>, <code>-hybrid</code> and <code>-explicit</code> (or <code>-m</code>, <code>-s</code>, <code>-h</code> and <code>-ex</code>, respectively) switches, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock189'>
+<div class='sourceblock ' id='sourceblock190'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 1000 -m</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1000 -s</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1000 -h</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1000 -ex</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=189' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=190' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Note also that precise details regarding the memory usage of the current engine are displayed during model checking (from the GUI, check the "Log" tab). This can provide valuable feedback when experimenting with different engines.
@@ -4178,19 +4191,19 @@ The default limit is 10,000 but can be changed with the "Termination max. iterat
 <p class='vspace'>By default PRISM uses a port of the <a class='urllink' href='http://www.ltl2dstar.de/'>ltl2dstar</a> library to construct these automata. But it also allows the use of external LTL-to-automata converters producing deterministic automata through support for the <a class='urllink' href='http://adl.github.io/hoaf/'>Hanoi Omega Automaton</a> (HOA) format. From the command line, an example of this is:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock190'>
+<div class='sourceblock ' id='sourceblock191'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm -pf "P=? [ G F x=1 ]" -ltl2datool hoa-ltl2dstar-for-prism -ltl2dasyntax lbt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=190' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=191' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The <code>-ltl2datool</code> switch specifies the location of the program to be executed to perform the LTL-to-automaton conversion. This will be called by PRISM as "<code>exec</code> <code>in-file</code> <code>out-file</code>", where <code>exec</code> is the executable, <code>in-file</code> is the name of a file containing the LTL formula to be converted and <code>out-file</code> is the name of a file where the resulting automaton should be written, in HOA format. Typically, the executable will be a script. Here is a simple example (called as <code>hoa-ltl2dstar-for-prism</code> in the above example), which calls an external copy of <code>ltl2dstar</code> in the required fashion (assuming that the <code>ltl2dstar</code> and <a class='urllink' href='http://www.lsv.ens-cachan.fr/~gastin/ltl2ba/'><code>ltl2ba</code></a>  executables are located in the current directory or on the PATH).
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock191'>
+<div class='sourceblock ' id='sourceblock192'>
   <div class='sourceblocktext'><div class="bash"><span class="co0">#! /bin/bash</span><br />
 ltl2dstar <span class="re5">--output</span>=automaton <span class="re5">--output-format</span>=hoa <span class="st0">&quot;$1&quot;</span> <span class="st0">&quot;$2&quot;</span></div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=191' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=192' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>PRISM is known to work with these HOA-enabled tools:
@@ -4254,10 +4267,10 @@ You can also change the level of precision used to check that probabilities sum 
 <p>CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit. By default, this limit is 1 GB. If you are working on a machine with significantly more memory this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the <code>-cuddmaxmem</code> switch. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock192'>
+<div class='sourceblock ' id='sourceblock193'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -cuddmaxmem 2g big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=192' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=193' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Above, <code>g</code> denotes GB. You can also use <code>m</code> for MB.
@@ -4268,30 +4281,50 @@ You can also the CUDD maximum memory setting from the options panel in the GUI, 
 <p>The Java virtual machine (JVM) used to execute PRISM also has upper memory limits. Sometimes this limit will be exceeded and you will see an error of the form <code>java.lang.OutOfMemory</code>. To resolve this problem, you can increase this memory limit. On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javamaxmem</code> switch, passed either to the command-line script <code>prism</code> or the GUI launcher <code>xprism</code>. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock193'>
+<div class='sourceblock ' id='sourceblock194'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javamaxmem 4g big_model.pm</span><br/>
 <span style="font-weight:bold;">xprism -javamaxmem 4g big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=193' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=194' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>each set the limit to 4GB. Alternatively, you set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a <code>bash</code> shell:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock194'>
+<div class='sourceblock ' id='sourceblock195'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVAMAXMEM=4g</span><br/>
 <span style="font-weight:bold;">export PRISM_JAVAMAXMEM</span><br/>
 <span style="font-weight:bold;">prism big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=194' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=195' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>If you are running PRISM on Windows you will have to do this manually by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts. To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size of the JVM.
+On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javastack</code> switch or the <code>PRISM_JAVASTACKSIZE</code> environment variable.
+Examples are:
 </p>
-<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size.
-On Unix, Linux or Mac OS X platforms, you can change the value of <code>PRISM_JAVASTACKSIZE</code> in the <code>prism</code> script
-(but note that, if you are compiling PRISM from source, this file gets regenerated from a template in <code>src/bin</code> when you recompile).
-On Windows, you can edit the call to <code>java</code> or <code>javaw</code> directly, adding e.g. <code>-Xss32M</code>.
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock196'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javastack 1g big_model.pm</span><br/>
+<span style="font-weight:bold;">xprism -javastack 1g big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=196' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock197'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVASTACKSIZE=1g</span><br/>
+<span style="font-weight:bold;">export PRISM_JAVASTACKSIZE</span><br/>
+<span style="font-weight:bold;">prism big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=197' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>If you are running PRISM on Windows you will have to do make adjustments to Java memory manually, by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts.
+To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+To change the stack size to 1GB, add <code>-Xss1g</code>.
 </p>
 <div class='vspace'></div><h3>Precomputation</h3>
 <p>By default, PRISM's probabilistic model checking algorithms use an initial <em>precomputation</em> step which uses graph-based techniques to efficient detect trivial cases where probabilities are 0 or 1. This can often result in improved performance and also reduce round-off errors. Occasionally, though, you may want to disable this step for efficiency (e.g. if you know that there are no/few such states and the precomputation process is slow). This can be done with the <code>-nopre</code> switch. You can also disable the individual algorithms for probability 0/1 using switches <code>-noprob0</code> and <code>-noprob1</code>.
@@ -4370,23 +4403,23 @@ If PRISM crashes or freezes whilst not using all/most of the available memory (y
 <div class='answer' > 
 <p>If PRISM has already output this:
 </p>
-<div class='sourceblock ' id='sourceblock195'>
+<div class='sourceblock ' id='sourceblock198'>
   <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">Building model...</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=195' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=198' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>but there is no line of the form:
 </p>
-<div class='sourceblock ' id='sourceblock196'>
+<div class='sourceblock ' id='sourceblock199'>
   <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">Time for model construction: 34.3 seconds.</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=196' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=199' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>and then you get an error like this:
 </p>
-<div class='sourceblock ' id='sourceblock197'>
+<div class='sourceblock ' id='sourceblock200'>
   <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">#</span><br/>
 <span style="font-style:italic;"># An unexpected error has been detected by Java Runtime Environment:</span><br/>
 <span style="font-style:italic;">#</span><br/>
@@ -4403,12 +4436,12 @@ If PRISM crashes or freezes whilst not using all/most of the available memory (y
 <span style="font-style:italic;">#</span><br/>
 <span style="font-style:italic;">/home/dxp/bin/prism: line 50: 19298 Aborted                 "$PRISM_JAVA" #$PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=197' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=200' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>or like this:
 </p>
-<div class='sourceblock ' id='sourceblock198'>
+<div class='sourceblock ' id='sourceblock201'>
   <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;"># </span><br/>
 <span style="font-style:italic;"># An unexpected error has been detected by HotSpot Virtual Machine: </span><br/>
 <span style="font-style:italic;"># </span><br/>
@@ -4420,7 +4453,7 @@ If PRISM crashes or freezes whilst not using all/most of the available memory (y
 <span style="font-style:italic;">#</span><br/>
 <span style="font-style:italic;">...</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=198' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=201' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>then PRISM ran out of memory whilst trying to construct the model.
@@ -4436,18 +4469,18 @@ The first thing to try in this case is to increase the amount of memory availabl
 <div class='answer' > 
 <p>If model construction was successfully completed (see previous question) but model checking was not, there are several things you can try. First of all, if the error message you see looks like the one in the previous question or you see a message such as
 </p>
-<div class='sourceblock ' id='sourceblock199'>
+<div class='sourceblock ' id='sourceblock202'>
   <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">DD_MatrixMultiply: res is NULL</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=199' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=202' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>then it may be worth increasing the memory limit for CUDD (as described above). However, if you see an error more like this:
 </p>
-<div class='sourceblock ' id='sourceblock200'>
+<div class='sourceblock ' id='sourceblock203'>
   <div class='sourceblocktext'><div class="shell"><span style="font-style:italic;">/home/dxp/bin/prism: line 50:  3139 Aborted                 "$PRISM_JAVA" $PRISM_JAVAMAXMEM -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path=$PRISM_DIR/lib -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=200' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=203' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>then increasing the memory CUDD probably will not help - PRISM is just trying to allocate more memory than is physically available on your system.
@@ -4463,18 +4496,18 @@ The first thing to try in this case is to increase the amount of memory availabl
 <div class='answer' > 
 <p>This is a less common problem and will only occur if the actual PRISM language description of your model is very large. This may be the case, for example, if you are automatically generating PRISM models in some way. Errors due to lack of memory during parsing usually look like:
 </p>
-<div class='sourceblock ' id='sourceblock201'>
+<div class='sourceblock ' id='sourceblock204'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">Exception in thread "main" java.lang.OutOfMemoryError: Java heap space </span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=201' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=204' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>or:
 </p>
-<div class='sourceblock ' id='sourceblock202'>
+<div class='sourceblock ' id='sourceblock205'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">Exception in thread "main" java.lang.StackOverflowError</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=202' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=205' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p>You can resolve this problem by increasing the memory allocated to Java.
@@ -4521,7 +4554,7 @@ See the entry "Java memory" in the section "<a class='wikilink' href='../Configu
 <p class='vspace'>One solution to this, if your model require such a delay, is to approximate a deterministic delay with an <a class='urllink' href='http://en.wikipedia.org/wiki/Erlang_distribution'>Erlang distribution</a> (a special case of a phase-type distribution). See for example this PRISM model:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock203'>
+<div class='sourceblock ' id='sourceblock206'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">ctmc</span><br/>
 <br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">k</span>;<br/>
@@ -4544,7 +4577,7 @@ See the entry "Java memory" in the section "<a class='wikilink' href='../Configu
 <br/>
 <span class="prismkeyword">endmodule</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=203' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=206' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In the model, the occurrence of the the go-labelled action occurs with an Erlang distribution with mean <code>mean</code> and shape <code>k</code>. The special case of <code>k</code>=1 is just an exponential distribution. The graph below shows the probability distribution of the delay, i.e. of <code>P=? [ F&lt;=T x=1 ]</code> for different values of <code>k</code>.
@@ -4573,7 +4606,7 @@ Below, we describe:
 <p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm'>poll2.sm</a>, the states file looks like:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock204'>
+<div class='sourceblock ' id='sourceblock207'>
   <div class='sourceblocktext'><div class="text">(s,a,s1,s2)<br />
 0:(1,0,0,0)<br />
 1:(1,0,0,1)<br />
@@ -4587,7 +4620,7 @@ Below, we describe:
 9:(2,0,1,1)<br />
 10:(2,1,0,1)<br />
 11:(2,1,1,1)</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=204' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=207' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
@@ -4604,7 +4637,7 @@ Below, we describe:
 <p class='vspace'>Here is an example, for the (DTMC) PRISM model <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (which looks like <a class='urllink' href='../uploads/lec3.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock205'>
+<div class='sourceblock ' id='sourceblock208'>
   <div class='sourceblocktext'><div class="text">6 9<br />
 0 1 0.5<br />
 0 3 0.5<br />
@@ -4615,13 +4648,13 @@ Below, we describe:
 3 3 1<br />
 4 4 1<br />
 5 2 1</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=205' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=208' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and here is one for the (CTMC) PRISM model <a class='urllink' href='../uploads/poll2.sm'>poll2.sm</a> (which looks like <a class='urllink' href='../uploads/poll2.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock206'>
+<div class='sourceblock ' id='sourceblock209'>
   <div class='sourceblocktext'><div class="text">12 22<br />
 0 1 0.5<br />
 0 2 0.5<br />
@@ -4645,7 +4678,7 @@ Below, we describe:
 10 0 1<br />
 10 11 0.5<br />
 11 2 1</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=206' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=209' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><strong>MDPs (or PAs)</strong>
@@ -4660,7 +4693,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 <p class='vspace'>Here is an example, for the (MDP) PRISM model <a class='urllink' href='../uploads/lec12mdp.nm'>lec12mdp.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdp.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock207'>
+<div class='sourceblock ' id='sourceblock210'>
   <div class='sourceblocktext'><div class="text">4 5 7<br />
 0 0 1 1 <br />
 1 0 0 0.7 <br />
@@ -4669,13 +4702,13 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 1 1 3 0.5 <br />
 2 0 2 1 <br />
 3 0 3 1 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=207' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=210' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and here is an action-labelled version of the same model, <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdpa.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock208'>
+<div class='sourceblock ' id='sourceblock211'>
   <div class='sourceblocktext'><div class="text">4 5 7<br />
 0 0 1 1 a<br />
 1 0 2 0.5 c<br />
@@ -4684,7 +4717,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 1 1 1 0.3 b<br />
 2 0 2 1 a<br />
 3 0 3 1 a</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=208' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=211' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
@@ -4695,7 +4728,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 <p class='vspace'>Here is the result for the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> example from above (a DTMC):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock209'>
+<div class='sourceblock ' id='sourceblock212'>
   <div class='sourceblocktext'><div class="text">6 9<br />
 0 0.5:1 0.5:3<br />
 1 0.5:0 0.25:2 0.25:4<br />
@@ -4703,33 +4736,33 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 3 1:3<br />
 4 1:4<br />
 5 1:2</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=209' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=212' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>for the <a class='urllink' href='../uploads/lec12mdp.nm'>lec12mdp.nm</a> example (an MDP):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock210'>
+<div class='sourceblock ' id='sourceblock213'>
   <div class='sourceblocktext'><div class="text">4 5 7<br />
 0 1:1 <br />
 1 0.7:0 0.3:1 <br />
 1 0.5:2 0.5:3 <br />
 2 1:2 <br />
 3 1:3</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=210' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=213' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and for the <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> example (an MDP with actions):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock211'>
+<div class='sourceblock ' id='sourceblock214'>
   <div class='sourceblocktext'><div class="text">4 5 7<br />
 0 1:1 a<br />
 1 0.5:2 0.5:3 c<br />
 1 0.7:0 0.3:1 b<br />
 2 1:2 a<br />
 3 1:3 a</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=211' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=214' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
@@ -4740,12 +4773,12 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 <p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get rewards in 3 states (0, 4 and 5):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock212'>
+<div class='sourceblock ' id='sourceblock215'>
   <div class='sourceblocktext'><div class="text">6 3<br />
 0 2<br />
 4 1<br />
 5 1</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=212' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=215' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
@@ -4757,25 +4790,25 @@ except that probabilities/rates are replaced with reward values, and the number 
 <p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get non-zero transition rewards on 4 transitions:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock213'>
+<div class='sourceblock ' id='sourceblock216'>
   <div class='sourceblocktext'><div class="text">6 4<br />
 1 0 1<br />
 1 2 1<br />
 1 4 1<br />
 2 5 2</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=213' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=216' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>And or the <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock214'>
+<div class='sourceblock ' id='sourceblock217'>
   <div class='sourceblocktext'><div class="text">4 5 4<br />
 1 0 2 6<br />
 1 0 3 6<br />
 1 1 0 5<br />
 1 1 1 5</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=214' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Main/AllOnOnePage?action=sourceblock&amp;num=217' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p><br /><br />

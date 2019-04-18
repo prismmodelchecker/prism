@@ -98,9 +98,14 @@ a.varlink { text-decoration:none; }
 <div id='wikitext'>
 <p>The operation of PRISM can be configured in a number of ways. From the GUI, select "Options" from the main menu to bring up the "Options" dialog. The settings are grouped under several tabs. Those which affect the basic model checking functionality of the tool are under the heading "PRISM". Separate settings are available for the simulator and various aspects of the GUI (the model editor, the property editor and the log).
 </p>
-<p class='vspace'>User options and settings for the GUI are saved locally and reused. They are stored in the file <code>.prism</code>, which can be found in your home directory (<code>~</code>) under Unix, Linux or Mac OS X and in e.g. <code>C:\Documents and Settings\username</code> under Windows. Currently the "Options" dialog in the GUI represents the easiest way to modify the settings, but the <code>.prism</code> file is in a simple textual format and can be edited by hand. To restore the default options for PRISM, click "Load Defaults" and then "Save Options" from the "Options" dialog in the GUI. Alternatively, delete the <code>.prism</code> file and then re-launch the GUI.
+<p class='vspace'>User options and settings for the GUI are saved in a file locally and reused. Currently the "Options" dialog in the GUI represents the easiest way to modify the settings, but the settings file is in a simple textual format and can also be edited by hand. To restore the default options for PRISM, click "Load Defaults" and then "Save Options" from the "Options" dialog in the GUI. Alternatively, delete the settings file re-launch the GUI. The location of the settings file depends on the operating system. As of PRISM 4.5, it is stored in:
 </p>
-<p class='vspace'>From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
+<div class='vspace'></div><ul><li><code>$XDG_CONFIG_HOME/prism.settings</code> (on Linux, if that environment variable is set)
+</li><li><code>$HOME/.config/prism.settings</code> (on Linux, if <code>$XDG_CONFIG_HOME</code> is not set)
+</li><li><code>$HOME/Library/Preferences/prism.settings</code> (on Mac OS)
+</li><li><code>.prism</code> in the user's home directory, e.g. <code>C:\Documents and Settings\username</code> (on Windows)
+</li><li><code>$HOME/.prism</code> (if the settings file was already created by an older version of PRISM)
+</li></ul><p class='vspace'>From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
@@ -121,7 +126,7 @@ a.varlink { text-decoration:none; }
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/Introduction?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>The <code>.prism</code> settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
+<p class='vspace'>The settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
