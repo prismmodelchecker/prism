@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since version 4.4 (up-to-date wrt c0533b0b)
+Version 4.5 (first released 19/4/2019)
 -----------------------------------------------------------------------------
 
 * New features
@@ -39,7 +39,6 @@ Changes since version 4.4 (up-to-date wrt c0533b0b)
   - prism-auto options: --skip-export-runs, --skip-duplicate-runs, --timeout
   - Makefile targets/settings: test, testsecho, testsfull, TESTS_ARGS, source-jar
   - NG_MAINCLASS setting for running PRISM in Nailgun server mode (prism -ng)
-
 
 -----------------------------------------------------------------------------
 Version 4.4 (first released 23/7/2017)
