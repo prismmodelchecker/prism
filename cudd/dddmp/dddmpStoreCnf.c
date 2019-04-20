@@ -1106,6 +1106,7 @@ StoreCnfMaxtermByMaxterm (
   )
 {
   int i, j, *list;
+  (void) idInitial; /* avoid warning */
 
   list = DDDMP_ALLOC (int, ddMgr->size);
   if (list == NULL) {
@@ -1171,6 +1172,7 @@ StoreCnfBest (
   )
 {
   int i, j, *list;
+  (void) idInitial; /* avoid warning */
 
   list = DDDMP_ALLOC (int, ddMgr->size);
   if (list == NULL) {
@@ -1338,10 +1340,7 @@ StoreCnfBestNotSharedRecur (
 {
   DdNode *N, *Nv, *Nnv;
   int index, retValue;
-  DdNode *one;
     
-  one = ddMgr->one;
- 
   N = Cudd_Regular (node);
 
   /*
@@ -1459,10 +1458,7 @@ StoreCnfBestSharedRecur (
   )
 {
   DdNode *nodeThen, *nodeElse;
-  int i, idf, index;
-  DdNode *one;
-    
-  one = ddMgr->one;
+  int i, idf;
 
   Dddmp_Assert (node==Cudd_Regular(node),
     "Inverted Edge during Shared Printing.");
@@ -1517,7 +1513,6 @@ StoreCnfBestSharedRecur (
 
   nodeThen  = cuddT (node);
   nodeElse = cuddE (node);
-  index = node->index;
 
   StoreCnfBestSharedRecur (ddMgr, Cudd_Regular (nodeThen), bddIds, cnfIds,
     fp, list, clauseN, varMax);

@@ -746,12 +746,8 @@ NodeStoreRecurAdd (
   int idT = (-1);
   int idE = (-1);
   int vf = (-1);
-  int vT = (-1);
-  int vE = (-1);
   int retValue;
-  int nVars;
 
-  nVars = ddMgr->size;
   T = E = NULL;
   idf = idT =  idE = (-1);
 
@@ -814,18 +810,8 @@ NodeStoreRecurAdd (
     vf = f->index;
 
     idT = DddmpReadNodeIndexAdd (T);
-    if (Cudd_IsConstant(T)) {
-      vT = nVars;
-    } else {
-      vT = T->index;
-    }
 
     idE = DddmpReadNodeIndexAdd (E);
-    if (Cudd_IsConstant(E)) {
-      vE = nVars;
-    } else {
-      vE = E->index;
-    }
   }
 
   retValue = NodeTextStoreAdd (ddMgr, f, mode, supportids, varnames,
@@ -864,6 +850,7 @@ NodeTextStoreAdd (
   )
 {
   int retValue;
+  (void) mode; /* avoid warning */
 
   /*
    *  Check for Constant

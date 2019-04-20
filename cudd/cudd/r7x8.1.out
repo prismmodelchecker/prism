@@ -1,6 +1,6 @@
 # TestCudd Version #1.0, Release date 3/17/01
-# ./testcudd -p2 r7x8.1.mat
-:name: r7x8.1.mat: 7 rows 9 columns
+# cudd/testcudd -p 2 ./cudd/r7x8.1.mat
+:name: ./cudd/r7x8.1.mat: 7 rows 9 columns
 :1: M: 63 nodes 5 leaves 52 minterms
 000000--  1
 000001-0  1
@@ -142,7 +142,7 @@ Testing iterator on primes (CNF):
 --0-00-1 1
 1-0-10-0 1
 
-Cache used slots = 58.06% (expected 58.94%)
+Cache used slots = 58.40% (expected 58.68%)
 xor1: 14 nodes 1 leaves 28 minterms
 000--1-1  1
 001-11-1  1
@@ -216,7 +216,7 @@ Support private to f: : 4 nodes 1 leaves 32 minterms
 Support private to g: : 1 nodes 1 leaves 256 minterms
 --------  1
 
-Average distance: 4138.57
+Average distance: 8304.73
 Number of variables =      8	Number of slots     =   2304
 Number of keys      =    999	Number of min dead  =   9216
 walsh1: 16 nodes 2 leaves 256 minterms
@@ -322,10 +322,10 @@ wtw: 14 nodes 2 leaves 16 minterms
 
 Average length of non-empty lists = 1
 **** CUDD modifiable parameters ****
-Hard limit for cache size: 7645866
+Hard limit for cache size: 2796202
 Cache hit threshold for resizing: 30%
 Garbage collection enabled: yes
-Limit for fast unique table growth: 4587520
+Limit for fast unique table growth: 1677721
 Maximum number of variables sifted per reordering: 1000
 Maximum number of variable swaps per reordering: 2000000
 Maximum growth while sifting a variable: 1.2
@@ -344,18 +344,18 @@ GA population size: 0
 Number of crossovers for GA: 0
 Next reordering threshold: 4004
 **** CUDD non-modifiable parameters ****
-Memory in use: 4274508
+Memory in use: 2255792
 Peak number of nodes: 2044
 Peak number of live nodes: 119
 Number of BDD variables: 9
 Number of ZDD variables: 0
 Number of cache entries: 2048
-Number of cache look-ups: 2864
-Number of cache hits: 729
-Number of cache insertions: 2301
-Number of cache collisions: 947
-Number of cache deletions: 1351
-Cache used slots = 66.11% (expected 67.49%)
+Number of cache look-ups: 2844
+Number of cache hits: 730
+Number of cache insertions: 2282
+Number of cache collisions: 926
+Number of cache deletions: 1352
+Cache used slots = 66.21% (expected 67.18%)
 Soft limit for cache size: 13312
 Number of buckets in unique table: 2560
 Used buckets in unique table: 0.51% (expected 0.51%)
@@ -372,23 +372,17 @@ Time for reordering: 0.00 sec
 total time = 0.00 sec
 Runtime Statistics
 ------------------
-Machine name: jobim.colorado.edu
+Machine name: crozzon
 User time      0.0 seconds
 System time    0.0 seconds
 
 Average resident text size       =     0K
 Average resident data+stack size =     0K
-Maximum resident size            =     0K
+Maximum resident size            =  5048K
 
-Virtual text size                = 131653K
-Virtual data size                =   152K
-    data size initialized        =    18K
-    data size uninitialized      =     1K
-    data size sbrk               =   133K
-Virtual memory limit             = 358400K (4194304K)
-
+Virtual memory limit             = unlimited (unlimited)
 Major page faults = 0
-Minor page faults = 1330
+Minor page faults = 658
 Swaps = 0
 Input blocks = 0
 Output blocks = 16

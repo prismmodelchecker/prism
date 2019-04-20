@@ -1,0 +1,71 @@
+#! /bin/sh
+
+EXE=@EXEEXT@
+srcdir=@srcdir@
+
+file=test
+mfile=multi
+verbosity=2
+nthreads=4
+
+sed_command='-r:-e:s/0x[0-9a-f][0-9a-f]*//g:-e:s/dashed//:-e:s/dotted//:-e:s/[0-9][0-9]*.bytes//:-e:/[0-9][0-9]* ms//:-e:/modifiable/,$d'
+
+echo TAP version 13
+echo 1..2
+exitstatus=0
+# Create empty file.
+: > ./cplusplus/differences
+
+cplusplus/testobj$EXE $verbosity > ./cplusplus/${file}.tst 2>&1
+failed=`expr $? != 0`
+if test x$failed = x0; then
+    echo "# comparing ./cplusplus/${file}.tst to ${srcdir}/cplusplus/${file}.out"
+    mkfifo ./cplusplus/tst_fifo ./cplusplus/out_fifo
+    OIFS=$IFS
+    IFS=:
+    `sed ${sed_command} ./cplusplus/${file}.tst > ./cplusplus/tst_fifo &\
+     sed ${sed_command} ${srcdir}/cplusplus/${file}.out > ./cplusplus/out_fifo &\
+     diff -b ./cplusplus/tst_fifo ./cplusplus/out_fifo >> ./cplusplus/differences`
+    failed=`expr $? != 0`
+    rm ./cplusplus/tst_fifo ./cplusplus/out_fifo
+    IFS=$OIFS
+fi
+if test x$failed = x0 ; then
+    echo "ok 1 BDD ADD ZDD basic test"
+else
+    echo "not ok 1 base"
+fi
+exitstatus=`expr $exitstatus + $failed`
+
+cplusplus/testmulti$EXE $nthreads > ./cplusplus/${mfile}.tst 2>&1
+retval=$?
+failed=`expr $retval != 0`
+if test x$failed = x0; then
+    echo "# comparing ./cplusplus/${mfile}.tst to ${srcdir}/cplusplus/${mfile}.out"
+    mkfifo ./cplusplus/tst_fifo ./cplusplus/out_fifo
+    OIFS=$IFS
+    IFS=:
+    `sed ${sed_command} ./cplusplus/${mfile}.tst > ./cplusplus/tst_fifo &\
+     sed ${sed_command} ${srcdir}/cplusplus/${mfile}.out > ./cplusplus/out_fifo &\
+     diff -b ./cplusplus/tst_fifo ./cplusplus/out_fifo >> ./cplusplus/differences`
+    failed=`expr $? != 0`
+    rm ./cplusplus/tst_fifo ./cplusplus/out_fifo
+    IFS=$OIFS
+fi
+if test x$failed = x0 ; then
+    echo "ok 2 multi-threaded multiple managers"
+elif test x$retval = x77 ; then
+    failed=0
+    echo "ok 2 multiple managers #SKIP thread header broken" 
+else
+    echo "not ok $count 2 multiple managers"
+fi
+exitstatus=`expr $exitstatus + $failed`
+
+if test x$exitstatus = x0; then
+    rm -rf ./cplusplus/differences
+else
+    echo '# Check file "./cplusplus/differences"'
+fi
+
+exit 0

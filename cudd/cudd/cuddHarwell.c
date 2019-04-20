@@ -1,20 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddHarwell.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Function to read a matrix in Harwell format.
 
-  Synopsis    [Function to read a matrix in Harwell format.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_addHarwell()
-		</ul>
-	]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -44,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -70,77 +65,72 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddHarwell.c,v 1.10 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Reads in a matrix in the format of the Harwell-Boeing
+  benchmark suite.
 
-  Synopsis    [Reads in a matrix in the format of the Harwell-Boeing
-  benchmark suite.]
-
-  Description [Reads in a matrix in the format of the Harwell-Boeing
-  benchmark suite. The variables are ordered as follows:
+  @details The variables are ordered as follows:
   <blockquote>
   x\[0\] y\[0\] x\[1\] y\[1\] ...
   </blockquote>
   0 is the most significant bit.  On input, nx and ny hold the numbers
-  of row and column variables already in existence. On output, they
-  hold the numbers of row and column variables actually used by the
-  matrix.  m and n are set to the numbers of rows and columns of the
-  matrix.  Their values on input are immaterial.  Returns 1 on
-  success; 0 otherwise. The ADD for the sparse matrix is returned in
-  E, and its reference count is > 0.]
+  of row and column variables already in existence.
 
-  SideEffects [None]
+  @return 1 on success; 0 otherwise.
 
-  SeeAlso     [Cudd_addRead Cudd_bddRead]
+  @sideeffect On output, nx and ny hold the numbers of row and column
+  variables actually used by the matrix.  m and n are set to the
+  numbers of rows and columns of the matrix.  Their values on input
+  are immaterial.  The %ADD for the sparse matrix is returned in E, and
+  its reference count is > 0.
 
-******************************************************************************/
+  @see Cudd_addRead Cudd_bddRead
+
+*/
 int
 Cudd_addHarwell(
-  FILE * fp /* pointer to the input file */,
-  DdManager * dd /* DD manager */,
-  DdNode ** E /* characteristic function of the graph */,
-  DdNode *** x /* array of row variables */,
-  DdNode *** y /* array of column variables */,
-  DdNode *** xn /* array of complemented row variables */,
-  DdNode *** yn_ /* array of complemented column variables */,
-  int * nx /* number or row variables */,
-  int * ny /* number or column variables */,
-  int * m /* number of rows */,
-  int * n /* number of columns */,
-  int  bx /* first index of row variables */,
-  int  sx /* step of row variables */,
-  int  by /* first index of column variables */,
-  int  sy /* step of column variables */,
-  int  pr /* verbosity level */)
+  FILE * fp /**< pointer to the input file */,
+  DdManager * dd /**< %DD manager */,
+  DdNode ** E /**< characteristic function of the graph */,
+  DdNode *** x /**< array of row variables */,
+  DdNode *** y /**< array of column variables */,
+  DdNode *** xn /**< array of complemented row variables */,
+  DdNode *** yn_ /**< array of complemented column variables */,
+  int * nx /**< number or row variables */,
+  int * ny /**< number or column variables */,
+  int * m /**< number of rows */,
+  int * n /**< number of columns */,
+  int  bx /**< first index of row variables */,
+  int  sx /**< step of row variables */,
+  int  by /**< first index of column variables */,
+  int  sy /**< step of column variables */,
+  int  pr /**< verbosity level */)
 {
     DdNode *one, *zero;
     DdNode *w;
     DdNode *cubex, *cubey, *minterm1;
     int u, v, err, i, j, nv;
     double val;
-    DdNode **lx, **ly, **lxn, **lyn;	/* local copies of x, y, xn, yn_ */
+    /* local copies of x, y, xn, yn_ */
+    DdNode **lx = NULL, **ly = NULL, **lxn = NULL, **lyn = NULL;
     int lnx, lny;			/* local copies of nx and ny */
     char title[73], key[9], mxtype[4], rhstyp[4];
     int totcrd, ptrcrd, indcrd, valcrd, rhscrd,
@@ -315,13 +305,23 @@ Cudd_addHarwell(
 	    dd->reordered = 0;
 	    lx[i] = cuddUniqueInter(dd, nv, one, zero);
 	} while (dd->reordered == 1);
-	if (lx[i] == NULL) return(0);
+	if (lx[i] == NULL) {
+            if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+                dd->timeoutHandler(dd, dd->tohArg);
+            }
+            return(0);
+        }
         cuddRef(lx[i]);
 	do {
 	    dd->reordered = 0;
 	    lxn[i] = cuddUniqueInter(dd, nv, zero, one);
 	} while (dd->reordered == 1);
-	if (lxn[i] == NULL) return(0);
+	if (lxn[i] == NULL) {
+            if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+                dd->timeoutHandler(dd, dd->tohArg);
+            }
+            return(0);
+        }
         cuddRef(lxn[i]);
     }
     for (i= *ny,nv=by+(*ny)*sy; i < lny; i++,nv+=sy) {
@@ -329,13 +329,23 @@ Cudd_addHarwell(
 	    dd->reordered = 0;
 	    ly[i] = cuddUniqueInter(dd, nv, one, zero);
 	} while (dd->reordered == 1);
-	if (ly[i] == NULL) return(0);
+	if (ly[i] == NULL) {
+            if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+                dd->timeoutHandler(dd, dd->tohArg);
+            }
+            return(0);
+        }
 	cuddRef(ly[i]);
 	do {
 	    dd->reordered = 0;
 	    lyn[i] = cuddUniqueInter(dd, nv, zero, one);
 	} while (dd->reordered == 1);
-	if (lyn[i] == NULL) return(0);
+	if (lyn[i] == NULL) {
+            if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+                dd->timeoutHandler(dd, dd->tohArg);
+            }
+            return(0);
+        }
 	cuddRef(lyn[i]);
     }
 

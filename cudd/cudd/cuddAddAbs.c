@@ -1,37 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file 
 
-  FileName    [cuddAddAbs.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Quantification functions for ADDs.
 
-  Synopsis    [Quantification functions for ADDs.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_addExistAbstract()
-		<li> Cudd_addUnivAbstract()
-		<li> Cudd_addOrAbstract()
-		<li> Cudd_addMinAbstract()
-		<li> Cudd_addMaxAbstract()
-		<li> Cudd_addFirstAbstract()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddAddExistAbstractRecur()
-		<li> cuddAddUnivAbstractRecur()
-		<li> cuddAddOrAbstractRecur()
-		<li> cuddAddMinAbstractRecur()
-		<li> cuddAddMaxAbstractRecur()
-		<li> cuddAddFirstAbstractRecur()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> addCheckPositiveCube()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -61,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -87,18 +65,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAddAbs.c,v 1.16 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
-static	DdNode	*two;
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -106,27 +78,27 @@ static	DdNode	*two;
 
 static int addCheckPositiveCube (DdManager *manager, DdNode *cube);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Existentially Abstracts all the variables in cube from f.
 
-  Synopsis    [Existentially Abstracts all the variables in cube from f.]
+  @details Abstracts all the variables in cube from f by summing
+  over all possible values taken by the variables.
 
-  Description [Abstracts all the variables in cube from f by summing
-  over all possible values taken by the variables. Returns the
-  abstracted ADD.]
+  @return the abstracted %ADD.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addUnivAbstract Cudd_bddExistAbstract
-  Cudd_addOrAbstract]
+  @see Cudd_addUnivAbstract Cudd_bddExistAbstract
+  Cudd_addOrAbstract
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addExistAbstract(
   DdManager * manager,
@@ -134,10 +106,6 @@ Cudd_addExistAbstract(
   DdNode * cube)
 {
     DdNode *res;
-
-    two = cuddUniqueConst(manager,(CUDD_VALUE_TYPE) 2);
-    if (two == NULL) return(NULL);
-    cuddRef(two);
 
     if (addCheckPositiveCube(manager, cube) == 0) {
         (void) fprintf(manager->err,"Error: Can only abstract cubes");
@@ -148,34 +116,29 @@ Cudd_addExistAbstract(
 	manager->reordered = 0;
 	res = cuddAddExistAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
-
-    if (res == NULL) {
-	Cudd_RecursiveDeref(manager,two);
-	return(NULL);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
     }
-    cuddRef(res);
-    Cudd_RecursiveDeref(manager,two);
-    cuddDeref(res);
 
     return(res);
 
 } /* end of Cudd_addExistAbstract */
 
 
-/**Function********************************************************************
+/**
+  @brief Universally Abstracts all the variables in cube from f.
 
-  Synopsis    [Universally Abstracts all the variables in cube from f.]
+  @details Abstracts all the variables in cube from f by taking
+  the product over all possible values taken by the variable.
 
-  Description [Abstracts all the variables in cube from f by taking
-  the product over all possible values taken by the variable. Returns
-  the abstracted ADD if successful; NULL otherwise.]
+  @return the abstracted %ADD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addExistAbstract Cudd_bddUnivAbstract
-  Cudd_addOrAbstract]
+  @see Cudd_addExistAbstract Cudd_bddUnivAbstract
+  Cudd_addOrAbstract
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addUnivAbstract(
   DdManager * manager,
@@ -193,27 +156,30 @@ Cudd_addUnivAbstract(
 	manager->reordered = 0;
 	res = cuddAddUnivAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_addUnivAbstract */
 
 
-/**Function********************************************************************
+/**
+  @brief Disjunctively abstracts all the variables in cube from the
+  0-1 %ADD f.
 
-  Synopsis    [Disjunctively abstracts all the variables in cube from the
-  0-1 ADD f.]
-
-  Description [Abstracts all the variables in cube from the 0-1 ADD f
+  @details Abstracts all the variables in cube from the 0-1 %ADD f
   by taking the disjunction over all possible values taken by the
-  variables.  Returns the abstracted ADD if successful; NULL
-  otherwise.]
+  variables.
 
-  SideEffects [None]
+  @return the abstracted %ADD if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_addUnivAbstract Cudd_addExistAbstract]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addUnivAbstract Cudd_addExistAbstract
+
+*/
 DdNode *
 Cudd_addOrAbstract(
   DdManager * manager,
@@ -231,28 +197,30 @@ Cudd_addOrAbstract(
 	manager->reordered = 0;
 	res = cuddAddOrAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addOrAbstract */
 
 
-/**Function********************************************************************
+/**
 
-  Synopsis    [Abstracts all the variables in cube from the
-  ADD f by taking the minimum.]
+  @brief Abstracts all the variables in cube from the
+  ADD f by taking the minimum.
 
-  Description [Abstracts all the variables in cube from the ADD f
+  @details Abstracts all the variables in cube from the ADD f
   by taking the minimum over all possible values taken by the
-  variables.  Returns the abstracted ADD if successful; NULL
-  otherwise.]
-
-  SideEffects [None]
-
-  SeeAlso     [Cudd_addUnivAbstract Cudd_addExistAbstract]
+  variables.
   
-  Note: Added by Dave Parker 14/6/99
+  @return the abstracted ADD if successful; NULL otherwise.
+
+  @sideeffect None
+
+  @see Cudd_addUnivAbstract Cudd_addExistAbstract
   
-******************************************************************************/
+*/
 DdNode *
 Cudd_addMinAbstract(
   DdManager * manager,
@@ -270,28 +238,30 @@ Cudd_addMinAbstract(
 	manager->reordered = 0;
 	res = cuddAddMinAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addMinAbstract */
 
 
-/**Function********************************************************************
+/**
 
-  Synopsis    [Abstracts all the variables in cube from the
-  ADD f by taking the maximum.]
+  @brief Abstracts all the variables in cube from the
+  ADD f by taking the maximum.
 
-  Description [Abstracts all the variables in cube from the ADD f
+  @details Abstracts all the variables in cube from the ADD f
   by taking the maximum over all possible values taken by the
-  variables.  Returns the abstracted ADD if successful; NULL
-  otherwise.]
-
-  SideEffects [None]
-
-  SeeAlso     [Cudd_addUnivAbstract Cudd_addExistAbstract]
+  variables.
   
-  Note: Added by Dave Parker 14/6/99
+  @return the abstracted ADD if successful; NULL otherwise.
   
-******************************************************************************/
+  @sideeffect None
+
+  @see Cudd_addUnivAbstract Cudd_addExistAbstract
+  
+*/
 DdNode *
 Cudd_addMaxAbstract(
   DdManager * manager,
@@ -309,28 +279,30 @@ Cudd_addMaxAbstract(
 	manager->reordered = 0;
 	res = cuddAddMaxAbstractRecur(manager, f, cube);
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addMaxAbstract */
 
 
-/**Function********************************************************************
+/**
 
-  Synopsis    [Filters over all the variables in cube from the
-  ADD f by taking the first element.]
+  @brief Filters over all the variables in cube from the
+  ADD f by taking the first element.
 
-  Description [Filters over all the variables in cube from the ADD f
+  @details Filters over all the variables in cube from the ADD f
   by taking the first of all possible values taken by the
-  variables.  Returns the filtered ADD if successful; NULL
-  otherwise.]
-
-  SideEffects [None]
-
-  SeeAlso     [Cudd_addUnivAbstract Cudd_addExistAbstract]
+  variables.
   
-  Note: Added by Dave Parker 14/6/99
+  @return the filtered ADD if successful; NULL otherwise.
   
-******************************************************************************/
+  @sideeffect None
+
+  @see Cudd_addUnivAbstract Cudd_addExistAbstract
+  
+*/
 DdNode *
 Cudd_addFirstFilter(
   DdManager * manager,
@@ -358,19 +330,15 @@ Cudd_addFirstFilter(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addExistAbstract.
 
-  Synopsis    [Performs the recursive step of Cudd_addExistAbstract.]
+  @details Returns the %ADD obtained by abstracting the variables of
+  cube from f, if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addExistAbstract.
-  Returns the ADD obtained by abstracting the variables of cube from f,
-  if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddExistAbstractRecur(
   DdManager * manager,
@@ -396,7 +364,7 @@ cuddAddExistAbstractRecur(
 	** dynamic reordering. If dynamic reordering occurs, we
 	** have to abort the entire abstraction.
 	*/
-	res = cuddAddApplyRecur(manager,Cudd_addTimes,res1,two);
+	res = cuddAddApplyRecur(manager,Cudd_addPlus,res1,res1);
 	if (res == NULL) {
 	    Cudd_RecursiveDeref(manager,res1);
 	    return(NULL);
@@ -410,6 +378,8 @@ cuddAddExistAbstractRecur(
     if ((res = cuddCacheLookup2(manager, Cudd_addExistAbstract, f, cube)) != NULL) {
 	return(res);
     }
+
+    checkWhetherToGiveUp(manager);
 
     T = cuddT(f);
     E = cuddE(f);
@@ -463,19 +433,15 @@ cuddAddExistAbstractRecur(
 } /* end of cuddAddExistAbstractRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addUnivAbstract.
 
-  Synopsis    [Performs the recursive step of Cudd_addUnivAbstract.]
+  @return the %ADD obtained by abstracting the variables of cube from
+  f, if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addUnivAbstract.
-  Returns the ADD obtained by abstracting the variables of cube from f,
-  if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddUnivAbstractRecur(
   DdManager * manager,
@@ -518,6 +484,8 @@ cuddAddUnivAbstractRecur(
     if ((res = cuddCacheLookup2(manager, Cudd_addUnivAbstract, f, cube)) != NULL) {
 	return(res);
     }
+
+    checkWhetherToGiveUp(manager);
 
     T = cuddT(f);
     E = cuddE(f);
@@ -571,19 +539,15 @@ cuddAddUnivAbstractRecur(
 } /* end of cuddAddUnivAbstractRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addOrAbstract.
 
-  Synopsis    [Performs the recursive step of Cudd_addOrAbstract.]
+  @return the %ADD obtained by abstracting the variables of cube from
+  f, if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addOrAbstract.
-  Returns the ADD obtained by abstracting the variables of cube from f,
-  if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddOrAbstractRecur(
   DdManager * manager,
@@ -609,6 +573,8 @@ cuddAddOrAbstractRecur(
     if ((res = cuddCacheLookup2(manager, Cudd_addOrAbstract, f, cube)) != NULL) {
 	return(res);
     }
+
+    checkWhetherToGiveUp(manager);
 
     T = cuddT(f);
     E = cuddE(f);
@@ -666,20 +632,15 @@ cuddAddOrAbstractRecur(
 } /* end of cuddAddOrAbstractRecur */
 
 
+/**
+  @brief Performs the recursive step of Cudd_addMinAbstract.
 
-/**Function********************************************************************
+  @return the %ADD obtained by abstracting the variables of cube from
+  f, if successful; NULL otherwise.
 
-  Synopsis    [Performs the recursive step of Cudd_addMinAbstract.]
+  @sideeffect None
 
-  Description [Performs the recursive step of Cudd_addMinAbstract.
-  Returns the ADD obtained by abstracting the variables of cube from f,
-  if successful; NULL otherwise.]
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddMinAbstractRecur(
   DdManager * manager,
@@ -705,6 +666,7 @@ cuddAddMinAbstractRecur(
 		return(res);
 	}
 
+    checkWhetherToGiveUp(manager);
 
 	T = cuddT(f);
 	E = cuddE(f);
@@ -759,19 +721,15 @@ cuddAddMinAbstractRecur(
 } /* end of cuddAddMinAbstractRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addMaxAbstract.
 
-  Synopsis    [Performs the recursive step of Cudd_addMaxAbstract.]
+  @return the %ADD obtained by abstracting the variables of cube from
+  f, if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addMaxAbstract.
-  Returns the ADD obtained by abstracting the variables of cube from f,
-  if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddMaxAbstractRecur(
   DdManager * manager,
@@ -797,6 +755,7 @@ cuddAddMaxAbstractRecur(
 		return(res);
 	}
 
+    checkWhetherToGiveUp(manager);
 
 	T = cuddT(f);
 	E = cuddE(f);
@@ -851,19 +810,15 @@ cuddAddMaxAbstractRecur(
 } /* end of cuddAddMaxAbstractRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addFirstFilterRecur.
 
-  Synopsis    [Performs the recursive step of Cudd_addFirstFilterRecur.]
+  @return the %ADD obtained by filtering the variables of cube from
+  f, if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addFirstFilterRecur.
-  Returns the ADD obtained by filtering the variables of cube from f,
-  if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddFirstFilterRecur(
   DdManager * manager,
@@ -883,6 +838,7 @@ cuddAddFirstFilterRecur(
 		return(res);
 	}
 
+    checkWhetherToGiveUp(manager);
 
 	T = cuddT(f);
 	E = cuddE(f);
@@ -958,19 +914,15 @@ cuddAddFirstFilterRecur(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether cube is an %ADD representing the product
+  of positive literals.
 
-  Synopsis    [Checks whether cube is an ADD representing the product
-  of positive literals.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Checks whether cube is an ADD representing the product of
-  positive literals. Returns 1 in case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 addCheckPositiveCube(
   DdManager * manager,
@@ -985,4 +937,3 @@ addCheckPositiveCube(
     return(0);
 
 } /* end of addCheckPositiveCube */
-

@@ -420,6 +420,12 @@ DddmpCuddDdArrayLoadCnf (
   int **cnfTable = NULL;
   int fileToClose = 0;
   int retValue, i;
+  (void) rootmatchmode;   /* avoid warning */
+  (void) rootmatchnames;  /* avoid warning */
+  (void) varmatchmode;    /* avoid warning */
+  (void) varmatchnames;   /* avoid warning */
+  (void) varmatchauxids;  /* avoid warning */
+  (void) varcomposeids;   /* avoid warning */
 
   fileToClose = 0;
   *rootsPtrPtr = NULL;
@@ -515,6 +521,7 @@ DddmpBddReadHeaderCnf (
   Dddmp_Hdr_t *Hdr = NULL;
   char buf[DDDMP_MAXSTRLEN];
   int nv, nc, retValue, fileToClose = 0;
+  char *fgetsRet;
 
   if (fp == NULL) {
     fp = fopen (file, "r");
@@ -554,7 +561,9 @@ DddmpBddReadHeaderCnf (
 
     /* Init Problem Line */ 
     if (buf[0] == 'p') {
-      fscanf (fp, "%*s %d %d", &nv, &nc);
+      retValue = fscanf (fp, "%*s %d %d", &nv, &nc);
+      Dddmp_CheckAndGotoLabel (retValue!=2, "Error reading problem line.",
+        failure);
       Hdr->nVarsCnf = nv;
       Hdr->nClausesCnf = nc;
       break;
@@ -569,7 +578,8 @@ DddmpBddReadHeaderCnf (
 
     /* Skip Comment? */
     if (buf[0] != '.') {
-      fgets (buf, DDDMP_MAXSTRLEN, fp);
+      fgetsRet = fgets (buf, DDDMP_MAXSTRLEN, fp);
+      Dddmp_CheckAndGotoLabel (!fgetsRet, "Error reading comment.", failure);
       continue;
     }
 
@@ -786,6 +796,7 @@ DddmpReadCnfClauses (
   int i, j, var;
   int **cnfTableLocal = NULL;
   int *clause = NULL;
+  char *fgetsRet;
 
   cnfTableLocal = DDDMP_ALLOC (int *, Hdr->nClausesCnf);
   clause = DDDMP_ALLOC (int, 2*Hdr->nVarsCnf+1);
@@ -811,7 +822,8 @@ DddmpReadCnfClauses (
     /* Check for Comment */
     if (word[0] == 'c') {
       /* Comment Found: Skip line */
-      fgets (word, DDDMP_MAX_CNF_ROW_LENGTH-1, fp);
+      fgetsRet = fgets (word, DDDMP_MAX_CNF_ROW_LENGTH-1, fp);
+      if (!fgetsRet) return (DDDMP_FAILURE);
       break;
     }
 

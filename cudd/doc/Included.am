@@ -1,0 +1,19 @@
+EXTRA_DIST += doc/phase.pdf
+
+if HAVE_PDFLATEX
+
+doc/cudd.pdf: doc/cudd.tex $(top_srcdir)/doc/phase.pdf
+	@if $(AM_V_P); then dest='2>&1'; else dest='> /dev/null 2>&1'; fi; \
+	cd doc && eval "$(PDFLATEX) cudd $${dest}" && \
+	eval "$(MAKEINDEX) cudd $${dest}" && \
+	eval "$(PDFLATEX) cudd $${dest}" && \
+	eval "$(PDFLATEX) cudd $${dest}"
+
+CLEANFILES += doc/cudd.pdf doc/cudd.aux doc/cudd.idx doc/cudd.ilg doc/cudd.ind \
+  doc/cudd.log doc/cudd.out doc/cudd.toc
+
+else
+
+doc/cudd.pdf:
+
+endif

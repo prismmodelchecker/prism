@@ -55,7 +55,9 @@
 /*---------------------------------------------------------------------------*/
 
 static int DddmpWriteNodeIndexCnfWithTerminalCheck(DdNode *f, int *cnfIds, int id);
+#if 0
 static int DddmpClearVisitedCnfRecur(DdNode *f);
+#endif
 static void DddmpClearVisitedCnf(DdNode *f);
 static int NumberNodeRecurCnf(DdNode *f, int *cnfIds, int id);
 static void DddmpDdNodesCheckIncomingAndScanPath(DdNode *f, int pathLengthCurrent, int edgeInTh, int pathLengthTh);
@@ -142,7 +144,7 @@ DddmpDdNodesCountEdgesAndNumber (
   int id              /* OUT: Number of Temporary Variables Introduced */
   )
 {
-  int retValue, i;
+  int i;
 
   /*-------------------------- Remove From Unique ---------------------------*/
 
@@ -153,7 +155,7 @@ DddmpDdNodesCountEdgesAndNumber (
   /*-------------------- Reset Counter and Reset Visited --------------------*/
 
   for (i=0; i<rootN; i++) {
-    retValue = DddmpDdNodesResetCountRecur (f[i]);
+    (void) DddmpDdNodesResetCountRecur (f[i]);
   }
 
   /*  Here we must have:
@@ -170,7 +172,7 @@ DddmpDdNodesCountEdgesAndNumber (
   /*----------------------- Count Incoming Edges ----------------------------*/
 
   for (i=0; i<rootN; i++) {
-    retValue = DddmpDdNodesCountEdgesRecur (f[i]);
+    (void) DddmpDdNodesCountEdgesRecur (f[i]);
   }
 
   /*  Here we must have:
@@ -428,6 +430,7 @@ DddmpWriteNodeIndexCnfWithTerminalCheck (
   return(id);
 }
 
+#if 0
 /**Function********************************************************************
 
   Synopsis     [Mark ALL nodes as not visited]
@@ -445,8 +448,6 @@ DddmpClearVisitedCnfRecur (
   DdNode *f     /* IN: root of the BDD to be marked */
   )
 {
-  int retValue;
-
   f = Cudd_Regular(f);
 
   if (cuddIsConstant (f)) {
@@ -457,13 +458,14 @@ DddmpClearVisitedCnfRecur (
     return (DDDMP_SUCCESS);
   }
 
-  retValue = DddmpClearVisitedCnfRecur (cuddT (f));
-  retValue = DddmpClearVisitedCnfRecur (cuddE (f));
+  (void) DddmpClearVisitedCnfRecur (cuddT (f));
+  (void) DddmpClearVisitedCnfRecur (cuddE (f));
 
   DddmpClearVisitedCnf (f);
 
   return (DDDMP_SUCCESS);
 }
+#endif
 
 /**Function********************************************************************
 
@@ -660,8 +662,6 @@ DddmpDdNodesResetCountRecur (
   DdNode *f  /*  IN: root of the BDD whose counters are reset */
   )
 {
-  int retValue;
-
   f = Cudd_Regular (f);
 
   if (!DddmpVisitedCnf (f)) {
@@ -669,8 +669,8 @@ DddmpDdNodesResetCountRecur (
   }
 
   if (!cuddIsConstant (f)) {
-    retValue = DddmpDdNodesResetCountRecur (cuddT (f));
-    retValue = DddmpDdNodesResetCountRecur (cuddE (f));
+    (void) DddmpDdNodesResetCountRecur (cuddT (f));
+    (void) DddmpDdNodesResetCountRecur (cuddE (f));
   }
 
   DddmpWriteNodeIndexCnf (f, 0);
@@ -698,7 +698,7 @@ DddmpDdNodesCountEdgesRecur (
   DdNode *f    /* IN: root of the BDD */
   )
 {
-  int indexValue, retValue;
+  int indexValue;
 
   f = Cudd_Regular (f);
 
@@ -714,8 +714,8 @@ DddmpDdNodesCountEdgesRecur (
 
   /* IF (first time) THEN recur */
   if (indexValue == 0) {
-    retValue = DddmpDdNodesCountEdgesRecur (cuddT (f));
-    retValue = DddmpDdNodesCountEdgesRecur (cuddE (f));
+    (void) DddmpDdNodesCountEdgesRecur (cuddT (f));
+    (void) DddmpDdNodesCountEdgesRecur (cuddE (f));
   }
 
   /* Increment Incoming-Edge Count Flag */
@@ -893,24 +893,23 @@ DddmpPrintBddAndNextRecur (
   DdNode *f          /* IN: root of the BDD to be displayed */
   )
 {
-  int retValue;
   DdNode *fPtr, *tPtr, *ePtr;
-    
+
   fPtr = Cudd_Regular (f);
-  
+
   if (Cudd_IsComplement (f)) {
     fprintf (stdout, "sign=- ptr=%" PRIiPTR " ", ((ptrint) fPtr));
   } else {
     fprintf (stdout, "sign=+ ptr=%" PRIiPTR " ", ((ptrint) fPtr));
   }
- 
+
   if (cuddIsConstant (fPtr)) {
     fprintf (stdout, "one\n");
     fflush (stdout);
     return (DDDMP_SUCCESS);
   }
 
-  fprintf (stdout,  
+  fprintf (stdout,
     "thenPtr=%" PRIiPTR " elsePtr=%" PRIiPTR " BddId=%d CnfId=%d Visited=%d\n",
     ((ptrint) cuddT (fPtr)), ((ptrint) cuddE (fPtr)),
     fPtr->index, DddmpReadNodeIndexCnf (fPtr),
@@ -923,8 +922,8 @@ DddmpPrintBddAndNextRecur (
     ePtr = Cudd_Not (ePtr);
   }
 
-  retValue = DddmpPrintBddAndNextRecur (ddMgr, tPtr);
-  retValue = DddmpPrintBddAndNextRecur (ddMgr, ePtr);
+  (void) DddmpPrintBddAndNextRecur (ddMgr, tPtr);
+  (void) DddmpPrintBddAndNextRecur (ddMgr, ePtr);
 
   return (DDDMP_SUCCESS);
 }

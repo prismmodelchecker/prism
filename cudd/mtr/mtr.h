@@ -1,26 +1,26 @@
-/**CHeaderFile*****************************************************************
+/**
+  @file 
 
-  FileName    [mtr.h]
+  @ingroup mtr
 
-  PackageName [mtr]
+  @brief Multiway-branch tree manipulation
 
-  Synopsis    [Multiway-branch tree manipulation]
-
-  Description [This package provides two layers of functions. Functions
+  @details This package provides two layers of functions. Functions
   of the lower level manipulate multiway-branch trees, implemented
   according to the classical scheme whereby each node points to its
   first child and its previous and next siblings. These functions are
   collected in mtrBasic.c.<p>
   Functions of the upper layer deal with group trees, that is the trees
   used by group sifting to represent the grouping of variables. These
-  functions are collected in mtrGroup.c.]
+  functions are collected in mtrGroup.c.
 
-  SeeAlso     [The CUDD package documentation; specifically on group
-  sifting.]
+  @see The CUDD package documentation; specifically on group
+  sifting.
 
-  Author      [Fabio Somenzi]
+  @author Fabio Somenzi
 
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -50,20 +50,19 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-  Revision    [$Id: mtr.h,v 1.17 2012/02/05 01:06:19 fabio Exp $]
+*/
 
-******************************************************************************/
-
-#ifndef __MTR
-#define __MTR
+#ifndef MTR_H_
+#define MTR_H_
 
 /*---------------------------------------------------------------------------*/
 /* Nested includes                                                           */
 /*---------------------------------------------------------------------------*/
 
-#include <inttypes.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,42 +72,12 @@ extern "C" {
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef SIZEOF_VOID_P
-#define SIZEOF_VOID_P 4
-#endif
-#ifndef SIZEOF_INT
-#define SIZEOF_INT 4
-#endif
-
-#if defined(__GNUC__)
-#define MTR_INLINE __inline__
-# if (__GNUC__ >2 || __GNUC_MINOR__ >=7)
-#   define MTR_UNUSED __attribute__ ((unused))
-# else
-#   define MTR_UNUSED
-# endif
-#else
-#define MTR_INLINE
-#define MTR_UNUSED
-#endif
-
 /* Flag definitions */
 #define MTR_DEFAULT	0x00000000
 #define MTR_TERMINAL	0x00000001
 #define MTR_SOFT	0x00000002
 #define MTR_FIXED	0x00000004
 #define MTR_NEWNODE	0x00000008
-
-/* MTR_MAXHIGH is defined in such a way that on 32-bit and 64-bit
-** machines one can cast a value to (int) without generating a negative
-** number.
-*/
-#if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-#define MTR_MAXHIGH	(((MtrHalfWord) ~0) >> 1)
-#else
-#define MTR_MAXHIGH	((MtrHalfWord) ~0)
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -119,23 +88,10 @@ extern "C" {
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-#if SIZEOF_VOID_P == 8 && SIZEOF_INT == 4
-typedef uint32_t MtrHalfWord;
-#else
-typedef uint16_t MtrHalfWord;
-#endif
-
-typedef struct MtrNode {
-    MtrHalfWord flags;
-    MtrHalfWord low;
-    MtrHalfWord size;
-    MtrHalfWord index;
-    struct MtrNode *parent;
-    struct MtrNode *child;
-    struct MtrNode *elder;
-    struct MtrNode *younger;
-} MtrNode;
-
+/**
+ * @brief multi-way tree node.
+ */
+typedef struct MtrNode_ MtrNode;
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
@@ -146,44 +102,33 @@ typedef struct MtrNode {
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/* Flag manipulation macros */
-#define MTR_SET(node, flag)	(node->flags |= (flag))
-#define MTR_RESET(node, flag)	(node->flags &= ~ (flag))
-#define MTR_TEST(node, flag)	(node->flags & (flag))
-
-
-/**AutomaticStart*************************************************************/
-
 /*---------------------------------------------------------------------------*/
 /* Function prototypes                                                       */
 /*---------------------------------------------------------------------------*/
 
-extern MtrNode * Mtr_AllocNode (void);
-extern void Mtr_DeallocNode (MtrNode *node);
-extern MtrNode * Mtr_InitTree (void);
-extern void Mtr_FreeTree (MtrNode *node);
-extern MtrNode * Mtr_CopyTree (MtrNode *node, int expansion);
-extern void Mtr_MakeFirstChild (MtrNode *parent, MtrNode *child);
-extern void Mtr_MakeLastChild (MtrNode *parent, MtrNode *child);
-extern MtrNode * Mtr_CreateFirstChild (MtrNode *parent);
-extern MtrNode * Mtr_CreateLastChild (MtrNode *parent);
-extern void Mtr_MakeNextSibling (MtrNode *first, MtrNode *second);
-extern void Mtr_PrintTree (MtrNode *node);
-extern MtrNode * Mtr_InitGroupTree (int lower, int size);
-extern MtrNode * Mtr_MakeGroup (MtrNode *root, unsigned int low, unsigned int high, unsigned int flags);
-extern MtrNode * Mtr_DissolveGroup (MtrNode *group);
-extern MtrNode * Mtr_FindGroup (MtrNode *root, unsigned int low, unsigned int high);
-extern int Mtr_SwapGroups (MtrNode *first, MtrNode *second);
-extern void Mtr_ReorderGroups(MtrNode *treenode, int *permutation);
-  
-extern void Mtr_PrintGroups (MtrNode *root, int silent);
-  extern int Mtr_PrintGroupedOrder(MtrNode * root, int *invperm, FILE *fp);
-extern MtrNode * Mtr_ReadGroups (FILE *fp, int nleaves);
-
-/**AutomaticEnd***************************************************************/
+MtrNode * Mtr_AllocNode(void);
+void Mtr_DeallocNode(MtrNode *node);
+MtrNode * Mtr_InitTree(void);
+void Mtr_FreeTree(MtrNode *node);
+MtrNode * Mtr_CopyTree(MtrNode const *node, int expansion);
+void Mtr_MakeFirstChild(MtrNode *parent, MtrNode *child);
+void Mtr_MakeLastChild(MtrNode *parent, MtrNode *child);
+MtrNode * Mtr_CreateFirstChild(MtrNode *parent);
+MtrNode * Mtr_CreateLastChild(MtrNode *parent);
+void Mtr_MakeNextSibling(MtrNode *first, MtrNode *second);
+void Mtr_PrintTree(MtrNode const *node);
+MtrNode * Mtr_InitGroupTree(int lower, int size);
+MtrNode * Mtr_MakeGroup(MtrNode *root, unsigned int low, unsigned int high, unsigned int flags);
+MtrNode * Mtr_DissolveGroup(MtrNode *group);
+MtrNode * Mtr_FindGroup(MtrNode *root, unsigned int low, unsigned int high);
+int Mtr_SwapGroups(MtrNode *first, MtrNode *second);
+void Mtr_ReorderGroups(MtrNode *treenode, int *permutation);
+void Mtr_PrintGroups(MtrNode const *root, int silent);
+int Mtr_PrintGroupedOrder(MtrNode const * root, int const *invperm, FILE *fp);
+MtrNode * Mtr_ReadGroups(FILE *fp, int nleaves);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __MTR */
+#endif /* MTR_H_ */

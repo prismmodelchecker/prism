@@ -1,0 +1,37 @@
+check_PROGRAMS += nanotrav/nanotrav
+nanotrav_nanotrav_SOURCES = nanotrav/bnet.h nanotrav/ntr.h \
+  nanotrav/bnet.c nanotrav/chkMterm.c nanotrav/main.c nanotrav/ntrBddTest.c \
+  nanotrav/ntr.c nanotrav/ntrHeap.c nanotrav/ntrMflow.c nanotrav/ntrShort.c \
+  nanotrav/ntrZddTest.c
+nanotrav_nanotrav_CPPFLAGS = -I$(top_srcdir)/cudd -I$(top_srcdir)/mtr \
+  -I$(top_srcdir)/epd -I$(top_srcdir)/st -I$(top_srcdir)/dddmp \
+  -I$(top_srcdir)/util
+if DDDMP
+nanotrav_nanotrav_LDADD =
+else
+nanotrav_nanotrav_LDADD = dddmp/libdddmp.la
+endif
+nanotrav_nanotrav_LDADD += cudd/libcudd.la
+
+check_SCRIPTS += nanotrav/test_ntrv.test
+dist_check_DATA += nanotrav/adj49.blif nanotrav/adj49.out nanotrav/C17.blif \
+  nanotrav/C17.out nanotrav/C880.blif nanotrav/C880.out nanotrav/closest.blif \
+  nanotrav/closest.out nanotrav/ham01.blif nanotrav/ham01.out \
+  nanotrav/mult32a.blif nanotrav/mult32a.out nanotrav/rcn25.blif \
+  nanotrav/rcn25.out nanotrav/s27.blif nanotrav/s27.out nanotrav/s27b.blif \
+  nanotrav/s27b.out nanotrav/s27c.blif nanotrav/s27c.out nanotrav/s382.blif \
+  nanotrav/s382.out nanotrav/s641.blif nanotrav/s641.out \
+  nanotrav/miniFirst.blif nanotrav/miniSecond.blif nanotrav/miniFirst.out
+if !CROSS_COMPILING
+TESTS += nanotrav/test_ntrv.test
+endif !CROSS_COMPILING
+EXTRA_DIST += nanotrav/README nanotrav/nanotrav.1 nanotrav/test_ntrv.test.in
+
+nanotrav/test_ntrv.test: nanotrav/test_ntrv.test.in Makefile
+	$(do_subst) $< > $@
+	chmod +x $@
+
+CLEANFILES += nanotrav/adj49.tst nanotrav/C17.tst nanotrav/C880.tst \
+  nanotrav/closest.tst nanotrav/ham01.tst nanotrav/mult32a.tst \
+  nanotrav/rcn25.tst nanotrav/s27.tst nanotrav/s27b.tst nanotrav/s27c.tst \
+  nanotrav/s382.tst nanotrav/s641.tst nanotrav/miniFirst.tst

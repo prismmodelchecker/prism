@@ -1,28 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddMatMult.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Matrix multiplication functions.
 
-  Synopsis    [Matrix multiplication functions.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_addMatrixMultiply()
-		<li> Cudd_addTimesPlus()
-		<li> Cudd_addTriangle()
-		<li> Cudd_addOuterSum()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> addMMRecur()
-		<li> addTriangleRecur()
-		<li> cuddAddOuterSumRecur()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -52,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -79,16 +66,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddMatMult.c,v 1.18 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -98,32 +81,31 @@ static DdNode * addMMRecur (DdManager *dd, DdNode *A, DdNode *B, int topP, int *
 static DdNode * addTriangleRecur (DdManager *dd, DdNode *f, DdNode *g, int *vars, DdNode *cube);
 static DdNode * cuddAddOuterSumRecur (DdManager *dd, DdNode *M, DdNode *r, DdNode *c);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Calculates the product of two matrices represented as
+  ADDs.
 
-  Synopsis [Calculates the product of two matrices represented as
-  ADDs.]
-
-  Description [Calculates the product of two matrices, A and B,
-  represented as ADDs. This procedure implements the quasiring multiplication
+  @details This procedure implements the quasiring multiplication
   algorithm.  A is assumed to depend on variables x (rows) and z
   (columns).  B is assumed to depend on variables z (rows) and y
   (columns).  The product of A and B then depends on x (rows) and y
   (columns).  Only the z variables have to be explicitly identified;
-  they are the "summation" variables.  Returns a pointer to the
-  result if successful; NULL otherwise.]
+  they are the "summation" variables.
 
-  SideEffects [None]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_addTimesPlus Cudd_addTriangle Cudd_bddAndAbstract]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addTimesPlus Cudd_addTriangle Cudd_bddAndAbstract
+
+*/
 DdNode *
 Cudd_addMatrixMultiply(
   DdManager * dd,
@@ -154,29 +136,32 @@ Cudd_addMatrixMultiply(
 	res = addMMRecur(dd,A,B,-1,vars);
     } while (dd->reordered == 1);
     FREE(vars);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addMatrixMultiply */
 
 
-/**Function********************************************************************
+/**
+  @brief Calculates the product of two matrices represented as
+  ADDs.
 
-  Synopsis    [Calculates the product of two matrices represented as
-  ADDs.]
-
-  Description [Calculates the product of two matrices, A and B,
+  @details Calculates the product of two matrices, A and B,
   represented as ADDs, using the CMU matrix by matrix multiplication
-  procedure by Clarke et al..  Matrix A has x's as row variables and z's
-  as column variables, while matrix B has z's as row variables and y's
-  as column variables. Returns the pointer to the result if successful;
-  NULL otherwise. The resulting matrix has x's as row variables and y's
-  as column variables.]
+  procedure by Clarke et al..  Matrix A has x's as row variables and
+  z's as column variables, while matrix B has z's as row variables and
+  y's as column variables.  The resulting matrix has x's as row
+  variables and y's as column variables.
 
-  SideEffects [None]
+  @return the pointer to the result if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_addMatrixMultiply]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addMatrixMultiply
+
+*/
 DdNode *
 Cudd_addTimesPlus(
   DdManager * dd,
@@ -216,25 +201,25 @@ Cudd_addTimesPlus(
 } /* end of Cudd_addTimesPlus */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the triangulation step for the shortest path
+  computation.
 
-  Synopsis    [Performs the triangulation step for the shortest path
-  computation.]
-
-  Description [Implements the semiring multiplication algorithm used in
+  @details Implements the semiring multiplication algorithm used in
   the triangulation step for the shortest path computation.  f
   is assumed to depend on variables x (rows) and z (columns).  g is
   assumed to depend on variables z (rows) and y (columns).  The product
   of f and g then depends on x (rows) and y (columns).  Only the z
   variables have to be explicitly identified; they are the
-  "abstraction" variables.  Returns a pointer to the result if
-  successful; NULL otherwise. ]
+  "abstraction" variables.
 
-  SideEffects [None]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_addMatrixMultiply Cudd_bddAndAbstract]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addMatrixMultiply Cudd_bddAndAbstract
+
+*/
 DdNode *
 Cudd_addTriangle(
   DdManager * dd,
@@ -269,25 +254,26 @@ Cudd_addTriangle(
     Cudd_RecursiveDeref(dd,cube);
     if (res != NULL) cuddDeref(res);
     FREE(vars);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addTriangle */
 
 
-/**Function********************************************************************
+/**
+  @brief Takes the minimum of a matrix and the outer sum of two vectors.
 
-  Synopsis    [Takes the minimum of a matrix and the outer sum of two vectors.]
-
-  Description [Takes the pointwise minimum of a matrix and the outer
+  @details Takes the pointwise minimum of a matrix and the outer
   sum of two vectors.  This procedure is used in the Floyd-Warshall
-  all-pair shortest path algorithm.  Returns a pointer to the result if
-  successful; NULL otherwise.]
+  all-pair shortest path algorithm.
 
-  SideEffects [None]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addOuterSum(
   DdManager *dd,
@@ -301,6 +287,9 @@ Cudd_addOuterSum(
 	dd->reordered = 0;
 	res = cuddAddOuterSumRecur(dd, M, r, c);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addOuterSum */
@@ -315,16 +304,14 @@ Cudd_addOuterSum(
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addMatrixMultiply.
 
-  Synopsis    [Performs the recursive step of Cudd_addMatrixMultiply.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addMatrixMultiply.
-  Returns a pointer to the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static DdNode *
 addMMRecur(
   DdManager * dd,
@@ -347,7 +334,7 @@ addMMRecur(
     double scale;	/* scaling factor */
     int index;		/* index of the top variable */
     CUDD_VALUE_TYPE value;
-    unsigned int topA, topB, topV;
+    int topA, topB, topV;
     DD_CTFP cacheOp;
 
     statLine(dd);
@@ -402,7 +389,7 @@ addMMRecur(
 	scale = 1.0;
 	for (i = 0; i < dd->size; i++) {
 	    if (vars[i]) {
-		if (dd->perm[i] > topP && (unsigned) dd->perm[i] < topV) {
+		if (dd->perm[i] > topP && dd->perm[i] < topV) {
 		    scale *= 2;
 		}
 	    }
@@ -429,6 +416,8 @@ addMMRecur(
 	}
         return(res);
     }
+
+    checkWhetherToGiveUp(dd);
 
     /* compute the cofactors */
     if (topV == topA) {
@@ -496,7 +485,7 @@ addMMRecur(
 	scale = 1.0;
 	for (i = 0; i < dd->size; i++) {
 	    if (vars[i]) {
-		if (dd->perm[i] > topP && (unsigned) dd->perm[i] < topV) {
+		if (dd->perm[i] > topP && dd->perm[i] < topV) {
 		    scale *= 2;
 		}
 	    }
@@ -526,16 +515,14 @@ addMMRecur(
 } /* end of addMMRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addTriangle.
 
-  Synopsis    [Performs the recursive step of Cudd_addTriangle.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addTriangle. Returns
-  a pointer to the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static DdNode *
 addTriangleRecur(
   DdManager * dd,
@@ -570,6 +557,8 @@ addTriangleRecur(
 	    return(res);
 	}
     }
+
+    checkWhetherToGiveUp(dd);
 
     topf = cuddI(dd,f->index); topg = cuddI(dd,g->index);
     top = ddMin(topf,topg);
@@ -619,18 +608,14 @@ addTriangleRecur(
 } /* end of addTriangleRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addOuterSum.
 
-  Synopsis    [Performs the recursive step of Cudd_addOuterSum.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Performs the recursive step of Cudd_addOuterSum.
-  Returns a pointer to the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 cuddAddOuterSumRecur(
   DdManager *dd,
@@ -669,6 +654,8 @@ cuddAddOuterSumRecur(
     /* Check the cache. */
     R = cuddCacheLookup(dd,DD_ADD_OUT_SUM_TAG,M,r,c);
     if (R != NULL) return(R);
+
+    checkWhetherToGiveUp(dd);
 
     topM = cuddI(dd,M->index); topr = cuddI(dd,r->index);
     topc = cuddI(dd,c->index);

@@ -1,40 +1,17 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSubsetHB.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Procedure to subset the given %BDD by choosing the heavier
+  branches.
 
-  Synopsis    [Procedure to subset the given BDD by choosing the heavier
-	       branches.]
+  @see cuddSubsetSP.c
 
+  @author Kavita Ravi
 
-  Description [External procedures provided by this module:
-		<ul>
-		<li> Cudd_SubsetHeavyBranch()
-		<li> Cudd_SupersetHeavyBranch()
-		</ul>
-	       Internal procedures included in this module:
-		<ul>
-		<li> cuddSubsetHeavyBranch()
-		</ul>
-	       Static procedures included in this module:
-		<ul>
-		<li> ResizeCountMintermPages();
-		<li> ResizeNodeDataPages()
-		<li> ResizeCountNodePages()
-		<li> SubsetCountMintermAux()
-		<li> SubsetCountMinterm()
-		<li> SubsetCountNodesAux()
-		<li> SubsetCountNodes()
-		<li> BuildSubsetBdd()
-		</ul>
-		]
-
-  SeeAlso     [cuddSubsetSP.c]
-
-  Author      [Kavita Ravi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -64,9 +41,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #ifdef __STDC__
 #include <float.h>
@@ -84,23 +62,7 @@
 #define	DEFAULT_NODE_DATA_PAGE_SIZE 1024
 #define INITIAL_PAGES 128
 
-
-/*---------------------------------------------------------------------------*/
-/* Stucture declarations                                                     */
-/*---------------------------------------------------------------------------*/
-
-/* data structure to store the information on each node. It keeps
- * the number of minterms represented by the DAG rooted at this node
- * in terms of the number of variables specified by the user, number
- * of nodes in this DAG and the number of nodes of its child with
- * lesser number of minterms that are not shared by the child with
- * more minterms
- */
-struct NodeData {
-    double *mintermPointer;
-    int *nodesPointer;
-    int *lightChildNodesPointer;
-};
+#undef max
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
@@ -108,135 +70,146 @@ struct NodeData {
 
 typedef struct NodeData NodeData_t;
 
+typedef struct SubsetInfo SubsetInfo_t;
+
+/*---------------------------------------------------------------------------*/
+/* Stucture declarations                                                     */
+/*---------------------------------------------------------------------------*/
+
+/**
+ * @brief Data structure to store the information on each node.
+
+ * @details It keeps the number of minterms represented by the DAG
+ * rooted at this node in terms of the number of variables specified
+ * by the user, number of nodes in this DAG and the number of nodes of
+ * its child with lesser number of minterms that are not shared by the
+ * child with more minterms.
+ */
+struct NodeData {
+    double *mintermPointer;
+    int *nodesPointer;
+    int *lightChildNodesPointer;
+};
+
+/**
+ * @brief Miscellaneous info.
+ */
+struct SubsetInfo {
+    DdNode	*zero, *one; /**< constant functions */
+    double	**mintermPages;	/**< pointers to the pages */
+    int		**nodePages; /**< pointers to the pages */
+    int		**lightNodePages; /**< pointers to the pages */
+    double	*currentMintermPage; /**< pointer to the current page */
+    double	max; /**< to store the 2^n value of the number of variables */
+    int		*currentNodePage; /**< pointer to the current page */
+    int		*currentLightNodePage; /**< pointer to the current page */
+    int		pageIndex; /**< index to next element */
+    int		page; /**< index to current page */
+    int		pageSize; /**< page size */
+    int         maxPages; /**< number of page pointers */
+    NodeData_t	*currentNodeDataPage; /**< pointer to the current page */
+    int		nodeDataPage; /**< index to next element */
+    int		nodeDataPageIndex; /**< index to next element */
+    NodeData_t	**nodeDataPages; /**< index to current page */
+    int		nodeDataPageSize; /**< page size */
+    int         maxNodeDataPages; /**< number of page pointers */
+    int memOut;
+#ifdef DEBUG
+    int		num_calls;
+#endif
+};
+
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSubsetHB.c,v 1.39 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static int memOut;
-#ifdef DEBUG
-static	int		num_calls;
-#endif
-
-static	DdNode	        *zero, *one; /* constant functions */
-static	double		**mintermPages;	/* pointers to the pages */
-static	int		**nodePages; /* pointers to the pages */
-static	int		**lightNodePages; /* pointers to the pages */
-static	double		*currentMintermPage; /* pointer to the current
-						   page */
-static  double		max; /* to store the 2^n value of the number
-			      * of variables */
-
-static	int		*currentNodePage; /* pointer to the current
-						   page */
-static	int		*currentLightNodePage; /* pointer to the
-						*  current page */
-static	int		pageIndex; /* index to next element */
-static	int		page; /* index to current page */
-static	int		pageSize = DEFAULT_PAGE_SIZE; /* page size */
-static  int             maxPages; /* number of page pointers */
-
-static	NodeData_t	*currentNodeDataPage; /* pointer to the current
-						 page */
-static	int		nodeDataPage; /* index to next element */
-static	int		nodeDataPageIndex; /* index to next element */
-static	NodeData_t	**nodeDataPages; /* index to current page */
-static	int		nodeDataPageSize = DEFAULT_NODE_DATA_PAGE_SIZE;
-						     /* page size */
-static  int             maxNodeDataPages; /* number of page pointers */
 
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static void ResizeNodeDataPages (void);
-static void ResizeCountMintermPages (void);
-static void ResizeCountNodePages (void);
-static double SubsetCountMintermAux (DdNode *node, double max, st_table *table);
-static st_table * SubsetCountMinterm (DdNode *node, int nvars);
-static int SubsetCountNodesAux (DdNode *node, st_table *table, double max);
-static int SubsetCountNodes (DdNode *node, st_table *table, int nvars);
+static void ResizeNodeDataPages (SubsetInfo_t * info);
+static void ResizeCountMintermPages (SubsetInfo_t * info);
+static void ResizeCountNodePages (SubsetInfo_t * info);
+static double SubsetCountMintermAux (DdNode *node, double max, st_table *table, SubsetInfo_t * info);
+static st_table * SubsetCountMinterm (DdNode *node, int nvars, SubsetInfo_t * info);
+static int SubsetCountNodesAux (DdNode *node, st_table *table, double max, SubsetInfo_t * info);
+static int SubsetCountNodes (DdNode *node, st_table *table, int nvars, SubsetInfo_t * info);
 static void StoreNodes (st_table *storeTable, DdManager *dd, DdNode *node);
-static DdNode * BuildSubsetBdd (DdManager *dd, DdNode *node, int *size, st_table *visitedTable, int threshold, st_table *storeTable, st_table *approxTable);
+static DdNode * BuildSubsetBdd (DdManager *dd, DdNode *node, int *size, st_table *visitedTable, int threshold, st_table *storeTable, st_table *approxTable, SubsetInfo_t * info);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense subset from a %BDD with the heavy branch
+  heuristic.
 
-  Synopsis    [Extracts a dense subset from a BDD with the heavy branch
-  heuristic.]
+  @details This procedure builds a subset by throwing away one of the
+  children of each node, starting from the root, until the result is
+  small enough. The child that is eliminated from the result is the
+  one that contributes the fewer minterms.  The parameter numVars is
+  the maximum number of variables to be used in minterm calculation
+  and node count calculation.  The optimal number should be as close
+  as possible to the size of the support of f.  However, it is safe to
+  pass the value returned by Cudd_ReadSize for numVars when the number
+  of variables is under 1023.  If numVars is larger than 1023, it will
+  overflow. If a 0 parameter is passed then the procedure will compute
+  a value which will avoid overflow but will cause underflow with 2046
+  variables or more.
 
-  Description [Extracts a dense subset from a BDD. This procedure
-  builds a subset by throwing away one of the children of each node,
-  starting from the root, until the result is small enough. The child
-  that is eliminated from the result is the one that contributes the
-  fewer minterms.  Returns a pointer to the BDD of the subset if
-  successful. NULL if the procedure runs out of memory. The parameter
-  numVars is the maximum number of variables to be used in minterm
-  calculation and node count calculation.  The optimal number should
-  be as close as possible to the size of the support of f.  However,
-  it is safe to pass the value returned by Cudd_ReadSize for numVars
-  when the number of variables is under 1023.  If numVars is larger
-  than 1023, it will overflow. If a 0 parameter is passed then the
-  procedure will compute a value which will avoid overflow but will
-  cause underflow with 2046 variables or more.]
+  @return a pointer to the %BDD of the subset if successful. NULL if
+  the procedure runs out of memory.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_SubsetShortPaths Cudd_SupersetHeavyBranch Cudd_ReadSize]
+  @see Cudd_SubsetShortPaths Cudd_SupersetHeavyBranch Cudd_ReadSize
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_SubsetHeavyBranch(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be subset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* maximum number of nodes in the subset */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be subset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< maximum number of nodes in the subset */)
 {
     DdNode *subset;
 
-    memOut = 0;
     do {
 	dd->reordered = 0;
 	subset = cuddSubsetHeavyBranch(dd, f, numVars, threshold);
-    } while ((dd->reordered == 1) && (!memOut));
+    } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(subset);
 
 } /* end of Cudd_SubsetHeavyBranch */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a dense superset from a %BDD with the heavy branch
+  heuristic.
 
-  Synopsis    [Extracts a dense superset from a BDD with the heavy branch
-  heuristic.]
-
-  Description [Extracts a dense superset from a BDD. The procedure is
-  identical to the subset procedure except for the fact that it
-  receives the complement of the given function. Extracting the subset
-  of the complement function is equivalent to extracting the superset
-  of the function. This procedure builds a superset by throwing away
-  one of the children of each node starting from the root of the
-  complement function, until the result is small enough. The child
-  that is eliminated from the result is the one that contributes the
-  fewer minterms.
-  Returns a pointer to the BDD of the superset if successful. NULL if
-  intermediate result causes the procedure to run out of memory. The
+  @details The procedure is identical to the subset procedure except
+  for the fact that it receives the complement of the given
+  function. Extracting the subset of the complement function is
+  equivalent to extracting the superset of the function. This
+  procedure builds a superset by throwing away one of the children of
+  each node starting from the root of the complement function, until
+  the result is small enough. The child that is eliminated from the
+  result is the one that contributes the fewer minterms.  The
   parameter numVars is the maximum number of variables to be used in
   minterm calculation and node count calculation.  The optimal number
   should be as close as possible to the size of the support of f.
@@ -244,28 +217,33 @@ Cudd_SubsetHeavyBranch(
   numVars when the number of variables is under 1023.  If numVars is
   larger than 1023, it will overflow. If a 0 parameter is passed then
   the procedure will compute a value which will avoid overflow but
-  will cause underflow with 2046 variables or more.]
+  will cause underflow with 2046 variables or more.
 
-  SideEffects [None]
+  @return a pointer to the %BDD of the superset if successful. NULL if
+  intermediate result causes the procedure to run out of memory.
 
-  SeeAlso     [Cudd_SubsetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_SubsetHeavyBranch Cudd_SupersetShortPaths Cudd_ReadSize
+
+*/
 DdNode *
 Cudd_SupersetHeavyBranch(
-  DdManager * dd /* manager */,
-  DdNode * f /* function to be superset */,
-  int  numVars /* number of variables in the support of f */,
-  int  threshold /* maximum number of nodes in the superset */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function to be superset */,
+  int  numVars /**< number of variables in the support of f */,
+  int  threshold /**< maximum number of nodes in the superset */)
 {
     DdNode *subset, *g;
 
     g = Cudd_Not(f);
-    memOut = 0;
     do {
 	dd->reordered = 0;
 	subset = cuddSubsetHeavyBranch(dd, g, numVars, threshold);
-    } while ((dd->reordered == 1) && (!memOut));
+    } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(Cudd_NotCond(subset, (subset != NULL)));
 
@@ -277,12 +255,11 @@ Cudd_SupersetHeavyBranch(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief The main procedure that returns a subset by choosing the heavier
+  branch in the %BDD.
 
-  Synopsis    [The main procedure that returns a subset by choosing the heavier
-  branch in the BDD.]
-
-  Description [Here a subset BDD is built by throwing away one of the
+  @details Here a subset %BDD is built by throwing away one of the
   children. Starting at root, annotate each node with the number of
   minterms (in terms of the total number of variables specified -
   numVars), number of nodes taken by the DAG rooted at this node and
@@ -290,19 +267,19 @@ Cudd_SupersetHeavyBranch(
   minterms. The child with the lower number of minterms is thrown away
   and a dyanmic count of the nodes of the subset is kept. Once the
   threshold is reached the subset is returned to the calling
-  procedure.]
+  procedure.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_SubsetHeavyBranch]
+  @see Cudd_SubsetHeavyBranch
 
-******************************************************************************/
+*/
 DdNode *
 cuddSubsetHeavyBranch(
-  DdManager * dd /* DD manager */,
-  DdNode * f /* current DD */,
-  int  numVars /* maximum number of variables */,
-  int  threshold /* threshold size for the subset */)
+  DdManager * dd /**< %DD manager */,
+  DdNode * f /**< current %DD */,
+  int  numVars /**< maximum number of variables */,
+  int  threshold /**< threshold size for the subset */)
 {
 
     int i, *size;
@@ -313,15 +290,13 @@ cuddSubsetHeavyBranch(
     st_table *storeTable, *approxTable;
     DdNode *key, *value;
     st_generator *stGen;
+    SubsetInfo_t info;
 
     if (f == NULL) {
 	fprintf(dd->err, "Cannot subset, nil object\n");
 	dd->errorCode = CUDD_INVALID_ARG;
 	return(NULL);
     }
-
-    one	 = Cudd_ReadOne(dd);
-    zero = Cudd_Not(one);
 
     /* If user does not know numVars value, set it to the maximum
      * exponent that the pow function can take. The -1 is due to the
@@ -333,28 +308,46 @@ cuddSubsetHeavyBranch(
 	numVars = DBL_MAX_EXP - 1;
     }
 
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	return(f);
     }
 
-    max = pow(2.0, (double)numVars);
+    info.one  = Cudd_ReadOne(dd);
+    info.zero = Cudd_Not(info.one);
+    info.mintermPages = NULL;
+    info.nodePages = info.lightNodePages = NULL;
+    info.currentMintermPage = NULL;
+    info.max = pow(2.0, (double)numVars);
+    info.currentNodePage = info.currentLightNodePage = NULL;
+    info.pageIndex = info.page = 0;
+    info.pageSize = DEFAULT_PAGE_SIZE;
+    info.maxPages = 0;
+    info.currentNodeDataPage = NULL;
+    info.nodeDataPage = info.nodeDataPageIndex = 0;
+    info.nodeDataPages = NULL;
+    info.nodeDataPageSize = DEFAULT_NODE_DATA_PAGE_SIZE;
+    info.maxNodeDataPages = 0;
+    info.memOut = 0;
+#ifdef DEBUG
+    info.num_calls = 0;
+#endif
 
     /* Create visited table where structures for node data are allocated and
        stored in a st_table */
-    visitedTable = SubsetCountMinterm(f, numVars);
-    if ((visitedTable == NULL) || memOut) {
+    visitedTable = SubsetCountMinterm(f, numVars, &info);
+    if ((visitedTable == NULL) || info.memOut) {
 	(void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
 	dd->errorCode = CUDD_MEMORY_OUT;
 	return(0);
     }
-    numNodes = SubsetCountNodes(f, visitedTable, numVars);
-    if (memOut) {
+    numNodes = SubsetCountNodes(f, visitedTable, numVars, &info);
+    if (info.memOut) {
 	(void) fprintf(dd->err, "Out-of-memory; Cannot subset\n");
 	dd->errorCode = CUDD_MEMORY_OUT;
 	return(0);
     }
 
-    if (st_lookup(visitedTable, f, &currNodeQual) == 0) {
+    if (st_lookup(visitedTable, f, (void **) &currNodeQual) == 0) {
 	fprintf(dd->err,
 		"Something is wrong, ought to be node quality table\n");
 	dd->errorCode = CUDD_INTERNAL_ERROR;
@@ -367,13 +360,10 @@ cuddSubsetHeavyBranch(
     }
     *size = numNodes;
 
-#ifdef DEBUG
-    num_calls = 0;
-#endif
     /* table to store nodes being created. */
     storeTable = st_init_table(st_ptrcmp, st_ptrhash);
     /* insert the constant */
-    cuddRef(one);
+    cuddRef(info.one);
     if (st_insert(storeTable, Cudd_ReadOne(dd), NULL) ==
 	ST_OUT_OF_MEM) {
 	fprintf(dd->out, "Something wrong, st_table insert failed\n");
@@ -381,9 +371,14 @@ cuddSubsetHeavyBranch(
     /* table to store approximations of nodes */
     approxTable = st_init_table(st_ptrcmp, st_ptrhash);
     subset = (DdNode *)BuildSubsetBdd(dd, f, size, visitedTable, threshold,
-				      storeTable, approxTable);
+				      storeTable, approxTable, &info);
     if (subset != NULL) {
 	cuddRef(subset);
+    }
+
+    if (info.memOut) {
+        dd->errorCode = CUDD_MEMORY_OUT;
+        dd->reordered = 0;
     }
 
     stGen = st_init_gen(approxTable);
@@ -391,7 +386,7 @@ cuddSubsetHeavyBranch(
 	st_free_table(approxTable);
 	return(NULL);
     }
-    while(st_gen(stGen, &key, &value)) {
+    while(st_gen(stGen, (void **) &key, (void **) &value)) {
 	Cudd_RecursiveDeref(dd, value);
     }
     st_free_gen(stGen); stGen = NULL;
@@ -402,28 +397,28 @@ cuddSubsetHeavyBranch(
 	st_free_table(storeTable);
 	return(NULL);
     }
-    while(st_gen(stGen, &key, &value)) {
+    while(st_gen(stGen, (void **) &key, (void **) &value)) {
 	Cudd_RecursiveDeref(dd, key);
     }
     st_free_gen(stGen); stGen = NULL;
     st_free_table(storeTable);
 
-    for (i = 0; i <= page; i++) {
-	FREE(mintermPages[i]);
+    for (i = 0; i <= info.page; i++) {
+	FREE(info.mintermPages[i]);
     }
-    FREE(mintermPages);
-    for (i = 0; i <= page; i++) {
-	FREE(nodePages[i]);
+    FREE(info.mintermPages);
+    for (i = 0; i <= info.page; i++) {
+	FREE(info.nodePages[i]);
     }
-    FREE(nodePages);
-    for (i = 0; i <= page; i++) {
-	FREE(lightNodePages[i]);
+    FREE(info.nodePages);
+    for (i = 0; i <= info.page; i++) {
+	FREE(info.lightNodePages[i]);
     }
-    FREE(lightNodePages);
-    for (i = 0; i <= nodeDataPage; i++) {
-	FREE(nodeDataPages[i]);
+    FREE(info.lightNodePages);
+    for (i = 0; i <= info.nodeDataPage; i++) {
+	FREE(info.nodeDataPages[i]);
     }
-    FREE(nodeDataPages);
+    FREE(info.nodeDataPages);
     st_free_table(visitedTable);
     FREE(size);
 #if 0
@@ -440,10 +435,9 @@ cuddSubsetHeavyBranch(
       }
 #endif
 	cuddDeref(subset);
-	return(subset);
-    } else {
-	return(NULL);
     }
+    return(subset);
+
 } /* end of cuddSubsetHeavyBranch */
 
 
@@ -452,231 +446,219 @@ cuddSubsetHeavyBranch(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Resize the number of pages allocated to store the node data.
 
-  Synopsis    [Resize the number of pages allocated to store the node data.]
+  @details The procedure moves the counter to the next page when the
+  end of the page is reached and allocates new pages when necessary.
 
-  Description [Resize the number of pages allocated to store the node data
-  The procedure  moves the counter to the next page when the end of
-  the page is reached and allocates new pages when necessary.]
+  @sideeffect Changes the size of pages, page, page index, maximum
+  number of pages freeing stuff in case of memory out. 
 
-  SideEffects [Changes the size of pages, page, page index, maximum
-  number of pages freeing stuff in case of memory out. ]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
-ResizeNodeDataPages(void)
+ResizeNodeDataPages(SubsetInfo_t * info)
 {
     int i;
     NodeData_t **newNodeDataPages;
 
-    nodeDataPage++;
+    info->nodeDataPage++;
     /* If the current page index is larger than the number of pages
      * allocated, allocate a new page array. Page numbers are incremented by
      * INITIAL_PAGES
      */
-    if (nodeDataPage == maxNodeDataPages) {
-	newNodeDataPages = ALLOC(NodeData_t *,maxNodeDataPages + INITIAL_PAGES);
+    if (info->nodeDataPage == info->maxNodeDataPages) {
+	newNodeDataPages = ALLOC(NodeData_t *, info->maxNodeDataPages + INITIAL_PAGES);
 	if (newNodeDataPages == NULL) {
-	    for (i = 0; i < nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
-	    memOut = 1;
+	    for (i = 0; i < info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
+	    info->memOut = 1;
 	    return;
 	} else {
-	    for (i = 0; i < maxNodeDataPages; i++) {
-		newNodeDataPages[i] = nodeDataPages[i];
+	    for (i = 0; i < info->maxNodeDataPages; i++) {
+		newNodeDataPages[i] = info->nodeDataPages[i];
 	    }
 	    /* Increase total page count */
-	    maxNodeDataPages += INITIAL_PAGES;
-	    FREE(nodeDataPages);
-	    nodeDataPages = newNodeDataPages;
+	    info->maxNodeDataPages += INITIAL_PAGES;
+	    FREE(info->nodeDataPages);
+	    info->nodeDataPages = newNodeDataPages;
 	}
     }
     /* Allocate a new page */
-    currentNodeDataPage = nodeDataPages[nodeDataPage] =
-	ALLOC(NodeData_t ,nodeDataPageSize);
-    if (currentNodeDataPage == NULL) {
-	for (i = 0; i < nodeDataPage; i++) FREE(nodeDataPages[i]);
-	FREE(nodeDataPages);
-	memOut = 1;
+    info->currentNodeDataPage = info->nodeDataPages[info->nodeDataPage] =
+	ALLOC(NodeData_t ,info->nodeDataPageSize);
+    if (info->currentNodeDataPage == NULL) {
+	for (i = 0; i < info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	FREE(info->nodeDataPages);
+	info->memOut = 1;
 	return;
     }
     /* reset page index */
-    nodeDataPageIndex = 0;
+    info->nodeDataPageIndex = 0;
     return;
 
 } /* end of ResizeNodeDataPages */
 
 
-/**Function********************************************************************
+/**
+  @brief Resize the number of pages allocated to store the minterm
+  counts. 
 
-  Synopsis    [Resize the number of pages allocated to store the minterm
-  counts. ]
+  @details The procedure  moves the counter to the next page when the
+  end of the page is reached and allocates new pages when necessary.
 
-  Description [Resize the number of pages allocated to store the minterm
-  counts.  The procedure  moves the counter to the next page when the
-  end of the page is reached and allocates new pages when necessary.]
+  @sideeffect Changes the size of minterm pages, page, page index, maximum
+  number of pages freeing stuff in case of memory out. 
 
-  SideEffects [Changes the size of minterm pages, page, page index, maximum
-  number of pages freeing stuff in case of memory out. ]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
-ResizeCountMintermPages(void)
+ResizeCountMintermPages(SubsetInfo_t * info)
 {
     int i;
     double **newMintermPages;
 
-    page++;
+    info->page++;
     /* If the current page index is larger than the number of pages
      * allocated, allocate a new page array. Page numbers are incremented by
      * INITIAL_PAGES
      */
-    if (page == maxPages) {
-	newMintermPages = ALLOC(double *,maxPages + INITIAL_PAGES);
+    if (info->page == info->maxPages) {
+	newMintermPages = ALLOC(double *, info->maxPages + INITIAL_PAGES);
 	if (newMintermPages == NULL) {
-	    for (i = 0; i < page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
-	    memOut = 1;
+	    for (i = 0; i < info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
+	    info->memOut = 1;
 	    return;
 	} else {
-	    for (i = 0; i < maxPages; i++) {
-		newMintermPages[i] = mintermPages[i];
+	    for (i = 0; i < info->maxPages; i++) {
+		newMintermPages[i] = info->mintermPages[i];
 	    }
 	    /* Increase total page count */
-	    maxPages += INITIAL_PAGES;
-	    FREE(mintermPages);
-	    mintermPages = newMintermPages;
+	    info->maxPages += INITIAL_PAGES;
+	    FREE(info->mintermPages);
+	    info->mintermPages = newMintermPages;
 	}
     }
     /* Allocate a new page */
-    currentMintermPage = mintermPages[page] = ALLOC(double,pageSize);
-    if (currentMintermPage == NULL) {
-	for (i = 0; i < page; i++) FREE(mintermPages[i]);
-	FREE(mintermPages);
-	memOut = 1;
+    info->currentMintermPage = info->mintermPages[info->page] = ALLOC(double,info->pageSize);
+    if (info->currentMintermPage == NULL) {
+	for (i = 0; i < info->page; i++) FREE(info->mintermPages[i]);
+	FREE(info->mintermPages);
+	info->memOut = 1;
 	return;
     }
     /* reset page index */
-    pageIndex = 0;
+    info->pageIndex = 0;
     return;
 
 } /* end of ResizeCountMintermPages */
 
 
-/**Function********************************************************************
+/**
+  @brief Resize the number of pages allocated to store the node counts.
 
-  Synopsis    [Resize the number of pages allocated to store the node counts.]
+  @details The procedure moves the counter to the next page when the
+  end of the page is reached and allocates new pages when necessary.
 
-  Description [Resize the number of pages allocated to store the node counts.
-  The procedure  moves the counter to the next page when the end of
-  the page is reached and allocates new pages when necessary.]
+  @sideeffect Changes the size of pages, page, page index, maximum
+  number of pages freeing stuff in case of memory out.
 
-  SideEffects [Changes the size of pages, page, page index, maximum
-  number of pages freeing stuff in case of memory out.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
-ResizeCountNodePages(void)
+ResizeCountNodePages(SubsetInfo_t * info)
 {
     int i;
     int **newNodePages;
 
-    page++;
+    info->page++;
 
     /* If the current page index is larger than the number of pages
      * allocated, allocate a new page array. The number of pages is incremented
      * by INITIAL_PAGES.
      */
-    if (page == maxPages) {
-	newNodePages = ALLOC(int *,maxPages + INITIAL_PAGES);
+    if (info->page == info->maxPages) {
+	newNodePages = ALLOC(int *, info->maxPages + INITIAL_PAGES);
 	if (newNodePages == NULL) {
-	    for (i = 0; i < page; i++) FREE(nodePages[i]);
-	    FREE(nodePages);
-	    for (i = 0; i < page; i++) FREE(lightNodePages[i]);
-	    FREE(lightNodePages);
-	    memOut = 1;
+	    for (i = 0; i < info->page; i++) FREE(info->nodePages[i]);
+	    FREE(info->nodePages);
+	    for (i = 0; i < info->page; i++) FREE(info->lightNodePages[i]);
+	    FREE(info->lightNodePages);
+	    info->memOut = 1;
 	    return;
 	} else {
-	    for (i = 0; i < maxPages; i++) {
-		newNodePages[i] = nodePages[i];
+	    for (i = 0; i < info->maxPages; i++) {
+		newNodePages[i] = info->nodePages[i];
 	    }
-	    FREE(nodePages);
-	    nodePages = newNodePages;
+	    FREE(info->nodePages);
+	    info->nodePages = newNodePages;
 	}
 
-	newNodePages = ALLOC(int *,maxPages + INITIAL_PAGES);
+	newNodePages = ALLOC(int *, info->maxPages + INITIAL_PAGES);
 	if (newNodePages == NULL) {
-	    for (i = 0; i < page; i++) FREE(nodePages[i]);
-	    FREE(nodePages);
-	    for (i = 0; i < page; i++) FREE(lightNodePages[i]);
-	    FREE(lightNodePages);
-	    memOut = 1;
+	    for (i = 0; i < info->page; i++) FREE(info->nodePages[i]);
+	    FREE(info->nodePages);
+	    for (i = 0; i < info->page; i++) FREE(info->lightNodePages[i]);
+	    FREE(info->lightNodePages);
+	    info->memOut = 1;
 	    return;
 	} else {
-	    for (i = 0; i < maxPages; i++) {
-		newNodePages[i] = lightNodePages[i];
+	    for (i = 0; i < info->maxPages; i++) {
+		newNodePages[i] = info->lightNodePages[i];
 	    }
-	    FREE(lightNodePages);
-	    lightNodePages = newNodePages;
+	    FREE(info->lightNodePages);
+	    info->lightNodePages = newNodePages;
 	}
 	/* Increase total page count */
-	maxPages += INITIAL_PAGES;
+	info->maxPages += INITIAL_PAGES;
     }
     /* Allocate a new page */
-    currentNodePage = nodePages[page] = ALLOC(int,pageSize);
-    if (currentNodePage == NULL) {
-	for (i = 0; i < page; i++) FREE(nodePages[i]);
-	FREE(nodePages);
-	for (i = 0; i < page; i++) FREE(lightNodePages[i]);
-	FREE(lightNodePages);
-	memOut = 1;
+    info->currentNodePage = info->nodePages[info->page] = ALLOC(int,info->pageSize);
+    if (info->currentNodePage == NULL) {
+	for (i = 0; i < info->page; i++) FREE(info->nodePages[i]);
+	FREE(info->nodePages);
+	for (i = 0; i < info->page; i++) FREE(info->lightNodePages[i]);
+	FREE(info->lightNodePages);
+	info->memOut = 1;
 	return;
     }
     /* Allocate a new page */
-    currentLightNodePage = lightNodePages[page] = ALLOC(int,pageSize);
-    if (currentLightNodePage == NULL) {
-	for (i = 0; i <= page; i++) FREE(nodePages[i]);
-	FREE(nodePages);
-	for (i = 0; i < page; i++) FREE(lightNodePages[i]);
-	FREE(lightNodePages);
-	memOut = 1;
+    info->currentLightNodePage = info->lightNodePages[info->page]
+        = ALLOC(int,info->pageSize);
+    if (info->currentLightNodePage == NULL) {
+	for (i = 0; i <= info->page; i++) FREE(info->nodePages[i]);
+	FREE(info->nodePages);
+	for (i = 0; i < info->page; i++) FREE(info->lightNodePages[i]);
+	FREE(info->lightNodePages);
+	info->memOut = 1;
 	return;
     }
     /* reset page index */
-    pageIndex = 0;
+    info->pageIndex = 0;
     return;
 
 } /* end of ResizeCountNodePages */
 
 
-/**Function********************************************************************
+/**
+  @brief Recursively counts minterms of each node in the DAG.
 
-  Synopsis    [Recursively counts minterms of each node in the DAG.]
+  @details Similar to the cuddCountMintermAux which recursively counts
+  the number of minterms for the dag rooted at each node in terms of
+  the total number of variables (max). This procedure creates the node
+  data structure and stores the minterm count as part of the node data
+  structure.
 
-  Description [Recursively counts minterms of each node in the DAG.
-  Similar to the cuddCountMintermAux which recursively counts the
-  number of minterms for the dag rooted at each node in terms of the
-  total number of variables (max). This procedure creates the node
-  data structure and stores the minterm count as part of the node
-  data structure. ]
+  @sideeffect Creates structures of type node quality and fills the st_table
 
-  SideEffects [Creates structures of type node quality and fills the st_table]
+  @see SubsetCountMinterm
 
-  SeeAlso     [SubsetCountMinterm]
-
-******************************************************************************/
+*/
 static double
 SubsetCountMintermAux(
-  DdNode * node /* function to analyze */,
-  double  max /* number of minterms of constant 1 */,
-  st_table * table /* visitedTable table */)
+  DdNode * node /**< function to analyze */,
+  double  max /**< number of minterms of constant 1 */,
+  st_table * table /**< visitedTable table */,
+  SubsetInfo_t * info /**< miscellaneous info */)
 {
 
     DdNode	*N,*Nv,*Nnv; /* nodes to store cofactors  */
@@ -687,12 +669,12 @@ SubsetCountMintermAux(
     int i;
 
 #ifdef DEBUG
-    num_calls++;
+    info->num_calls++;
 #endif
 
     /* Constant case */
-    if (Cudd_IsConstant(node)) {
-	if (node == zero) {
+    if (Cudd_IsConstantInt(node)) {
+	if (node == info->zero) {
 	    return(0.0);
 	} else {
 	    return(max);
@@ -700,7 +682,7 @@ SubsetCountMintermAux(
     } else {
 
 	/* check if entry for this node exists */
-	if (st_lookup(table, node, &dummy)) {
+        if (st_lookup(table, node, (void **) &dummy)) {
 	    min = *(dummy->mintermPointer);
 	    return(min);
 	}
@@ -715,39 +697,40 @@ SubsetCountMintermAux(
 	Nv = Cudd_NotCond(Nv, Cudd_IsComplement(node));
 	Nnv = Cudd_NotCond(Nnv, Cudd_IsComplement(node));
 
-	min1 =  SubsetCountMintermAux(Nv, max,table)/2.0;
-	if (memOut) return(0.0);
-	min2 =  SubsetCountMintermAux(Nnv,max,table)/2.0;
-	if (memOut) return(0.0);
+	min1 =  SubsetCountMintermAux(Nv, max,table,info)/2.0;
+	if (info->memOut) return(0.0);
+	min2 =  SubsetCountMintermAux(Nnv,max,table,info)/2.0;
+	if (info->memOut) return(0.0);
 	min = (min1+min2);
 
 	/* if page index is at the bottom, then create a new page */
-	if (pageIndex == pageSize) ResizeCountMintermPages();
-	if (memOut) {
-	    for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
+	if (info->pageIndex == info->pageSize) ResizeCountMintermPages(info);
+	if (info->memOut) {
+	    for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
 	    st_free_table(table);
 	    return(0.0);
 	}
 
 	/* point to the correct location in the page */
-	pmin = currentMintermPage+pageIndex;
-	pageIndex++;
+	pmin = info->currentMintermPage + info->pageIndex;
+	info->pageIndex++;
 
 	/* store the minterm count of this node in the page */
 	*pmin = min;
 
 	/* Note I allocate the struct here. Freeing taken care of later */
-	if (nodeDataPageIndex == nodeDataPageSize) ResizeNodeDataPages();
-	if (memOut) {
-	    for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
+	if (info->nodeDataPageIndex == info->nodeDataPageSize)
+            ResizeNodeDataPages(info);
+	if (info->memOut) {
+	    for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
 	    st_free_table(table);
 	    return(0.0);
 	}
 
-	newEntry = currentNodeDataPage + nodeDataPageIndex;
-	nodeDataPageIndex++;
+	newEntry = info->currentNodeDataPage + info->nodeDataPageIndex;
+	info->nodeDataPageIndex++;
 
 	/* points to the correct location in the page */
 	newEntry->mintermPointer = pmin;
@@ -756,11 +739,11 @@ SubsetCountMintermAux(
 
 	/* insert entry for the node in the table */
 	if (st_insert(table,node, newEntry) == ST_OUT_OF_MEM) {
-	    memOut = 1;
-	    for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
-	    for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
+	    info->memOut = 1;
+	    for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
+	    for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
 	    st_free_table(table);
 	    return(0.0);
 	}
@@ -770,105 +753,103 @@ SubsetCountMintermAux(
 } /* end of SubsetCountMintermAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts minterms of each node in the DAG
 
-  Synopsis    [Counts minterms of each node in the DAG]
+  @details Similar to the Cudd_CountMinterm procedure except this
+  returns the minterm count for all the nodes in the bdd in an
+  st_table.
 
-  Description [Counts minterms of each node in the DAG. Similar to the
-  Cudd_CountMinterm procedure except this returns the minterm count for
-  all the nodes in the bdd in an st_table.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see SubsetCountMintermAux
 
-  SeeAlso     [SubsetCountMintermAux]
-
-******************************************************************************/
+*/
 static st_table *
 SubsetCountMinterm(
-  DdNode * node /* function to be analyzed */,
-  int nvars /* number of variables node depends on */)
+  DdNode * node /**< function to be analyzed */,
+  int nvars /**< number of variables node depends on */,
+  SubsetInfo_t * info /**< miscellaneous info */)
 {
     st_table	*table;
     int i;
 
 
 #ifdef DEBUG
-    num_calls = 0;
+    info->num_calls = 0;
 #endif
 
-    max = pow(2.0,(double) nvars);
+    info->max = pow(2.0,(double) nvars);
     table = st_init_table(st_ptrcmp,st_ptrhash);
     if (table == NULL) goto OUT_OF_MEM;
-    maxPages = INITIAL_PAGES;
-    mintermPages = ALLOC(double *,maxPages);
-    if (mintermPages == NULL) {
+    info->maxPages = INITIAL_PAGES;
+    info->mintermPages = ALLOC(double *,info->maxPages);
+    if (info->mintermPages == NULL) {
 	st_free_table(table);
 	goto OUT_OF_MEM;
     }
-    page = 0;
-    currentMintermPage = ALLOC(double,pageSize);
-    mintermPages[page] = currentMintermPage;
-    if (currentMintermPage == NULL) {
-	FREE(mintermPages);
+    info->page = 0;
+    info->currentMintermPage = ALLOC(double,info->pageSize);
+    info->mintermPages[info->page] = info->currentMintermPage;
+    if (info->currentMintermPage == NULL) {
+	FREE(info->mintermPages);
 	st_free_table(table);
 	goto OUT_OF_MEM;
     }
-    pageIndex = 0;
-    maxNodeDataPages = INITIAL_PAGES;
-    nodeDataPages = ALLOC(NodeData_t *, maxNodeDataPages);
-    if (nodeDataPages == NULL) {
-	for (i = 0; i <= page ; i++) FREE(mintermPages[i]);
-	FREE(mintermPages);
+    info->pageIndex = 0;
+    info->maxNodeDataPages = INITIAL_PAGES;
+    info->nodeDataPages = ALLOC(NodeData_t *, info->maxNodeDataPages);
+    if (info->nodeDataPages == NULL) {
+	for (i = 0; i <= info->page ; i++) FREE(info->mintermPages[i]);
+	FREE(info->mintermPages);
 	st_free_table(table);
 	goto OUT_OF_MEM;
     }
-    nodeDataPage = 0;
-    currentNodeDataPage = ALLOC(NodeData_t ,nodeDataPageSize);
-    nodeDataPages[nodeDataPage] = currentNodeDataPage;
-    if (currentNodeDataPage == NULL) {
-	for (i = 0; i <= page ; i++) FREE(mintermPages[i]);
-	FREE(mintermPages);
-	FREE(nodeDataPages);
+    info->nodeDataPage = 0;
+    info->currentNodeDataPage = ALLOC(NodeData_t ,info->nodeDataPageSize);
+    info->nodeDataPages[info->nodeDataPage] = info->currentNodeDataPage;
+    if (info->currentNodeDataPage == NULL) {
+	for (i = 0; i <= info->page ; i++) FREE(info->mintermPages[i]);
+	FREE(info->mintermPages);
+	FREE(info->nodeDataPages);
 	st_free_table(table);
 	goto OUT_OF_MEM;
     }
-    nodeDataPageIndex = 0;
+    info->nodeDataPageIndex = 0;
 
-    (void) SubsetCountMintermAux(node,max,table);
-    if (memOut) goto OUT_OF_MEM;
+    (void) SubsetCountMintermAux(node,info->max,table,info);
+    if (info->memOut) goto OUT_OF_MEM;
     return(table);
 
 OUT_OF_MEM:
-    memOut = 1;
+    info->memOut = 1;
     return(NULL);
 
 } /* end of SubsetCountMinterm */
 
 
-/**Function********************************************************************
-
-  Synopsis    [Recursively counts the number of nodes under the dag.
+/**
+  @brief Recursively counts the number of nodes under the dag.
   Also counts the number of nodes under the lighter child of
-  this node.]
+  this node.
 
-  Description [Recursively counts the number of nodes under the dag.
-  Also counts the number of nodes under the lighter child of
-  this node. . Note that the same dag may be the lighter child of two
-  different nodes and have different counts. As with the minterm counts,
-  the node counts are stored in pages to be space efficient and the
-  address for these node counts are stored in an st_table associated
-  to each node. ]
+  @details Note that the same dag may be the lighter child of two
+  different nodes and have different counts. As with the minterm
+  counts, the node counts are stored in pages to be space efficient
+  and the address for these node counts are stored in an st_table
+  associated to each node.
 
-  SideEffects [Updates the node data table with node counts]
+  @sideeffect Updates the node data table with node counts
 
-  SeeAlso     [SubsetCountNodes]
+  @see SubsetCountNodes
 
-******************************************************************************/
+*/
 static int
 SubsetCountNodesAux(
-  DdNode * node /* current node */,
-  st_table * table /* table to update node count, also serves as visited table. */,
-  double  max /* maximum number of variables */)
+  DdNode * node /**< current node */,
+  st_table * table /**< table to update node count, also serves as visited table. */,
+  double  max /**< maximum number of variables */,
+  SubsetInfo_t * info)
 {
     int tval, eval, i;
     DdNode *N, *Nv, *Nnv;
@@ -876,11 +857,11 @@ SubsetCountNodesAux(
     NodeData_t *dummyN, *dummyNv, *dummyNnv, *dummyNBar;
     int *pmin, *pminBar, *val;
 
-    if ((node == NULL) || Cudd_IsConstant(node))
+    if ((node == NULL) || Cudd_IsConstantInt(node))
 	return(0);
 
     /* if this node has been processed do nothing */
-    if (st_lookup(table, node, &dummyN) == 1) {
+    if (st_lookup(table, node, (void **) &dummyN) == 1) {
 	val = dummyN->nodesPointer;
 	if (val != NULL)
 	    return(0);
@@ -896,27 +877,27 @@ SubsetCountNodesAux(
     Nnv = Cudd_NotCond(Nnv, Cudd_IsComplement(node));
 
     /* find the minterm counts for the THEN and ELSE branches */
-    if (Cudd_IsConstant(Nv)) {
-	if (Nv == zero) {
+    if (Cudd_IsConstantInt(Nv)) {
+	if (Nv == info->zero) {
 	    minNv = 0.0;
 	} else {
 	    minNv = max;
 	}
     } else {
-	if (st_lookup(table, Nv, &dummyNv) == 1)
+	if (st_lookup(table, Nv, (void **) &dummyNv) == 1)
 	    minNv = *(dummyNv->mintermPointer);
 	else {
 	    return(0);
 	}
     }
-    if (Cudd_IsConstant(Nnv)) {
-	if (Nnv == zero) {
+    if (Cudd_IsConstantInt(Nnv)) {
+	if (Nnv == info->zero) {
 	    minNnv = 0.0;
 	} else {
 	    minNnv = max;
 	}
     } else {
-	if (st_lookup(table, Nnv, &dummyNnv) == 1) {
+	if (st_lookup(table, Nnv, (void **) &dummyNnv) == 1) {
 	    minNnv = *(dummyNnv->mintermPointer);
 	}
 	else {
@@ -927,184 +908,182 @@ SubsetCountNodesAux(
 
     /* recur based on which has larger minterm, */
     if (minNv >= minNnv) {
-	tval = SubsetCountNodesAux(Nv, table, max);
-	if (memOut) return(0);
-	eval = SubsetCountNodesAux(Nnv, table, max);
-	if (memOut) return(0);
+	tval = SubsetCountNodesAux(Nv, table, max, info);
+	if (info->memOut) return(0);
+	eval = SubsetCountNodesAux(Nnv, table, max, info);
+	if (info->memOut) return(0);
 
 	/* store the node count of the lighter child. */
-	if (pageIndex == pageSize) ResizeCountNodePages();
-	if (memOut) {
-	    for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
-	    for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
+	if (info->pageIndex == info->pageSize) ResizeCountNodePages(info);
+	if (info->memOut) {
+	    for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
+	    for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
 	    st_free_table(table);
 	    return(0);
 	}
-	pmin = currentLightNodePage + pageIndex;
+	pmin = info->currentLightNodePage + info->pageIndex;
 	*pmin = eval; /* Here the ELSE child is lighter */
 	dummyN->lightChildNodesPointer = pmin;
 
     } else {
-	eval = SubsetCountNodesAux(Nnv, table, max);
-	if (memOut) return(0);
-	tval = SubsetCountNodesAux(Nv, table, max);
-	if (memOut) return(0);
+	eval = SubsetCountNodesAux(Nnv, table, max, info);
+	if (info->memOut) return(0);
+	tval = SubsetCountNodesAux(Nv, table, max, info);
+	if (info->memOut) return(0);
 
 	/* store the node count of the lighter child. */
-	if (pageIndex == pageSize) ResizeCountNodePages();
-	if (memOut) {
-	    for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
-	    for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
+	if (info->pageIndex == info->pageSize) ResizeCountNodePages(info);
+	if (info->memOut) {
+	    for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
+	    for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
 	    st_free_table(table);
 	    return(0);
 	}
-	pmin = currentLightNodePage + pageIndex;
+	pmin = info->currentLightNodePage + info->pageIndex;
 	*pmin = tval; /* Here the THEN child is lighter */
 	dummyN->lightChildNodesPointer = pmin;
 
     }
     /* updating the page index for node count storage. */
-    pmin = currentNodePage + pageIndex;
+    pmin = info->currentNodePage + info->pageIndex;
     *pmin = tval + eval + 1;
     dummyN->nodesPointer = pmin;
 
     /* pageIndex is parallel page index for count_nodes and count_lightNodes */
-    pageIndex++;
+    info->pageIndex++;
 
     /* if this node has been reached first, it belongs to a heavier
        branch. Its complement will be reached later on a lighter branch.
        Hence the complement has zero node count. */
 
-    if (st_lookup(table, Cudd_Not(node), &dummyNBar) == 1)  {
-	if (pageIndex == pageSize) ResizeCountNodePages();
-	if (memOut) {
-	    for (i = 0; i < page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
-	    for (i = 0; i < nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
+    if (st_lookup(table, Cudd_Not(node), (void **) &dummyNBar) == 1)  {
+	if (info->pageIndex == info->pageSize) ResizeCountNodePages(info);
+	if (info->memOut) {
+	    for (i = 0; i < info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
+	    for (i = 0; i < info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
 	    st_free_table(table);
 	    return(0);
 	}
-	pminBar = currentLightNodePage + pageIndex;
+	pminBar = info->currentLightNodePage + info->pageIndex;
 	*pminBar = 0;
 	dummyNBar->lightChildNodesPointer = pminBar;
 	/* The lighter child has less nodes than the parent.
 	 * So if parent 0 then lighter child zero
 	 */
-	if (pageIndex == pageSize) ResizeCountNodePages();
-	if (memOut) {
-	    for (i = 0; i < page; i++) FREE(mintermPages[i]);
-	    FREE(mintermPages);
-	    for (i = 0; i < nodeDataPage; i++) FREE(nodeDataPages[i]);
-	    FREE(nodeDataPages);
+	if (info->pageIndex == info->pageSize) ResizeCountNodePages(info);
+	if (info->memOut) {
+	    for (i = 0; i < info->page; i++) FREE(info->mintermPages[i]);
+	    FREE(info->mintermPages);
+	    for (i = 0; i < info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	    FREE(info->nodeDataPages);
 	    st_free_table(table);
 	    return(0);
 	}
-	pminBar = currentNodePage + pageIndex;
+	pminBar = info->currentNodePage + info->pageIndex;
 	*pminBar = 0;
 	dummyNBar->nodesPointer = pminBar ; /* maybe should point to zero */
 
-	pageIndex++;
+	info->pageIndex++;
     }
     return(*pmin);
 } /*end of SubsetCountNodesAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the nodes under the current node and its lighter child.
 
-  Synopsis    [Counts the nodes under the current node and its lighter child]
+  @details Calls a recursive procedure to count the number of nodes of
+  a DAG rooted at a particular node and the number of nodes taken by
+  its lighter child.
 
-  Description [Counts the nodes under the current node and its lighter
-  child. Calls a recursive procedure to count the number of nodes of
-  a DAG rooted at a particular node and the number of nodes taken by its
-  lighter child.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see SubsetCountNodesAux
 
-  SeeAlso     [SubsetCountNodesAux]
-
-******************************************************************************/
+*/
 static int
 SubsetCountNodes(
-  DdNode * node /* function to be analyzed */,
-  st_table * table /* node quality table */,
-  int  nvars /* number of variables node depends on */)
+  DdNode * node /**< function to be analyzed */,
+  st_table * table /**< node quality table */,
+  int  nvars /**< number of variables node depends on */,
+  SubsetInfo_t * info /**< miscellaneous info */)
 {
     int	num;
     int i;
 
 #ifdef DEBUG
-    num_calls = 0;
+    info->num_calls = 0;
 #endif
 
-    max = pow(2.0,(double) nvars);
-    maxPages = INITIAL_PAGES;
-    nodePages = ALLOC(int *,maxPages);
-    if (nodePages == NULL)  {
+    info->max = pow(2.0,(double) nvars);
+    info->maxPages = INITIAL_PAGES;
+    info->nodePages = ALLOC(int *, info->maxPages);
+    if (info->nodePages == NULL)  {
 	goto OUT_OF_MEM;
     }
 
-    lightNodePages = ALLOC(int *,maxPages);
-    if (lightNodePages == NULL) {
-	for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	FREE(mintermPages);
-	for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	FREE(nodeDataPages);
-	FREE(nodePages);
+    info->lightNodePages = ALLOC(int *, info->maxPages);
+    if (info->lightNodePages == NULL) {
+	for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	FREE(info->mintermPages);
+	for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	FREE(info->nodeDataPages);
+	FREE(info->nodePages);
 	goto OUT_OF_MEM;
     }
 
-    page = 0;
-    currentNodePage = nodePages[page] = ALLOC(int,pageSize);
-    if (currentNodePage == NULL) {
-	for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	FREE(mintermPages);
-	for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	FREE(nodeDataPages);
-	FREE(lightNodePages);
-	FREE(nodePages);
+    info->page = 0;
+    info->currentNodePage = info->nodePages[info->page] =
+        ALLOC(int,info->pageSize);
+    if (info->currentNodePage == NULL) {
+	for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	FREE(info->mintermPages);
+	for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	FREE(info->nodeDataPages);
+	FREE(info->lightNodePages);
+	FREE(info->nodePages);
 	goto OUT_OF_MEM;
     }
 
-    currentLightNodePage = lightNodePages[page] = ALLOC(int,pageSize);
-    if (currentLightNodePage == NULL) {
-	for (i = 0; i <= page; i++) FREE(mintermPages[i]);
-	FREE(mintermPages);
-	for (i = 0; i <= nodeDataPage; i++) FREE(nodeDataPages[i]);
-	FREE(nodeDataPages);
-	FREE(currentNodePage);
-	FREE(lightNodePages);
-	FREE(nodePages);
+    info->currentLightNodePage = info->lightNodePages[info->page] =
+        ALLOC(int,info->pageSize);
+    if (info->currentLightNodePage == NULL) {
+	for (i = 0; i <= info->page; i++) FREE(info->mintermPages[i]);
+	FREE(info->mintermPages);
+	for (i = 0; i <= info->nodeDataPage; i++) FREE(info->nodeDataPages[i]);
+	FREE(info->nodeDataPages);
+	FREE(info->currentNodePage);
+	FREE(info->lightNodePages);
+	FREE(info->nodePages);
 	goto OUT_OF_MEM;
     }
 
-    pageIndex = 0;
-    num = SubsetCountNodesAux(node,table,max);
-    if (memOut) goto OUT_OF_MEM;
+    info->pageIndex = 0;
+    num = SubsetCountNodesAux(node,table,info->max,info);
+    if (info->memOut) goto OUT_OF_MEM;
     return(num);
 
 OUT_OF_MEM:
-    memOut = 1;
+    info->memOut = 1;
     return(0);
 
 } /* end of SubsetCountNodes */
 
 
-/**Function********************************************************************
+/**
+  @brief Procedure to recursively store nodes that are retained in the subset.
 
-  Synopsis    [Procedure to recursively store nodes that are retained in the subset.]
+  @sideeffect None
 
-  Description [rocedure to recursively store nodes that are retained in the subset.]
+  @see StoreNodes
 
-  SideEffects [None]
-
-  SeeAlso     [StoreNodes]
-
-******************************************************************************/
+*/
 static void
 StoreNodes(
   st_table * storeTable,
@@ -1112,11 +1091,11 @@ StoreNodes(
   DdNode * node)
 {
     DdNode *N, *Nt, *Ne;
-    if (Cudd_IsConstant(dd)) {
+    if (Cudd_IsConstantInt(dd)) {
 	return;
     }
     N = Cudd_Regular(node);
-    if (st_lookup(storeTable, N, NULL)) {
+    if (st_is_member(storeTable, N)) {
 	return;
     }
     cuddRef(N);
@@ -1134,31 +1113,29 @@ StoreNodes(
 }
 
 
-/**Function********************************************************************
+/**
+  @brief Builds the subset %BDD using the heavy branch method.
 
-  Synopsis    [Builds the subset BDD using the heavy branch method.]
-
-  Description [The procedure carries out the building of the subset BDD
+  @details The procedure carries out the building of the subset %BDD
   starting at the root. Using the three different counts labelling each node,
   the procedure chooses the heavier branch starting from the root and keeps
   track of the number of nodes it discards at each step, thus keeping count
-  of the size of the subset BDD dynamically. Once the threshold is satisfied,
-  the procedure then calls ITE to build the BDD.]
+  of the size of the subset %BDD dynamically. Once the threshold is satisfied,
+  the procedure then calls ITE to build the %BDD.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 BuildSubsetBdd(
-  DdManager * dd /* DD manager */,
-  DdNode * node /* current node */,
-  int * size /* current size of the subset */,
-  st_table * visitedTable /* visited table storing all node data */,
-  int  threshold,
-  st_table * storeTable,
-  st_table * approxTable)
+  DdManager * dd /**< %DD manager */,
+  DdNode * node /**< current node */,
+  int * size /**< current size of the subset */,
+  st_table * visitedTable /**< visited table storing all node data */,
+  int threshold /**< subsetting threshold */,
+  st_table * storeTable /**< store table */,
+  st_table * approxTable /**< approximation table */,
+  SubsetInfo_t * info /**< miscellaneous info */)
 {
 
     DdNode *Nv, *Nnv, *N, *topv, *neW;
@@ -1167,11 +1144,11 @@ BuildSubsetBdd(
     NodeData_t *currNodeQualT;
     NodeData_t *currNodeQualE;
     DdNode *ThenBranch, *ElseBranch;
-    unsigned int topid;
-    char *dummy;
+    int topid;
+    void *dummy;
 
 #ifdef DEBUG
-    num_calls++;
+    info->num_calls++;
 #endif
     /*If the size of the subset is below the threshold, dont do
       anything. */
@@ -1181,11 +1158,11 @@ BuildSubsetBdd(
       return(node);
     }
 
-    if (Cudd_IsConstant(node))
+    if (Cudd_IsConstantInt(node))
 	return(node);
 
     /* Look up minterm count for this node. */
-    if (!st_lookup(visitedTable, node, &currNodeQual)) {
+    if (!st_lookup(visitedTable, node, (void **) &currNodeQual)) {
 	fprintf(dd->err,
 		"Something is wrong, ought to be in node quality table\n");
     }
@@ -1199,9 +1176,9 @@ BuildSubsetBdd(
     Nv = Cudd_NotCond(Nv, Cudd_IsComplement(node));
     Nnv = Cudd_NotCond(Nnv, Cudd_IsComplement(node));
 
-    if (!Cudd_IsConstant(Nv)) {
+    if (!Cudd_IsConstantInt(Nv)) {
 	/* find out minterms and nodes contributed by then child */
-	if (!st_lookup(visitedTable, Nv, &currNodeQualT)) {
+	if (!st_lookup(visitedTable, Nv, (void **) &currNodeQualT)) {
 		fprintf(dd->out,"Something wrong, couldnt find nodes in node quality table\n");
 		dd->errorCode = CUDD_INTERNAL_ERROR;
 		return(NULL);
@@ -1210,15 +1187,15 @@ BuildSubsetBdd(
 	    minNv = *(((NodeData_t *)currNodeQualT)->mintermPointer);
 	}
     } else {
-	if (Nv == zero) {
+	if (Nv == info->zero) {
 	    minNv = 0;
 	} else  {
-	    minNv = max;
+	    minNv = info->max;
 	}
     }
-    if (!Cudd_IsConstant(Nnv)) {
+    if (!Cudd_IsConstantInt(Nnv)) {
 	/* find out minterms and nodes contributed by else child */
-	if (!st_lookup(visitedTable, Nnv, &currNodeQualE)) {
+	if (!st_lookup(visitedTable, Nnv, (void **) &currNodeQualE)) {
 	    fprintf(dd->out,"Something wrong, couldnt find nodes in node quality table\n");
 	    dd->errorCode = CUDD_INTERNAL_ERROR;
 	    return(NULL);
@@ -1226,10 +1203,10 @@ BuildSubsetBdd(
 	    minNnv = *(((NodeData_t *)currNodeQualE)->mintermPointer);
 	}
     } else {
-	if (Nnv == zero) {
+	if (Nnv == info->zero) {
 	    minNnv = 0;
 	} else {
-	    minNnv = max;
+	    minNnv = info->max;
 	}
     }
 
@@ -1241,8 +1218,9 @@ BuildSubsetBdd(
 			     the Then branch in case of a tie */
 
 	/* recur with the Then branch */
-	ThenBranch = (DdNode *)BuildSubsetBdd(dd, Nv, size,
-	      visitedTable, threshold, storeTable, approxTable);
+	ThenBranch = (DdNode *)BuildSubsetBdd(dd, Nv, size, visitedTable,
+                                              threshold, storeTable,
+                                              approxTable, info);
 	if (ThenBranch == NULL) {
 	    return(NULL);
 	}
@@ -1252,23 +1230,24 @@ BuildSubsetBdd(
 	 * Zero.
 	 */
 	if (st_lookup(storeTable, Cudd_Regular(Nnv), &dummy)) {
-	  ElseBranch = Nnv;
-	  cuddRef(ElseBranch);
+            ElseBranch = Nnv;
+            cuddRef(ElseBranch);
 	} else {
-	  if (st_lookup(approxTable, Nnv, &dummy)) {
-	    ElseBranch = (DdNode *)dummy;
-	    cuddRef(ElseBranch);
-	  } else {
-	    ElseBranch = zero;
-	    cuddRef(ElseBranch);
-	  }
+            if (st_lookup(approxTable, Nnv, &dummy)) {
+                ElseBranch = (DdNode *)dummy;
+                cuddRef(ElseBranch);
+            } else {
+                ElseBranch = info->zero;
+                cuddRef(ElseBranch);
+            }
 	}
 
     }
     else {
 	/* recur with the Else branch */
-	ElseBranch = (DdNode *)BuildSubsetBdd(dd, Nnv, size,
-		      visitedTable, threshold, storeTable, approxTable);
+	ElseBranch = (DdNode *)BuildSubsetBdd(dd, Nnv, size, visitedTable,
+                                              threshold, storeTable,
+                                              approxTable, info);
 	if (ElseBranch == NULL) {
 	    return(NULL);
 	}
@@ -1278,16 +1257,16 @@ BuildSubsetBdd(
 	 * Zero.
 	 */
 	if (st_lookup(storeTable, Cudd_Regular(Nv), &dummy)) {
-	  ThenBranch = Nv;
-	  cuddRef(ThenBranch);
+            ThenBranch = Nv;
+            cuddRef(ThenBranch);
 	} else {
-	  if (st_lookup(approxTable, Nv, &dummy)) {
-	    ThenBranch = (DdNode *)dummy;
-	    cuddRef(ThenBranch);
-	  } else {
-	    ThenBranch = zero;
-	    cuddRef(ThenBranch);
-	  }
+            if (st_lookup(approxTable, Nv, &dummy)) {
+                ThenBranch = (DdNode *)dummy;
+                cuddRef(ThenBranch);
+            } else {
+                ThenBranch = info->zero;
+                cuddRef(ThenBranch);
+            }
 	}
     }
 
@@ -1309,10 +1288,10 @@ BuildSubsetBdd(
     else {
 	/* store this node in the store table */
 	if (!st_lookup(storeTable, Cudd_Regular(neW), &dummy)) {
-	  cuddRef(neW);
-	  if (st_insert(storeTable, Cudd_Regular(neW), NULL) ==
-              ST_OUT_OF_MEM)
-              return (NULL);
+            cuddRef(neW);
+            if (st_insert(storeTable, Cudd_Regular(neW), NULL) ==
+                ST_OUT_OF_MEM)
+                return (NULL);
 	}
 	/* store the approximation for this node */
 	if (N !=  Cudd_Regular(neW)) {

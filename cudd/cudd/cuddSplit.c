@@ -1,31 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSplit.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Returns a subset of minterms from a boolean function.
 
-  Synopsis    [Returns a subset of minterms from a boolean function.]
+  @author Balakrishna Kumthekar
 
-  Description [External functions included in this modoule:
-		<ul>
-		<li> Cudd_SplitSet()
-		</ul>
-	Internal functions included in this module:
-		<ul>
-		<li> cuddSplitSetRecur()
-		</u>
-        Static functions included in this module:
-		<ul>
-		<li> selectMintermsFromUniverse()
-		<li> mintermsFromUniverse()
-		<li> bddAnnotateMintermCount()
-		</ul> ]
-
-  SeeAlso     []
-
-  Author      [Balakrishna Kumthekar]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -55,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -85,8 +69,7 @@
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -96,7 +79,7 @@ static DdNode * selectMintermsFromUniverse (DdManager *manager, int *varSeen, do
 static DdNode * mintermsFromUniverse (DdManager *manager, DdNode **vars, int numVars, double n, int index);
 static double bddAnnotateMintermCount (DdManager *manager, DdNode *node, double max, st_table *table);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -104,22 +87,21 @@ static double bddAnnotateMintermCount (DdManager *manager, DdNode *node, double 
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Returns m minterms from a %BDD.
 
-  Synopsis    [Returns m minterms from a BDD.]
-
-  Description [Returns <code>m</code> minterms from a BDD whose
+  @details Returns <code>m</code> minterms from a %BDD whose
   support has <code>n</code> variables at most.  The procedure tries
   to create as few extra nodes as possible. The function represented
   by <code>S</code> depends on at most <code>n</code> of the variables
-  in <code>xVars</code>. Returns a BDD with <code>m</code> minterms
-  of the on-set of S if successful; NULL otherwise.]
+  in <code>xVars</code>.
 
-  SideEffects [None]
+  @return a %BDD with <code>m</code> minterms of the on-set of S if
+  successful; NULL otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_SplitSet(
   DdManager * manager,
@@ -193,7 +175,7 @@ Cudd_SplitSet(
 	    */
 	    num = bddAnnotateMintermCount(manager,S,max,mtable);
 	    if (m == num) {
-		st_foreach(mtable,cuddStCountfree,NIL(char));
+		st_foreach(mtable,cuddStCountfree,NIL(void));
 		st_free_table(mtable);
 		FREE(varSeen);
 		return(S);
@@ -207,6 +189,9 @@ Cudd_SplitSet(
 	    FREE(varSeen);
 	}
     } while (manager->reordered == 1);
+    if (manager->errorCode == CUDD_TIMEOUT_EXPIRED && manager->timeoutHandler) {
+        manager->timeoutHandler(manager, manager->tohArg);
+    }
 
     cuddDeref(result);
     return(result);
@@ -218,27 +203,23 @@ Cudd_SplitSet(
 /* Definition of internal functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_SplitSet.
 
-  Synopsis    [Implements the recursive step of Cudd_SplitSet.]
+  @details The procedure recursively traverses the %BDD and checks to
+  see if any node satisfies the minterm requirements as specified by
+  'n'. At any node X, n is compared to the number of minterms in the
+  onset of X's children. If either of the child nodes have exactly n
+  minterms, then that node is returned; else, if n is greater than the
+  onset of one of the child nodes, that node is retained and the
+  difference in the number of minterms is extracted from the other
+  child. In case n minterms can be extracted from constant 1, the
+  algorithm returns the result with at most log(n) nodes.
 
-  Description [Implements the recursive step of Cudd_SplitSet. The
-  procedure recursively traverses the BDD and checks to see if any
-  node satisfies the minterm requirements as specified by 'n'. At any
-  node X, n is compared to the number of minterms in the onset of X's
-  children. If either of the child nodes have exactly n minterms, then
-  that node is returned; else, if n is greater than the onset of one
-  of the child nodes, that node is retained and the difference in the
-  number of minterms is extracted from the other child. In case n
-  minterms can be extracted from constant 1, the algorithm returns the
-  result with at most log(n) nodes.]
+  @sideeffect The array 'varSeen' is updated at every recursive call
+  to set the variables traversed by the procedure.
 
-  SideEffects [The array 'varSeen' is updated at every recursive call
-  to set the variables traversed by the procedure.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode*
 cuddSplitSetRecur(
   DdManager * manager,
@@ -263,7 +244,7 @@ cuddSplitSetRecur(
     ** construction guarantees that minterms will not be extracted from
     ** constant 0.
     */
-    if (Cudd_IsConstant(p)) {
+    if (Cudd_IsConstantInt(p)) {
 	q = selectMintermsFromUniverse(manager,varSeen,n);
 	return(q);
     }
@@ -284,7 +265,7 @@ cuddSplitSetRecur(
     /* If both the children of 'p' are constants, extract n minterms from a
     ** constant node.
     */
-    if (Cudd_IsConstant(Nv) && Cudd_IsConstant(Nnv)) {
+    if (Cudd_IsConstantInt(Nv) && Cudd_IsConstantInt(Nnv)) {
 	q = selectMintermsFromUniverse(manager,varSeen,n);
 	if (q == NULL) {
 	    return(NULL);
@@ -302,20 +283,20 @@ cuddSplitSetRecur(
     }
   
     /* Lookup the # of minterms in the onset of the node from the table. */
-    if (!Cudd_IsConstant(Nv)) {
-	if (!st_lookup(mtable, Nv, &dummy)) return(NULL);
-	numT = *dummy/(2*(1<<index));
+    if (!Cudd_IsConstantInt(Nv)) {
+      if (!st_lookup(mtable, Nv, (void **) &dummy)) return(NULL);
+	numT = *dummy/(2*(1U<<index));
     } else if (Nv == one) {
-	numT = max/(2*(1<<index));
+	numT = max/(2*(1U<<index));
     } else {
 	numT = 0;
     }
   
-    if (!Cudd_IsConstant(Nnv)) {
-	if (!st_lookup(mtable, Nnv, &dummy)) return(NULL);
-	numE = *dummy/(2*(1<<index));
+    if (!Cudd_IsConstantInt(Nnv)) {
+      if (!st_lookup(mtable, Nnv, (void **) &dummy)) return(NULL);
+	numE = *dummy/(2*(1U<<index));
     } else if (Nnv == one) {
-	numE = max/(2*(1<<index));
+	numE = max/(2*(1U<<index));
     } else {
 	numE = 0;
     }
@@ -397,7 +378,7 @@ cuddSplitSetRecur(
     ** the Nv, Nnv or both are not constants. If possible extract the
     ** required minterms the constant branch.
     */
-    if (Cudd_IsConstant(Nv) && !Cudd_IsConstant(Nnv)) {
+    if (Cudd_IsConstantInt(Nv) && !Cudd_IsConstantInt(Nnv)) {
 	q = selectMintermsFromUniverse(manager,varSeen,n);
 	if (q == NULL) {
 	    Cudd_RecursiveDeref(manager,v);
@@ -415,7 +396,7 @@ cuddSplitSetRecur(
 	Cudd_RecursiveDeref(manager,v);
 	cuddDeref(result);
 	return(result);
-    } else if (!Cudd_IsConstant(Nv) && Cudd_IsConstant(Nnv)) {
+    } else if (!Cudd_IsConstantInt(Nv) && Cudd_IsConstantInt(Nnv)) {
 	q = selectMintermsFromUniverse(manager,varSeen,n);
 	if (q == NULL) {
 	    Cudd_RecursiveDeref(manager,v);
@@ -478,19 +459,17 @@ cuddSplitSetRecur(
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief This function prepares an array of variables which have not been
+  encountered so far when traversing the procedure cuddSplitSetRecur.
 
-  Synopsis [This function prepares an array of variables which have not been
-  encountered so far when traversing the procedure cuddSplitSetRecur.]
+  @details This array is then used to extract the required number of
+  minterms from a constant 1.  The algorithm guarantees that the size
+  of %BDD will be at most log(n).
 
-  Description [This function prepares an array of variables which have not been
-  encountered so far when traversing the procedure cuddSplitSetRecur. This
-  array is then used to extract the required number of minterms from a constant
-  1. The algorithm guarantees that the size of BDD will be utmost \log(n).]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static DdNode *
 selectMintermsFromUniverse(
   DdManager * manager,
@@ -545,15 +524,12 @@ selectMintermsFromUniverse(
 } /* end of selectMintermsFromUniverse */
 
 
-/**Function********************************************************************
+/**
+  @brief Recursive procedure to extract n mintems from constant 1.
 
-  Synopsis    [Recursive procedure to extract n mintems from constant 1.]
+  @sideeffect None
 
-  Description [Recursive procedure to extract n mintems from constant 1.]
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static DdNode *
 mintermsFromUniverse(
   DdManager * manager,
@@ -614,17 +590,15 @@ mintermsFromUniverse(
 } /* end of mintermsFromUniverse */
 
 
-/**Function********************************************************************
+/**
+  @brief Annotates every node in the %BDD node with its minterm count.
 
-  Synopsis    [Annotates every node in the BDD node with its minterm count.]
+  @details In this function, every node and the minterm count
+  represented by it are stored in a hash table.
 
-  Description [Annotates every node in the BDD node with its minterm count.
-  In this function, every node and the minterm count represented by it are
-  stored in a hash table.]
+  @sideeffect Fills up 'table' with the pair <node,minterm_count>.
 
-  SideEffects [Fills up 'table' with the pair <node,minterm_count>.]
-
-******************************************************************************/
+*/
 static double
 bddAnnotateMintermCount(
   DdManager * manager,
@@ -634,8 +608,8 @@ bddAnnotateMintermCount(
 {
 
     DdNode *N,*Nv,*Nnv;
-    register double min_v,min_nv;
-    register double min_N;
+    double min_v,min_nv;
+    double min_N;
     double *pmin;
     double *dummy;
 
@@ -649,7 +623,7 @@ bddAnnotateMintermCount(
 	}
     }
 
-    if (st_lookup(table, node, &dummy)) {
+    if (st_lookup(table, node, (void **) &dummy)) {
 	return(*dummy);
     }	
   
@@ -676,7 +650,7 @@ bddAnnotateMintermCount(
     }
     *pmin = min_N;
 
-    if (st_insert(table,(char *)node, (char *)pmin) == ST_OUT_OF_MEM) {
+    if (st_insert(table, node, pmin) == ST_OUT_OF_MEM) {
 	FREE(pmin);
 	return((double)CUDD_OUT_OF_MEM);
     }

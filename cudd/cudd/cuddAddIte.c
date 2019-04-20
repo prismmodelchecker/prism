@@ -1,32 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file 
 
-  FileName    [cuddAddIte.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief %ADD ITE function and satellites.
 
-  Synopsis    [ADD ITE function and satellites.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_addIte()
-		<li> Cudd_addIteConstant()
-		<li> Cudd_addEvalConst()
-		<li> Cudd_addCmpl()
-		<li> Cudd_addLeq()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddAddIteRecur()
-		<li> cuddAddCmplRecur()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> addVarToConst()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -56,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -82,17 +65,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAddIte.c,v 1.16 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -100,7 +78,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddAddIte.c,v 1.16 2012/02/05 01:07:18 fa
 
 static void addVarToConst (DdNode *f, DdNode **gp, DdNode **hp, DdNode *one, DdNode *zero);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -108,19 +86,19 @@ static void addVarToConst (DdNode *f, DdNode **gp, DdNode **hp, DdNode *one, DdN
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements ITE(f,g,h).
 
-  Synopsis    [Implements ITE(f,g,h).]
+  @details This procedure assumes that f is a 0-1 %ADD.
 
-  Description [Implements ITE(f,g,h). This procedure assumes that f is
-  a 0-1 ADD.  Returns a pointer to the resulting ADD if successful; NULL
-  otherwise.]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddIte Cudd_addIteConstant Cudd_addApply]
+  @see Cudd_bddIte Cudd_addIteConstant Cudd_addApply
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addIte(
   DdManager * dd,
@@ -134,27 +112,30 @@ Cudd_addIte(
 	dd->reordered = 0;
 	res = cuddAddIteRecur(dd,f,g,h);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addIte */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements ITEconstant for %ADDs.
 
-  Synopsis    [Implements ITEconstant for ADDs.]
+  @details f must be a 0-1 %ADD.  No new nodes are created. This
+  function can be used, for instance, to check that g has a constant
+  value (specified by h) whenever f is 1. If the constant value is
+  unknown, then one should use Cudd_addEvalConst.
 
-  Description [Implements ITEconstant for ADDs.  f must be a 0-1 ADD.
-  Returns a pointer to the resulting ADD (which may or may not be
-  constant) or DD_NON_CONSTANT. No new nodes are created. This function
-  can be used, for instance, to check that g has a constant value
-  (specified by h) whenever f is 1. If the constant value is unknown,
-  then one should use Cudd_addEvalConst.]
+  @return a pointer to the resulting %ADD (which may or may not be
+  constant) or DD_NON_CONSTANT.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addIte Cudd_addEvalConst Cudd_bddIteConstant]
+  @see Cudd_addIte Cudd_addEvalConst Cudd_bddIteConstant
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addIteConstant(
   DdManager * dd,
@@ -164,7 +145,7 @@ Cudd_addIteConstant(
 {
     DdNode *one,*zero;
     DdNode *Fv,*Fnv,*Gv,*Gnv,*Hv,*Hnv,*r,*t,*e;
-    unsigned int topf,topg,toph,v;
+    int topf,topg,toph,v;
 
     statLine(dd);
     /* Trivial cases. */
@@ -237,21 +218,21 @@ Cudd_addIteConstant(
 } /* end of Cudd_addIteConstant */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether %ADD g is constant whenever %ADD f is 1.
 
-  Synopsis    [Checks whether ADD g is constant whenever ADD f is 1.]
+  @details f must be a 0-1 %ADD.  If f is identically 0, the check is
+  assumed to be successful, and the background value is returned.  No
+  new nodes are created.
 
-  Description [Checks whether ADD g is constant whenever ADD f is 1.  f
-  must be a 0-1 ADD.  Returns a pointer to the resulting ADD (which may
-  or may not be constant) or DD_NON_CONSTANT. If f is identically 0,
-  the check is assumed to be successful, and the background value is
-  returned. No new nodes are created.]
+  @return a pointer to the resulting %ADD (which may or may not be
+  constant) or DD_NON_CONSTANT.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addIteConstant Cudd_addLeq]
+  @see Cudd_addIteConstant Cudd_addLeq
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addEvalConst(
   DdManager * dd,
@@ -260,7 +241,7 @@ Cudd_addEvalConst(
 {
     DdNode *zero;
     DdNode *Fv,*Fnv,*Gv,*Gnv,*r,*t,*e;
-    unsigned int topf,topg;
+    int topf,topg;
 
 #ifdef DD_DEBUG
     assert(!Cudd_IsComplement(f));
@@ -326,19 +307,19 @@ Cudd_addEvalConst(
 } /* end of Cudd_addEvalConst */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the complement of an %ADD a la C language.
 
-  Synopsis    [Computes the complement of an ADD a la C language.]
+  @details The complement of 0 is 1 and the complement of everything
+  else is 0.
 
-  Description [Computes the complement of an ADD a la C language: The
-  complement of 0 is 1 and the complement of everything else is 0.
-  Returns a pointer to the resulting ADD if successful; NULL otherwise.]
+  @return a pointer to the resulting %ADD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addNegate]
+  @see Cudd_addNegate
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addCmpl(
   DdManager * dd,
@@ -350,24 +331,27 @@ Cudd_addCmpl(
 	dd->reordered = 0;
 	res = cuddAddCmplRecur(dd,f);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_addCmpl */
 
 
-/**Function********************************************************************
+/**
+  @brief Determines whether f is less than or equal to g.
 
-  Synopsis    [Determines whether f is less than or equal to g.]
+  @details No new nodes are created. This procedure works for arbitrary ADDs.
+  For 0-1 ADDs Cudd_addEvalConst is more efficient.
 
-  Description [Returns 1 if f is less than or equal to g; 0 otherwise.
-  No new nodes are created. This procedure works for arbitrary ADDs.
-  For 0-1 ADDs Cudd_addEvalConst is more efficient.]
+  @return 1 if f is less than or equal to g; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addIteConstant Cudd_addEvalConst Cudd_bddLeq]
+  @see Cudd_addIteConstant Cudd_addEvalConst Cudd_bddLeq
 
-******************************************************************************/
+*/
 int
 Cudd_addLeq(
   DdManager * dd,
@@ -375,7 +359,7 @@ Cudd_addLeq(
   DdNode * g)
 {
     DdNode *tmp, *fv, *fvn, *gv, *gvn;
-    unsigned int topf, topg, res;
+    int topf, topg, res;
 
     /* Terminal cases. */
     if (f == g) return(1);
@@ -424,19 +408,17 @@ Cudd_addLeq(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_addIte(f,g,h).
 
-  Synopsis    [Implements the recursive step of Cudd_addIte(f,g,h).]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  Description [Implements the recursive step of Cudd_addIte(f,g,h).
-  Returns a pointer to the resulting ADD if successful; NULL
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_addIte
 
-  SeeAlso     [Cudd_addIte]
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddIteRecur(
   DdManager * dd,
@@ -446,8 +428,8 @@ cuddAddIteRecur(
 {
     DdNode *one,*zero;
     DdNode *r,*Fv,*Fnv,*Gv,*Gnv,*Hv,*Hnv,*t,*e;
-    unsigned int topf,topg,toph,v;
-    int index;
+    int topf,topg,toph,v;
+    unsigned int index;
 
     statLine(dd);
     /* Trivial cases. */
@@ -493,10 +475,12 @@ cuddAddIteRecur(
         return(r);
     }
 
+    checkWhetherToGiveUp(dd);
+
     /* Compute cofactors. */
+    index = f->index;
     if (topf <= v) {
 	v = ddMin(topf,v);	/* v = top_var(F,G,H) */
-	index = f->index;
         Fv = cuddT(f); Fnv = cuddE(f);
     } else {
         Fv = Fnv = f;
@@ -542,18 +526,17 @@ cuddAddIteRecur(
 } /* end of cuddAddIteRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_addCmpl.
 
-  Synopsis    [Performs the recursive step of Cudd_addCmpl.]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  Description [Performs the recursive step of Cudd_addCmpl. Returns a
-  pointer to the resulting ADD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_addCmpl
 
-  SeeAlso     [Cudd_addCmpl]
-
-******************************************************************************/
+*/
 DdNode *
 cuddAddCmplRecur(
   DdManager * dd,
@@ -577,6 +560,7 @@ cuddAddCmplRecur(
     if (r != NULL) {
 	return(r);
     }
+    checkWhetherToGiveUp(dd);
     Fv = cuddT(f);
     Fnv = cuddE(f);
     t = cuddAddCmplRecur(dd,Fv);
@@ -607,16 +591,13 @@ cuddAddCmplRecur(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Replaces variables with constants if possible (part of
+  canonical form).
 
-  Synopsis [Replaces variables with constants if possible (part of
-  canonical form).]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 addVarToConst(
   DdNode * f,

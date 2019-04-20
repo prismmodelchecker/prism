@@ -1,0 +1,48 @@
+cplusplus_sources = cplusplus/cuddObj.hh cplusplus/cuddObj.cc
+
+if OBJ
+cudd_libcudd_la_SOURCES += $(cplusplus_sources)
+else
+noinst_LTLIBRARIES += cplusplus/libobj.la
+cplusplus_libobj_la_SOURCES = $(cplusplus_sources)
+cplusplus_libobj_la_CPPFLAGS = -I$(top_srcdir)/cudd -I$(top_srcdir)/mtr \
+  -I$(top_srcdir)/epd -I$(top_srcdir)/st
+endif !OBJ
+
+check_PROGRAMS += cplusplus/testobj cplusplus/testmulti
+
+cplusplus_testobj_SOURCES = cplusplus/testobj.cc
+if OBJ
+cplusplus_testobj_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+cplusplus_testobj_LDADD =
+else
+cplusplus_testobj_CPPFLAGS = $(cplusplus_libobj_la_CPPFLAGS)
+cplusplus_testobj_LDADD = cplusplus/libobj.la
+endif !OBJ
+cplusplus_testobj_LDADD +=  cudd/libcudd.la
+
+cplusplus_testmulti_SOURCES = cplusplus/testmulti.cc
+if OBJ
+cplusplus_testmulti_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+cplusplus_testmulti_LDADD =
+else
+cplusplus_testmulti_CPPFLAGS = $(cplusplus_libobj_la_CPPFLAGS)
+cplusplus_testmulti_LDADD = cplusplus/libobj.la
+endif !OBJ
+cplusplus_testmulti_LDADD += cudd/libcudd.la
+if HAVE_PTHREADS
+cplusplus_testmulti_LDFLAGS = -pthread
+endif HAVE_PTHREADS
+
+check_SCRIPTS += cplusplus/test_obj.test
+dist_check_DATA += cplusplus/test.out cplusplus/multi.out
+EXTRA_DIST += cplusplus/test_obj.test.in
+if !CROSS_COMPILING
+TESTS += cplusplus/test_obj.test
+endif !CROSS_COMPILING
+
+cplusplus/test_obj.test: cplusplus/test_obj.test.in Makefile
+	$(do_subst) $< > $@
+	chmod +x $@
+
+CLEANFILES += cplusplus/test.tst cplusplus/multi.tst

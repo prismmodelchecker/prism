@@ -1,24 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddSign.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Computation of signatures.
 
-  Synopsis    [Computation of signatures.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_CofMinterm();
-		    </ul>
-		Static procedures included in this module:
-		    <ul>
-		    <li> ddCofMintermAux()
-		    </ul>
-		    ]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -48,51 +38,35 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
-
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddSign.c,v 1.24 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static int    size;
-
-#ifdef DD_STATS
-static int num_calls;	/* should equal 2n-1 (n is the # of nodes) */
-static int table_mem;
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -100,29 +74,29 @@ static int table_mem;
 
 static double * ddCofMintermAux (DdManager *dd, DdNode *node, st_table *table);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Computes the fraction of minterms in the on-set of all the
+  positive cofactors of a %BDD or %ADD.
 
-  Synopsis [Computes the fraction of minterms in the on-set of all the
-  positive cofactors of a BDD or ADD.]
+  @details The array has as many positions as there are %BDD variables
+  in the manager plus one. The last position of the array contains the
+  fraction of the minterms in the ON-set of the function represented
+  by the %BDD or %ADD. The other positions of the array hold the
+  variable signatures.
 
-  Description [Computes the fraction of minterms in the on-set of all
-  the positive cofactors of DD. Returns the pointer to an array of
-  doubles if successful; NULL otherwise. The array has as many
-  positions as there are BDD variables in the manager plus one. The
-  last position of the array contains the fraction of the minterms in
-  the ON-set of the function represented by the BDD or ADD. The other
-  positions of the array hold the variable signatures.]
+  @return the pointer to an array of doubles if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 double *
 Cudd_CofMinterm(
   DdManager * dd,
@@ -132,12 +106,12 @@ Cudd_CofMinterm(
     double	*values;
     double	*result = NULL;
     int		i, firstLevel;
+    int		size;
 
 #ifdef DD_STATS
     unsigned long startTime;
     startTime = util_cpu_time();
-    num_calls = 0;
-    table_mem = sizeof(st_table);
+    dd->num_calls = 0;
 #endif
 
     table = st_init_table(st_ptrcmp, st_ptrhash);
@@ -152,10 +126,7 @@ Cudd_CofMinterm(
     if (values != NULL) {
 	result = ALLOC(double,size + 1);
 	if (result != NULL) {
-#ifdef DD_STATS
-	    table_mem += (size + 1) * sizeof(double);
-#endif
-	    if (Cudd_IsConstant(node))
+	    if (Cudd_IsConstantInt(node))
 		firstLevel = 1;
 	    else
 		firstLevel = cuddI(dd,Cudd_Regular(node)->index);
@@ -172,15 +143,11 @@ Cudd_CofMinterm(
 	}
     }
 
-#ifdef DD_STATS
-    table_mem += table->num_bins * sizeof(st_table_entry *);
-#endif
     if (Cudd_Regular(node)->ref == 1) FREE(values);
     st_foreach(table, cuddStCountfree, NULL);
     st_free_table(table);
 #ifdef DD_STATS
-    (void) fprintf(dd->out,"Number of calls: %d\tTable memory: %d bytes\n",
-		  num_calls, table_mem);
+    (void) fprintf(dd->out,"Number of calls: %d\n", dd->num_calls);
     (void) fprintf(dd->out,"Time to compute measures: %s\n",
 		  util_print_time(util_cpu_time() - startTime));
 #endif
@@ -204,26 +171,25 @@ Cudd_CofMinterm(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Recursive Step for Cudd_CofMinterm function.
 
-  Synopsis    [Recursive Step for Cudd_CofMinterm function.]
-
-  Description [Traverses the DD node and computes the fraction of
-  minterms in the on-set of all positive cofactors simultaneously.
-  It allocates an array with two more entries than there are
-  variables below the one labeling the node.  One extra entry (the
-  first in the array) is for the variable labeling the node. The other
-  entry (the last one in the array) holds the fraction of minterms of
-  the function rooted at node.  Each other entry holds the value for
-  one cofactor. The array is put in a symbol table, to avoid repeated
+  @details Traverses the %DD node and computes the fraction of minterms
+  in the on-set of all positive cofactors simultaneously.  It
+  allocates an array with two more entries than there are variables
+  below the one labeling the node.  One extra entry (the first in the
+  array) is for the variable labeling the node. The other entry (the
+  last one in the array) holds the fraction of minterms of the
+  function rooted at node.  Each other entry holds the value for one
+  cofactor. The array is put in a symbol table, to avoid repeated
   computation, and its address is returned by the procedure, for use
-  by the caller.  Returns a pointer to the array of cofactor measures.]
+  by the caller.
 
-  SideEffects [None]
+  @return a pointer to the array of cofactor measures.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 static double *
 ddCofMintermAux(
   DdManager * dd,
@@ -237,13 +203,14 @@ ddCofMintermAux(
     int		i;
     int		localSize, localSizeT, localSizeE;
     double	vT, vE;
+    int		size = dd->size;
 
     statLine(dd);
 #ifdef DD_STATS
-    num_calls++;
+    dd->num_calls++;
 #endif
 
-    if (st_lookup(table, node, &values)) {
+    if (st_lookup(table, node, (void **) &values)) {
 	return(values);
     }
 
@@ -274,12 +241,12 @@ ddCofMintermAux(
 	valuesE = ddCofMintermAux(dd, Nnv, table);
 	if (valuesE == NULL) return(NULL);
 
-	if (Cudd_IsConstant(Nv)) {
+	if (Cudd_IsConstantInt(Nv)) {
 	    localSizeT = 1;
 	} else {
 	    localSizeT = size - cuddI(dd,Cudd_Regular(Nv)->index) + 1;
 	}
-	if (Cudd_IsConstant(Nnv)) {
+	if (Cudd_IsConstantInt(Nnv)) {
 	    localSizeE = 1;
 	} else {
 	    localSizeE = size - cuddI(dd,Cudd_Regular(Nnv)->index) + 1;
@@ -305,13 +272,10 @@ ddCofMintermAux(
     }
 
     if (N->ref > 1) {
-	if (st_add_direct(table, (char *) node, (char *) values) == ST_OUT_OF_MEM) {
+	if (st_add_direct(table, node, values) == ST_OUT_OF_MEM) {
 	    FREE(values);
 	    return(NULL);
 	}
-#ifdef DD_STATS
-	table_mem += localSize * sizeof(double) + sizeof(st_table_entry);
-#endif
     }
     return(values);
 

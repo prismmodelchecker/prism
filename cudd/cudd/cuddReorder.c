@@ -1,44 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddReorder.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for dynamic variable reordering.
 
-  Synopsis    [Functions for dynamic variable reordering.]
+  @author Shipra Panda, Bernard Plessier, Fabio Somenzi
 
-  Description [External procedures included in this file:
-		<ul>
-		<li> Cudd_ReduceHeap()
-		<li> Cudd_ShuffleHeap()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddDynamicAllocNode()
-		<li> cuddSifting()
-		<li> cuddSwapping()
-		<li> cuddNextHigh()
-		<li> cuddNextLow()
-		<li> cuddSwapInPlace()
-		<li> cuddBddAlignToZdd()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddUniqueCompare()
-		<li> ddSwapAny()
-		<li> ddSiftingAux()
-		<li> ddSiftingUp()
-		<li> ddSiftingDown()
-		<li> ddSiftingBackward()
-		<li> ddReorderPreprocess()
-		<li> ddReorderPostprocess()
-		<li> ddShuffle()
-		<li> ddSiftUp()
-		<li> bddFixTree()
-		</ul>]
-
-  Author      [Shipra Panda, Bernard Plessier, Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -68,19 +38,18 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
+#include "mtrInt.h"
 #include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
-#define DD_MAX_SUBTABLE_SPARSITY 8
-#define DD_SHRINK_FACTOR 2
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -94,28 +63,17 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddReorder.c,v 1.71 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static	int	*entry;
-
-int	ddTotalNumberSwapping;
-#ifdef DD_STATS
-int	ddTotalNISwaps;
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static int ddUniqueCompare (int *ptrX, int *ptrY);
+static int ddUniqueCompare (void const *ptrX, void const *ptrY);
 static Move * ddSwapAny (DdManager *table, int x, int y);
 static int ddSiftingAux (DdManager *table, int x, int xLow, int xHigh);
 static Move * ddSiftingUp (DdManager *table, int y, int xLow);
@@ -129,7 +87,7 @@ static void bddFixTree (DdManager *table, MtrNode *treenode);
 static int ddUpdateMtrTree (DdManager *table, MtrNode *treenode, int *perm, int *invperm);
 static int ddCheckPermuation (DdManager *table, MtrNode *treenode, int *perm, int *invperm);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -137,12 +95,10 @@ static int ddCheckPermuation (DdManager *table, MtrNode *treenode, int *perm, in
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Main dynamic reordering routine.
 
-  Synopsis    [Main dynamic reordering routine.]
-
-  Description [Main dynamic reordering routine.
-  Calls one of the possible reordering procedures:
+  @details Calls one of the possible reordering procedures:
   <ul>
   <li>Swapping
   <li>Sifting
@@ -153,26 +109,25 @@ static int ddCheckPermuation (DdManager *table, MtrNode *treenode, int *perm, in
   <li>Genetic Algorithm
   <li>Dynamic Programming (exact)
   </ul>
-
   For sifting, symmetric sifting, group sifting, and window
   permutation it is possible to request reordering to convergence.<p>
-
   The core of all methods is the reordering procedure
   cuddSwapInPlace() which swaps two adjacent variables and is based
   on Rudell's paper.
-  Returns 1 in case of success; 0 otherwise. In the case of symmetric
+
+  @return 1 in case of success; 0 otherwise. In the case of symmetric
   sifting (with and without convergence) returns 1 plus the number of
-  symmetric variables, in case of success.]
+  symmetric variables, in case of success.
 
-  SideEffects [Changes the variable order for all diagrams and clears
-  the cache.]
+  @sideeffect Changes the variable order for all diagrams and clears
+  the cache.
 
-******************************************************************************/
+*/
 int
 Cudd_ReduceHeap(
-  DdManager * table /* DD manager */,
-  Cudd_ReorderingType heuristic /* method used for reordering */,
-  int  minsize /* bound below which no reordering occurs */)
+  DdManager * table /**< %DD manager */,
+  Cudd_ReorderingType heuristic /**< method used for reordering */,
+  int  minsize /**< bound below which no reordering occurs */)
 {
     DdHook *hook;
     int	result;
@@ -210,14 +165,14 @@ Cudd_ReduceHeap(
     }
 
     if (!ddReorderPreprocess(table)) return(0);
-    ddTotalNumberSwapping = 0;
+    table->ddTotalNumberSwapping = 0;
 
     if (table->keys > table->peakLiveNodes) {
 	table->peakLiveNodes = table->keys;
     }
 #ifdef DD_STATS
-    initialSize = table->keys - table->isolated;
-    ddTotalNISwaps = 0;
+    initialSize = (int) (table->keys - table->isolated);
+    table->totalNISwaps = 0;
 
     switch(heuristic) {
     case CUDD_REORDER_RANDOM:
@@ -271,13 +226,14 @@ Cudd_ReduceHeap(
 
 #ifdef DD_STATS
     (void) fprintf(table->out,"\n");
-    finalSize = table->keys - table->isolated;
+    finalSize = (int) (table->keys - table->isolated);
     (void) fprintf(table->out,"#:F_REORDER %8d: final size\n",finalSize);
     (void) fprintf(table->out,"#:T_REORDER %8g: total time (sec)\n",
 		   ((double)(util_cpu_time() - localTime)/1000.0));
     (void) fprintf(table->out,"#:N_REORDER %8d: total swaps\n",
-		   ddTotalNumberSwapping);
-    (void) fprintf(table->out,"#:M_REORDER %8d: NI swaps\n",ddTotalNISwaps);
+		   table->ddTotalNumberSwapping);
+    (void) fprintf(table->out,"#:M_REORDER %8d: NI swaps\n",
+                   table->totalNISwaps);
 #endif
 
     if (result == 0)
@@ -298,14 +254,14 @@ Cudd_ReduceHeap(
     else
 	table->nextDyn += 20;
     if (table->randomizeOrder != 0) {
-        table->nextDyn += Cudd_Random() & table->randomizeOrder;
+        table->nextDyn += Cudd_Random(table) & table->randomizeOrder;
     }
     table->reordered = 1;
 
     /* Run hook functions. */
     hook = table->postReorderingHook;
     while (hook != NULL) {
-        int res = (hook->f)(table, "BDD", (void *)(ptruint)localTime);
+	int res = (hook->f)(table, "BDD", (void *)(ptruint)localTime);
 	if (res == 0) return(0);
 	hook = hook->next;
     }
@@ -317,26 +273,26 @@ Cudd_ReduceHeap(
 } /* end of Cudd_ReduceHeap */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders variables according to given permutation.
 
-  Synopsis    [Reorders variables according to given permutation.]
+  @details The i-th entry of the permutation array contains the index
+  of the variable that should be brought to the i-th level.  The size
+  of the array should be equal or greater to the number of variables
+  currently in use.
 
-  Description [Reorders variables according to given permutation.
-  The i-th entry of the permutation array contains the index of the variable
-  that should be brought to the i-th level.  The size of the array should be
-  equal or greater to the number of variables currently in use.
-  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [Changes the variable order for all diagrams and clears
-  the cache.]
+  @sideeffect Changes the variable order for all diagrams and clears
+  the cache.
 
-  SeeAlso [Cudd_ReduceHeap]
+  @see Cudd_ReduceHeap
 
-******************************************************************************/
+*/
 int
 Cudd_ShuffleHeap(
-  DdManager * table /* DD manager */,
-  int * permutation /* required variable permutation */)
+  DdManager * table /**< %DD manager */,
+  int * permutation /**< required variable permutation */)
 {
 
     int	result;
@@ -386,21 +342,21 @@ Cudd_ShuffleHeap(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Dynamically allocates a Node.
 
-  Synopsis    [Dynamically allocates a Node.]
+  @details This procedure is similar to cuddAllocNode in Cudd_Table.c,
+  but it does not attempt garbage collection, because during
+  reordering there are no dead nodes.
 
-  Description [Dynamically allocates a Node. This procedure is similar
-  to cuddAllocNode in Cudd_Table.c, but it does not attempt garbage
-  collection, because during reordering there are no dead nodes.
-  Returns a pointer to a new node if successful; NULL is memory is
-  full.]
+  @return a pointer to a new node if successful; NULL is memory is
+  full.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddAllocNode]
+  @see cuddAllocNode
 
-******************************************************************************/
+*/
 DdNode *
 cuddDynamicAllocNode(
   DdManager * table)
@@ -414,7 +370,7 @@ cuddDynamicAllocNode(
     if (table->nextFree == NULL) {        /* free list is empty */
 	/* Try to allocate a new block. */
 	saveHandler = MMoutOfMemory;
-	MMoutOfMemory = Cudd_OutOfMem;
+	MMoutOfMemory = table->outOfMemCallback;
 	mem = (DdNodePtr *) ALLOC(DdNode, DD_MEM_CHUNK + 1);
 	MMoutOfMemory = saveHandler;
 	if (mem == NULL && table->stash != NULL) {
@@ -479,25 +435,24 @@ cuddDynamicAllocNode(
 } /* end of cuddDynamicAllocNode */
 
 
-/**Function********************************************************************
+/**
+  @brief Implementation of Rudell's sifting algorithm.
 
-  Synopsis    [Implementation of Rudell's sifting algorithm.]
-
-  Description [Implementation of Rudell's sifting algorithm.
-  Assumes that no dead nodes are present.
+  @details Assumes that no dead nodes are present.
     <ol>
     <li> Order all the variables according to the number of entries
     in each unique table.
     <li> Sift the variable up and down, remembering each time the
-    total size of the DD heap.
+    total size of the %DD heap.
     <li> Select the best permutation.
     <li> Repeat 3 and 4 for all variables.
     </ol>
-  Returns 1 if successful; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 int
 cuddSifting(
   DdManager * table,
@@ -505,7 +460,7 @@ cuddSifting(
   int  upper)
 {
     int	i;
-    int	*var;
+    IndexKey *var;
     int	size;
     int	x;
     int	result;
@@ -516,13 +471,7 @@ cuddSifting(
     size = table->size;
 
     /* Find order in which to sift variables. */
-    var = NULL;
-    entry = ALLOC(int,size);
-    if (entry == NULL) {
-	table->errorCode = CUDD_MEMORY_OUT;
-	goto cuddSiftingOutOfMem;
-    }
-    var = ALLOC(int,size);
+    var = ALLOC(IndexKey,size);
     if (var == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	goto cuddSiftingOutOfMem;
@@ -530,27 +479,32 @@ cuddSifting(
 
     for (i = 0; i < size; i++) {
 	x = table->perm[i];
-	entry[i] = table->subtables[x].keys;
-	var[i] = i;
+	var[i].index = i;
+	var[i].keys = table->subtables[x].keys;
     }
 
-    qsort((void *)var,size,sizeof(int),(DD_QSFP)ddUniqueCompare);
+    util_qsort(var,size,sizeof(IndexKey),ddUniqueCompare);
 
     /* Now sift. */
     for (i = 0; i < ddMin(table->siftMaxVar,size); i++) {
-	if (ddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
         if (util_cpu_time() - table->startTime + table->reordTime
             > table->timeLimit) {
             table->autoDyn = 0; /* prevent further reordering */
             break;
         }
-	x = table->perm[var[i]];
+        if (table->terminationCallback != NULL &&
+            table->terminationCallback(table->tcbArg)) {
+            table->autoDyn = 0; /* prevent further reordering */
+            break;
+        }
+	x = table->perm[var[i].index];
 
 	if (x < lower || x > upper || table->subtables[x].bindVar == 1)
 	    continue;
 #ifdef DD_STATS
-	previousSize = table->keys - table->isolated;
+	previousSize = (int) (table->keys - table->isolated);
 #endif
 	result = ddSiftingAux(table, x, lower, upper);
 	if (!result) goto cuddSiftingOutOfMem;
@@ -559,7 +513,7 @@ cuddSifting(
 	    (void) fprintf(table->out,"-");
 	} else if (table->keys > (unsigned) previousSize + table->isolated) {
 	    (void) fprintf(table->out,"+");	/* should never happen */
-	    (void) fprintf(table->err,"\nSize increased from %d to %d while sifting variable %d\n", previousSize, table->keys - table->isolated, var[i]);
+	    (void) fprintf(table->err,"\nSize increased from %d to %u while sifting variable %d\n", previousSize, table->keys - table->isolated, var[i].index);
 	} else {
 	    (void) fprintf(table->out,"=");
 	}
@@ -568,13 +522,11 @@ cuddSifting(
     }
 
     FREE(var);
-    FREE(entry);
 
     return(1);
 
 cuddSiftingOutOfMem:
 
-    if (entry != NULL) FREE(entry);
     if (var != NULL) FREE(var);
 
     return(0);
@@ -582,11 +534,10 @@ cuddSiftingOutOfMem:
 } /* end of cuddSifting */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders variables by a sequence of (non-adjacent) swaps.
 
-  Synopsis    [Reorders variables by a sequence of (non-adjacent) swaps.]
-
-  Description [Implementation of Plessier's algorithm that reorders
+  @details Implementation of Plessier's algorithm that reorders
   variables by a sequence of (non-adjacent) swaps.
     <ol>
     <li> Select two variables (RANDOM or HEURISTIC).
@@ -595,11 +546,12 @@ cuddSiftingOutOfMem:
     <li> Otherwise reconstruct the original heap.
     <li> Loop.
     </ol>
-  Returns 1 in case of success; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 int
 cuddSwapping(
   DdManager * table,
@@ -614,7 +566,7 @@ cuddSwapping(
     int	iterate;
     int previousSize;
     Move *moves, *move;
-    int	pivot;
+    int	pivot = 0;
     int	modulo;
     int result;
 
@@ -627,7 +579,7 @@ cuddSwapping(
     iterate = nvars;
 
     for (i = 0; i < iterate; i++) {
-	if (ddTotalNumberSwapping >= table->siftMaxSwap)
+	if (table->ddTotalNumberSwapping >= table->siftMaxSwap)
 	    break;
 	if (heuristic == CUDD_REORDER_RANDOM_PIVOT) {
 	    max = -1;
@@ -642,7 +594,7 @@ cuddSwapping(
 	    if (modulo == 0) {
 		y = pivot;
 	    } else{
-		y = pivot + 1 + ((int) Cudd_Random() % modulo);
+		y = pivot + 1 + ((int) Cudd_Random(table) % modulo);
 	    }
 
 	    modulo = pivot - lower - 1;
@@ -650,16 +602,16 @@ cuddSwapping(
 		x = lower;
 	    } else{
 		do {
-		    x = (int) Cudd_Random() % modulo;
+		    x = (int) Cudd_Random(table) % modulo;
 		} while (x == y);
 	    }
 	} else {
-	    x = ((int) Cudd_Random() % nvars) + lower;
+	    x = ((int) Cudd_Random(table) % nvars) + lower;
 	    do {
-		y = ((int) Cudd_Random() % nvars) + lower;
+		y = ((int) Cudd_Random(table) % nvars) + lower;
 	    } while (x == y);
 	}
-	previousSize = table->keys - table->isolated;
+	previousSize = (int) (table->keys - table->isolated);
 	moves = ddSwapAny(table,x,y);
 	if (moves == NULL) goto cuddSwappingOutOfMem;
 	result = ddSiftingBackward(table,previousSize,moves);
@@ -699,63 +651,60 @@ cuddSwappingOutOfMem:
 } /* end of cuddSwapping */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the next subtable with a larger index.
 
-  Synopsis    [Finds the next subtable with a larger index.]
+  @return the index.
 
-  Description [Finds the next subtable with a larger index. Returns the
-  index.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddNextLow
 
-  SeeAlso     [cuddNextLow]
-
-******************************************************************************/
+*/
 int
 cuddNextHigh(
   DdManager * table,
   int  x)
 {
+    (void) table; /* avoid warning */
     return(x+1);
 
 } /* end of cuddNextHigh */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the next subtable with a smaller index.
 
-  Synopsis    [Finds the next subtable with a smaller index.]
+  @return the index.
 
-  Description [Finds the next subtable with a smaller index. Returns the
-  index.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddNextHigh
 
-  SeeAlso     [cuddNextHigh]
-
-******************************************************************************/
+*/
 int
 cuddNextLow(
   DdManager * table,
   int  x)
 {
+    (void) table; /* avoid warning */
     return(x-1);
 
 } /* end of cuddNextLow */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps two adjacent variables.
 
-  Synopsis    [Swaps two adjacent variables.]
+  @details It assumes that no dead nodes are present on entry to this
+  procedure.  The procedure then guarantees that no dead nodes will be
+  present when it terminates.  cuddSwapInPlace assumes that x &lt; y.
 
-  Description [Swaps two adjacent variables. It assumes that no dead
-  nodes are present on entry to this procedure.  The procedure then
-  guarantees that no dead nodes will be present when it terminates.
-  cuddSwapInPlace assumes that x &lt; y.  Returns the number of keys in
-  the table if successful; 0 otherwise.]
+  @return the number of keys in the table if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddSwapInPlace(
   DdManager * table,
@@ -795,7 +744,7 @@ cuddSwapInPlace(
     assert(table->subtables[y].dead == 0);
 #endif
 
-    ddTotalNumberSwapping++;
+    table->ddTotalNumberSwapping++;
 
     /* Get parameters of x subtable. */
     xindex = table->invperm[x];
@@ -813,7 +762,7 @@ cuddSwapInPlace(
 
     if (!cuddTestInteract(table,xindex,yindex)) {
 #ifdef DD_STATS
-	ddTotalNISwaps++;
+	table->totalNISwaps++;
 #endif
 	newxkeys = oldxkeys;
 	newykeys = oldykeys;
@@ -898,14 +847,11 @@ cuddSwapInPlace(
 	    }
 	    /* Try to allocate new table. Be ready to back off. */
 	    saveHandler = MMoutOfMemory;
-	    MMoutOfMemory = Cudd_OutOfMem;
+	    MMoutOfMemory = table->outOfMemCallback;
 	    newxlist = ALLOC(DdNodePtr, newxslots);
 	    MMoutOfMemory = saveHandler;
 	    if (newxlist == NULL) {
 		(void) fprintf(table->err, "Unable to resize subtable %d for lack of memory\n", i);
-		newxlist = xlist;
-		newxslots = xslots;
-		newxshift = xshift;
 	    } else {
 		table->slots += ((int) newxslots - xslots);
 		table->minDead = (unsigned)
@@ -1176,7 +1122,7 @@ cuddSwapInPlace(
 
 	isolated += (table->vars[xindex]->ref == 1) +
 		    (table->vars[yindex]->ref == 1);
-	table->isolated += isolated;
+	table->isolated += (unsigned int) isolated;
     }
 
     /* Set the appropriate fields in table. */
@@ -1188,7 +1134,7 @@ cuddSwapInPlace(
     i = table->subtables[x].bindVar;
     table->subtables[x].bindVar = table->subtables[y].bindVar;
     table->subtables[y].bindVar = i;
-    /* Adjust filds for lazy sifting. */
+    /* Adjust fields for lazy sifting. */
     varType = table->subtables[x].varType;
     table->subtables[x].varType = table->subtables[y].varType;
     table->subtables[y].varType = varType;
@@ -1213,7 +1159,7 @@ cuddSwapInPlace(
 
     table->keys += newxkeys + newykeys - oldxkeys - oldykeys;
 
-    return(table->keys - table->isolated);
+    return((int)(table->keys - table->isolated));
 
 cuddSwapOutOfMem:
     (void) fprintf(table->err,"Error: cuddSwapInPlace out of memory\n");
@@ -1223,32 +1169,31 @@ cuddSwapOutOfMem:
 } /* end of cuddSwapInPlace */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders %BDD variables according to the order of the %ZDD
+  variables.
 
-  Synopsis    [Reorders BDD variables according to the order of the ZDD
-  variables.]
-
-  Description [Reorders BDD variables according to the order of the
-  ZDD variables. This function can be called at the end of ZDD
-  reordering to insure that the order of the BDD variables is
-  consistent with the order of the ZDD variables. The number of ZDD
-  variables must be a multiple of the number of BDD variables. Let
+  @details This function can be called at the end of %ZDD
+  reordering to insure that the order of the %BDD variables is
+  consistent with the order of the %ZDD variables. The number of %ZDD
+  variables must be a multiple of the number of %BDD variables. Let
   <code>M</code> be the ratio of the two numbers. cuddBddAlignToZdd
-  then considers the ZDD variables from <code>M*i</code> to
-  <code>(M+1)*i-1</code> as corresponding to BDD variable
+  then considers the %ZDD variables from <code>M*i</code> to
+  <code>(M+1)*i-1</code> as corresponding to %BDD variable
   <code>i</code>.  This function should be normally called from
-  Cudd_zddReduceHeap, which clears the cache.  Returns 1 in case of
-  success; 0 otherwise.]
+  Cudd_zddReduceHeap, which clears the cache.
 
-  SideEffects [Changes the BDD variable order for all diagrams and performs
-  garbage collection of the BDD unique table.]
+  @return 1 in case of success; 0 otherwise.
 
-  SeeAlso [Cudd_ShuffleHeap Cudd_zddReduceHeap]
+  @sideeffect Changes the %BDD variable order for all diagrams and performs
+  garbage collection of the %BDD unique table.
 
-******************************************************************************/
+  @see Cudd_ShuffleHeap Cudd_zddReduceHeap
+
+*/
 int
 cuddBddAlignToZdd(
-  DdManager * table /* DD manager */)
+  DdManager * table /**< %DD manager */)
 {
     int *invperm;		/* permutation array */
     int M;			/* ratio of ZDD variables to BDD variables */
@@ -1306,42 +1251,47 @@ cuddBddAlignToZdd(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Comparison function used by qsort.
 
-  Synopsis    [Comparison function used by qsort.]
+  @details Used to order the variables according to the number of keys
+  in the subtables.
 
-  Description [Comparison function used by qsort to order the
-  variables according to the number of keys in the subtables.
-  Returns the difference in number of keys between the two
-  variables being compared.]
+  @return the difference in number of keys between the two variables
+  being compared.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddUniqueCompare(
-  int * ptrX,
-  int * ptrY)
+  void const * ptrX,
+  void const * ptrY)
 {
+    IndexKey const * pX = (IndexKey const *) ptrX;
+    IndexKey const * pY = (IndexKey const *) ptrY;
 #if 0
-    if (entry[*ptrY] == entry[*ptrX]) {
-	return((*ptrX) - (*ptrY));
+    /* This would make the order stable, which would be good because of
+     * it would platform-independent, but instability often produces
+     * smaller BDDs.
+     */
+    if (pY->keys == pX->keys) {
+	return(pX->index - pY->index);
     }
 #endif
-    return(entry[*ptrY] - entry[*ptrX]);
+    return(pY->keys - pX->keys);
 
 } /* end of ddUniqueCompare */
 
 
-/**Function********************************************************************
+/**
+  @brief Swaps any two variables.
 
-  Synopsis    [Swaps any two variables.]
+  @return the set of moves.
 
-  Description [Swaps any two variables. Returns the set of moves.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static Move *
 ddSwapAny(
   DdManager * table,
@@ -1364,7 +1314,7 @@ ddSwapAny(
     xNext = cuddNextHigh(table,x);
     yNext = cuddNextLow(table,y);
     moves = NULL;
-    limitSize = table->keys - table->isolated;
+    limitSize = (int) (table->keys - table->isolated);
 
     for (;;) {
 	if ( xNext == yNext) {
@@ -1471,18 +1421,17 @@ ddSwapAnyOutOfMem:
 } /* end of ddSwapAny */
 
 
-/**Function********************************************************************
+/**
+  @brief Given xLow <= x <= xHigh moves x up and down between the
+  boundaries.
 
-  Synopsis    [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries.]
+  @details Finds the best position and does the required changes.
 
-  Description [Given xLow <= x <= xHigh moves x up and down between the
-  boundaries. Finds the best position and does the required changes.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSiftingAux(
   DdManager * table,
@@ -1497,7 +1446,7 @@ ddSiftingAux(
     int		initialSize;
     int		result;
 
-    initialSize = table->keys - table->isolated;
+    initialSize = (int) (table->keys - table->isolated);
 
     moveDown = NULL;
     moveUp = NULL;
@@ -1579,17 +1528,17 @@ ddSiftingAuxOutOfMem:
 } /* end of ddSiftingAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable up.
 
-  Synopsis    [Sifts a variable up.]
+  @details Moves y up until either it reaches the bound (xLow) or the
+  size of the %DD heap increases too much.
 
-  Description [Sifts a variable up. Moves y up until either it reaches
-  the bound (xLow) or the size of the DD heap increases too much.
-  Returns the set of moves in case of success; NULL if memory is full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static Move *
 ddSiftingUp(
   DdManager * table,
@@ -1619,7 +1568,7 @@ ddSiftingUp(
     ** change. The rest may vanish in the best case, except for
     ** the nodes at level xLow, which will not vanish, regardless.
     */
-    limitSize = L = table->keys - table->isolated;
+    limitSize = L = (int) (table->keys - table->isolated);
     for (x = xLow + 1; x < y; x++) {
 	xindex = table->invperm[x];
 	if (cuddTestInteract(table,xindex,yindex)) {
@@ -1628,22 +1577,22 @@ ddSiftingUp(
 	}
     }
     isolated = table->vars[yindex]->ref == 1;
-    L -= table->subtables[y].keys - isolated;
+    L -= (int) table->subtables[y].keys - isolated;
 
     x = cuddNextLow(table,y);
     while (x >= xLow && L <= limitSize) {
 	xindex = table->invperm[x];
 #ifdef DD_DEBUG
-	checkL = table->keys - table->isolated;
+	checkL = (int) (table->keys - table->isolated);
 	for (z = xLow + 1; z < y; z++) {
 	    zindex = table->invperm[z];
 	    if (cuddTestInteract(table,zindex,yindex)) {
 		isolated = table->vars[zindex]->ref == 1;
-		checkL -= table->subtables[z].keys - isolated;
+		checkL -= (int) table->subtables[z].keys - isolated;
 	    }
 	}
 	isolated = table->vars[yindex]->ref == 1;
-	checkL -= table->subtables[y].keys - isolated;
+	checkL -= (int) table->subtables[y].keys - isolated;
 	assert(L == checkL);
 #endif
 	size = cuddSwapInPlace(table,x,y);
@@ -1651,7 +1600,7 @@ ddSiftingUp(
 	/* Update the lower bound. */
 	if (cuddTestInteract(table,xindex,yindex)) {
 	    isolated = table->vars[xindex]->ref == 1;
-	    L += table->subtables[y].keys - isolated;
+	    L += (int) table->subtables[y].keys - isolated;
 	}
 	move = (Move *) cuddDynamicAllocNode(table);
 	if (move == NULL) goto ddSiftingUpOutOfMem;
@@ -1678,18 +1627,17 @@ ddSiftingUpOutOfMem:
 } /* end of ddSiftingUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Sifts a variable down.
 
-  Synopsis    [Sifts a variable down.]
+  @details Moves x down until either it reaches the bound (xHigh) or
+  the size of the %DD heap increases too much.
 
-  Description [Sifts a variable down. Moves x down until either it
-  reaches the bound (xHigh) or the size of the DD heap increases too
-  much. Returns the set of moves in case of success; NULL if memory is
-  full.]
+  @return the set of moves in case of success; NULL if memory is full.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static Move *
 ddSiftingDown(
   DdManager * table,
@@ -1713,13 +1661,13 @@ ddSiftingDown(
     moves = NULL;
     /* Initialize R */
     xindex = table->invperm[x];
-    limitSize = size = table->keys - table->isolated;
+    limitSize = size = (int) (table->keys - table->isolated);
     R = 0;
     for (y = xHigh; y > x; y--) {
 	yindex = table->invperm[y];
 	if (cuddTestInteract(table,xindex,yindex)) {
 	    isolated = table->vars[yindex]->ref == 1;
-	    R += table->subtables[y].keys - isolated;
+	    R += (int) table->subtables[y].keys - isolated;
 	}
     }
 
@@ -1731,7 +1679,7 @@ ddSiftingDown(
 	    zindex = table->invperm[z];
 	    if (cuddTestInteract(table,xindex,zindex)) {
 		isolated = table->vars[zindex]->ref == 1;
-		checkR += table->subtables[z].keys - isolated;
+		checkR += (int) table->subtables[z].keys - isolated;
 	    }
 	}
 	assert(R == checkR);
@@ -1740,7 +1688,7 @@ ddSiftingDown(
 	yindex = table->invperm[y];
 	if (cuddTestInteract(table,xindex,yindex)) {
 	    isolated = table->vars[yindex]->ref == 1;
-	    R -= table->subtables[y].keys - isolated;
+	    R -= (int) table->subtables[y].keys - isolated;
 	}
 	size = cuddSwapInPlace(table,x,y);
 	if (size == 0) goto ddSiftingDownOutOfMem;
@@ -1769,19 +1717,18 @@ ddSiftingDownOutOfMem:
 } /* end of ddSiftingDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Given a set of moves, returns the %DD heap to the position
+  giving the minimum size.
 
-  Synopsis    [Given a set of moves, returns the DD heap to the position
-  giving the minimum size.]
+  @details In case of ties, returns to the closest position giving the
+  minimum size.
 
-  Description [Given a set of moves, returns the DD heap to the
-  position giving the minimum size. In case of ties, returns to the
-  closest position giving the minimum size. Returns 1 in case of
-  success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSiftingBackward(
   DdManager * table,
@@ -1808,19 +1755,19 @@ ddSiftingBackward(
 } /* end of ddSiftingBackward */
 
 
-/**Function********************************************************************
+/**
+  @brief Prepares the %DD heap for dynamic reordering.
 
-  Synopsis    [Prepares the DD heap for dynamic reordering.]
+  @details Does garbage collection, to guarantee that there are no
+  dead nodes; clears the cache, which is invalidated by dynamic
+  reordering; initializes the number of isolated projection functions;
+  and initializes the interaction matrix.
 
-  Description [Prepares the DD heap for dynamic reordering. Does
-  garbage collection, to guarantee that there are no dead nodes;
-  clears the cache, which is invalidated by dynamic reordering; initializes
-  the number of isolated projection functions; and initializes the
-  interaction matrix.  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddReorderPreprocess(
   DdManager * table)
@@ -1850,15 +1797,12 @@ ddReorderPreprocess(
 } /* end of ddReorderPreprocess */
 
 
-/**Function********************************************************************
+/**
+  @brief Cleans up at the end of reordering.
 
-  Synopsis    [Cleans up at the end of reordering.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddReorderPostprocess(
   DdManager * table)
@@ -1876,22 +1820,20 @@ ddReorderPostprocess(
 } /* end of ddReorderPostprocess */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders variables according to a given permutation.
 
-  Synopsis    [Reorders variables according to a given permutation.]
+  @details The i-th permutation array contains the index of the
+  variable that should be brought to the i-th level. ddShuffle assumes
+  that no dead nodes are present and that the interaction matrix is
+  properly initialized.  The reordering is achieved by a series of
+  upward sifts.
 
-  Description [Reorders variables according to a given permutation.
-  The i-th permutation array contains the index of the variable that
-  should be brought to the i-th level. ddShuffle assumes that no
-  dead nodes are present and that the interaction matrix is properly
-  initialized.  The reordering is achieved by a series of upward sifts.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso []
-
-******************************************************************************/
+*/
 static int
 ddShuffle(
   DdManager * table,
@@ -1909,13 +1851,13 @@ ddShuffle(
     int		previousSize;
 #endif
 
-    ddTotalNumberSwapping = 0;
+    table->ddTotalNumberSwapping = 0;
 #ifdef DD_STATS
     localTime = util_cpu_time();
     initialSize = table->keys - table->isolated;
     (void) fprintf(table->out,"#:I_SHUFFLE %8d: initial size\n",
 		   initialSize);
-    ddTotalNISwaps = 0;
+    table->totalNISwaps = 0;
 #endif
 
     numvars = table->size;
@@ -1947,8 +1889,9 @@ ddShuffle(
     (void) fprintf(table->out,"#:T_SHUFFLE %8g: total time (sec)\n",
 	((double)(util_cpu_time() - localTime)/1000.0));
     (void) fprintf(table->out,"#:N_SHUFFLE %8d: total swaps\n",
-		   ddTotalNumberSwapping);
-    (void) fprintf(table->out,"#:M_SHUFFLE %8d: NI swaps\n",ddTotalNISwaps);
+		   table->ddTotalNumberSwapping);
+    (void) fprintf(table->out,"#:M_SHUFFLE %8d: NI swaps\n",
+                   table->totalNISwaps);
 #endif
 
     return(1);
@@ -1956,19 +1899,17 @@ ddShuffle(
 } /* end of ddShuffle */
 
 
-/**Function********************************************************************
+/**
+  @brief Moves one variable up.
 
-  Synopsis    [Moves one variable up.]
-
-  Description [Takes a variable from position x and sifts it up to
+  @details Takes a variable from position x and sifts it up to
   position xLow;  xLow should be less than or equal to x.
-  Returns 1 if successful; 0 otherwise]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSiftUp(
   DdManager * table,
@@ -1992,19 +1933,15 @@ ddSiftUp(
 } /* end of ddSiftUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Fixes the %BDD variable group tree after a shuffle.
 
-  Synopsis    [Fixes the BDD variable group tree after a shuffle.]
+  @details Assumes that the order of the variables in a terminal node
+  has not been changed.
 
-  Description [Fixes the BDD variable group tree after a
-  shuffle. Assumes that the order of the variables in a terminal node
-  has not been changed.]
+  @sideeffect Changes the %BDD variable group tree.
 
-  SideEffects [Changes the BDD variable group tree.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 bddFixTree(
   DdManager * table,
@@ -2027,18 +1964,14 @@ bddFixTree(
 } /* end of bddFixTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Updates the %BDD variable group tree before a shuffle.
 
-  Synopsis    [Updates the BDD variable group tree before a shuffle.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Updates the BDD variable group tree before a shuffle.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect Changes the %BDD variable group tree.
 
-  SideEffects [Changes the BDD variable group tree.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddUpdateMtrTree(
   DdManager * table,
@@ -2086,18 +2019,14 @@ ddUpdateMtrTree(
 }
 
 
-/**Function********************************************************************
+/**
+  @brief Checks the %BDD variable group tree before a shuffle.
 
-  Synopsis    [Checks the BDD variable group tree before a shuffle.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Checks the BDD variable group tree before a shuffle.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect Changes the %BDD variable group tree.
 
-  SideEffects [Changes the BDD variable group tree.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 ddCheckPermuation(
   DdManager * table,

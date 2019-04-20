@@ -1,37 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddRef.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions that manipulate the reference counts.
 
-  Synopsis    [Functions that manipulate the reference counts.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_Ref()
-		    <li> Cudd_RecursiveDeref()
-		    <li> Cudd_IterDerefBdd()
-		    <li> Cudd_DelayedDerefBdd()
-		    <li> Cudd_RecursiveDerefZdd()
-		    <li> Cudd_Deref()
-		    <li> Cudd_CheckZeroRef()
-		    </ul>
-	       Internal procedures included in this module:
-		    <ul>
-		    <li> cuddReclaim()
-		    <li> cuddReclaimZdd()
-		    <li> cuddClearDeathRow()
-		    <li> cuddShrinkDeathRow()
-		    <li> cuddIsInDeathRow()
-		    <li> cuddTimesInDeathRow()
-		    </ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -61,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -87,40 +65,33 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddRef.c,v 1.29 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Increases the reference count of a node, if it is not
+  saturated.
 
-  Synopsis [Increases the reference count of a node, if it is not
-  saturated.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_RecursiveDeref Cudd_Deref
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_RecursiveDeref Cudd_Deref]
-
-******************************************************************************/
+*/
 void
 Cudd_Ref(
   DdNode * n)
@@ -133,19 +104,18 @@ Cudd_Ref(
 } /* end of Cudd_Ref */
 
 
-/**Function********************************************************************
+/**
+  @brief Decreases the reference count of node n.
 
-  Synopsis    [Decreases the reference count of node n.]
+  @details If n dies, recursively decreases the reference counts of
+  its children.  It is used to dispose of a DD that is no longer
+  needed.
 
-  Description [Decreases the reference count of node n. If n dies,
-  recursively decreases the reference counts of its children.  It is
-  used to dispose of a DD that is no longer needed.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Deref Cudd_Ref Cudd_RecursiveDerefZdd
 
-  SeeAlso     [Cudd_Deref Cudd_Ref Cudd_RecursiveDerefZdd]
-
-******************************************************************************/
+*/
 void
 Cudd_RecursiveDeref(
   DdManager * table,
@@ -192,23 +162,21 @@ Cudd_RecursiveDeref(
 } /* end of Cudd_RecursiveDeref */
 
 
-/**Function********************************************************************
+/**
+  @brief Decreases the reference count of %BDD node n.
 
-  Synopsis    [Decreases the reference count of BDD node n.]
+  @details If n dies, recursively decreases the reference counts of
+  its children.  It is used to dispose of a %BDD that is no longer
+  needed. It is more efficient than Cudd_RecursiveDeref, but it cannot
+  be used on ADDs. The greater efficiency comes from being able to
+  assume that no constant node will ever die as a result of a call to
+  this procedure.
 
-  Description [Decreases the reference count of node n. If n dies,
-  recursively decreases the reference counts of its children.  It is
-  used to dispose of a BDD that is no longer needed. It is more
-  efficient than Cudd_RecursiveDeref, but it cannot be used on
-  ADDs. The greater efficiency comes from being able to assume that no
-  constant node will ever die as a result of a call to this
-  procedure.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_RecursiveDeref Cudd_DelayedDerefBdd
 
-  SeeAlso     [Cudd_RecursiveDeref Cudd_DelayedDerefBdd]
-
-******************************************************************************/
+*/
 void
 Cudd_IterDerefBdd(
   DdManager * table,
@@ -250,22 +218,21 @@ Cudd_IterDerefBdd(
 } /* end of Cudd_IterDerefBdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Decreases the reference count of %BDD node n.
 
-  Synopsis    [Decreases the reference count of BDD node n.]
-
-  Description [Enqueues node n for later dereferencing. If the queue
+  @details Enqueues node n for later dereferencing. If the queue
   is full decreases the reference count of the oldest node N to make
   room for n. If N dies, recursively decreases the reference counts of
-  its children.  It is used to dispose of a BDD that is currently not
+  its children.  It is used to dispose of a %BDD that is currently not
   needed, but may be useful again in the near future. The dereferencing
-  proper is done as in Cudd_IterDerefBdd.]
+  proper is done as in Cudd_IterDerefBdd.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_RecursiveDeref Cudd_IterDerefBdd]
+  @see Cudd_RecursiveDeref Cudd_IterDerefBdd
 
-******************************************************************************/
+*/
 void
 Cudd_DelayedDerefBdd(
   DdManager * table,
@@ -338,7 +305,7 @@ Cudd_DelayedDerefBdd(
 	    extern void (*MMoutOfMemory)(size_t);
 	    void (*saveHandler)(size_t) = MMoutOfMemory;
 	    DdNodePtr *newRow;
-	    MMoutOfMemory = Cudd_OutOfMem;
+	    MMoutOfMemory = table->outOfMemCallback;
 	    newRow = REALLOC(DdNodePtr,table->deathRow,2*table->deathRowDepth);
 	    MMoutOfMemory = saveHandler;
 	    if (newRow == NULL) {
@@ -364,19 +331,18 @@ Cudd_DelayedDerefBdd(
 } /* end of Cudd_DelayedDerefBdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Decreases the reference count of %ZDD node n.
 
-  Synopsis    [Decreases the reference count of ZDD node n.]
+  @details If n dies, recursively decreases the reference counts of
+  its children.  It is used to dispose of a %ZDD that is no longer
+  needed.
 
-  Description [Decreases the reference count of ZDD node n. If n dies,
-  recursively decreases the reference counts of its children.  It is
-  used to dispose of a ZDD that is no longer needed.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Deref Cudd_Ref Cudd_RecursiveDeref
 
-  SeeAlso     [Cudd_Deref Cudd_Ref Cudd_RecursiveDeref]
-
-******************************************************************************/
+*/
 void
 Cudd_RecursiveDerefZdd(
   DdManager * table,
@@ -416,20 +382,19 @@ Cudd_RecursiveDerefZdd(
 } /* end of Cudd_RecursiveDerefZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Decreases the reference count of node.
 
-  Synopsis    [Decreases the reference count of node.]
+  @details It is primarily used in recursive procedures to decrease
+  the ref count of a result node before returning it. This
+  accomplishes the goal of removing the protection applied by a
+  previous Cudd_Ref.
 
-  Description [Decreases the reference count of node. It is primarily
-  used in recursive procedures to decrease the ref count of a result
-  node before returning it. This accomplishes the goal of removing the
-  protection applied by a previous Cudd_Ref.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_RecursiveDeref Cudd_RecursiveDerefZdd Cudd_Ref
 
-  SeeAlso     [Cudd_RecursiveDeref Cudd_RecursiveDerefZdd Cudd_Ref]
-
-******************************************************************************/
+*/
 void
 Cudd_Deref(
   DdNode * node)
@@ -440,24 +405,22 @@ Cudd_Deref(
 } /* end of Cudd_Deref */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks the unique table for nodes with non-zero reference
+  counts.
 
-  Synopsis [Checks the unique table for nodes with non-zero reference
-  counts.]
-
-  Description [Checks the unique table for nodes with non-zero
-  reference counts. It is normally called before Cudd_Quit to make sure
-  that there are no memory leaks due to missing Cudd_RecursiveDeref's.
+  @details It is normally called before Cudd_Quit to make sure that
+  there are no memory leaks due to missing Cudd_RecursiveDeref's.
   Takes into account that reference counts may saturate and that the
   basic constants and the projection functions are referenced by the
-  manager.  Returns the number of nodes with non-zero reference count.
-  (Except for the cases mentioned above.)]
+  manager.
 
-  SideEffects [None]
+  @return the number of nodes with non-zero reference count.
+  (Except for the cases mentioned above.)
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 Cudd_CheckZeroRef(
   DdManager * manager)
@@ -565,17 +528,14 @@ Cudd_CheckZeroRef(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Brings children of a dead node back.
 
-  Synopsis    [Brings children of a dead node back.]
+  @sideeffect None
 
-  Description []
+  @see cuddReclaimZdd
 
-  SideEffects [None]
-
-  SeeAlso     [cuddReclaimZdd]
-
-******************************************************************************/
+*/
 void
 cuddReclaim(
   DdManager * table,
@@ -619,17 +579,14 @@ cuddReclaim(
 } /* end of cuddReclaim */
 
 
-/**Function********************************************************************
+/**
+  @brief Brings children of a dead %ZDD node back.
 
-  Synopsis    [Brings children of a dead ZDD node back.]
+  @sideeffect None
 
-  Description []
+  @see cuddReclaim
 
-  SideEffects [None]
-
-  SeeAlso     [cuddReclaim]
-
-******************************************************************************/
+*/
 void
 cuddReclaimZdd(
   DdManager * table,
@@ -669,17 +626,16 @@ cuddReclaimZdd(
 } /* end of cuddReclaimZdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Shrinks the death row.
 
-  Synopsis    [Shrinks the death row.]
+  @details Shrinks the death row by a factor of four.
 
-  Description [Shrinks the death row by a factor of four.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddClearDeathRow
 
-  SeeAlso     [cuddClearDeathRow]
-
-******************************************************************************/
+*/
 void
 cuddShrinkDeathRow(
   DdManager *table)
@@ -706,18 +662,15 @@ cuddShrinkDeathRow(
 } /* end of cuddShrinkDeathRow */
 
 
-/**Function********************************************************************
+/**
+  @brief Clears the death row.
 
-  Synopsis    [Clears the death row.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_DelayedDerefBdd Cudd_IterDerefBdd Cudd_CheckZeroRef
+  cuddGarbageCollect
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_DelayedDerefBdd Cudd_IterDerefBdd Cudd_CheckZeroRef
-  cuddGarbageCollect]
-
-******************************************************************************/
+*/
 void
 cuddClearDeathRow(
   DdManager *table)
@@ -741,19 +694,17 @@ cuddClearDeathRow(
 } /* end of cuddClearDeathRow */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether a node is in the death row.
 
-  Synopsis    [Checks whether a node is in the death row.]
+  @return the position of the first occurrence if the node is present;
+  -1 otherwise.
 
-  Description [Checks whether a node is in the death row. Returns the
-  position of the first occurrence if the node is present; -1
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_DelayedDerefBdd cuddClearDeathRow
 
-  SeeAlso     [Cudd_DelayedDerefBdd cuddClearDeathRow]
-
-******************************************************************************/
+*/
 int
 cuddIsInDeathRow(
   DdManager *dd,
@@ -774,17 +725,14 @@ cuddIsInDeathRow(
 } /* end of cuddIsInDeathRow */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts how many times a node is in the death row.
 
-  Synopsis    [Counts how many times a node is in the death row.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_DelayedDerefBdd cuddClearDeathRow cuddIsInDeathRow
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_DelayedDerefBdd cuddClearDeathRow cuddIsInDeathRow]
-
-******************************************************************************/
+*/
 int
 cuddTimesInDeathRow(
   DdManager *dd,

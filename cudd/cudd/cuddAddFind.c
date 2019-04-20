@@ -1,26 +1,15 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddAddFind.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions to find maximum and minimum in an %ADD and to
+  extract the i-th bit.
 
-  Synopsis    [Functions to find maximum and minimum in an ADD and to
-  extract the i-th bit.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_addFindMax()
-		<li> Cudd_addFindMin()
-		<li> Cudd_addIthBit()
-		</ul>
-	       Static functions included in this module:
-		<ul>
-		<li> addDoIthBit()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -50,9 +39,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -76,20 +66,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddAddFind.c,v 1.9 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -97,25 +79,20 @@ extern "C" {
 
 static DdNode * addDoIthBit (DdManager *dd, DdNode *f, DdNode *index);
 
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Finds the maximum discriminant of f.
 
-  Synopsis    [Finds the maximum discriminant of f.]
+  @return a pointer to a constant %ADD.
 
-  Description [Returns a pointer to a constant ADD.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_addFindMax(
   DdManager * dd,
@@ -133,6 +110,8 @@ Cudd_addFindMax(
 	return(res);
     }
 
+    checkWhetherToGiveUp(dd);
+
     t  = Cudd_addFindMax(dd,cuddT(f));
     if (t == DD_PLUS_INFINITY(dd)) return(t);
 
@@ -147,15 +126,14 @@ Cudd_addFindMax(
 } /* end of Cudd_addFindMax */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the minimum discriminant of f.
 
-  Synopsis    [Finds the minimum discriminant of f.]
+  @return a pointer to a constant %ADD.
 
-  Description [Returns a pointer to a constant ADD.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_addFindMin(
   DdManager * dd,
@@ -173,6 +151,8 @@ Cudd_addFindMin(
 	return(res);
     }
 
+    checkWhetherToGiveUp(dd);
+
     t  = Cudd_addFindMin(dd,cuddT(f));
     if (t == DD_MINUS_INFINITY(dd)) return(t);
 
@@ -187,24 +167,25 @@ Cudd_addFindMin(
 } /* end of Cudd_addFindMin */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts the i-th bit from an %ADD.
 
-  Synopsis    [Extracts the i-th bit from an ADD.]
-
-  Description [Produces an ADD from another ADD by replacing all
+  @details Produces an %ADD from another %ADD by replacing all
   discriminants whose i-th bit is equal to 1 with 1, and all other
   discriminants with 0. The i-th bit refers to the integer
-  representation of the leaf value. If the value is has a fractional
+  representation of the leaf value. If the value has a fractional
   part, it is ignored. Repeated calls to this procedure allow one to
-  transform an integer-valued ADD into an array of ADDs, one for each
-  bit of the leaf values. Returns a pointer to the resulting ADD if
-  successful; NULL otherwise.]
+  transform an integer-valued %ADD into an array of ADDs, one for each
+  bit of the leaf values.
 
-  SideEffects [None]
+  @return a pointer to the resulting %ADD if successful; NULL
+  otherwise.
 
-  SeeAlso     [Cudd_addBddIthBit]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_addBddIthBit
+
+*/
 DdNode *
 Cudd_addIthBit(
   DdManager * dd,
@@ -228,6 +209,9 @@ Cudd_addIthBit(
 
     if (res == NULL) {
 	Cudd_RecursiveDeref(dd, index);
+        if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+            dd->timeoutHandler(dd, dd->tohArg);
+        }
 	return(NULL);
     }
     cuddRef(res);
@@ -248,18 +232,14 @@ Cudd_addIthBit(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step for Cudd_addIthBit.
 
-  Synopsis    [Performs the recursive step for Cudd_addIthBit.]
+  @return a pointer to the %BDD if successful; NULL otherwise.
 
-  Description [Performs the recursive step for Cudd_addIthBit.
-  Returns a pointer to the BDD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 addDoIthBit(
   DdManager * dd,
@@ -282,6 +262,8 @@ addDoIthBit(
     /* Check cache. */
     res = cuddCacheLookup2(dd,addDoIthBit,f,index);
     if (res != NULL) return(res);
+
+    checkWhetherToGiveUp(dd);
 
     /* Recursive step. */
     v = f->index;

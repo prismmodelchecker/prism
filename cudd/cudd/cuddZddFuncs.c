@@ -1,47 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddZddFuncs.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions to manipulate covers represented as ZDDs.
 
-  Synopsis    [Functions to manipulate covers represented as ZDDs.]
+  @author In-Ho Moon
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_zddProduct();
-		    <li> Cudd_zddUnateProduct();
-		    <li> Cudd_zddWeakDiv();
-		    <li> Cudd_zddWeakDivF();
-		    <li> Cudd_zddDivide();
-		    <li> Cudd_zddDivideF();
-		    <li> Cudd_zddComplement();
-		    </ul>
-	       Internal procedures included in this module:
-		    <ul>
-		    <li> cuddZddProduct();
-		    <li> cuddZddUnateProduct();
-		    <li> cuddZddWeakDiv();
-		    <li> cuddZddWeakDivF();
-		    <li> cuddZddDivide();
-		    <li> cuddZddDivideF();
-		    <li> cuddZddGetCofactors3()
-		    <li> cuddZddGetCofactors2()
-		    <li> cuddZddComplement();
-		    <li> cuddZddGetPosVarIndex();
-		    <li> cuddZddGetNegVarIndex();
-		    <li> cuddZddGetPosVarLevel();
-		    <li> cuddZddGetNegVarLevel();
-		    </ul>
-	       Static procedures included in this module:
-		    <ul>
-		    </ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [In-Ho Moon]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -71,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -97,23 +65,18 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddFuncs.c,v 1.17 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -121,22 +84,21 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddFuncs.c,v 1.17 2012/02/05 01:07:19 
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the product of two covers represented by ZDDs.
 
-  Synopsis    [Computes the product of two covers represented by ZDDs.]
+  @details The result is also a %ZDD.  The covers on which
+  Cudd_zddProduct operates use two %ZDD variables for each function
+  variable (one %ZDD variable for each literal of the variable). Those
+  two %ZDD variables should be adjacent in the order.
 
-  Description [Computes the product of two covers represented by
-  ZDDs. The result is also a ZDD. Returns a pointer to the result if
-  successful; NULL otherwise.  The covers on which Cudd_zddProduct
-  operates use two ZDD variables for each function variable (one ZDD
-  variable for each literal of the variable). Those two ZDD variables
-  should be adjacent in the order.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddUnateProduct]
+  @see Cudd_zddUnateProduct
 
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddProduct(
   DdManager * dd,
@@ -149,25 +111,27 @@ Cudd_zddProduct(
 	dd->reordered = 0;
 	res = cuddZddProduct(dd, f, g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddProduct */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the product of two unate covers represented as ZDDs.
 
-  Synopsis [Computes the product of two unate covers.]
+  @details Unate covers use one %ZDD variable for each %BDD
+  variable.
 
-  Description [Computes the product of two unate covers represented as
-  ZDDs. Unate covers use one ZDD variable for each BDD
-  variable. Returns a pointer to the result if successful; NULL
-  otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddProduct]
+  @see Cudd_zddProduct
 
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddUnateProduct(
   DdManager * dd,
@@ -180,28 +144,31 @@ Cudd_zddUnateProduct(
 	dd->reordered = 0;
 	res = cuddZddUnateProduct(dd, f, g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddUnateProduct */
 
 
-/**Function********************************************************************
+/**
+  @brief Applies weak division to two covers.
 
-  Synopsis    [Applies weak division to two covers.]
+  @details Applies weak division to two ZDDs representing two covers.
+  The result of weak division depends on the variable order. The
+  covers on which Cudd_zddWeakDiv operates use two %ZDD variables for
+  each function variable (one %ZDD variable for each literal of the
+  variable). Those two %ZDD variables should be adjacent in the order.
 
-  Description [Applies weak division to two ZDDs representing two
-  covers. Returns a pointer to the ZDD representing the result if
-  successful; NULL otherwise. The result of weak division depends on
-  the variable order. The covers on which Cudd_zddWeakDiv operates use
-  two ZDD variables for each function variable (one ZDD variable for
-  each literal of the variable). Those two ZDD variables should be
-  adjacent in the order.]
+  @return a pointer to the %ZDD representing the result if successful;
+  NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddDivide]
+  @see Cudd_zddDivide
 
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddWeakDiv(
   DdManager * dd,
@@ -214,25 +181,28 @@ Cudd_zddWeakDiv(
 	dd->reordered = 0;
 	res = cuddZddWeakDiv(dd, f, g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddWeakDiv */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the quotient of two unate covers.
 
-  Synopsis    [Computes the quotient of two unate covers.]
+  @details Computes the quotient of two unate covers represented by
+  ZDDs.  Unate covers use one %ZDD variable for each %BDD variable.
 
-  Description [Computes the quotient of two unate covers represented
-  by ZDDs.  Unate covers use one ZDD variable for each BDD
-  variable. Returns a pointer to the resulting ZDD if successful; NULL
-  otherwise.]
+  @return a pointer to the resulting %ZDD if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddWeakDiv]
+  @see Cudd_zddWeakDiv
 
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddDivide(
   DdManager * dd,
@@ -245,23 +215,24 @@ Cudd_zddDivide(
 	dd->reordered = 0;
 	res = cuddZddDivide(dd, f, g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddDivide */
 
 
-/**Function********************************************************************
+/**
+  @brief Modified version of Cudd_zddWeakDiv.
 
-  Synopsis    [Modified version of Cudd_zddWeakDiv.]
+  @details This function may disappear in future releases.
 
-  Description [Modified version of Cudd_zddWeakDiv. This function may
-  disappear in future releases.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_zddWeakDiv
 
-  SeeAlso     [Cudd_zddWeakDiv]
-
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddWeakDivF(
   DdManager * dd,
@@ -274,23 +245,22 @@ Cudd_zddWeakDivF(
 	dd->reordered = 0;
 	res = cuddZddWeakDivF(dd, f, g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddWeakDivF */
 
 
-/**Function********************************************************************
+/**
+  @brief Modified version of Cudd_zddDivide.
 
-  Synopsis    [Modified version of Cudd_zddDivide.]
+  @details This function may disappear in future releases.
 
-  Description [Modified version of Cudd_zddDivide. This function may
-  disappear in future releases.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddDivideF(
   DdManager * dd,
@@ -303,27 +273,28 @@ Cudd_zddDivideF(
 	dd->reordered = 0;
 	res = cuddZddDivideF(dd, f, g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddDivideF */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes a complement cover for a %ZDD node.
 
-  Synopsis    [Computes a complement cover for a ZDD node.]
+  @details For lack of a better method, we first extract the function
+  %BDD from the %ZDD cover, then make the complement of the %ZDD cover
+  from the complement of the %BDD node by using ISOP.  The result
+  depends on current variable order.
 
-  Description [Computes a complement cover for a ZDD node. For lack of a
-  better method, we first extract the function BDD from the ZDD cover,
-  then make the complement of the ZDD cover from the complement of the
-  BDD node by using ISOP. Returns a pointer to the resulting cover if
-  successful; NULL otherwise. The result depends on current variable
-  order.]
+  @return a pointer to the resulting cover if successful; NULL
+  otherwise.
 
-  SideEffects [The result depends on current variable order.]
+  @sideeffect The result depends on current variable order.
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode	*
 Cudd_zddComplement(
   DdManager *dd,
@@ -361,24 +332,22 @@ Cudd_zddComplement(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddProduct.
 
-  Synopsis [Performs the recursive step of Cudd_zddProduct.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddProduct
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddProduct]
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddProduct(
   DdManager * dd,
   DdNode * f,
   DdNode * g)
 {
-    int		v, top_f, top_g;
+    int		v;
+    int		top_f, top_g;
     DdNode	*tmp, *term1, *term2, *term3;
     DdNode	*f0, *f1, *fd, *g0, *g1, *gd;
     DdNode	*R0, *R1, *Rd, *N0, *N1;
@@ -407,7 +376,7 @@ cuddZddProduct(
     if (r)
 	return(r);
 
-    v = f->index;	/* either yi or zi */
+    v = (int) f->index;	/* either yi or zi */
     flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
     if (flag == 1)
 	return(NULL);
@@ -598,24 +567,22 @@ cuddZddProduct(
 } /* end of cuddZddProduct */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddUnateProduct.
 
-  Synopsis    [Performs the recursive step of Cudd_zddUnateProduct.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddUnateProduct
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddUnateProduct]
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddUnateProduct(
   DdManager * dd,
   DdNode * f,
   DdNode * g)
 {
-    int		v, top_f, top_g;
+    int		v;
+    int		top_f, top_g;
     DdNode	*term1, *term2, *term3, *term4;
     DdNode	*sum1, *sum2;
     DdNode	*f0, *f1, *g0, *g1;
@@ -643,7 +610,7 @@ cuddZddUnateProduct(
     if (r)
 	return(r);
 
-    v = f->index;	/* either yi or zi */
+    v = (int) f->index;	/* either yi or zi */
     flag = cuddZddGetCofactors2(dd, f, v, &f1, &f0);
     if (flag == 1)
 	return(NULL);
@@ -742,17 +709,14 @@ cuddZddUnateProduct(
 } /* end of cuddZddUnateProduct */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddWeakDiv.
 
-  Synopsis    [Performs the recursive step of Cudd_zddWeakDiv.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddWeakDiv
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddWeakDiv]
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddWeakDiv(
   DdManager * dd,
@@ -780,7 +744,7 @@ cuddZddWeakDiv(
     if (r)
 	return(r);
 
-    v = g->index;
+    v = (int) g->index;
 
     flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
     if (flag == 1)
@@ -903,24 +867,22 @@ cuddZddWeakDiv(
 } /* end of cuddZddWeakDiv */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddWeakDivF.
 
-  Synopsis    [Performs the recursive step of Cudd_zddWeakDivF.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddWeakDivF
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddWeakDivF]
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddWeakDivF(
   DdManager * dd,
   DdNode * f,
   DdNode * g)
 {
-    int		v, top_f, top_g, vf, vg;
+    int		v;
+    int		top_f, top_g, vf, vg;
     DdNode	*one = DD_ONE(dd);
     DdNode	*zero = DD_ZERO(dd);
     DdNode	*f0, *f1, *fd, *g0, *g1, *gd;
@@ -950,7 +912,7 @@ cuddZddWeakDivF(
     v = ddMin(top_f, top_g);
 
     if (v == top_f && vf < vg) {
-	v = f->index;
+	v = (int) f->index;
 	flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
 	if (flag == 1)
 	    return(NULL);
@@ -1015,9 +977,9 @@ cuddZddWeakDivF(
     }
 
     if (v == top_f)
-	v = f->index;
+	v = (int) f->index;
     else
-	v = g->index;
+	v = (int) g->index;
 
     flag = cuddZddGetCofactors3(dd, f, v, &f1, &f0, &fd);
     if (flag == 1)
@@ -1140,17 +1102,14 @@ cuddZddWeakDivF(
 } /* end of cuddZddWeakDivF */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddDivide.
 
-  Synopsis    [Performs the recursive step of Cudd_zddDivide.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddDivide
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddDivide]
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddDivide(
   DdManager * dd,
@@ -1177,7 +1136,7 @@ cuddZddDivide(
     if (r)
 	return(r);
 
-    v = g->index;
+    v = (int) g->index;
 
     flag = cuddZddGetCofactors2(dd, f, v, &f1, &f0);
     if (flag == 1)
@@ -1240,17 +1199,14 @@ cuddZddDivide(
 } /* end of cuddZddDivide */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddDivideF.
 
-  Synopsis    [Performs the recursive step of Cudd_zddDivideF.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_zddDivideF
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddDivideF]
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddDivideF(
   DdManager * dd,
@@ -1277,7 +1233,7 @@ cuddZddDivideF(
     if (r)
 	return(r);
 
-    v = g->index;
+    v = (int) g->index;
 
     flag = cuddZddGetCofactors2(dd, f, v, &f1, &f0);
     if (flag == 1)
@@ -1340,18 +1296,19 @@ cuddZddDivideF(
 } /* end of cuddZddDivideF */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the three-way decomposition of f w.r.t. v.
 
-  Synopsis    [Computes the three-way decomposition of f w.r.t. v.]
+  @details Computes the three-way decomposition of function f
+  (represented by a %ZDD) with respect to variable v.
 
-  Description [Computes the three-way decomposition of function f (represented
-  by a ZDD) wit respect to variable v.  Returns 0 if successful; 1 otherwise.]
+  @return 0 if successful; 1 otherwise.
 
-  SideEffects [The results are returned in f1, f0, and fd.]
+  @sideeffect The results are returned in f1, f0, and fd.
 
-  SeeAlso     [cuddZddGetCofactors2]
+  @see cuddZddGetCofactors2
 
-******************************************************************************/
+*/
 int
 cuddZddGetCofactors3(
   DdManager * dd,
@@ -1468,17 +1425,14 @@ cuddZddGetCofactors3(
 } /* end of cuddZddGetCofactors3 */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the two-way decomposition of f w.r.t. v.
 
-  Synopsis    [Computes the two-way decomposition of f w.r.t. v.]
+  @sideeffect The results are returned in f1 and f0.
 
-  Description []
+  @see cuddZddGetCofactors3
 
-  SideEffects [The results are returned in f1 and f0.]
-
-  SeeAlso     [cuddZddGetCofactors3]
-
-******************************************************************************/
+*/
 int
 cuddZddGetCofactors2(
   DdManager * dd,
@@ -1500,20 +1454,15 @@ cuddZddGetCofactors2(
 } /* end of cuddZddGetCofactors2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes a complement of a %ZDD node.
 
-  Synopsis    [Computes a complement of a ZDD node.]
+  @details So far, since we couldn't find a direct way to get the
+  complement of a %ZDD cover, we first convert a %ZDD cover to a %BDD,
+  then make the complement of the %ZDD cover from the complement of the
+  %BDD node by using ISOP.  The result depends on current variable order.
 
-  Description [Computes the complement of a ZDD node. So far, since we
-  couldn't find a direct way to get the complement of a ZDD cover, we first
-  convert a ZDD cover to a BDD, then make the complement of the ZDD cover
-  from the complement of the BDD node by using ISOP.]
-
-  SideEffects [The result depends on current variable order.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode	*
 cuddZddComplement(
   DdManager * dd,
@@ -1546,59 +1495,37 @@ cuddZddComplement(
 } /* end of cuddZddComplement */
 
 
-/**Function********************************************************************
-
-  Synopsis    [Returns the index of positive ZDD variable.]
-
-  Description [Returns the index of positive ZDD variable.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns the index of positive %ZDD variable.
+*/
 int
 cuddZddGetPosVarIndex(
   DdManager * dd,
   int index)
 {
-    int	pv = (index >> 1) << 1;
+    (void) dd; /* avoid warning */
+    int	pv = index & ~0x1;
     return(pv);
 } /* end of cuddZddGetPosVarIndex */
 
 
-/**Function********************************************************************
-
-  Synopsis    [Returns the index of negative ZDD variable.]
-
-  Description [Returns the index of negative ZDD variable.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns the index of negative %ZDD variable.
+*/
 int
 cuddZddGetNegVarIndex(
   DdManager * dd,
   int index)
 {
+    (void) dd; /* avoid warning */
     int	nv = index | 0x1;
     return(nv);
 } /* end of cuddZddGetPosVarIndex */
 
 
-/**Function********************************************************************
-
-  Synopsis    [Returns the level of positive ZDD variable.]
-
-  Description [Returns the level of positive ZDD variable.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns the level of positive %ZDD variable.
+*/
 int
 cuddZddGetPosVarLevel(
   DdManager * dd,
@@ -1609,17 +1536,9 @@ cuddZddGetPosVarLevel(
 } /* end of cuddZddGetPosVarLevel */
 
 
-/**Function********************************************************************
-
-  Synopsis    [Returns the level of negative ZDD variable.]
-
-  Description [Returns the level of negative ZDD variable.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns the level of negative %ZDD variable.
+*/
 int
 cuddZddGetNegVarLevel(
   DdManager * dd,
