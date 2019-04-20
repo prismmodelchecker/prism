@@ -28,6 +28,7 @@ For other binary distributions:
 For source code distributions:
 
  * enter the PRISM directory and type `cd prism` then `make`
+ * to check the install, type `make test`
  * to run, execute `bin/xprism` or `bin/prism`
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
