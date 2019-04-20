@@ -1,0 +1,10 @@
+.model first
+.inputs a b c d
+.outputs A
+.names a b c d A
+--01 0
+-0-0 0
+-011 0
+1-00 0
+01-0 0
+.end

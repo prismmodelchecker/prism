@@ -1,41 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddZddUtil.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Utility functions for ZDDs.
 
-  Synopsis    [Utility functions for ZDDs.]
+  @author Hyong-Kyoon Shin, In-Ho Moon, Fabio Somenzi
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_zddPrintMinterm()
-		    <li> Cudd_zddPrintCover()
-		    <li> Cudd_zddPrintDebug()
-		    <li> Cudd_zddFirstPath()
-		    <li> Cudd_zddNextPath()
-		    <li> Cudd_zddCoverPathToString()
-                    <li> Cudd_zddSupport()
-		    <li> Cudd_zddDumpDot()
-		    </ul>
-	       Internal procedures included in this module:
-		    <ul>
-		    <li> cuddZddP()
-		    </ul>
-	       Static procedures included in this module:
-		    <ul>
-		    <li> zp2()
-		    <li> zdd_print_minterm_aux()
-		    <li> zddPrintCoverAux()
-                    <li> zddSupportStep()
-                    <li> zddClearFlag()
-		    </ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [Hyong-Kyoon Shin, In-Ho Moon, Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -65,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -91,16 +65,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddUtil.c,v 1.29 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -112,7 +82,7 @@ static void zddPrintCoverAux (DdManager *zdd, DdNode *node, int level, int *list
 static void zddSupportStep(DdNode * f, int * support);
 static void zddClearFlag(DdNode * f);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -120,18 +90,16 @@ static void zddClearFlag(DdNode * f);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a disjoint sum of product form for a %ZDD.
 
-  Synopsis    [Prints a disjoint sum of product form for a ZDD.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Prints a disjoint sum of product form for a ZDD. Returns 1
-  if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_zddPrintDebug Cudd_zddPrintCover
 
-  SeeAlso     [Cudd_zddPrintDebug Cudd_zddPrintCover]
-
-******************************************************************************/
+*/
 int
 Cudd_zddPrintMinterm(
   DdManager * zdd,
@@ -154,18 +122,16 @@ Cudd_zddPrintMinterm(
 } /* end of Cudd_zddPrintMinterm */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a sum of products from a %ZDD representing a cover.
 
-  Synopsis    [Prints a sum of products from a ZDD representing a cover.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Prints a sum of products from a ZDD representing a cover.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_zddPrintMinterm
 
-  SeeAlso     [Cudd_zddPrintMinterm]
-
-******************************************************************************/
+*/
 int
 Cudd_zddPrintCover(
   DdManager * zdd,
@@ -189,14 +155,12 @@ Cudd_zddPrintCover(
 } /* end of Cudd_zddPrintCover */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints to the standard output a %ZDD and its statistics.
 
-  Synopsis [Prints to the standard output a ZDD and its statistics.]
-
-  Description [Prints to the standard output a DD and its statistics.
-  The statistics include the number of nodes and the number of minterms.
-  (The number of minterms is also the number of combinations in the set.)
-  The statistics are printed if pr &gt; 0.  Specifically:
+  @details The statistics include the number of nodes and the number of
+  minterms.  (The number of minterms is also the number of combinations
+  in the set.)  The statistics are printed if pr &gt; 0.  Specifically:
   <ul>
   <li> pr = 0 : prints nothing
   <li> pr = 1 : prints counts of nodes and minterms
@@ -204,14 +168,12 @@ Cudd_zddPrintCover(
   <li> pr = 3 : prints counts + list of nodes
   <li> pr &gt; 3 : prints counts + disjoint sum of products + list of nodes
   </ul>
-  Returns 1 if successful; 0 otherwise.
-  ]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 Cudd_zddPrintDebug(
   DdManager * zdd,
@@ -251,27 +213,27 @@ Cudd_zddPrintDebug(
 
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the first path of a %ZDD.
 
-  Synopsis    [Finds the first path of a ZDD.]
-
-  Description [Defines an iterator on the paths of a ZDD
-  and finds its first path. Returns a generator that contains the
-  information necessary to continue the enumeration if successful; NULL
-  otherwise.<p>
+  @details Defines an iterator on the paths of a %ZDD and finds its first
+  path.<p>
   A path is represented as an array of literals, which are integers in
   {0, 1, 2}; 0 represents an else arc out of a node, 1 represents a then arc
   out of a node, and 2 stands for the absence of a node.
   The size of the array equals the number of variables in the manager at
   the time Cudd_zddFirstCube is called.<p>
-  The paths that end in the empty terminal are not enumerated.]
+  The paths that end in the empty terminal are not enumerated.
 
-  SideEffects [The first path is returned as a side effect.]
+  @return a generator that contains the information necessary to
+  continue the enumeration if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_zddForeachPath Cudd_zddNextPath Cudd_GenFree
-  Cudd_IsGenEmpty]
+  @sideeffect The first path is returned as a side effect.
 
-******************************************************************************/
+  @see Cudd_zddForeachPath Cudd_zddNextPath Cudd_GenFree
+  Cudd_IsGenEmpty
+
+*/
 DdGen *
 Cudd_zddFirstPath(
   DdManager * zdd,
@@ -369,21 +331,21 @@ done:
 } /* end of Cudd_zddFirstPath */
 
 
-/**Function********************************************************************
+/**
+  @brief Generates the next path of a %ZDD.
 
-  Synopsis    [Generates the next path of a ZDD.]
+  @details Generates the next path of a %ZDD onset, using generator
+  gen.
 
-  Description [Generates the next path of a ZDD onset,
-  using generator gen. Returns 0 if the enumeration is completed; 1
-  otherwise.]
+  @return 0 if the enumeration is completed; 1 otherwise.
 
-  SideEffects [The path is returned as a side effect. The
-  generator is modified.]
+  @sideeffect The path is returned as a side effect. The generator is
+  modified.
 
-  SeeAlso     [Cudd_zddForeachPath Cudd_zddFirstPath Cudd_GenFree
-  Cudd_IsGenEmpty]
+  @see Cudd_zddForeachPath Cudd_zddFirstPath Cudd_GenFree
+  Cudd_IsGenEmpty
 
-******************************************************************************/
+*/
 int
 Cudd_zddNextPath(
   DdGen * gen,
@@ -456,27 +418,26 @@ done:
 } /* end of Cudd_zddNextPath */
 
 
-/**Function********************************************************************
+/**
+  @brief Converts a path of a %ZDD representing a cover to a string.
 
-  Synopsis    [Converts a path of a ZDD representing a cover to a string.]
+  @details The string represents an implicant of the cover.  The path
+  is typically produced by Cudd_zddForeachPath.  If the str input is
+  NULL, it allocates a new string.  The string passed to this function
+  must have enough room for all variables and for the terminator.
 
-  Description [Converts a path of a ZDD representing a cover to a
-  string.  The string represents an implicant of the cover.  The path
-  is typically produced by Cudd_zddForeachPath.  Returns a pointer to
-  the string if successful; NULL otherwise.  If the str input is NULL,
-  it allocates a new string.  The string passed to this function must
-  have enough room for all variables and for the terminator.]
+  @return a pointer to the string if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddForeachPath]
+  @see Cudd_zddForeachPath
 
-******************************************************************************/
+*/
 char *
 Cudd_zddCoverPathToString(
-  DdManager *zdd		/* DD manager */,
-  int *path			/* path of ZDD representing a cover */,
-  char *str			/* pointer to string to use if != NULL */
+  DdManager *zdd		/**< %DD manager */,
+  int *path			/**< path of %ZDD representing a cover */,
+  char *str			/**< pointer to string to use if != NULL */
   )
 {
     int nvars = zdd->sizeZ;
@@ -519,23 +480,21 @@ Cudd_zddCoverPathToString(
 } /* end of Cudd_zddCoverPathToString */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a %ZDD depends.
 
-  Synopsis    [Finds the variables on which a ZDD depends.]
+  @return a %BDD consisting of the product of the variables if
+  successful; NULL otherwise.
 
-  Description [Finds the variables on which a ZDD depends.
-  Returns a BDD consisting of the product of the variables if
-  successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Support
 
-  SeeAlso     [Cudd_Support]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddSupport(
-  DdManager * dd /* manager */,
-  DdNode * f /* ZDD whose support is sought */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< %ZDD whose support is sought */)
 {
     int *support;
     DdNode *res, *tmp, *var;
@@ -587,19 +546,19 @@ Cudd_zddSupport(
 
     FREE(support);
     if (res != NULL) cuddDeref(res);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddSupport */
 
 
-/**Function********************************************************************
+/**
+  @brief Writes a dot file representing the argument ZDDs.
 
-  Synopsis    [Writes a dot file representing the argument ZDDs.]
-
-  Description [Writes a file representing the argument ZDDs in a format
+  @details Writes a file representing the argument ZDDs in a format
   suitable for the graph drawing program dot.
-  It returns 1 in case of success; 0 otherwise (e.g., out-of-memory,
-  file system full).
   Cudd_zddDumpDot does not close the file: This is the caller
   responsibility. Cudd_zddDumpDot uses a minimal unique subset of the
   hexadecimal address of a node as name for it.
@@ -612,21 +571,23 @@ Cudd_zddSupport(
     </ul>
   The dot options are chosen so that the drawing fits on a letter-size
   sheet.
-  ]
+  
+  @return 1 in case of success; 0 otherwise (e.g., out-of-memory, file
+  system full).
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_DumpDot Cudd_zddPrintDebug]
+  @see Cudd_DumpDot Cudd_zddPrintDebug
 
-******************************************************************************/
+*/
 int
 Cudd_zddDumpDot(
-  DdManager * dd /* manager */,
-  int  n /* number of output nodes to be dumped */,
-  DdNode ** f /* array of output nodes to be dumped */,
-  char ** inames /* array of input names (or NULL) */,
-  char ** onames /* array of output names (or NULL) */,
-  FILE * fp /* pointer to the dump file */)
+  DdManager * dd /**< manager */,
+  int  n /**< number of output nodes to be dumped */,
+  DdNode ** f /**< array of output nodes to be dumped */,
+  char const * const * inames /**< array of input names (or NULL) */,
+  char const * const * onames /**< array of output names (or NULL) */,
+  FILE * fp /**< pointer to the dump file */)
 {
     DdNode	*support = NULL;
     DdNode	*scan;
@@ -687,11 +648,11 @@ Cudd_zddDumpDot(
     refAddr = (ptruint) f[0];
     diff = 0;
     gen = st_init_gen(visited);
-    while (st_gen(gen, &scan, NULL)) {
+    while (st_gen(gen, (void **) &scan, NULL)) {
 	diff |= refAddr ^ (ptruint) scan;
     }
     st_free_gen(gen);
-    
+
     /* Choose the mask. */
     for (i = 0; (unsigned) i < 8 * sizeof(ptruint); i += 4) {
         mask = ((ptruint) 1 << i) - 1;
@@ -762,7 +723,7 @@ Cudd_zddDumpDot(
 	    for (j = 0; j < slots; j++) {
 		scan = nodelist[j];
 		while (scan != NULL) {
-		    if (st_is_member(visited,(char *) scan)) {
+		    if (st_is_member(visited,scan)) {
 			retval = fprintf(fp,"\"%#" PRIxPTR "\";\n",
 					 ((mask & (ptruint) scan) /
 					  sizeof(DdNode)));
@@ -785,7 +746,7 @@ Cudd_zddDumpDot(
     for (j = 0; j < slots; j++) {
 	scan = nodelist[j];
 	while (scan != NULL) {
-	    if (st_is_member(visited,(char *) scan)) {
+	    if (st_is_member(visited,scan)) {
 		retval = fprintf(fp,"\"%#" PRIxPTR "\";\n",
 				 ((mask & (ptruint) scan) / sizeof(DdNode)));
 		if (retval == EOF) goto failure;
@@ -818,7 +779,7 @@ Cudd_zddDumpDot(
 	    for (j = 0; j < slots; j++) {
 		scan = nodelist[j];
 		while (scan != NULL) {
-		    if (st_is_member(visited,(char *) scan)) {
+		    if (st_is_member(visited,scan)) {
 			retval = fprintf(fp,
 			    "\"%#" PRIxPTR "\" -> \"%#" PRIxPTR "\";\n",
 			    ((mask & (ptruint) scan) / sizeof(DdNode)),
@@ -830,7 +791,7 @@ Cudd_zddDumpDot(
 					 ((mask & (ptruint) scan) /
                                           sizeof(DdNode)),
 					 ((mask & (ptruint) cuddE(scan)) /
-						   sizeof(DdNode)));
+                                          sizeof(DdNode)));
 			if (retval == EOF) goto failure;
 		    }
 		    scan = scan->next;
@@ -845,7 +806,7 @@ Cudd_zddDumpDot(
     for (j = 0; j < slots; j++) {
 	scan = nodelist[j];
 	while (scan != NULL) {
-	    if (st_is_member(visited,(char *) scan)) {
+	    if (st_is_member(visited,scan)) {
 		retval = fprintf(fp,"\"%#" PRIxPTR "\" [label = \"%g\"];\n",
 				 ((mask & (ptruint) scan) / sizeof(DdNode)),
 				 cuddV(scan));
@@ -876,19 +837,17 @@ failure:
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a %ZDD to the standard output. One line per node is
+  printed.
 
-  Synopsis [Prints a ZDD to the standard output. One line per node is
-  printed.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Prints a ZDD to the standard output. One line per node is
-  printed. Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_zddPrintDebug
 
-  SeeAlso     [Cudd_zddPrintDebug]
-
-******************************************************************************/
+*/
 int
 cuddZddP(
   DdManager * zdd,
@@ -912,18 +871,14 @@ cuddZddP(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of cuddZddP.
 
-  Synopsis [Performs the recursive step of cuddZddP.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Performs the recursive step of cuddZddP. Returns 1 in
-  case of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 zp2(
   DdManager * zdd,
@@ -937,21 +892,21 @@ zp2(
     if (f == NULL)
 	return(0);
 
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	(void)fprintf(zdd->out, "ID = %d\n", (f == base));
 	return(1);
     }
-    if (st_is_member(t, (char *)f) == 1)
+    if (st_is_member(t, f) == 1)
 	return(1);
 
-    if (st_insert(t, (char *) f, NULL) == ST_OUT_OF_MEM)
+    if (st_insert(t, f, NULL) == ST_OUT_OF_MEM)
 	return(0);
 
     (void) fprintf(zdd->out, "ID = 0x%" PRIxPTR "\tindex = %u\tr = %u\t",
 	(ptruint)f / (ptruint) sizeof(DdNode), f->index, f->ref);
 
     n = cuddT(f);
-    if (Cudd_IsConstant(n)) {
+    if (Cudd_IsConstantInt(n)) {
 	(void) fprintf(zdd->out, "T = %d\t\t", (n == base));
 	T = 1;
     } else {
@@ -961,12 +916,12 @@ zp2(
     }
 
     n = cuddE(f);
-    if (Cudd_IsConstant(n)) {
+    if (Cudd_IsConstantInt(n)) {
 	(void) fprintf(zdd->out, "E = %d\n", (n == base));
 	E = 1;
     } else {
 	(void) fprintf(zdd->out, "E = 0x%" PRIxPTR "\n", (ptruint) n /
-		       (ptruint) sizeof(DdNode));
+		      (ptruint) sizeof(DdNode));
 	E = 0;
     }
 
@@ -979,17 +934,12 @@ zp2(
 } /* end of zp2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddPrintMinterm.
 
-  Synopsis    [Performs the recursive step of Cudd_zddPrintMinterm.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 zdd_print_minterm_aux(
   DdManager * zdd /* manager */,
@@ -1001,7 +951,7 @@ zdd_print_minterm_aux(
     int		i, v;
     DdNode	*base = DD_ONE(zdd);
 
-    if (Cudd_IsConstant(node)) {
+    if (Cudd_IsConstantInt(node)) {
 	if (node == base) {
 	    /* Check for missing variable. */
 	    if (level != zdd->sizeZ) {
@@ -1051,17 +1001,12 @@ zdd_print_minterm_aux(
 } /* end of zdd_print_minterm_aux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddPrintCover.
 
-  Synopsis    [Performs the recursive step of Cudd_zddPrintCover.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 zddPrintCoverAux(
   DdManager * zdd /* manager */,
@@ -1073,7 +1018,7 @@ zddPrintCoverAux(
     int		i, v;
     DdNode	*base = DD_ONE(zdd);
 
-    if (Cudd_IsConstant(node)) {
+    if (Cudd_IsConstantInt(node)) {
 	if (node == base) {
 	    /* Check for missing variable. */
 	    if (level != zdd->sizeZ) {
@@ -1123,19 +1068,17 @@ zddPrintCoverAux(
 } /* end of zddPrintCoverAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddSupport.
 
-  Synopsis    [Performs the recursive step of Cudd_zddSupport.]
+  @details Performs a DFS from f. The support is accumulated in supp
+  as a side effect. Uses the LSB of the then pointer as visited flag.
 
-  Description [Performs the recursive step of Cudd_zddSupport. Performs a
-  DFS from f. The support is accumulated in supp as a side effect. Uses
-  the LSB of the then pointer as visited flag.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see zddClearFlag
 
-  SeeAlso     [zddClearFlag]
-
-******************************************************************************/
+*/
 static void
 zddSupportStep(
   DdNode * f,
@@ -1155,18 +1098,15 @@ zddSupportStep(
 } /* end of zddSupportStep */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs a DFS from f, clearing the LSB of the next
+  pointers.
 
-  Synopsis    [Performs a DFS from f, clearing the LSB of the next
-  pointers.]
+  @sideeffect None
 
-  Description []
+  @see zddSupportStep
 
-  SideEffects [None]
-
-  SeeAlso     [zddSupportStep]
-
-******************************************************************************/
+*/
 static void
 zddClearFlag(
   DdNode * f)

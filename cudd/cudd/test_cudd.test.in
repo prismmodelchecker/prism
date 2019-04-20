@@ -1,0 +1,64 @@
+#! /bin/sh
+
+EXE=@EXEEXT@
+srcdir=@srcdir@
+file=r7x8.1
+verbosity=2
+
+sed_command='-r:-e:2,3d:-e:/Cache used slots/d:-e:/Average distance/d:-e:/modifiable/,$d:-e:s/[0-9][0-9]*\.?[0-9]* sec//:-e:/so far/d'
+
+echo TAP version 13
+echo 1..2
+exitstatus=0
+# Create empty file.
+: > ./cudd/differences
+
+cudd/testcudd$EXE -p $verbosity ${srcdir}/cudd/${file}.mat > ./cudd/${file}.tst 2>&1
+failed=`expr $? != 0`
+if test x$failed = x0 ; then
+    echo "# comparing ./cudd/${file}.tst to ${srcdir}/cudd/${file}.out"
+    mkfifo ./cudd/tst_fifo ./cudd/out_fifo
+    OIFS=$IFS
+    IFS=:
+    `sed ${sed_command} ./cudd/${file}.tst > ./cudd/tst_fifo &\
+     sed ${sed_command} ${srcdir}/cudd/${file}.out > ./cudd/out_fifo &\
+     diff -b ./cudd/tst_fifo ./cudd/out_fifo >> ./cudd/differences`
+    failed=`expr $? != 0`
+    rm ./cudd/tst_fifo ./cudd/out_fifo
+    IFS=$OIFS
+fi
+if test x$failed = x0 ; then
+    echo ok 1 cudd basic
+else
+    echo not ok 1 cudd basic
+fi
+exitstatus=`expr $exitstatus + $failed`
+
+cudd/testextra$EXE $verbosity > ./cudd/extra.tst 2>&1
+failed=`expr $? != 0`
+if test x$failed = x0 ; then
+    echo "# comparing ./cudd/extra.tst to ${srcdir}/cudd/extra.out"
+    mkfifo ./cudd/tst_fifo ./cudd/out_fifo
+    OIFS=$IFS
+    IFS=:
+    `sed ${sed_command} ./cudd/extra.tst > ./cudd/tst_fifo &\
+     sed ${sed_command} ${srcdir}/cudd/extra.out > ./cudd/out_fifo &\
+     diff -b ./cudd/tst_fifo ./cudd/out_fifo >> ./cudd/differences`
+    failed=`expr $? != 0`
+    rm ./cudd/tst_fifo ./cudd/out_fifo
+    IFS=$OIFS
+fi
+if test x$failed = x0 ; then
+    echo ok 2 cudd extra
+else
+    echo not ok 2 cudd extra
+fi
+exitstatus=`expr $exitstatus + $failed`
+
+if test x$exitstatus = x0; then
+    rm -rf ./cudd/differences
+else
+    echo '# Check file "./cudd/differences"'
+fi
+
+exit 0

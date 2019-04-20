@@ -1,0 +1,46 @@
+lib_LTLIBRARIES = cudd/libcudd.la
+cudd_libcudd_la_SOURCES = cudd/cudd.h cudd/cuddInt.h \
+  cudd/cuddAddAbs.c cudd/cuddAddApply.c cudd/cuddAddFind.c cudd/cuddAddInv.c \
+  cudd/cuddAddIte.c cudd/cuddAddNeg.c cudd/cuddAddWalsh.c cudd/cuddAndAbs.c \
+  cudd/cuddAnneal.c cudd/cuddApa.c cudd/cuddAPI.c cudd/cuddApprox.c \
+  cudd/cuddBddAbs.c cudd/cuddBddCorr.c cudd/cuddBddIte.c cudd/cuddBridge.c \
+  cudd/cuddCache.c cudd/cuddCheck.c cudd/cuddClip.c cudd/cuddCof.c \
+  cudd/cuddCompose.c cudd/cuddDecomp.c cudd/cuddEssent.c cudd/cuddExact.c \
+  cudd/cuddExport.c cudd/cuddGenCof.c cudd/cuddGenetic.c cudd/cuddGroup.c \
+  cudd/cuddHarwell.c cudd/cuddInit.c cudd/cuddInteract.c cudd/cuddLCache.c \
+  cudd/cuddLevelQ.c cudd/cuddLinear.c cudd/cuddLiteral.c cudd/cuddMatMult.c \
+  cudd/cuddPriority.c cudd/cuddRead.c cudd/cuddRef.c cudd/cuddReorder.c \
+  cudd/cuddSat.c cudd/cuddSign.c cudd/cuddSolve.c cudd/cuddSplit.c \
+  cudd/cuddSubsetHB.c cudd/cuddSubsetSP.c cudd/cuddSymmetry.c cudd/cuddTable.c \
+  cudd/cuddUtil.c cudd/cuddWindow.c cudd/cuddZddCount.c cudd/cuddZddFuncs.c \
+  cudd/cuddZddGroup.c cudd/cuddZddIsop.c cudd/cuddZddLin.c cudd/cuddZddMisc.c \
+  cudd/cuddZddPort.c cudd/cuddZddReord.c cudd/cuddZddSetop.c \
+  cudd/cuddZddSymm.c cudd/cuddZddUtil.c
+cudd_libcudd_la_CPPFLAGS = -I$(top_srcdir)/cudd -I$(top_srcdir)/st \
+  -I$(top_srcdir)/epd -I$(top_srcdir)/mtr -I$(top_srcdir)/util
+if OBJ
+cudd_libcudd_la_LIBTOOLFLAGS=--tag=CXX
+endif OBJ
+cudd_libcudd_la_LDFLAGS = -release @PACKAGE_VERSION@ -version-info 0:0:0 \
+  -no-undefined
+
+check_PROGRAMS += cudd/testcudd cudd/testextra
+cudd_testcudd_SOURCES = cudd/testcudd.c
+cudd_testcudd_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+cudd_testcudd_LDADD = cudd/libcudd.la
+cudd_testextra_SOURCES = cudd/testextra.c
+cudd_testextra_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+cudd_testextra_LDADD = cudd/libcudd.la
+
+check_SCRIPTS += cudd/test_cudd.test
+EXTRA_DIST += cudd/test_cudd.test.in
+dist_check_DATA += cudd/r7x8.1.mat cudd/r7x8.1.out cudd/extra.out
+if !CROSS_COMPILING
+TESTS += cudd/test_cudd.test
+endif !CROSS_COMPILING
+
+cudd/test_cudd.test: cudd/test_cudd.test.in Makefile
+	$(do_subst) $< > $@
+	chmod +x $@
+
+CLEANFILES += cudd/r7x8.1.tst cudd/extra.tst

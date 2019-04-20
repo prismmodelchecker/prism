@@ -58,8 +58,8 @@ extern "C" {
  *  Returned values (for theorically ALL the function of the package)
  */
 
-#define DDDMP_FAILURE ((int) 0)
-#define DDDMP_SUCCESS ((int) 1)
+#define DDDMP_FAILURE 0
+#define DDDMP_SUCCESS 1
 
 /* 
  *  Format modes for DD (BDD and ADD) files

@@ -1,14 +1,117 @@
-CUDD
-====
+The CUDD package is a package written in C for the manipulation of
+decision diagrams.  It supports binary decision diagrams (BDDs),
+algebraic decision diagrams (ADDs), and Zero-Suppressed BDDs (ZDDs).
 
-This is the version of CUDD distributed with PRISM. It is a modified
-version of CUDD 2.5.0. You can find details of the modifications made
-in the file MODIFICATIONS.
+This directory contains a set of packages that allow you to build a test
+application based on the CUDD package.
 
-CUDD was written by Fabio Somenzi and the copyright is owned by the
-University of Colorado. You can find unmodified copies and the latest
-version here:
+The test application provided in this kit is called nanotrav and is a
+simple-minded FSM traversal program.  (See the README file and the man
+page nanotrav.1 in the nanotrav directory for the details.)  It is
+included so that you can run a sanity check on your installation.
 
- http://vlsi.colorado.edu/~fabio/
+Also included in this distribution are the dddmp libray by Giampiero
+Cabodi and Stefano Quer and a C++ object-oriented wrapper for CUDD.
 
-The original README file from this directory can be found as README.orig.
+BUILD AND INSTALLATION
+
+In the simplest form, you can build the static libraries with:
+
+  ./configure
+  make
+  make check
+
+The configure script provides a few options, which can be listed with
+
+  ./configure --help
+
+Notable options include
+
+  --enable-silent-rules
+  --enable-shared
+  --enable-dddmp
+  --enable-obj
+  --with-system-qsort
+
+The --enable-silent-rules option is a standard option that streamlines the
+messages produced by the build process.  The remaining options are specific
+to CUDD.
+
+The three "enable" options control the build of shared libraries.  By
+default, only static libraries are built.  With --enable-shared, a
+shared library for libcudd is built.  (Before installation, it can be
+found in cudd/.libs.)
+
+The last two "enable" options control the inclusion of the dddmp
+library and C++ wrapper in the shared library, which by default only
+contains the core CUDD library.
+
+The --with-system-qsort option requests use of the qsort from the
+standard library instead of the portable one shipped with CUDD.  This
+option is provided for backward compatibility and is not otherwise
+recommended.  Some of the tests of "make check" may fail with the
+system qsort because variable orders may be generated that are
+different from the reference ones.
+
+As an example, a more elaborate build command sequence may be:
+
+  ./configure CC=clang CXX=clang++ --enable-silent-rules \
+    --enable-shared --enable-obj
+  make -j4 check
+  make install
+
+which selects alternate compilers instead of gcc and g++, causes the
+C++ wrapper to be included in the shared library, enables parallel
+compilation (with -j4) and finally installs the shared library using
+the default prefix /usr/local.
+
+For those unfamiliar with libtool it may be worth noting that the
+libraries it builds go in .libs subdirectories.  One should also note
+that with shared libraries enabled, the test programs immediately
+visible to the user are shell scripts that make sure dynamic linking
+works before installation.  If you want to run valgrind on, say, a
+dynamically linked nanotrav, specify the option --trace-children=yes.
+
+PLATFORMS
+
+This kit has been successfully built on the following configurations:
+
+    PC (x86 and x86_64) running Ubuntu with gcc and clang
+    PC (x86 and x86_64) running Ubuntu with g++
+    PC (x86 and x86_64) running Linux RedHat with gcc
+    PC (x86 and x86_64) running Linux RedHat with g++
+    PC (x86_64) running 32-bit Cygwin on Windows 7 and Vista with gcc
+    PC (x86_64) running 32-bit Cygwin on Windows 7 and Vista with g++
+    PC (x86_64) running 64-bit Cygwin on Windows 8.1 with gcc and g++
+    PC (x86_64) running MinGW-w64 on Windows 8.1 with gcc
+
+In all these cases, the C++ wrapper was compiled with the matching C++
+compiler (g++ for gcc and clang++ for clang).  To compile under MSYS2
+(MinGW-w64) one has to pass --build=x86_64-w64-mingw32 to ./configure.
+
+SANITY CHECK
+
+The directory `nanotrav' contains a simple application based on the
+CUDD package.  The `nanotrav' directory contains a man page that
+describes the options nanotrav supports.  The files *.blif are sample
+input files for nanotrav.  The *.out files are the reference output
+files.
+
+DOCUMENTATION
+
+If doxygen is installed, running "make" puts HTML documentation for
+the CUDD package in directory cudd-3.0.0/cudd/html. The recommended
+starting point is index.html.  The user's manual in PDF format is
+built in cudd-3.0.0/doc if pdflatex and makeindex are installed.
+Documentation for the dddmp library is in the dddmp/doc subdirectory.
+
+FEEDBACK:
+
+Send feedback to:
+
+Fabio Somenzi
+University of Colorado at Boulder
+ECE Dept.
+Boulder, CO 80309-0425
+Fabio@Colorado.EDU
+http://vlsi.colorado.edu/~fabio

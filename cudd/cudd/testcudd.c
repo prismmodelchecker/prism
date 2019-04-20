@@ -1,22 +1,20 @@
-/**CFile***********************************************************************
+/**
+  @file 
 
-  FileName    [testcudd.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Sanity check tests for some CUDD functions.
 
-  Synopsis    [Sanity check tests for some CUDD functions.]
-
-  Description [testcudd reads a matrix with real coefficients and
-  transforms it into an ADD. It then performs various operations on
-  the ADD and on the BDD corresponding to the ADD pattern. Finally,
+  @details testcudd reads a matrix with real coefficients and
+  transforms it into an %ADD. It then performs various operations on
+  the %ADD and on the %BDD corresponding to the ADD pattern. Finally,
   testcudd tests functions relate to Walsh matrices and matrix
-  multiplication.]
+  multiplication.
 
-  SeeAlso     []
+  @author Fabio Somenzi
 
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -46,9 +44,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -64,13 +63,9 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: testcudd.c,v 1.23 2012/02/05 05:30:29 fabio Exp $";
-#endif
-
 static const char *onames[] = { "C", "M" }; /* names of functions to be dumped */
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -84,20 +79,16 @@ static int testHamming (DdManager *dd, DdNode *f, int pr);
 static int testWalsh (DdManager *dd, int N, int cmu, int approach, int pr);
 static int testSupport(DdManager *dd, DdNode *f, DdNode *g, int pr);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
-/**Function********************************************************************
 
-  Synopsis    [Main function for testcudd.]
+/**
+  @brief Main function for testcudd.
 
-  Description []
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 main(int argc, char * const *argv)
 {
@@ -138,21 +129,21 @@ main(int argc, char * const *argv)
     int    harwell;
     int    multiple;		/* read multiple matrices */
     int    ok;
-    int    c;			/* variable to read in options */
     int    approach;		/* reordering approach */
     int    autodyn;		/* automatic reordering */
     int    groupcheck;		/* option for group sifting */
-    int    profile;		/* print heap profile if != 0 */
+    int    profile;		/* print heap and cache profile if != 0 */
     int    keepperm;		/* keep track of permutation */
     int    clearcache;		/* clear the cache after each matrix */
     int    blifOrDot;		/* dump format: 0 -> dot, 1 -> blif, ... */
     int    retval;		/* return value */
     int    i;			/* loop index */
     unsigned long startTime;	/* initial time */
-    unsigned long   lapTime;
+    unsigned long lapTime = 0;
     int    size;
     unsigned int cacheSize, maxMemory;
     unsigned int nvars,nslots;
+    int optidx;
 
     startTime = util_cpu_time();
 
@@ -166,7 +157,7 @@ main(int argc, char * const *argv)
     cmu = 0;
     N = 4;
     nvars = 4;
-    cacheSize = 127;
+    cacheSize = 2048;
     maxMemory = 0;
     nslots = CUDD_UNIQUE_SLOTS;
     clearcache = 0;
@@ -175,79 +166,84 @@ main(int argc, char * const *argv)
     blifOrDot = 0; /* dot format */
 
     /* Parse command line. */
-    while ((c = getopt(argc, argv, "CDHMPS:a:bcd:g:hkmn:p:v:x:X:"))
-	   != EOF) {
-	switch(c) {
-	case 'C':
-	    cmu = 1;
-	    break;
-	case 'D':
-	    autodyn = 1;
-	    break;
-	case 'H':
-	    harwell = 1;
-	    break;
-	case 'M':
-#ifdef MNEMOSYNE
-	    (void) mnem_setrecording(0);
-#endif
-	    break;
-	case 'P':
-	    profile = 1;
-	    break;
-	case 'S':
-	    nslots = atoi(optarg);
-	    break;
-	case 'X':
-	    maxMemory = atoi(optarg);
-	    break;
-	case 'a':
-	    approach = atoi(optarg);
-	    break;
-	case 'b':
-	    blifOrDot = 1; /* blif format */
-	    break;
-	case 'c':
-	    clearcache = 1;
-	    break;
-	case 'd':
-	    dfile = optarg;
-	    break;
-	case 'g':
-	    groupcheck = atoi(optarg);
-	    break;
-	case 'k':
-	    keepperm = 1;
-	    break;
-	case 'm':
-	    multiple = 1;
-	    break;
-	case 'n':
-	    N = atoi(optarg);
-	    break;
-	case 'p':
-	    pr = atoi(optarg);
-	    break;
-	case 'v':
-	    nvars = atoi(optarg);
-	    break;
-	case 'x':
-	    cacheSize = atoi(optarg);
-	    break;
-	case 'h':
-	default:
-	    usage(argv[0]);
-	    break;
-	}
+    for (optidx = 1; optidx < argc; optidx++) {
+        if (argv[optidx][0] == '-') {
+            switch(argv[optidx][1]) {
+            case 'C':
+                cmu = 1;
+                break;
+            case 'D':
+                autodyn = 1;
+                break;
+            case 'H':
+                harwell = 1;
+                break;
+            case 'M':
+                /* NOOP: retained for backward compatibility. */
+                break;
+            case 'P':
+                profile = 1;
+                break;
+            case 'S':
+                if (++optidx == argc) usage(argv[0]);
+                nslots = atoi(argv[optidx]);
+                break;
+            case 'X':
+                if (++optidx == argc) usage(argv[0]);
+                maxMemory = atoi(argv[optidx]);
+                break;
+            case 'a':
+                if (++optidx == argc) usage(argv[0]);
+                approach = atoi(argv[optidx]);
+                break;
+            case 'b':
+                blifOrDot = 1; /* blif format */
+                break;
+            case 'c':
+                clearcache = 1;
+                break;
+            case 'd':
+                if (++optidx == argc) usage(argv[0]);
+                dfile = argv[optidx];
+                break;
+            case 'g':
+                if (++optidx == argc) usage(argv[0]);
+                groupcheck = atoi(argv[optidx]);
+                break;
+            case 'k':
+                keepperm = 1;
+                break;
+            case 'm':
+                multiple = 1;
+                break;
+            case 'n':
+                if (++optidx == argc) usage(argv[0]);
+                N = atoi(argv[optidx]);
+                break;
+            case 'p':
+                if (++optidx == argc) usage(argv[0]);
+                pr = atoi(argv[optidx]);
+                break;
+            case 'v':
+                if (++optidx == argc) usage(argv[0]);
+                nvars = atoi(argv[optidx]);
+                break;
+            case 'x':
+                if (++optidx == argc) usage(argv[0]);
+                cacheSize = atoi(argv[optidx]);
+                break;
+            case 'h':
+            default:
+                usage(argv[0]);
+                break;
+            }
+        } else if (argc - optidx == 1) {
+            file = argv[optidx];
+        } else {
+            usage(argv[0]);
+        }
     }
 
-    if (argc - optind == 0) {
-	file = (char *) "-";
-    } else if (argc - optind == 1) {
-	file = argv[optind];
-    } else {
-	usage(argv[0]);
-    }
     if ((approach<0) || (approach>17)) {
 	(void) fprintf(stderr,"Invalid approach: %d \n",approach);
 	usage(argv[0]);
@@ -296,7 +292,7 @@ main(int argc, char * const *argv)
 	}
 	if (!ok) {
 	    (void) fprintf(stderr, "Error reading matrix\n");
-	    exit(1);
+	    return(1);
 	}
 
 	if (nx > maxnx) maxnx = nx;
@@ -308,19 +304,19 @@ main(int argc, char * const *argv)
 	for (i = maxny - 1; i >= 0; i--) {
 	    DdNode *tmpp;
 	    tmpp = Cudd_bddAnd(dd,Cudd_Not(dd->vars[y[i]->index]),ycube);
-	    if (tmpp == NULL) exit(2);
+	    if (tmpp == NULL) return(2);
 	    Cudd_Ref(tmpp);
 	    Cudd_RecursiveDeref(dd,ycube);
 	    ycube = tmpp;
 	}
 	/* Initialize vectors of BDD variables used by priority func. */
 	xvars = ALLOC(DdNode *, nx);
-	if (xvars == NULL) exit(2);
+	if (xvars == NULL) return(2);
 	for (i = 0; i < nx; i++) {
 	    xvars[i] = dd->vars[x[i]->index];
 	}
 	yvars = ALLOC(DdNode *, ny);
-	if (yvars == NULL) exit(2);
+	if (yvars == NULL) return(2);
 	for (i = 0; i < ny; i++) {
 	    yvars[i] = dd->vars[y[i]->index];
 	}
@@ -345,28 +341,28 @@ main(int argc, char * const *argv)
 		    util_print_time(util_cpu_time() - lapTime));
 
 	C = Cudd_addBddPattern(dd, M);
-	if (C == 0) exit(2);
+	if (C == 0) return(2);
 	Cudd_Ref(C);
 	if (pr>0) {(void) printf(":3: C"); Cudd_PrintDebug(dd,C,nx+ny,pr);}
 
 	/* Test iterators. */
 	retval = testIterators(dd,M,C,pr);
-	if (retval == 0) exit(2);
+	if (retval == 0) return(2);
 
-        if (pr > 0)
+        if (profile != 0 && pr > 0)
             cuddCacheProfile(dd,stdout);
 
 	/* Test XOR */
 	retval = testXor(dd,C,pr,nx+ny);
-	if (retval == 0) exit(2);
+	if (retval == 0) return(2);
 
 	/* Test Hamming distance functions. */
 	retval = testHamming(dd,C,pr);
-	if (retval == 0) exit(2);
+	if (retval == 0) return(2);
 
 	/* Test selection functions. */
 	CP = Cudd_CProjection(dd,C,ycube);
-	if (CP == NULL) exit(2);
+	if (CP == NULL) return(2);
 	Cudd_Ref(CP);
 	if (pr>0) {(void) printf("ycube"); Cudd_PrintDebug(dd,ycube,nx+ny,pr);}
 	if (pr>0) {(void) printf("CP"); Cudd_PrintDebug(dd,CP,nx+ny,pr);}
@@ -374,7 +370,7 @@ main(int argc, char * const *argv)
 	if (nx == ny) {
 	    CPr = Cudd_PrioritySelect(dd,C,xvars,yvars,(DdNode **)NULL,
 		(DdNode *)NULL,ny,Cudd_Xgty);
-	    if (CPr == NULL) exit(2);
+	    if (CPr == NULL) return(2);
 	    Cudd_Ref(CPr);
 	    if (pr>0) {(void) printf(":4: CPr"); Cudd_PrintDebug(dd,CPr,nx+ny,pr);}
 	    if (CP != CPr) {
@@ -390,7 +386,7 @@ main(int argc, char * const *argv)
 	    DdGen *gen;
 	    int *cube;
 	    DdNode *f = Cudd_Inequality(dd,Nmin,2,xvars,yvars);
-	    if (f == NULL) exit(2);
+	    if (f == NULL) return(2);
 	    Cudd_Ref(f);
 	    if (pr>0) {
 		(void) printf(":4: ineq");
@@ -425,21 +421,21 @@ main(int argc, char * const *argv)
 
 	/* Test functions for essential variables. */
 	ess = Cudd_FindEssential(dd,C);
-	if (ess == NULL) exit(2);
+	if (ess == NULL) return(2);
 	Cudd_Ref(ess);
 	if (pr>0) {(void) printf(":4: ess"); Cudd_PrintDebug(dd,ess,nx+ny,pr);}
 	Cudd_RecursiveDeref(dd, ess);
 
 	/* Test functions for shortest paths. */
 	shortP = Cudd_ShortestPath(dd, M, NULL, NULL, &length);
-	if (shortP == NULL) exit(2);
+	if (shortP == NULL) return(2);
 	Cudd_Ref(shortP);
 	if (pr>0) {
 	    (void) printf(":5: shortP"); Cudd_PrintDebug(dd,shortP,nx+ny,pr);
 	}
 	/* Test functions for largest cubes. */
 	largest = Cudd_LargestCube(dd, Cudd_Not(C), &length);
-	if (largest == NULL) exit(2);
+	if (largest == NULL) return(2);
 	Cudd_Ref(largest);
 	if (pr>0) {
 	    (void) printf(":5b: largest");
@@ -449,35 +445,39 @@ main(int argc, char * const *argv)
 
 	/* Test Cudd_addEvalConst and Cudd_addIteConstant. */
 	shortA = Cudd_BddToAdd(dd,shortP);
-	if (shortA == NULL) exit(2);
+	if (shortA == NULL) return(2);
 	Cudd_Ref(shortA);
 	Cudd_RecursiveDeref(dd, shortP);
 	constN = Cudd_addEvalConst(dd,shortA,M);
-	if (constN == DD_NON_CONSTANT) exit(2);
-	if (Cudd_addIteConstant(dd,shortA,M,constN) != constN) exit(2);
+	if (constN == DD_NON_CONSTANT) return(2);
+	if (Cudd_addIteConstant(dd,shortA,M,constN) != constN) return(2);
 	if (pr>0) {(void) printf("The value of M along the chosen shortest path is %g\n", cuddV(constN));}
 	Cudd_RecursiveDeref(dd, shortA);
 
 	shortP = Cudd_ShortestPath(dd, C, NULL, NULL, &length);
-	if (shortP == NULL) exit(2);
+	if (shortP == NULL) return(2);
 	Cudd_Ref(shortP);
 	if (pr>0) {
 	    (void) printf(":6: shortP"); Cudd_PrintDebug(dd,shortP,nx+ny,pr);
 	}
 
 	/* Test Cudd_bddIteConstant and Cudd_bddLeq. */
-	if (!Cudd_bddLeq(dd,shortP,C)) exit(2);
-	if (Cudd_bddIteConstant(dd,Cudd_Not(shortP),one,C) != one) exit(2);
+	if (!Cudd_bddLeq(dd,shortP,C)) return(2);
+	if (Cudd_bddIteConstant(dd,Cudd_Not(shortP),one,C) != one) return(2);
 	Cudd_RecursiveDeref(dd, shortP);
 
         /* Experiment with support functions. */
         if (!testSupport(dd,M,ycube,pr)) {
-            exit(2);
+            return(2);
         }
 	Cudd_RecursiveDeref(dd, ycube);
 
 	if (profile) {
 	    retval = cuddHeapProfile(dd);
+            if (retval == 0) {
+                (void) fprintf(stderr,"Error reported by cuddHeapProfile\n");
+                return(2);
+            }
 	}
 
 	size = dd->size;
@@ -492,43 +492,43 @@ main(int argc, char * const *argv)
 	    retval = Cudd_EnableReorderingReporting(dd);
 	    if (retval == 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_EnableReorderingReporting\n");
-		exit(3);
+		return(3);
 	    }
 #endif
 #ifdef DD_DEBUG
 	    retval = Cudd_DebugCheck(dd);
 	    if (retval != 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_DebugCheck\n");
-		exit(3);
+		return(3);
 	    }
 	    retval = Cudd_CheckKeys(dd);
 	    if (retval != 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_CheckKeys\n");
-		exit(3);
+		return(3);
 	    }
 #endif
 	    retval = Cudd_ReduceHeap(dd,(Cudd_ReorderingType)approach,5);
 	    if (retval == 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_ReduceHeap\n");
-		exit(3);
+		return(3);
 	    }
 #ifndef DD_STATS
 	    retval = Cudd_DisableReorderingReporting(dd);
 	    if (retval == 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_DisableReorderingReporting\n");
-		exit(3);
+		return(3);
 	    }
 #endif
 #ifdef DD_DEBUG
 	    retval = Cudd_DebugCheck(dd);
 	    if (retval != 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_DebugCheck\n");
-		exit(3);
+		return(3);
 	    }
 	    retval = Cudd_CheckKeys(dd);
 	    if (retval != 0) {
 		(void) fprintf(stderr,"Error reported by Cudd_CheckKeys\n");
-		exit(3);
+		return(3);
 	    }
 #endif
 	    if (approach == CUDD_REORDER_SYMM_SIFT ||
@@ -560,6 +560,10 @@ main(int argc, char * const *argv)
 
 	    if (profile) {
 		retval = cuddHeapProfile(dd);
+                if (retval == 0) {
+                    (void) fprintf(stderr,"Error reported by cuddHeapProfile\n");
+                    return(2);
+                }
 	    }
 
 	}
@@ -570,14 +574,15 @@ main(int argc, char * const *argv)
 	    dfunc[1] = M;
 	    if (blifOrDot == 1) {
 		/* Only dump C because blif cannot handle ADDs */
-		retval = Cudd_DumpBlif(dd,1,dfunc,NULL,(char **)onames,
-				       NULL,dfp,0);
+		retval = Cudd_DumpBlif(dd,1,dfunc,NULL,
+                                       (char const * const *)onames,NULL,dfp,0);
 	    } else {
-		retval = Cudd_DumpDot(dd,2,dfunc,NULL,(char **)onames,dfp);
+		retval = Cudd_DumpDot(dd,2,dfunc,NULL,
+                                      (char const * const *)onames,dfp);
 	    }
 	    if (retval != 1) {
 		(void) fprintf(stderr,"abnormal termination\n");
-		exit(2);
+		return(2);
 	    }
 	}
 
@@ -607,7 +612,7 @@ main(int argc, char * const *argv)
 
     /* Second phase: experiment with Walsh matrices. */
     if (!testWalsh(dd,N,cmu,approach,pr)) {
-	exit(2);
+	return(2);
     }
 
     /* Check variable destruction. */
@@ -619,6 +624,7 @@ main(int argc, char * const *argv)
     assert(Cudd_DebugCheck(dd) == 0);
     assert(Cudd_CheckKeys(dd) == 0);
     if (pr == 0) {
+        fclose(Cudd_ReadStdout(dd));
         Cudd_SetStdout(dd,savefp);
     }
 
@@ -635,16 +641,11 @@ main(int argc, char * const *argv)
 
     Cudd_Quit(dd);
 
-#ifdef MNEMOSYNE
-    mnem_writestats();
-#endif
-
     if (pr>0) (void) printf("total time = %s\n",
 		util_print_time(util_cpu_time() - startTime));
 
     if (pr > 0) util_print_cpu_stats(stdout);
     return ok;
-    /* NOTREACHED */
 
 } /* end of main */
 
@@ -654,17 +655,12 @@ main(int argc, char * const *argv)
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints usage info for testcudd.
 
-  Synopsis    [Prints usage info for testcudd.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 usage(char *prog)
 {
@@ -672,8 +668,7 @@ usage(char *prog)
     (void) fprintf(stderr, "   -C\t\tuse CMU multiplication algorithm\n");
     (void) fprintf(stderr, "   -D\t\tenable automatic dynamic reordering\n");
     (void) fprintf(stderr, "   -H\t\tread matrix in Harwell format\n");
-    (void) fprintf(stderr, "   -M\t\tturns off memory allocation recording\n");
-    (void) fprintf(stderr, "   -P\t\tprint BDD heap profile\n");
+    (void) fprintf(stderr, "   -P\t\tprint BDD heap and cache profile\n");
     (void) fprintf(stderr, "   -S n\t\tnumber of slots for each subtable\n");
     (void) fprintf(stderr, "   -X n\t\ttarget maximum memory in bytes\n");
     (void) fprintf(stderr, "   -a n\t\tchoose reordering approach (0-13)\n");
@@ -706,18 +701,15 @@ usage(char *prog)
 } /* end of usage */
 
 
-/**Function********************************************************************
+/**
+  @brief Opens a file.
 
-  Synopsis    [Opens a file.]
+  @details Opens a file, or fails with an error message and exits.
+  Allows '-' as a synonym for standard input.
 
-  Description [Opens a file, or fails with an error message and exits.
-  Allows '-' as a synonym for standard input.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static FILE *
 open_file(char *filename, const char *mode)
 {
@@ -734,18 +726,14 @@ open_file(char *filename, const char *mode)
 } /* end of open_file */
 
 
-/**Function********************************************************************
+/**
+  @brief Tests Walsh matrix multiplication.
 
-  Synopsis    [Tests Walsh matrix multiplication.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Tests Walsh matrix multiplication.  Return 1 if successful;
-  0 otherwise.]
+  @sideeffect May create new variables in the manager.
 
-  SideEffects [May create new variables in the manager.]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 testWalsh(
   DdManager *dd /* manager */,
@@ -822,17 +810,12 @@ testWalsh(
 
 } /* end of testWalsh */
 
-/**Function********************************************************************
+/**
+  @brief Tests iterators on cubes and nodes.
 
-  Synopsis    [Tests iterators.]
+  @sideeffect None
 
-  Description [Tests iterators on cubes and nodes.]
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 testIterators(
   DdManager *dd,
@@ -919,20 +902,17 @@ testIterators(
 } /* end of testIterators */
 
 
-/**Function********************************************************************
+/**
+  @brief Tests the functions related to the exclusive OR.
 
-  Synopsis    [Tests the functions related to the exclusive OR.]
+  @details Builds the boolean difference of the given function in
+  three different ways and checks that the results is the same.
 
-  Description [Tests the functions related to the exclusive OR. It
-  builds the boolean difference of the given function in three
-  different ways and checks that the results is the same. Returns 1 if
-  successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 testXor(DdManager *dd, DdNode *f, int pr, int nvars)
 {
@@ -998,18 +978,14 @@ testXor(DdManager *dd, DdNode *f, int pr, int nvars)
 } /* end of testXor */
 
 
-/**Function********************************************************************
+/**
+  @brief Tests the Hamming distance functions.
 
-  Synopsis    [Tests the Hamming distance functions.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Tests the Hammming distance functions. Returns
-  1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 testHamming(
   DdManager *dd,
@@ -1073,18 +1049,14 @@ testHamming(
 } /* end of testHamming */
 
 
-/**Function********************************************************************
+/**
+  @brief Tests the support functions.
 
-  Synopsis    [Tests the support functions.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Tests the support functions. Returns
-  1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 testSupport(
   DdManager *dd,

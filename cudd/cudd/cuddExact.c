@@ -1,39 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddExact.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for exact variable reordering.
 
-  Synopsis    [Functions for exact variable reordering.]
+  @author Cheng Hua, Fabio Somenzi
 
-  Description [External procedures included in this file:
-		<ul>
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddExact()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> getMaxBinomial()
-		<li> gcd()
-		<li> getMatrix()
-		<li> freeMatrix()
-		<li> getLevelKeys()
-		<li> ddShuffle()
-		<li> ddSiftUp()
-		<li> updateUB()
-		<li> ddCountRoots()
-		<li> ddClearGlobal()
-		<li> computeLB()
-		<li> updateEntry()
-		<li> pushDown()
-		<li> initSymmInfo()
-		</ul>]
-
-  Author      [Cheng Hua, Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -63,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -73,7 +49,6 @@
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
@@ -87,19 +62,11 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddExact.c,v 1.30 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
-#ifdef DD_STATS
-static int ddTotalShuffles;
-#endif
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -120,7 +87,7 @@ static void pushDown (DdHalfWord *order, int j, int level);
 static DdHalfWord * initSymmInfo (DdManager *table, int lower, int upper);
 static int checkSymmInfo (DdManager *table, DdHalfWord *symmInfo, int index, int level);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -132,19 +99,17 @@ static int checkSymmInfo (DdManager *table, DdHalfWord *symmInfo, int index, int
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Exact variable ordering algorithm.
 
-  Synopsis    [Exact variable ordering algorithm.]
+  @details Finds an optimum order for the variables between lower and
+  upper.
 
-  Description [Exact variable ordering algorithm. Finds an optimum
-  order for the variables between lower and upper.  Returns 1 if
-  successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 int
 cuddExact(
   DdManager * table,
@@ -191,7 +156,7 @@ cuddExact(
 
 #ifdef DD_STATS
     (void) fprintf(table->out,"\n");
-    ddTotalShuffles = 0;
+    table->totalShuffles = 0;
     ddTotalSubsets = 0;
 #endif
 
@@ -243,12 +208,12 @@ cuddExact(
     for (i = 0; i < size; i++) {
 	oldOrder[0][i] = bestOrder[i] = (DdHalfWord) table->invperm[i+lower];
     }
-    subsetCost = table->constants.keys;
+    subsetCost = (int) table->constants.keys;
     for (i = upper + 1; i < nvars; i++)
 	subsetCost += getLevelKeys(table,i);
     oldCost[0] = subsetCost;
     /* The upper bound is initialized to the current size of the BDDs. */
-    upperBound = table->keys - table->isolated;
+    upperBound = (int) (table->keys - table->isolated);
 
     /* Now consider subsets of increasing size. */
     for (k = 1; k <= size; k++) {
@@ -282,7 +247,7 @@ cuddExact(
 					 lower, upper);
 		if (j == 0)
 		    break;
-		if (checkSymmInfo(table, symmInfo, order[j-1], level) == 0)
+		if (checkSymmInfo(table, symmInfo, (int) order[j-1], level) == 0)
 		    continue;
 		pushDown(order,j-1,level);
 		/* Impose new order. */
@@ -310,7 +275,7 @@ cuddExact(
     (void) fprintf(table->out,"#:S_EXACT   %8d: total subsets\n",
 		   ddTotalSubsets);
     (void) fprintf(table->out,"#:H_EXACT   %8d: total shuffles",
-		   ddTotalShuffles);
+		   table->totalShuffles);
 #endif
 
     freeMatrix(newOrder);
@@ -337,24 +302,21 @@ cuddExactOutOfMem:
 } /* end of cuddExact */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the maximum value of `(n choose k)` for a given `n`.
 
-  Synopsis    [Returns the maximum value of (n choose k) for a given n.]
-
-  Description [Computes the maximum value of (n choose k) for a given
-  n.  The maximum value occurs for k = n/2 when n is even, or k =
-  (n-1)/2 when n is odd.  The algorithm used in this procedure avoids
+  @details Computes the maximum value of `(n choose k)` for a given
+  `n`.  The maximum value occurs for `k = n/2` when `n` is even, or `k =
+  (n-1)/2` when `n` is odd.  The algorithm used in this procedure avoids
   intermediate overflow problems.  It is based on the identity
-  <pre>
-    binomial(n,k) = n/k * binomial(n-1,k-1).
-  </pre>
-  Returns the computed value if successful; -1 if out of range.]
 
-  SideEffects [None]
+      binomial(n,k) = n/k * binomial(n-1,k-1).
 
-  SeeAlso     []
+  @return the computed value if successful; -1 if out of range.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 getMaxBinomial(
   int n)
@@ -375,18 +337,15 @@ getMaxBinomial(
 
 
 #if 0
-/**Function********************************************************************
+/**
+  @brief Returns the gcd of two integers.
 
-  Synopsis    [Returns the gcd of two integers.]
+  @details Uses the binary GCD algorithm described in Cormen,
+  Leiserson, and Rivest.
 
-  Description [Returns the gcd of two integers. Uses the binary GCD
-  algorithm described in Cormen, Leiserson, and Rivest.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 gcd(
   int  x,
@@ -431,18 +390,16 @@ gcd(
 #endif
 
 
-/**Function********************************************************************
+/**
+  @brief Allocates a two-dimensional matrix of ints.
 
-  Synopsis    [Allocates a two-dimensional matrix of ints.]
+  @return the pointer to the matrix if successful; NULL otherwise.
 
-  Description [Allocates a two-dimensional matrix of ints.
-  Returns the pointer to the matrix if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see freeMatrix
 
-  SeeAlso     [freeMatrix]
-
-******************************************************************************/
+*/
 static DdHalfWord **
 getMatrix(
   int  rows /* number of rows */,
@@ -467,17 +424,14 @@ getMatrix(
 } /* end of getMatrix */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees a two-dimensional matrix allocated by getMatrix.
 
-  Synopsis    [Frees a two-dimensional matrix allocated by getMatrix.]
+  @sideeffect None
 
-  Description []
+  @see getMatrix
 
-  SideEffects [None]
-
-  SeeAlso     [getMatrix]
-
-******************************************************************************/
+*/
 static void
 freeMatrix(
   DdHalfWord ** matrix)
@@ -489,18 +443,14 @@ freeMatrix(
 } /* end of freeMatrix */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of nodes at one level of a unique table.
 
-  Synopsis    [Returns the number of nodes at one level of a unique table.]
+  @details The projection function, if isolated, is not counted.
 
-  Description [Returns the number of nodes at one level of a unique table.
-  The projection function, if isolated, is not counted.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso []
-
-******************************************************************************/
+*/
 static int
 getLevelKeys(
   DdManager * table,
@@ -512,27 +462,25 @@ getLevelKeys(
     x = table->invperm[l];
     isolated = table->vars[x]->ref == 1;
 
-    return(table->subtables[l].keys - isolated);
+    return((int) table->subtables[l].keys - isolated);
 
 } /* end of getLevelKeys */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders variables according to a given permutation.
 
-  Synopsis    [Reorders variables according to a given permutation.]
+  @details The i-th permutation array contains the index of the
+  variable that should be brought to the i-th level. ddShuffle assumes
+  that no dead nodes are present and that the interaction matrix is
+  properly initialized.  The reordering is achieved by a series of
+  upward sifts.
 
-  Description [Reorders variables according to a given permutation.
-  The i-th permutation array contains the index of the variable that
-  should be brought to the i-th level. ddShuffle assumes that no
-  dead nodes are present and that the interaction matrix is properly
-  initialized.  The reordering is achieved by a series of upward sifts.
-  Returns 1 if successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso []
-
-******************************************************************************/
+*/
 static int
 ddShuffle(
   DdManager * table,
@@ -547,24 +495,19 @@ ddShuffle(
     int		numvars;
 #endif
     int		result;
-#ifdef DD_STATS
-    unsigned long localTime;
+#if defined(DD_STATS) && defined(DD_VERBOSE)
     int		initialSize;
-#ifdef DD_VERBOSE
     int		finalSize;
 #endif
-    int		previousSize;
-#endif
 
-#ifdef DD_STATS
-    localTime = util_cpu_time();
-    initialSize = table->keys - table->isolated;
+#if defined(DD_STATS) && defined(DD_VERBOSE)
+    initialSize = (int) (table->keys - table->isolated);
 #endif
 
 #if 0
     numvars = table->size;
 
-    (void) fprintf(table->out,"%d:", ddTotalShuffles);
+    (void) fprintf(table->out,"%d:", table->totalShuffles);
     for (level = 0; level < numvars; level++) {
 	(void) fprintf(table->out," %d", table->invperm[level]);
     }
@@ -574,17 +517,14 @@ ddShuffle(
     for (level = 0; level <= upper - lower; level++) {
 	index = permutation[level];
 	position = table->perm[index];
-#ifdef DD_STATS
-	previousSize = table->keys - table->isolated;
-#endif
 	result = ddSiftUp(table,position,level+lower);
 	if (!result) return(0);
     }
 
 #ifdef DD_STATS
-    ddTotalShuffles++;
+    table->totalShuffles++;
 #ifdef DD_VERBOSE
-    finalSize = table->keys - table->isolated;
+    finalSize = (int) (table->keys - table->isolated);
     if (finalSize < initialSize) {
 	(void) fprintf(table->out,"-");
     } else if (finalSize > initialSize) {
@@ -592,7 +532,7 @@ ddShuffle(
     } else {
 	(void) fprintf(table->out,"=");
     }
-    if ((ddTotalShuffles & 63) == 0) (void) fprintf(table->out,"\n");
+    if ((table->totalShuffles & 63) == 0) (void) fprintf(table->out,"\n");
     fflush(table->out);
 #endif
 #endif
@@ -602,19 +542,17 @@ ddShuffle(
 } /* end of ddShuffle */
 
 
-/**Function********************************************************************
+/**
+  @brief Moves one variable up.
 
-  Synopsis    [Moves one variable up.]
-
-  Description [Takes a variable from position x and sifts it up to
+  @details Takes a variable from position x and sifts it up to
   position xLow;  xLow should be less than or equal to x.
-  Returns 1 if successful; 0 otherwise]
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddSiftUp(
   DdManager * table,
@@ -638,18 +576,14 @@ ddSiftUp(
 } /* end of ddSiftUp */
 
 
-/**Function********************************************************************
+/**
+  @brief Updates the upper bound and saves the best order seen so far.
 
-  Synopsis    [Updates the upper bound and saves the best order seen so far.]
+  @return the current value of the upper bound.
 
-  Description [Updates the upper bound and saves the best order seen so far.
-  Returns the current value of the upper bound.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 updateUB(
   DdManager * table,
@@ -659,7 +593,7 @@ updateUB(
   int  upper)
 {
     int i;
-    int newBound = table->keys - table->isolated;
+    int newBound = (int) (table->keys - table->isolated);
 
     if (newBound < oldBound) {
 #ifdef DD_STATS
@@ -676,22 +610,23 @@ updateUB(
 } /* end of updateUB */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the number of roots.
 
-  Synopsis    [Counts the number of roots.]
+  @details Counts the number of roots at the levels between lower and
+  upper.  The computation is based on breadth-first search.  A node is
+  a root if it is not reachable from any previously visited node.
+  (All the nodes at level lower are therefore considered roots.)  The
+  roots that are constant nodes are always ignored.  The visited flag
+  uses the LSB of the next pointer.
 
-  Description [Counts the number of roots at the levels between lower and
-  upper.  The computation is based on breadth-first search.
-  A node is a root if it is not reachable from any previously visited node.
-  (All the nodes at level lower are therefore considered roots.)
-  The visited flag uses the LSB of the next pointer.  Returns the root
-  count. The roots that are constant nodes are always ignored.]
+  @return the root count.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [ddClearGlobal]
+  @see ddClearGlobal
 
-******************************************************************************/
+*/
 static int
 ddCountRoots(
   DdManager * table,
@@ -708,7 +643,7 @@ ddCountRoots(
 
     for (i = lower; i <= upper; i++) {
 	nodelist = table->subtables[i].nodelist;
-	slots = table->subtables[i].slots;
+	slots = (int) table->subtables[i].slots;
 	for (j = 0; j < slots; j++) {
 	    f = nodelist[j];
 	    while (f != sentinel) {
@@ -723,12 +658,12 @@ ddCountRoots(
 			roots++;
 		    }
 		}
-		if (!Cudd_IsConstant(cuddT(f))) {
+		if (!cuddIsConstant(cuddT(f))) {
 		    cuddT(f)->next = Cudd_Complement(cuddT(f)->next);
 		    if (table->perm[cuddT(f)->index] > maxlevel)
 			maxlevel = table->perm[cuddT(f)->index];
 		}
-		if (!Cudd_IsConstant(cuddE(f))) {
+		if (!Cudd_IsConstantInt(cuddE(f))) {
 		    Cudd_Regular(cuddE(f))->next =
 			Cudd_Complement(Cudd_Regular(cuddE(f))->next);
 		    if (table->perm[Cudd_Regular(cuddE(f))->index] > maxlevel)
@@ -745,20 +680,18 @@ ddCountRoots(
 } /* end of ddCountRoots */
 
 
-/**Function********************************************************************
+/**
+  @brief Scans the %DD and clears the LSB of the next pointers.
 
-  Synopsis    [Scans the DD and clears the LSB of the next pointers.]
+  @details The LSB of the next pointers are used as markers to tell
+  whether a node was reached. Once the roots are counted, these flags
+  are reset.
 
-  Description [Scans the DD and clears the LSB of the next pointers.
-  The LSB of the next pointers are used as markers to tell whether a
-  node was reached. Once the roots are counted, these flags are
-  reset.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see ddCountRoots
 
-  SeeAlso     [ddCountRoots]
-
-******************************************************************************/
+*/
 static void
 ddClearGlobal(
   DdManager * table,
@@ -773,7 +706,7 @@ ddClearGlobal(
 
     for (i = lower; i <= maxlevel; i++) {
 	nodelist = table->subtables[i].nodelist;
-	slots = table->subtables[i].slots;
+	slots = (int) table->subtables[i].slots;
 	for (j = 0; j < slots; j++) {
 	    f = nodelist[j];
 	    while (f != sentinel) {
@@ -786,34 +719,30 @@ ddClearGlobal(
 } /* end of ddClearGlobal */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes a lower bound on the size of a %BDD.
 
-  Synopsis    [Computes a lower bound on the size of a BDD.]
-
-  Description [Computes a lower bound on the size of a BDD from the
-  following factors:
+  @details The lower bound depends on the following factors:
   <ul>
   <li> size of the lower part of it;
   <li> size of the part of the upper part not subjected to reordering;
-  <li> number of roots in the part of the BDD subjected to reordering;
+  <li> number of roots in the part of the %BDD subjected to reordering;
   <li> variable in the support of the roots in the upper part of the
-       BDD subjected to reordering.
-  <ul/>]
+       %BDD subjected to reordering.
+  </ul>
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 computeLB(
-  DdManager * table		/* manager */,
-  DdHalfWord * order		/* optimal order for the subset */,
-  int  roots			/* roots between lower and upper */,
-  int  cost			/* minimum cost for the subset */,
-  int  lower			/* lower level to be reordered */,
-  int  upper			/* upper level to be reordered */,
-  int  level			/* offset for the current top bottom var */
+  DdManager * table		/**< manager */,
+  DdHalfWord * order		/**< optimal order for the subset */,
+  int  roots			/**< roots between lower and upper */,
+  int  cost			/**< minimum cost for the subset */,
+  int  lower			/**< lower level to be reordered */,
+  int  upper			/**< upper level to be reordered */,
+  int  level			/**< offset for the current top bottom var */
   )
 {
     int i;
@@ -845,8 +774,8 @@ computeLB(
 	    ref = table->vars[order[level+1]]->ref;
 	else
 	    ref = table->vars[table->invperm[upper+1]]->ref;
-	lb2 = table->subtables[lower+level+1].keys -
-	    (ref > (DdHalfWord) 1) - roots;
+	lb2 = (int) table->subtables[lower+level+1].keys -
+            (ref > (DdHalfWord) 1) - roots;
     } else {
 	lb2 = 0;
     }
@@ -858,20 +787,18 @@ computeLB(
 } /* end of computeLB */
 
 
-/**Function********************************************************************
+/**
+  @brief Updates entry for a subset.
 
-  Synopsis    [Updates entry for a subset.]
+  @details Finds the subset, if it exists.  If the new order for the
+  subset has lower cost, or if the subset did not exist, it stores the
+  new order and cost.
 
-  Description [Updates entry for a subset. Finds the subset, if it exists.
-  If the new order for the subset has lower cost, or if the subset did not
-  exist, it stores the new order and cost. Returns the number of subsets
-  currently in the table.]
+  @return the number of subsets currently in the table.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 updateEntry(
   DdManager * table,
@@ -915,17 +842,12 @@ updateEntry(
 } /* end of updateEntry */
 
 
-/**Function********************************************************************
+/**
+  @brief Pushes a variable in the order down to position "level."
 
-  Synopsis    [Pushes a variable in the order down to position "level."]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 pushDown(
   DdHalfWord * order,
@@ -945,11 +867,10 @@ pushDown(
 } /* end of pushDown */
 
 
-/**Function********************************************************************
+/**
+  @brief Gathers symmetry information.
 
-  Synopsis    [Gathers symmetry information.]
-
-  Description [Translates the symmetry information stored in the next
+  @details Translates the symmetry information stored in the next
   field of each subtable from level to indices. This procedure is called
   immediately after symmetric sifting, so that the next fields are correct.
   By translating this informaton in terms of indices, we make it independent
@@ -957,13 +878,13 @@ pushDown(
   a circular list where each variable points to the next variable in the
   same symmetry group. Only the entries between lower and upper are
   considered.  The procedure returns a pointer to an array
-  holding the symmetry information if successful; NULL otherwise.]
+  holding the symmetry information if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [checkSymmInfo]
+  @see checkSymmInfo
 
-******************************************************************************/
+*/
 static DdHalfWord *
 initSymmInfo(
   DdManager * table,
@@ -978,28 +899,27 @@ initSymmInfo(
 
     for (level = lower; level <= upper; level++) {
 	index = table->invperm[level];
-	next =  table->subtables[level].next;
+	next =  (int) table->subtables[level].next;
 	nextindex = table->invperm[next];
-	symmInfo[index] = nextindex;
+	symmInfo[index] = (DdHalfWord) nextindex;
     }
     return(symmInfo);
 
 } /* end of initSymmInfo */
 
 
-/**Function********************************************************************
+/**
+  @brief Check symmetry condition.
 
-  Synopsis    [Check symmetry condition.]
-
-  Description [Returns 1 if a variable is the one with the highest index
+  @details Returns 1 if a variable is the one with the highest index
   among those belonging to a symmetry group that are in the top part of
-  the BDD.  The top part is given by level.]
+  the %BDD.  The top part is given by level.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [initSymmInfo]
+  @see initSymmInfo
 
-******************************************************************************/
+*/
 static int
 checkSymmInfo(
   DdManager * table,
@@ -1009,11 +929,11 @@ checkSymmInfo(
 {
     int i;
 
-    i = symmInfo[index];
+    i = (int) symmInfo[index];
     while (i != index) {
 	if (index < i && table->perm[i] <= level)
 	    return(0);
-	i = symmInfo[i];
+	i = (int) symmInfo[i];
     }
     return(1);
 

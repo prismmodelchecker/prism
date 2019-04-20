@@ -1,0 +1,19 @@
+cudd_libcudd_la_SOURCES += mtr/mtr.h mtr/mtrInt.h mtr/mtrBasic.c mtr/mtrGroup.c
+
+check_PROGRAMS += mtr/testmtr
+mtr_testmtr_SOURCES = mtr/testmtr.c
+mtr_testmtr_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+mtr_testmtr_LDADD = cudd/libcudd.la
+
+check_SCRIPTS += mtr/test_mtr.test
+dist_check_DATA += mtr/test.groups mtr/test.out
+EXTRA_DIST += mtr/test_mtr.test.in
+if !CROSS_COMPILING
+TESTS += mtr/test_mtr.test
+endif !CROSS_COMPILING
+
+mtr/test_mtr.test: mtr/test_mtr.test.in Makefile
+	$(do_subst) $< > $@
+	chmod +x $@
+
+CLEANFILES += mtr/test.tst

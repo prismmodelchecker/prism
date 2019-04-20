@@ -1,82 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddUtil.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Utility functions.
 
-  Synopsis    [Utility functions.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_PrintMinterm()
-		<li> Cudd_bddPrintCover()
-		<li> Cudd_PrintDebug()
-		<li> Cudd_DagSize()
-		<li> Cudd_EstimateCofactor()
-		<li> Cudd_EstimateCofactorSimple()
-		<li> Cudd_SharingSize()
-		<li> Cudd_CountMinterm()
-		<li> Cudd_EpdCountMinterm()
-		<li> Cudd_CountPath()
-		<li> Cudd_CountPathsToNonZero()
-                <li> Cudd_SupportIndices()
-		<li> Cudd_Support()
-		<li> Cudd_SupportIndex()
-		<li> Cudd_SupportSize()
-		<li> Cudd_VectorSupportIndices()
-		<li> Cudd_VectorSupport()
-		<li> Cudd_VectorSupportIndex()
-		<li> Cudd_VectorSupportSize()
-		<li> Cudd_ClassifySupport()
-		<li> Cudd_CountLeaves()
-		<li> Cudd_bddPickOneCube()
-		<li> Cudd_bddPickOneMinterm()
-		<li> Cudd_bddPickArbitraryMinterms()
-		<li> Cudd_SubsetWithMaskVars()
-		<li> Cudd_FirstCube()
-		<li> Cudd_NextCube()
-		<li> Cudd_bddComputeCube()
-		<li> Cudd_addComputeCube()
-		<li> Cudd_FirstNode()
-		<li> Cudd_NextNode()
-		<li> Cudd_GenFree()
-		<li> Cudd_IsGenEmpty()
-		<li> Cudd_IndicesToCube()
-		<li> Cudd_PrintVersion()
-		<li> Cudd_AverageDistance()
-		<li> Cudd_Random()
-		<li> Cudd_Srandom()
-		<li> Cudd_Density()
-		</ul>
-	Internal procedures included in this module:
-		<ul>
-		<li> cuddP()
-		<li> cuddStCountfree()
-		<li> cuddCollectNodes()
-		<li> cuddNodeArray()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> dp2()
-		<li> ddPrintMintermAux()
-		<li> ddDagInt()
-		<li> ddCountMintermAux()
-		<li> ddEpdCountMintermAux()
-		<li> ddCountPathAux()
-		<li> ddSupportStep()
-		<li> ddClearFlag()
-		<li> ddLeavesInt()
-		<li> ddPickArbitraryMinterms()
-		<li> ddPickRepresentativeCube()
-		<li> ddEpdFree()
-                <li> ddFindSupport()
-                <li> ddClearVars()
-                <li> indexCompare()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -106,14 +38,16 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
-
-#include "util.h"
-#include "cuddInt.h"
+*/
 
 #include <stddef.h>
+#include <float.h>
+#include "util.h"
+#include "epdInt.h"
+#include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
 /* Constant declarations                                                     */
@@ -128,7 +62,6 @@
 #define LEQA2 40692
 #define LEQQ2 52774
 #define LEQR2 3791
-#define STAB_SIZE 64
 #define STAB_DIV (1 + (MODULUS1 - 1) / STAB_SIZE)
 
 /*---------------------------------------------------------------------------*/
@@ -144,16 +77,6 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddUtil.c,v 1.83 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-static	DdNode	*background, *zero;
-
-static	long cuddRand = 0;
-static	long cuddRand2;
-static	long shuffleSelect;
-static	long shuffleTable[STAB_SIZE];
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
@@ -161,11 +84,7 @@ static	long shuffleTable[STAB_SIZE];
 
 #define bang(f)	((Cudd_IsComplement(f)) ? '!' : ' ')
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -178,8 +97,9 @@ static int cuddNodeArrayRecur (DdNode *f, DdNodePtr *table, int index);
 static int cuddEstimateCofactor (DdManager *dd, st_table *table, DdNode * node, int i, int phase, DdNode ** ptr);
 static DdNode * cuddUniqueLookup (DdManager * unique, int  index, DdNode * T, DdNode * E);
 static int cuddEstimateCofactorSimple (DdNode * node, int i);
-static double ddCountMintermAux (DdNode *node, double max, DdHashTable *table);
-static int ddEpdCountMintermAux (DdNode *node, EpDouble *max, EpDouble *epd, st_table *table);
+static double ddCountMintermAux (DdManager *dd, DdNode *node, double max, DdHashTable *table);
+static int ddEpdCountMintermAux (DdManager const *dd, DdNode *node, EpDouble *max, EpDouble *epd, st_table *table);
+static long double ddLdblCountMintermAux(DdManager const *manager, DdNode *node, long double max, st_table *table);
 static double ddCountPathAux (DdNode *node, st_table *table);
 static double ddCountPathsToNonZero (DdNode * N, st_table * table);
 static void ddSupportStep (DdNode *f, int *support);
@@ -187,37 +107,36 @@ static void ddClearFlag (DdNode *f);
 static int ddLeavesInt (DdNode *n);
 static int ddPickArbitraryMinterms (DdManager *dd, DdNode *node, int nvars, int nminterms, char **string);
 static int ddPickRepresentativeCube (DdManager *dd, DdNode *node, double *weight, char *string);
-static enum st_retval ddEpdFree (char * key, char * value, char * arg);
+static enum st_retval ddEpdFree (void * key, void * value, void * arg);
 static void ddFindSupport(DdManager *dd, DdNode *f, int *SP);
 static void ddClearVars(DdManager *dd, int SP);
 static int indexCompare(const void *a, const void *b);
-
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
+static enum st_retval ddLdblFree(void * key, void * value, void * arg);
+#if HAVE_POWL != 1
+static long double powl(long double base, long double exponent);
 #endif
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a disjoint sum of products.
 
-  Synopsis    [Prints a disjoint sum of products.]
-
-  Description [Prints a disjoint sum of product cover for the function
+  @details Prints a disjoint sum of product cover for the function
   rooted at node. Each product corresponds to a path from node to a
   leaf node different from the logical zero, and different from the
-  background value. Uses the package default output file.  Returns 1
-  if successful; 0 otherwise.]
+  background value. Uses the package default output file.
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     [Cudd_PrintDebug Cudd_bddPrintCover]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_PrintDebug Cudd_bddPrintCover
+
+*/
 int
 Cudd_PrintMinterm(
   DdManager * manager,
@@ -225,8 +144,6 @@ Cudd_PrintMinterm(
 {
     int		i, *list;
 
-    background = manager->background;
-    zero = Cudd_Not(manager->one);
     list = ALLOC(int,manager->size);
     if (list == NULL) {
 	manager->errorCode = CUDD_MEMORY_OUT;
@@ -240,21 +157,22 @@ Cudd_PrintMinterm(
 } /* end of Cudd_PrintMinterm */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a sum of prime implicants of a %BDD.
 
-  Synopsis    [Prints a sum of prime implicants of a BDD.]
-
-  Description [Prints a sum of product cover for an incompletely
+  @details Prints a sum of product cover for an incompletely
   specified function given by a lower bound and an upper bound.  Each
   product is a prime implicant obtained by expanding the product
   corresponding to a path from node to the constant one.  Uses the
-  package default output file.  Returns 1 if successful; 0 otherwise.]
+  package default output file.
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     [Cudd_PrintMinterm]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_PrintMinterm
+
+*/
 int
 Cudd_bddPrintCover(
   DdManager *dd,
@@ -358,13 +276,11 @@ Cudd_bddPrintCover(
 } /* end of Cudd_bddPrintCover */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints to the manager standard output a %DD and its statistics.
 
-  Synopsis    [Prints to the standard output a DD and its statistics.]
-
-  Description [Prints to the standard output a DD and its statistics.
-  The statistics include the number of nodes, the number of leaves, and
-  the number of minterms. (The number of minterms is the number of
+  @details The statistics include the number of nodes, the number of leaves,
+  and the number of minterms. (The number of minterms is the number of
   assignments to the variables that cause the function to be different
   from the logical zero (for BDDs) and from the background value (for
   ADDs.) The statistics are printed if pr &gt; 0. Specifically:
@@ -376,14 +292,16 @@ Cudd_bddPrintCover(
   <li> pr &gt; 3 : prints counts + disjoint sum of product + list of nodes
   </ul>
   For the purpose of counting the number of minterms, the function is
-  supposed to depend on n variables. Returns 1 if successful; 0 otherwise.]
+  supposed to depend on n variables.
 
-  SideEffects [None]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     [Cudd_DagSize Cudd_CountLeaves Cudd_CountMinterm
-  Cudd_PrintMinterm]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_DagSize Cudd_CountLeaves Cudd_CountMinterm
+  Cudd_PrintMinterm
+
+*/
 int
 Cudd_PrintDebug(
   DdManager * dd,
@@ -397,9 +315,13 @@ Cudd_PrintDebug(
     double minterms;
     int    retval = 1;
 
+    if (dd == NULL) {
+	return(0);
+    }
     if (f == NULL) {
 	(void) fprintf(dd->out,": is the NULL DD\n");
 	(void) fflush(dd->out);
+        dd->errorCode = CUDD_INVALID_ARG;
 	return(0);
     }
     azero = DD_ZERO(dd);
@@ -415,9 +337,14 @@ Cudd_PrintDebug(
 	leaves = Cudd_CountLeaves(f);
 	if (leaves == CUDD_OUT_OF_MEM) retval = 0;
 	minterms = Cudd_CountMinterm(dd, f, n);
-	if (minterms == (double)CUDD_OUT_OF_MEM) retval = 0;
-	(void) fprintf(dd->out,": %d nodes %d leaves %g minterms\n",
-		       nodes, leaves, minterms);
+	if (minterms == (double)CUDD_OUT_OF_MEM) {
+            retval = 0;
+            (void) fprintf(dd->out,": %d nodes %d leaves unknown minterms\n",
+                           nodes, leaves);
+        } else {
+            (void) fprintf(dd->out,": %d nodes %d leaves %g minterms\n",
+                           nodes, leaves, minterms);
+        }
 	if (pr > 2) {
 	    if (!cuddP(dd, f)) retval = 0;
 	}
@@ -432,18 +359,79 @@ Cudd_PrintDebug(
 } /* end of Cudd_PrintDebug */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a one-line summary of an %ADD or %BDD to the manager stdout.
 
-  Synopsis    [Counts the number of nodes in a DD.]
+  @details The summary includes the number of nodes, the number of leaves,
+  and the number of minterms.  The number of minterms is computed with
+  arbitrary precision unlike Cudd_PrintDebug().  For the purpose of counting
+  minterms, the function `f` is supposed to depend on `n` variables.
 
-  Description [Counts the number of nodes in a DD. Returns the number
-  of nodes in the graph rooted at node.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @see Cudd_PrintDebug Cudd_ApaPrintMinterm Cudd_ApaPrintMintermExp
+*/
+int
+Cudd_PrintSummary(
+  DdManager * dd /**< manager */,
+  DdNode * f /**< %DD to be summarized */,
+  int n /**< number of variables for minterm computation */,
+  int mode /**< integer (0) or exponential (1) format */)
+{
+    DdNode *azero, *bzero;
+    int	nodes, leaves, digits;
+    int retval = 1;
+    DdApaNumber count;
 
-  SeeAlso     [Cudd_SharingSize Cudd_PrintDebug]
+    if (dd == NULL) {
+        return(0);
+    }
+    if (f == NULL) {
+	(void) fprintf(dd->out,": is the NULL DD\n");
+	(void) fflush(dd->out);
+        dd->errorCode = CUDD_INVALID_ARG;
+	return(0);
+    }
+    azero = DD_ZERO(dd);
+    bzero = Cudd_Not(DD_ONE(dd));
+    if (f == azero || f == bzero){
+        (void) fprintf(dd->out,": is the zero DD\n");
+        (void) fflush(dd->out);
+        return(1);
+    }
+    nodes = Cudd_DagSize(f);
+    if (nodes == CUDD_OUT_OF_MEM) retval = 0;
+    leaves = Cudd_CountLeaves(f);
+    if (leaves == CUDD_OUT_OF_MEM) retval = 0;
+    (void) fprintf(dd->out,": %d nodes %d leaves ", nodes, leaves);
+    count = Cudd_ApaCountMinterm(dd, f, n, &digits);
+    if (count == NULL) {
+	retval = 0;
+    } else if (mode) {
+        if (!Cudd_ApaPrintExponential(dd->out, digits, count, 6))
+            retval = 0;
+    } else {
+        if (!Cudd_ApaPrintDecimal(dd->out, digits, count))
+            retval = 0;
+    }
+    FREE(count);
+    (void) fprintf(dd->out, " minterms\n");
+    (void) fflush(dd->out);
+    return(retval);
 
-******************************************************************************/
+} /* end of Cudd_PrintSummary */
+  
+
+/**
+  @brief Counts the number of nodes in a %DD.
+
+  @return the number of nodes in the graph rooted at node.
+
+  @sideeffect None
+
+  @see Cudd_SharingSize Cudd_PrintDebug
+
+*/
 int
 Cudd_DagSize(
   DdNode * node)
@@ -458,33 +446,33 @@ Cudd_DagSize(
 } /* end of Cudd_DagSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Estimates the number of nodes in a cofactor of a %DD.
 
-  Synopsis    [Estimates the number of nodes in a cofactor of a DD.]
+  @details This function uses a refinement of the algorithm of Cabodi
+  et al.  (ICCAD96). The refinement allows the procedure to account
+  for part of the recombination that may occur in the part of the
+  cofactor above the cofactoring variable. This procedure does not
+  create any new node.  It does keep a small table of results;
+  therefore it may run out of memory.  If this is a concern, one
+  should use Cudd_EstimateCofactorSimple, which is faster, does not
+  allocate any memory, but is less accurate.
 
-  Description [Estimates the number of nodes in a cofactor of a DD.
-  Returns an estimate of the number of nodes in a cofactor of
-  the graph rooted at node with respect to the variable whose index is i.
+  @return an estimate of the number of nodes in a cofactor of the
+  graph rooted at node with respect to the variable whose index is i.
   In case of failure, returns CUDD_OUT_OF_MEM.
-  This function uses a refinement of the algorithm of Cabodi et al.
-  (ICCAD96). The refinement allows the procedure to account for part
-  of the recombination that may occur in the part of the cofactor above
-  the cofactoring variable. This procedure does not create any new node.
-  It does keep a small table of results; therefore it may run out of memory.
-  If this is a concern, one should use Cudd_EstimateCofactorSimple, which
-  is faster, does not allocate any memory, but is less accurate.]
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_DagSize Cudd_EstimateCofactorSimple]
+  @see Cudd_DagSize Cudd_EstimateCofactorSimple
 
-******************************************************************************/
+*/
 int
 Cudd_EstimateCofactor(
-  DdManager *dd /* manager */,
-  DdNode * f	/* function */,
-  int i		/* index of variable */,
-  int phase	/* 1: positive; 0: negative */
+  DdManager *dd /**< manager */,
+  DdNode * f	/**< function */,
+  int i		/**< index of variable */,
+  int phase	/**< 1: positive; 0: negative */
   )
 {
     int	val;
@@ -492,33 +480,37 @@ Cudd_EstimateCofactor(
     st_table *table;
 
     table = st_init_table(st_ptrcmp,st_ptrhash);
-    if (table == NULL) return(CUDD_OUT_OF_MEM);
+    if (table == NULL) {
+        dd->errorCode = CUDD_MEMORY_OUT;
+        return(CUDD_OUT_OF_MEM);
+    }
     val = cuddEstimateCofactor(dd,table,Cudd_Regular(f),i,phase,&ptr);
     ddClearFlag(Cudd_Regular(f));
     st_free_table(table);
-
+    if (val == CUDD_OUT_OF_MEM)
+        dd->errorCode = CUDD_MEMORY_OUT;
+    
     return(val);
 
 } /* end of Cudd_EstimateCofactor */
 
 
-/**Function********************************************************************
+/**
+  @brief Estimates the number of nodes in a cofactor of a %DD.
 
-  Synopsis    [Estimates the number of nodes in a cofactor of a DD.]
+  @details Returns an estimate of the number of nodes in the positive
+  cofactor of the graph rooted at node with respect to the variable
+  whose index is i.  This procedure implements with minor changes the
+  algorithm of Cabodi et al.  (ICCAD96). It does not allocate any
+  memory, it does not change the state of the manager, and it is
+  fast. However, it has been observed to overestimate the size of the
+  cofactor by as much as a factor of 2.
 
-  Description [Estimates the number of nodes in a cofactor of a DD.
-  Returns an estimate of the number of nodes in the positive cofactor of
-  the graph rooted at node with respect to the variable whose index is i.
-  This procedure implements with minor changes the algorithm of Cabodi et al.
-  (ICCAD96). It does not allocate any memory, it does not change the
-  state of the manager, and it is fast. However, it has been observed to
-  overestimate the size of the cofactor by as much as a factor of 2.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_DagSize
 
-  SeeAlso     [Cudd_DagSize]
-
-******************************************************************************/
+*/
 int
 Cudd_EstimateCofactorSimple(
   DdNode * node,
@@ -534,18 +526,18 @@ Cudd_EstimateCofactorSimple(
 } /* end of Cudd_EstimateCofactorSimple */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the number of nodes in an array of DDs.
 
-  Synopsis    [Counts the number of nodes in an array of DDs.]
+  @details Shared nodes are counted only once.
 
-  Description [Counts the number of nodes in an array of DDs. Shared
-  nodes are counted only once.  Returns the total number of nodes.]
+  @return the total number of nodes.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_DagSize]
+  @see Cudd_DagSize
 
-******************************************************************************/
+*/
 int
 Cudd_SharingSize(
   DdNode ** nodeArray,
@@ -565,21 +557,26 @@ Cudd_SharingSize(
 } /* end of Cudd_SharingSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the minterms of an %ADD or %BDD.
 
-  Synopsis    [Counts the number of minterms of a DD.]
+  @details The function is assumed to depend on `nvars` variables. The
+  minterm count is represented as a double; hence overflow is
+  possible.  For functions with many variables (more than 1023 if
+  floating point conforms to IEEE 754), one should consider
+  Cudd_ApaCountMinterm() or Cudd_EpdCountMinterm().
 
-  Description [Counts the number of minterms of a DD. The function is
-  assumed to depend on nvars variables. The minterm count is
-  represented as a double, to allow for a larger number of variables.
-  Returns the number of minterms of the function rooted at node if
-  successful; (double) CUDD_OUT_OF_MEM otherwise.]
+  @return the number of minterms of the function rooted at node if
+  successful; +infinity if the number of minterms is known to be larger
+  than the maximum value representable as a double; `(double) CUDD_OUT_OF_MEM`
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_PrintDebug Cudd_CountPath]
+  @see Cudd_ApaCountMinterm Cudd_EpdCountMinterm Cudd_LdblCountMinterm
+  Cudd_PrintDebug Cudd_CountPath
 
-******************************************************************************/
+*/
 double
 Cudd_CountMinterm(
   DdManager * manager,
@@ -591,40 +588,69 @@ Cudd_CountMinterm(
     double	res;
     CUDD_VALUE_TYPE epsilon;
 
-    background = manager->background;
-    zero = Cudd_Not(manager->one);
+    /* PRISM modification:
+     * Revert to CUDD 2.5.1 behaviour (unscaled max).
+     * To enable CUDD 3.0.0 behaviour, define CUDD_COUNT_MINTERM_3_0_0
+     */
 
+#ifdef CUDD_COUNT_MINTERM_3_0_0
+    /* Scale the maximum number of minterm.  This is done in an attempt
+     * to deal with functions that depend on more than 1023, but less
+     * than 2044 variables and don't have too many minterms.
+     */
+    max = pow(2.0,(double)(nvars + DBL_MIN_EXP));
+#else  // !CUDD_COUNT_MINTERM_3_0_0
     max = pow(2.0,(double)nvars);
+#endif
+    if (max >= DD_PLUS_INF_VAL) {
+        return((double)CUDD_OUT_OF_MEM);
+    }
     table = cuddHashTableInit(manager,1,2);
     if (table == NULL) {
 	return((double)CUDD_OUT_OF_MEM);
     }
+    /* Temporarily set epsilon to 0 to avoid rounding errors. */
     epsilon = Cudd_ReadEpsilon(manager);
     Cudd_SetEpsilon(manager,(CUDD_VALUE_TYPE)0.0);
-    res = ddCountMintermAux(node,max,table);
+    res = ddCountMintermAux(manager,node,max,table);
     cuddHashTableQuit(table);
     Cudd_SetEpsilon(manager,epsilon);
-
-    return(res);
+#ifdef CUDD_COUNT_MINTERM_3_0_0
+    if (res == (double)CUDD_OUT_OF_MEM) {
+        return((double)CUDD_OUT_OF_MEM);
+    } else if (res >= pow(2.0,(double)(DBL_MAX_EXP + DBL_MIN_EXP))) {
+        /* Minterm count is too large to be scaled back. */
+        return(DD_PLUS_INF_VAL);
+    } else {
+        /* Undo the scaling. */
+        res *= pow(2.0,(double)-DBL_MIN_EXP);
+        return(res);
+    }
+#else  // !CUDD_COUNT_MINTERM_3_0_0
+    if (res == (double)CUDD_OUT_OF_MEM) {
+        return((double)CUDD_OUT_OF_MEM);
+    } else {
+        return(res);
+    }
+#endif
 
 } /* end of Cudd_CountMinterm */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the paths of a %DD.
 
-  Synopsis    [Counts the number of paths of a DD.]
+  @details Paths to all terminal nodes are counted. The path count is
+  represented as a double; hence overflow is possible.
 
-  Description [Counts the number of paths of a DD.  Paths to all
-  terminal nodes are counted. The path count is represented as a
-  double, to allow for a larger number of variables.  Returns the
-  number of paths of the function rooted at node if successful;
-  (double) CUDD_OUT_OF_MEM otherwise.]
+  @return the number of paths of the function rooted at node if
+  successful; `(double) CUDD_OUT_OF_MEM` otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_CountMinterm]
+  @see Cudd_CountMinterm
 
-******************************************************************************/
+*/
 double
 Cudd_CountPath(
   DdNode * node)
@@ -645,23 +671,24 @@ Cudd_CountPath(
 } /* end of Cudd_CountPath */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the minterms of an %ADD or %BDD with extended range.
 
-  Synopsis    [Counts the number of minterms of a DD with extended precision.]
+  @details The function is assumed to depend on `nvars` variables. The
+  minterm count is represented as an `EpDouble`, to allow for any
+  number of variables.
 
-  Description [Counts the number of minterms of a DD with extended precision.
-  The function is assumed to depend on nvars variables. The minterm count is
-  represented as an EpDouble, to allow any number of variables.
-  Returns 0 if successful; CUDD_OUT_OF_MEM otherwise.]
+  @return 0 if successful; `CUDD_OUT_OF_MEM` otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_PrintDebug Cudd_CountPath]
+  @see Cudd_CountMinterm Cudd_LdblCountMinterm Cudd_ApaCountMinterm
+  Cudd_PrintDebug Cudd_CountPath
 
-******************************************************************************/
+*/
 int
 Cudd_EpdCountMinterm(
-  DdManager * manager,
+  DdManager const * manager,
   DdNode * node,
   int  nvars,
   EpDouble * epd)
@@ -670,16 +697,13 @@ Cudd_EpdCountMinterm(
     st_table	*table;
     int		status;
 
-    background = manager->background;
-    zero = Cudd_Not(manager->one);
-
     EpdPow2(nvars, &max);
-    table = st_init_table(EpdCmp, st_ptrhash);
+    table = st_init_table(st_ptrcmp, st_ptrhash);
     if (table == NULL) {
 	EpdMakeZero(epd, 0);
 	return(CUDD_OUT_OF_MEM);
     }
-    status = ddEpdCountMintermAux(Cudd_Regular(node),&max,epd,table);
+    status = ddEpdCountMintermAux(manager,Cudd_Regular(node),&max,epd,table);
     st_foreach(table, ddEpdFree, NULL);
     st_free_table(table);
     if (status == CUDD_OUT_OF_MEM) {
@@ -695,20 +719,101 @@ Cudd_EpdCountMinterm(
 } /* end of Cudd_EpdCountMinterm */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the number of minterms of aa %ADD or %BDD as a long double.
 
-  Synopsis    [Counts the number of paths to a non-zero terminal of a DD.]
+  @details On systems where double and long double are the same type,
+  Cudd_CountMinterm() is preferable.  On systems where long double values
+  have 15-bit exponents, this function avoids overflow for up to 16383
+  variables.  It applies scaling to try to avoid overflow when the number of
+  variables is larger than 16383, but smaller than 32764.
 
-  Description [Counts the number of paths to a non-zero terminal of a
-  DD.  The path count is
-  represented as a double, to allow for a larger number of variables.
-  Returns the number of paths of the function rooted at node.]
+  @return The nimterm count if successful; +infinity if the number is known to
+  be too large for representation as a long double;
+  `(long double)CUDD_OUT_OF_MEM` otherwise. 
 
-  SideEffects [None]
+  @see Cudd_CountMinterm Cudd_EpdCountMinterm Cudd_ApaCountMinterm
+*/
+long double
+Cudd_LdblCountMinterm(
+  DdManager const *manager,
+  DdNode *node,
+  int nvars)
+{
+    long double max, count;
+    st_table *table;
 
-  SeeAlso     [Cudd_CountMinterm Cudd_CountPath]
+    max = powl(2.0L, (long double) (nvars+LDBL_MIN_EXP));
+    if (max == HUGE_VALL) {
+        return((long double)CUDD_OUT_OF_MEM);
+    }
+    table = st_init_table(st_ptrcmp, st_ptrhash);
+    if (table == NULL) {
+        return((long double)CUDD_OUT_OF_MEM);
+    }
+    count = ddLdblCountMintermAux(manager, Cudd_Regular(node), max, table);
+    st_foreach(table, ddLdblFree, NULL);
+    st_free_table(table);
+    if (count == (long double)CUDD_OUT_OF_MEM) {
+        return((long double)CUDD_OUT_OF_MEM);
+    }
+    if (Cudd_IsComplement(node)) {
+        count = max - count;
+    }
+    if (count >= powl(2.0L, (long double)(LDBL_MAX_EXP + LDBL_MIN_EXP))) {
+        /* Minterm count is too large to be scaled back. */
+        return(HUGE_VALL);
+    } else {
+        /* Undo the scaling. */
+        count *= powl(2.0L,(long double)-LDBL_MIN_EXP);
+        return(count);
+    }
 
-******************************************************************************/
+} /* end of Cudd_LdlbCountMinterm */
+
+
+/**
+  @brief Prints the number of minterms of an %ADD or %BDD with extended range.
+
+  @return 1 if successful; 0 otherwise.
+
+  @sideeffect None
+
+  @see Cudd_EpdCountMinterm Cudd_ApaPrintMintermExp
+
+*/
+int
+Cudd_EpdPrintMinterm(
+  DdManager const * dd,
+  DdNode * node,
+  int nvars)
+{
+    EpDouble epd;
+    int ret;
+    char pstring[128];
+
+    ret = Cudd_EpdCountMinterm(dd, node, nvars, &epd);
+    if (ret !=0) return(0);
+    EpdGetString(&epd, pstring);
+    fprintf(dd->out, "%s", pstring);
+    return(1);
+
+} /* end of Cudd_EpdPrintMinterm */
+
+
+/**
+  @brief Counts the paths to a non-zero terminal of a %DD.
+
+  @details The path count is represented as a double; hence overflow is
+  possible.
+
+  @return the number of paths of the function rooted at node.
+
+  @sideeffect None
+
+  @see Cudd_CountMinterm Cudd_CountPath
+
+*/
 double
 Cudd_CountPathsToNonZero(
   DdNode * node)
@@ -729,24 +834,23 @@ Cudd_CountPathsToNonZero(
 } /* end of Cudd_CountPathsToNonZero */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a %DD depends.
 
-  Synopsis    [Finds the variables on which a DD depends.]
+  @return the number of variables if successful; CUDD_OUT_OF_MEM
+  otherwise.
 
-  Description [Finds the variables on which a DD depends.  Returns the
-  number of variables if successful; CUDD_OUT_OF_MEM otherwise.]
+  @sideeffect The indices of the support variables are returned as
+  side effects.  If the function is constant, no array is allocated.
 
-  SideEffects [The indices of the support variables are returned as
-  side effects.  If the function is constant, no array is allocated.]
+  @see Cudd_Support Cudd_SupportIndex Cudd_VectorSupportIndices
 
-  SeeAlso     [Cudd_Support Cudd_SupportIndex Cudd_VectorSupportIndices]
-
-******************************************************************************/
+*/
 int
 Cudd_SupportIndices(
-  DdManager * dd /* manager */,
-  DdNode * f /* DD whose support is sought */,
-  int **indices /* array containing (on return) the indices */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< %DD whose support is sought */,
+  int **indices /**< array containing (on return) the indices */)
 {
     int SP = 0;
 
@@ -764,7 +868,7 @@ Cudd_SupportIndices(
         for (i = 0; i < SP; i++)
             (*indices)[i] = (int) (ptrint) dd->stack[i];
 
-        qsort(*indices, SP, sizeof(int), indexCompare);
+        util_qsort(*indices, SP, sizeof(int), indexCompare);
     } else {
         *indices = NULL;
     }
@@ -774,23 +878,21 @@ Cudd_SupportIndices(
 } /* end of Cudd_SupportIndices */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a %DD depends.
 
-  Synopsis    [Finds the variables on which a DD depends.]
+  @return a %BDD consisting of the product of the variables if
+  successful; NULL otherwise.
 
-  Description [Finds the variables on which a DD depends.
-  Returns a BDD consisting of the product of the variables if
-  successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_VectorSupport Cudd_ClassifySupport
 
-  SeeAlso     [Cudd_VectorSupport Cudd_ClassifySupport]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_Support(
-  DdManager * dd /* manager */,
-  DdNode * f /* DD whose support is sought */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< %DD whose support is sought */)
 {
     int	*support;
     DdNode *res;
@@ -825,25 +927,23 @@ Cudd_Support(
 } /* end of Cudd_Support */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a %DD depends.
 
-  Synopsis    [Finds the variables on which a DD depends.]
+  @return an index array of the variables if successful; NULL
+  otherwise.  The size of the array equals the number of variables in
+  the manager.  Each entry of the array is 1 if the corresponding
+  variable is in the support of the %DD and 0 otherwise.
 
-  Description [Finds the variables on which a DD depends.  Returns an
-  index array of the variables if successful; NULL otherwise.  The
-  size of the array equals the number of variables in the manager.
-  Each entry of the array is 1 if the corresponding variable is in the
-  support of the DD and 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Support Cudd_SupportIndices Cudd_ClassifySupport
 
-  SeeAlso     [Cudd_Support Cudd_SupportIndices Cudd_ClassifySupport]
-
-******************************************************************************/
+*/
 int *
 Cudd_SupportIndex(
-  DdManager * dd /* manager */,
-  DdNode * f /* DD whose support is sought */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< %DD whose support is sought */)
 {
     int	*support;
     int	i;
@@ -869,21 +969,20 @@ Cudd_SupportIndex(
 } /* end of Cudd_SupportIndex */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the variables on which a %DD depends.
 
-  Synopsis    [Counts the variables on which a DD depends.]
+  @return the variables on which a %DD depends.
 
-  Description [Returns the variables on which a DD depends.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Support Cudd_SupportIndices
 
-  SeeAlso     [Cudd_Support Cudd_SupportIndices]
-
-******************************************************************************/
+*/
 int
 Cudd_SupportSize(
-  DdManager * dd /* manager */,
-  DdNode * f /* DD whose support size is sought */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< %DD whose support size is sought */)
 {
     int SP = 0;
 
@@ -896,26 +995,26 @@ Cudd_SupportSize(
 } /* end of Cudd_SupportSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a set of DDs depends.
 
-  Synopsis    [Finds the variables on which a set of DDs depends.]
+  @details The set must contain either BDDs and ADDs, or ZDDs.
 
-  Description [Finds the variables on which a set of DDs depends.  The
-  set must contain either BDDs and ADDs, or ZDDs.  Returns the number
-  of variables if successful; CUDD_OUT_OF_MEM otherwise.]
+  @return the number of variables if successful; CUDD_OUT_OF_MEM
+  otherwise.
 
-  SideEffects [The indices of the support variables are returned as
-  side effects.  If the function is constant, no array is allocated.]
+  @sideeffect The indices of the support variables are returned as
+  side effects.  If the function is constant, no array is allocated.
 
-  SeeAlso     [Cudd_Support Cudd_SupportIndex Cudd_VectorSupportIndices]
+  @see Cudd_Support Cudd_SupportIndex Cudd_VectorSupportIndices
 
-******************************************************************************/
+*/
 int
 Cudd_VectorSupportIndices(
-  DdManager * dd /* manager */,
-  DdNode ** F /* DD whose support is sought */,
-  int  n /* size of the array */,
-  int **indices /* array containing (on return) the indices */)
+  DdManager * dd /**< manager */,
+  DdNode ** F /**< %DD whose support is sought */,
+  int  n /**< size of the array */,
+  int **indices /**< array containing (on return) the indices */)
 {
     int i;
     int SP = 0;
@@ -930,7 +1029,6 @@ Cudd_VectorSupportIndices(
     ddClearVars(dd, SP);
 
     if (SP > 0) {
-        int i;
         *indices = ALLOC(int, SP);
         if (*indices == NULL) {
             dd->errorCode = CUDD_MEMORY_OUT;
@@ -940,7 +1038,7 @@ Cudd_VectorSupportIndices(
         for (i = 0; i < SP; i++)
             (*indices)[i] = (int) (ptrint) dd->stack[i];
 
-        qsort(*indices, SP, sizeof(int), indexCompare);
+        util_qsort(*indices, SP, sizeof(int), indexCompare);
     } else {
         *indices = NULL;
     }
@@ -950,25 +1048,24 @@ Cudd_VectorSupportIndices(
 } /* end of Cudd_VectorSupportIndices */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a set of DDs depends.
 
-  Synopsis    [Finds the variables on which a set of DDs depends.]
+  @details The set must contain either BDDs and ADDs, or ZDDs.
 
-  Description [Finds the variables on which a set of DDs depends.
-  The set must contain either BDDs and ADDs, or ZDDs.
-  Returns a BDD consisting of the product of the variables if
-  successful; NULL otherwise.]
+  @return a %BDD consisting of the product of the variables if
+  successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_Support Cudd_ClassifySupport]
+  @see Cudd_Support Cudd_ClassifySupport
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_VectorSupport(
-  DdManager * dd /* manager */,
-  DdNode ** F /* array of DDs whose support is sought */,
-  int  n /* size of the array */)
+  DdManager * dd /**< manager */,
+  DdNode ** F /**< array of DDs whose support is sought */,
+  int  n /**< size of the array */)
 {
     int	*support;
     DdNode *res;
@@ -1002,24 +1099,24 @@ Cudd_VectorSupport(
 } /* end of Cudd_VectorSupport */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the variables on which a set of DDs depends.
 
-  Synopsis    [Finds the variables on which a set of DDs depends.]
+  @details The set must contain either BDDs and ADDs, or ZDDs.
 
-  Description [Finds the variables on which a set of DDs depends.
-  The set must contain either BDDs and ADDs, or ZDDs.
-  Returns an index array of the variables if successful; NULL otherwise.]
+  @return an index array of the variables if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_SupportIndex Cudd_VectorSupport Cudd_VectorSupportIndices]
+  @see Cudd_SupportIndex Cudd_VectorSupport Cudd_VectorSupportIndices
 
-******************************************************************************/
+*/
 int *
 Cudd_VectorSupportIndex(
-  DdManager * dd /* manager */,
-  DdNode ** F /* array of DDs whose support is sought */,
-  int  n /* size of the array */)
+  DdManager * dd /**< manager */,
+  DdNode ** F /**< array of DDs whose support is sought */,
+  int  n /**< size of the array */)
 {
     int	*support;
     int	i;
@@ -1049,23 +1146,23 @@ Cudd_VectorSupportIndex(
 } /* end of Cudd_VectorSupportIndex */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the variables on which a set of DDs depends.
 
-  Synopsis    [Counts the variables on which a set of DDs depends.]
+  @details The set must contain either BDDs and ADDs, or ZDDs.
 
-  Description [Returns the variables on which a set of DDs depends.
-  The set must contain either BDDs and ADDs, or ZDDs.]
+  @return the number of variables on which a set of DDs depends.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_VectorSupport Cudd_SupportSize]
+  @see Cudd_VectorSupport Cudd_SupportSize
 
-******************************************************************************/
+*/
 int
 Cudd_VectorSupportSize(
-  DdManager * dd /* manager */,
-  DdNode ** F /* array of DDs whose support is sought */,
-  int  n /* size of the array */)
+  DdManager * dd /**< manager */,
+  DdNode ** F /**< array of DDs whose support is sought */,
+  int  n /**< size of the array */)
 {
     int i;
     int SP = 0;
@@ -1084,29 +1181,29 @@ Cudd_VectorSupportSize(
 } /* end of Cudd_VectorSupportSize */
 
 
-/**Function********************************************************************
+/**
+  @brief Classifies the variables in the support of two DDs.
 
-  Synopsis    [Classifies the variables in the support of two DDs.]
-
-  Description [Classifies the variables in the support of two DDs
-  <code>f</code> and <code>g</code>, depending on whther they appear
+  @details Classifies the variables in the support of two DDs
+  <code>f</code> and <code>g</code>, depending on whether they appear
   in both DDs, only in <code>f</code>, or only in <code>g</code>.
-  Returns 1 if successful; 0 otherwise.]
 
-  SideEffects [The cubes of the three classes of variables are
-  returned as side effects.]
+  @return 1 if successful; 0 otherwise.
 
-  SeeAlso     [Cudd_Support Cudd_VectorSupport]
+  @sideeffect The cubes of the three classes of variables are
+  returned as side effects.
 
-******************************************************************************/
+  @see Cudd_Support Cudd_VectorSupport
+
+*/
 int
 Cudd_ClassifySupport(
-  DdManager * dd /* manager */,
-  DdNode * f /* first DD */,
-  DdNode * g /* second DD */,
-  DdNode ** common /* cube of shared variables */,
-  DdNode ** onlyF /* cube of variables only in f */,
-  DdNode ** onlyG /* cube of variables only in g */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first %DD */,
+  DdNode * g /**< second %DD */,
+  DdNode ** common /**< cube of shared variables */,
+  DdNode ** onlyF /**< cube of variables only in f */,
+  DdNode ** onlyG /**< cube of variables only in g */)
 {
     int	*supportF, *supportG;
     int	fi, gi;
@@ -1187,19 +1284,17 @@ Cudd_ClassifySupport(
 } /* end of Cudd_ClassifySupport */
 
 
-/**Function********************************************************************
+/**
+  @brief Counts the number of leaves in a %DD.
 
-  Synopsis    [Counts the number of leaves in a DD.]
+  @return the number of leaves in the %DD rooted at node if successful;
+  CUDD_OUT_OF_MEM otherwise.
 
-  Description [Counts the number of leaves in a DD. Returns the number
-  of leaves in the DD rooted at node if successful; CUDD_OUT_OF_MEM
-  otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_PrintDebug
 
-  SeeAlso     [Cudd_PrintDebug]
-
-******************************************************************************/
+*/
 int
 Cudd_CountLeaves(
   DdNode * node)
@@ -1213,20 +1308,19 @@ Cudd_CountLeaves(
 } /* end of Cudd_CountLeaves */
 
 
-/**Function********************************************************************
+/**
+  @brief Picks one on-set cube randomly from the given %DD.
 
-  Synopsis    [Picks one on-set cube randomly from the given DD.]
+  @details The cube is written into an array of characters.  The array
+  must have at least as many entries as there are variables.
 
-  Description [Picks one on-set cube randomly from the given DD. The
-  cube is written into an array of characters.  The array must have at
-  least as many entries as there are variables. Returns 1 if
-  successful; 0 otherwise.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddPickOneMinterm]
+  @see Cudd_bddPickOneMinterm
 
-******************************************************************************/
+*/
 int
 Cudd_bddPickOneCube(
   DdManager * ddm,
@@ -1243,7 +1337,10 @@ Cudd_bddPickOneCube(
     /* The constant 0 function has no on-set cubes. */
     one = DD_ONE(ddm);
     bzero = Cudd_Not(one);
-    if (node == bzero) return(0);
+    if (node == bzero) {
+        ddm->errorCode = CUDD_INVALID_ARG;
+        return(0);
+    }
 
     for (i = 0; i < ddm->size; i++) string[i] = 2;
 
@@ -1264,7 +1361,7 @@ Cudd_bddPickOneCube(
 	    string[N->index] = 1;
 	    node = T;
 	} else {
-	    dir = (char) ((Cudd_Random() & 0x2000) >> 13);
+	    dir = (char) ((Cudd_Random(ddm) & 0x2000) >> 13);
 	    string[N->index] = dir;
 	    node = dir ? T : E;
 	}
@@ -1274,35 +1371,33 @@ Cudd_bddPickOneCube(
 } /* end of Cudd_bddPickOneCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Picks one on-set minterm randomly from the given %DD.
 
-  Synopsis    [Picks one on-set minterm randomly from the given DD.]
-
-  Description [Picks one on-set minterm randomly from the given
-  DD. The minterm is in terms of <code>vars</code>. The array
+  @details The minterm is in terms of <code>vars</code>. The array
   <code>vars</code> should contain at least all variables in the
   support of <code>f</code>; if this condition is not met the minterm
-  built by this procedure may not be contained in
-  <code>f</code>. Builds a BDD for the minterm and returns a pointer
-  to it if successful; NULL otherwise. There are three reasons why the
-  procedure may fail:
+  built by this procedure may not be contained in <code>f</code>.
+
+  @return a pointer to the %BDD for the minterm if successful; NULL otherwise.
+  There are three reasons why the procedure may fail:
   <ul>
   <li> It may run out of memory;
   <li> the function <code>f</code> may be the constant 0;
   <li> the minterm may not be contained in <code>f</code>.
-  </ul>]
+  </ul>
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddPickOneCube]
+  @see Cudd_bddPickOneCube
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddPickOneMinterm(
-  DdManager * dd /* manager */,
-  DdNode * f /* function from which to pick one minterm */,
-  DdNode ** vars /* array of variables */,
-  int  n /* size of <code>vars</code> */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function from which to pick one minterm */,
+  DdNode ** vars /**< array of variables */,
+  int  n /**< size of <code>vars</code> */)
 {
     char *string;
     int i, size;
@@ -1337,7 +1432,7 @@ Cudd_bddPickOneMinterm(
     /* Randomize choice for don't cares. */
     for (i = 0; i < n; i++) {
 	if (string[indices[i]] == 2)
-	    string[indices[i]] = (char) ((Cudd_Random() & 0x20) >> 5);
+	    string[indices[i]] = (char) ((Cudd_Random(dd) & 0x20) >> 5);
     }
 
     /* Build result BDD. */
@@ -1376,36 +1471,34 @@ Cudd_bddPickOneMinterm(
 }  /* end of Cudd_bddPickOneMinterm */
 
 
-/**Function********************************************************************
+/**
+  @brief Picks k on-set minterms evenly distributed from given %DD.
 
-  Synopsis    [Picks k on-set minterms evenly distributed from given DD.]
-
-  Description [Picks k on-set minterms evenly distributed from given DD.
-  The minterms are in terms of <code>vars</code>. The array
+  @details The minterms are in terms of <code>vars</code>. The array
   <code>vars</code> should contain at least all variables in the
   support of <code>f</code>; if this condition is not met the minterms
-  built by this procedure may not be contained in
-  <code>f</code>. Builds an array of BDDs for the minterms and returns a
-  pointer to it if successful; NULL otherwise. There are three reasons
-  why the procedure may fail:
+  built by this procedure may not be contained in <code>f</code>.
+
+  @return an array of BDDs for the minterms if successful; NULL otherwise.
+  There are three reasons why the procedure may fail:
   <ul>
   <li> It may run out of memory;
   <li> the function <code>f</code> may be the constant 0;
   <li> the minterms may not be contained in <code>f</code>.
-  </ul>]
+  </ul>
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddPickOneMinterm Cudd_bddPickOneCube]
+  @see Cudd_bddPickOneMinterm Cudd_bddPickOneCube
 
-******************************************************************************/
+*/
 DdNode **
 Cudd_bddPickArbitraryMinterms(
-  DdManager * dd /* manager */,
-  DdNode * f /* function from which to pick k minterms */,
-  DdNode ** vars /* array of variables */,
-  int  n /* size of <code>vars</code> */,
-  int  k /* number of minterms to find */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function from which to pick k minterms */,
+  DdNode ** vars /**< array of variables */,
+  int  n /**< size of <code>vars</code> */,
+  int  k /**< number of minterms to find */)
 {
     char **string;
     int i, j, l, size;
@@ -1414,7 +1507,7 @@ Cudd_bddPickArbitraryMinterms(
     DdNode **old, *neW;
     double minterms;
     char *saveString;
-    int saveFlag, savePoint, isSame;
+    int saveFlag, savePoint = 0, isSame;
 
     minterms = Cudd_CountMinterm(dd,f,n);
     if ((double)k > minterms) {
@@ -1513,7 +1606,7 @@ Cudd_bddPickArbitraryMinterms(
 	for (j = 0; j < n; j++) {
 	    if (string[i][indices[j]] == '2')
 		string[i][indices[j]] =
-		  (char) ((Cudd_Random() & 0x20) ? '1' : '0');
+		  (char) ((Cudd_Random(dd) & 0x20) ? '1' : '0');
 	}
 
 	while (isSame) {
@@ -1530,7 +1623,7 @@ Cudd_bddPickArbitraryMinterms(
 		for (j = 0; j < n; j++) {
 		    if (string[i][indices[j]] == '2')
 			string[i][indices[j]] =
-			  (char) ((Cudd_Random() & 0x20) ? '1' : '0');
+			  (char) ((Cudd_Random(dd) & 0x20) ? '1' : '0');
 		}
 	    }
 	}
@@ -1586,51 +1679,48 @@ Cudd_bddPickArbitraryMinterms(
 }  /* end of Cudd_bddPickArbitraryMinterms */
 
 
-/**Function********************************************************************
+/**
+  @brief Extracts a subset from a %BDD.
 
-  Synopsis    [Extracts a subset from a BDD.]
-
-  Description [Extracts a subset from a BDD in the following procedure.
+  @details Extracts a subset from a %BDD in the following procedure.
   1. Compute the weight for each mask variable by counting the number of
-     minterms for both positive and negative cofactors of the BDD with
-     respect to each mask variable. (weight = #positive - #negative)
-  2. Find a representative cube of the BDD by using the weight. From the
-     top variable of the BDD, for each variable, if the weight is greater
+     minterms for both positive and negative cofactors of the %BDD with
+     respect to each mask variable. (weight = # positive - # negative)
+  2. Find a representative cube of the %BDD by using the weight. From the
+     top variable of the %BDD, for each variable, if the weight is greater
      than 0.0, choose THEN branch, othereise ELSE branch, until meeting
      the constant 1.
   3. Quantify out the variables not in maskVars from the representative
      cube and if a variable in maskVars is don't care, replace the
      variable with a constant(1 or 0) depending on the weight.
-  4. Make a subset of the BDD by multiplying with the modified cube.]
+  4. Make a subset of the %BDD by multiplying with the modified cube.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_SubsetWithMaskVars(
-  DdManager * dd /* manager */,
-  DdNode * f /* function from which to pick a cube */,
-  DdNode ** vars /* array of variables */,
-  int  nvars /* size of <code>vars</code> */,
-  DdNode ** maskVars /* array of variables */,
-  int  mvars /* size of <code>maskVars</code> */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function from which to pick a cube */,
+  DdNode ** vars /**< array of variables */,
+  int  nvars /**< size of <code>vars</code> */,
+  DdNode ** maskVars /**< array of variables */,
+  int  mvars /**< size of <code>maskVars</code> */)
 {
     double	*weight;
     char	*string;
     int		i, size;
     int		*indices, *mask;
     int		result;
-    DdNode	*zero, *cube, *newCube, *subset;
+    DdNode	*cube, *newCube, *subset;
     DdNode	*cof;
-
     DdNode	*support;
+    DdNode	*zero;
+
     support = Cudd_Support(dd,f);
     cuddRef(support);
     Cudd_RecursiveDeref(dd,support);
 
-    zero = Cudd_Not(dd->one);
     size = dd->size;
 
     weight = ALLOC(double,size);
@@ -1778,14 +1868,11 @@ Cudd_SubsetWithMaskVars(
 } /* end of Cudd_SubsetWithMaskVars */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the first cube of a decision diagram.
 
-  Synopsis    [Finds the first cube of a decision diagram.]
-
-  Description [Defines an iterator on the onset of a decision diagram
-  and finds its first cube. Returns a generator that contains the
-  information necessary to continue the enumeration if successful; NULL
-  otherwise.<p>
+  @details Defines an iterator on the onset of a decision diagram
+  and finds its first cube.<p>
   A cube is represented as an array of literals, which are integers in
   {0, 1, 2}; 0 represents a complemented literal, 1 represents an
   uncomplemented literal, and 2 stands for don't care. The enumeration
@@ -1793,17 +1880,20 @@ Cudd_SubsetWithMaskVars(
   The size of the array equals the number of variables in the manager at
   the time Cudd_FirstCube is called.<p>
   For each cube, a value is also returned. This value is always 1 for a
-  BDD, while it may be different from 1 for an ADD.
+  %BDD, while it may be different from 1 for an %ADD.
   For BDDs, the offset is the set of cubes whose value is the logical zero.
   For ADDs, the offset is the set of cubes whose value is the
-  background value. The cubes of the offset are not enumerated.]
+  background value. The cubes of the offset are not enumerated.
 
-  SideEffects [The first cube and its value are returned as side effects.]
+  @return a generator that contains the information necessary to
+  continue the enumeration if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_ForeachCube Cudd_NextCube Cudd_GenFree Cudd_IsGenEmpty
-  Cudd_FirstNode]
+  @sideeffect The first cube and its value are returned as side effects.
 
-******************************************************************************/
+  @see Cudd_ForeachCube Cudd_NextCube Cudd_GenFree Cudd_IsGenEmpty
+  Cudd_FirstNode
+
+*/
 DdGen *
 Cudd_FirstCube(
   DdManager * dd,
@@ -1891,7 +1981,6 @@ Cudd_FirstCube(
 		gen->gen.cubes.cube[preg->index] = 2;
 		gen->stack.sp--;
 		top = gen->stack.stack[gen->stack.sp-1];
-		treg = Cudd_Regular(top);
 	    }
 	} else {
 	    gen->status = CUDD_GEN_NONEMPTY;
@@ -1908,21 +1997,18 @@ done:
 } /* end of Cudd_FirstCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Generates the next cube of a decision diagram onset.
 
-  Synopsis    [Generates the next cube of a decision diagram onset.]
+  @return 0 if the enumeration is completed; 1 otherwise.
 
-  Description [Generates the next cube of a decision diagram onset,
-  using generator gen. Returns 0 if the enumeration is completed; 1
-  otherwise.]
+  @sideeffect The cube and its value are returned as side effects. The
+  generator is modified.
 
-  SideEffects [The cube and its value are returned as side effects. The
-  generator is modified.]
+  @see Cudd_ForeachCube Cudd_FirstCube Cudd_GenFree Cudd_IsGenEmpty
+  Cudd_NextNode
 
-  SeeAlso     [Cudd_ForeachCube Cudd_FirstCube Cudd_GenFree Cudd_IsGenEmpty
-  Cudd_NextNode]
-
-******************************************************************************/
+*/
 int
 Cudd_NextCube(
   DdGen * gen,
@@ -1941,7 +2027,6 @@ Cudd_NextCube(
 	    goto done;
 	}
 	top = gen->stack.stack[gen->stack.sp-1];
-	treg = Cudd_Regular(top);
 	prev = gen->stack.stack[gen->stack.sp-2];
 	preg = Cudd_Regular(prev);
 	nreg = cuddT(preg);
@@ -1987,7 +2072,6 @@ Cudd_NextCube(
 		gen->gen.cubes.cube[preg->index] = 2;
 		gen->stack.sp--;
 		top = gen->stack.stack[gen->stack.sp-1];
-		treg = Cudd_Regular(top);
 	    }
 	} else {
 	    gen->status = CUDD_GEN_NONEMPTY;
@@ -2005,35 +2089,37 @@ done:
 } /* end of Cudd_NextCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the first prime of a Boolean function.
 
-  Synopsis    [Finds the first prime of a Boolean function.]
-
-  Description [Defines an iterator on a pair of BDDs describing a
+  @details@parblock
+  Defines an iterator on a pair of BDDs describing a
   (possibly incompletely specified) Boolean functions and finds the
-  first cube of a cover of the function.  Returns a generator
-  that contains the information necessary to continue the enumeration
-  if successful; NULL otherwise.<p>
+  first cube of a cover of the function.
 
   The two argument BDDs are the lower and upper bounds of an interval.
   It is a mistake to call this function with a lower bound that is not
-  less than or equal to the upper bound.<p>
+  less than or equal to the upper bound.
 
   A cube is represented as an array of literals, which are integers in
   {0, 1, 2}; 0 represents a complemented literal, 1 represents an
   uncomplemented literal, and 2 stands for don't care. The enumeration
   produces a prime and irredundant cover of the function associated
   with the two BDDs.  The size of the array equals the number of
-  variables in the manager at the time Cudd_FirstCube is called.<p>
+  variables in the manager at the time Cudd_FirstCube is called.
 
-  This iterator can only be used on BDDs.]
+  This iterator can only be used on BDDs.
+  @endparblock
 
-  SideEffects [The first cube is returned as side effect.]
+  @return a generator that contains the information necessary to
+  continue the enumeration if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_ForeachPrime Cudd_NextPrime Cudd_GenFree Cudd_IsGenEmpty
-  Cudd_FirstCube Cudd_FirstNode]
+  @sideeffect The first cube is returned as side effect.
 
-******************************************************************************/
+  @see Cudd_ForeachPrime Cudd_NextPrime Cudd_GenFree Cudd_IsGenEmpty
+  Cudd_FirstCube Cudd_FirstNode
+
+*/
 DdGen *
 Cudd_FirstPrime(
   DdManager *dd,
@@ -2121,21 +2207,18 @@ Cudd_FirstPrime(
 } /* end of Cudd_FirstPrime */
 
 
-/**Function********************************************************************
+/**
+  @brief Generates the next prime of a Boolean function.
 
-  Synopsis    [Generates the next prime of a Boolean function.]
+  @return 0 if the enumeration is completed; 1 otherwise.
 
-  Description [Generates the next cube of a Boolean function,
-  using generator gen. Returns 0 if the enumeration is completed; 1
-  otherwise.]
+  @sideeffect The cube and is returned as side effects. The
+  generator is modified.
 
-  SideEffects [The cube and is returned as side effects. The
-  generator is modified.]
+  @see Cudd_ForeachPrime Cudd_FirstPrime Cudd_GenFree Cudd_IsGenEmpty
+  Cudd_NextCube Cudd_NextNode
 
-  SeeAlso     [Cudd_ForeachPrime Cudd_FirstPrime Cudd_GenFree Cudd_IsGenEmpty
-  Cudd_NextCube Cudd_NextNode]
-
-******************************************************************************/
+*/
 int
 Cudd_NextPrime(
   DdGen *gen,
@@ -2187,21 +2270,21 @@ Cudd_NextPrime(
 } /* end of Cudd_NextPrime */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the cube of an array of %BDD variables.
 
-  Synopsis    [Computes the cube of an array of BDD variables.]
+  @details If non-null, the phase argument indicates which literal of
+  each variable should appear in the cube. If phase\[i\] is nonzero,
+  then the positive literal is used. If phase is NULL, the cube is
+  positive unate.
 
-  Description [Computes the cube of an array of BDD variables. If
-  non-null, the phase argument indicates which literal of each
-  variable should appear in the cube. If phase\[i\] is nonzero, then the
-  positive literal is used. If phase is NULL, the cube is positive unate.
-  Returns a pointer to the result if successful; NULL otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_addComputeCube Cudd_IndicesToCube Cudd_CubeArrayToBdd]
+  @see Cudd_addComputeCube Cudd_IndicesToCube Cudd_CubeArrayToBdd
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddComputeCube(
   DdManager * dd,
@@ -2237,21 +2320,21 @@ Cudd_bddComputeCube(
 }  /* end of Cudd_bddComputeCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the cube of an array of %ADD variables.
 
-  Synopsis    [Computes the cube of an array of ADD variables.]
+  @details If non-null, the phase argument indicates which literal of
+  each variable should appear in the cube. If phase\[i\] is nonzero,
+  then the positive literal is used. If phase is NULL, the cube is
+  positive unate.
 
-  Description [Computes the cube of an array of ADD variables.  If
-  non-null, the phase argument indicates which literal of each
-  variable should appear in the cube. If phase\[i\] is nonzero, then the
-  positive literal is used. If phase is NULL, the cube is positive unate.
-  Returns a pointer to the result if successful; NULL otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [none]
+  @sideeffect none
 
-  SeeAlso     [Cudd_bddComputeCube]
+  @see Cudd_bddComputeCube
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_addComputeCube(
   DdManager * dd,
@@ -2259,19 +2342,19 @@ Cudd_addComputeCube(
   int * phase,
   int  n)
 {
-    DdNode	*cube, *zero;
+    DdNode	*cube, *azero;
     DdNode	*fn;
     int         i;
 
     cube = DD_ONE(dd);
     cuddRef(cube);
-    zero = DD_ZERO(dd);
+    azero = DD_ZERO(dd);
 
     for (i = n - 1; i >= 0; i--) {
 	if (phase == NULL || phase[i] != 0) {
-	    fn = Cudd_addIte(dd,vars[i],cube,zero);
+	    fn = Cudd_addIte(dd,vars[i],cube,azero);
 	} else {
-	    fn = Cudd_addIte(dd,vars[i],zero,cube);
+	    fn = Cudd_addIte(dd,vars[i],azero,cube);
 	}
 	if (fn == NULL) {
 	    Cudd_RecursiveDeref(dd,cube);
@@ -2288,22 +2371,23 @@ Cudd_addComputeCube(
 } /* end of Cudd_addComputeCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds the %BDD of a cube from a positional array.
 
-  Synopsis    [Builds the BDD of a cube from a positional array.]
+  @details The array must have one integer entry for each %BDD
+  variable.  If the i-th entry is 1, the variable of index i appears
+  in true form in the cube; If the i-th entry is 0, the variable of
+  index i appears complemented in the cube; otherwise the variable
+  does not appear in the cube.
 
-  Description [Builds a cube from a positional array.  The array must
-  have one integer entry for each BDD variable.  If the i-th entry is
-  1, the variable of index i appears in true form in the cube; If the
-  i-th entry is 0, the variable of index i appears complemented in the
-  cube; otherwise the variable does not appear in the cube.  Returns a
-  pointer to the BDD for the cube if successful; NULL otherwise.]
+  @return a pointer to the %BDD for the cube if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddComputeCube Cudd_IndicesToCube Cudd_BddToCubeArray]
+  @see Cudd_bddComputeCube Cudd_IndicesToCube Cudd_BddToCubeArray
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_CubeArrayToBdd(
   DdManager *dd,
@@ -2334,24 +2418,23 @@ Cudd_CubeArrayToBdd(
 } /* end of Cudd_CubeArrayToBdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds a positional array from the %BDD of a cube.
 
-  Synopsis    [Builds a positional array from the BDD of a cube.]
+  @details Array must have one entry for each %BDD variable.  The
+  positional array has 1 in i-th position if the variable of index i
+  appears in true form in the cube; it has 0 in i-th position if the
+  variable of index i appears in complemented form in the cube;
+  finally, it has 2 in i-th position if the variable of index i does
+  not appear in the cube.
 
-  Description [Builds a positional array from the BDD of a cube.
-  Array must have one entry for each BDD variable.  The positional
-  array has 1 in i-th position if the variable of index i appears in
-  true form in the cube; it has 0 in i-th position if the variable of
-  index i appears in complemented form in the cube; finally, it has 2
-  in i-th position if the variable of index i does not appear in the
-  cube.  Returns 1 if successful (the BDD is indeed a cube); 0
-  otherwise.]
+  @return 1 if successful (the %BDD is indeed a cube); 0 otherwise.
 
-  SideEffects [The result is in the array passed by reference.]
+  @sideeffect The result is in the array passed by reference.
 
-  SeeAlso     [Cudd_CubeArrayToBdd]
+  @see Cudd_CubeArrayToBdd
 
-******************************************************************************/
+*/
 int
 Cudd_BddToCubeArray(
   DdManager *dd,
@@ -2361,26 +2444,26 @@ Cudd_BddToCubeArray(
     DdNode *scan, *t, *e;
     int i;
     int size = Cudd_ReadSize(dd);
-    DdNode *zero = Cudd_Not(DD_ONE(dd));
+    DdNode *lzero = Cudd_Not(DD_ONE(dd));
 
     for (i = size-1; i >= 0; i--) {
 	array[i] = 2;
     }
     scan = cube;
-    while (!Cudd_IsConstant(scan)) {
-	int index = Cudd_Regular(scan)->index;
+    while (!Cudd_IsConstantInt(scan)) {
+	unsigned int index = Cudd_Regular(scan)->index;
 	cuddGetBranches(scan,&t,&e);
-	if (t == zero) {
+	if (t == lzero) {
 	    array[index] = 0;
 	    scan = e;
-	} else if (e == zero) {
+	} else if (e == lzero) {
 	    array[index] = 1;
 	    scan = t;
 	} else {
 	    return(0);	/* cube is not a cube */
 	}
     }
-    if (scan == zero) {
+    if (scan == lzero) {
 	return(0);
     } else {
 	return(1);
@@ -2389,23 +2472,23 @@ Cudd_BddToCubeArray(
 } /* end of Cudd_BddToCubeArray */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the first node of a decision diagram.
 
-  Synopsis    [Finds the first node of a decision diagram.]
+  @details Defines an iterator on the nodes of a decision diagram and
+  finds its first node.  The nodes are enumerated in a reverse
+  topological order, so that a node is always preceded in the
+  enumeration by its descendants.
 
-  Description [Defines an iterator on the nodes of a decision diagram
-  and finds its first node. Returns a generator that contains the
-  information necessary to continue the enumeration if successful;
-  NULL otherwise.  The nodes are enumerated in a reverse topological
-  order, so that a node is always preceded in the enumeration by its
-  descendants.]
+  @return a generator that contains the information necessary to
+  continue the enumeration if successful; NULL otherwise.
 
-  SideEffects [The first node is returned as a side effect.]
+  @sideeffect The first node is returned as a side effect.
 
-  SeeAlso     [Cudd_ForeachNode Cudd_NextNode Cudd_GenFree Cudd_IsGenEmpty
-  Cudd_FirstCube]
+  @see Cudd_ForeachNode Cudd_NextNode Cudd_GenFree Cudd_IsGenEmpty
+  Cudd_FirstCube
 
-******************************************************************************/
+*/
 DdGen *
 Cudd_FirstNode(
   DdManager * dd,
@@ -2452,19 +2535,17 @@ Cudd_FirstNode(
 } /* end of Cudd_FirstNode */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the next node of a decision diagram.
 
-  Synopsis    [Finds the next node of a decision diagram.]
+  @return 0 if the enumeration is completed; 1 otherwise.
 
-  Description [Finds the node of a decision diagram, using generator
-  gen. Returns 0 if the enumeration is completed; 1 otherwise.]
+  @sideeffect The next node is returned as a side effect.
 
-  SideEffects [The next node is returned as a side effect.]
+  @see Cudd_ForeachNode Cudd_FirstNode Cudd_GenFree Cudd_IsGenEmpty
+  Cudd_NextCube
 
-  SeeAlso     [Cudd_ForeachNode Cudd_FirstNode Cudd_GenFree Cudd_IsGenEmpty
-  Cudd_NextCube]
-
-******************************************************************************/
+*/
 int
 Cudd_NextNode(
   DdGen * gen,
@@ -2484,19 +2565,17 @@ Cudd_NextNode(
 } /* end of Cudd_NextNode */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees a CUDD generator.
 
-  Synopsis    [Frees a CUDD generator.]
+  @return always 0.
 
-  Description [Frees a CUDD generator. Always returns 0, so that it can
-  be used in mis-like foreach constructs.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ForeachCube Cudd_ForeachNode Cudd_FirstCube Cudd_NextCube
+  Cudd_FirstNode Cudd_NextNode Cudd_IsGenEmpty
 
-  SeeAlso     [Cudd_ForeachCube Cudd_ForeachNode Cudd_FirstCube Cudd_NextCube
-  Cudd_FirstNode Cudd_NextNode Cudd_IsGenEmpty]
-
-******************************************************************************/
+*/
 int
 Cudd_GenFree(
   DdGen * gen)
@@ -2524,19 +2603,17 @@ Cudd_GenFree(
 } /* end of Cudd_GenFree */
 
 
-/**Function********************************************************************
+/**
+  @brief Queries the status of a generator.
 
-  Synopsis    [Queries the status of a generator.]
+  @return 1 if the generator is empty or NULL; 0 otherswise.
 
-  Description [Queries the status of a generator. Returns 1 if the
-  generator is empty or NULL; 0 otherswise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_ForeachCube Cudd_ForeachNode Cudd_FirstCube Cudd_NextCube
+  Cudd_FirstNode Cudd_NextNode Cudd_GenFree
 
-  SeeAlso     [Cudd_ForeachCube Cudd_ForeachNode Cudd_FirstCube Cudd_NextCube
-  Cudd_FirstNode Cudd_NextNode Cudd_GenFree]
-
-******************************************************************************/
+*/
 int
 Cudd_IsGenEmpty(
   DdGen * gen)
@@ -2547,18 +2624,16 @@ Cudd_IsGenEmpty(
 } /* end of Cudd_IsGenEmpty */
 
 
-/**Function********************************************************************
+/**
+  @brief Builds a cube of %BDD variables from an array of indices.
 
-  Synopsis    [Builds a cube of BDD variables from an array of indices.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Builds a cube of BDD variables from an array of indices.
-  Returns a pointer to the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddComputeCube Cudd_CubeArrayToBdd
 
-  SeeAlso     [Cudd_bddComputeCube Cudd_CubeArrayToBdd]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_IndicesToCube(
   DdManager * dd,
@@ -2587,17 +2662,12 @@ Cudd_IndicesToCube(
 } /* end of Cudd_IndicesToCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints the package version number.
 
-  Synopsis    [Prints the package version number.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 Cudd_PrintVersion(
   FILE * fp)
@@ -2607,19 +2677,15 @@ Cudd_PrintVersion(
 } /* end of Cudd_PrintVersion */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the average distance between adjacent nodes in the manager.
 
-  Synopsis    [Computes the average distance between adjacent nodes.]
+  @details Adjacent nodes are node pairs such that the second node
+  is the then child, else child, or next node in the collision list.
 
-  Description [Computes the average distance between adjacent nodes in
-  the manager. Adjacent nodes are node pairs such that the second node
-  is the then child, else child, or next node in the collision list.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 double
 Cudd_AverageDistance(
   DdManager * dd)
@@ -2691,128 +2757,127 @@ Cudd_AverageDistance(
 } /* end of Cudd_AverageDistance */
 
 
-/**Function********************************************************************
+/**
+  @brief Portable random number generator.
 
-  Synopsis    [Portable random number generator.]
+  @details Based on ran2 from "Numerical Recipes in C." It is a long
+  period (> 2 * 10^18) random number generator of L'Ecuyer with
+  Bays-Durham shuffle.  The random generator can be explicitly
+  initialized by calling Cudd_Srandom. If no explicit initialization
+  is performed, then the seed 1 is assumed.
 
-  Description [Portable number generator based on ran2 from "Numerical
-  Recipes in C." It is a long period (> 2 * 10^18) random number generator
-  of L'Ecuyer with Bays-Durham shuffle. Returns a long integer uniformly
-  distributed between 0 and 2147483561 (inclusive of the endpoint values).
-  The random generator can be explicitly initialized by calling
-  Cudd_Srandom. If no explicit initialization is performed, then the
-  seed 1 is assumed.]
+  @return a long integer uniformly distributed between 0 and
+  2147483561 (inclusive of the endpoint values).
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_Srandom]
+  @see Cudd_Srandom
 
-******************************************************************************/
-long
-Cudd_Random(void)
+*/
+int32_t
+Cudd_Random(DdManager *dd)
 {
     int i;	/* index in the shuffle table */
-    long int w; /* work variable */
+    int32_t w;	/* work variable */
 
-    /* cuddRand == 0 if the geneartor has not been initialized yet. */
-    if (cuddRand == 0) Cudd_Srandom(1);
+    /* dd->cuddRand == 0 if the geneartor has not been initialized yet. */
+    if (dd->cuddRand == 0) Cudd_Srandom(dd,1);
 
     /* Compute cuddRand = (cuddRand * LEQA1) % MODULUS1 avoiding
     ** overflows by Schrage's method.
     */
-    w          = cuddRand / LEQQ1;
-    cuddRand   = LEQA1 * (cuddRand - w * LEQQ1) - w * LEQR1;
-    cuddRand  += (cuddRand < 0) * MODULUS1;
+    w          = dd->cuddRand / LEQQ1;
+    dd->cuddRand   = LEQA1 * (dd->cuddRand - w * LEQQ1) - w * LEQR1;
+    dd->cuddRand  += (dd->cuddRand < 0) * MODULUS1;
 
-    /* Compute cuddRand2 = (cuddRand2 * LEQA2) % MODULUS2 avoiding
+    /* Compute dd->cuddRand2 = (dd->cuddRand2 * LEQA2) % MODULUS2 avoiding
     ** overflows by Schrage's method.
     */
-    w          = cuddRand2 / LEQQ2;
-    cuddRand2  = LEQA2 * (cuddRand2 - w * LEQQ2) - w * LEQR2;
-    cuddRand2 += (cuddRand2 < 0) * MODULUS2;
+    w          = dd->cuddRand2 / LEQQ2;
+    dd->cuddRand2  = LEQA2 * (dd->cuddRand2 - w * LEQQ2) - w * LEQR2;
+    dd->cuddRand2 += (dd->cuddRand2 < 0) * MODULUS2;
 
-    /* cuddRand is shuffled with the Bays-Durham algorithm.
-    ** shuffleSelect and cuddRand2 are combined to generate the output.
+    /* dd->cuddRand is shuffled with the Bays-Durham algorithm.
+    ** dd->shuffleSelect and cuddRand2 are combined to generate the output.
     */
 
     /* Pick one element from the shuffle table; "i" will be in the range
     ** from 0 to STAB_SIZE-1.
     */
-    i = (int) (shuffleSelect / STAB_DIV);
+    i = (int) (dd->shuffleSelect / STAB_DIV);
     /* Mix the element of the shuffle table with the current iterate of
     ** the second sub-generator, and replace the chosen element of the
     ** shuffle table with the current iterate of the first sub-generator.
     */
-    shuffleSelect   = shuffleTable[i] - cuddRand2;
-    shuffleTable[i] = cuddRand;
-    shuffleSelect  += (shuffleSelect < 1) * (MODULUS1 - 1);
-    /* Since shuffleSelect != 0, and we want to be able to return 0,
+    dd->shuffleSelect   = dd->shuffleTable[i] - dd->cuddRand2;
+    dd->shuffleTable[i] = dd->cuddRand;
+    dd->shuffleSelect  += (dd->shuffleSelect < 1) * (MODULUS1 - 1);
+    /* Since dd->shuffleSelect != 0, and we want to be able to return 0,
     ** here we subtract 1 before returning.
     */
-    return(shuffleSelect - 1);
+    return(dd->shuffleSelect - 1);
 
 } /* end of Cudd_Random */
 
 
-/**Function********************************************************************
+/**
+  @brief Initializer for the portable random number generator.
 
-  Synopsis    [Initializer for the portable random number generator.]
+  @details Based on ran2 in "Numerical Recipes in C." The input is the
+  seed for the generator. If it is negative, its absolute value is
+  taken as seed.  If it is 0, then 1 is taken as seed. The initialized
+  sets up the two recurrences used to generate a long-period stream,
+  and sets up the shuffle table.
 
-  Description [Initializer for the portable number generator based on
-  ran2 in "Numerical Recipes in C." The input is the seed for the
-  generator. If it is negative, its absolute value is taken as seed.
-  If it is 0, then 1 is taken as seed. The initialized sets up the two
-  recurrences used to generate a long-period stream, and sets up the
-  shuffle table.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_Random
 
-  SeeAlso     [Cudd_Random]
-
-******************************************************************************/
+*/
 void
 Cudd_Srandom(
-  long  seed)
+  DdManager *dd,
+  int32_t  seed)
 {
-    int i;
+    int32_t i;
 
-    if (seed < 0)       cuddRand = -seed;
-    else if (seed == 0) cuddRand = 1;
-    else                cuddRand = seed;
-    cuddRand2 = cuddRand;
+    if (seed < 0)       dd->cuddRand = -seed;
+    else if (seed == 0) dd->cuddRand = 1;
+    else                dd->cuddRand = seed;
+    dd->cuddRand2 = dd->cuddRand;
     /* Load the shuffle table (after 11 warm-ups). */
     for (i = 0; i < STAB_SIZE + 11; i++) {
-	long int w;
-	w = cuddRand / LEQQ1;
-	cuddRand = LEQA1 * (cuddRand - w * LEQQ1) - w * LEQR1;
-	cuddRand += (cuddRand < 0) * MODULUS1;
-	shuffleTable[i % STAB_SIZE] = cuddRand;
+	int32_t w;
+	w = dd->cuddRand / LEQQ1;
+	dd->cuddRand = LEQA1 * (dd->cuddRand - w * LEQQ1) - w * LEQR1;
+	dd->cuddRand += (dd->cuddRand < 0) * MODULUS1;
+	dd->shuffleTable[i % STAB_SIZE] = dd->cuddRand;
     }
-    shuffleSelect = shuffleTable[1 % STAB_SIZE];
+    dd->shuffleSelect = dd->shuffleTable[1 % STAB_SIZE];
 
 } /* end of Cudd_Srandom */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the density of a %BDD or %ADD.
 
-  Synopsis    [Computes the density of a BDD or ADD.]
+  @details The density is the ratio of the number of minterms to the
+  number of nodes. If 0 is passed as number of variables, the number
+  of variables existing in the manager is used.
 
-  Description [Computes the density of a BDD or ADD. The density is
-  the ratio of the number of minterms to the number of nodes. If 0 is
-  passed as number of variables, the number of variables existing in
-  the manager is used. Returns the density if successful; (double)
-  CUDD_OUT_OF_MEM otherwise.]
+  @return the density if successful; (double) CUDD_OUT_OF_MEM
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_CountMinterm Cudd_DagSize]
+  @see Cudd_CountMinterm Cudd_DagSize
 
-******************************************************************************/
+*/
 double
 Cudd_Density(
-  DdManager * dd /* manager */,
-  DdNode * f /* function whose density is sought */,
-  int  nvars /* size of the support of f */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< function whose density is sought */,
+  int  nvars /**< size of the support of f */)
 {
     double minterms;
     int nodes;
@@ -2828,28 +2893,51 @@ Cudd_Density(
 } /* end of Cudd_Density */
 
 
-/**Function********************************************************************
+/**
+  @brief Warns that a memory allocation failed.
 
-  Synopsis    [Warns that a memory allocation failed.]
+  @details This function can be used as replacement of MMout_of_memory
+  to prevent the safe_mem functions of the util package from exiting
+  when malloc returns NULL.  One possible use is in case of
+  discretionary allocations; for instance, an allocation of memory to
+  enlarge the computed table.
 
-  Description [Warns that a memory allocation failed.
-  This function can be used as replacement of MMout_of_memory to prevent
-  the safe_mem functions of the util package from exiting when malloc
-  returns NULL. One possible use is in case of discretionary allocations;
-  for instance, the allocation of memory to enlarge the computed table.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_OutOfMemSilent Cudd_RegisterOutOfMemoryCallback
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 Cudd_OutOfMem(
-  size_t size /* size of the allocation that failed */)
+  size_t size /**< size of the allocation that failed */)
 {
     (void) fflush(stdout);
     (void) fprintf(stderr, "\nCUDD: unable to allocate %" PRIszt " bytes\n",
                    size);
+
+} /* end of Cudd_OutOfMem */
+
+
+/**
+  @brief Doesn not warn that a memory allocation failed.
+
+  @details This function can be used as replacement of MMout_of_memory
+  to prevent the safe_mem functions of the util package from exiting
+  when malloc returns NULL.  One possible use is in case of
+  discretionary allocations; for instance, an allocation of memory to
+  enlarge the computed table.
+
+  @sideeffect None
+
+  @see Cudd_OutOfMem Cudd_RegisterOutOfMemoryCallback
+
+*/
+void
+Cudd_OutOfMemSilent(
+  size_t size /**< size of the allocation that failed */)
+{
+    (void) size; /* suppress warning */
+
 } /* end of Cudd_OutOfMem */
 
 
@@ -2858,19 +2946,17 @@ Cudd_OutOfMem(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a %DD to the standard output. One line per node is
+  printed.
 
-  Synopsis    [Prints a DD to the standard output. One line per node is
-  printed.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Prints a DD to the standard output. One line per node is
-  printed. Returns 1 if successful; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_PrintDebug
 
-  SeeAlso     [Cudd_PrintDebug]
-
-******************************************************************************/
+*/
 int
 cuddP(
   DdManager * dd,
@@ -2889,47 +2975,44 @@ cuddP(
 } /* end of cuddP */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees the memory used to store the minterm counts recorded
+  in the visited table.
 
-  Synopsis [Frees the memory used to store the minterm counts recorded
-  in the visited table.]
+  @return ST_CONTINUE.
 
-  Description [Frees the memory used to store the minterm counts
-  recorded in the visited table. Returns ST_CONTINUE.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 enum st_retval
 cuddStCountfree(
-  char * key,
-  char * value,
-  char * arg)
+  void * key,
+  void * value,
+  void * arg)
 {
-    double	*d;
+    double *d = (double *)value;
 
-    d = (double *)value;
+    (void) key; /* avoid warning */
+    (void) arg; /* avoid warning */
     FREE(d);
     return(ST_CONTINUE);
 
 } /* end of cuddStCountfree */
 
 
-/**Function********************************************************************
+/**
+  @brief Recursively collects all the nodes of a %DD in a symbol
+  table.
 
-  Synopsis    [Recursively collects all the nodes of a DD in a symbol
-  table.]
-
-  Description [Traverses the DD f and collects all its nodes in a
+  @details Traverses the %DD f and collects all its nodes in a
   symbol table.  f is assumed to be a regular pointer and
   cuddCollectNodes guarantees this assumption in the recursive calls.
-  Returns 1 in case of success; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddCollectNodes(
   DdNode * f,
@@ -2943,7 +3026,7 @@ cuddCollectNodes(
 #endif
 
     /* If already visited, nothing to do. */
-    if (st_is_member(visited, (char *) f) == 1)
+    if (st_is_member(visited, f) == 1)
 	return(1);
 
     /* Check for abnormal condition that should never happen. */
@@ -2951,7 +3034,7 @@ cuddCollectNodes(
 	return(0);
 
     /* Mark node as visited. */
-    if (st_add_direct(visited, (char *) f, NULL) == ST_OUT_OF_MEM)
+    if (st_add_direct(visited, f, NULL) == ST_OUT_OF_MEM)
 	return(0);
 
     /* Check terminal case. */
@@ -2969,21 +3052,22 @@ cuddCollectNodes(
 } /* end of cuddCollectNodes */
 
 
-/**Function********************************************************************
+/**
+  @brief Recursively collects all the nodes of a %DD in an array.
 
-  Synopsis    [Recursively collects all the nodes of a DD in an array.]
+  @details Traverses the %DD f and collects all its nodes in an array.
+  The caller should free the array returned by cuddNodeArray.  The
+  nodes are collected in reverse topological order, so that a node is
+  always preceded in the array by all its descendants.
 
-  Description [Traverses the DD f and collects all its nodes in an array.
-  The caller should free the array returned by cuddNodeArray.
-  Returns a pointer to the array of nodes in case of success; NULL
-  otherwise.  The nodes are collected in reverse topological order, so
-  that a node is always preceded in the array by all its descendants.]
+  @return a pointer to the array of nodes in case of success; NULL
+  otherwise.
 
-  SideEffects [The number of nodes is returned as a side effect.]
+  @sideeffect The number of nodes is returned as a side effect.
 
-  SeeAlso     [Cudd_FirstNode]
+  @see Cudd_FirstNode
 
-******************************************************************************/
+*/
 DdNodePtr *
 cuddNodeArray(
   DdNode *f,
@@ -3013,16 +3097,14 @@ cuddNodeArray(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of cuddP.
 
-  Synopsis    [Performs the recursive step of cuddP.]
+  @return 1 in case of success; 0 otherwise.
 
-  Description [Performs the recursive step of cuddP. Returns 1 in case
-  of success; 0 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 dp2(
   DdManager *dd,
@@ -3041,10 +3123,10 @@ dp2(
 		(ptruint) g / (ptruint) sizeof(DdNode),cuddV(g));
 	return(1);
     }
-    if (st_is_member(t,(char *) g) == 1) {
+    if (st_is_member(t,g) == 1) {
 	return(1);
     }
-    if (st_add_direct(t,(char *) g,NULL) == ST_OUT_OF_MEM)
+    if (st_add_direct(t,g,NULL) == ST_OUT_OF_MEM)
 	return(0);
 #ifdef DD_STATS
     (void) fprintf(dd->out,"ID = %c0x%"PRIxPTR"\tindex = %d\tr = %d\t", bang(f),
@@ -3086,23 +3168,21 @@ dp2(
 } /* end of dp2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_PrintMinterm.
 
-  Synopsis    [Performs the recursive step of Cudd_PrintMinterm.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 ddPrintMintermAux(
-  DdManager * dd /* manager */,
-  DdNode * node /* current node */,
-  int * list /* current recursion path */)
+  DdManager * dd /**< manager */,
+  DdNode * node /**< current node */,
+  int * list /**< current recursion path */)
 {
-    DdNode	*N,*Nv,*Nnv;
-    int		i,v,index;
+    DdNode	 *N,*Nv,*Nnv;
+    int		 i,v;
+    unsigned int index;
 
     N = Cudd_Regular(node);
 
@@ -3111,7 +3191,7 @@ ddPrintMintermAux(
 	** path, unless we have reached the background value (ADDs) or
 	** the logical zero (BDDs).
 	*/
-	if (node != background && node != zero) {
+	if (node != dd->background && node != Cudd_Not(dd->one)) {
 	    for (i = 0; i < dd->size; i++) {
 		v = list[i];
 		if (v == 0) (void) fprintf(dd->out,"0");
@@ -3139,16 +3219,14 @@ ddPrintMintermAux(
 } /* end of ddPrintMintermAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_DagSize.
 
-  Synopsis    [Performs the recursive step of Cudd_DagSize.]
+  @return the number of nodes in the graph rooted at n.
 
-  Description [Performs the recursive step of Cudd_DagSize. Returns the
-  number of nodes in the graph rooted at n.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 ddDagInt(
   DdNode * n)
@@ -3169,21 +3247,19 @@ ddDagInt(
 } /* end of ddDagInt */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of cuddNodeArray.
 
-  Synopsis    [Performs the recursive step of cuddNodeArray.]
+  @details node is supposed to be regular; the invariant is maintained
+  by this procedure.
 
-  Description [Performs the recursive step of cuddNodeArray.  Returns
-  an the number of nodes in the DD.  Clear the least significant bit
-  of the next field that was used as visited flag by
-  cuddNodeArrayRecur when counting the nodes.  node is supposed to be
-  regular; the invariant is maintained by this procedure.]
+  @return an the number of nodes in the %DD.
 
-  SideEffects [None]
+  @sideeffect Clears the least significant bit of the next field that
+  was used as visited flag by cuddNodeArrayRecur when counting the
+  nodes.
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddNodeArrayRecur(
   DdNode *f,
@@ -3209,21 +3285,19 @@ cuddNodeArrayRecur(
 } /* end of cuddNodeArrayRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_CofactorEstimate.
 
-  Synopsis    [Performs the recursive step of Cudd_CofactorEstimate.]
+  @details Uses the least significant bit of the next field as visited
+  flag. node is supposed to be regular; the invariant is maintained by
+  this procedure.
 
-  Description [Performs the recursive step of Cudd_CofactorEstimate.
-  Returns an estimate of the number of nodes in the DD of a
-  cofactor of node. Uses the least significant bit of the next field as
-  visited flag. node is supposed to be regular; the invariant is maintained
-  by this procedure.]
+  @return an estimate of the number of nodes in the %DD of a cofactor
+  of node.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddEstimateCofactor(
   DdManager *dd,
@@ -3236,10 +3310,12 @@ cuddEstimateCofactor(
     int tval, eval, val;
     DdNode *ptrT, *ptrE;
 
+#ifdef DD_DEBUG
+    assert(!Cudd_IsComplement(node));
+#endif
     if (Cudd_IsComplement(node->next)) {
-	if (!st_lookup(table,(char *)node,(char **)ptr)) {
-	    if (st_add_direct(table,(char *)node,(char *)node) ==
-		ST_OUT_OF_MEM)
+	if (!st_lookup(table, node, (void **)ptr)) {
+	    if (st_add_direct(table, node, node) == ST_OUT_OF_MEM)
 		return(CUDD_OUT_OF_MEM);
 	    *ptr = node;
 	}
@@ -3248,7 +3324,7 @@ cuddEstimateCofactor(
     node->next = Cudd_Not(node->next);
     if (cuddIsConstant(node)) {
 	*ptr = node;
-	if (st_add_direct(table,(char *)node,(char *)node) == ST_OUT_OF_MEM)
+	if (st_add_direct(table, node, node) == ST_OUT_OF_MEM)
 	    return(CUDD_OUT_OF_MEM);
 	return(1);
     }
@@ -3261,69 +3337,73 @@ cuddEstimateCofactor(
 	    val = ddDagInt(Cudd_Regular(cuddE(node)));
 	}
 	if (node->ref > 1) {
-	    if (st_add_direct(table,(char *)node,(char *)*ptr) ==
-		ST_OUT_OF_MEM)
+	    if (st_add_direct(table,node,*ptr) == ST_OUT_OF_MEM)
 		return(CUDD_OUT_OF_MEM);
 	}
 	return(val);
     }
     if (dd->perm[node->index] > dd->perm[i]) {
 	*ptr = node;
-	tval = ddDagInt(cuddT(node));
-	eval = ddDagInt(Cudd_Regular(cuddE(node)));
 	if (node->ref > 1) {
-	    if (st_add_direct(table,(char *)node,(char *)node) ==
-		ST_OUT_OF_MEM)
+	    if (st_add_direct(table,node,node) == ST_OUT_OF_MEM)
 		return(CUDD_OUT_OF_MEM);
 	}
-	val = 1 + tval + eval;
+	val = 1 + ddDagInt(cuddT(node)) + ddDagInt(Cudd_Regular(cuddE(node)));
 	return(val);
     }
     tval = cuddEstimateCofactor(dd,table,cuddT(node),i,phase,&ptrT);
+    if (tval == CUDD_OUT_OF_MEM) return(CUDD_OUT_OF_MEM);
     eval = cuddEstimateCofactor(dd,table,Cudd_Regular(cuddE(node)),i,
 				phase,&ptrE);
+    if (eval == CUDD_OUT_OF_MEM) return(CUDD_OUT_OF_MEM);
     ptrE = Cudd_NotCond(ptrE,Cudd_IsComplement(cuddE(node)));
     if (ptrT == ptrE) {		/* recombination */
 	*ptr = ptrT;
 	val = tval;
 	if (node->ref > 1) {
-	    if (st_add_direct(table,(char *)node,(char *)*ptr) ==
-		    ST_OUT_OF_MEM)
-		return(CUDD_OUT_OF_MEM);
-	}
-    } else if ((ptrT != cuddT(node) || ptrE != cuddE(node)) &&
-	       (*ptr = cuddUniqueLookup(dd,node->index,ptrT,ptrE)) != NULL) {
-	if (Cudd_IsComplement((*ptr)->next)) {
-	    val = 0;
-	} else {
-	    val = 1 + tval + eval;
-	}
-	if (node->ref > 1) {
-	    if (st_add_direct(table,(char *)node,(char *)*ptr) ==
-		    ST_OUT_OF_MEM)
+	    if (st_add_direct(table,node,*ptr) == ST_OUT_OF_MEM)
 		return(CUDD_OUT_OF_MEM);
 	}
     } else {
-	*ptr = node;
-	val = 1 + tval + eval;
+        int complement = Cudd_IsComplement(ptrT);
+        if (complement) {
+            ptrT = Cudd_Regular(ptrT);
+            ptrE = Cudd_Complement(ptrE);
+        }
+        if ((ptrT != cuddT(node) || ptrE != cuddE(node)) &&
+            (*ptr = cuddUniqueLookup(dd,node->index,ptrT,ptrE)) != NULL) {
+            if (Cudd_IsComplement((*ptr)->next)) {
+                val = 0;
+            } else {
+                val = 1 + tval + eval;
+            }
+            if (node->ref > 1) {
+                if (st_add_direct(table,node,*ptr) == ST_OUT_OF_MEM)
+                    return(CUDD_OUT_OF_MEM);
+            }
+            if (complement) {
+                *ptr = Cudd_Complement(*ptr);
+            }
+        } else {
+            *ptr = node;
+            val = 1 + tval + eval;
+        }
     }
     return(val);
 
 } /* end of cuddEstimateCofactor */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks the unique table for the existence of an internal node.
 
-  Synopsis    [Checks the unique table for the existence of an internal node.]
+  @return a pointer to the node if it is in the table; NULL otherwise.
 
-  Description [Checks the unique table for the existence of an internal
-  node. Returns a pointer to the node if it is in the table; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see cuddUniqueInter
 
-  SeeAlso     [cuddUniqueInter]
-
-******************************************************************************/
+*/
 static DdNode *
 cuddUniqueLookup(
   DdManager * unique,
@@ -3331,8 +3411,8 @@ cuddUniqueLookup(
   DdNode * T,
   DdNode * E)
 {
-    int posn;
-    unsigned int level;
+    unsigned int posn;
+    int level;
     DdNodePtr *nodelist;
     DdNode *looking;
     DdSubtable *subtable;
@@ -3345,8 +3425,8 @@ cuddUniqueLookup(
     subtable = &(unique->subtables[level]);
 
 #ifdef DD_DEBUG
-    assert(level < (unsigned) cuddI(unique,T->index));
-    assert(level < (unsigned) cuddI(unique,Cudd_Regular(E)->index));
+    assert(level < cuddI(unique,T->index));
+    assert(level < cuddI(unique,Cudd_Regular(E)->index));
 #endif
 
     posn = ddHash(T, E, subtable->shift);
@@ -3368,21 +3448,19 @@ cuddUniqueLookup(
 } /* end of cuddUniqueLookup */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_CofactorEstimateSimple.
 
-  Synopsis    [Performs the recursive step of Cudd_CofactorEstimateSimple.]
+  @details Uses the least significant bit of the next field as visited
+  flag. node is supposed to be regular; the invariant is maintained by
+  this procedure.
 
-  Description [Performs the recursive step of Cudd_CofactorEstimateSimple.
-  Returns an estimate of the number of nodes in the DD of the positive
-  cofactor of node. Uses the least significant bit of the next field as
-  visited flag. node is supposed to be regular; the invariant is maintained
-  by this procedure.]
+  @return an estimate of the number of nodes in the %DD of the positive
+  cofactor of node.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 cuddEstimateCofactorSimple(
   DdNode * node,
@@ -3405,26 +3483,26 @@ cuddEstimateCofactorSimple(
 } /* end of cuddEstimateCofactorSimple */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_CountMinterm.
 
-  Synopsis    [Performs the recursive step of Cudd_CountMinterm.]
-
-  Description [Performs the recursive step of Cudd_CountMinterm.
-  It is based on the following identity. Let |f| be the
+  @details It is based on the following identity. Let |f| be the
   number of minterms of f. Then:
-  <xmp>
-    |f| = (|f0|+|f1|)/2
-  </xmp>
+
+      |f| = (|f0|+|f1|)/2
+
   where f0 and f1 are the two cofactors of f.  Does not use the
   identity |f'| = max - |f|, to minimize loss of accuracy due to
-  roundoff.  Returns the number of minterms of the function rooted at
-  node.]
+  roundoff.
 
-  SideEffects [None]
+  @return the number of minterms of the function rooted at node.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static double
 ddCountMintermAux(
+  DdManager * dd,
   DdNode * node,
   double  max,
   DdHashTable * table)
@@ -3436,7 +3514,7 @@ ddCountMintermAux(
     N = Cudd_Regular(node);
 
     if (cuddIsConstant(N)) {
-	if (node == background || node == zero) {
+	if (node == dd->background || node == Cudd_Not(dd->one)) {
 	    return(0.0);
 	} else {
 	    return(max);
@@ -3456,10 +3534,10 @@ ddCountMintermAux(
 	Nt = Cudd_Not(Nt); Ne = Cudd_Not(Ne);
     }
 
-    minT = ddCountMintermAux(Nt,max,table);
+    minT = ddCountMintermAux(dd,Nt,max,table);
     if (minT == (double)CUDD_OUT_OF_MEM) return((double)CUDD_OUT_OF_MEM);
     minT *= 0.5;
-    minE = ddCountMintermAux(Ne,max,table);
+    minE = ddCountMintermAux(dd,Ne,max,table);
     if (minE == (double)CUDD_OUT_OF_MEM) return((double)CUDD_OUT_OF_MEM);
     minE *= 0.5;
     min = minT + minE;
@@ -3468,6 +3546,9 @@ ddCountMintermAux(
 	ptrint fanout = (ptrint) N->ref;
 	cuddSatDec(fanout);
 	res = cuddUniqueConst(table->manager,min);
+	if (!res) {
+	    return((double)CUDD_OUT_OF_MEM);
+	}
 	if (!cuddHashTableInsert1(table,node,res,fanout)) {
 	    cuddRef(res); Cudd_RecursiveDeref(table->manager, res);
 	    return((double)CUDD_OUT_OF_MEM);
@@ -3479,23 +3560,22 @@ ddCountMintermAux(
 } /* end of ddCountMintermAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_CountPath.
 
-  Synopsis    [Performs the recursive step of Cudd_CountPath.]
-
-  Description [Performs the recursive step of Cudd_CountPath.
-  It is based on the following identity. Let |f| be the
+  @details It is based on the following identity. Let |f| be the
   number of paths of f. Then:
-  <xmp>
-    |f| = |f0|+|f1|
-  </xmp>
+
+      |f| = |f0|+|f1|
+
   where f0 and f1 are the two cofactors of f.  Uses the
   identity |f'| = |f|, to improve the utilization of the (local) cache.
-  Returns the number of paths of the function rooted at node.]
 
-  SideEffects [None]
+  @return the number of paths of the function rooted at node.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static double
 ddCountPathAux(
   DdNode * node,
@@ -3504,14 +3584,14 @@ ddCountPathAux(
 
     DdNode	*Nv, *Nnv;
     double	paths, *ppaths, paths1, paths2;
-    double	*dummy;
+    void	*dummy;
 
 
     if (cuddIsConstant(node)) {
 	return(1.0);
     }
     if (st_lookup(table, node, &dummy)) {
-	paths = *dummy;
+	paths = *(double *) dummy;
 	return(paths);
     }
 
@@ -3530,7 +3610,7 @@ ddCountPathAux(
 
     *ppaths = paths;
 
-    if (st_add_direct(table,(char *)node, (char *)ppaths) == ST_OUT_OF_MEM) {
+    if (st_add_direct(table, node, ppaths) == ST_OUT_OF_MEM) {
 	FREE(ppaths);
 	return((double)CUDD_OUT_OF_MEM);
     }
@@ -3539,26 +3619,26 @@ ddCountPathAux(
 } /* end of ddCountPathAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_EpdCountMinterm.
 
-  Synopsis    [Performs the recursive step of Cudd_EpdCountMinterm.]
-
-  Description [Performs the recursive step of Cudd_EpdCountMinterm.
-  It is based on the following identity. Let |f| be the
+  @details It is based on the following identity. Let |f| be the
   number of minterms of f. Then:
-  <xmp>
-    |f| = (|f0|+|f1|)/2
-  </xmp>
+
+      |f| = (|f0|+|f1|)/2
+
   where f0 and f1 are the two cofactors of f.  Does not use the
   identity |f'| = max - |f|, to minimize loss of accuracy due to
-  roundoff.  Returns the number of minterms of the function rooted at
-  node.]
+  roundoff.
 
-  SideEffects [None]
+  @return the number of minterms of the function rooted at node.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddEpdCountMintermAux(
+  DdManager const * dd,
   DdNode * node,
   EpDouble * max,
   EpDouble * epd,
@@ -3571,24 +3651,24 @@ ddEpdCountMintermAux(
 
     /* node is assumed to be regular */
     if (cuddIsConstant(node)) {
-	if (node == background || node == zero) {
+	if (node == dd->background) {
 	    EpdMakeZero(epd, 0);
 	} else {
 	    EpdCopy(max, epd);
 	}
 	return(0);
     }
-    if (node->ref != 1 && st_lookup(table, node, &res)) {
+    if (node->ref != 1 && st_lookup(table, node, (void **) &res)) {
 	EpdCopy(res, epd);
 	return(0);
     }
 
     Nt = cuddT(node); Ne = cuddE(node);
 
-    status = ddEpdCountMintermAux(Nt,max,&minT,table);
+    status = ddEpdCountMintermAux(dd,Nt,max,&minT,table);
     if (status == CUDD_OUT_OF_MEM) return(CUDD_OUT_OF_MEM);
     EpdMultiply(&minT, (double)0.5);
-    status = ddEpdCountMintermAux(Cudd_Regular(Ne),max,&minE,table);
+    status = ddEpdCountMintermAux(dd,Cudd_Regular(Ne),max,&minE,table);
     if (status == CUDD_OUT_OF_MEM) return(CUDD_OUT_OF_MEM);
     if (Cudd_IsComplement(Ne)) {
 	EpdSubtract3(max, &minE, epd);
@@ -3602,7 +3682,7 @@ ddEpdCountMintermAux(
 	if (!min)
 	    return(CUDD_OUT_OF_MEM);
 	EpdCopy(epd, min);
-	if (st_insert(table, (char *)node, (char *)min) == ST_OUT_OF_MEM) {
+	if (st_insert(table, node, min) == ST_OUT_OF_MEM) {
 	    EpdFree(min);
 	    return(CUDD_OUT_OF_MEM);
 	}
@@ -3613,22 +3693,88 @@ ddEpdCountMintermAux(
 } /* end of ddEpdCountMintermAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_LdblCountMinterm.
 
-  Synopsis    [Performs the recursive step of Cudd_CountPathsToNonZero.]
+  @details It is based on the following identity. Let |f| be the
+  number of minterms of f. Then:
 
-  Description [Performs the recursive step of Cudd_CountPathsToNonZero.
-  It is based on the following identity. Let |f| be the
+      |f| = (|f0|+|f1|)/2
+
+  where f0 and f1 are the two cofactors of f.  Does not use the
+  identity |f'| = max - |f|, to minimize loss of accuracy due to
+  roundoff.
+
+  @return the number of minterms of the function rooted at node.
+
+  @sideeffect None
+
+*/
+static long double
+ddLdblCountMintermAux(
+  DdManager const *manager,
+  DdNode *node,
+  long double max,
+  st_table *table)
+{
+    DdNode *t, *e;
+    long double min, minT, minE;
+    long double *res;
+    if (cuddIsConstant(node)) {
+        if (node == manager->background) {
+            return 0.0L;
+        } else {
+            return max;
+        }
+    }
+    if (node->ref != 1 && st_lookup(table, node, (void **) &res)) {
+        return *res;
+    }
+
+    t = cuddT(node); e = cuddE(node);
+
+    minT = ddLdblCountMintermAux(manager, t, max, table);
+    if (minT == (long double) CUDD_OUT_OF_MEM)
+        return((long double) CUDD_OUT_OF_MEM);
+    minT *= 0.5L;
+    minE = ddLdblCountMintermAux(manager, Cudd_Regular(e), max, table);
+    if (minE == (long double) CUDD_OUT_OF_MEM)
+        return((long double) CUDD_OUT_OF_MEM);
+    if (Cudd_IsComplement(e)) {
+        minE = max - minE;
+    }
+    minE *= 0.5L;
+    min = minT + minE;
+    if (node->ref != 1) {
+        res = ALLOC(long double, 1);
+        if (res == NULL)
+            return((long double) CUDD_OUT_OF_MEM);
+        *res = min;
+        if (st_insert(table, node, res) == ST_OUT_OF_MEM) {
+            FREE(res);
+            return((long double) CUDD_OUT_OF_MEM);
+        }
+    }
+    return(min);
+
+} /* end of ddLdblCountMintermAux */
+
+
+/**
+  @brief Performs the recursive step of Cudd_CountPathsToNonZero.
+
+  @details It is based on the following identity. Let |f| be the
   number of paths of f. Then:
-  <xmp>
-    |f| = |f0|+|f1|
-  </xmp>
-  where f0 and f1 are the two cofactors of f.  Returns the number of
-  paths of the function rooted at node.]
 
-  SideEffects [None]
+      |f| = |f0|+|f1|
 
-******************************************************************************/
+  where f0 and f1 are the two cofactors of f.
+
+  @return the number of paths of the function rooted at node.
+
+  @sideeffect None
+
+*/
 static double
 ddCountPathsToNonZero(
   DdNode * N,
@@ -3637,14 +3783,14 @@ ddCountPathsToNonZero(
 
     DdNode	*node, *Nt, *Ne;
     double	paths, *ppaths, paths1, paths2;
-    double	*dummy;
+    void	*dummy;
 
     node = Cudd_Regular(N);
     if (cuddIsConstant(node)) {
 	return((double) !(Cudd_IsComplement(N) || cuddV(node)==DD_ZERO_VAL));
     }
     if (st_lookup(table, N, &dummy)) {
-	paths = *dummy;
+	paths = *(double *) dummy;
 	return(paths);
     }
 
@@ -3666,7 +3812,7 @@ ddCountPathsToNonZero(
 
     *ppaths = paths;
 
-    if (st_add_direct(table,(char *)N, (char *)ppaths) == ST_OUT_OF_MEM) {
+    if (st_add_direct(table, N, ppaths) == ST_OUT_OF_MEM) {
 	FREE(ppaths);
 	return((double)CUDD_OUT_OF_MEM);
     }
@@ -3675,19 +3821,17 @@ ddCountPathsToNonZero(
 } /* end of ddCountPathsToNonZero */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_Support.
 
-  Synopsis    [Performs the recursive step of Cudd_Support.]
+  @details Performs a DFS from f. The support is accumulated in supp
+  as a side effect. Uses the LSB of the then pointer as visited flag.
 
-  Description [Performs the recursive step of Cudd_Support. Performs a
-  DFS from f. The support is accumulated in supp as a side effect. Uses
-  the LSB of the then pointer as visited flag.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see ddClearFlag
 
-  SeeAlso     [ddClearFlag]
-
-******************************************************************************/
+*/
 static void
 ddSupportStep(
   DdNode * f,
@@ -3705,18 +3849,14 @@ ddSupportStep(
 } /* end of ddSupportStep */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs a DFS from f, clearing the LSB of the next pointers.
 
-  Synopsis    [Performs a DFS from f, clearing the LSB of the next
-  pointers.]
+  @sideeffect None
 
-  Description []
+  @see ddSupportStep ddFindSupport ddLeavesInt ddDagInt
 
-  SideEffects [None]
-
-  SeeAlso     [ddSupportStep ddFindSupport ddLeavesInt ddDagInt]
-
-******************************************************************************/
+*/
 static void
 ddClearFlag(
   DdNode * f)
@@ -3736,18 +3876,16 @@ ddClearFlag(
 } /* end of ddClearFlag */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_CountLeaves.
 
-  Synopsis    [Performs the recursive step of Cudd_CountLeaves.]
+  @return the number of leaves in the %DD rooted at n.
 
-  Description [Performs the recursive step of Cudd_CountLeaves. Returns
-  the number of leaves in the DD rooted at n.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_CountLeaves
 
-  SeeAlso     [Cudd_CountLeaves]
-
-******************************************************************************/
+*/
 static int
 ddLeavesInt(
   DdNode * n)
@@ -3768,18 +3906,16 @@ ddLeavesInt(
 } /* end of ddLeavesInt */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddPickArbitraryMinterms.
 
-  Synopsis    [Performs the recursive step of Cudd_bddPickArbitraryMinterms.]
+  @return 1 if successful; 0 otherwise.
 
-  Description [Performs the recursive step of Cudd_bddPickArbitraryMinterms.
-  Returns 1 if successful; 0 otherwise.]
+  @sideeffect none
 
-  SideEffects [none]
+  @see Cudd_bddPickArbitraryMinterms
 
-  SeeAlso [Cudd_bddPickArbitraryMinterms]
-
-******************************************************************************/
+*/
 static int
 ddPickArbitraryMinterms(
   DdManager *dd,
@@ -3829,18 +3965,17 @@ ddPickArbitraryMinterms(
 } /* end of ddPickArbitraryMinterms */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds a representative cube of a %BDD.
 
-  Synopsis    [Finds a representative cube of a BDD.]
-
-  Description [Finds a representative cube of a BDD with the weight of
+  @details Finds a representative cube of a %BDD with the weight of
   each variable. From the top variable, if the weight is greater than or
   equal to 0.0, choose THEN branch unless the child is the constant 0.
-  Otherwise, choose ELSE branch unless the child is the constant 0.]
+  Otherwise, choose ELSE branch unless the child is the constant 0.
 
-  SideEffects [Cudd_SubsetWithMaskVars Cudd_bddPickOneCube]
+  @sideeffect Cudd_SubsetWithMaskVars Cudd_bddPickOneCube
 
-******************************************************************************/
+*/
 static int
 ddPickRepresentativeCube(
   DdManager *dd,
@@ -3893,53 +4028,51 @@ ddPickRepresentativeCube(
 } /* end of ddPickRepresentativeCube */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees the memory used to store the minterm counts recorded
+  in the visited table.
 
-  Synopsis [Frees the memory used to store the minterm counts recorded
-  in the visited table.]
+  @return ST_CONTINUE.
 
-  Description [Frees the memory used to store the minterm counts
-  recorded in the visited table. Returns ST_CONTINUE.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static enum st_retval
 ddEpdFree(
-  char * key,
-  char * value,
-  char * arg)
+  void * key,
+  void * value,
+  void * arg)
 {
-    EpDouble	*epd;
+    EpDouble *epd = (EpDouble *) value;
 
-    epd = (EpDouble *) value;
+    (void) key; /* avoid warning */
+    (void) arg; /* avoid warning */
     EpdFree(epd);
     return(ST_CONTINUE);
 
 } /* end of ddEpdFree */
 
 
-/**Function********************************************************************
+/**
+  @brief Recursively find the support of f.
 
-  Synopsis [Recursively find the support of f.]
+  @details This function uses the LSB of the next field of the nodes
+  of f as visited flag.  It also uses the LSB of the next field of the
+  variables as flag to remember whether a certain index has already
+  been seen.  Finally, it uses the manager stack to record all seen
+  indices.
 
-  Description [Recursively find the support of f.  This function uses the
-  LSB of the next field of the nodes of f as visited flag.  It also uses the
-  LSB of the next field of the variables as flag to remember whether a
-  certain index has already been seen.  Finally, it uses the manager stack
-  to record all seen indices.]
+  @sideeffect The stack pointer SP is modified by side-effect.  The next
+  fields are changed and need to be reset.
 
-  SideEffects [The stack pointer SP is modified by side-effect.  The next
-  fields are changed and need to be reset.]
-
-******************************************************************************/
+*/
 static void
 ddFindSupport(
   DdManager *dd,
   DdNode *f,
   int *SP)
 {
-    int index;
+    unsigned int index;
     DdNode *var;
 
     if (cuddIsConstant(f) || Cudd_IsComplement(f->next)) {
@@ -3954,7 +4087,7 @@ ddFindSupport(
     */
     if (!Cudd_IsComplement(var->next)) {
         var->next = Cudd_Complement(var->next);
-        dd->stack[*SP] = (DdNode *)(ptrint) index;
+        dd->stack[*SP] = (DdNode *)(ptruint) index;
         (*SP)++;
     }
     ddFindSupport(dd, cuddT(f), SP);
@@ -3965,15 +4098,12 @@ ddFindSupport(
 } /* end of ddFindSupport */
 
 
-/**Function********************************************************************
+/**
+  @brief Clears visited flags for variables.
 
-  Synopsis [Clears visited flags for variables.]
+  @sideeffect None
 
-  Description [Clears visited flags for variables.]
-
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static void
 ddClearVars(
   DdManager *dd,
@@ -3990,23 +4120,86 @@ ddClearVars(
 } /* end of ddClearVars */
 
 
-/**Function********************************************************************
+/**
+  @brief Compares indices for qsort.
 
-  Synopsis [Compares indices for qsort.]
+  @details Subtracting these integers cannot produce overflow, because
+  they are non-negative.
 
-  Description [Compares indices for qsort.  Subtracting these integers
-  cannot produce overflow, because they are non-negative.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 indexCompare(
   const void *a,
   const void *b)
 {
-    int ia = *((int *) a);
-    int ib = *((int *) b);
+    int ia = *(int const *) a;
+    int ib = *(int const *) b;
     return(ia - ib);
 
 } /* end of indexCompare */
+
+
+/**
+  @brief Frees the memory used to store the minterm counts recorded in the
+  visited table by Cudd_LdblCountMinterm.
+
+  @returns ST_CONTINUE.
+
+  @sideeffect None
+*/
+static enum st_retval
+ddLdblFree(
+  void * key,
+  void * value,
+  void * arg)
+{
+    long double * ld = (long double *) value;
+
+    (void) key; /* avoid warning */
+    (void) arg; /* avoid warning */
+    FREE(ld);
+    return(ST_CONTINUE);
+
+} /* end of ddLdblFree */
+
+
+#if HAVE_POWL != 1
+/**
+  @brief Replacement for standard library powl.
+
+  @details Some systems' C libraries, notably Cygwin as of 2015,
+  lack an implementation of powl.  This simple-minded replacement
+  works for integral powers.  It is based on iterative squaring.
+
+  @return base raised to the exponent.
+*/
+static long double
+powl(
+  long double base,
+  long double exponent)
+{
+    long exp;
+    long double power = 1.0L, square = base;
+    if (exponent < 0.0L) {
+        exp = (long) -exponent;
+    } else {
+        exp = (long) exponent;
+    }
+    /* Compute base^exponent by iterative squaring.
+     * The loop invariant is power * square^exp = base^exponent.
+     */
+    while (exp > 0) {
+        if (exp & 1L)
+            power *= square;
+        square *= square;
+        exp >>= 1L;
+    }
+    if (exponent < 0.0L) {
+        power = 1.0L / power;
+    }
+    return(power);
+
+} /* end of powl */
+#endif

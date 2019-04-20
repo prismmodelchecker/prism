@@ -1,47 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file 
 
-  FileName    [cuddBddIte.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief %BDD ITE function and satellites.
 
-  Synopsis    [BDD ITE function and satellites.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-                <li> Cudd_bddIte()
-                <li> Cudd_bddIteLimit()
-       	        <li> Cudd_bddIteConstant()
-		<li> Cudd_bddIntersect()
-		<li> Cudd_bddAnd()
-		<li> Cudd_bddAndLimit()
-		<li> Cudd_bddOr()
-		<li> Cudd_bddOrLimit()
-		<li> Cudd_bddNand()
-		<li> Cudd_bddNor()
-		<li> Cudd_bddXor()
-		<li> Cudd_bddXnor()
-		<li> Cudd_bddXnorLimit()
-		<li> Cudd_bddLeq()
-		</ul>
-       Internal procedures included in this module:
-		<ul>
-		<li> cuddBddIteRecur()
-		<li> cuddBddIntersectRecur()
-		<li> cuddBddAndRecur()
-		<li> cuddBddXorRecur()
-		</ul>
-       Static procedures included in this module:
-		<ul>
-       	        <li> bddVarToConst()
-       	        <li> bddVarToCanonical()
-       	        <li> bddVarToCanonicalSimple()
-		</ul>]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -71,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -98,26 +66,22 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddBddIte.c,v 1.26 2012/02/05 01:07:18 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
 static void bddVarToConst (DdNode *f, DdNode **gp, DdNode **hp, DdNode *one);
-static int bddVarToCanonical (DdManager *dd, DdNode **fp, DdNode **gp, DdNode **hp, unsigned int *topfp, unsigned int *topgp, unsigned int *tophp);
-static int bddVarToCanonicalSimple (DdManager *dd, DdNode **fp, DdNode **gp, DdNode **hp, unsigned int *topfp, unsigned int *topgp, unsigned int *tophp);
+static int bddVarToCanonical (DdManager *dd, DdNode **fp, DdNode **gp, DdNode **hp, int *topfp, int *topgp, int *tophp);
+static int bddVarToCanonicalSimple (DdManager *dd, DdNode **fp, DdNode **gp, DdNode **hp, int *topfp, int *topgp, int *tophp);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -125,25 +89,23 @@ static int bddVarToCanonicalSimple (DdManager *dd, DdNode **fp, DdNode **gp, DdN
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements ITE(f,g,h).
 
-  Synopsis    [Implements ITE(f,g,h).]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Implements ITE(f,g,h). Returns a pointer to the
-  resulting BDD if successful; NULL if the intermediate result blows
-  up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_addIte Cudd_bddIteConstant Cudd_bddIntersect
 
-  SeeAlso     [Cudd_addIte Cudd_bddIteConstant Cudd_bddIntersect]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddIte(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  DdNode * h)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */,
+  DdNode * h /**< third operand */)
 {
     DdNode *res;
 
@@ -151,33 +113,33 @@ Cudd_bddIte(
 	dd->reordered = 0;
 	res = cuddBddIteRecur(dd,f,g,h);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddIte */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements ITE(f,g,h) unless too many nodes are required.
 
-  Synopsis    [Implements ITE(f,g,h).  Returns
-  NULL if too many nodes are required.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up or more new nodes than `limit` are
+  required.
 
-  Description [Implements ITE(f,g,h).  Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up or more new nodes than <code>limit</code> are
-  required.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte
 
-  SeeAlso     [Cudd_bddIte]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddIteLimit(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  DdNode * h,
-  unsigned int limit)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */,
+  DdNode * h /**< third operand */,
+  unsigned int limit /**< maximum number of new nodes */)
 {
     DdNode *res;
     unsigned int saveLimit = dd->maxLive;
@@ -188,36 +150,39 @@ Cudd_bddIteLimit(
 	res = cuddBddIteRecur(dd,f,g,h);
     } while (dd->reordered == 1);
     dd->maxLive = saveLimit;
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddIteLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements ITEconstant(f,g,h).
 
-  Synopsis    [Implements ITEconstant(f,g,h).]
+  @return a pointer to the resulting %BDD (which may or may not be
+  constant) or DD_NON_CONSTANT.
 
-  Description [Implements ITEconstant(f,g,h). Returns a pointer to the
-  resulting BDD (which may or may not be constant) or DD_NON_CONSTANT.
-  No new nodes are created.]
+  @details No new nodes are created.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddIte Cudd_bddIntersect Cudd_bddLeq Cudd_addIteConstant]
+  @see Cudd_bddIte Cudd_bddIntersect Cudd_bddLeq Cudd_addIteConstant
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddIteConstant(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  DdNode * h)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */,
+  DdNode * h /**< thord operand */)
 {
     DdNode	 *r, *Fv, *Fnv, *Gv, *Gnv, *H, *Hv, *Hnv, *t, *e;
     DdNode	 *one = DD_ONE(dd);
     DdNode	 *zero = Cudd_Not(one);
     int		 comple;
-    unsigned int topf, topg, toph, v;
+    int		 topf, topg, toph, v;
 
     statLine(dd);
     /* Trivial cases. */
@@ -234,7 +199,7 @@ Cudd_bddIteConstant(
     if (g == h) 			/* ITE(F,G,G) => G */
 	return(g);
 
-    if (Cudd_IsConstant(g) && Cudd_IsConstant(h)) 
+    if (Cudd_IsConstantInt(g) && Cudd_IsConstantInt(h)) 
 	return(DD_NON_CONSTANT);	/* ITE(F,1,0) or ITE(F,0,1) */
 					/* => DD_NON_CONSTANT */
     
@@ -284,12 +249,12 @@ Cudd_bddIteConstant(
 
     /* Recursion. */
     t = Cudd_bddIteConstant(dd, Fv, Gv, Hv);
-    if (t == DD_NON_CONSTANT || !Cudd_IsConstant(t)) {
+    if (t == DD_NON_CONSTANT || !Cudd_IsConstantInt(t)) {
 	cuddCacheInsert(dd, DD_BDD_ITE_CONSTANT_TAG, f, g, h, DD_NON_CONSTANT);
 	return(DD_NON_CONSTANT);
     }
     e = Cudd_bddIteConstant(dd, Fnv, Gnv, Hnv);
-    if (e == DD_NON_CONSTANT || !Cudd_IsConstant(e) || t != e) {
+    if (e == DD_NON_CONSTANT || !Cudd_IsConstantInt(e) || t != e) {
 	cuddCacheInsert(dd, DD_BDD_ITE_CONSTANT_TAG, f, g, h, DD_NON_CONSTANT);
 	return(DD_NON_CONSTANT);
     }
@@ -299,26 +264,24 @@ Cudd_bddIteConstant(
 } /* end of Cudd_bddIteConstant */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns a function included in the intersection of f and g.
 
-  Synopsis    [Returns a function included in the intersection of f and g.]
+  @details The function computed (if not zero) is a witness that the
+  intersection is not empty.  Cudd_bddIntersect tries to build as few
+  new nodes as possible. If the only result of interest is whether f
+  and g intersect, Cudd_bddLeq should be used instead.
 
-  Description [Computes a function included in the intersection of f and
-  g. (That is, a witness that the intersection is not empty.)
-  Cudd_bddIntersect tries to build as few new nodes as possible. If the
-  only result of interest is whether f and g intersect,
-  Cudd_bddLeq should be used instead.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddLeq Cudd_bddIteConstant
 
-  SeeAlso     [Cudd_bddLeq Cudd_bddIteConstant]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddIntersect(
-  DdManager * dd /* manager */,
-  DdNode * f /* first operand */,
-  DdNode * g /* second operand */)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *res;
 
@@ -326,31 +289,32 @@ Cudd_bddIntersect(
 	dd->reordered = 0;
 	res = cuddBddIntersectRecur(dd,f,g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_bddIntersect */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the conjunction of two BDDs f and g.
 
-  Synopsis    [Computes the conjunction of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Computes the conjunction of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte Cudd_addApply Cudd_bddAndAbstract Cudd_bddIntersect
+  Cudd_bddOr Cudd_bddNand Cudd_bddNor Cudd_bddXor Cudd_bddXnor
 
-  SeeAlso     [Cudd_bddIte Cudd_addApply Cudd_bddAndAbstract Cudd_bddIntersect
-  Cudd_bddOr Cudd_bddNand Cudd_bddNor Cudd_bddXor Cudd_bddXnor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddAnd(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *res;
 
@@ -358,32 +322,33 @@ Cudd_bddAnd(
 	dd->reordered = 0;
 	res = cuddBddAndRecur(dd,f,g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddAnd */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the conjunction of two BDDs f and g unless too many
+  nodes are required.
 
-  Synopsis    [Computes the conjunction of two BDDs f and g.  Returns
-  NULL if too many nodes are required.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up or more new nodes than `limit` are
+  required.
 
-  Description [Computes the conjunction of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up or more new nodes than <code>limit</code> are
-  required.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddAnd
 
-  SeeAlso     [Cudd_bddAnd]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddAndLimit(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  unsigned int limit)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */,
+  unsigned int limit /**< maximum number of new nodes */)
 {
     DdNode *res;
     unsigned int saveLimit = dd->maxLive;
@@ -394,30 +359,31 @@ Cudd_bddAndLimit(
 	res = cuddBddAndRecur(dd,f,g);
     } while (dd->reordered == 1);
     dd->maxLive = saveLimit;
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddAndLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the disjunction of two BDDs f and g.
 
-  Synopsis    [Computes the disjunction of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Computes the disjunction of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddNand Cudd_bddNor
+  Cudd_bddXor Cudd_bddXnor
 
-  SeeAlso     [Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddNand Cudd_bddNor
-  Cudd_bddXor Cudd_bddXnor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddOr(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *res;
 
@@ -425,33 +391,34 @@ Cudd_bddOr(
 	dd->reordered = 0;
 	res = cuddBddAndRecur(dd,Cudd_Not(f),Cudd_Not(g));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     res = Cudd_NotCond(res,res != NULL);
     return(res);
 
 } /* end of Cudd_bddOr */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the disjunction of two BDDs f and g unless too many
+  nodes are required.
 
-  Synopsis    [Computes the disjunction of two BDDs f and g.  Returns
-  NULL if too many nodes are required.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up or more new nodes than `limit` are
+  required.
 
-  Description [Computes the disjunction of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up or more new nodes than <code>limit</code> are
-  required.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddOr
 
-  SeeAlso     [Cudd_bddOr]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddOrLimit(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  unsigned int limit)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */,
+  unsigned int limit /**< maximum number of new nodes */)
 {
     DdNode *res;
     unsigned int saveLimit = dd->maxLive;
@@ -462,31 +429,32 @@ Cudd_bddOrLimit(
 	res = cuddBddAndRecur(dd,Cudd_Not(f),Cudd_Not(g));
     } while (dd->reordered == 1);
     dd->maxLive = saveLimit;
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     res = Cudd_NotCond(res,res != NULL);
     return(res);
 
 } /* end of Cudd_bddOrLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the NAND of two BDDs f and g.
 
-  Synopsis    [Computes the NAND of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Computes the NAND of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr Cudd_bddNor
+  Cudd_bddXor Cudd_bddXnor
 
-  SeeAlso     [Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr Cudd_bddNor
-  Cudd_bddXor Cudd_bddXnor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddNand(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /** second operand */)
 {
     DdNode *res;
 
@@ -494,31 +462,32 @@ Cudd_bddNand(
 	dd->reordered = 0;
 	res = cuddBddAndRecur(dd,f,g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     res = Cudd_NotCond(res,res != NULL);
     return(res);
 
 } /* end of Cudd_bddNand */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the NOR of two BDDs f and g.
 
-  Synopsis    [Computes the NOR of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Computes the NOR of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr Cudd_bddNand
+  Cudd_bddXor Cudd_bddXnor
 
-  SeeAlso     [Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr Cudd_bddNand
-  Cudd_bddXor Cudd_bddXnor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddNor(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *res;
 
@@ -526,30 +495,31 @@ Cudd_bddNor(
 	dd->reordered = 0;
 	res = cuddBddAndRecur(dd,Cudd_Not(f),Cudd_Not(g));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddNor */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the exclusive OR of two BDDs f and g.
 
-  Synopsis    [Computes the exclusive OR of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Computes the exclusive OR of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr
+  Cudd_bddNand Cudd_bddNor Cudd_bddXnor
 
-  SeeAlso     [Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr
-  Cudd_bddNand Cudd_bddNor Cudd_bddXnor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddXor(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *res;
 
@@ -557,30 +527,31 @@ Cudd_bddXor(
 	dd->reordered = 0;
 	res = cuddBddXorRecur(dd,f,g);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddXor */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the exclusive NOR of two BDDs f and g.
 
-  Synopsis    [Computes the exclusive NOR of two BDDs f and g.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up.
 
-  Description [Computes the exclusive NOR of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr
+  Cudd_bddNand Cudd_bddNor Cudd_bddXor
 
-  SeeAlso     [Cudd_bddIte Cudd_addApply Cudd_bddAnd Cudd_bddOr
-  Cudd_bddNand Cudd_bddNor Cudd_bddXor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddXnor(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *res;
 
@@ -588,32 +559,33 @@ Cudd_bddXnor(
 	dd->reordered = 0;
 	res = cuddBddXorRecur(dd,f,Cudd_Not(g));
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddXnor */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the exclusive NOR of two BDDs f and g unless too
+  many nodes are required.
 
-  Synopsis    [Computes the exclusive NOR of two BDDs f and g.  Returns
-  NULL if too many nodes are required.]
+  @return a pointer to the resulting %BDD if successful; NULL if the
+  intermediate result blows up or more new nodes than `limit` are
+  required.
 
-  Description [Computes the exclusive NOR of two BDDs f and g. Returns a
-  pointer to the resulting BDD if successful; NULL if the intermediate
-  result blows up or more new nodes than <code>limit</code> are
-  required.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_bddXnor
 
-  SeeAlso     [Cudd_bddXnor]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_bddXnorLimit(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g,
-  unsigned int limit)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */,
+  unsigned int limit /**< maximum number of new nodes */)
 {
     DdNode *res;
     unsigned int saveLimit = dd->maxLive;
@@ -624,31 +596,34 @@ Cudd_bddXnorLimit(
 	res = cuddBddXorRecur(dd,f,Cudd_Not(g));
     } while (dd->reordered == 1);
     dd->maxLive = saveLimit;
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_bddXnorLimit */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks whether f is less than or equal to g.
 
-  Synopsis    [Determines whether f is less than or equal to g.]
+  @return 1 if f is less than or equal to g; 0 otherwise.
 
-  Description [Returns 1 if f is less than or equal to g; 0 otherwise.
-  No new nodes are created.]
+  @details No new nodes are created.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddIteConstant Cudd_addEvalConst]
+  @see Cudd_bddIteConstant Cudd_addEvalConst
 
-******************************************************************************/
+*/
 int
 Cudd_bddLeq(
-  DdManager * dd,
-  DdNode * f,
-  DdNode * g)
+  DdManager * dd /**< manager */,
+  DdNode * f /**< first operand */,
+  DdNode * g /**< second operand */)
 {
     DdNode *one, *zero, *tmp, *F, *fv, *fvn, *gv, *gvn;
-    unsigned int topf, topg, res;
+    int topf, topg, res;
 
     statLine(dd);
     /* Terminal cases and normalization. */
@@ -671,7 +646,7 @@ Cudd_bddLeq(
 	f = Cudd_Not(tmp);
     }
 
-    /* Now g is regular and, if f is not regular, f < g. */
+    /* Now g is regular. */
     one = DD_ONE(dd);
     if (g == one) return(1);	/* no need to test against zero */
     if (f == one) return(0);	/* since at this point g != one */
@@ -682,13 +657,15 @@ Cudd_bddLeq(
     /* Here neither f nor g is constant. */
 
     /* Check cache. */
-    tmp = cuddCacheLookup2(dd,(DD_CTFP)Cudd_bddLeq,f,g);
-    if (tmp != NULL) {
-	return(tmp == one);
+    F = Cudd_Regular(f);
+    if (F->ref != 1 || g->ref != 1) {
+        tmp = cuddCacheLookup2(dd,(DD_CTFP)Cudd_bddLeq,f,g);
+        if (tmp != NULL) {
+            return(tmp == one);
+        }
     }
 
     /* Compute cofactors. */
-    F = Cudd_Regular(f);
     topf = dd->perm[F->index];
     topg = dd->perm[g->index];
     if (topf <= topg) {
@@ -714,7 +691,8 @@ Cudd_bddLeq(
     res = Cudd_bddLeq(dd,fvn,gvn) && Cudd_bddLeq(dd,fv,gv);
 
     /* Store result in cache and return. */
-    cuddCacheInsert2(dd,(DD_CTFP)Cudd_bddLeq,f,g,(res ? one : zero));
+    if (F->ref !=1 || g->ref != 1)
+        cuddCacheInsert2(dd,(DD_CTFP)Cudd_bddLeq,f,g,(res ? one : zero));
     return(res);
 
 } /* end of Cudd_bddLeq */
@@ -725,19 +703,15 @@ Cudd_bddLeq(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddIte.
 
-  Synopsis    [Implements the recursive step of Cudd_bddIte.]
+  @return a pointer to the resulting %BDD. NULL if the intermediate
+  result blows up or if reordering occurs.
 
-  Description [Implements the recursive step of Cudd_bddIte. Returns a
-  pointer to the resulting BDD. NULL if the intermediate result blows
-  up or if reordering occurs.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddBddIteRecur(
   DdManager * dd,
@@ -747,8 +721,8 @@ cuddBddIteRecur(
 {
     DdNode	 *one, *zero, *res;
     DdNode	 *r, *Fv, *Fnv, *Gv, *Gnv, *H, *Hv, *Hnv, *t, *e;
-    unsigned int topf, topg, toph, v;
-    int		 index;
+    int		 topf, topg, toph, v;
+    unsigned int index;
     int		 comple;
 
     statLine(dd);
@@ -812,10 +786,12 @@ cuddBddIteRecur(
 	return(Cudd_NotCond(r,comple));
     }
 
+    checkWhetherToGiveUp(dd);
+
     /* Compute cofactors. */
+    index = f->index;
     if (topf <= v) {
 	v = ddMin(topf, v);	/* v = top_var(F,G,H) */
-	index = f->index;
 	Fv = cuddT(f); Fnv = cuddE(f);
     } else {
 	Fv = Fnv = f;
@@ -865,17 +841,14 @@ cuddBddIteRecur(
 } /* end of cuddBddIteRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddIntersect.
 
-  Synopsis    [Implements the recursive step of Cudd_bddIntersect.]
+  @sideeffect None
 
-  Description []
+  @see Cudd_bddIntersect
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_bddIntersect]
-
-******************************************************************************/
+*/
 DdNode *
 cuddBddIntersectRecur(
   DdManager * dd,
@@ -886,7 +859,8 @@ cuddBddIntersectRecur(
     DdNode *F, *G, *t, *e;
     DdNode *fv, *fnv, *gv, *gnv;
     DdNode *one, *zero;
-    unsigned int index, topf, topg;
+    unsigned int index;
+    int topf, topg;
 
     statLine(dd);
     one = DD_ONE(dd);
@@ -901,6 +875,8 @@ cuddBddIntersectRecur(
     if (f > g) { DdNode *tmp = f; f = g; g = tmp; }
     res = cuddCacheLookup2(dd,Cudd_bddIntersect,f,g);
     if (res != NULL) return(res);
+
+    checkWhetherToGiveUp(dd);
 
     /* Find splitting variable. Here we can skip the use of cuddI,
     ** because the operands are known to be non-constant.
@@ -978,19 +954,18 @@ cuddBddIntersectRecur(
 } /* end of cuddBddIntersectRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddAnd.
 
-  Synopsis [Implements the recursive step of Cudd_bddAnd.]
+  @details Takes the conjunction of two BDDs.
 
-  Description [Implements the recursive step of Cudd_bddAnd by taking
-  the conjunction of two BDDs.  Returns a pointer to the result is
-  successful; NULL otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddAnd]
+  @see Cudd_bddAnd
 
-******************************************************************************/
+*/
 DdNode *
 cuddBddAndRecur(
   DdManager * manager,
@@ -999,7 +974,8 @@ cuddBddAndRecur(
 {
     DdNode *F, *fv, *fnv, *G, *gv, *gnv;
     DdNode *one, *r, *t, *e;
-    unsigned int topf, topg, index;
+    int topf, topg;
+    unsigned int index;
 
     statLine(manager);
     one = DD_ONE(manager);
@@ -1034,6 +1010,8 @@ cuddBddAndRecur(
 	r = cuddCacheLookup2(manager, Cudd_bddAnd, f, g);
 	if (r != NULL) return(r);
     }
+
+    checkWhetherToGiveUp(manager);
 
     /* Here we can skip the use of cuddI, because the operands are known
     ** to be non-constant.
@@ -1106,19 +1084,18 @@ cuddBddAndRecur(
 } /* end of cuddBddAndRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_bddXor.
 
-  Synopsis [Implements the recursive step of Cudd_bddXor.]
+  @details Takes the exclusive OR of two BDDs.
 
-  Description [Implements the recursive step of Cudd_bddXor by taking
-  the exclusive OR of two BDDs.  Returns a pointer to the result is
-  successful; NULL otherwise.]
+  @return a pointer to the result is successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddXor]
+  @see Cudd_bddXor
 
-******************************************************************************/
+*/
 DdNode *
 cuddBddXorRecur(
   DdManager * manager,
@@ -1127,7 +1104,8 @@ cuddBddXorRecur(
 {
     DdNode *fv, *fnv, *G, *gv, *gnv;
     DdNode *one, *zero, *r, *t, *e;
-    unsigned int topf, topg, index;
+    int topf, topg;
+    unsigned int index;
 
     statLine(manager);
     one = DD_ONE(manager);
@@ -1155,6 +1133,8 @@ cuddBddXorRecur(
     /* Check cache. */
     r = cuddCacheLookup2(manager, Cudd_bddXor, f, g);
     if (r != NULL) return(r);
+
+    checkWhetherToGiveUp(manager);
 
     /* Here we can skip the use of cuddI, because the operands are known
     ** to be non-constant.
@@ -1228,18 +1208,17 @@ cuddBddXorRecur(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Replaces variables with constants if possible.
 
-  Synopsis [Replaces variables with constants if possible.]
+  @details This function performs part of the transformation to
+  standard form by replacing variables with constants if possible.
 
-  Description [This function performs part of the transformation to
-  standard form by replacing variables with constants if possible.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see bddVarToCanonical bddVarToCanonicalSimple
 
-  SeeAlso     [bddVarToCanonical bddVarToCanonicalSimple]
-
-******************************************************************************/
+*/
 static void
 bddVarToConst(
   DdNode * f,
@@ -1264,31 +1243,30 @@ bddVarToConst(
 } /* end of bddVarToConst */
 
 
-/**Function********************************************************************
+/**
+  @brief Picks unique member from equiv expressions.
 
-  Synopsis [Picks unique member from equiv expressions.]
+  @details Reduces 2 variable expressions to canonical form.
 
-  Description [Reduces 2 variable expressions to canonical form.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see bddVarToConst bddVarToCanonicalSimple
 
-  SeeAlso     [bddVarToConst bddVarToCanonicalSimple]
-
-******************************************************************************/
+*/
 static int
 bddVarToCanonical(
   DdManager * dd,
   DdNode ** fp,
   DdNode ** gp,
   DdNode ** hp,
-  unsigned int * topfp,
-  unsigned int * topgp,
-  unsigned int * tophp)
+  int * topfp,
+  int * topgp,
+  int * tophp)
 {
-    register DdNode		*F, *G, *H, *r, *f, *g, *h;
-    register unsigned int	topf, topg, toph;
-    DdNode			*one = dd->one;
-    int				comple, change;
+    DdNode	*F, *G, *H, *r, *f, *g, *h;
+    DdNode	*one = dd->one;
+    int		topf, topg, toph;
+    int		comple, change;
 
     f = *fp;
     g = *gp;
@@ -1362,33 +1340,32 @@ bddVarToCanonical(
 } /* end of bddVarToCanonical */
 
 
-/**Function********************************************************************
+/**
+  @brief Picks unique member from equiv expressions.
 
-  Synopsis [Picks unique member from equiv expressions.]
-
-  Description [Makes sure the first two pointers are regular.  This
+  @details Makes sure the first two pointers are regular.  This
   mat require the complementation of the result, which is signaled by
   returning 1 instead of 0.  This function is simpler than the general
   case because it assumes that no two arguments are the same or
-  complementary, and no argument is constant.]
+  complementary, and no argument is constant.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [bddVarToConst bddVarToCanonical]
+  @see bddVarToConst bddVarToCanonical
 
-******************************************************************************/
+*/
 static int
 bddVarToCanonicalSimple(
   DdManager * dd,
   DdNode ** fp,
   DdNode ** gp,
   DdNode ** hp,
-  unsigned int * topfp,
-  unsigned int * topgp,
-  unsigned int * tophp)
+  int * topfp,
+  int * topgp,
+  int * tophp)
 {
-    register DdNode		*r, *f, *g, *h;
-    int				comple, change;
+    DdNode	*r, *f, *g, *h;
+    int		comple, change;
 
     f = *fp;
     g = *gp;
@@ -1427,4 +1404,3 @@ bddVarToCanonicalSimple(
     return(comple);
 
 } /* end of bddVarToCanonicalSimple */
-

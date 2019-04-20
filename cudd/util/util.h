@@ -1,26 +1,106 @@
-/* $Id: util.h,v 1.10 2012/02/05 05:34:04 fabio Exp fabio $ */
+/**
+  @file
 
-#ifndef UTIL_H
-#define UTIL_H
+  @ingroup util
 
-#include <inttypes.h>
+  @brief Low-level utilities.
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+  @copyright@parblock
+  Copyright (c) 1994-1998 The Regents of the Univ. of California.
+  All rights reserved.
 
-#if defined(__GNUC__)
-#   define UTIL_INLINE __inline__
-#   if __GNUC__ > 2 || __GNUC_MINOR__ >= 7
-#       define UTIL_UNUSED __attribute__ ((unused))
-#   else
-#       define UTIL_UNUSED
-#   endif
+  Permission is hereby granted, without written agreement and without license
+  or royalty fees, to use, copy, modify, and distribute this software and its
+  documentation for any purpose, provided that the above copyright notice and
+  the following two paragraphs appear in all copies of this software.
+
+  IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
+  DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
+  OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
+  CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+  FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS ON AN
+  "AS IS" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE
+  MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+  @endparblock
+
+  @copyright@parblock
+  Copyright (c) 1999-2015, Regents of the University of Colorado
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of the University of Colorado nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+  ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
+
+*/
+#ifndef UTIL_H_
+#define UTIL_H_
+
+#include "config.h"
+
+#if HAVE_ASSERT_H == 1
+#include <assert.h>
 #else
-#   define UTIL_INLINE
-#   define UTIL_UNUSED
+#error assert.h is needed to build this package
 #endif
 
+#if HAVE_UNISTD_H == 1
+#include <unistd.h>
+#endif
+
+#include <stdio.h>
+#include <ctype.h>
+
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#else
+#error stdlib.h is needed to build this package
+#endif
+
+#if HAVE_STRING_H == 1
+#include <string.h>
+#else
+#error string.h is needed to build this package
+#endif
+
+#if HAVE_INTTYPES_H == 1
+#include <inttypes.h>
+#else
+#error inttypes.h is needed to build this package
+#endif
+
+/**
+ * @def PRIszt
+ * @brief Format string for a size_t value.
+ */
 #if defined(_WIN32) && !defined(__USE_MINGW_ANSI_STDIO)
 #ifndef PRIuPTR
 #define PRIuPTR "Iu"
@@ -36,136 +116,64 @@ extern "C" {
 #define PRIszt "zu"
 #endif
 
-#ifndef SIZEOF_VOID_P
-#define SIZEOF_VOID_P 4
+/**
+ * @def UTIL_UNUSED
+ * @brief Macro to tell gcc that a variable is intentionally unused.
+ */
+#if defined(__GNUC__)
+#if __GNUC__ > 2 || __GNUC_MINOR__ >= 7
+#define UTIL_UNUSED __attribute__ ((unused))
+#else
+#define UTIL_UNUSED
 #endif
-#ifndef SIZEOF_INT
-#define SIZEOF_INT 4
-#endif
-#ifndef SIZEOF_LONG
-#define SIZEOF_LONG 4
+#else
+#define UTIL_UNUSED
 #endif
 
-typedef intptr_t util_ptrint;
-
-/* #define USE_MM */		/* choose libmm.a as the memory allocator */
-
-/* these are too entrenched to get away with changing the name */
-#define strsav		util_strsav
-#include <unistd.h>
-
+/**
+ * @brief Type-decorated NULL (for documentation).
+ */
 #define NIL(type)		((type *) 0)
 
-#if defined(USE_MM) || defined(MNEMOSYNE)
-/*
- *  assumes the memory manager is either libmm.a or libmnem.a
- *	libmm.a:
- *	- allows malloc(0) or realloc(obj, 0)
- *	- catches out of memory (and calls MMout_of_memory())
- *	- catch free(0) and realloc(0, size) in the macros
- *	libmnem.a:
- *	- reports memory leaks
- *	- is used in conjunction with the mnemalyse postprocessor
+/* #define USE_MM */		/* choose default memory allocator */
+
+/**
+ * @def ALLOC
+ * @brief Wrapper for either malloc or MMalloc.
+ * @details Which function is wrapped depends on whether USE_MM is defined.
  */
-#ifdef MNEMOSYNE
-#include "mnemosyne.h"
-#define ALLOC(type, num)	\
-    ((num) ? ((type *) malloc(sizeof(type) * (num))) : \
-	    ((type *) malloc(sizeof(long))))
-#else
+
+/**
+ * @def REALLOC
+ * @brief Wrapper for either realloc or MMrealloc.
+ * @details Which function is wrapped depends on whether USE_MM is defined.
+ */
+
+/**
+ * @def FREE
+ * @brief Wrapper for free.
+ * @details Sets its argument to 0 after freeing.
+ */
+
+#if defined(USE_MM)
+/* Assumes the memory manager is default one. */
 #define ALLOC(type, num)	\
     ((type *) malloc(sizeof(type) * (num)))
-#endif
 #define REALLOC(type, obj, num)	\
-    (obj) ? ((type *) realloc((char *) obj, sizeof(type) * (num))) : \
-	    ((type *) malloc(sizeof(type) * (num)))
-#define FREE(obj)		\
-    ((obj) ? (free((char *) (obj)), (obj) = 0) : 0)
+    ((type *) realloc(obj, sizeof(type) * (num)))
 #else
-/*
- *  enforce strict semantics on the memory allocator
- *	- when in doubt, delete the '#define USE_MM' above
- */
+/* Use replacements that call MMoutOfMemory if allocation fails. */
 #define ALLOC(type, num)	\
-    ((type *) MMalloc((long) sizeof(type) * (long) (num)))
+    ((type *) MMalloc(sizeof(type) * (size_t) (num)))
 #define REALLOC(type, obj, num)	\
-    ((type *) MMrealloc((char *) (obj), (long) sizeof(type) * (long) (num)))
-#define FREE(obj)		\
-    ((obj) ? (free((char *) (obj)), (obj) = 0) : 0)
+    ((type *) MMrealloc((obj), sizeof(type) * (size_t) (num)))
 #endif
+/* In any case, set to zero the pointer to freed memory. */
+#define FREE(obj) (free(obj), (obj) = 0)
 
-
-/* Ultrix (and SABER) have 'fixed' certain functions which used to be int */
-#if defined(ultrix) || defined(SABER) || defined(aiws) || defined(hpux) || defined(apollo) || defined(__osf__) || defined(__SVR4) || defined(__GNUC__)
-#define VOID_OR_INT void
-#define VOID_OR_CHAR void
-#else
-#define VOID_OR_INT int
-#define VOID_OR_CHAR char
-#endif
-
-
-/* No machines seem to have much of a problem with these */
-#include <stdio.h>
-#include <ctype.h>
-
-
-/* Some machines fail to define some functions in stdio.h */
-#if !defined(__STDC__) && !defined(__cplusplus)
-extern FILE *popen(), *tmpfile();
-extern int pclose();
-#endif
-
-
-/* most machines don't give us a header file for these */
-#if (defined(__STDC__) || defined(__cplusplus) || defined(ultrix)) && !defined(MNEMOSYNE) || defined(__SVR4)
-# include <stdlib.h>
-#else
-# ifndef _IBMR2
-    extern VOID_OR_INT abort(), exit();
-# endif
-# if !defined(MNEMOSYNE) && !defined(_IBMR2)
-    extern VOID_OR_INT free (void *);
-    extern VOID_OR_CHAR *malloc(), *realloc();
-# endif
-  extern char *getenv();
-  extern int system();
-  extern double atof();
-#endif
-
-
-/* some call it strings.h, some call it string.h; others, also have memory.h */
-#if defined(__STDC__) || defined(__cplusplus) || defined(_IBMR2) || defined(ultrix)
-#include <string.h>
-#else
-/* ANSI C string.h -- 1/11/88 Draft Standard */
-extern char *strcpy(), *strncpy(), *strcat(), *strncat(), *strerror();
-extern char *strpbrk(), *strtok(), *strchr(), *strrchr(), *strstr();
-extern int strcoll(), strxfrm(), strncmp(), strlen(), strspn(), strcspn();
-extern char *memmove(), *memccpy(), *memchr(), *memcpy(), *memset();
-extern int memcmp(), strcmp();
-#endif
-
-
-#ifdef __STDC__
-#include <assert.h>
-#else
-#ifndef NDEBUG
-#define assert(ex) {\
-    if (! (ex)) {\
-	(void) fprintf(stderr,\
-	    "Assertion failed: file %s, line %d\n\"%s\"\n",\
-	    __FILE__, __LINE__, "ex");\
-	(void) fflush(stdout);\
-	abort();\
-    }\
-}
-#else
-#define assert(ex) ;
-#endif
-#endif
-
-
+/**
+ * @brief Prints message and terminates execution.
+ */
 /*#define fail(why) {\
     (void) fprintf(stderr, "Fatal error: file %s, line %d\n%s\n",\
 	__FILE__, __LINE__, why);\
@@ -173,45 +181,50 @@ extern int memcmp(), strcmp();
     abort();\
 }*/
 
-
-#ifdef lint
-#undef putc			/* correct lint '_flsbuf' bug */
-#undef ALLOC			/* allow for lint -h flag */
-#undef REALLOC
-#define ALLOC(type, num)	(((type *) 0) + (num))
-#define REALLOC(type, obj, num)	((obj) + (num))
-#endif
-
-
 /* These arguably do NOT belong in util.h */
+/**
+ * @brief Computes the absolute value of its argument.
+ */
 #define ABS(a)			((a) < 0 ? -(a) : (a))
+/**
+ * @brief Computes the maximum of its two arguments.
+ */
 #define MAX(a,b)		((a) > (b) ? (a) : (b))
+/**
+ * @brief Computes the minimum of its two arguments.
+ */
 #define MIN(a,b)		((a) < (b) ? (a) : (b))
 
+/**
+ * @brief Type of comparison functions for util_qsort.
+ */
+typedef int (*QSFP)(void const *, void const *);
 
-#ifndef USE_MM
-extern void *MMalloc (size_t);
-extern void MMout_of_memory (size_t);
-extern void (*MMoutOfMemory) (size_t);
-extern void *MMrealloc (void *, size_t);
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-extern long util_cpu_time (void);
-extern char *util_path_search (char const *);
-extern char *util_file_search (char const *, char *, char const *);
-extern int util_pipefork (char * const *, FILE **, FILE **, int *);
-extern void util_print_cpu_stats (FILE *);
-extern char *util_print_time (unsigned long);
-extern int util_save_image (char const *, char const *);
-extern char *util_strsav (char const *);
-extern char *util_tilde_expand (char const *);
-extern void util_restart (char const *, char const *, int);
+#ifndef USE_MM
+extern void *MMalloc(size_t);
+extern void *MMrealloc(void *, size_t);
+#endif
+extern void MMout_of_memory(size_t);
+extern void (*MMoutOfMemory) (size_t);
 
-
-extern unsigned long getSoftDataLimit (void);
-
+extern long util_cpu_time(void);
+extern long util_cpu_ctime(void);
+extern char *util_path_search(char const *);
+extern char *util_file_search(char const *, char *, char const *);
+extern void util_print_cpu_stats(FILE *);
+extern char *util_print_time(unsigned long);
+extern char *util_strsav(char const *);
+extern char *util_tilde_expand(char const *);
+extern size_t getSoftDataLimit(void);
+extern void util_qsort (void *vbase, int n, int size, QSFP compar);
+extern int util_pipefork(char * const * argv, FILE ** toCommand,
+                         FILE ** fromCommand, int * pid);
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* UTIL_H */
+#endif /* UTIL_H_ */

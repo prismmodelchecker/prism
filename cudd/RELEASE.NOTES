@@ -1,4 +1,217 @@
-Release 2.5.0 of Cudd introduces the ability to set timeouts.  The
+Release 3.0.0 of Cudd uses autotools for its build.  It can also
+produce a shared library.  The shared library contains the core CUDD
+functions, and, optionally, the dddmp functions and the C++ wrapper.
+It is now safe to use separate CUDD managers in different threads.
+
+There are changes in the API, discussed later.  The documentation is
+now extracted from the code by Doxygen.  About a dozen bugs were fixed
+in seldom-used functions.
+
+The switch to autotools means that one no longer needs to edit the
+configuration section of the main Makefile.  It was also instrumental
+in providing shared library support (via libtool) on multiple
+platforms and a "check" make target worth its name.  Initial support
+for cross compilation has been added.
+
+Build time is significantly longer, especially the first time, and
+especially when shared libraries are enabled.  In return one gets
+dependency tracking, support for VPATH builds, packaging of
+distributions, and so on.
+
+The CUDD package and its sub-packages now expose significantly fewer
+details of their implementations to the applications.  It is now
+possible to compile a CUDD-based application while including only the
+cudd.h header and linking only libcudd.a (or the equivalent shared
+library).  A few const type qualifiers have been added to APIs too.
+
+Some macros have been turned into functions to improve encapsulation,
+namely Cudd_T, Cudd_E, Cudd_V, and Cudd_IsConstant.  Another API
+change brought about by this restructuring is that the digits of
+arbitrary-precision integers are now always 32-bit wide.  As a
+consequence, the function Cudd_ApaIntDivision is now deprecated.
+
+The malloc/realloc/free wrappers in safe_mem.c have been simplified
+and made more consistent with the standard functions.  (The majority
+of what the wrappers did was supplying functionality that any modern
+compliant implementation of C would supply anyway.)  Some parts of the
+util library are no longer distributed with CUDD.  (They were never
+used by it.)
+
+Applications that call functions from the mtr or epd packages now have
+to explicitly include their headers _before_ including cudd.h.
+Applications that access data structures that are no longer exposed
+should declare their close kinship with those data structure by
+including the internal headers.
+
+There is a new function in the API, Cudd_PrintSummary, that is
+analogous to Cudd_PrintDebug, but only prints one line using
+arbitrary-precision arithmetic to compute the number of minterms.  The
+function Cudd_ApaPrintExponential now behaves like printf of glibc with
+a "g" conversion specifier.  These changes were motivated by the
+discrepancies between printfs on Linux and Windows that affected "make
+check."
+
+CUDD now explicitly calls an implementation of qsort that is included
+in the util library.  While this version of qsort has been shipped
+with CUDD since Release 1.0.0, it was up to the application to decide
+whether to link it or not.  However, dynamic linking on Windows and OS
+X makes it difficult to replace the system qsort with a function of
+the same name; hence, there is now a util_qsort in the CUDD library.
+(The main reasons for not using the system qsort are repeatability and
+performance of variable reordering.)  To use the system qsort,
+configure CUDD with the --with-system-qsort option.  Keep in mind that
+some tests in "make check" may fail in this case by producing variable
+orders different from the reference ones.
+
+The random number generator is now local to a manager.  The interface
+has changed accordingly.  The only global variable in the whole
+package is the one used to store the out-of-memory handler.  As long
+as it is not modified, distinct CUDD managers can be run in different
+threads.
+
+Even with a portable sort routine and random number generator, CUDD
+does not guarantee the same output on all platforms.  For instance,
+the simulated annealing reordering algorithm uses floating-point
+arithmetic, and the results on i686 machines occasionally differ from
+those on x86_64 machines.
+
+In the C++ wrapper, the default error handler now throws an exception
+instead of failing.  A new function helps in handling failed memory
+allocations: Cudd_InstallOutOfMemoryHandler; it can be used to modify
+the default behavior, which is to terminate the program.  There are a
+few new functions in the C++ API and a substantial clean-up has taken
+place.  Several functions have had some of their parameters given
+default values, and in a few cases the order of the parameters has
+been changed to improve consistency.
+
+New functions:
+
+DD_OOMFP Cudd_InstallOutOfMemoryHandler(DD_OOMFP newHandler);
+
+DD_OOMFP Cudd_RegisterOutOfMemoryCallback(DdManager *unique, DD_OOMFP callback);
+
+void Cudd_UnregisterOutOfMemoryCallback(DdManager *unique);
+
+void Cudd_OutOfMemSilent(size_t size);
+
+DdNode * Cudd_bddInterpolate(DdManager * dd, DdNode * l, DdNode * u);
+
+int Cudd_VarsAreSymmetric(DdManager * dd, DdNode * f, int index1, int index2);
+
+int Cudd_PrintSummary(DdManager * dd, DdNode * f, int n, int mode);
+
+void Cudd_FreeApaNumber(DdApaNumber number);
+
+char * Cudd_ApaStringDecimal(int digits, DdConstApaNumber number);
+
+long double Cudd_LdblCountMinterm(DdManager const *manager, DdNode *node,
+    int nvars);
+
+int Cudd_EpdPrintMinterm(DdManager const * dd, DdNode * node, int nvars);
+
+st_table * st_init_table_with_params_and_arg(st_compare_arg_t,
+    st_hash_arg_t, void const *, int, int, double, int);
+
+st_table * st_init_table_with_arg(st_compare_arg_t, st_hash_arg_t,
+    void const *);
+
+void ABDD::summary(int nvars, int mode = 0) const;
+
+DD_OOMFP Cudd::InstallOutOfMemoryHandler(DD_OOMFP newHandler) const;
+
+DD_OOMFP RegisterOutOfMemoryCallback(DD_OOMFP callback) const;
+
+void UnregisterOutOfMemoryCallback(void) const;
+
+BDD computeCube(std::vector<BDD> const & vars) const;
+
+ADD computeCube(std::vector<ADD> const & vars) const;
+
+BDD BDD::Interpolate(const BDD& u) const;
+
+bool BDD::VarAreSymmetric(int index1, int index2) const;
+
+std::string ApaStringDecimal(int digits, DdApaNumber number) const;
+
+void Cudd::ApaPrintExponential(int digits, DdApaNumber number,
+                               int precision = 6, FILE * fp = stdout) const;
+
+void ApaPrintMintermExp(int nvars, int precision = 6, FILE * fp = stdout) const;
+
+long double LdblCountMinterm(int nvars) const;
+
+ADD Cudd::Harwell(FILE * fp, std::vector<ADD>& x, std::vector<ADD>& y,
+                  std::vector<ADD>& xn, std::vector<ADD>& yn_,
+                  int * m, int * n, int bx = 0, int sx = 2, int by = 1,
+                  int sy = 2, int pr = 0) const;
+
+ADD Cudd::Read(FILE * fp, std::vector<ADD>& x, std::vector<ADD>& y,
+               std::vector<ADD>& xn, std::vector<ADD>& yn_, int * m, int * n,
+               int bx = 0, int sx = 2, int by = 1, int sy = 2) const;
+BDD Cudd::Read(FILE * fp, std::vector<BDD>& x, std::vector<BDD>& y,
+               int * m, int * n, int bx = 0, int sx = 2, int by = 1,
+               int sy = 2) const;
+
+std::string Cudd::OrderString(void) const;
+
+Special thanks go to Hubert Garavel for the many discussions that have
+greatly contributed to shaping this new CUDD release.
+
+----------------------------------------------------------------------
+
+Release 2.6.0 of Cudd is the first release to compile out of the box
+with MinGW-w64.  This is achieved primarily by using types and macros
+defined in inttypes.h.  The only visible changes in the API are some
+parameter types that are now "size_t" instead of "unsinged long."
+
+Support for multi-threaded applications has been slightly enhanced.
+The Makefile has been slightly enhanced and finally supports creation
+of top-level tag files for both emacs and vi.
+
+The code has been cleaned up a bit so that all warnings that would be
+produced by gcc with "-Wextra" have been removed.  The tests run by
+nanotrav/tst.sh and obj/testobj cover a bit more of the package's
+functionality.
+
+----------------------------------------------------------------------
+
+Release 2.5.1 of Cudd improves support for multi-threaded applications.
+Specifically, an application may now register a callback function that
+is called from time to time to check whether computation should be
+terminated because another thread has found the result.
+
+The C++ interface allows the application to register variable names with
+the manager and implements operator<< for BDDs.  The interfaces of
+SolveEqn and VerifySol now take std::vectors instead of plain arrays.
+
+Fixed a few bugs in CUDD and a bug in the mtr package.
+
+Added const qualifiers to dumping function interfaces
+(Cudd_DumpDot,...).
+
+The Makefile now supports gmake's -j option.  Change "@+" back to "@" if
+this causes problems with your make program.
+
+Buggy documentation that was shipped with 2.5.0 has been fixed.
+
+New functions:
+
+int Cudd_bddIsVar(DdManager * dd, DdNode * f);
+
+void Cudd_RegisterTerminationCallback(DdManager *unique,
+
+void Cudd_UnregisterTerminationCallback(DdManager *unique);
+
+void Cudd_SetApplicationHook(DdManager *dd, void * value);
+
+void * Cudd_ReadApplicationHook(DdManager *dd);
+
+char * Cudd_FactoredFormString(DdManager *dd, DdNode *f,
+    char const * const * inames);
+
+----------------------------------------------------------------------
+
+Releas 2.5.0 of Cudd introduces the ability to set timeouts.  The
 function that is interrupted returns NULL (which the application must
 be prepared to handle,) but the BDDs are uncorrupted and the invoking
 program can continue to use the manager.

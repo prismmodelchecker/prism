@@ -1,0 +1,11 @@
+.model closest
+.inputs a b c
+.outputs f g h
+.names a b c f
+1-1 1
+-11 1
+.names a b c g
+000 1
+.names a b c h
+111 1
+.end

@@ -1,0 +1,9 @@
+cudd_libcudd_la_SOURCES += util/util.h util/cstringstream.h \
+  util/cpu_stats.c util/cpu_time.c util/cstringstream.c util/datalimit.c \
+  util/pathsearch.c util/pipefork.c util/prtime.c util/safe_mem.c \
+  util/strsav.c util/texpand.c util/ucbqsort.c
+if MINGW64
+if CROSS_COMPILING
+cudd_libcudd_la_LIBADD = -lws2_32 -lpsapi
+endif
+endif

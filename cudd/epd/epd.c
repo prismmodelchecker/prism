@@ -1,18 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [epd.c]
+  @ingroup epd
 
-  PackageName [epd]
+  @brief Arithmetic functions with extended double precision.
 
-  Synopsis    [Arithmetic functions with extended double precision.]
+  @author In-Ho Moon
 
-  Description []
-
-  SeeAlso     []
-
-  Author      [In-Ho Moon]
-
-  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -42,31 +38,19 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-  Revision    [$Id: epd.c,v 1.10 2004/08/13 18:20:30 fabio Exp $]
+*/
 
-******************************************************************************/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
 #include "util.h"
-#include "epd.h"
+#include "epdInt.h"
 
 
-/**Function********************************************************************
-
-  Synopsis    [Allocates an EpDouble struct.]
-
-  Description [Allocates an EpDouble struct.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Allocates an EpDouble struct.
+*/
 EpDouble *
 EpdAlloc(void)
 {
@@ -77,22 +61,16 @@ EpdAlloc(void)
 }
 
 
-/**Function********************************************************************
+/**
+  @brief Compares two EpDouble struct.
 
-  Synopsis    [Compares two EpDouble struct.]
-
-  Description [Compares two EpDouble struct.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+  @return 0 if the two structures hold the same value; 1 otherwise.
+*/
 int
-EpdCmp(const char *key1, const char *key2)
+EpdCmp(const void *key1, const void *key2)
 {
-  EpDouble *epd1 = (EpDouble *) key1;
-  EpDouble *epd2 = (EpDouble *) key2;
+  EpDouble const *epd1 = (EpDouble const *) key1;
+  EpDouble const *epd2 = (EpDouble const *) key2;
   if (epd1->type.value != epd2->type.value ||
       epd1->exponent != epd2->exponent) {
     return(1);
@@ -101,17 +79,9 @@ EpdCmp(const char *key1, const char *key2)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Frees an EpDouble struct.]
-
-  Description [Frees an EpDouble struct.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Frees an EpDouble struct.
+*/
 void
 EpdFree(EpDouble *epd)
 {
@@ -119,32 +89,28 @@ EpdFree(EpDouble *epd)
 }
 
 
-/**Function********************************************************************
+/**
+  @brief Converts an extended precision double value to a string.
 
-  Synopsis    [Converts an arbitrary precision double value to a string.]
-
-  Description [Converts an arbitrary precision double value to a string.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+  @sideeffect The string is written at the address passed in `str`.
+*/
 void
-EpdGetString(EpDouble *epd, char *str)
+EpdGetString(EpDouble const *epd, char *str)
 {
   double	value;
   int		exponent;
   char		*pos;
+
+  if (!str) return;
 
   if (IsNanDouble(epd->type.value)) {
     sprintf(str, "NaN");
     return;
   } else if (IsInfDouble(epd->type.value)) {
     if (epd->type.bits.sign == 1)
-      sprintf(str, "-Inf");
+      sprintf(str, "-inf");
     else
-      sprintf(str, "Inf");
+      sprintf(str, "inf");
     return;
   }
 
@@ -169,17 +135,9 @@ EpdGetString(EpDouble *epd, char *str)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Converts double to EpDouble struct.]
-
-  Description [Converts double to EpDouble struct.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Converts double to EpDouble struct.
+*/
 void
 EpdConvert(double value, EpDouble *epd)
 {
@@ -189,17 +147,9 @@ EpdConvert(double value, EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Multiplies two arbitrary precision double values.]
-
-  Description [Multiplies two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Multiplies an extended precision double by a double.
+*/
 void
 EpdMultiply(EpDouble *epd1, double value)
 {
@@ -230,19 +180,11 @@ EpdMultiply(EpDouble *epd1, double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Multiplies two arbitrary precision double values.]
-
-  Description [Multiplies two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Multiplies an extended precision double by another.
+*/
 void
-EpdMultiply2(EpDouble *epd1, EpDouble *epd2)
+EpdMultiply2(EpDouble *epd1, EpDouble const *epd2)
 {
   double	value;
   int		exponent;
@@ -269,19 +211,11 @@ EpdMultiply2(EpDouble *epd1, EpDouble *epd2)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Multiplies two arbitrary precision double values.]
-
-  Description [Multiplies two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Multiplies two extended precision double values.
+*/
 void
-EpdMultiply2Decimal(EpDouble *epd1, EpDouble *epd2)
+EpdMultiply2Decimal(EpDouble *epd1, EpDouble const *epd2)
 {
   double	value;
   int		exponent;
@@ -305,22 +239,16 @@ EpdMultiply2Decimal(EpDouble *epd1, EpDouble *epd2)
 }
 
 
-/**Function********************************************************************
+/**
+  @brief Multiplies two extended precision double values.
 
-  Synopsis    [Multiplies two arbitrary precision double values.]
-
-  Description [Multiplies two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+  @details The result goes in the third operand.
+*/
 void
-EpdMultiply3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
+EpdMultiply3(EpDouble const *epd1, EpDouble const *epd2, EpDouble *epd3)
 {
   if (EpdIsNan(epd1) || EpdIsNan(epd2)) {
-    EpdMakeNan(epd1);
+    EpdMakeNan(epd3);
     return;
   } else if (EpdIsInf(epd1) || EpdIsInf(epd2)) {
     int	sign;
@@ -339,22 +267,14 @@ EpdMultiply3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Multiplies two arbitrary precision double values.]
-
-  Description [Multiplies two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Multiplies two extended precision double values.
+*/
 void
-EpdMultiply3Decimal(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
+EpdMultiply3Decimal(EpDouble const *epd1, EpDouble const *epd2, EpDouble *epd3)
 {
   if (EpdIsNan(epd1) || EpdIsNan(epd2)) {
-    EpdMakeNan(epd1);
+    EpdMakeNan(epd3);
     return;
   } else if (EpdIsInf(epd1) || EpdIsInf(epd2)) {
     int	sign;
@@ -370,17 +290,9 @@ EpdMultiply3Decimal(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Divides two arbitrary precision double values.]
-
-  Description [Divides two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Divides an extended precision double by a double.
+*/
 void
 EpdDivide(EpDouble *epd1, double value)
 {
@@ -423,19 +335,11 @@ EpdDivide(EpDouble *epd1, double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Divides two arbitrary precision double values.]
-
-  Description [Divides two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Divides an extended precision double by another.
+*/
 void
-EpdDivide2(EpDouble *epd1, EpDouble *epd2)
+EpdDivide2(EpDouble *epd1, EpDouble const *epd2)
 {
   double	value;
   int		exponent;
@@ -474,19 +378,11 @@ EpdDivide2(EpDouble *epd1, EpDouble *epd2)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Divides two arbitrary precision double values.]
-
-  Description [Divides two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Divides two extended precision double values.
+*/
 void
-EpdDivide3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
+EpdDivide3(EpDouble const *epd1, EpDouble const *epd2, EpDouble *epd3)
 {
   if (EpdIsNan(epd1) || EpdIsNan(epd2)) {
     EpdMakeNan(epd3);
@@ -520,17 +416,9 @@ EpdDivide3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Adds two arbitrary precision double values.]
-
-  Description [Adds two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Adds a double to an extended precision double.
+*/
 void
 EpdAdd(EpDouble *epd1, double value)
 {
@@ -582,19 +470,13 @@ EpdAdd(EpDouble *epd1, double value)
 }
 
 
-/**Function********************************************************************
+/**
+  @brief Adds an extended precision double to another.
 
-  Synopsis    [Adds two arbitrary precision double values.]
-
-  Description [Adds two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+  @details The sum goes in the first argument.
+*/
 void
-EpdAdd2(EpDouble *epd1, EpDouble *epd2)
+EpdAdd2(EpDouble *epd1, EpDouble const *epd2)
 {
   double	value;
   int		exponent, diff;
@@ -644,19 +526,11 @@ EpdAdd2(EpDouble *epd1, EpDouble *epd2)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Adds two arbitrary precision double values.]
-
-  Description [Adds two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Adds two extended precision double values.
+*/
 void
-EpdAdd3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
+EpdAdd3(EpDouble const *epd1, EpDouble const *epd2, EpDouble *epd3)
 {
   double	value;
   int		exponent, diff;
@@ -710,17 +584,9 @@ EpdAdd3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Subtracts two arbitrary precision double values.]
-
-  Description [Subtracts two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Subtracts a double from an extended precision double.
+*/
 void
 EpdSubtract(EpDouble *epd1, double value)
 {
@@ -772,19 +638,11 @@ EpdSubtract(EpDouble *epd1, double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Subtracts two arbitrary precision double values.]
-
-  Description [Subtracts two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Subtracts an extended precision double from another.
+*/
 void
-EpdSubtract2(EpDouble *epd1, EpDouble *epd2)
+EpdSubtract2(EpDouble *epd1, EpDouble const *epd2)
 {
   double	value;
   int		exponent, diff;
@@ -834,19 +692,11 @@ EpdSubtract2(EpDouble *epd1, EpDouble *epd2)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Subtracts two arbitrary precision double values.]
-
-  Description [Subtracts two arbitrary precision double values.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Subtracts two extended precision double values.
+*/
 void
-EpdSubtract3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
+EpdSubtract3(EpDouble const *epd1, EpDouble const *epd2, EpDouble *epd3)
 {
   double	value;
   int		exponent, diff;
@@ -864,7 +714,7 @@ EpdSubtract3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
       else
 	EpdMakeNan(epd3);
     } else if (EpdIsInf(epd1)) {
-      EpdCopy(epd1, epd1);
+      EpdCopy(epd1, epd3);
     } else {
       sign = epd2->type.bits.sign ^ 0x1;
       EpdMakeInf(epd3, sign);
@@ -901,17 +751,9 @@ EpdSubtract3(EpDouble *epd1, EpDouble *epd2, EpDouble *epd3)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Computes arbitrary precision pow of base 2.]
-
-  Description [Computes arbitrary precision pow of base 2.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Computes extended precision pow of base 2.
+*/
 void
 EpdPow2(int n, EpDouble *epd)
 {
@@ -930,17 +772,9 @@ EpdPow2(int n, EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Computes arbitrary precision pow of base 2.]
-
-  Description [Computes arbitrary precision pow of base 2.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Computes extended precision pow of base 2.
+*/
 void
 EpdPow2Decimal(int n, EpDouble *epd)
 {
@@ -961,17 +795,9 @@ EpdPow2Decimal(int n, EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Normalize an arbitrary precision double value.]
-
-  Description [Normalize an arbitrary precision double value.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Normalize an extended precision double value.
+*/
 void
 EpdNormalize(EpDouble *epd)
 {
@@ -991,17 +817,9 @@ EpdNormalize(EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Normalize an arbitrary precision double value.]
-
-  Description [Normalize an arbitrary precision double value.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Normalize an extended precision double value.
+*/
 void
 EpdNormalizeDecimal(EpDouble *epd)
 {
@@ -1018,24 +836,19 @@ EpdNormalizeDecimal(EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Returns value and decimal exponent of EpDouble.]
-
-  Description [Returns value and decimal exponent of EpDouble.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns value and decimal exponent of EpDouble.
+*/
 void
-EpdGetValueAndDecimalExponent(EpDouble *epd, double *value, int *exponent)
+EpdGetValueAndDecimalExponent(EpDouble const *epd, double *value, int *exponent)
 {
   EpDouble	epd1, epd2;
 
-  if (EpdIsNanOrInf(epd))
+  if (EpdIsNanOrInf(epd)) {
+    *exponent = EPD_EXP_INF;
+    *value = 0.0;
     return;
+  }
 
   if (EpdIsZero(epd)) {
     *value = 0.0;
@@ -1052,17 +865,9 @@ EpdGetValueAndDecimalExponent(EpDouble *epd, double *value, int *exponent)
   *exponent = epd1.exponent;
 }
 
-/**Function********************************************************************
-
-  Synopsis    [Returns the exponent value of a double.]
-
-  Description [Returns the exponent value of a double.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns the exponent value of a double.
+*/
 int
 EpdGetExponent(double value)
 {
@@ -1075,17 +880,9 @@ EpdGetExponent(double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Returns the decimal exponent value of a double.]
-
-  Description [Returns the decimal exponent value of a double.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Returns the decimal exponent value of a double.
+*/
 int
 EpdGetExponentDecimal(double value)
 {
@@ -1099,17 +896,9 @@ EpdGetExponentDecimal(double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Makes EpDouble Inf.]
-
-  Description [Makes EpDouble Inf.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Makes EpDouble Inf.
+*/
 void
 EpdMakeInf(EpDouble *epd, int sign)
 {
@@ -1121,17 +910,9 @@ EpdMakeInf(EpDouble *epd, int sign)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Makes EpDouble Zero.]
-
-  Description [Makes EpDouble Zero.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Makes EpDouble Zero.
+*/
 void
 EpdMakeZero(EpDouble *epd, int sign)
 {
@@ -1143,17 +924,9 @@ EpdMakeZero(EpDouble *epd, int sign)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Makes EpDouble NaN.]
-
-  Description [Makes EpDouble NaN.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Makes EpDouble NaN.
+*/
 void
 EpdMakeNan(EpDouble *epd)
 {
@@ -1166,56 +939,32 @@ EpdMakeNan(EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Copies a EpDouble struct.]
-
-  Description [Copies a EpDouble struct.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Copies an EpDouble struct.
+*/
 void
-EpdCopy(EpDouble *from, EpDouble *to)
+EpdCopy(EpDouble const *from, EpDouble *to)
 {
   to->type.value = from->type.value;
   to->exponent = from->exponent;
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is Inf.]
-
-  Description [Checks whether the value is Inf.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is Inf.
+*/
 int
-EpdIsInf(EpDouble *epd)
+EpdIsInf(EpDouble const *epd)
 {
   return(IsInfDouble(epd->type.value));
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is Zero.]
-
-  Description [Checks whether the value is Zero.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is Zero.
+*/
 int
-EpdIsZero(EpDouble *epd)
+EpdIsZero(EpDouble const *epd)
 {
   if (epd->type.value == 0.0)
     return(1);
@@ -1224,53 +973,29 @@ EpdIsZero(EpDouble *epd)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is NaN.]
-
-  Description [Checks whether the value is NaN.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is NaN.
+*/
 int
-EpdIsNan(EpDouble *epd)
+EpdIsNan(EpDouble const *epd)
 {
   return(IsNanDouble(epd->type.value));
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is NaN or Inf.]
-
-  Description [Checks whether the value is NaN or Inf.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is NaN or Inf.
+*/
 int
-EpdIsNanOrInf(EpDouble *epd)
+EpdIsNanOrInf(EpDouble const *epd)
 {
   return(IsNanOrInfDouble(epd->type.value));
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is Inf.]
-
-  Description [Checks whether the value is Inf.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is Inf.
+*/
 int
 IsInfDouble(double value)
 {
@@ -1289,17 +1014,9 @@ IsInfDouble(double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is NaN.]
-
-  Description [Checks whether the value is NaN.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is NaN.
+*/
 int
 IsNanDouble(double value)
 {
@@ -1317,17 +1034,9 @@ IsNanDouble(double value)
 }
 
 
-/**Function********************************************************************
-
-  Synopsis    [Checks whether the value is NaN or Inf.]
-
-  Description [Checks whether the value is NaN or Inf.]
-
-  SideEffects []
-
-  SeeAlso     []
-
-******************************************************************************/
+/**
+  @brief Checks whether the value is NaN or Inf.
+*/
 int
 IsNanOrInfDouble(double value)
 {

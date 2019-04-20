@@ -1,0 +1,51 @@
+dddmp_sources = dddmp/dddmp.h dddmp/dddmpInt.h \
+  dddmp/dddmpBinary.c dddmp/dddmpConvert.c dddmp/dddmpDbg.c \
+  dddmp/dddmpLoad.c dddmp/dddmpLoadCnf.c dddmp/dddmpNodeAdd.c \
+  dddmp/dddmpNodeBdd.c dddmp/dddmpNodeCnf.c dddmp/dddmpStoreAdd.c \
+  dddmp/dddmpStoreBdd.c dddmp/dddmpStoreCnf.c dddmp/dddmpStoreMisc.c \
+  dddmp/dddmpUtil.c
+
+if DDDMP
+cudd_libcudd_la_SOURCES += $(dddmp_sources)
+else
+noinst_LTLIBRARIES += dddmp/libdddmp.la
+dddmp_libdddmp_la_SOURCES = $(dddmp_sources)
+dddmp_libdddmp_la_CPPFLAGS = -I$(top_srcdir)/util -I$(top_srcdir)/mtr \
+  -I$(top_srcdir)/epd -I$(top_srcdir)/cudd -I$(top_srcdir)/st
+endif !DDDMP
+
+check_PROGRAMS += dddmp/testdddmp
+dddmp_testdddmp_SOURCES = dddmp/testdddmp.c
+if DDDMP
+dddmp_testdddmp_CPPFLAGS = $(cudd_libcudd_la_CPPFLAGS)
+dddmp_testdddmp_LDADD =
+else
+dddmp_testdddmp_CPPFLAGS = $(dddmp_libdddmp_la_CPPFLAGS)
+dddmp_testdddmp_LDADD = dddmp/libdddmp.la
+endif !DDDMP
+dddmp_testdddmp_LDADD += cudd/libcudd.la
+
+check_SCRIPTS += dddmp/test_dddmp.test
+if !CROSS_COMPILING
+TESTS += dddmp/test_dddmp.test
+endif !CROSS_COMPILING
+EXTRA_DIST += dddmp/README.dddmp dddmp/README.testdddmp dddmp/RELEASE_NOTES \
+  dddmp/doc dddmp/test_dddmp.test.in dddmp/exp/test1.sh.in \
+  dddmp/exp/test2.sh.in dddmp/exp/test3.sh.in dddmp/exp/test4.sh.in \
+  dddmp/exp/test5.sh.in dddmp/exp/test6.sh.in dddmp/exp/test7.sh.in \
+  dddmp/exp/0.add dddmp/exp/0.bdd dddmp/exp/0or1.bdd dddmp/exp/1.add \
+  dddmp/exp/1.bdd dddmp/exp/2and3.bdd dddmp/exp/2.bdd dddmp/exp/3.bdd \
+  dddmp/exp/4.bdd dddmp/exp/4.bdd.bis1 dddmp/exp/4.bdd.bis2 \
+  dddmp/exp/4.bdd.bis3 dddmp/exp/4.bdd.bis4 dddmp/exp/4bis.bdd dddmp/exp/4.cnf \
+  dddmp/exp/4.cnf.bis dddmp/exp/4.max1 dddmp/exp/4.max2 dddmp/exp/4xor5.bdd \
+  dddmp/exp/5.bdd dddmp/exp/composeids.txt dddmp/exp/one.bdd \
+  dddmp/exp/s27deltaDddmp1.bdd dddmp/exp/s27deltaDddmp1.bdd.bis \
+  dddmp/exp/s27deltaDddmp2.bdd dddmp/exp/s27RP1.bdd dddmp/exp/varauxids.ord \
+  dddmp/exp/varnames.ord dddmp/exp/zero.bdd
+
+dddmp/test_dddmp.test: dddmp/test_dddmp.test.in Makefile
+	$(do_subst) $< > $@
+	chmod +x $@
+
+CLEANFILES +=  dddmp/exp/test1.sh dddmp/exp/test2.sh dddmp/exp/test3.sh \
+  dddmp/exp/test4.sh dddmp/exp/test5.sh dddmp/exp/test6.sh dddmp/exp/test7.sh

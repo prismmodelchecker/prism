@@ -1,30 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddWindow.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for variable reordering by window permutation.
 
-  Synopsis    [Functions for variable reordering by window permutation.]
+  @author Fabio Somenzi
 
-  Description [Internal procedures included in this module:
-		<ul>
-		<li> cuddWindowReorder()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddWindow2()
-		<li> ddWindowConv2()
-		<li> ddPermuteWindow3()
-		<li> ddWindow3()
-		<li> ddWindowConv3()
-		<li> ddPermuteWindow4()
-		<li> ddWindow4()
-		<li> ddWindowConv4()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -54,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -65,36 +50,23 @@
 /* Constant declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
 
 /*---------------------------------------------------------------------------*/
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
-
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddWindow.c,v 1.15 2012/02/05 01:07:19 fabio Exp $";
-#endif
-
-#ifdef DD_STATS
-extern  int     ddTotalNumberSwapping;
-extern  int     ddTotalNISwaps;
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -109,7 +81,7 @@ static int ddPermuteWindow4 (DdManager *table, int w);
 static int ddWindow4 (DdManager *table, int low, int high);
 static int ddWindowConv4 (DdManager *table, int low, int high);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -121,25 +93,24 @@ static int ddWindowConv4 (DdManager *table, int low, int high);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders by applying the method of the sliding window.
 
-  Synopsis    [Reorders by applying the method of the sliding window.]
+  @details Tries all possible permutations to the variables in a
+  window that slides from low to high. The size of the window is
+  determined by submethod.  Assumes that no dead nodes are present.
 
-  Description [Reorders by applying the method of the sliding window.
-  Tries all possible permutations to the variables in a window that
-  slides from low to high. The size of the window is determined by
-  submethod.  Assumes that no dead nodes are present.  Returns 1 in
-  case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddWindowReorder(
-  DdManager * table /* DD table */,
-  int low /* lowest index to reorder */,
-  int high /* highest index to reorder */,
-  Cudd_ReorderingType submethod /* window reordering option */)
+  DdManager * table /**< %DD table */,
+  int low /**< lowest index to reorder */,
+  int high /**< highest index to reorder */,
+  Cudd_ReorderingType submethod /**< window reordering option */)
 {
 
     int res;
@@ -163,7 +134,7 @@ cuddWindowReorder(
     case CUDD_REORDER_WINDOW3_CONV:
 	res = ddWindowConv3(table,low,high);
 #ifdef DD_DEBUG
-	supposedOpt = table->keys - table->isolated;
+	supposedOpt = (int) (table->keys - table->isolated);
 	res = ddWindow3(table,low,high);
 	if (table->keys - table->isolated != (unsigned) supposedOpt) {
 	    (void) fprintf(table->err, "Convergence failed! (%d != %d)\n",
@@ -174,7 +145,7 @@ cuddWindowReorder(
     case CUDD_REORDER_WINDOW4_CONV:
 	res = ddWindowConv4(table,low,high);
 #ifdef DD_DEBUG
-	supposedOpt = table->keys - table->isolated;
+	supposedOpt = (int) (table->keys - table->isolated);
 	res = ddWindow4(table,low,high);
 	if (table->keys - table->isolated != (unsigned) supposedOpt) {
 	    (void) fprintf(table->err,"Convergence failed! (%d != %d)\n",
@@ -194,18 +165,17 @@ cuddWindowReorder(
 /* Definition of static functions                                            */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Reorders by applying a sliding window of width 2.
 
-  Synopsis    [Reorders by applying a sliding window of width 2.]
+  @details Tries both permutations of the variables in a window that
+  slides from low to high.  Assumes that no dead nodes are present.
 
-  Description [Reorders by applying a sliding window of width 2.
-  Tries both permutations of the variables in a window
-  that slides from low to high.  Assumes that no dead nodes are
-  present.  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddWindow2(
   DdManager * table,
@@ -223,7 +193,7 @@ ddWindow2(
 
     if (high-low < 1) return(0);
 
-    res = table->keys - table->isolated;
+    res = (int) (table->keys - table->isolated);
     for (x = low; x < high; x++) {
 	size = res;
 	res = cuddSwapInPlace(table,x,x+1);
@@ -247,19 +217,18 @@ ddWindow2(
 } /* end of ddWindow2 */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders by repeatedly applying a sliding window of width 2.
 
-  Synopsis    [Reorders by repeatedly applying a sliding window of width 2.]
+  @details Tries both permutations of the variables in a window that
+  slides from low to high.  Assumes that no dead nodes are present.
+  Uses an event-driven approach to determine convergence.
 
-  Description [Reorders by repeatedly applying a sliding window of width
-  2. Tries both permutations of the variables in a window
-  that slides from low to high.  Assumes that no dead nodes are
-  present.  Uses an event-driven approach to determine convergence.
-  Returns 1 in case of success; 0 otherwise.]
+  @return 1 in case of success; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddWindowConv2(
   DdManager * table,
@@ -289,7 +258,7 @@ ddWindowConv2(
 	events[x] = 1;
     }
 
-    res = table->keys - table->isolated;
+    res = (int) (table->keys - table->isolated);
     do {
 	newevent = 0;
 	for (x=0; x<nwin; x++) {
@@ -338,21 +307,18 @@ ddWindowConv2(
 } /* end of ddWindowConv3 */
 
 
-/**Function********************************************************************
+/**
+  @brief Tries all the permutations of the three variables between
+  x and x+2 and retains the best.
 
-  Synopsis [Tries all the permutations of the three variables between
-  x and x+2 and retains the best.]
+  @details Assumes that no dead nodes are present.
 
-  Description [Tries all the permutations of the three variables between
-  x and x+2 and retains the best. Assumes that no dead nodes are
-  present.  Returns the index of the best permutation (1-6) in case of
-  success; 0 otherwise.Assumes that no dead nodes are present.  Returns
-  the index of the best permutation (1-6) in case of success; 0
-  otherwise.]
+  @return the index of the best permutation (1-6) in case of success;
+  0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddPermuteWindow3(
   DdManager * table,
@@ -367,7 +333,7 @@ ddPermuteWindow3(
     assert(x+2 < table->size);
 #endif
 
-    size = table->keys - table->isolated;
+    size = (int) (table->keys - table->isolated);
     y = x+1; z = y+1;
 
     /* The permutation pattern is:
@@ -436,18 +402,18 @@ ddPermuteWindow3(
 } /* end of ddPermuteWindow3 */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders by applying a sliding window of width 3.
 
-  Synopsis    [Reorders by applying a sliding window of width 3.]
-
-  Description [Reorders by applying a sliding window of width 3.
-  Tries all possible permutations to the variables in a
+  @details Tries all possible permutations to the variables in a
   window that slides from low to high.  Assumes that no dead nodes are
-  present.  Returns 1 in case of success; 0 otherwise.]
+  present.
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddWindow3(
   DdManager * table,
@@ -482,19 +448,18 @@ ddWindow3(
 } /* end of ddWindow3 */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders by repeatedly applying a sliding window of width 3.
 
-  Synopsis    [Reorders by repeatedly applying a sliding window of width 3.]
-
-  Description [Reorders by repeatedly applying a sliding window of width
-  3. Tries all possible permutations to the variables in a
+  @details Tries all possible permutations to the variables in a
   window that slides from low to high.  Assumes that no dead nodes are
   present.  Uses an event-driven approach to determine convergence.
-  Returns 1 in case of success; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddWindowConv3(
   DdManager * table,
@@ -580,19 +545,18 @@ ddWindowConv3(
 } /* end of ddWindowConv3 */
 
 
-/**Function********************************************************************
+/**
+  @brief Tries all the permutations of the four variables between w
+  and w+3 and retains the best.
 
-  Synopsis [Tries all the permutations of the four variables between w
-  and w+3 and retains the best.]
+  @details Assumes that no dead nodes are present.
 
-  Description [Tries all the permutations of the four variables between
-  w and w+3 and retains the best. Assumes that no dead nodes are
-  present.  Returns the index of the best permutation (1-24) in case of
-  success; 0 otherwise.]
+  @return the index of the best permutation (1-24) in case of success;
+  0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 ddPermuteWindow4(
   DdManager * table,
@@ -607,7 +571,7 @@ ddPermuteWindow4(
     assert(w+3 < table->size);
 #endif
 
-    size = table->keys - table->isolated;
+    size = (int) (table->keys - table->isolated);
     x = w+1; y = x+1; z = y+1;
 
     /* The permutation pattern is:
@@ -837,18 +801,18 @@ ddPermuteWindow4(
 } /* end of ddPermuteWindow4 */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders by applying a sliding window of width 4.
 
-  Synopsis    [Reorders by applying a sliding window of width 4.]
-
-  Description [Reorders by applying a sliding window of width 4.
-  Tries all possible permutations to the variables in a
+  @details Tries all possible permutations to the variables in a
   window that slides from low to high.  Assumes that no dead nodes are
-  present.  Returns 1 in case of success; 0 otherwise.]
+  present.
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddWindow4(
   DdManager * table,
@@ -883,19 +847,18 @@ ddWindow4(
 } /* end of ddWindow4 */
 
 
-/**Function********************************************************************
+/**
+  @brief Reorders by repeatedly applying a sliding window of width 4.
 
-  Synopsis    [Reorders by repeatedly applying a sliding window of width 4.]
-
-  Description [Reorders by repeatedly applying a sliding window of width
-  4. Tries all possible permutations to the variables in a
+  @details Tries all possible permutations to the variables in a
   window that slides from low to high.  Assumes that no dead nodes are
   present.  Uses an event-driven approach to determine convergence.
-  Returns 1 in case of success; 0 otherwise.]
 
-  SideEffects [None]
+  @return 1 in case of success; 0 otherwise.
 
-******************************************************************************/
+  @sideeffect None
+
+*/
 static int
 ddWindowConv4(
   DdManager * table,

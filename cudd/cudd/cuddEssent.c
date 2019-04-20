@@ -1,43 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddEssent.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions for the detection of essential variables.
 
-  Synopsis    [Functions for the detection of essential variables.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this file:
-		<ul>
-		<li> Cudd_FindEssential()
-		<li> Cudd_bddIsVarEssential()
-		<li> Cudd_FindTwoLiteralClauses()
-		<li> Cudd_ReadIthClause()
-		<li> Cudd_PrintTwoLiteralClauses()
-		<li> Cudd_tlcInfoFree()
-		</ul>
-	Static procedures included in this module:
-		<ul>
-		<li> ddFindEssentialRecur()
-		<li> ddFindTwoLiteralClausesRecur()
-		<li> computeClauses()
-		<li> computeClausesWithUniverse()
-		<li> emptyClauseSet()
-		<li> sentinelp()
-		<li> equalp()
-		<li> beforep()
-		<li> oneliteralp()
-		<li> impliedp()
-		<li> bitVectorAlloc()
-		<li> bitVectorClear()
-		<li> bitVectorFree()
-		<li> bitVectorRead()
-		<li> bitVectorSet()
-		<li> tlcInfoAlloc()
-		</ul>]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -67,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -79,7 +51,7 @@
 /*---------------------------------------------------------------------------*/
 
 /* These definitions are for the bit vectors. */
-#if SIZEOF_LONG == 8
+#if SIZEOF_VOID_P == 8
 #define BPL 64
 #define LOGBPL 6
 #else
@@ -91,8 +63,10 @@
 /* Stucture declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-/* This structure holds the set of clauses for a node.  Each clause consists
-** of two literals.  For one-literal clauses, the second lietral is FALSE.
+/**
+** @brief This structure holds the set of clauses for a node.
+** @details Each clause consists of two literals.
+** For one-literal clauses, the second literal is FALSE.
 ** Each literal is composed of a variable and a phase.  A variable is a node
 ** index, and requires sizeof(DdHalfWord) bytes.  The constant literals use
 ** CUDD_MAXINDEX as variable indicator.  Each phase is a bit: 0 for positive
@@ -105,26 +79,30 @@
 ** is the one of least index.  So, the clause with literals +2 and -4 is stored
 ** as (+2,-4).  A one-literal clause with literal +3 is stored as
 ** (+3,-CUDD_MAXINDEX).  Clauses are sorted in decreasing order as follows:
-**      (+5,-7)
-**      (+5,+6)
-**      (-5,+7)
-**      (-4,FALSE)
-**      (-4,+8)
-**      ...
+** <ul>
+** <li> (+5,-7)
+** <li> (+5,+6)
+** <li> (-5,+7)
+** <li> (-4,FALSE)
+** <li> (-4,+8)
+** <li> ...
+** </ul>
 ** That is, one first looks at the variable of the first literal, then at the
-** phase of the first litral, then at the variable of the second literal,
+** phase of the first literal, then at the variable of the second literal,
 ** and finally at the phase of the second literal.
 */
 struct DdTlcInfo {
     DdHalfWord *vars;
-    long *phases;
+    ptruint *phases;
     DdHalfWord cnt;
 };
 
-/* This structure is for temporary representation of sets of clauses.  It is
-** meant to be used in link lists, when the number of clauses is not yet
-** known. The encoding of a clause is the same as in DdTlcInfo, though
-** the phase information is not stored in a bit array. */
+/**
+** @brief This structure is for temporary representation of sets of clauses.
+** @details It is meant to be used in linked lists, when the number of clauses
+** is not yet known.  The encoding of a clause is the same as in DdTlcInfo,
+** though the phase information is not stored in a bit array.
+*/
 struct TlClause {
     DdHalfWord v1, v2;
     short p1, p2;
@@ -135,35 +113,26 @@ struct TlClause {
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
-typedef long BitVector;
+typedef ptruint BitVector;
 typedef struct TlClause TlClause;
 
 /*---------------------------------------------------------------------------*/
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddEssent.c,v 1.25 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
-static BitVector *Tolv;
-static BitVector *Tolp;
-static BitVector *Eolv;
-static BitVector *Eolp;
-
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
 static DdNode * ddFindEssentialRecur (DdManager *dd, DdNode *f);
-static DdTlcInfo * ddFindTwoLiteralClausesRecur (DdManager * dd, DdNode * f, st_table *table);
-static DdTlcInfo * computeClauses (DdTlcInfo *Tres, DdTlcInfo *Eres, DdHalfWord label, int size);
+static DdTlcInfo * ddFindTwoLiteralClausesRecur (DdManager * dd, DdNode * f, st_table *table, BitVector *Tolv, BitVector *Tolp, BitVector *Eolv, BitVector *Eolp);
+static DdTlcInfo * computeClauses (DdTlcInfo *Tres, DdTlcInfo *Eres, DdHalfWord label, int size, BitVector *Tolv, BitVector *Tolp, BitVector *Eolv, BitVector *Eolp);
 static DdTlcInfo * computeClausesWithUniverse (DdTlcInfo *Cres, DdHalfWord label, short phase);
 static DdTlcInfo * emptyClauseSet (void);
 static int sentinelp (DdHalfWord var1, DdHalfWord var2);
@@ -172,13 +141,13 @@ static int beforep (DdHalfWord var1a, short phase1a, DdHalfWord var1b, short pha
 static int oneliteralp (DdHalfWord var);
 static int impliedp (DdHalfWord var1, short phase1, DdHalfWord var2, short phase2, BitVector *olv, BitVector *olp);
 static BitVector * bitVectorAlloc (int size);
-DD_INLINE static void bitVectorClear (BitVector *vector, int size);
+static void bitVectorClear (BitVector *vector, int size);
 static void bitVectorFree (BitVector *vector);
-DD_INLINE static short bitVectorRead (BitVector *vector, int i);
-DD_INLINE static void bitVectorSet (BitVector * vector, int i, short val);
+static short bitVectorRead (BitVector *vector, int i);
+static void bitVectorSet (BitVector * vector, int i, short val);
 static DdTlcInfo * tlcInfoAlloc (void);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -186,21 +155,21 @@ static DdTlcInfo * tlcInfoAlloc (void);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the essential variables of a %DD.
 
-  Synopsis    [Finds the essential variables of a DD.]
-
-  Description [Returns the cube of the essential variables. A positive
+  @details Returns the cube of the essential variables. A positive
   literal means that the variable must be set to 1 for the function to be
   1. A negative literal means that the variable must be set to 0 for the
-  function to be 1. Returns a pointer to the cube BDD if successful;
-  NULL otherwise.]
+  function to be 1.
 
-  SideEffects [None]
+  @return a pointer to the cube %BDD if successful; NULL otherwise.
 
-  SeeAlso     [Cudd_bddIsVarEssential]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_bddIsVarEssential
+
+*/
 DdNode *
 Cudd_FindEssential(
   DdManager * dd,
@@ -212,25 +181,26 @@ Cudd_FindEssential(
 	dd->reordered = 0;
 	res = ddFindEssentialRecur(dd,f);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_FindEssential */
 
 
-/**Function********************************************************************
+/**
+  @brief Determines whether a given variable is essential with a
+  given phase in a %BDD.
 
-  Synopsis    [Determines whether a given variable is essential with a
-  given phase in a BDD.]
+  @details Uses Cudd_bddIteConstant. Returns 1 if phase == 1 and
+  f-->x_id, or if phase == 0 and f-->x_id'.
 
-  Description [Determines whether a given variable is essential with a
-  given phase in a BDD. Uses Cudd_bddIteConstant. Returns 1 if phase == 1
-  and f-->x_id, or if phase == 0 and f-->x_id'.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_FindEssential
 
-  SeeAlso     [Cudd_FindEssential]
-
-******************************************************************************/
+*/
 int
 Cudd_bddIsVarEssential(
   DdManager * manager,
@@ -252,23 +222,24 @@ Cudd_bddIsVarEssential(
 } /* end of Cudd_bddIsVarEssential */
 
 
-/**Function********************************************************************
+/**
+  @brief Finds the two literal clauses of a %DD.
 
-  Synopsis    [Finds the two literal clauses of a DD.]
+  @details Returns the one- and two-literal clauses of a %DD.  For a
+  constant %DD, the empty set of clauses is returned.  This is
+  obviously correct for a non-zero constant.  For the constant zero,
+  it is based on the assumption that only those clauses containing
+  variables in the support of the function are considered.  Since the
+  support of a constant function is empty, no clauses are returned.
 
-  Description [Returns the one- and two-literal clauses of a DD.
-  Returns a pointer to the structure holding the clauses if
-  successful; NULL otherwise.  For a constant DD, the empty set of clauses
-  is returned.  This is obviously correct for a non-zero constant.  For the
-  constant zero, it is based on the assumption that only those clauses
-  containing variables in the support of the function are considered.  Since
-  the support of a constant function is empty, no clauses are returned.]
+  @return a pointer to the structure holding the clauses if
+  successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_FindEssential]
+  @see Cudd_FindEssential
 
-******************************************************************************/
+*/
 DdTlcInfo *
 Cudd_FindTwoLiteralClauses(
   DdManager * dd,
@@ -280,8 +251,9 @@ Cudd_FindTwoLiteralClauses(
     DdTlcInfo *tlc;
     DdNode *node;
     int size = dd->size;
+    BitVector *Tolv, *Tolp, *Eolv, *Eolp;
 
-    if (Cudd_IsConstant(f)) {
+    if (Cudd_IsConstantInt(f)) {
 	res = emptyClauseSet();
 	return(res);
     }
@@ -314,9 +286,9 @@ Cudd_FindTwoLiteralClauses(
 	return(NULL);
     }
 
-    res = ddFindTwoLiteralClausesRecur(dd,f,table);
+    res = ddFindTwoLiteralClausesRecur(dd,f,table,Tolv,Tolp,Eolv,Eolp);
     /* Dispose of table contents and free table. */
-    st_foreach_item(table, gen, &node, &tlc) {
+    st_foreach_item(table, gen, (void **) &node, (void **) &tlc) {
 	if (node != f) {
 	    Cudd_tlcInfoFree(tlc);
 	}
@@ -338,33 +310,34 @@ Cudd_FindTwoLiteralClauses(
 } /* end of Cudd_FindTwoLiteralClauses */
 
 
-/**Function********************************************************************
+/**
+  @brief Accesses the i-th clause of a %DD.
 
-  Synopsis    [Accesses the i-th clause of a DD.]
+  @details Accesses the i-th clause of a %DD given the clause set which
+  must be already computed.
 
-  Description [Accesses the i-th clause of a DD given the clause set which
-  must be already computed.  Returns 1 if successful; 0 if i is out of range,
-  or in case of error.]
+  @return 1 if successful; 0 if i is out of range, or in case of
+  error.
 
-  SideEffects [the four components of a clause are returned as side effects.]
+  @sideeffect the four components of a clause are returned as side effects.
 
-  SeeAlso     [Cudd_FindTwoLiteralClauses]
+  @see Cudd_FindTwoLiteralClauses
 
-******************************************************************************/
+*/
 int
 Cudd_ReadIthClause(
   DdTlcInfo * tlc,
   int i,
-  DdHalfWord *var1,
-  DdHalfWord *var2,
+  unsigned *var1,
+  unsigned *var2,
   int *phase1,
   int *phase2)
 {
     if (tlc == NULL) return(0);
     if (tlc->vars == NULL || tlc->phases == NULL) return(0);
     if (i < 0 || (unsigned) i >= tlc->cnt) return(0);
-    *var1 = tlc->vars[2*i];
-    *var2 = tlc->vars[2*i+1];
+    *var1 = (unsigned) tlc->vars[2*i];
+    *var2 = (unsigned) tlc->vars[2*i+1];
     *phase1 = (int) bitVectorRead(tlc->phases, 2*i);
     *phase2 = (int) bitVectorRead(tlc->phases, 2*i+1);
     return(1);
@@ -372,19 +345,19 @@ Cudd_ReadIthClause(
 } /* end of Cudd_ReadIthClause */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints the one- and two-literal clauses of a %DD.
 
-  Synopsis    [Prints the two literal clauses of a DD.]
+  @details The argument "names" can be NULL, in which case the
+  variable indices are printed.
 
-  Description [Prints the one- and two-literal clauses. Returns 1 if
-  successful; 0 otherwise.  The argument "names" can be NULL, in which case
-  the variable indices are printed.]
+  @return 1 if successful; 0 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_FindTwoLiteralClauses]
+  @see Cudd_FindTwoLiteralClauses
 
-******************************************************************************/
+*/
 int
 Cudd_PrintTwoLiteralClauses(
   DdManager * dd,
@@ -435,18 +408,14 @@ Cudd_PrintTwoLiteralClauses(
 } /* end of Cudd_PrintTwoLiteralClauses */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees a DdTlcInfo Structure.
 
-  Synopsis    [Frees a DdTlcInfo Structure.]
+  @details Also frees the memory pointed by it.
 
-  Description [Frees a DdTlcInfo Structure as well as the memory pointed
-  by it.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 Cudd_tlcInfoFree(
   DdTlcInfo * t)
@@ -468,16 +437,14 @@ Cudd_tlcInfoFree(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_FindEssential.
 
-  Synopsis    [Implements the recursive step of Cudd_FindEssential.]
+  @return a pointer to the cube %BDD if successful; NULL otherwise.
 
-  Description [Implements the recursive step of Cudd_FindEssential.
-  Returns a pointer to the cube BDD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static DdNode *
 ddFindEssentialRecur(
   DdManager * dd,
@@ -485,7 +452,7 @@ ddFindEssentialRecur(
 {
     DdNode	*T, *E, *F;
     DdNode	*essT, *essE, *res;
-    int		index;
+    unsigned	index;
     DdNode	*one, *lzero, *azero;
 
     one = DD_ONE(dd);
@@ -498,6 +465,8 @@ ddFindEssentialRecur(
 	return(res);
     }
 
+    checkWhetherToGiveUp(dd);
+
     lzero = Cudd_Not(one);
     azero = DD_ZERO(dd);
     /* Find cofactors: here f is non-constant. */
@@ -508,7 +477,7 @@ ddFindEssentialRecur(
     }
 
     index = F->index;
-    if (Cudd_IsConstant(T) && T != lzero && T != azero) {
+    if (Cudd_IsConstantInt(T) && T != lzero && T != azero) {
 	/* if E is zero, index is essential, otherwise there are no
 	** essentials, because index is not essential and no other variable
 	** can be, since setting index = 1 makes the function constant and
@@ -520,7 +489,7 @@ ddFindEssentialRecur(
 	    res = one;
 	}
     } else if (T == lzero || T == azero) {
-	if (Cudd_IsConstant(E)) { /* E cannot be zero here */
+	if (Cudd_IsConstantInt(E)) { /* E cannot be zero here */
 	    res = Cudd_Not(dd->vars[index]);
 	} else { /* E == non-constant */
 	    /* find essentials in the else branch */
@@ -556,7 +525,7 @@ ddFindEssentialRecur(
 		return(NULL);
 	    }
 	    cuddDeref(essT);
-	} else if (!Cudd_IsConstant(E)) {
+	} else if (!Cudd_IsConstantInt(E)) {
 	    /* if E is a non-zero constant there are no essentials
 	    ** because T is non-constant.
 	    */
@@ -598,25 +567,27 @@ ddFindEssentialRecur(
 } /* end of ddFindEssentialRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Implements the recursive step of Cudd_FindTwoLiteralClauses.
 
-  Synopsis    [Implements the recursive step of Cudd_FindTwoLiteralClauses.]
+  @details The %DD node is assumed to be not constant.
 
-  Description [Implements the recursive step of
-  Cudd_FindTwoLiteralClauses.  The DD node is assumed to be not
-  constant.  Returns a pointer to a set of clauses if successful; NULL
-  otherwise.]
+  @return a pointer to a set of clauses if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_FindTwoLiteralClauses]
+  @see Cudd_FindTwoLiteralClauses
 
-******************************************************************************/
+*/
 static DdTlcInfo *
 ddFindTwoLiteralClausesRecur(
   DdManager * dd,
   DdNode * f,
-  st_table *table)
+  st_table *table,
+  BitVector *Tolv,
+  BitVector *Tolp,
+  BitVector *Eolv,
+  BitVector *Eolp)
 {
     DdNode *T, *E, *F;
     DdNode *one, *lzero, *azero;
@@ -629,7 +600,7 @@ ddFindTwoLiteralClausesRecur(
 
     /* Check computed table.  Separate entries are necessary for
     ** a node and its complement.  We should update the counter here. */
-    if (st_lookup(table, f, &res)) {
+    if (st_lookup(table, f, (void **) &res)) {
 	return(res);
     }
 
@@ -645,7 +616,7 @@ ddFindTwoLiteralClausesRecur(
     }
     index = F->index;
 
-    if (Cudd_IsConstant(T) && T != lzero && T != azero) {
+    if (Cudd_IsConstantInt(T) && T != lzero && T != azero) {
 	/* T is a non-zero constant.  If E is zero, then this node's index
 	** is a one-literal clause.  Otherwise, if E is a non-zero
 	** constant, there are no clauses for this node.  Finally,
@@ -672,19 +643,21 @@ ddFindTwoLiteralClausesRecur(
 	    res->vars[3] = 0;
 	    bitVectorSet(res->phases, 0, 0); /* positive phase */
 	    bitVectorSet(res->phases, 1, 1); /* negative phase */
-	} else if (Cudd_IsConstant(E)) {
+	} else if (Cudd_IsConstantInt(E)) {
 	    /* If E is a non-zero constant, no clauses. */
 	    res = emptyClauseSet();
 	} else {
 	    /* E is non-constant */
 	    Tres = emptyClauseSet();
 	    if (Tres == NULL) return(NULL);
-	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
+	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table,
+                                                Tolv, Tolp, Eolv, Eolp);
 	    if (Eres == NULL) {
 		Cudd_tlcInfoFree(Tres);
 		return(NULL);
 	    }
-	    res = computeClauses(Tres, Eres, index, dd->size);
+	    res = computeClauses(Tres, Eres, index, dd->size,
+                                 Tolv, Tolp, Eolv, Eolp);
 	    Cudd_tlcInfoFree(Tres);
 	}
     } else if (T == lzero || T == azero) {
@@ -692,7 +665,7 @@ ddFindTwoLiteralClausesRecur(
 	** complement of this node's index is a one-literal clause.
 	** Otherwise, if E is not constant, we recursively compute its
 	** clauses, and then merge using the universal set for T. */
-	if (Cudd_IsConstant(E)) { /* E cannot be zero here */
+	if (Cudd_IsConstantInt(E)) { /* E cannot be zero here */
 	    /* Create the clause (!index + 0). */
 	    res = tlcInfoAlloc();
 	    if (res == NULL) return(NULL);
@@ -714,31 +687,36 @@ ddFindTwoLiteralClausesRecur(
 	    bitVectorSet(res->phases, 0, 1); /* negative phase */
 	    bitVectorSet(res->phases, 1, 1); /* negative phase */
 	} else { /* E == non-constant */
-	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
+	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table,
+                                                Tolv, Tolp, Eolv, Eolp);
 	    if (Eres == NULL) return(NULL);
 	    res = computeClausesWithUniverse(Eres, index, 1);
 	}
     } else { /* T == non-const */
-	Tres = ddFindTwoLiteralClausesRecur(dd, T, table);
+	Tres = ddFindTwoLiteralClausesRecur(dd, T, table,
+                                            Tolv, Tolp, Eolv, Eolp);
 	if (Tres == NULL) return(NULL);
-	if (Cudd_IsConstant(E)) {
+	if (Cudd_IsConstantInt(E)) {
 	    if (E == lzero || E == azero) {
 		res = computeClausesWithUniverse(Tres, index, 0);
 	    } else {
 		Eres = emptyClauseSet();
 		if (Eres == NULL) return(NULL);
-		res = computeClauses(Tres, Eres, index, dd->size);
+		res = computeClauses(Tres, Eres, index, dd->size,
+                                     Tolv, Tolp, Eolv, Eolp);
 		Cudd_tlcInfoFree(Eres);
 	    }
 	} else {
-	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table);
+	    Eres = ddFindTwoLiteralClausesRecur(dd, E, table,
+                                                Tolv, Tolp, Eolv, Eolp);
 	    if (Eres == NULL) return(NULL);
-	    res = computeClauses(Tres, Eres, index, dd->size);
+	    res = computeClauses(Tres, Eres, index, dd->size,
+                                 Tolv, Tolp, Eolv, Eolp);
 	}
     }
 
     /* Cache results. */
-    if (st_add_direct(table, (char *)f, (char *)res) == ST_OUT_OF_MEM) {
+    if (st_add_direct(table, f, res) == ST_OUT_OF_MEM) {
 	FREE(res);
 	return(NULL);
     }
@@ -747,25 +725,30 @@ ddFindTwoLiteralClausesRecur(
 } /* end of ddFindTwoLiteralClausesRecur */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the two-literal clauses for a node.
 
-  Synopsis    [Computes the two-literal clauses for a node.]
+  @details Computes the two-literal clauses for a node given the
+  clauses for its children and the label of the node.
 
-  Description [Computes the two-literal clauses for a node given the
-  clauses for its children and the label of the node.  Returns a
-  pointer to a TclInfo structure if successful; NULL otherwise.]
+  @return a pointer to a TclInfo structure if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [computeClausesWithUniverse]
+  @see computeClausesWithUniverse
 
-******************************************************************************/
+*/
 static DdTlcInfo *
 computeClauses(
-  DdTlcInfo *Tres /* list of clauses for T child */,
-  DdTlcInfo *Eres /* list of clauses for E child */,
-  DdHalfWord label /* variable labeling the current node */,
-  int size /* number of variables in the manager */)
+  DdTlcInfo *Tres /**< list of clauses for T child */,
+  DdTlcInfo *Eres /**< list of clauses for E child */,
+  DdHalfWord label /**< variable labeling the current node */,
+  int size /**< number of variables in the manager */,
+  BitVector *Tolv /**< variable bit vector for T child */,
+  BitVector *Tolp /**< phase bit vector for T child */,
+  BitVector *Eolv /**< variable bit vector for E child */,
+  BitVector *Eolp /**< phase bit vector for E child */)
 {
     DdHalfWord *Tcv = Tres->vars; /* variables of clauses for the T child */
     BitVector *Tcp = Tres->phases; /* phases of clauses for the T child */
@@ -1046,20 +1029,21 @@ computeClauses(
 } /* end of computeClauses */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the two-literal clauses for a node.
 
-  Synopsis    [Computes the two-literal clauses for a node.]
-
-  Description [Computes the two-literal clauses for a node with a zero
+  @details Computes the two-literal clauses for a node with a zero
   child, given the clauses for its other child and the label of the
-  node.  Returns a pointer to a TclInfo structure if successful; NULL
-  otherwise.]
+  node.
 
-  SideEffects [None]
+  @return a pointer to a TclInfo structure if successful; NULL
+  otherwise.
 
-  SeeAlso     [computeClauses]
+  @sideeffect None
 
-******************************************************************************/
+  @see computeClauses
+
+*/
 static DdTlcInfo *
 computeClausesWithUniverse(
   DdTlcInfo *Cres /* list of clauses for child */,
@@ -1119,19 +1103,17 @@ computeClausesWithUniverse(
 } /* end of computeClausesWithUniverse */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns an enpty set of clauses.
 
-  Synopsis    [Returns an enpty set of clauses.]
+  @details No bit vector for the phases is allocated.
 
-  Description [Returns a pointer to an empty set of clauses if
-  successful; NULL otherwise.  No bit vector for the phases is
-  allocated.]
+  @return a pointer to an empty set of clauses if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdTlcInfo *
 emptyClauseSet(void)
 {
@@ -1154,18 +1136,14 @@ emptyClauseSet(void)
 } /* end of emptyClauseSet */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns true iff the argument is the sentinel clause.
 
-  Synopsis    [Returns true iff the argument is the sentinel clause.]
+  @details A sentinel clause has both variables equal to 0.
 
-  Description [Returns true iff the argument is the sentinel clause.
-  A sentinel clause has both variables equal to 0.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 sentinelp(
   DdHalfWord var1,
@@ -1176,19 +1154,17 @@ sentinelp(
 } /* end of sentinelp */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns true iff the two arguments are identical clauses.
 
-  Synopsis    [Returns true iff the two arguments are identical clauses.]
+  @details Since literals are sorted, we only need to compare literals
+  in the same position.
 
-  Description [Returns true iff the two arguments are identical
-  clauses.  Since literals are sorted, we only need to compare
-  literals in the same position.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see beforep
 
-  SeeAlso     [beforep]
-
-******************************************************************************/
+*/
 static int
 equalp(
   DdHalfWord var1a,
@@ -1206,25 +1182,23 @@ equalp(
 } /* end of equalp */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns true iff the first argument precedes the second in
+  the clause order.
 
-  Synopsis    [Returns true iff the first argument precedes the second in
-  the clause order.]
-
-  Description [Returns true iff the first argument precedes the second
-  in the clause order.  A clause precedes another if its first lieral
+  @details A clause precedes another if its first lieral
   precedes the first literal of the other, or if the first literals
   are the same, and its second literal precedes the second literal of
   the other clause.  A literal precedes another if it has a higher
   index, of if it has the same index, but it has lower phase.  Phase 0
   is the positive phase, and it is lower than Phase 1 (negative
-  phase).]
+  phase).
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [equalp]
+  @see equalp
 
-******************************************************************************/
+*/
 static int
 beforep(
   DdHalfWord var1a,
@@ -1243,20 +1217,16 @@ beforep(
 } /* end of beforep */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns true iff the argument is a one-literal clause.
 
-  Synopsis    [Returns true iff the argument is a one-literal clause.]
+  @details A one-litaral clause has the constant FALSE as second
+  literal.  Since the constant TRUE is never used, it is sufficient to
+  test for a constant.
 
-  Description [Returns true iff the argument is a one-literal clause.
-  A one-litaral clause has the constant FALSE as second literal.
-  Since the constant TRUE is never used, it is sufficient to test for
-  a constant.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 oneliteralp(
   DdHalfWord var)
@@ -1266,20 +1236,16 @@ oneliteralp(
 } /* end of oneliteralp */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns true iff either literal of a clause is in a set of
+  literals.
 
-  Synopsis [Returns true iff either literal of a clause is in a set of
-  literals.]
+  @details The first four arguments specify the clause.  The remaining
+  two arguments specify the literal set.
 
-  Description [Returns true iff either literal of a clause is in a set
-  of literals.  The first four arguments specify the clause.  The
-  remaining two arguments specify the literal set.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static int
 impliedp(
   DdHalfWord var1,
@@ -1297,20 +1263,21 @@ impliedp(
 } /* end of impliedp */
 
 
-/**Function********************************************************************
+/**
+  @brief Allocates a bit vector.
 
-  Synopsis    [Allocates a bit vector.]
+  @details The parameter size gives the number of bits.  This
+  procedure allocates enough words to hold the specified number of
+  bits.
 
-  Description [Allocates a bit vector.  The parameter size gives the
-  number of bits.  This procedure allocates enough long's to hold the
-  specified number of bits.  Returns a pointer to the allocated vector
-  if successful; NULL otherwise.]
+  @return a pointer to the allocated vector if successful; NULL
+  otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [bitVectorClear bitVectorFree]
+  @see bitVectorClear bitVectorFree
 
-******************************************************************************/
+*/
 static BitVector *
 bitVectorAlloc(
   int size)
@@ -1318,8 +1285,8 @@ bitVectorAlloc(
     int allocSize;
     BitVector *vector;
 
-    /* Find out how many long's we need.
-    ** There are sizeof(long) * 8 bits in a long.
+    /* Find out how many words we need.
+    ** There are sizeof(ptruint) * 8 bits in a ptruint.
     ** The ceiling of the ratio of two integers m and n is given
     ** by ((n-1)/m)+1.  Putting all this together, we get... */
     allocSize = ((size - 1) / (sizeof(BitVector) * 8)) + 1;
@@ -1332,19 +1299,16 @@ bitVectorAlloc(
 } /* end of bitVectorAlloc */
 
 
-/**Function********************************************************************
+/**
+  @brief Clears a bit vector.
 
-  Synopsis    [Clears a bit vector.]
+  @details The parameter size gives the number of bits.
 
-  Description [Clears a bit vector.  The parameter size gives the
-  number of bits.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see bitVectorAlloc
 
-  SeeAlso     [bitVectorAlloc]
-
-******************************************************************************/
-DD_INLINE
+*/
 static void
 bitVectorClear(
   BitVector *vector,
@@ -1352,8 +1316,8 @@ bitVectorClear(
 {
     int allocSize;
 
-    /* Find out how many long's we need.
-    ** There are sizeof(long) * 8 bits in a long.
+    /* Find out how many words we need.
+    ** There are sizeof(ptruint) * 8 bits in a ptruint.
     ** The ceiling of the ratio of two integers m and n is given
     ** by ((n-1)/m)+1.  Putting all this together, we get... */
     allocSize = ((size - 1) / (sizeof(BitVector) * 8)) + 1;
@@ -1364,17 +1328,14 @@ bitVectorClear(
 } /* end of bitVectorClear */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees a bit vector.
 
-  Synopsis    [Frees a bit vector.]
+  @sideeffect None
 
-  Description [Frees a bit vector.]
+  @see bitVectorAlloc
 
-  SideEffects [None]
-
-  SeeAlso     [bitVectorAlloc]
-
-******************************************************************************/
+*/
 static void
 bitVectorFree(
   BitVector *vector)
@@ -1384,18 +1345,14 @@ bitVectorFree(
 } /* end of bitVectorFree */
 
 
-/**Function********************************************************************
+/**
+  @brief Returns the i-th entry of a bit vector.
 
-  Synopsis    [Returns the i-th entry of a bit vector.]
+  @sideeffect None
 
-  Description [Returns the i-th entry of a bit vector.]
+  @see bitVectorSet
 
-  SideEffects [None]
-
-  SeeAlso     [bitVectorSet]
-
-******************************************************************************/
-DD_INLINE
+*/
 static short
 bitVectorRead(
   BitVector *vector,
@@ -1408,24 +1365,20 @@ bitVectorRead(
 
     word = i >> LOGBPL;
     bit = i & (BPL - 1);
-    result = (short) ((vector[word] >> bit) & 1L);
+    result = (short) ((vector[word] >> bit) & (ptruint) 1);
     return(result);
 
 } /* end of bitVectorRead */
 
 
-/**Function********************************************************************
+/**
+  @brief Sets the i-th entry of a bit vector to a value.
 
-  Synopsis    [Sets the i-th entry of a bit vector to a value.]
+  @sideeffect None
 
-  Description [Sets the i-th entry of a bit vector to a value.]
+  @see bitVectorRead
 
-  SideEffects [None]
-
-  SeeAlso     [bitVectorRead]
-
-******************************************************************************/
-DD_INLINE
+*/
 static void
 bitVectorSet(
   BitVector * vector,
@@ -1442,18 +1395,17 @@ bitVectorSet(
 } /* end of bitVectorSet */
 
 
-/**Function********************************************************************
+/**
+  @brief Allocates a DdTlcInfo Structure.
 
-  Synopsis    [Allocates a DdTlcInfo Structure.]
+  @return a pointer to a DdTlcInfo Structure if successful; NULL
+  otherwise.
 
-  Description [Returns a pointer to a DdTlcInfo Structure if successful;
-  NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_tlcInfoFree
 
-  SeeAlso     [Cudd_tlcInfoFree]
-
-******************************************************************************/
+*/
 static DdTlcInfo *
 tlcInfoAlloc(void)
 {

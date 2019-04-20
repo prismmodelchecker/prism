@@ -1,32 +1,16 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [mtrBasic.c]
+  @ingroup mtr
 
-  PackageName [mtr]
+  @brief Basic manipulation of multiway branching trees.
 
-  Synopsis    [Basic manipulation of multiway branching trees.]
+  @see cudd package
 
-  Description [External procedures included in this module:
-	    <ul>
-	    <li> Mtr_AllocNode()
-	    <li> Mtr_DeallocNode()
-	    <li> Mtr_InitTree()
-	    <li> Mtr_FreeTree()
-	    <li> Mtr_CopyTree()
-	    <li> Mtr_MakeFirstChild()
-	    <li> Mtr_MakeLastChild()
-	    <li> Mtr_CreateFirstChild()
-	    <li> Mtr_CreateLastChild()
-	    <li> Mtr_MakeNextSibling()
-	    <li> Mtr_PrintTree()
-	    </ul>
-	    ]
+  @author Fabio Somenzi
 
-  SeeAlso     [cudd package]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -56,9 +40,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "mtrInt.h"
@@ -80,64 +65,57 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] MTR_UNUSED = "$Id: mtrBasic.c,v 1.15 2012/02/05 01:06:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
-/**Function********************************************************************
+/**
+  @brief Allocates new tree node.
 
-  Synopsis    [Allocates new tree node.]
+  @return pointer to node.
 
-  Description [Allocates new tree node. Returns pointer to node.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Mtr_DeallocNode
 
-  SeeAlso     [Mtr_DeallocNode]
-
-******************************************************************************/
+*/
 MtrNode *
 Mtr_AllocNode(void)
 {
     MtrNode *node;
 
     node = ALLOC(MtrNode,1);
+    node->flags = node->low = node->size = node->index = 0;
     return node;
 
 } /* Mtr_AllocNode */
 
 
-/**Function********************************************************************
+/**
+  @brief Deallocates tree node.
 
-  Synopsis    [Deallocates tree node.]
+  @sideeffect None
 
-  Description []
+  @see Mtr_AllocNode
 
-  SideEffects [None]
-
-  SeeAlso     [Mtr_AllocNode]
-
-******************************************************************************/
+*/
 void
 Mtr_DeallocNode(
-  MtrNode * node /* node to be deallocated */)
+  MtrNode * node /**< node to be deallocated */)
 {
     FREE(node);
     return;
@@ -145,17 +123,16 @@ Mtr_DeallocNode(
 } /* end of Mtr_DeallocNode */
 
 
-/**Function********************************************************************
+/**
+  @brief Initializes tree with one node.
 
-  Synopsis    [Initializes tree with one node.]
+  @return pointer to node.
 
-  Description [Initializes tree with one node. Returns pointer to node.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Mtr_FreeTree Mtr_InitGroupTree
 
-  SeeAlso     [Mtr_FreeTree Mtr_InitGroupTree]
-
-******************************************************************************/
+*/
 MtrNode *
 Mtr_InitTree(void)
 {
@@ -165,24 +142,20 @@ Mtr_InitTree(void)
     if (node == NULL) return(NULL);
 
     node->parent = node->child = node->elder = node->younger = NULL;
-    node->flags = 0;
 
     return(node);
 
 } /* end of Mtr_InitTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Disposes of tree rooted at node.
 
-  Synopsis    [Disposes of tree rooted at node.]
+  @sideeffect None
 
-  Description []
+  @see Mtr_InitTree
 
-  SideEffects [None]
-
-  SeeAlso     [Mtr_InitTree]
-
-******************************************************************************/
+*/
 void
 Mtr_FreeTree(
   MtrNode * node)
@@ -196,23 +169,23 @@ Mtr_FreeTree(
 } /* end of Mtr_FreeTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Makes a copy of tree.
 
-  Synopsis    [Makes a copy of tree.]
+  @details If parameter expansion is greater than 1, it will expand
+  the tree by that factor. It is an error for expansion to be less
+  than 1.
 
-  Description [Makes a copy of tree. If parameter expansion is greater
-  than 1, it will expand the tree by that factor. It is an error for
-  expansion to be less than 1. Returns a pointer to the copy if
-  successful; NULL otherwise.]
+  @return a pointer to the copy if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Mtr_InitTree]
+  @see Mtr_InitTree
 
-******************************************************************************/
+*/
 MtrNode *
 Mtr_CopyTree(
-  MtrNode * node,
+  MtrNode const * node,
   int  expansion)
 {
     MtrNode *copy;
@@ -253,17 +226,14 @@ Mtr_CopyTree(
 } /* end of Mtr_CopyTree */
 
 
-/**Function********************************************************************
+/**
+  @brief Makes child the first child of parent.
 
-  Synopsis    [Makes child the first child of parent.]
+  @sideeffect None
 
-  Description []
+  @see Mtr_MakeLastChild Mtr_CreateFirstChild
 
-  SideEffects [None]
-
-  SeeAlso     [Mtr_MakeLastChild Mtr_CreateFirstChild]
-
-******************************************************************************/
+*/
 void
 Mtr_MakeFirstChild(
   MtrNode * parent,
@@ -284,17 +254,14 @@ Mtr_MakeFirstChild(
 } /* end of Mtr_MakeFirstChild */
 
 
-/**Function********************************************************************
+/**
+  @brief Makes child the last child of parent.
 
-  Synopsis    [Makes child the last child of parent.]
+  @sideeffect None
 
-  Description []
+  @see Mtr_MakeFirstChild Mtr_CreateLastChild
 
-  SideEffects [None]
-
-  SeeAlso     [Mtr_MakeFirstChild Mtr_CreateLastChild]
-
-******************************************************************************/
+*/
 void
 Mtr_MakeLastChild(
   MtrNode * parent,
@@ -320,18 +287,16 @@ Mtr_MakeLastChild(
 } /* end of Mtr_MakeLastChild */
 
 
-/**Function********************************************************************
+/**
+  @brief Creates a new node and makes it the first child of parent.
 
-  Synopsis    [Creates a new node and makes it the first child of parent.]
+  @return pointer to new child.
 
-  Description [Creates a new node and makes it the first child of
-  parent. Returns pointer to new child.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Mtr_MakeFirstChild Mtr_CreateLastChild
 
-  SeeAlso     [Mtr_MakeFirstChild Mtr_CreateLastChild]
-
-******************************************************************************/
+*/
 MtrNode *
 Mtr_CreateFirstChild(
   MtrNode * parent)
@@ -342,25 +307,22 @@ Mtr_CreateFirstChild(
     if (child == NULL) return(NULL);
 
     child->child = NULL;
-    child->flags = 0;
     Mtr_MakeFirstChild(parent,child);
     return(child);
 
 } /* end of Mtr_CreateFirstChild */
 
 
-/**Function********************************************************************
+/**
+  @brief Creates a new node and makes it the last child of parent.
 
-  Synopsis    [Creates a new node and makes it the last child of parent.]
+  @return pointer to new child.
 
-  Description [Creates a new node and makes it the last child of parent.
-  Returns pointer to new child.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Mtr_MakeLastChild Mtr_CreateFirstChild
 
-  SeeAlso     [Mtr_MakeLastChild Mtr_CreateFirstChild]
-
-******************************************************************************/
+*/
 MtrNode *
 Mtr_CreateLastChild(
   MtrNode * parent)
@@ -371,25 +333,20 @@ Mtr_CreateLastChild(
     if (child == NULL) return(NULL);
 
     child->child = NULL;
-    child->flags = 0;
     Mtr_MakeLastChild(parent,child);
     return(child);
 
 } /* end of Mtr_CreateLastChild */
 
 
-/**Function********************************************************************
+/**
+  @brief Makes second the next sibling of first.
 
-  Synopsis    [Makes second the next sibling of first.]
+  @details Second becomes a child of the parent of first.
 
-  Description [Makes second the next sibling of first. Second becomes a
-  child of the parent of first.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 Mtr_MakeNextSibling(
   MtrNode * first,
@@ -407,20 +364,17 @@ Mtr_MakeNextSibling(
 } /* end of Mtr_MakeNextSibling */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints a tree, one node per line.
 
-  Synopsis    [Prints a tree, one node per line.]
+  @sideeffect None
 
-  Description []
+  @see Mtr_PrintGroups
 
-  SideEffects [None]
-
-  SeeAlso     [Mtr_PrintGroups]
-
-******************************************************************************/
+*/
 void
 Mtr_PrintTree(
-  MtrNode * node)
+  MtrNode const * node)
 {
     if (node == NULL) return;
     (void) fprintf(stdout,

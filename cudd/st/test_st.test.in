@@ -1,0 +1,8 @@
+#! /bin/sh
+
+EXE=@EXEEXT@
+srcdir=@srcdir@
+
+st/testst$EXE
+
+exit 0

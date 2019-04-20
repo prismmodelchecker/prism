@@ -1,0 +1,17 @@
+#! /bin/sh 
+#
+# Run All Test Files
+#
+echo TAP version 13
+echo 1..7
+cd dddmp/exp
+for n in 1 2 3 4 5 6 7
+do
+    ./test${n}.sh > /dev/null 2>&1
+     if test $? = 0 ; then
+        echo "ok ${n}"
+    else
+        echo "not ok ${n}"
+    fi
+done
+exit 0

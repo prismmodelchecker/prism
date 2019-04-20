@@ -881,6 +881,7 @@ NodeTextStoreBdd (
   )
 {
   int retValue = EOF;
+  (void) mode; /* avoid warning */
 
   /*
    *  Check for Constant
@@ -1005,7 +1006,9 @@ NodeBinaryStoreBdd (
 {
   int retValue, diff, var;
   struct binary_dd_code code;
-
+  (void) mode;     /* avoid warning */
+  (void) varnames; /* avoid warning */
+  (void) outids;   /* avoid warning */
   /*
    *  Check for Constant
    */

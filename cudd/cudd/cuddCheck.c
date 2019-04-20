@@ -1,33 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddCheck.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions to check consistency of data structures.
 
-  Synopsis    [Functions to check consistency of data structures.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_DebugCheck()
-		<li> Cudd_CheckKeys()
-		</ul>
-	       Internal procedures included in this module:
-		<ul>
-		<li> cuddHeapProfile()
-		<li> cuddPrintNode()
-		<li> cuddPrintVarGroups()
-		</ul>
-	       Static procedures included in this module:
-		<ul>
-		<li> debugFindParent()
-		</ul>
-		]
-
-  SeeAlso     []
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -57,11 +38,13 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
+#include "mtrInt.h"
 #include "cuddInt.h"
 
 /*---------------------------------------------------------------------------*/
@@ -83,16 +66,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddCheck.c,v 1.37 2012/02/05 01:07:18 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -103,7 +82,7 @@ static void debugFindParent (DdManager *table, DdNode *node);
 static void debugCheckParent (DdManager *table, DdNode *node);
 #endif
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -111,29 +90,29 @@ static void debugCheckParent (DdManager *table, DdNode *node);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Checks for inconsistencies in the %DD heap.
 
-  Synopsis    [Checks for inconsistencies in the DD heap.]
-
-  Description [Checks for inconsistencies in the DD heap:
+  @details The following inconsistencies are checked:
   <ul>
   <li> node has illegal index
   <li> live node has dead children
   <li> node has illegal Then or Else pointers
-  <li> BDD/ADD node has identical children
-  <li> ZDD node has zero then child
+  <li> %BDD/%ADD node has identical children
+  <li> %ZDD node has zero then child
   <li> wrong number of total nodes
   <li> wrong number of dead nodes
   <li> ref count error at node
   </ul>
-  Returns 0 if no inconsistencies are found; DD_OUT_OF_MEM if there is
-  not enough memory; 1 otherwise.]
+  
+  @return 0 if no inconsistencies are found; DD_OUT_OF_MEM if there is
+  not enough memory; 1 otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_CheckKeys]
+  @see Cudd_CheckKeys
 
-******************************************************************************/
+*/
 int
 Cudd_DebugCheck(
   DdManager * table)
@@ -206,7 +185,7 @@ Cudd_DebugCheck(
 			cuddPrintNode(f,table->err);
 			flag =1;
 		    }
-                    if (ddHash(cuddT(f),cuddE(f),shift) != j) {
+                    if (ddHash(cuddT(f),cuddE(f),shift) != (unsigned) j) {
                         (void) fprintf(table->err, "Error: misplaced node\n");
 			cuddPrintNode(f,table->err);
 			flag =1;
@@ -214,13 +193,13 @@ Cudd_DebugCheck(
 		    /* Increment the internal reference count for the
 		    ** then child of the current node.
 		    */
-		    if (st_lookup_int(edgeTable,(char *)cuddT(f),&count)) {
+		    if (st_lookup_int(edgeTable,cuddT(f),&count)) {
 			count++;
 		    } else {
 			count = 1;
 		    }
-		    if (st_insert(edgeTable,(char *)cuddT(f),
-		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
+		    if (st_insert(edgeTable,cuddT(f),
+		    (void *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			return(CUDD_OUT_OF_MEM);
 		    }
@@ -228,14 +207,14 @@ Cudd_DebugCheck(
 		    /* Increment the internal reference count for the
 		    ** else child of the current node.
 		    */
-		    if (st_lookup_int(edgeTable,(char *)Cudd_Regular(cuddE(f)),
+		    if (st_lookup_int(edgeTable,Cudd_Regular(cuddE(f)),
 				      &count)) {
 			count++;
 		    } else {
 			count = 1;
 		    }
-		    if (st_insert(edgeTable,(char *)Cudd_Regular(cuddE(f)),
-		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
+		    if (st_insert(edgeTable,Cudd_Regular(cuddE(f)),
+		    (void *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			return(CUDD_OUT_OF_MEM);
 		    }
@@ -320,13 +299,13 @@ Cudd_DebugCheck(
 		    /* Increment the internal reference count for the
 		    ** then child of the current node.
 		    */
-		    if (st_lookup_int(edgeTable,(char *)cuddT(f),&count)) {
+		    if (st_lookup_int(edgeTable,cuddT(f),&count)) {
 			count++;
 		    } else {
 			count = 1;
 		    }
-		    if (st_insert(edgeTable,(char *)cuddT(f),
-		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
+		    if (st_insert(edgeTable,cuddT(f),
+		    (void *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			return(CUDD_OUT_OF_MEM);
 		    }
@@ -334,13 +313,13 @@ Cudd_DebugCheck(
 		    /* Increment the internal reference count for the
 		    ** else child of the current node.
 		    */
-		    if (st_lookup_int(edgeTable,(char *)cuddE(f),&count)) {
+		    if (st_lookup_int(edgeTable,cuddE(f),&count)) {
 			count++;
 		    } else {
 			count = 1;
 		    }
-		    if (st_insert(edgeTable,(char *)cuddE(f),
-		    (char *)(ptruint)count) == ST_OUT_OF_MEM) {
+		    if (st_insert(edgeTable,cuddE(f),
+		    (void *)(ptruint)count) == ST_OUT_OF_MEM) {
 			st_free_table(edgeTable);
 			table->errorCode = CUDD_MEMORY_OUT;
 			return(CUDD_OUT_OF_MEM);
@@ -408,7 +387,7 @@ Cudd_DebugCheck(
 	flag = 1;
     }
     gen = st_init_gen(edgeTable);
-    while (st_gen(gen, &f, &count)) {
+    while (st_gen_int(gen, (void **) &f, &count)) {
 	if (count > (int)(f->ref) && f->ref != DD_MAXREF) {
 	    fprintf(table->err,"ref count error at node 0x%" PRIxPTR ", count = %d, id = %u, ref = %u, then = 0x%" PRIxPTR ", else = 0x%" PRIxPTR "\n",
                 (ptruint)f,count,f->index,f->ref,(ptruint)cuddT(f),(ptruint)cuddE(f));
@@ -424,11 +403,10 @@ Cudd_DebugCheck(
 } /* end of Cudd_DebugCheck */
 
 
-/**Function********************************************************************
+/**
+  @brief Checks for several conditions that should not occur.
 
-  Synopsis    [Checks for several conditions that should not occur.]
-
-  Description [Checks for the following conditions:
+  @details Checks for the following conditions:
   <ul>
   <li>Wrong sizes of subtables.
   <li>Wrong number of keys found in unique subtable.
@@ -439,14 +417,16 @@ Cudd_DebugCheck(
   <li>Wrong number of maximum keys found
   <li>Wrong number of total dead found
   </ul>
-  Reports the average length of non-empty lists. Returns the number of
-  subtables for which the number of keys is wrong.]
+  Reports the average length of non-empty lists.
 
-  SideEffects [None]
+  @return the number of subtables for which the number of keys is
+  wrong.
 
-  SeeAlso     [Cudd_DebugCheck]
+  @sideeffect None
 
-******************************************************************************/
+  @see Cudd_DebugCheck
+
+*/
 int
 Cudd_CheckKeys(
   DdManager * table)
@@ -606,12 +586,11 @@ in the constant table (difference=%d)\n", dead);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Prints information about the heap.
 
-  Synopsis    [Prints information about the heap.]
-
-  Description [Prints to the manager's stdout the number of live nodes for each
-  level of the DD heap that contains at least one live node.  It also
+  @details Prints to the manager's stdout the number of live nodes for each
+  level of the %DD heap that contains at least one live node.  It also
   prints a summary containing:
   <ul>
   <li> total number of tables;
@@ -620,14 +599,13 @@ in the constant table (difference=%d)\n", dead);
   <li> number of nodes in that table.
   </ul>
   If more than one table contains the maximum number of live nodes,
-  only the one of lowest index is reported. Returns 1 in case of success
-  and 0 otherwise.]
+  only the one of lowest index is reported.
 
-  SideEffects [None]
+  @return 1 in case of success and 0 otherwise.
 
-  SeeAlso     []
+  @sideeffect None
 
-******************************************************************************/
+*/
 int
 cuddHeapProfile(
   DdManager * dd)
@@ -683,17 +661,12 @@ cuddHeapProfile(
 } /* end of cuddHeapProfile */
 
 
-/**Function********************************************************************
+/**
+  @brief Prints out information on a node.
 
-  Synopsis    [Prints out information on a node.]
+  @sideeffect None
 
-  Description [Prints out information on a node.]
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddPrintNode(
   DdNode * f,
@@ -706,14 +679,11 @@ cuddPrintNode(
 } /* end of cuddPrintNode */
 
 
+/**
+  @brief Prints the variable groups as a parenthesized list.
 
-/**Function********************************************************************
-
-  Synopsis    [Prints the variable groups as a parenthesized list.]
-
-  Description [Prints the variable groups as a parenthesized list.
-  For each group the level range that it represents is printed. After
-  each group, the group's flags are printed, preceded by a `|'.  For
+  @details   For each group the level range that it represents is printed.
+  After each group, the group's flags are printed, preceded by a `|'.  For
   each flag (except MTR_TERMINAL) a character is printed.
   <ul>
   <li>F: MTR_FIXED
@@ -721,19 +691,17 @@ cuddPrintNode(
   <li>S: MTR_SOFT
   </ul>
   The second argument, silent, if different from 0, causes
-  Cudd_PrintVarGroups to only check the syntax of the group tree.]
+  Cudd_PrintVarGroups to only check the syntax of the group tree.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     []
-
-******************************************************************************/
+*/
 void
 cuddPrintVarGroups(
-  DdManager * dd /* manager */,
-  MtrNode * root /* root of the group tree */,
-  int zdd /* 0: BDD; 1: ZDD */,
-  int silent /* flag to check tree syntax only */)
+  DdManager * dd /**< manager */,
+  MtrNode * root /**< root of the group tree */,
+  int zdd /**< 0: %BDD; 1: %ZDD */,
+  int silent /**< flag to check tree syntax only */)
 {
     MtrNode *node;
     int level;
@@ -780,17 +748,12 @@ cuddPrintVarGroups(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Searches the subtables above node for its parents.
 
-  Synopsis    [Searches the subtables above node for its parents.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 debugFindParent(
   DdManager * table,
@@ -821,18 +784,17 @@ debugFindParent(
 
 
 #if 0
-/**Function********************************************************************
+/**
+  @brief Reports an error if a (dead) node has a non-dead parent.
 
-  Synopsis    [Reports an error if a (dead) node has a non-dead parent.]
+  @details Searches all the subtables above node. Very expensive.
+  The same check is now implemented more efficiently in ddDebugCheck.
 
-  Description [Searches all the subtables above node. Very expensive.
-  The same check is now implemented more efficiently in ddDebugCheck.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see debugFindParent
 
-  SeeAlso     [debugFindParent]
-
-******************************************************************************/
+*/
 static void
 debugCheckParent(
   DdManager * table,

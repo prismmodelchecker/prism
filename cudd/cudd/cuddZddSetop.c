@@ -1,45 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddZddSetop.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Set operations on ZDDs.
 
-  Synopsis    [Set operations on ZDDs.]
+  @author Hyong-Kyoon Shin, In-Ho Moon
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_zddIte()
-		    <li> Cudd_zddUnion()
-		    <li> Cudd_zddIntersect()
-		    <li> Cudd_zddDiff()
-		    <li> Cudd_zddDiffConst()
-		    <li> Cudd_zddSubset1()
-		    <li> Cudd_zddSubset0()
-		    <li> Cudd_zddChange()
-		    </ul>
-	       Internal procedures included in this module:
-		    <ul>
-		    <li> cuddZddIte()
-		    <li> cuddZddUnion()
-		    <li> cuddZddIntersect()
-		    <li> cuddZddDiff()
-		    <li> cuddZddChangeAux()
-		    <li> cuddZddSubset1()
-		    <li> cuddZddSubset0()
-		    </ul>
-	       Static procedures included in this module:
-		    <ul>
-		    <li> zdd_subset1_aux()
-		    <li> zdd_subset0_aux()
-		    <li> zddVarToConst()
-		    </ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [Hyong-Kyoon Shin, In-Ho Moon]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -69,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -95,19 +65,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddSetop.c,v 1.26 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -117,29 +80,21 @@ static DdNode * zdd_subset1_aux (DdManager *zdd, DdNode *P, DdNode *zvar);
 static DdNode * zdd_subset0_aux (DdManager *zdd, DdNode *P, DdNode *zvar);
 static void zddVarToConst (DdNode *f, DdNode **gp, DdNode **hp, DdNode *base, DdNode *empty);
 
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the ITE of three ZDDs.
 
-  Synopsis [Computes the ITE of three ZDDs.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Computes the ITE of three ZDDs. Returns a pointer to the
-  result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddIte(
   DdManager * dd,
@@ -153,23 +108,22 @@ Cudd_zddIte(
 	dd->reordered = 0;
 	res = cuddZddIte(dd, f, g, h);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddIte */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the union of two ZDDs.
 
-  Synopsis [Computes the union of two ZDDs.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Computes the union of two ZDDs. Returns a pointer to the
-  result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddUnion(
   DdManager * dd,
@@ -182,23 +136,22 @@ Cudd_zddUnion(
 	dd->reordered = 0;
 	res = cuddZddUnion(dd, P, Q);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddUnion */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the intersection of two ZDDs.
 
-  Synopsis [Computes the intersection of two ZDDs.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Computes the intersection of two ZDDs. Returns a pointer to
-  the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddIntersect(
   DdManager * dd,
@@ -211,23 +164,22 @@ Cudd_zddIntersect(
 	dd->reordered = 0;
 	res = cuddZddIntersect(dd, P, Q);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddIntersect */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the difference of two ZDDs.
 
-  Synopsis [Computes the difference of two ZDDs.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Computes the difference of two ZDDs. Returns a pointer to the
-  result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     [Cudd_zddDiffConst]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddDiff(
   DdManager * dd,
@@ -240,24 +192,27 @@ Cudd_zddDiff(
 	dd->reordered = 0;
 	res = cuddZddDiff(dd, P, Q);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddDiff */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the inclusion test for ZDDs (P implies Q).
 
-  Synopsis [Performs the inclusion test for ZDDs (P implies Q).]
+  @details No new nodes are generated by this procedure.
 
-  Description [Inclusion test for ZDDs (P implies Q). No new nodes are
-  generated by this procedure. Returns empty if true;
-  a valid pointer different from empty or DD_NON_CONSTANT otherwise.]
+  @return empty if true; a valid pointer different from empty or
+  DD_NON_CONSTANT otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddDiff]
+  @see Cudd_zddDiff
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddDiffConst(
   DdManager * zdd,
@@ -308,20 +263,19 @@ Cudd_zddDiffConst(
 } /* end of Cudd_zddDiffConst */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the positive cofactor of a %ZDD w.r.t. a variable.
 
-  Synopsis [Computes the positive cofactor of a ZDD w.r.t. a variable.]
+  @details In terms of combinations, the result is the set of all
+  combinations in which the variable is asserted.
 
-  Description [Computes the positive cofactor of a ZDD w.r.t. a
-  variable. In terms of combinations, the result is the set of all
-  combinations in which the variable is asserted. Returns a pointer to
-  the result if successful; NULL otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddSubset0]
+  @see Cudd_zddSubset0
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddSubset1(
   DdManager * dd,
@@ -334,26 +288,28 @@ Cudd_zddSubset1(
 	dd->reordered = 0;
 	r = cuddZddSubset1(dd, P, var);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(r);
 
 } /* end of Cudd_zddSubset1 */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the negative cofactor of a %ZDD w.r.t. a variable.
 
-  Synopsis [Computes the negative cofactor of a ZDD w.r.t. a variable.]
+  @details In terms of combinations, the result is the set of all
+  combinations in which the variable is negated.
 
-  Description [Computes the negative cofactor of a ZDD w.r.t. a
-  variable. In terms of combinations, the result is the set of all
-  combinations in which the variable is negated. Returns a pointer to
-  the result if successful; NULL otherwise.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddSubset1]
+  @see Cudd_zddSubset1
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddSubset0(
   DdManager * dd,
@@ -366,24 +322,23 @@ Cudd_zddSubset0(
 	dd->reordered = 0;
 	r = cuddZddSubset0(dd, P, var);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(r);
 
 } /* end of Cudd_zddSubset0 */
 
 
-/**Function********************************************************************
+/**
+  @brief Substitutes a variable with its complement in a %ZDD.
 
-  Synopsis [Substitutes a variable with its complement in a ZDD.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  Description [Substitutes a variable with its complement in a ZDD.
-  returns a pointer to the result if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddChange(
   DdManager * dd,
@@ -398,6 +353,9 @@ Cudd_zddChange(
 	dd->reordered = 0;
 	res = cuddZddChange(dd, P, var);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
     return(res);
 
 } /* end of Cudd_zddChange */
@@ -408,17 +366,12 @@ Cudd_zddChange(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddIte.
 
-  Synopsis    [Performs the recursive step of Cudd_zddIte.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddZddIte(
   DdManager * dd,
@@ -428,8 +381,8 @@ cuddZddIte(
 {
     DdNode *tautology, *empty;
     DdNode *r,*Gv,*Gvn,*Hv,*Hvn,*t,*e;
-    unsigned int topf,topg,toph,v,top;
-    int index;
+    int topf,topg,toph,v,top;
+    unsigned int index;
 
     statLine(dd);
     /* Trivial cases. */
@@ -534,17 +487,12 @@ cuddZddIte(
 } /* end of cuddZddIte */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddUnion.
 
-  Synopsis [Performs the recursive step of Cudd_zddUnion.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddZddUnion(
   DdManager * zdd,
@@ -623,17 +571,12 @@ cuddZddUnion(
 } /* end of cuddZddUnion */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddIntersect.
 
-  Synopsis [Performs the recursive step of Cudd_zddIntersect.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddZddIntersect(
   DdManager * zdd,
@@ -698,17 +641,12 @@ cuddZddIntersect(
 } /* end of cuddZddIntersect */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddDiff.
 
-  Synopsis [Performs the recursive step of Cudd_zddDiff.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddZddDiff(
   DdManager * zdd,
@@ -780,17 +718,12 @@ cuddZddDiff(
 } /* end of cuddZddDiff */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddChange.
 
-  Synopsis [Performs the recursive step of Cudd_zddChange.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 DdNode *
 cuddZddChangeAux(
   DdManager * zdd,
@@ -849,23 +782,22 @@ cuddZddChangeAux(
 } /* end of cuddZddChangeAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the positive cofactor of a %ZDD w.r.t. a variable.
 
-  Synopsis [Computes the positive cofactor of a ZDD w.r.t. a variable.]
+  @details In terms of combinations, the result is the set of all
+  combinations in which the variable is asserted.  cuddZddSubset1
+  performs the same function as Cudd_zddSubset1, but does not restart
+  if reordering has taken place. Therefore it can be called from
+  within a recursive procedure.
 
-  Description [Computes the positive cofactor of a ZDD w.r.t. a
-  variable. In terms of combinations, the result is the set of all
-  combinations in which the variable is asserted. Returns a pointer to
-  the result if successful; NULL otherwise. cuddZddSubset1 performs
-  the same function as Cudd_zddSubset1, but does not restart if
-  reordering has taken place. Therefore it can be called from within a
-  recursive procedure.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddZddSubset0 Cudd_zddSubset1]
+  @see cuddZddSubset0 Cudd_zddSubset1
 
-******************************************************************************/
+*/
 DdNode *
 cuddZddSubset1(
   DdManager * dd,
@@ -898,23 +830,22 @@ cuddZddSubset1(
 } /* end of cuddZddSubset1 */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the negative cofactor of a %ZDD w.r.t. a variable.
 
-  Synopsis [Computes the negative cofactor of a ZDD w.r.t. a variable.]
+  @details In terms of combinations, the result is the set of all
+  combinations in which the variable is negated.  cuddZddSubset0
+  performs the same function as Cudd_zddSubset0, but does not restart
+  if reordering has taken place. Therefore it can be called from
+  within a recursive procedure.
 
-  Description [Computes the negative cofactor of a ZDD w.r.t. a
-  variable. In terms of combinations, the result is the set of all
-  combinations in which the variable is negated. Returns a pointer to
-  the result if successful; NULL otherwise. cuddZddSubset0 performs
-  the same function as Cudd_zddSubset0, but does not restart if
-  reordering has taken place. Therefore it can be called from within a
-  recursive procedure.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [cuddZddSubset1 Cudd_zddSubset0]
+  @see cuddZddSubset1 Cudd_zddSubset0
 
-******************************************************************************/
+*/
 DdNode *
 cuddZddSubset0(
   DdManager * dd,
@@ -947,22 +878,20 @@ cuddZddSubset0(
 } /* end of cuddZddSubset0 */
 
 
-/**Function********************************************************************
+/**
+  @brief Substitutes a variable with its complement in a %ZDD.
 
-  Synopsis [Substitutes a variable with its complement in a ZDD.]
+  @details cuddZddChange performs the same function as Cudd_zddChange,
+  but does not restart if reordering has taken place. Therefore it can
+  be called from within a recursive procedure.
 
-  Description [Substitutes a variable with its complement in a ZDD.
-  returns a pointer to the result if successful; NULL
-  otherwise. cuddZddChange performs the same function as
-  Cudd_zddChange, but does not restart if reordering has taken
-  place. Therefore it can be called from within a recursive
-  procedure.]
+  @return a pointer to the result if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddChange]
+  @see Cudd_zddChange
 
-******************************************************************************/
+*/
 DdNode *
 cuddZddChange(
   DdManager * dd,
@@ -993,17 +922,12 @@ cuddZddChange(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddSubset1.
 
-  Synopsis [Performs the recursive step of Cudd_zddSubset1.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 zdd_subset1_aux(
   DdManager * zdd,
@@ -1062,17 +986,12 @@ zdd_subset1_aux(
 } /* end of zdd_subset1_aux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddSubset0.
 
-  Synopsis [Performs the recursive step of Cudd_zddSubset0.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 zdd_subset0_aux(
   DdManager * zdd,
@@ -1131,18 +1050,13 @@ zdd_subset0_aux(
 } /* end of zdd_subset0_aux */
 
 
-/**Function********************************************************************
+/**
+  @brief Replaces variables with constants if possible (part of
+  canonical form).
 
-  Synopsis    [Replaces variables with constants if possible (part of
-  canonical form).]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static void
 zddVarToConst(
   DdNode * f,

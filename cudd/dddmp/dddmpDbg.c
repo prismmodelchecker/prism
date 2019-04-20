@@ -83,6 +83,7 @@ Dddmp_cuddBddDisplayBinary(
   struct binary_dd_code code;
   char buf[1000];
   int nnodes, i;
+  char *retval;
 
   fp = fopen (fileIn, "rb");
   if (fp == 0) {
@@ -141,8 +142,8 @@ Dddmp_cuddBddDisplayBinary(
 
   }
 
-  fgets(buf, 999,fp);
-  if (strncmp(buf, ".end", 4) != 0) {
+  retval = fgets(buf, 999,fp);
+  if (!retval || strncmp(buf, ".end", 4) != 0) {
     return (0);
   }
 

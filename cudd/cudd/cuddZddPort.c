@@ -1,31 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddZddPort.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Functions that translate BDDs to ZDDs.
 
-  Synopsis    [Functions that translate BDDs to ZDDs.]
+  @author Hyong-kyoon Shin, In-Ho Moon
 
-  Description [External procedures included in this module:
-		    <ul>
-		    <li> Cudd_zddPortFromBdd()
-		    <li> Cudd_zddPortToBdd()
-		    </ul>
-	       Internal procedures included in this module:
-		    <ul>
-		    </ul>
-	       Static procedures included in this module:
-		    <ul>
-		    <li> zddPortFromBddStep()
-		    <li> zddPortToBddStep()
-		    </ul>
-	      ]
-
-  SeeAlso     []
-
-  Author      [Hyong-kyoon Shin, In-Ho Moon]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -55,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -81,16 +65,12 @@
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddZddPort.c,v 1.14 2012/02/05 01:07:19 fabio Exp $";
-#endif
 
 /*---------------------------------------------------------------------------*/
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -99,7 +79,7 @@ static char rcsid[] DD_UNUSED = "$Id: cuddZddPort.c,v 1.14 2012/02/05 01:07:19 f
 static DdNode * zddPortFromBddStep (DdManager *dd, DdNode *B, int expected);
 static DdNode * zddPortToBddStep (DdManager *dd, DdNode *f, int depth);
 
-/**AutomaticEnd***************************************************************/
+/** \endcond */
 
 
 /*---------------------------------------------------------------------------*/
@@ -107,22 +87,22 @@ static DdNode * zddPortToBddStep (DdManager *dd, DdNode *f, int depth);
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Converts a %BDD into a %ZDD.
 
-  Synopsis [Converts a BDD into a ZDD.]
+  @details This function assumes that there is a one-to-one
+  correspondence between the %BDD variables and the %ZDD variables, and
+  that the variable order is the same for both types of
+  variables. These conditions are established if the %ZDD variables are
+  created by one call to Cudd_zddVarsFromBddVars with multiplicity = 1.
 
-  Description [Converts a BDD into a ZDD. This function assumes that
-  there is a one-to-one correspondence between the BDD variables and the
-  ZDD variables, and that the variable order is the same for both types
-  of variables. These conditions are established if the ZDD variables
-  are created by one call to Cudd_zddVarsFromBddVars with multiplicity =
-  1. Returns a pointer to the resulting ZDD if successful; NULL otherwise.]
+  @return a pointer to the resulting %ZDD if successful; NULL otherwise.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_zddVarsFromBddVars]
+  @see Cudd_zddVarsFromBddVars
 
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddPortFromBdd(
   DdManager * dd,
@@ -134,24 +114,26 @@ Cudd_zddPortFromBdd(
 	dd->reordered = 0;
 	res = zddPortFromBddStep(dd,B,0);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(res);
 
 } /* end of Cudd_zddPortFromBdd */
 
 
-/**Function********************************************************************
+/**
+  @brief Converts a %ZDD into a %BDD.
 
-  Synopsis [Converts a ZDD into a BDD.]
+  @return a pointer to the resulting %ZDD if successful; NULL
+  otherwise.
 
-  Description [Converts a ZDD into a BDD. Returns a pointer to the resulting
-  ZDD if successful; NULL otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see Cudd_zddPortFromBdd
 
-  SeeAlso     [Cudd_zddPortFromBdd]
-
-******************************************************************************/
+*/
 DdNode *
 Cudd_zddPortToBdd(
   DdManager * dd,
@@ -163,6 +145,9 @@ Cudd_zddPortToBdd(
 	dd->reordered = 0;
 	res = zddPortToBddStep(dd,f,0);
     } while (dd->reordered == 1);
+    if (dd->errorCode == CUDD_TIMEOUT_EXPIRED && dd->timeoutHandler) {
+        dd->timeoutHandler(dd, dd->tohArg);
+    }
 
     return(res);
 
@@ -178,17 +163,12 @@ Cudd_zddPortToBdd(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddPortFromBdd.
 
-  Synopsis [Performs the recursive step of Cudd_zddPortFromBdd.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 zddPortFromBddStep(
   DdManager * dd,
@@ -197,7 +177,8 @@ zddPortFromBddStep(
 {
     DdNode	*res, *prevZdd, *t, *e;
     DdNode	*Breg, *Bt, *Be;
-    int		id, level;
+    int		id;
+    int		level;
 
     statLine(dd);
     /* Terminal cases. */
@@ -245,7 +226,7 @@ zddPortFromBddStep(
 	Be = cuddE(Breg);
     }
 
-    id = Breg->index;
+    id = (int) Breg->index;
     level = cuddI(dd,id);
     t = zddPortFromBddStep(dd, Bt, level+1);
     if (t == NULL) return(NULL);
@@ -286,26 +267,21 @@ zddPortFromBddStep(
 } /* end of zddPortFromBddStep */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_zddPortToBdd.
 
-  Synopsis [Performs the recursive step of Cudd_zddPortToBdd.]
+  @sideeffect None
 
-  Description []
-
-  SideEffects [None]
-
-  SeeAlso     []
-
-******************************************************************************/
+*/
 static DdNode *
 zddPortToBddStep(
   DdManager * dd /* manager */,
-  DdNode * f /* ZDD to be converted */,
+  DdNode * f /* %ZDD to be converted */,
   int  depth /* recursion depth */)
 {
     DdNode *one, *zero, *T, *E, *res, *var;
-    unsigned int index;
-    unsigned int level;
+    int index;
+    int level;
 
     statLine(dd);
     one = DD_ONE(dd);
@@ -320,7 +296,7 @@ zddPortToBddStep(
     if (var == NULL) return(NULL);
     cuddRef(var);
 
-    if (level > (unsigned) depth) {
+    if (level > depth) {
 	E = zddPortToBddStep(dd,f,depth+1);
 	if (E == NULL) {
 	    Cudd_RecursiveDeref(dd,var);

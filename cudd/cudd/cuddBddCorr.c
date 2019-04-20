@@ -1,29 +1,14 @@
-/**CFile***********************************************************************
+/**
+  @file
 
-  FileName    [cuddBddCorr.c]
+  @ingroup cudd
 
-  PackageName [cudd]
+  @brief Correlation between BDDs.
 
-  Synopsis    [Correlation between BDDs.]
+  @author Fabio Somenzi
 
-  Description [External procedures included in this module:
-		<ul>
-		<li> Cudd_bddCorrelation()
-		<li> Cudd_bddCorrelationWeights()
-		</ul>
-	    Static procedures included in this module:
-		<ul>
-		<li> bddCorrelationAux()
-		<li> bddCorrelationWeightsAux()
-		<li> CorrelCompare()
-		<li> CorrelHash()
-		<li> CorrelCleanUp()
-		</ul>
-		]
-
-  Author      [Fabio Somenzi]
-
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  @copyright@parblock
+  Copyright (c) 1995-2015, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -53,9 +38,10 @@
   CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-  POSSIBILITY OF SUCH DAMAGE.]
+  POSSIBILITY OF SUCH DAMAGE.
+  @endparblock
 
-******************************************************************************/
+*/
 
 #include "util.h"
 #include "cuddInt.h"
@@ -75,6 +61,7 @@
 /* Type declarations                                                         */
 /*---------------------------------------------------------------------------*/
 
+/** Type of hash-table key. */
 typedef struct hashEntry {
     DdNode *f;
     DdNode *g;
@@ -85,10 +72,6 @@ typedef struct hashEntry {
 /* Variable declarations                                                     */
 /*---------------------------------------------------------------------------*/
 
-#ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddBddCorr.c,v 1.15 2012/02/05 01:07:18 fabio Exp $";
-#endif
-
 #ifdef CORREL_STATS
 static	int	num_calls;
 #endif
@@ -97,11 +80,7 @@ static	int	num_calls;
 /* Macro declarations                                                        */
 /*---------------------------------------------------------------------------*/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**AutomaticStart*************************************************************/
+/** \cond */
 
 /*---------------------------------------------------------------------------*/
 /* Static function prototypes                                                */
@@ -109,43 +88,37 @@ extern "C" {
 
 static double bddCorrelationAux (DdManager *dd, DdNode *f, DdNode *g, st_table *table);
 static double bddCorrelationWeightsAux (DdManager *dd, DdNode *f, DdNode *g, double *prob, st_table *table);
-static int CorrelCompare (const char *key1, const char *key2);
-static int CorrelHash (char *key, int modulus);
-static enum st_retval CorrelCleanUp (char *key, char *value, char *arg);
+static int CorrelCompare (const void *key1, const void *key2);
+static int CorrelHash (void const *key, int modulus);
+static enum st_retval CorrelCleanUp (void *key, void *value, void *arg);
 
-/**AutomaticEnd***************************************************************/
-
-#ifdef __cplusplus
-}
-#endif
-
+/** \endcond */
 
 /*---------------------------------------------------------------------------*/
 /* Definition of exported functions                                          */
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the correlation of f and g.
 
-  Synopsis    [Computes the correlation of f and g.]
+  @details If f == g, their correlation is 1. If f == g', their
+  correlation is 0.
 
-  Description [Computes the correlation of f and g. If f == g, their
-  correlation is 1. If f == g', their correlation is 0.  Returns the
-  fraction of minterms in the ON-set of the EXNOR of f and g.  If it
-  runs out of memory, returns (double)CUDD_OUT_OF_MEM.]
+  @return the fraction of minterms in the ON-set of the EXNOR of f and
+  g.  If it runs out of memory, returns (double)CUDD_OUT_OF_MEM.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddCorrelationWeights]
+  @see Cudd_bddCorrelationWeights
 
-******************************************************************************/
+*/
 double
 Cudd_bddCorrelation(
   DdManager * manager,
   DdNode * f,
   DdNode * g)
 {
-
     st_table	*table;
     double	correlation;
 
@@ -156,31 +129,30 @@ Cudd_bddCorrelation(
     table = st_init_table(CorrelCompare,CorrelHash);
     if (table == NULL) return((double)CUDD_OUT_OF_MEM);
     correlation = bddCorrelationAux(manager,f,g,table);
-    st_foreach(table, CorrelCleanUp, NIL(char));
+    st_foreach(table, CorrelCleanUp, NIL(void));
     st_free_table(table);
     return(correlation);
 
 } /* end of Cudd_bddCorrelation */
 
 
-/**Function********************************************************************
+/**
+  @brief Computes the correlation of f and g for given input
+  probabilities.
 
-  Synopsis    [Computes the correlation of f and g for given input
-  probabilities.]
+  @details On input, prob\[i\] is supposed to contain the probability
+  of the i-th input variable to be 1.  If f == g, their correlation is
+  1. If f == g', their correlation is 0.  The correlation of f and the
+  constant one gives the probability of f.
 
-  Description [Computes the correlation of f and g for given input
-  probabilities. On input, prob\[i\] is supposed to contain the
-  probability of the i-th input variable to be 1.
-  If f == g, their correlation is 1. If f == g', their
-  correlation is 0.  Returns the probability that f and g have the same
-  value. If it runs out of memory, returns (double)CUDD_OUT_OF_MEM. The
-  correlation of f and the constant one gives the probability of f.]
+  @return the probability that f and g have the same value. If it runs
+  out of memory, returns (double)CUDD_OUT_OF_MEM.
 
-  SideEffects [None]
+  @sideeffect None
 
-  SeeAlso     [Cudd_bddCorrelation]
+  @see Cudd_bddCorrelation
 
-******************************************************************************/
+*/
 double
 Cudd_bddCorrelationWeights(
   DdManager * manager,
@@ -188,7 +160,6 @@ Cudd_bddCorrelationWeights(
   DdNode * g,
   double * prob)
 {
-
     st_table	*table;
     double	correlation;
 
@@ -199,7 +170,7 @@ Cudd_bddCorrelationWeights(
     table = st_init_table(CorrelCompare,CorrelHash);
     if (table == NULL) return((double)CUDD_OUT_OF_MEM);
     correlation = bddCorrelationWeightsAux(manager,f,g,prob,table);
-    st_foreach(table, CorrelCleanUp, NIL(char));
+    st_foreach(table, CorrelCleanUp, NIL(void));
     st_free_table(table);
     return(correlation);
 
@@ -216,19 +187,17 @@ Cudd_bddCorrelationWeights(
 /*---------------------------------------------------------------------------*/
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddCorrelation.
 
-  Synopsis    [Performs the recursive step of Cudd_bddCorrelation.]
+  @return the fraction of minterms in the ON-set of the EXNOR of f and
+  g.
 
-  Description [Performs the recursive step of Cudd_bddCorrelation.
-  Returns the fraction of minterms in the ON-set of the EXNOR of f and
-  g.]
+  @sideeffect None
 
-  SideEffects [None]
+  @see bddCorrelationWeightsAux
 
-  SeeAlso     [bddCorrelationWeightsAux]
-
-******************************************************************************/
+*/
 static double
 bddCorrelationAux(
   DdManager * dd,
@@ -237,9 +206,10 @@ bddCorrelationAux(
   st_table * table)
 {
     DdNode	*Fv, *Fnv, *G, *Gv, *Gnv;
-    double	min, *pmin, min1, min2, *dummy;
+    double	min, *pmin, min1, min2;
+    void        *dummy;
     HashEntry	*entry;
-    unsigned int topF, topG;
+    int topF, topG;
 
     statLine(dd);
 #ifdef CORREL_STATS
@@ -276,7 +246,7 @@ bddCorrelationAux(
     ** to minimize the risk of cancellation.
     */
     if (st_lookup(table, entry, &dummy)) {
-	min = *dummy;
+        min = *(double *) dummy;
 	FREE(entry);
 	return(min);
     }
@@ -310,7 +280,7 @@ bddCorrelationAux(
     }
     *pmin = min;
 
-    if (st_insert(table,(char *)entry, (char *)pmin) == ST_OUT_OF_MEM) {
+    if (st_insert(table, entry, pmin) == ST_OUT_OF_MEM) {
 	FREE(entry);
 	FREE(pmin);
 	return((double)CUDD_OUT_OF_MEM);
@@ -320,17 +290,14 @@ bddCorrelationAux(
 } /* end of bddCorrelationAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Performs the recursive step of Cudd_bddCorrelationWeigths.
 
-  Synopsis    [Performs the recursive step of Cudd_bddCorrelationWeigths.]
+  @sideeffect None
 
-  Description []
+  @see bddCorrelationAux
 
-  SideEffects [None]
-
-  SeeAlso     [bddCorrelationAux]
-
-******************************************************************************/
+*/
 static double
 bddCorrelationWeightsAux(
   DdManager * dd,
@@ -340,9 +307,11 @@ bddCorrelationWeightsAux(
   st_table * table)
 {
     DdNode	*Fv, *Fnv, *G, *Gv, *Gnv;
-    double	min, *pmin, min1, min2, *dummy;
+    double	min, *pmin, min1, min2;
+    void        *dummy;
     HashEntry	*entry;
-    int		topF, topG, index;
+    int		topF, topG;
+    unsigned	index;
 
     statLine(dd);
 #ifdef CORREL_STATS
@@ -379,7 +348,7 @@ bddCorrelationWeightsAux(
     ** to minimize the risk of cancellation.
     */
     if (st_lookup(table, entry, &dummy)) {
-	min = *dummy;
+	min = *(double *) dummy;
 	FREE(entry);
 	return(min);
     }
@@ -419,7 +388,7 @@ bddCorrelationWeightsAux(
     }
     *pmin = min;
 
-    if (st_insert(table,(char *)entry, (char *)pmin) == ST_OUT_OF_MEM) {
+    if (st_insert(table, entry, pmin) == ST_OUT_OF_MEM) {
 	FREE(entry);
 	FREE(pmin);
 	return((double)CUDD_OUT_OF_MEM);
@@ -429,26 +398,21 @@ bddCorrelationWeightsAux(
 } /* end of bddCorrelationWeightsAux */
 
 
-/**Function********************************************************************
+/**
+  @brief Compares two hash table entries.
 
-  Synopsis    [Compares two hash table entries.]
+  @return 0 if they are identical; 1 otherwise.
 
-  Description [Compares two hash table entries. Returns 0 if they are
-  identical; 1 otherwise.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static int
 CorrelCompare(
-  const char * key1,
-  const char * key2)
+  void const * key1,
+  void const * key2)
 {
-    HashEntry *entry1;
-    HashEntry *entry2;
-
-    entry1 = (HashEntry *) key1;
-    entry2 = (HashEntry *) key2;
+    HashEntry const *entry1 = (HashEntry const *) key1;
+    HashEntry const *entry2 = (HashEntry const *) key2;
     if (entry1->f != entry2->f || entry1->g != entry2->g) return(1);
 
     return(0);
@@ -456,25 +420,24 @@ CorrelCompare(
 } /* end of CorrelCompare */
 
 
-/**Function********************************************************************
+/**
+  @brief Hashes a hash table entry.
 
-  Synopsis    [Hashes a hash table entry.]
+  @details It is patterned after st_strhash.
 
-  Description [Hashes a hash table entry. It is patterned after
-  st_strhash. Returns a value between 0 and modulus.]
+  @return a value between 0 and modulus.
 
-  SideEffects [None]
+  @sideeffect None
 
-******************************************************************************/
+*/
 static int
 CorrelHash(
-  char * key,
+  void const * key,
   int  modulus)
 {
-    HashEntry *entry;
+    HashEntry const *entry = (HashEntry const *) key;
     int val = 0;
 
-    entry = (HashEntry *) key;
     val = (int) (((ptrint)entry->f)*997 + ((ptrint)entry->g));
 
     return ((val < 0) ? -val : val) % modulus;
@@ -482,30 +445,26 @@ CorrelHash(
 } /* end of CorrelHash */
 
 
-/**Function********************************************************************
+/**
+  @brief Frees memory associated with hash table.
 
-  Synopsis    [Frees memory associated with hash table.]
+  @return ST_CONTINUE.
 
-  Description [Frees memory associated with hash table. Returns
-  ST_CONTINUE.]
+  @sideeffect None
 
-  SideEffects [None]
-
-******************************************************************************/
+*/
 static enum st_retval
 CorrelCleanUp(
-  char * key,
-  char * value,
-  char * arg)
+  void * key,
+  void * value,
+  void * arg)
 {
-    double	*d;
-    HashEntry *entry;
+    double	  *d = (double *) value;
+    HashEntry *entry = (HashEntry *) key;
 
-    entry = (HashEntry *) key;
+    (void) arg; /* avoid warning */
     FREE(entry);
-    d = (double *)value;
     FREE(d);
     return ST_CONTINUE;
 
 } /* end of CorrelCleanUp */
-

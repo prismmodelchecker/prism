@@ -1,0 +1,81 @@
+#! /bin/sh
+
+# A script to test nanotrav.
+# Each item in argslist corresponds to one run.
+
+EXE=@EXEEXT@
+srcdir=@srcdir@
+
+# The separator IFS is set to a colon so that we can have spaces between
+# arguments.  Each entry consists of a model name and a list of arguments.
+OIFS=$IFS
+IFS=:
+argslist="\
+C17,-cover:\
+C880,-ordering dfs -autodyn -automethod sifting -reordering sifting -drop:\
+s27,-ordering hw -reordering annealing -trav:\
+s27b,-ordering dfs -reordering win4 -verify ${srcdir}/nanotrav/s27.blif:\
+s27c,-trav -image depend -depend:\
+mult32a,-autodyn -reordering sifting -trav:\
+s382,-trav -image part -autodyn -automethod sifting -drop -scc -shortpaths bellman:\
+s641,-trav -autodyn -automethod group -drop -clauses -density -decomp -zdd:\
+closest,-reordering genetic -drop -closest:\
+adj49,-ordering dfs -reordering cogroup -drop -char2vect -cofest:\
+ham01,-reordering linear:\
+miniFirst,-second ${srcdir}/nanotrav/miniSecond.blif:\
+rcn25,-envelope"
+
+verbosity=1
+
+# Discard statistics and remove CPU times.
+sed_command='-r:-e:2d:-e:/modifiable/,$d:-e:s/[0-9][0-9]*\.?[0-9]* sec//:-e:s/[0-9][0-9]* recursive//'
+
+echo TAP version 13
+echo 1..13
+exitstatus=0
+count=0
+
+# Create FIFOs for communication between sed processes and diff.
+mkfifo nanotrav/tst_fifo nanotrav/out_fifo
+# Create empty file.
+: > ./nanotrav/differences
+
+for argres in $argslist
+do
+    IFS=, # split model name from arguments
+    set -- $argres
+    IFS=:
+    echo "# executing" "nanotrav/nanotrav$EXE -p $verbosity" \
+         "$2 ${srcdir}/nanotrav/${1}.blif > ./nanotrav/${1}.tst"
+    `eval "nanotrav/nanotrav -p $verbosity $2 ${srcdir}/nanotrav/${1}.blif > ./nanotrav/${1}.tst"`
+    failed=`expr $? != 0`
+    # If nanotrav completed successfully, compare this run's fitered output
+    # to the reference filtered output.
+    if test x$failed = x0; then
+        echo "# comparing" "./nanotrav/${1}.tst to ${srcdir}/nanotrav/${1}.out"
+        `sed ${sed_command} ./nanotrav/${1}.tst > nanotrav/tst_fifo &\
+         sed ${sed_command} ${srcdir}/nanotrav/${1}.out > nanotrav/out_fifo &\
+         diff -b nanotrav/tst_fifo nanotrav/out_fifo >> ./nanotrav/differences`
+        failed=`expr $? != 0`
+    fi
+    exitstatus=`expr $exitstatus + $failed`
+    count=`expr $count + 1`
+    if test x$failed = x0 ; then
+        echo "ok $count $1"
+    else
+        echo "not ok $count $1"
+    fi
+done
+
+# Clean up and report.
+rm nanotrav/tst_fifo nanotrav/out_fifo
+echo "# $exitstatus failed sub-tests out of $count"
+if test x$exitstatus = x0; then
+    rm ./nanotrav/differences
+else
+    echo '# Check file "./nanotrav/differences"'
+fi
+# Restore internal field separator.
+IFS=$OIFS
+
+exit 0
