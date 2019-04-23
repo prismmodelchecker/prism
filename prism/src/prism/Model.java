@@ -100,7 +100,7 @@ public interface Model
 	String globalToLocal(long x);
 	int globalToLocal(long x, int l);
 	State convertBddToState(JDDNode dd);
-	int convertBddToIndex(JDDNode dd);
+	int convertBddToIndex(JDDNode dd) throws PrismNotSupportedException;
 
 	StateList getReachableStates();
 	

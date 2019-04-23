@@ -1150,11 +1150,13 @@ public class ProbModel implements Model
 	 * Convert a BDD (over model row variables) representing a single state
 	 * to a (reachable) state index. 
 	 */
-	public int convertBddToIndex(JDDNode dd)
+	public int convertBddToIndex(JDDNode dd) throws PrismNotSupportedException
 	{
 		JDDNode ptr;
 		ODDNode oddPtr;
 		int i, n, index;
+
+		ODDUtils.checkInt(odd, "Cannot convert Bdd to index in model");
 		// Traverse BDD and ODD simultaneously to compute index
 		ptr = dd;
 		oddPtr = odd;

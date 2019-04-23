@@ -134,12 +134,14 @@ public class StateValuesMTBDD implements StateValues
 	/**
 	 * Set element i of this vector to value d. 
 	 */
-	public void setElement(int i, double d)
+	public void setElement(int i, double d) throws PrismNotSupportedException
 	{
 		ODDNode ptr;
 		JDDNode dd;
 		int j, k;
-		
+
+		ODDUtils.checkInt(odd, "Cannot set element via index for model");
+
 		// Use ODD to build BDD for state index i
 		dd = JDD.Constant(1);
 		ptr = odd;
@@ -287,9 +289,12 @@ public class StateValuesMTBDD implements StateValues
 	}
 
 	@Override
-	public Object getValue(int i)
+	public Object getValue(int i) throws PrismNotSupportedException
 	{
 		JDDNode dd = values;
+
+		ODDUtils.checkInt(odd, "Cannot get value for state index in model");
+
 		ODDNode ptr = odd;
 		int o = 0;
 		for (int k = 0; k < numVars; k++) {
@@ -653,7 +658,13 @@ public class StateValuesMTBDD implements StateValues
 		// base case - at bottom (nonzero terminal)
 		if (level == numVars) {
 		
-			outputLog.print(n + ":(");
+			if (o != null) {
+				outputLog.print(n + ":(");
+			} else {
+				// we have no index
+				outputLog.print("(");
+			}
+
 			j = varList.getNumVars();
 			for (i = 0; i < j; i++) {
 				// integer variable
@@ -666,6 +677,7 @@ public class StateValuesMTBDD implements StateValues
 				}
 				if (i < j-1) outputLog.print(",");
 			}
+
 			outputLog.print(")=" + dd.getValue());
 			outputLog.println();
 			return;
@@ -680,13 +692,17 @@ public class StateValuesMTBDD implements StateValues
 			t = dd.getThen();
 		}
 
+		ODDNode oe = (o != null ? o.getElse() : null);
+		ODDNode ot = (o != null ? o.getThen() : null);
+		long eoff = (o != null ? o.getEOff() : 0);
+
 		// then recurse...
 		currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel=0; }
-		printRec(e, level+1, o.getElse(), n);
+		printRec(e, level+1, oe, n);
 		currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel=varSizes[currentVar]-1; }
 		varValues[currentVar] += (1 << (varSizes[currentVar]-1-currentVarLevel));
 		currentVarLevel++; if (currentVarLevel == varSizes[currentVar]) { currentVar++; currentVarLevel=0; }
-		printRec(t, level+1, o.getThen(), n+o.getEOff());
+		printRec(t, level+1, ot, n + eoff);
 		currentVarLevel--; if (currentVarLevel == -1) { currentVar--; currentVarLevel=varSizes[currentVar]-1; }
 		varValues[currentVar] -= (1 << (varSizes[currentVar]-1-currentVarLevel));
 	}

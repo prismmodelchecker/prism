@@ -28,6 +28,7 @@ package odd;
 
 import jdd.*;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 public class ODDUtils
 {
@@ -121,7 +122,57 @@ public class ODDUtils
 	{
 		return JDD.ptrToNode(ODD_SingleIndexToDD(i, odd.ptr(), vars.array(), vars.n()));
 	}
-	
+
+	/**
+	 * Checks that the given ODD has indices that can be represented by
+	 * Java integers. If that is not the case, or the ODD is {@code null},
+	 * a PrismNotSupportedException is thrown.
+	 * @param odd the ODD (may be {@code null})
+	 * @param msg Initial part of error message, will be extended with
+	 *        " with more than X states, have Y states"
+	 */
+	public static void checkInt(ODDNode odd, String msg) throws PrismNotSupportedException
+	{
+		if (odd != null) {
+			try {
+				long numStates = odd.getNumStates();
+				if (numStates > Integer.MAX_VALUE) {
+					// number of states fit in long, but not in int
+					throw new PrismNotSupportedException(msg + " with more than " + Integer.MAX_VALUE + " states, have " + numStates + " states");
+				} else {
+					// everything is fine
+					return;
+				}
+			} catch (ArithmeticException e) {
+				// number of states does not fit into long, ignore here, handled below
+			}
+		}
+
+		// we either have no ODD or eoff + toff does not fit into long
+		throw new PrismNotSupportedException(msg + " with more than " + Integer.MAX_VALUE + " states, have at least " + Long.MAX_VALUE + " states");
+	}
+
+	/**
+	 * Returns true if the given ODD has indices that can be represented by
+	 * Java integers. If the odd is {@code null}, returns false as well.
+	 * @param odd the ODD (may be {@code null})
+	 */
+	public static boolean hasIntValue(ODDNode odd)
+	{
+		if (odd == null)
+			return false;
+
+		try {
+			long numStates = odd.getNumStates();
+			if (numStates <= Integer.MAX_VALUE) {
+				return true;
+			}
+		} catch (ArithmeticException e) {
+			// number of states does not fit into long, ignore here, handled below
+		}
+		return false;
+	}
+
 	//------------------------------------------------------------------------------
 	// ODDNode methods
 	//------------------------------------------------------------------------------

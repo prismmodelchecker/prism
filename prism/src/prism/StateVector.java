@@ -39,7 +39,7 @@ public interface StateVector
 	/**
 	 * Get the value of the ith element of the vector, as an Object.
 	 */
-	public Object getValue(int i);
+	public Object getValue(int i) throws PrismNotSupportedException;
 	
 	/**
 	 * Clear the vector, i.e. free any used memory.

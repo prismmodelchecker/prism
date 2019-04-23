@@ -1150,7 +1150,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// For some types of filter, store info that may be used to optimise model checking
 		FilterOperator op = expr.getOperatorType();
-		if (op == FilterOperator.STATE) {
+		if (op == FilterOperator.STATE && ODDUtils.hasIntValue(odd)) {
 			// Check filter satisfied by exactly one state
 			if (statesFilter.size() != 1) {
 				String s = "Filter should be satisfied in exactly 1 state";
@@ -1158,9 +1158,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				throw new PrismException(s);
 			}
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
-		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
+		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle && ODDUtils.hasIntValue(odd)) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
-		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle) {
+		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle && ODDUtils.hasIntValue(odd)) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else {
 			currentFilter = null;

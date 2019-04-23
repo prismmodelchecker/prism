@@ -167,7 +167,7 @@ public interface StateValues extends StateVector
 	StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
 
 	/** Returns an Object with the value of the i-th entry in this vector. */
-	Object getValue(int i);
+	Object getValue(int i) throws PrismNotSupportedException;
 
 	/**
 	 * Generate BDD for states in the given interval
