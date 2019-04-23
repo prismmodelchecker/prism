@@ -67,7 +67,7 @@ public class ODDUtils
 	private static native long ODD_BuildODD(long dd, long vars, int num_vars);
 	/**
 	 *  Build an ODD.
-	 * @throws PrismException if the ODD could not be constructed
+	 *  If the ODD could not be constructed, returns {@code null}.
 	 */
 	public static ODDNode BuildODD(JDDNode dd, JDDVars vars) throws PrismException
 	{
@@ -78,7 +78,9 @@ public class ODDUtils
 
 		long res = ODD_BuildODD(dd.ptr(), vars.array(), vars.n());
 		if (res == 0) {
-			throw new PrismException("Can not construct ODD for this model, number of states too large: " + JDD.GetNumMintermsString(dd, vars.n()) + " states");
+			// we could not build the ODD (i.e., we had more than Long.MAX_LONG states
+			// we return null and will have to live with the limited functionality
+			return null;
 		}
 		return new ODDNode(res);
 	}
