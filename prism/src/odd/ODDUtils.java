@@ -74,6 +74,7 @@ public class ODDUtils
 		if (jdd.SanityJDD.enabled) {
 			// ODD construction requires the JDDVars to be in ascending order
 			jdd.SanityJDD.checkVarsAreSorted(vars);
+			jdd.SanityJDD.checkIsDDOverVars(dd, vars);
 		}
 
 		long res = ODD_BuildODD(dd.ptr(), vars.array(), vars.n());
