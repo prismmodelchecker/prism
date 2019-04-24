@@ -51,17 +51,21 @@ For other PRISM-related information, see the website:
 
 ## Licensing
 
-PRISM is distributed under the GNU General Public License (GPL).
+PRISM is distributed under the GNU General Public License (GPL), version 2.
 A copy of this license can be found in the file `COPYING.txt`.
 For more information, see:
 
   http://www.gnu.org/licenses/
 
-PRISM uses the CUDD (Colorado University Decision Diagram) library of
-Fabio Somenzi, which is freely available. For more information about this
-library, see:
+PRISM uses the CUDD (Colorado University Decision Diagram) library of Fabio Somenzi,
+which is freely available. For more information about this library, see:
 
   http://vlsi.colorado.edu/~fabio/CUDD/
+
+PRISM also uses various other libraries (mainly to be found in the lib directory).
+For details of those, and for links to source where we distribute only binaries, see:
+
+http://www.prismmodelchecker.org/other-downloads.php
 
 
 ## Acknowledgements
