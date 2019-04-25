@@ -572,7 +572,6 @@ public class StateModelChecker extends PrismComponent
 
 		// Clean up
 		//vals.clear();
-		result.setVector(vals);
 
 		// Return result
 		return result;

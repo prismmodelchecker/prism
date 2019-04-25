@@ -45,4 +45,9 @@ public interface StateVector
 	 * Clear the vector, i.e. free any used memory.
 	 */
 	public void clear();
+	
+	/**
+	 * Print vector to a log/file (non-zero/non-false entries only).
+	 */
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException;
 }
