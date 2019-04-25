@@ -86,6 +86,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
 	private String exportResultsFormat = "plain";
+	private boolean exportvector = false;
 	private boolean exportPlainDeprecated = false;
 	private boolean exportModelNoBasename = false;
 	private int exportType = Prism.EXPORT_PLAIN;
@@ -140,6 +141,7 @@ public class PrismCL implements PrismModelListener
 	private String exportBSCCsFilename = null;
 	private String exportMECsFilename = null;
 	private String exportResultsFilename = null;
+	private String exportVectorFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
 	private String exportStratFilename = null;
@@ -446,6 +448,24 @@ public class PrismCL implements PrismModelListener
 							}
 						}
 
+						// if a results vector was stored, and we need to export it, do so
+						if (exportvector && res.getVector() != null) {
+							mainLog.print("\nExporting vector of results for all states ");
+							mainLog.println(exportVectorFilename.equals("stdout") ? "below:" : "to file \"" + exportVectorFilename + "\"...");
+							PrismFileLog tmpLog = new PrismFileLog(exportVectorFilename);
+							if (!tmpLog.ready()) {
+								errorAndExit("Couldn't open file \"" + exportVectorFilename + "\" for output");
+							}
+							boolean toStdout = exportVectorFilename.equals("stdout");
+							try {
+								res.getVector().print(tmpLog, false, false, toStdout, toStdout);
+							} catch (PrismException e) {
+								error(e.getMessage());
+							}
+							res.getVector().clear();
+							tmpLog.close();
+						}
+						
 						// if required, check result against expected value
 						if (test) {
 							doResultTest(propertiesToCheck.get(j), res);
@@ -1358,6 +1378,16 @@ public class PrismCL implements PrismModelListener
 						}
 					} else {
 						errorAndExit("No file/options specified for -" + sw + " switch");
+					}
+				}
+				// export vector of results
+				else if (sw.equals("exportvector")) {
+					if (i < args.length - 1) {
+						exportvector = true;
+						exportVectorFilename = args[++i];
+						prism.setStoreVector(true);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
 				// export model to explicit file(s)
