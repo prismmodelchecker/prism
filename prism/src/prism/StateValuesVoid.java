@@ -239,31 +239,25 @@ public class StateValuesVoid implements StateValues
 	}
 
 	@Override
-	public void print(PrismLog log) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void printFiltered(PrismLog log, JDDNode filter) throws PrismException
+	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndizes) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	public void iterate(StateAndValueConsumer consumer, boolean sparse)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void iterateFiltered(JDDNode filter, StateAndValueConsumer consumer, boolean sparse)
 	{
 		throw new UnsupportedOperationException();
 	}
