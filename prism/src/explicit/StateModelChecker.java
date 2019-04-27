@@ -535,14 +535,16 @@ public class StateModelChecker extends PrismComponent
 		// Remove any existing filter info
 		currentFilter = null;
 
+		// If we need to store a copy of the results vector, add a "store" filter to represent this
+		if (storeVector) {
+			ExpressionFilter exprFilter = new ExpressionFilter("store", expr);
+			exprFilter.setInvisible(true);
+			exprFilter.typeCheck();
+			expr = exprFilter;
+		}
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
-		ExpressionFilter exprFilter = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
-		// And if we need to store a copy of the results vector, make a note of this
-		if (storeVector) {
-			exprFilter.setStoreVector(true);
-		}
-		expr = exprFilter;
+		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
 
 		// If required, do bisimulation minimisation
 		if (doBisim) {
@@ -970,7 +972,7 @@ public class StateModelChecker extends PrismComponent
 		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
 		boolean filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 		// Print out number of states satisfying filter
-		if (!filterInit) {
+		if (!filterInit && !expr.isInvisible()) {
 			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
 		}
 		// Possibly optimise filter
@@ -1023,6 +1025,14 @@ public class StateModelChecker extends PrismComponent
 				}
 			}
 			// Result vector is unchanged; for PRINT/PRINTALL, don't store a single value (in resObj)
+			// Also, don't bother with explanation string
+			resVals = vals;
+			// Set vals to null to stop it being cleared below
+			vals = null;
+			break;
+		case STORE:
+			// Not much to do here - will be handled below when we store in the Result object
+			// Result vector is unchanged; like PRINT/PRINTALL, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
@@ -1223,10 +1233,13 @@ public class StateModelChecker extends PrismComponent
 		} else {
 			result.setExplanation(null);
 		}
-		// Store vector if requested (and if not, clear it)
-		if (storeVector) {
-			result.setVector(vals);
-		} else if (vals != null) {
+		// Store vector if requested
+		if (op == FilterOperator.STORE) {
+			result.setVector(resVals);
+		}
+		// Clear old vector if present
+		// (and if the vector was not stored previously)
+		if (vals != null && !(Expression.isFilter(expr.getOperand(), FilterOperator.STORE))) {
 			vals.clear();
 		}
 

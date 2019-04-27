@@ -642,6 +642,7 @@ public class TypeCheck extends ASTTraverse
 		case FIRST:
 		case PRINT:
 		case PRINTALL:
+		case STORE:
 			if (t instanceof TypeVoid) {
 				throw new PrismLangException("Type error: Void/complex arguments not allowed as operand for filter of type \"" + e.getOperatorName() + "\"",
 						e.getOperand());
@@ -662,6 +663,7 @@ public class TypeCheck extends ASTTraverse
 		case FIRST:
 		case PRINT:
 		case PRINTALL:
+		case STORE:
 		case STATE:
 			e.setType(t);
 			break;
