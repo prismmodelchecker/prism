@@ -120,6 +120,13 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		}
 	}
 
+	@Override
+	public void onInitComponentsCompleted()
+	{
+		// forward to multi-model handler
+		handler.onInitComponentsCompleted();
+	}
+
 	public GUIMultiModelHandler getHandler()
 	{
 		return handler;
