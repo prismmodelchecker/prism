@@ -225,6 +225,17 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		add(splitter, BorderLayout.CENTER);
 	}
 
+	private synchronized void restartWaitParseThread()
+	{
+		if (waiter != null) {
+			waiter.interrupt();
+		}
+		int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
+		waiter = new WaitParseThread(parseDelay, this);
+		waiter.start();
+		//Funky thread waiting stuff
+	}
+
 	// New model...
 
 	public void newPRISMModel()
@@ -544,13 +555,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			tree.makeNotUpToDate();
 			//start a new parse thread
 			if (isAutoParse()) {
-				if (waiter != null) {
-					waiter.interrupt();
-				}
-				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
-				waiter = new WaitParseThread(parseDelay, this);
-				waiter.start();
-				//Funky thread waiting stuff
+				restartWaitParseThread();
 			}
 		} else if (buildAfterReceiveParseNotification) {
 			buildAfterParse();
@@ -583,13 +588,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			tree.makeNotUpToDate();
 			//start a new parse thread
 			if (isAutoParse()) {
-				if (waiter != null) {
-					waiter.interrupt();
-				}
-				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
-				waiter = new WaitParseThread(parseDelay, this);
-				waiter.start();
-				//Funky thread waiting stuff
+				restartWaitParseThread();
 			}
 		} else {
 			buildAfterReceiveParseNotification = false;
@@ -837,13 +836,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 
 		if (!parsing) {
 			if (isAutoParse() && attemptReparse) {
-				if (waiter != null) {
-					waiter.interrupt();
-				}
-				int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
-				waiter = new WaitParseThread(parseDelay, this);
-				waiter.start();
-				//Funky thread waiting stuff
+				restartWaitParseThread();
 			}
 		} else {
 			parseAfterParse = true;
@@ -955,12 +948,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 			theModel.notifyEventListeners(new GUIModelEvent(GUIModelEvent.MODIFIED_SINCE_SAVE));
 			if (!parsing) {
 				if (isAutoParse()) {
-					if (waiter != null) {
-						waiter.interrupt();
-					}
-					int parseDelay = theModel.getPrism().getSettings().getInteger(PrismSettings.MODEL_PARSE_DELAY);
-					waiter = new WaitParseThread(parseDelay, this);
-					waiter.start();
+					restartWaitParseThread();
 				}
 			} else {
 				parseAfterParse = true;
