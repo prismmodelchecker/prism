@@ -559,7 +559,12 @@ clean_doc:
 # extract version number from Java code using printversion
 VERSION = $(shell SRC_DIR=$(SRC_DIR) $(SRC_DIR)/scripts/printversion.sh 2> /dev/null)
 
+# Default branch for building source releases
+BRANCH = master
+
 # File/dir names for distribution
+SRC_DIST_DIR = prism-$(VERSION)-src
+SRC_DIST_FILE = $(SRC_DIST_DIR).tar.gz
 BIN_DIST_DIR = prism-$(VERSION)-$(BINDISTSUFFIX)
 BIN_DIST_FILE = $(BIN_DIST_DIR).tar.gz
 BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
@@ -585,8 +590,19 @@ build_release:
 		rm -f "release/$(BIN_DIST_FILE)" && \
 		mkdir -p "release/$(BIN_DIST_DIR)" && \
 		tar cf - bin lib install.sh etc -C .. manual prism-examples CHANGELOG.txt COPYING.txt README.md | tar xf - -C "release/$(BIN_DIST_DIR)" && \
-		(cd release && tar cfz "$(BIN_DIST_FILE)" "$(BIN_DIST_DIR)") && rm -rf "$(BIN_DIST_DIR)"; \
+		(cd release && tar cfz "$(BIN_DIST_FILE)" "$(BIN_DIST_DIR)") && rm -rf "release/$(BIN_DIST_DIR)"; \
 	fi
+
+release_source: release_check_version build_release_source
+
+build_release_source:
+	@echo Creating source distribution from branch "$(BRANCH)" in "release/$(SRC_DIST_FILE)"... && \
+	mkdir -p release && \
+	rm -rf "release/$(SRC_DIST_DIR)" && \
+	rm -f "release/$(SRC_DIST_FILE)" && \
+	mkdir -p "release/$(SRC_DIST_DIR)" && \
+	(cd .. && git archive $(BRANCH) --format=tar) | tar xf - -C "release/$(SRC_DIST_DIR)" && \
+	(cd release && tar cfz "$(SRC_DIST_FILE)" "$(SRC_DIST_DIR)") && rm -rf "release/$(SRC_DIST_DIR)"
 
 # Build Javadoc (and put in javadoc directory)
 

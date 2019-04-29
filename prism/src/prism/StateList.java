@@ -71,7 +71,7 @@ public interface StateList
 	/**
 	 * Print the states to a log, in Dot format.
 	 */
-	void printDot(PrismLog log);
+	void printDot(PrismLog log) throws PrismException;
 
 	/**
 	 * Format the list of states as a list of strings.
@@ -99,7 +99,7 @@ public interface StateList
 	 * Get the index of a state in the list, specified as a State object.
 	 * Returns -1 if the state is not on the list or there is a problem with the lookup. 
 	 */
-	int getIndexOfState(State state);
+	int getIndexOfState(State state) throws PrismNotSupportedException;
 
 	/**
 	 * Free any memory associated with storing this list of states.

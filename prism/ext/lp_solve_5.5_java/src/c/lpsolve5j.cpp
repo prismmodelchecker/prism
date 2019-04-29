@@ -1325,7 +1325,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getRow
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_row;
+	delete[] c_row;
 }
 
 /*
@@ -1362,7 +1362,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrRow
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_row;
+	delete[] c_row;
 	return row;
 }
 
@@ -1436,7 +1436,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getColumn
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_column;
+	delete[] c_column;
 }
 
 /*
@@ -1473,7 +1473,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrColumn
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_column;
+	delete[] c_column;
 	return column;
 }
 
@@ -2968,7 +2968,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getVariables
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_var;
+	delete[] c_var;
 }
 
 /*
@@ -3005,7 +3005,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrVariables
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_var;
+	delete[] c_var;
 	return var;
 }
 
@@ -3042,7 +3042,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getConstraints
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_var;
+	delete[] c_var;
 }
 
 /*
@@ -3079,7 +3079,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrConstraints
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_var;
+	delete[] c_var;
 	return var;
 }
 
@@ -3118,7 +3118,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getPrimalSolution
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_pv;
+	delete[] c_pv;
 }
 
 /*
@@ -3157,7 +3157,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrPrimalSolution
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_solution;
+	delete[] c_solution;
 	return solution;
 }
 
@@ -3352,7 +3352,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getDualSolution
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_duals;
+	delete[] c_duals;
 }
 
 /*
@@ -3392,7 +3392,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrDualSolution
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_duals;
+	delete[] c_duals;
 	return duals;
 }
 
@@ -3708,7 +3708,7 @@ JNIEXPORT jdoubleArray JNICALL Java_lpsolve_LpSolve_getPtrLambda
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_lambda;
+	delete[] c_lambda;
 	return lambda;
 }
 
@@ -3745,7 +3745,7 @@ JNIEXPORT void JNICALL Java_lpsolve_LpSolve_getLambda
 	/* no exception check; we're terminating anyway */
 
 cleanup:
-	delete c_lambda;
+	delete[] c_lambda;
 }
 
 /*

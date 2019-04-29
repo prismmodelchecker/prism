@@ -2953,7 +2953,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							+ "Either switch to the explicit engine or add more action labels to the model");
 			}
 
-			if (!getExplicit() && !engineSwitch) {
+			if (!getExplicit() && !engineSwitch && getEngine() != MTBDD) {
 				// check if we need to switch to MTBDD engine
 				long n = currentModel.getNumStates();
 				if (n == -1 || n > Integer.MAX_VALUE) {
@@ -3367,9 +3367,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-		if (fileOut != null && getEngine() == MTBDD)
-			// TODO: auto-switch?
-			throw new PrismException("Steady-state probability export not supported for MTBDD engine");
 		if (exportType == EXPORT_MRMC)
 			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)

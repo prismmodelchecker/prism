@@ -90,7 +90,7 @@ a.varlink { text-decoration:none; }
 <p class='vspace'><strong>When I try to run PRISM on Windows, I get an error of the form:<br /><code>Can't load IA 32-bit .dll on a AMD 64-bit platform</code></strong>
 </p>
 <div class='vspace'></div><div class='answer' > 
-<p>You are probably running a 32-bit Windows binary using a 64-bit version of Java. You need to use a 32-bit version. Make sure you have a 32-bit version installed, and then either make sure it is first in your path or update the <code>bin\xprism.bat</code> (or <code>bin\prism.bat</code>) script, giving the full path to <code>javaw</code> at the end of the file.
+<p>You are probably running a 32-bit Windows binary using a 64-bit version of Java. The version of PRISM (32- or 64-bit) needs to match Java. Either download the 64-bit binary for PRISM, or use a 32-bit version of Java. For the latter case, either make sure the right version of Java is first in your path or update the <code>bin\xprism.bat</code> (or <code>bin\prism.bat</code>) script, giving the full path to <code>javaw</code> at the end of the file.
 </p></div>
 <div class='vspace'></div><hr />
 <div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>

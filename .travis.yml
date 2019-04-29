@@ -1,15 +1,14 @@
 # Travis CI configuration
 
-# trusty (has build-essential) + Java
-dist: trusty
+# xenial (has build-essential) + Java
+dist: xenial
 # we are requiring VM instead of Docker builds due to sporadic nailgun test suite failures
 sudo: required
 language: java
 
-# we test for JDK 8,9,10,11
+# we test for JDK 8,10,11
 jdk:
-  - oraclejdk8
-  - oraclejdk9
+  - openjdk8
   - openjdk10
   - openjdk11
   

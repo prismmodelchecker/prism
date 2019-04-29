@@ -1,32 +1,44 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since version 4.4 (up-to-date wrt da3503a3)
+Version 4.5 (first released 19/4/2019)
 -----------------------------------------------------------------------------
 
-* Minor enhancements and fixes:
+* New features
+  - add round function to language (rounds to nearest integer)
+  - Java stack size can be set via command-line switch -javastack (or PRISM_JAVASTACKSIZE)
+  - fractional values allowed for constants in -const switch and in GUI
+  - allow rewards to be included in simulation paths exported from GUI (like for -simpath)
+
+* Enhancements and fixes:
   - PRISM GUI settings file (.prism) moved to more standard locations
   - ITE supported in exact/parametric mode
-  - Various improvements to model checking in "exact" mode
-  - Faster explicit construction of models with no labels
-  - Command-line: -exportsteadystates switch implies -steadystate
-  - Fractional values allowed for constants in -const switch and in GUI
-  - Add round function (rounds to nearest integer)
+  - various improvements to model checking in "exact" mode
+  - bugfix for incorrect model construction during fast adaptive uniformisation
+  - faster explicit construction of models with no labels
+  - command-line -exportsteadystates switch implies -steadystate
   - GUI shortcuts: double-clicks for addition of constants, labels
-  - Java stack size can be set via command-line switch -javastack (or PRISM_JAVASTACKSIZE)
-  - Many minor bugfixes
+  - fixed Mac launch scripts for Java 10 (removed -d64 and -d32)
+  - improved auto switching between model checking engines in some cases
+  - many minor bugfixes
 
 * Development changes and enhancements:
-  - Integration of prism-tests into main repo
-  - Makefile targets/settings: test, testsecho, testsfull, TESTS_ARGS, source-jar
+  - alignment of source code releases and GitHub repos (some files moved to top-level)
+  - move/simplify release building Makefile scripts (see GitHub wiki)
+  - utility scripts for installing PRISM on fresh OSs (in etc/scripts)
+  - HTML copy of manual now included in repo
+  - make clean_all cleans external libs too, e.g. lpsolve
+  - switch from javah (deprecated since Java 8) to javac for JNI header generation
+  - launch scripts now use exec to start Java by default (PRISM_NO_EXEC=yes to revert)
+
+* Benchmarking/testing changes and enhancements:
+  - integration of prism-tests into main repo
+  - fractions/exact numbers allowed in testing RESULT specs
   - Travis build config for continuous integration testing
   - prism-auto guesses ngprism location
   - prism-auto options: --skip-export-runs, --skip-duplicate-runs, --timeout
-  - Removed -d64 and -d32 from Mac launch scripts (gone in Java 10)
-  - Fractions/exact numbers allowed in testing RESULT specs
-  - make clean_all cleans external libs too, e.g. lpsolve
-  - Switch from javah (deprecated since Java 8) to javac for JNI header generation
-
+  - Makefile targets/settings: test, testsecho, testsfull, TESTS_ARGS, source-jar
+  - NG_MAINCLASS setting for running PRISM in Nailgun server mode (prism -ng)
 
 -----------------------------------------------------------------------------
 Version 4.4 (first released 23/7/2017)

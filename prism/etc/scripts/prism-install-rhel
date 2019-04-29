@@ -5,9 +5,9 @@
 set -e # Abort if one of the commands fail
 set -x # Print commands as they are executed
 
-# Install dependencies: make/gcc/Java
-sudo yum update
-sudo yum -y install git gcc gcc-c++ java-1.8.0-openjdk-devel
+# Install dependencies: make/gcc/Java/git
+sudo yum -y update
+sudo yum -y install make gcc gcc-c++ java-1.8.0-openjdk-devel git
 
 # Install Python (only needed for testing (prism-auto) currently)
 sudo yum -y install python
@@ -17,6 +17,4 @@ git clone https://github.com/prismmodelchecker/prism.git
 
 # Compile PRISM and run a single test
 # (should ultimately display: "Testing result: PASS")
-cd prism/prism
-make
-make test
+(cd prism/prism && make && make test)

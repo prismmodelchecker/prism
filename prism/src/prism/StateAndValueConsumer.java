@@ -1,8 +1,8 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-
+//	Copyright (c) 2018-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,27 +27,22 @@
 package prism;
 
 /**
- * Interface for classes supporting read-access to state-indexed vectors of values. 
+ * Functional interface for a consumer of (state, value) pairs,
+ * used in iteration over a StateValues vector, e.g., printing.
  */
-public interface StateVector
+@FunctionalInterface
+public interface StateAndValueConsumer
 {
-	/**
-	 * Return the size of the vector (i.e. the number of elements).
-	 */
-	public int getSize();
 
 	/**
-	 * Get the value of the ith element of the vector, as an Object.
+	 * Accept a state/value pair.
+	 * <br>
+	 * The values of the state variables are provided as integers,
+	 * with boolean values mapped to 0 and 1, respectively.
+	 * @param varValues an integer array with the state variable values
+	 * @param value the value for this state
+	 * @param stateIndex the state index (-1 indicates that no index information is available)
 	 */
-	public Object getValue(int i) throws PrismNotSupportedException;
-	
-	/**
-	 * Clear the vector, i.e. free any used memory.
-	 */
-	public void clear();
-	
-	/**
-	 * Print vector to a log/file (non-zero/non-false entries only).
-	 */
-	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException;
+	void accept(int[] varValues, double value, long stateIndex);
+
 }

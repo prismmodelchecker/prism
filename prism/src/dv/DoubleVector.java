@@ -109,12 +109,10 @@ public class DoubleVector
 	 */
 	public DoubleVector(JDDNode dd, JDDVars vars, ODDNode odd) throws PrismException
 	{
-		long numStates = odd.getEOff() + odd.getTOff();
-		if (numStates > Integer.MAX_VALUE) {
-			throw new PrismNotSupportedException("Can not create DoubleVector with more than " + Integer.MAX_VALUE + " states, have " + numStates + " states");
-		}
+		ODDUtils.checkInt(odd, "Can not create DoubleVector");
+
 		v = DV_ConvertMTBDD(dd.ptr(), vars.array(), vars.n(), odd.ptr());
-		n = (int)numStates;
+		n = (int)odd.getNumStates();
 	}
 	
 	private native long DV_ConvertMTBDD(long dd, long vars, int num_vars, long odd);

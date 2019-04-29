@@ -1057,6 +1057,8 @@ if options.nailgun:
         print(options.prismExec + " -ng &")
     else:
         restartNailGunServer();
+
+# process benchmarks
 for arg in args:
     if os.path.isdir(arg):
         benchmarkDir(arg)
@@ -1064,4 +1066,11 @@ for arg in args:
         benchmarkFile(arg)
     else:
         print("Error: File/directory " + arg + " does not exist")
+
+# shutdown
+if options.test and options.testAll and not options.echo:
+    if testStats['FAILURE'] > 0:
+        # report via the exit code that there were actual failures in test + test-all mode
+        closeDown(1)
+
 closeDown(0)

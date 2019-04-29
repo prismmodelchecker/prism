@@ -500,10 +500,24 @@ public class PathFull extends Path implements PathFullInfo
 	 */
 	public void exportToLog(PrismLog log, boolean showTimeCumul, String colSep, ArrayList<Integer> vars) throws PrismException
 	{
+		exportToLog(log, showTimeCumul, false, colSep, vars);
+	}
+
+	/**
+	 * Export path to a PrismLog (e.g. file, stdout).
+	 * @param log PrismLog to which the path should be exported to.
+	 * @param showTimeCumul Show time in cumulative form?
+	 * @param showRewards Show rewards?
+	 * @param colSep String used to separate columns in display
+	 * @param vars Restrict printing to these variables (indices) and steps which change them (ignore if null)
+	 */
+	public void exportToLog(PrismLog log, boolean showTimeCumul, boolean showRewards, String colSep, ArrayList<Integer> vars) throws PrismException
+	{
 		PathToText displayer = new PathToText(log, modulesFile);
 		displayer.setShowTimeCumul(showTimeCumul);
 		displayer.setColSep(colSep);
 		displayer.setVarsToShow(vars);
+		displayer.setShowRewards(showRewards);
 		display(displayer);
 	}
 

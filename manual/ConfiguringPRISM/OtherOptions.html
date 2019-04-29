@@ -144,12 +144,32 @@ You can also the CUDD maximum memory setting from the options panel in the GUI, 
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>If you are running PRISM on Windows you will have to do this manually by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts. To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size of the JVM.
+On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javastack</code> switch or the <code>PRISM_JAVASTACKSIZE</code> environment variable.
+Examples are:
 </p>
-<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size.
-On Unix, Linux or Mac OS X platforms, you can change the value of <code>PRISM_JAVASTACKSIZE</code> in the <code>prism</code> script
-(but note that, if you are compiling PRISM from source, this file gets regenerated from a template in <code>src/bin</code> when you recompile).
-On Windows, you can edit the call to <code>java</code> or <code>javaw</code> directly, adding e.g. <code>-Xss32M</code>.
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javastack 1g big_model.pm</span><br/>
+<span style="font-weight:bold;">xprism -javastack 1g big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVASTACKSIZE=1g</span><br/>
+<span style="font-weight:bold;">export PRISM_JAVASTACKSIZE</span><br/>
+<span style="font-weight:bold;">prism big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>If you are running PRISM on Windows you will have to do make adjustments to Java memory manually, by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts.
+To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+To change the stack size to 1GB, add <code>-Xss1g</code>.
 </p>
 <div class='vspace'></div><h3>Precomputation</h3>
 <p>By default, PRISM's probabilistic model checking algorithms use an initial <em>precomputation</em> step which uses graph-based techniques to efficient detect trivial cases where probabilities are 0 or 1. This can often result in improved performance and also reduce round-off errors. Occasionally, though, you may want to disable this step for efficiency (e.g. if you know that there are no/few such states and the precomputation process is slow). This can be done with the <code>-nopre</code> switch. You can also disable the individual algorithms for probability 0/1 using switches <code>-noprob0</code> and <code>-noprob1</code>.

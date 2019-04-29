@@ -136,9 +136,14 @@ a.varlink { text-decoration:none; }
 <h1>Introduction</h1>
 <p>The operation of PRISM can be configured in a number of ways. From the GUI, select "Options" from the main menu to bring up the "Options" dialog. The settings are grouped under several tabs. Those which affect the basic model checking functionality of the tool are under the heading "PRISM". Separate settings are available for the simulator and various aspects of the GUI (the model editor, the property editor and the log).
 </p>
-<p class='vspace'>User options and settings for the GUI are saved locally and reused. They are stored in the file <code>.prism</code>, which can be found in your home directory (<code>~</code>) under Unix, Linux or Mac OS X and in e.g. <code>C:\Documents and Settings\username</code> under Windows. Currently the "Options" dialog in the GUI represents the easiest way to modify the settings, but the <code>.prism</code> file is in a simple textual format and can be edited by hand. To restore the default options for PRISM, click "Load Defaults" and then "Save Options" from the "Options" dialog in the GUI. Alternatively, delete the <code>.prism</code> file and then re-launch the GUI.
+<p class='vspace'>User options and settings for the GUI are saved in a file locally and reused. Currently the "Options" dialog in the GUI represents the easiest way to modify the settings, but the settings file is in a simple textual format and can also be edited by hand. To restore the default options for PRISM, click "Load Defaults" and then "Save Options" from the "Options" dialog in the GUI. Alternatively, delete the settings file re-launch the GUI. The location of the settings file depends on the operating system. As of PRISM 4.5, it is stored in:
 </p>
-<p class='vspace'>From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
+<div class='vspace'></div><ul><li><code>$XDG_CONFIG_HOME/prism.settings</code> (on Linux, if that environment variable is set)
+</li><li><code>$HOME/.config/prism.settings</code> (on Linux, if <code>$XDG_CONFIG_HOME</code> is not set)
+</li><li><code>$HOME/Library/Preferences/prism.settings</code> (on Mac OS)
+</li><li><code>.prism</code> in the user's home directory, e.g. <code>C:\Documents and Settings\username</code> (on Windows)
+</li><li><code>$HOME/.prism</code> (if the settings file was already created by an older version of PRISM)
+</li></ul><p class='vspace'>From the command-line version of PRISM, options are controlled by switches. A full list can be displayed by typing:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
@@ -159,7 +164,7 @@ a.varlink { text-decoration:none; }
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>The <code>.prism</code> settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
+<p class='vspace'>The settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
@@ -465,12 +470,32 @@ You can also the CUDD maximum memory setting from the options panel in the GUI, 
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>If you are running PRISM on Windows you will have to do this manually by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts. To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size of the JVM.
+On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javastack</code> switch or the <code>PRISM_JAVASTACKSIZE</code> environment variable.
+Examples are:
 </p>
-<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size.
-On Unix, Linux or Mac OS X platforms, you can change the value of <code>PRISM_JAVASTACKSIZE</code> in the <code>prism</code> script
-(but note that, if you are compiling PRISM from source, this file gets regenerated from a template in <code>src/bin</code> when you recompile).
-On Windows, you can edit the call to <code>java</code> or <code>javaw</code> directly, adding e.g. <code>-Xss32M</code>.
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock10'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javastack 1g big_model.pm</span><br/>
+<span style="font-weight:bold;">xprism -javastack 1g big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock11'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVASTACKSIZE=1g</span><br/>
+<span style="font-weight:bold;">export PRISM_JAVASTACKSIZE</span><br/>
+<span style="font-weight:bold;">prism big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>If you are running PRISM on Windows you will have to do make adjustments to Java memory manually, by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts.
+To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+To change the stack size to 1GB, add <code>-Xss1g</code>.
 </p>
 <div class='vspace'></div><h3>Precomputation</h3>
 <p>By default, PRISM's probabilistic model checking algorithms use an initial <em>precomputation</em> step which uses graph-based techniques to efficient detect trivial cases where probabilities are 0 or 1. This can often result in improved performance and also reduce round-off errors. Occasionally, though, you may want to disable this step for efficiency (e.g. if you know that there are no/few such states and the precomputation process is slow). This can be done with the <code>-nopre</code> switch. You can also disable the individual algorithms for probability 0/1 using switches <code>-noprob0</code> and <code>-noprob1</code>.
