@@ -1140,7 +1140,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean filterTrue = Expression.isTrue(filter);
 		// Store some more info
 		String filterStatesString = filterTrue ? "all states" : "states satisfying filter";
-		JDDNode ddFilter = checkExpressionDD(filter, statesOfInterest.copy());
+		JDDNode ddFilter = checkExpressionDD(filter,  model.getReach().copy());
 		StateListMTBDD statesFilter = new StateListMTBDD(ddFilter, model);
 		// Check if filter state set is empty; we treat this as an error
 		if (ddFilter.equals(JDD.ZERO)) {
