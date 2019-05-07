@@ -2422,6 +2422,14 @@ public class DTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * @see DTMCModelChecker#computeSteadyStateProbsForBSCC(DTMC, BitSet, double[], BSCCPostProcessor)
+	 */
+	public ModelCheckerResult computeSteadyStateProbsForBSCC(DTMC dtmc, BitSet states, double result[]) throws PrismException
+	{
+		return computeSteadyStateProbsForBSCC(dtmc, states, result, null);
+	}
+
+	/**
 	 * Compute steady-state probabilities for a BSCC
 	 * i.e. compute the long-run probability of being in each state of the BSCC.
 	 * No initial distribution is specified since it does not affect the result.

@@ -861,6 +861,18 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * @see DTMCModelChecker#computeSteadyStateProbsForBSCC(DTMC, BitSet, double[], BSCCPostProcessor)
+	 */
+	public ModelCheckerResult computeSteadyStateProbsForBSCC(CTMC ctmc, BitSet states, double result[]) throws PrismException
+	{
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		return createDTMCModelChecker().computeSteadyStateProbsForBSCC(dtmcEmb, states, result, new SteadyStateBSCCPostProcessor(ctmc));
+	}
+
+	/**
 	 * Compute steady-state rewards, i.e., R=?[ S ].
 	 * @param ctmc the CTMC
 	 * @param modelRewards the (state) rewards
