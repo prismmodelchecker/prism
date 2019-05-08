@@ -41,6 +41,10 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import common.IterableStateSet;
+import explicit.DTMC.DoubleTransitionFunction;
+import explicit.DTMC.IntTransitionFunction;
+import explicit.DTMC.LongTransitionFunction;
+import explicit.DTMC.ObjTransitionFunction;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import parser.State;
@@ -573,6 +577,54 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	// Accessors (for MDP)
+
+	@Override
+	public <T> T reduceTransitions(int state, int choice, T init, ObjTransitionFunction<T> fn)
+	{
+		T result = init;
+		int start = choiceStarts[rowStarts[state] + choice];
+		int stop = choiceStarts[rowStarts[state] + choice + 1];
+		for (int col = start; col < stop; col++) {
+			result = fn.apply(result, state, cols[col], nonZeros[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public double reduceTransitions(int state, int choice, double init, DoubleTransitionFunction fn)
+	{
+		double result = init;
+		int start = choiceStarts[rowStarts[state] + choice];
+		int stop = choiceStarts[rowStarts[state] + choice + 1];
+		for (int col = start; col < stop; col++) {
+			result = fn.apply(result, state, cols[col], nonZeros[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public int reduceTransitions(int state, int choice, int init, IntTransitionFunction fn)
+	{
+		int result = init;
+		int start = choiceStarts[rowStarts[state] + choice];
+		int stop = choiceStarts[rowStarts[state] + choice + 1];
+		for (int col = start; col < stop; col++) {
+			result = fn.apply(result, state, cols[col], nonZeros[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public long reduceTransitions(int state, int choice, long init, LongTransitionFunction fn)
+	{
+		long result = init;
+		int start = choiceStarts[rowStarts[state] + choice];
+		int stop = choiceStarts[rowStarts[state] + choice + 1];
+		for (int col = start; col < stop; col++) {
+			result = fn.apply(result, state, cols[col], nonZeros[col]);
+		}
+		return result;
+	}
 
 	@Override
 	public int getNumTransitions(int s, int i)

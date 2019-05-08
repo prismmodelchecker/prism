@@ -35,6 +35,11 @@ import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
+import explicit.DTMC.DoubleTransitionFunction;
+import explicit.DTMC.IntTransitionFunction;
+import explicit.DTMC.LongTransitionFunction;
+import explicit.DTMC.ObjTransitionFunction;
+import explicit.DTMC.TransitionConsumer;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import prism.PrismUtils;
@@ -52,16 +57,6 @@ public interface MDP extends MDPGeneric<Double>
 	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
 	 */
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
-
-	/**
-	 * Functional interface for a consumer,
-	 * accepting transitions (s,t,d), i.e.,
-	 * from state s to state t with value d.
-	 */
-	@FunctionalInterface
-	public interface TransitionConsumer {
-		void accept(int s, int t, double d);
-	}
 
 	/**
 	 * Iterate over the outgoing transitions of state {@code s} and choice {@code i}
@@ -89,6 +84,83 @@ public interface MDP extends MDPGeneric<Double>
 	}
 
 	/**
+	 * Iterate over the outgoing transitions of state {@code state} and choice {@code c}
+	 * and apply the reducing function {@code fn}
+	 * to the intermediate result and the transition:
+	 * <br/>
+	 * Call {@code apply(r,s,t,d)} where
+	 * {@code r} is the intermediate result,
+	 * {@code t} is the successor state and,
+	 * {@code d} = P(s,c,t) is the probability from {@code s} to {@code t} with choice {@code c},
+	 * The return value of apply is the intermediate result for the next transition.
+	 * <p>
+	 * <i>Default implementation</i>: The default implementation relies on iterating over the
+	 * iterator returned by {@code getTransitionsIterator()}.
+	 * <p><i>Note</i>: This method is the base for the default implementation of the numerical
+	 * computation methods (mvMult, etc). In derived classes, it may thus be worthwhile to
+	 * provide a specialised implementation for this method that avoids using the Iterator mechanism.
+	 *
+	 * @param state the state
+	 * @param choice the choice
+	 * @param init initial result value
+	 * @param fn the reducing function
+	 */
+	public default <T> T reduceTransitions(int state, int choice, T init, ObjTransitionFunction<T> fn)
+	{
+		T result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state, choice); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * Primitive specialisation of {@code reduce} for {@code double} values.
+	 *
+	 * @see #reduceTransitions(int, Object, ObjTransitionFunction)
+	 */
+	public default double reduceTransitions(int state, int choice, double init, DoubleTransitionFunction fn)
+	{
+		double result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state, choice); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * Primitive specialisation of {@code reduce} for {@code int} values.
+	 *
+	 * @see #reduceTransitions(int, Object, ObjTransitionFunction)
+	 */
+	public default int reduceTransitions(int state, int choice, int init, IntTransitionFunction fn)
+	{
+		int result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state, choice); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
+	 * Primitive specialisation of {@code reduce} for {@code long} values.
+	 *
+	 * @see #reduceTransitions(int, Object, ObjTransitionFunction)
+	 */
+	public default long reduceTransitions(int state, int choice, long init, LongTransitionFunction fn)
+	{
+		long result = init;
+		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(state, choice); it.hasNext(); ) {
+			Entry<Integer, Double> e = it.next();
+			result = fn.apply(result, state, e.getKey(), e.getValue());
+		}
+		return result;
+	}
+
+	/**
 	 * Functional interface for a function
 	 * mapping transitions (s,t,d), i.e.,
 	 * from state s to state t with value d,
@@ -105,24 +177,12 @@ public interface MDP extends MDPGeneric<Double>
 	 * <br>
 	 * Return sum_t f(s, t, P(s,i,t)), where t ranges over the i-successors of s.
 	 *
-	 * @param s the state s
-	 * @param c the consumer
+	 * @param state the state s
+	 * @param choice the consumer
 	 */
-	public default double sumOverTransitions(final int s, final int i, final TransitionToDoubleFunction f)
+	public default double sumOverTransitions(int state, int choice, TransitionToDoubleFunction f)
 	{
-		class Sum {
-			double sum = 0.0;
-
-			void accept(int s, int t, double d)
-			{
-				sum += f.apply(s, t, d);
-			}
-		}
-
-		Sum sum = new Sum();
-		forEachTransition(s, i, sum::accept);
-
-		return sum.sum;
+		return reduceTransitions(state, choice, 0.0, (r, s, t, d) -> r + f.apply(s, t, d));
 	}
 
 	/**
