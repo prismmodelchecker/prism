@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.type.*;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationClock extends DeclarationType
@@ -78,14 +79,15 @@ public class DeclarationClock extends DeclarationType
 		return "clock";
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationClock deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		DeclarationClock ret = new DeclarationClock();
-		ret.setPosition(this);
-		return ret;
+		return this;
+	}
+
+	@Override
+	public DeclarationClock clone()
+	{
+		return (DeclarationClock) super.clone();
 	}
 }

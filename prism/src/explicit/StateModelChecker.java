@@ -1315,57 +1315,57 @@ public class StateModelChecker extends PrismComponent
 			this.propBSs = propBSs;
 		}
 
-		public Object visit(ExpressionITE e) throws PrismLangException
+		public Object visitNow(ExpressionITE e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionBinaryOp e) throws PrismLangException
+		public Object visitNow(ExpressionBinaryOp e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionUnaryOp e) throws PrismLangException
+		public Object visitNow(ExpressionUnaryOp e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionFunc e) throws PrismLangException
+		public Object visitNow(ExpressionFunc e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionIdent e) throws PrismLangException
+		public Object visitNow(ExpressionIdent e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionLiteral e) throws PrismLangException
+		public Object visitNow(ExpressionLiteral e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionConstant e) throws PrismLangException
+		public Object visitNow(ExpressionConstant e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionFormula e) throws PrismLangException
+		public Object visitNow(ExpressionFormula e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionVar e) throws PrismLangException
+		public Object visitNow(ExpressionVar e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionLabel e) throws PrismLangException
+		public Object visitNow(ExpressionLabel e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
-		public Object visit(ExpressionProp e) throws PrismLangException
+		public Object visitNow(ExpressionProp e) throws PrismLangException
 		{
 			// Look up property and recurse
 			Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
@@ -1376,9 +1376,9 @@ public class StateModelChecker extends PrismComponent
 			}
 		}
 
-		public Object visit(ExpressionFilter e) throws PrismLangException
+		public Object visitNow(ExpressionFilter e) throws PrismLangException
 		{
-			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visit(e);
+			return (e.getType() instanceof TypeBool && e.isProposition()) ? replaceWithLabel(e) : super.visitNow(e);
 		}
 
 		/**

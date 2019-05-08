@@ -36,7 +36,7 @@ import prism.PrismUtils;
 
 // Class representing parsed properties file/list
 
-public class PropertiesFile extends ASTElement
+public class PropertiesFile extends ASTElement implements Cloneable
 {
 	// Associated ModulesFile (for constants, ...)
 	private ModulesFile modulesFile;
@@ -654,30 +654,35 @@ public class PropertiesFile extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	@SuppressWarnings("unchecked")
-	public ASTElement deepCopy()
+	@Override
+	public PropertiesFile deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		PropertiesFile ret = new PropertiesFile(modelInfo);
-		// Copy ASTElement stuff
-		ret.setPosition(this);
-		// Deep copy main components
-		ret.setFormulaList((FormulaList) formulaList.deepCopy());
-		ret.setLabelList((LabelList) labelList.deepCopy());
-		ret.combinedLabelList = (LabelList) combinedLabelList.deepCopy();
-		ret.setConstantList((ConstantList) constantList.deepCopy());
-		n = getNumProperties();
-		for (i = 0; i < n; i++) {
-			ret.addProperty((Property) getPropertyObject(i).deepCopy());
-		}
-		// Copy other (generated) info
-		ret.allIdentsUsed = (allIdentsUsed == null) ? null : (Vector<String>) allIdentsUsed.clone();
-		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
+		// deep copy main components
+		formulaList       = copier.copy(formulaList);
+		labelList         = copier.copy(labelList);
+		combinedLabelList = copier.copy(combinedLabelList);
+		constantList      = copier.copy(constantList);
+		copier.copyAll(properties);
 
-		return ret;
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public PropertiesFile clone()
+	{
+		PropertiesFile clone = (PropertiesFile) super.clone();
+
+		// clone main components
+		clone.properties = (Vector<Property>) properties.clone();
+
+		// clone other (generated) info
+		if (allIdentsUsed != null)
+			clone.allIdentsUsed = (Vector<String>) allIdentsUsed.clone();
+		if (constantValues != null)
+			clone.constantValues = new Values(constantValues);
+
+		return clone;
 	}
 }
 

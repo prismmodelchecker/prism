@@ -29,6 +29,7 @@ package parser.ast;
 
 import parser.type.*;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationInt extends DeclarationType
@@ -106,16 +107,18 @@ public class DeclarationInt extends DeclarationType
 		return "[" + low + ".." + high + "]";
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationInt deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Expression lowCopy = (low == null) ? null : low.deepCopy();
-		Expression highCopy = (high == null) ? null : high.deepCopy();
-		DeclarationInt ret = new DeclarationInt(lowCopy, highCopy);
-		ret.setPosition(this);
-		return ret;
+		low = copier.copy(low);
+		high = copier.copy(high);
+
+		return this;
+	}
+
+	@Override
+	public DeclarationInt clone()
+	{
+		return (DeclarationInt) super.clone();
 	}
 }

@@ -27,7 +27,6 @@
 package parser.ast;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 
 import param.BigRational;
 import parser.*;
@@ -360,21 +359,28 @@ public class Update extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public Update deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		Update ret = new Update();
-		n = getNumElements();
-		for (i = 0; i < n; i++) {
-			ret.addElement((ExpressionIdent) getVarIdent(i).deepCopy(), getExpression(i).deepCopy());
-			ret.setType(i, getType(i));
-			ret.setVarIndex(i, getVarIndex(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(exprs);
+		copier.copyAll(varIdents);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Update clone()
+	{
+		Update clone = (Update) super.clone();
+
+		clone.indices   = (ArrayList<Integer>) indices.clone();
+		clone.vars      = (ArrayList<String>) vars.clone();
+		clone.exprs     = (ArrayList<Expression>) exprs.clone();
+		clone.types     = (ArrayList<Type>) types.clone();
+		clone.varIdents = (ArrayList<ExpressionIdent>) varIdents.clone();
+
+		return clone;
 	}
 }
 

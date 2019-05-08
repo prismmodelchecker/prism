@@ -167,17 +167,25 @@ public class SystemParallel extends SystemDefn
 		
 		return s;
 	}
-	
+
 	@Override
-	@SuppressWarnings("unchecked")
-	public SystemDefn deepCopy()
+	public SystemParallel deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemParallel ret = new SystemParallel();
-		ret.setOperand1(getOperand1().deepCopy());
-		ret.setOperand2(getOperand2().deepCopy());
-		ret.actions = (actions == null) ? null : (Vector<String>)actions.clone();
-		ret.setPosition(this);
-		return ret;
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemParallel clone()
+	{
+		SystemParallel clone = (SystemParallel) super.clone();
+
+		clone.actions = (Vector<String>) actions.clone();
+
+		return clone;
 	}
 }
 

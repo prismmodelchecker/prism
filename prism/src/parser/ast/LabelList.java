@@ -31,14 +31,15 @@ import java.util.List;
 import java.util.Vector;
 
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 // class to store list of labels
 
-public class LabelList extends ASTElement
+public class LabelList extends ASTElement implements Cloneable
 {
 	// Name/expression pairs to define labels
-	private List<String> names;
+	private ArrayList<String> names;
 	private Vector<Expression> labels;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
@@ -134,20 +135,27 @@ public class LabelList extends ASTElement
 		
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public LabelList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		LabelList ret = new LabelList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			ret.addLabel((ExpressionIdent)getLabelNameIdent(i).deepCopy(), getLabel(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(labels);
+		copier.copyAll(nameIdents);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public LabelList clone()
+	{
+		LabelList clone = (LabelList) super.clone();
+
+		clone.labels     = (Vector<Expression>)      labels.clone();
+		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+		clone.names      = (ArrayList<String>)       names.clone();
+
+		return clone;
 	}
 }
 

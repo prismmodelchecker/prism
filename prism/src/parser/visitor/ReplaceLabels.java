@@ -52,7 +52,7 @@ public class ReplaceLabels extends ASTTraverseModify
 	}
 
 	@Override
-	public Object visit(ExpressionLabel e)
+	public Object visitNow(ExpressionLabel e)
 	{
 		if (e.getName() == null)
 			return e;

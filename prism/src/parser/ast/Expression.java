@@ -76,13 +76,20 @@ public abstract class Expression extends ASTElement
 	 * when evaluated during model checking?
 	 */
 	public abstract boolean returnsSingleValue();
-	
-	// Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public abstract Expression deepCopy();
+	// Override version of deepCopy() from superclass (to reduce casting).
+	@Override
+	public Expression deepCopy()
+	{
+		return (Expression) super.deepCopy();
+	}
+
+	// Override version of clone() from superclass (to reduce casting).
+	@Override
+	public Expression clone()
+	{
+		return (Expression) super.clone();
+	}
 
 	// Utility methods:
 
@@ -799,14 +806,8 @@ public abstract class Expression extends ASTElement
 	 */
 	public static boolean isQuantitative(Expression expr)
 	{
-		if (expr instanceof ExpressionProb) {
-			return ((ExpressionProb) expr).getProb() == null;
-		}
-		else if (expr instanceof ExpressionReward) {
-			return ((ExpressionReward) expr).getReward() == null;
-		}
-		else if (expr instanceof ExpressionSS) {
-			return ((ExpressionSS) expr).getProb() == null;
+		if (expr instanceof ExpressionQuant) {
+			return ((ExpressionQuant) expr).isQuantitative();
 		}
 		return false;
 	}

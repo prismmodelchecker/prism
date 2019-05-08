@@ -29,6 +29,7 @@ package parser.ast;
 
 import parser.type.TypeBool;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationBool extends DeclarationType
@@ -75,13 +76,15 @@ public class DeclarationBool extends DeclarationType
 		return "bool";
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public DeclarationBool deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		DeclarationBool ret = new DeclarationBool();
-		ret.setPosition(this);
-		return ret;
+		return this;
+	}
+
+	@Override
+	public DeclarationBool clone()
+	{
+		return (DeclarationBool) super.clone();
 	}
 }

@@ -144,21 +144,24 @@ public class RewardStruct extends ASTElement
 		
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public RewardStruct deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		RewardStruct ret = new RewardStruct();
-		ret.setName(name);
-		n = getNumItems();
-		for (i = 0; i < n; i++) {
-			ret.addItem((RewardStructItem)getRewardStructItem(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(items);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public RewardStruct clone()
+	{
+		RewardStruct clone = (RewardStruct) super.clone();
+		
+		clone.items = (Vector<RewardStructItem>) items.clone();
+
+		return clone;
 	}
 }
 

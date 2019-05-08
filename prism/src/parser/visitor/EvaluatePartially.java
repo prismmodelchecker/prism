@@ -42,7 +42,7 @@ public class EvaluatePartially extends ASTTraverseModify
 		this.ec = ec;
 	}
 	
-	public Object visit(ExpressionConstant e) throws PrismLangException
+	public Object visitNow(ExpressionConstant e) throws PrismLangException
 	{
 		Object val = ec.getConstantValue(e.getName());
 		if (val == null) {
@@ -52,7 +52,7 @@ public class EvaluatePartially extends ASTTraverseModify
 		}
 	}
 	
-	public Object visit(ExpressionVar e) throws PrismLangException
+	public Object visitNow(ExpressionVar e) throws PrismLangException
 	{
 		Object val = ec.getVarValue(e.getName(), e.getIndex());
 		if (val == null) {

@@ -81,7 +81,7 @@ public class ConstantList extends ASTElement
 		types.addElement(t);
 		nameIdents.addElement(n);
 	}
-	
+
 	public void setConstant(int i, Expression c)
 	{
 		constants.setElementAt(c, i);
@@ -474,21 +474,28 @@ public class ConstantList extends ASTElement
 		
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public ConstantList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		ConstantList ret = new ConstantList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			Expression constantNew = (getConstant(i) == null) ? null : getConstant(i).deepCopy();
-			ret.addConstant((ExpressionIdent)getConstantNameIdent(i).deepCopy(), constantNew, getConstantType(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(constants);
+		copier.copyAll(nameIdents);
+
+		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ConstantList clone()
+	{
+		ConstantList clone = (ConstantList) super.clone();
+
+		clone.constants  = (Vector<Expression>)      constants.clone();
+		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+		clone.names      = (Vector<String>)          names.clone();
+		clone.types      = (Vector<Type>)            types.clone();
+
+		return clone;
 	}
 }
 

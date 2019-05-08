@@ -95,16 +95,19 @@ public class ExpressionProp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionProp deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionProp expr = new ExpressionProp(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionProp clone()
+	{
+		return (ExpressionProp) super.clone();
 	}
 
 	// Standard methods
-	
+
 	@Override
 	public String toString()
 	{

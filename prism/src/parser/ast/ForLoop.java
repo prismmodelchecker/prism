@@ -138,21 +138,21 @@ public class ForLoop extends ASTElement
 		s += ":" + to;
 		return s;
 	}
-	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+
+	@Override
+	public ForLoop deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ForLoop ret = new ForLoop();
-		ret.lhs = lhs;
-		ret.from = from.deepCopy();
-		ret.to = to.deepCopy();
-		ret.step = step.deepCopy();
-		ret.pc = pc;
-		ret.between = between;
-		ret.setPosition(this);
-		return ret;
+		from = copier.copy(from);
+		to   = copier.copy(to);
+		step = copier.copy(step);
+
+		return this;
+	}
+
+	@Override
+	public ForLoop clone()
+	{
+		return (ForLoop) super.clone();
 	}
 }
 

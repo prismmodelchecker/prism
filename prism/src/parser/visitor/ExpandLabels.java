@@ -44,7 +44,7 @@ public class ExpandLabels extends ASTTraverseModify
 		this.labelList = labelList;
 	}
 	
-	public Object visit(ExpressionLabel e) throws PrismLangException
+	public Object visitNow(ExpressionLabel e) throws PrismLangException
 	{
 		int i;
 		Type t;

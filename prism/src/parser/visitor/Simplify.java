@@ -35,7 +35,7 @@ import prism.PrismLangException;
  */
 public class Simplify extends ASTTraverseModify
 {
-	public Object visit(ExpressionBinaryOp e) throws PrismLangException
+	public Object visitNow(ExpressionBinaryOp e) throws PrismLangException
 	{
 		// Apply recursively
 		e.setOperand1((Expression) (e.getOperand1().accept(this)));
@@ -93,13 +93,15 @@ public class Simplify extends ASTTraverseModify
 				return e.getOperand2();
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
-				e.getOperand1().setType(e.getType());
-				return e.getOperand1();
+				Expression op = e.getOperand1().clone();
+				op.setType(e.getType());
+				return op;
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
-				e.getOperand2().setType(e.getType());
-				return e.getOperand2();
+				Expression op = e.getOperand2().clone();
+				op.setType(e.getType());
+				return op;
 			}
 			break;
 		case ExpressionBinaryOp.MINUS:
@@ -113,8 +115,9 @@ public class Simplify extends ASTTraverseModify
 			}
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 0.0) {
 				// Need to be careful that type is preserved
-				e.getOperand1().setType(e.getType());
-				return e.getOperand1();
+				Expression op = e.getOperand1().clone();
+				op.setType(e.getType());
+				return op;
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 0.0) {
 				ExpressionUnaryOp simplified = new ExpressionUnaryOp(ExpressionUnaryOp.MINUS, e.getOperand2());
@@ -130,13 +133,15 @@ public class Simplify extends ASTTraverseModify
 				return e.getOperand2();
 			if (Expression.isDouble(e.getOperand2()) && e.getOperand2().evaluateDouble() == 1.0) {
 				// Need to be careful that type is preserved
-				e.getOperand1().setType(e.getType());
-				return e.getOperand1();
+				Expression op = e.getOperand1().clone();
+				op.setType(e.getType());
+				return op;
 			}
 			if (Expression.isDouble(e.getOperand1()) && e.getOperand1().evaluateDouble() == 1.0) {
 				// Need to be careful that type is preserved
-				e.getOperand2().setType(e.getType());
-				return e.getOperand2();
+				Expression op = e.getOperand2().clone();
+				op.setType(e.getType());
+				return op;
 			}
 			if (Expression.isInt(e.getOperand2()) && e.getOperand2().evaluateInt() == 0) {
 				// Need to be careful that type is preserved
@@ -159,7 +164,7 @@ public class Simplify extends ASTTraverseModify
 		return e;
 	}
 
-	public Object visit(ExpressionUnaryOp e) throws PrismLangException
+	public Object visitNow(ExpressionUnaryOp e) throws PrismLangException
 	{
 		// Apply recursively
 		e.setOperand((Expression) (e.getOperand().accept(this)));
@@ -174,7 +179,7 @@ public class Simplify extends ASTTraverseModify
 		return e;
 	}
 
-	public Object visit(ExpressionITE e) throws PrismLangException
+	public Object visitNow(ExpressionITE e) throws PrismLangException
 	{
 		// Apply recursively
 		e.setOperand1((Expression) (e.getOperand1().accept(this)));
@@ -194,7 +199,7 @@ public class Simplify extends ASTTraverseModify
 		return e;
 	}
 
-	public Object visit(ExpressionFunc e) throws PrismLangException
+	public Object visitNow(ExpressionFunc e) throws PrismLangException
 	{
 		int i, n;
 		boolean literal;
@@ -218,7 +223,7 @@ public class Simplify extends ASTTraverseModify
 		return e;
 	}
 	
-	public Object visit(ExpressionFormula e) throws PrismLangException
+	public Object visitNow(ExpressionFormula e) throws PrismLangException
 	{
 		// If formula has an attached definition, just replace it with that
 		return e.getDefinition() != null ? e.getDefinition() : e;

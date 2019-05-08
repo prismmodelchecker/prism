@@ -119,7 +119,7 @@ public class PTAModelChecker extends PrismComponent
 		// (do this before modifications below for better error reporting)
 		expr.accept(new ASTTraverseModify()
 		{
-			public Object visit(ExpressionVar e) throws PrismLangException
+			public Object visitNow(ExpressionVar e) throws PrismLangException
 			{
 				if (e.getType() instanceof TypeClock) {
 					throw new PrismLangException("Properties cannot contain references to clocks (try the digital clocks engine instead)", e);

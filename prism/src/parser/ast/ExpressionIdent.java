@@ -106,14 +106,17 @@ public class ExpressionIdent extends Expression
 	{
 		return v.visit(this);
 	}
-	
+
 	@Override
-	public Expression deepCopy()
+	public ExpressionIdent deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionIdent expr = new ExpressionIdent(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionIdent clone()
+	{
+		return (ExpressionIdent) super.clone();
 	}
 
 	// Standard methods

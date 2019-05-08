@@ -166,12 +166,17 @@ public class ExpressionUnaryOp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionUnaryOp deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionUnaryOp expr = new ExpressionUnaryOp(op, operand.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand = copier.copy(operand);
+
+		return this;
+	}
+
+	@Override
+	public ExpressionUnaryOp clone()
+	{
+		return (ExpressionUnaryOp) super.clone();
 	}
 
 	// Standard methods

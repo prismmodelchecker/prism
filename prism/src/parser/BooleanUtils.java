@@ -118,7 +118,7 @@ public class BooleanUtils
 		try {
 			exprMod = (Expression) expr.accept(new ASTTraverseModify()
 			{
-				public Object visit(ExpressionUnaryOp e) throws PrismLangException
+				public Object visitNow(ExpressionUnaryOp e) throws PrismLangException
 				{
 					// Remove parentheses: (a)
 					if (Expression.isParenth(e)) {
@@ -126,10 +126,10 @@ public class BooleanUtils
 						// (a)  ==  a 
 						return a;
 					}
-					return super.visit(e);
+					return super.visitNow(e);
 				}
 
-				public Object visit(ExpressionBinaryOp e) throws PrismLangException
+				public Object visitNow(ExpressionBinaryOp e) throws PrismLangException
 				{
 					// Remove implication: a => b
 					if (Expression.isImplies(e)) {
@@ -145,7 +145,7 @@ public class BooleanUtils
 						// a <=> b  ==  (a | !b) & (!a | b) 
 						return Expression.And(Expression.Or(a, Expression.Not(b)), Expression.Or(Expression.Not(a.deepCopy()), b.deepCopy()));
 					}
-					return super.visit(e);
+					return super.visitNow(e);
 				}
 			});
 		} catch (PrismLangException e) {

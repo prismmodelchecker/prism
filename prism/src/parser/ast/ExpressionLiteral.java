@@ -127,11 +127,15 @@ public class ExpressionLiteral extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionLiteral deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Expression expr = new ExpressionLiteral(type, value, string);
-		expr.setPosition(this);
-		return expr;
+		return this;
+	}
+
+	@Override
+	public ExpressionLiteral clone()
+	{
+		return (ExpressionLiteral) super.clone();
 	}
 
 	// Standard methods
