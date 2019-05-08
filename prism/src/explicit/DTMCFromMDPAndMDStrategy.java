@@ -182,15 +182,6 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	}
 
 	@Override
-	public void forEachTransition(int s, TransitionConsumer c)
-	{
-		if (!strat.isChoiceDefined(s)) {
-			return;
-		}
-		mdp.forEachTransition(s, strat.getChoiceIndex(s), c);
-	}
-
-	@Override
 	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
 	{
 		if (!strat.isChoiceDefined(state)) {

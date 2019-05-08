@@ -257,20 +257,6 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 
 	@Override
-	public void forEachTransition(int s, TransitionConsumer c)
-	{
-		final double er = exitRates[s];
-		if (er == 0) {
-			// exit rate = 0 -> prob 1 self loop
-			c.accept(s, s, 1.0);
-		} else {
-			ctmc.forEachTransition(s, (s_,t,rate) -> {
-				c.accept(s_, t, rate / er);
-			});
-		}
-	}
-
-	@Override
 	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
 	{
 		double er = exitRates[state];

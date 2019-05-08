@@ -228,14 +228,6 @@ public class DTMCSparse extends DTMCExplicit
 	//--- DTMC ---
 
 	@Override
-	public void forEachTransition(int state, TransitionConsumer consumer)
-	{
-		for (int col = rows[state], stop = rows[state+1]; col < stop; col++) {
-			consumer.accept(state, columns[col], probabilities[col]);
-		}
-	}
-
-	@Override
 	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
 	{
 		T result = init;

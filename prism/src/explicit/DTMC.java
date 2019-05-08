@@ -67,7 +67,7 @@ public interface DTMC extends Model
 	}
 
 	/**
-	 * Iterate over the outgoing transitions of state {@code s} and call the accept method
+	 * Iterate over the outgoing transitions of state {@code state} and call the accept method
 	 * of the consumer for each of them:
 	 * <br>
 	 * Call {@code accept(s,t,d)} where t is the successor state and,
@@ -80,15 +80,12 @@ public interface DTMC extends Model
 	 * computation methods (mvMult, etc). In derived classes, it may thus be worthwhile to
 	 * provide a specialised implementation for this method that avoids using the Iterator mechanism.
 	 *
-	 * @param s the state s
+	 * @param state the state
 	 * @param c the consumer
 	 */
-	public default void forEachTransition(int s, TransitionConsumer c)
+	public default void forEachTransition(int state, TransitionConsumer c)
 	{
-		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(s); it.hasNext(); ) {
-			Entry<Integer, Double> e = it.next();
-			c.accept(s, e.getKey(), e.getValue());
-		}
+		reduceTransitions(state, null, (r, s, t, d) -> {c.accept(s,t,d); return r;});
 	}
 
 	/**

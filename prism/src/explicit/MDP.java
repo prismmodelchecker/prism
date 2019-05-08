@@ -59,7 +59,7 @@ public interface MDP extends MDPGeneric<Double>
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
 
 	/**
-	 * Iterate over the outgoing transitions of state {@code s} and choice {@code i}
+	 * Iterate over the outgoing transitions of state {@code state} and choice {@code i}
 	 * and call the accept method of the consumer for each of them:
 	 * <br>
 	 * Call {@code accept(s,t,d)} where t is the successor state d = P(s,i,t)
@@ -75,12 +75,9 @@ public interface MDP extends MDPGeneric<Double>
 	 * @param i the choice i
 	 * @param c the consumer
 	 */
-	public default void forEachTransition(int s, int i, TransitionConsumer c)
+	public default void forEachTransition(int state, int choice, TransitionConsumer c)
 	{
-		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(s, i); it.hasNext(); ) {
-			Entry<Integer, Double> e = it.next();
-			c.accept(s, e.getKey(), e.getValue());
-		}
+		reduceTransitions(state, choice, null, (r, s, t, d) -> {c.accept(s,t,d); return r;});
 	}
 
 	/**
