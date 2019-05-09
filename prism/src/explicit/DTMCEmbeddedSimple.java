@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.*;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Map.Entry;
 
 import explicit.rewards.MCRewards;
@@ -208,12 +209,11 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	{
 		if (exitRates[s] == 0) {
 			// return prob-1 self-loop
-			return Collections.singletonMap(s, 1.0).entrySet().iterator();
+			return DiracDistribution.iterator(s);
 		} else {
-			final Iterator<Entry<Integer,Double>> ctmcIterator = ctmc.getTransitionsIterator(s);
-			
+			Iterator<Entry<Integer,Double>> ctmcIterator = ctmc.getTransitionsIterator(s);
 			// return iterator over entries, with probabilities divided by exitRates[s]
-			final double er = exitRates[s];
+			double er = exitRates[s];
 			return new Iterator<Entry<Integer,Double>>() {
 				@Override
 				public boolean hasNext()
@@ -224,27 +224,10 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 				@Override
 				public Entry<Integer, Double> next()
 				{
-					final Entry<Integer, Double> ctmcEntry = ctmcIterator.next();
-					
-					return new Entry<Integer, Double>() {
-						@Override
-						public Integer getKey()
-						{
-							return ctmcEntry.getKey();
-						}
-
-						@Override
-						public Double getValue()
-						{
-							return ctmcEntry.getValue() / er;
-						}
-
-						@Override
-						public Double setValue(Double value)
-						{
-							throw new UnsupportedOperationException();
-						}
-					};
+					Entry<Integer, Double> transition = ctmcIterator.next();
+					Integer state = transition.getKey();
+					double probability = transition.getValue() / er;
+					return new SimpleImmutableEntry<>(state, probability);
 				}
 			};
 		}
@@ -253,7 +236,7 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	@Override
 	public void forEachTransition(int s, TransitionConsumer c)
 	{
-		final double er = exitRates[s];
+		double er = exitRates[s];
 		if (er == 0) {
 			// exit rate = 0 -> prob 1 self loop
 			c.accept(s, s, 1.0);
