@@ -74,7 +74,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	// Parameter for iterative numerical method termination criteria
 	protected double termCritParam = 1e-8;
 	// Max iterations for numerical solution
-	protected int maxIters = 100000;
+	protected double maxIters = 100000;
 	// Use precomputation algorithms in model checking?
 	protected boolean precomp = true;
 	protected boolean prob0 = true;
@@ -218,7 +218,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			// PRISM_TERM_CRIT_PARAM
 			setTermCritParam(settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM));
 			// PRISM_MAX_ITERS
-			setMaxIters(settings.getInteger(PrismSettings.PRISM_MAX_ITERS));
+			setMaxIters(settings.getDouble(PrismSettings.PRISM_MAX_ITERS));
 			// PRISM_PRECOMPUTATION
 			setPrecomp(settings.getBoolean(PrismSettings.PRISM_PRECOMPUTATION));
 			// PRISM_PROB0
@@ -340,8 +340,9 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Set maximum number of iterations for numerical iterative methods.
 	 */
-	public void setMaxIters(int maxIters)
+	public void setMaxIters(double maxIters)
 	{
+		assert maxIters > 0 && maxIters <= Integer.MAX_VALUE && (maxIters == Math.floor(maxIters) || Double.isInfinite(maxIters));
 		this.maxIters = maxIters;
 	}
 
@@ -438,7 +439,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		return termCritParam;
 	}
 
-	public int getMaxIters()
+	public double getMaxIters()
 	{
 		return maxIters;
 	}
