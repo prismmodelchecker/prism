@@ -66,10 +66,10 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCritParam
 /*
  * Class:     prism_PrismNative
  * Method:    PN_SetMaxIters
- * Signature: (I)V
+ * Signature: (D)V
  */
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters
-  (JNIEnv *, jclass, jint);
+  (JNIEnv *, jclass, jdouble);
 
 /*
  * Class:     prism_PrismNative

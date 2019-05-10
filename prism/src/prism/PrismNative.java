@@ -119,10 +119,11 @@ public class PrismNative
 		return termCritParam;
 	}
 	
-	private static native void PN_SetMaxIters(int i);
-	public static void setMaxIters(int i)
+	private static native void PN_SetMaxIters(double d);
+	public static void setMaxIters(double d)
 	{
-		PN_SetMaxIters(i);
+		assert d > 0 && d <= Integer.MAX_VALUE && (d == Math.floor(d) || Double.isInfinite(d));
+		PN_SetMaxIters(d);
 	}
 
 	private static native void PN_SetSBMaxMem(int i);

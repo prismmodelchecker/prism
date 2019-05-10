@@ -265,8 +265,8 @@ public class PrismSettings implements Observer
 																			"Criteria to use for checking termination of iterative numerical methods." },
 			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			new Double(1.0E-6),															"0.0,",																						
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
-			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
-																			"Maximum number of iterations to perform if iterative methods do not converge." },
+			{ DOUBLE_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			Double.valueOf(10000),															"0,",																						
+																			"Maximum number of iterations to perform if iterative methods do not converge. Expects a positive integer of 'Infinity' for unbounded iterations." },
 			{ BOOLEAN_TYPE,		PRISM_EXPORT_ITERATIONS,				"Export iterations (debug/visualisation)",			"4.3.1",			false,														"",
 																			"Export solution vectors for iteration algorithms to iterations.html"},
 			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			new Integer(10),															"1,",																						
@@ -1165,12 +1165,15 @@ public class PrismSettings implements Observer
 		else if (sw.equals("maxiters")) {
 			if (i < args.length - 1) {
 				try {
-					j = Integer.parseInt(args[++i]);
-					if (j < 0)
-						throw new NumberFormatException("");
-					set(PRISM_MAX_ITERS, j);
+					double max = Double.parseDouble(args[++i]);
+					System.out.println(max);
+					System.out.println(Double.isInfinite(max));
+					if (! (max > 0 && (max <= Integer.MAX_VALUE && max == Math.floor(max) || Double.isInfinite(max)))) {
+						throw new NumberFormatException();
+					}
+					set(PRISM_MAX_ITERS, max);
 				} catch (NumberFormatException e) {
-					throw new PrismException("Invalid value for -" + sw + " switch");
+					throw new PrismException("Invalid value for -" + sw + " switch. Expected positive integer or 'Infinity'.");
 				}
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
@@ -1831,9 +1834,9 @@ public class PrismSettings implements Observer
 		mainLog.println("-relative (or -rel) ............ Use relative error for detecting convergence [default]");
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
 		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
-		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
+		mainLog.println("-maxiters <n> .................. Set max number of iterations to positive integer [default: 10000] or 'Infinity' for unbounded interations.");
 		mainLog.println("-gridresolution <n> .............Set resolution for fixed grid approximation (POMDP) [default: 10]");
-		
+
 		mainLog.println();
 		mainLog.println("MODEL CHECKING OPTIONS:");
 		mainLog.println("-nopre ......................... Skip precomputation algorithms (where optional)");

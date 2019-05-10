@@ -114,7 +114,7 @@ EXPORT extern int lin_eq_method;
 EXPORT extern double lin_eq_method_param;
 EXPORT extern int term_crit;
 EXPORT extern double term_crit_param;
-EXPORT extern int max_iters;
+EXPORT extern double max_iters;
 // use "compact modified" sparse matrix storage?
 EXPORT extern bool compact;
 // sparse bits info
