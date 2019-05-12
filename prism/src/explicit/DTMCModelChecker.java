@@ -2553,6 +2553,11 @@ public class DTMCModelChecker extends ProbModelChecker
 			iterationsExport.close();
 		}
 
+		// Apply post processing on soln
+		if (bsccPostProcessor != null) {
+			bsccPostProcessor.apply(soln, states);
+		}
+
 		if (result != null && result != soln) {
 			// If result vector was passed in as method argument,
 			// it can be the case that result does not point to the current soln vector (most recent values)
@@ -2563,6 +2568,10 @@ public class DTMCModelChecker extends ProbModelChecker
 				result[state] = soln[state];
 			}
 		}
+		//
+		// NOTE: from here on, don't change the values of result/soln,
+		// as the values may have already been copied to the result vector above
+		//
 		// store only one result vector, free temporary vectors
 		result = soln;
 		soln = soln2 = null;
@@ -2572,11 +2581,6 @@ public class DTMCModelChecker extends ProbModelChecker
 			String msg = "Iterative method did not converge within " + iters + " iterations.\n" +
 			             "Consider using a different numerical method or increasing the maximum number of iterations";
 			throw new PrismException(msg);
-		}
-
-		// Apply post processing
-		if (bsccPostProcessor != null) {
-			bsccPostProcessor.apply(result, states);
 		}
 
 		// Return results
