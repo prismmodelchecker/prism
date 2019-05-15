@@ -5,6 +5,22 @@
 #      options configured here.              #
 ##############################################
 
+###############
+# Directories #
+###############
+
+# Note that these are all relative to the PRISM directory
+# to make the distribution more 'portable'.
+# If this is a problem, the best solution is to create symlinks.
+
+export PRISM_SRC_DIR     = src
+export PRISM_CLASSES_DIR = classes
+export PRISM_OBJ_DIR     = obj
+export PRISM_LIB_DIR     = lib
+export PRISM_INCLUDE_DIR = include
+export PRISM_IMAGES_DIR  = images
+export PRISM_DTDS_DIR    = dtds
+
 ####################
 # Operating system #
 ####################
@@ -99,7 +115,7 @@ endif
 # or pass a value to make directly, e.g.: make JAVA_DIR=/usr/java
 
 # Find javac
-DETECT_JAVAC = $(shell src/scripts/findjavac.sh 2> /dev/null)
+DETECT_JAVAC = $(shell $(PRISM_SRC_DIR)/scripts/findjavac.sh 2> /dev/null)
 
 # Find directory containing javac
 ifeq ("$(DETECT_JAVAC)","")
@@ -270,26 +286,15 @@ endif
 
 export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 
-###############
-# Directories #
-###############
 
-# Note that these are all relative to the PRISM directory
-# to make the distribution more 'portable'.
-# If this is a problem, the best solution is to create symlinks.
+#######################
+# Directory detection #
+#######################
 
 # For CUDD, we default either to ./cudd or, if that does not exist, ../cudd
 # To override, comment out the first line and use the second (or specify from the command-line)
 CUDD_DIR =		$(shell if [ -d cudd ]; then echo cudd; else echo ../cudd; fi )
 #CUDD_DIR =		cudd
-
-export PRISM_SRC_DIR     = src
-export PRISM_CLASSES_DIR = classes
-export PRISM_OBJ_DIR     = obj
-export PRISM_LIB_DIR     = lib
-export PRISM_INCLUDE_DIR = include
-export PRISM_IMAGES_DIR  = images
-export PRISM_DTDS_DIR    = dtds
 
 # Now we locate the JNI header files jni.h and jni_md.h
 # (in fact this is the only reason we need JAVA_DIR)
@@ -340,7 +345,7 @@ cuddpackageforce: checks
 # Use this to force a rebuild (with javacc) of the main parser
 parser:
 	@echo Making parser ...; \
-	cd src/parser && \
+	cd $(PRISM_SRC_DIR)/parser && \
 	$(MAKE) touch && \
 	$(MAKE) \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
@@ -368,10 +373,10 @@ prism: checks make_dirs bin_scripts
 
 # Compile each (top-level) source directory separately
 make_dirs:
-	@mkdir -p bin classes obj/dd obj/jdd obj/odd obj/dv obj/prism obj/mtbdd obj/sparse obj/hybrid obj/simulator
+	@mkdir -p bin $(PRISM_CLASSES_DIR) $(PRISM_OBJ_DIR)/dd $(PRISM_OBJ_DIR)/jdd $(PRISM_OBJ_DIR)/odd $(PRISM_OBJ_DIR)/dv $(PRISM_OBJ_DIR)/prism $(PRISM_OBJ_DIR)/mtbdd $(PRISM_OBJ_DIR)/sparse $(PRISM_OBJ_DIR)/hybrid $(PRISM_OBJ_DIR)/simulator
 	@for dir in $(MAKE_DIRS); do \
-	  echo Making src/$$dir ...; \
-	  (cd src/$$dir && \
+	  echo Making $(PRISM_SRC_DIR)/$$dir ...; \
+	  (cd $(PRISM_SRC_DIR)/$$dir && \
 	  $(MAKE) \
 	  CUDD_DIR="$(CUDD_DIR)" \
 	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
@@ -390,7 +395,7 @@ make_dirs:
 	fi
 # On Windows, convert the generated JNI headers using dos2unix
 	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
-		(dos2unix include/jni/*.h) \
+		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
 	fi;
 
 # Copy/modify the launch scripts and put in the bin directory
@@ -557,7 +562,7 @@ release_check_version:
 build_release:
 	@if [ "$(BINDISTSUFFIX)" = "win32" -o "$(BINDISTSUFFIX)" = "win64" ]; then \
 		echo Creating Windows installer in "release/$(BIN_DIST_INST)"... && \
-		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR=".." src/nsis_script.nsi && \
+		makensis /NOCD /DPRISM_NAME="PRISM $(VERSION)" /DPRISM_BUILD="prism-$(VERSION)" /DPRISM_BINDISTSUFFIX="$(BINDISTSUFFIX)" /DPRISM_DIR=".." $(PRISM_SRC_DIR)/nsis_script.nsi && \
 		mkdir -p release && \
 		mv ../"$(BIN_DIST_INST)" release; \
 	else \
@@ -566,7 +571,7 @@ build_release:
 		rm -rf "release/$(BIN_DIST_DIR)" && \
 		rm -f "release/$(BIN_DIST_FILE)" && \
 		mkdir -p "release/$(BIN_DIST_DIR)" && \
-		tar cf - bin lib install.sh etc -C .. manual prism-examples CHANGELOG.txt COPYING.txt README.md | tar xf - -C "release/$(BIN_DIST_DIR)" && \
+		tar cf - bin $(PRISM_LIB_DIR) install.sh etc -C .. manual prism-examples CHANGELOG.txt COPYING.txt README.md | tar xf - -C "release/$(BIN_DIST_DIR)" && \
 		(cd release && tar cfz "$(BIN_DIST_FILE)" "$(BIN_DIST_DIR)") && rm -rf "release/$(BIN_DIST_DIR)"; \
 	fi
 
@@ -595,8 +600,8 @@ javadoc:
 # Clean main PRISM build (not CUDD or external libs)
 clean: checks
 	@(for dir in $(MAKE_DIRS); do \
-	  echo Cleaning src/$$dir ...; \
-	  (cd src/$$dir && \
+	  echo Cleaning $(PRISM_SRC_DIR)/$$dir ...; \
+	  (cd $(PRISM_SRC_DIR)/$$dir && \
 	  $(MAKE) -s EXE="$(EXE)" clean) \
 	  || exit 1; \
 	done; \
@@ -629,38 +634,38 @@ clean_binary:
 
 # Clear individual directories (sometimes useful)
 clean_dd: checks
-	@(cd src/dd && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/dd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_jdd: checks
-	@(cd src/jdd && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/jdd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_odd: checks
-	@(cd src/odd && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/odd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_dv: checks
-	@(cd src/dv && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/dv && $(MAKE) -s EXE="$(EXE)" clean)
 clean_prism: checks
-	@(cd src/prism && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/prism && $(MAKE) -s EXE="$(EXE)" clean)
 clean_mtbdd: checks
-	@(cd src/mtbdd && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/mtbdd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_sparse: checks
-	@(cd src/sparse && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/sparse && $(MAKE) -s EXE="$(EXE)" clean)
 clean_hybrid: checks
-	@(cd src/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
 clean_parser: checks
-	@(cd src/parser && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/parser && $(MAKE) -s EXE="$(EXE)" clean)
 clean_userinterface: checks
-	@(cd src/userinterface && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/userinterface && $(MAKE) -s EXE="$(EXE)" clean)
 clean_simulator: checks
-	@(cd src/simulator && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/simulator && $(MAKE) -s EXE="$(EXE)" clean)
 clean_jltl2ba: checks
-	@(cd src/jltl2ba && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/jltl2ba && $(MAKE) -s EXE="$(EXE)" clean)
 clean_jltl2dstar: checks
-	@(cd src/jltl2dstar && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/jltl2dstar && $(MAKE) -s EXE="$(EXE)" clean)
 clean_explicit: checks
-	@(cd src/explicit && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/explicit && $(MAKE) -s EXE="$(EXE)" clean)
 clean_pta: checks
-	@(cd src/pta && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/pta && $(MAKE) -s EXE="$(EXE)" clean)
 clean_param: checks
-	@(cd src/param && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/param && $(MAKE) -s EXE="$(EXE)" clean)
 clean_strat: checks
-	@(cd src/strat && $(MAKE) -s EXE="$(EXE)" clean)
+	@(cd $(PRISM_SRC_DIR)/strat && $(MAKE) -s EXE="$(EXE)" clean)
 
 #################################################
