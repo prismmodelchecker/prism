@@ -268,6 +268,8 @@ ifeq ($(OSTYPE),darwin)
 	CLASSPATHSEP = :
 endif
 
+export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
+
 ###############
 # Directories #
 ###############
@@ -341,7 +343,6 @@ parser:
 	cd src/parser && \
 	$(MAKE) touch && \
 	$(MAKE) \
-	JFLAGS="$(JFLAGS)" \
 	CLASSPATHSEP="$(CLASSPATHSEP)"
 
 # Build various external libraries needed by PRISM
@@ -352,12 +353,7 @@ extpackages: checks
 	  $(MAKE) \
 	  OSTYPE="$(OSTYPE)" \
 	  ARCH="$(ARCH)" \
-	  CFLAGS="$(CFLAGS)" \
-	  CXXFLAGS="$(CXXFLAGS)" \
-	  LDFLAGS="$(LDFLAGS)" \
 	  SHARED="$(SHARED)" \
-	  LIBPREFIX="$(LIBPREFIX)" \
-	  LIBSUFFIX="$(LIBSUFFIX)" \
 	  LIBMATH="$(LIBMATH)" \
 	  BINDISTSUFFIX="$(BINDISTSUFFIX)" \
 	  JAVA_DIR="$(JAVA_DIR)" \
@@ -381,14 +377,8 @@ make_dirs:
 	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
 	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
 	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
-	  JFLAGS="$(JFLAGS)" \
-	  CFLAGS="$(CFLAGS)" \
-	  CXXFLAGS="$(CXXFLAGS)" \
-	  LDFLAGS="$(LDFLAGS)" \
 	  SHARED="$(SHARED)" \
 	  EXE="$(EXE)" \
-	  LIBPREFIX="$(LIBPREFIX)" \
-	  LIBSUFFIX="$(LIBSUFFIX)" \
 	  LIBMATH="$(LIBMATH)" \
 	  CLASSPATHSEP="$(CLASSPATHSEP)") \
 	  || exit 1; \
@@ -607,7 +597,7 @@ clean: checks
 	@(for dir in $(MAKE_DIRS); do \
 	  echo Cleaning src/$$dir ...; \
 	  (cd src/$$dir && \
-	  $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
+	  $(MAKE) -s EXE="$(EXE)" clean) \
 	  || exit 1; \
 	done; \
 	find $(PRISM_CLASSES_DIR) -name '*.class' -exec rm {} \; ; \
@@ -628,7 +618,7 @@ clean_ext:
 	@(for ext in $(EXT_PACKAGES); do \
 	  echo Cleaning $$ext ...; \
 	  (cd ext/$$ext && \
-	  $(MAKE) -s LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean) \
+	  $(MAKE) -s clean) \
 	  || exit 1; \
 	done )
 
@@ -639,38 +629,38 @@ clean_binary:
 
 # Clear individual directories (sometimes useful)
 clean_dd: checks
-	@(cd src/dd && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/dd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_jdd: checks
-	@(cd src/jdd && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/jdd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_odd: checks
-	@(cd src/odd && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/odd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_dv: checks
-	@(cd src/dv && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/dv && $(MAKE) -s EXE="$(EXE)" clean)
 clean_prism: checks
-	@(cd src/prism && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/prism && $(MAKE) -s EXE="$(EXE)" clean)
 clean_mtbdd: checks
-	@(cd src/mtbdd && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/mtbdd && $(MAKE) -s EXE="$(EXE)" clean)
 clean_sparse: checks
-	@(cd src/sparse && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/sparse && $(MAKE) -s EXE="$(EXE)" clean)
 clean_hybrid: checks
-	@(cd src/hybrid && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/hybrid && $(MAKE) -s EXE="$(EXE)" clean)
 clean_parser: checks
-	@(cd src/parser && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/parser && $(MAKE) -s EXE="$(EXE)" clean)
 clean_userinterface: checks
-	@(cd src/userinterface && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/userinterface && $(MAKE) -s EXE="$(EXE)" clean)
 clean_simulator: checks
-	@(cd src/simulator && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/simulator && $(MAKE) -s EXE="$(EXE)" clean)
 clean_jltl2ba: checks
-	@(cd src/jltl2ba && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/jltl2ba && $(MAKE) -s EXE="$(EXE)" clean)
 clean_jltl2dstar: checks
-	@(cd src/jltl2dstar && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/jltl2dstar && $(MAKE) -s EXE="$(EXE)" clean)
 clean_explicit: checks
-	@(cd src/explicit && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/explicit && $(MAKE) -s EXE="$(EXE)" clean)
 clean_pta: checks
-	@(cd src/pta && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/pta && $(MAKE) -s EXE="$(EXE)" clean)
 clean_param: checks
-	@(cd src/param && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/param && $(MAKE) -s EXE="$(EXE)" clean)
 clean_strat: checks
-	@(cd src/strat && $(MAKE) -s EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
+	@(cd src/strat && $(MAKE) -s EXE="$(EXE)" clean)
 
 #################################################
