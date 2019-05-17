@@ -139,6 +139,17 @@ JAVA_DIR_BACKUP = $(shell \
 #JAVA_DIR =	/cygdrive/c/java/j2sdk1.4.2
 #JAVA_DIR =	/System/Library/Frameworks/JavaVM.framework
 
+# Now we locate the JNI header files jni.h and jni_md.h
+# (in fact this is the only reason we need JAVA_DIR)
+JAVA_JNI_H_DIR = $(shell \
+	if [ -f "$(JAVA_DIR)"/include/jni.h ]; then echo "$(JAVA_DIR)"/include; \
+	elif [ -f "$(JAVA_DIR)"/Headers/jni.h ]; then echo "$(JAVA_DIR)"/Headers; \
+	elif [ -f "$(JAVA_DIR_BACKUP)"/include/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/include; \
+	elif [ -f "$(JAVA_DIR_BACKUP)"/Headers/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/Headers; \
+	else echo ""; fi )
+JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
+JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
+
 ##################
 # Compilers etc. #
 ##################
@@ -295,17 +306,6 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 # To override, comment out the first line and use the second (or specify from the command-line)
 CUDD_DIR =		$(shell if [ -d cudd ]; then echo cudd; else echo ../cudd; fi )
 #CUDD_DIR =		cudd
-
-# Now we locate the JNI header files jni.h and jni_md.h
-# (in fact this is the only reason we need JAVA_DIR)
-JAVA_JNI_H_DIR = $(shell \
-	if [ -f "$(JAVA_DIR)"/include/jni.h ]; then echo "$(JAVA_DIR)"/include; \
-	elif [ -f "$(JAVA_DIR)"/Headers/jni.h ]; then echo "$(JAVA_DIR)"/Headers; \
-	elif [ -f "$(JAVA_DIR_BACKUP)"/include/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/include; \
-	elif [ -f "$(JAVA_DIR_BACKUP)"/Headers/jni.h ]; then echo "$(JAVA_DIR_BACKUP)"/Headers; \
-	else echo ""; fi )
-JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
-JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 ##########################################
 # Main part of Makefile: Compiling PRISM #
