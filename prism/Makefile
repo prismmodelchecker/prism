@@ -21,6 +21,10 @@ export PRISM_INCLUDE_DIR = include
 export PRISM_IMAGES_DIR  = images
 export PRISM_DTDS_DIR    = dtds
 
+# Location of CUDD (used to be variable; now mainly fixed with the git repo layout)
+
+CUDD_DIR = ../cudd
+
 ####################
 # Operating system #
 ####################
@@ -296,16 +300,6 @@ ifeq ($(OSTYPE),darwin)
 endif
 
 export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
-
-
-#######################
-# Directory detection #
-#######################
-
-# For CUDD, we default either to ./cudd or, if that does not exist, ../cudd
-# To override, comment out the first line and use the second (or specify from the command-line)
-CUDD_DIR =		$(shell if [ -d cudd ]; then echo cudd; else echo ../cudd; fi )
-#CUDD_DIR =		cudd
 
 ##########################################
 # Main part of Makefile: Compiling PRISM #
