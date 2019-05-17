@@ -199,7 +199,6 @@ WARNINGS = -Wformat
 # Flags to generate shared libraries
 # Executable/library naming conventions
 # Suffix for binary distribution directory
-# Place to look for (JNI) headers
 # (requires GNU make for conditional evaluation)
 
 # Linux
