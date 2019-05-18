@@ -319,21 +319,9 @@ all: cuddpackage extpackages prism
 
 # Build our customised version of CUDD
 cuddpackage: checks
-	@if [ "$(CUDD_DIR)" = "" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
-	@if [ ! -d "$(CUDD_DIR)" ]; then echo "Error: Cannot find CUDD"; exit 1; fi
-	@(if [ ! -h $(CUDD_DIR) ]; then \
-	  echo Making cudd ...; \
-	  cd $(CUDD_DIR) && \
-	  $(MAKE) ICFLAGS="$(DEBUG) $(OPTIMISE) $(WARNINGS)" XCFLAGS="$(filter-out $(DEBUG) $(OPTIMISE) $(WARNINGS),$(CFLAGS))"; \
-	else \
-	  echo Skipping cudd make since it is a symlink...; \
-	fi)
-
-# Use this to force a build of CUDD, even if dir is just a symlink
-cuddpackageforce: checks
-	  @echo Making cudd ...; \
-	  cd $(CUDD_DIR) && \
-	  $(MAKE) ICFLAGS="$(DEBUG) $(OPTIMISE) $(WARNINGS)" XCFLAGS="$(filter-out $(DEBUG) $(OPTIMISE) $(WARNINGS),$(CFLAGS))"
+	@echo Making cudd ...; \
+	cd $(CUDD_DIR) && \
+	$(MAKE) ICFLAGS="$(DEBUG) $(OPTIMISE) $(WARNINGS)" XCFLAGS="$(filter-out $(DEBUG) $(OPTIMISE) $(WARNINGS),$(CFLAGS))"
 
 # Use this to force a rebuild (with javacc) of the main parser
 parser:
