@@ -104,7 +104,7 @@ public class PrismCL implements PrismModelListener
 	private boolean testExitsOnFail = true;
 
 	// property info
-	private Object propertyToCheck = null;
+	private List<Object> propertyIndices = null;
 	private String propertyString = "";
 
 	// argument to -const switch
@@ -677,28 +677,30 @@ public class PrismCL implements PrismModelListener
 			numPropertiesToCheck = 0;
 		}
 		// unless specified, verify all properties
-		else if (propertyToCheck == null) {
+		else if (propertyIndices == null) {
 			numPropertiesToCheck = propertiesFile.getNumProperties();
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				propertiesToCheck.add(propertiesFile.getPropertyObject(i));
 			}
 		}
-		// otherwise just verify the relevant property
+		// otherwise just verify the specified properties
 		else {
-			if (propertyToCheck instanceof Integer) {
-				int propIndex = (Integer) propertyToCheck;
-				if (propIndex <= 0 || propIndex > propertiesFile.getNumProperties())
-					errorAndExit("There is not a property " + propIndex + " to verify");
-				numPropertiesToCheck = 1;
-				propertiesToCheck.add(propertiesFile.getPropertyObject(propIndex - 1));
-			} else if (propertyToCheck instanceof String) {
-				Property p = propertiesFile.getPropertyObjectByName((String) propertyToCheck);
-				if (p == null)
-					errorAndExit("There is not a property \"" + propertyToCheck + "\" to check");
-				numPropertiesToCheck = 1;
-				propertiesToCheck.add(p);
-			} else {
-				errorAndExit("There is not a property " + propertyToCheck + " to check");
+			for (Object o : propertyIndices) {
+				if (o instanceof Integer) {
+					int propIndex = (Integer) o;
+					if (propIndex <= 0 || propIndex > propertiesFile.getNumProperties())
+						errorAndExit("There is not a property " + propIndex + " to verify");
+					numPropertiesToCheck += 1;
+					propertiesToCheck.add(propertiesFile.getPropertyObject(propIndex - 1));
+				} else if (o instanceof String) {
+					Property p = propertiesFile.getPropertyObjectByName((String) o);
+					if (p == null)
+						errorAndExit("There is not a property \"" + propertyIndices + "\" to check");
+					numPropertiesToCheck += 1;
+					propertiesToCheck.add(p);
+				} else {
+					errorAndExit("There is not a property " + propertyIndices + " to check");
+				}
 			}
 		}
 	}
@@ -1167,10 +1169,16 @@ public class PrismCL implements PrismModelListener
 				// which property to check (int index or string name)
 				else if (sw.equals("prop") || sw.equals("property")) {
 					if (i < args.length - 1) {
-						try {
-							propertyToCheck = Integer.parseInt(args[++i]);
-						} catch (NumberFormatException e) {
-							propertyToCheck = args[i];
+						String[] props = args[++i].trim().split(",");
+						propertyIndices = new ArrayList<Object>();
+						for (String p : props) {
+							if (!p.isEmpty()) {
+								try {
+									propertyIndices.add(Integer.parseInt(p));
+								} catch (NumberFormatException e) {
+									propertyIndices.add(p);
+								}
+							}
 						}
 					} else {
 						errorAndExit("No value specified for -" + sw + " switch");
@@ -2395,7 +2403,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-settings <file>................ Load settings from <file>");
 		mainLog.println();
 		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
-		mainLog.println("-property <n> (or -prop <n>) ... Only model check property with index/name <n>");
+		mainLog.println("-property <refs> (or -prop) .... Only model check properties included in list <refs> of indices/names");
 		mainLog.println("-const <vals> .................. Define constant values as <vals> (e.g. for experiments)");
 		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (D/CTMCs only)");
 		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time (or time range) <x> (D/CTMCs only)");
