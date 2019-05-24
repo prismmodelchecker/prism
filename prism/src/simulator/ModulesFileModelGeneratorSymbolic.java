@@ -295,12 +295,6 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 	
 	@Override
-	public State getExploreState()
-	{
-		return exploreState;
-	}
-	
-	@Override
 	public int getNumChoices() throws PrismException
 	{
 		return getTransitionList().getNumChoices();
@@ -316,13 +310,6 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	public int getNumTransitions(int index) throws PrismException
 	{
 		return getTransitionList().getChoice(index).size();
-	}
-
-	@Override
-	public String getTransitionAction(int index) throws PrismException
-	{
-		int a = getTransitionList().getTransitionModuleOrActionIndex(index);
-		return a < 0 ? null : modulesFile.getSynch(a - 1);
 	}
 
 	@Override

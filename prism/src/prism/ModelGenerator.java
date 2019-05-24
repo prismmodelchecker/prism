@@ -74,12 +74,6 @@ public interface ModelGenerator extends ModelInfo
 	public void exploreState(State exploreState) throws PrismException;
 
 	/**
-	 * Get the state that is currently being explored, i.e. the last one for which
-	 * {@link #exploreState(State)} was called. Can return null if there is no such state. 
-	 */
-	public State getExploreState();
-	
-	/**
 	 * Get the number of nondeterministic choices in the current state.
 	 */
 	public int getNumChoices() throws PrismException;
@@ -103,15 +97,6 @@ public interface ModelGenerator extends ModelInfo
 	 * @param i Index of the nondeterministic choice
 	 */
 	public int getNumTransitions(int i) throws PrismException;
-
-	/**
-	 * Get the action label of a transition, specified by its index.
-	 * The label can be any Object, but will often be treated as a string, so it should at least
-	 * have a meaningful toString() method implemented. Absence of an action label is denoted by null.
-	 * Note: For most types of models, the action label will be the same for all transitions within
-	 * the same nondeterministic choice, so it is better to query the action by choice, not transition.
-	 */
-	public Object getTransitionAction(int i) throws PrismException;
 
 	/**
 	 * Get the action label of a transition within a choice, specified by its index/offset.

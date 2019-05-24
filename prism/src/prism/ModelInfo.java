@@ -32,6 +32,10 @@ import java.util.List;
 
 import parser.Values;
 import parser.VarList;
+import parser.ast.Declaration;
+import parser.ast.DeclarationBool;
+import parser.ast.DeclarationInt;
+import parser.ast.Expression;
 import parser.ast.RewardStruct;
 import parser.type.Type;
 
@@ -105,7 +109,11 @@ public interface ModelInfo
 	/**
 	 * Get the number of variables in the model. 
 	 */
-	public int getNumVars();
+	public default int getNumVars()
+	{
+		// Default implementation just extracts from getVarNames() 
+		return getVarNames().size();
+	}
 	
 	/**
 	 * Get the names of all the variables in the model.
