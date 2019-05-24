@@ -68,7 +68,7 @@ public class ConstructModel extends PrismComponent
 	/** Should actions be attached to distributions (and used to distinguish them)? */
 	protected boolean distinguishActions = true;
 	/** Should labels be processed and attached to the model? */
-	protected boolean attachLabels = true; 
+	protected boolean attachLabels = true;
 
 	// Details of built model:
 
