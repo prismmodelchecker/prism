@@ -387,7 +387,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// get properties constants/labels
 			PropertiesFile pf;
 			try {
-				pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString() + guiProp.getLabelsString());
+				pf = getPrism().parsePropertiesString(guiProp.getConstantsString().toString() + guiProp.getLabelsString());
 			} catch (PrismLangException e) {
 				// ignore properties if they don't parse
 				pf = null; //if any problems
@@ -727,7 +727,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// get properties constants/labels
 			PropertiesFile pf;
 			try {
-				pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString() + guiProp.getLabelsString());
+				pf = getPrism().parsePropertiesString(guiProp.getConstantsString().toString() + guiProp.getLabelsString());
 			} catch (PrismLangException e) {
 				// ignore properties if they don't parse
 				pf = null; //if any problems

@@ -591,10 +591,12 @@ public class PrismCL implements PrismModelListener
 			if (importpepa) {
 				mainLog.print("\nImporting PEPA file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.importPepaFile(new File(modelFilename));
+				prism.loadPRISMModel(modulesFile);
 			} else if (importprismpp) {
 				mainLog.print("\nImporting PRISM preprocessor file \"" + modelFilename + "\"...\n");
 				String prismppParamsList[] = ("? " + prismppParams).split(" ");
 				modulesFile = prism.importPrismPreprocFile(new File(modelFilename), prismppParamsList);
+				prism.loadPRISMModel(modulesFile);
 			} else if (importtrans) {
 				mainLog.print("\nImporting model (");
 				mainLog.print(typeOverride == null ? "MDP" : typeOverride);
@@ -616,6 +618,7 @@ public class PrismCL implements PrismModelListener
 			} else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.parseModelFile(new File(modelFilename), typeOverride);
+				prism.loadPRISMModel(modulesFile);
 			}
 		} catch (FileNotFoundException e) {
 			errorAndExit("File \"" + modelFilename + "\" not found");
@@ -629,11 +632,11 @@ public class PrismCL implements PrismModelListener
 			// if properties file specified...
 			if (propertiesFilename != null) {
 				mainLog.print("\nParsing properties file \"" + propertiesFilename + "\"...\n");
-				propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFilename));
+				propertiesFile = prism.parsePropertiesFile(new File(propertiesFilename));
 			}
 			// if properties were given on command line...
 			else if (!propertyString.equals("")) {
-				propertiesFile = prism.parsePropertiesString(modulesFile, propertyString);
+				propertiesFile = prism.parsePropertiesString(propertyString);
 			} else {
 				propertiesFile = null;
 			}
@@ -651,15 +654,6 @@ public class PrismCL implements PrismModelListener
 			for (i = 0; i < propertiesFile.getNumProperties(); i++) {
 				mainLog.println("(" + (i + 1) + ") " + propertiesFile.getPropertyObject(i));
 			}
-		}
-
-		// Load model into PRISM (if not done already)
-		try {
-			if (!importtrans) {
-				prism.loadPRISMModel(modulesFile);
-			}
-		} catch (PrismException e) {
-			errorAndExit(e.getMessage());
 		}
 	}
 
@@ -972,6 +966,7 @@ public class PrismCL implements PrismModelListener
 				modelType = prism.getModelType();
 
 				// Parse time specification, store as UndefinedConstant for constant T
+				// (NB: use "null" for model to avoid a potential name clash with T)
 				String timeType = modelType.continuousTime() ? "double" : "int";
 				UndefinedConstants ucTransient = new UndefinedConstants(null, prism.parsePropertiesString(null, "const " + timeType + " T; T;"));
 				try {
