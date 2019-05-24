@@ -210,6 +210,12 @@ public class ModulesFileModelGenerator implements ModelGenerator
 		return modulesFile.getRewardStruct(i);
 	}
 
+	@Override
+	public VarList createVarList()
+	{
+		return varList;
+	}
+	
 	// Methods for ModelGenerator interface
 	
 	@Override
@@ -388,24 +394,6 @@ public class ModulesFileModelGenerator implements ModelGenerator
 		updater.calculateStateRewards(state, store);
 	}
 	
-	@Override
-	public VarList createVarList()
-	{
-		return varList;
-	}
-	
-	// Miscellaneous (unused?) methods
-	
-	//@Override
-	public void getRandomInitialState(RandomNumberGenerator rng, State initialState) throws PrismException
-	{
-		if (modulesFile.getInitialStates() == null) {
-			initialState.copy(modulesFile.getDefaultInitialState());
-		} else {
-			throw new PrismException("Random choice of multiple initial states not yet supported");
-		}
-	}
-
 	// Local utility methods
 	
 	/**
