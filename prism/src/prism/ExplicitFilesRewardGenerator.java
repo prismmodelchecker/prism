@@ -33,12 +33,16 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import parser.State;
+
 public class ExplicitFilesRewardGenerator extends PrismComponent implements RewardGenerator
 {
 	// File(s) to read in rewards from
 	private File stateRewardsFile;
 	// Model info
 	private int numStates;
+	// State list (optionally)
+	private List<State> statesList = null;
 	// Local storage of rewards
 	private boolean stateRewardsLoaded = false; 
 	private double[] stateRewards;
@@ -61,6 +65,15 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 		this.numStates = numStates;
 	}
 
+	/**
+	 * Optionally, provide a list of model states,
+	 * so that rewards can be looked up by State object, as well as state index.
+	 */
+	public void setStatesList(List<State> statesList)
+	{
+		this.statesList = statesList;
+	}
+	
 	/**
 	 * Extract the state rewards from the file and store locally.
 	 */
@@ -120,7 +133,20 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 	@Override
 	public boolean isRewardLookupSupported(RewardLookup lookup)
 	{
-		return lookup == RewardLookup.BY_STATE_INDEX;
+		return (lookup == RewardLookup.BY_STATE_INDEX) || (lookup == RewardLookup.BY_STATE && statesList != null);
+	}
+	
+	@Override
+	public double getStateReward(int r, State state) throws PrismException
+	{
+		if (statesList == null) {
+			throw new PrismException("Reward lookup by State not possible since state list is missing");
+		}
+		int s = statesList.indexOf(state);
+		if (s == -1) {
+			throw new PrismException("Unknown state " + state);
+		}
+		return getStateReward(r, s);
 	}
 	
 	@Override

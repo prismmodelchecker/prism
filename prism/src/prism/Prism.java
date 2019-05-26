@@ -42,6 +42,7 @@ import explicit.DTMCModelChecker;
 import explicit.ExplicitFiles2Model;
 import explicit.FastAdaptiveUniformisation;
 import explicit.FastAdaptiveUniformisationModelChecker;
+import explicit.ModelModelGenerator;
 import hybrid.PrismHybrid;
 import jdd.JDD;
 import jdd.JDDNode;
@@ -2123,8 +2124,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							currentModelInfo, explicitFilesNumStates);
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
-					currentModelGenerator = null;
-					currentRewardGenerator = new ExplicitFilesRewardGenerator(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
+					currentModelGenerator = new ModelModelGenerator(currentModelExpl, currentModelInfo);
+					ExplicitFilesRewardGenerator efrg = new ExplicitFilesRewardGenerator(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
+					efrg.setStatesList(currentModelExpl.getStatesList());
+					currentRewardGenerator = efrg;
 				}
 				break;
 			default:
