@@ -39,7 +39,7 @@ import java.util.Map.Entry;
 
 import common.IterableStateSet;
 import parser.State;
-import parser.ast.ModulesFile;
+import prism.ModelInfo;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -80,20 +80,20 @@ public class ExplicitFiles2Model extends PrismComponent
 	
 	/**
 	 * Build a Model corresponding to the passed in states/transitions/labels files.
-	 * Variable info and model type is taken from {@code modulesFile}.
+	 * Variable info and model type is taken from a {@code ModelInfo} object.
 	 * The number of states should also be passed in as {@code numStates}.
 	 *
 	 * @param statesFile .sta file (optional, may be {@code null})
 	 * @param transFile .tra file
 	 * @param labelsFile .lab file (optional, may be {@code null})
-	 * @param modulesFile modules file (normally created with ExplicitFiles2ModulesFile)
+	 * @param modelInfo model info (normally created with ExplicitFiles2ModelInfo)
 	 * @param numStates number of states
 	 * @return the constructed model
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, ModulesFile modulesFile, int numStates) throws PrismException
+	public Model build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates) throws PrismException
 	{
 		ModelExplicit model = null;
-		switch (modulesFile.getModelType()) {
+		switch (modelInfo.getModelType()) {
 		case DTMC:
 			DTMCSimple dtmc = new DTMCSimple();
 			dtmc.buildFromPrismExplicit(transFile.getAbsolutePath());
@@ -114,10 +114,10 @@ public class ExplicitFiles2Model extends PrismComponent
 		case PTA:
 		case SMG:
 		case STPG:
-			throw new PrismNotSupportedException("Currently, importing " + modulesFile.getModelType() + " is not supported");
+			throw new PrismNotSupportedException("Currently, importing " + modelInfo.getModelType() + " is not supported");
 		}
 		if (model == null) {
-			throw new PrismException("Could not import " + modulesFile.getModelType());
+			throw new PrismException("Could not import " + modelInfo.getModelType());
 		}
 
 		if (model.getNumStates() == 0) {
@@ -139,7 +139,7 @@ public class ExplicitFiles2Model extends PrismComponent
 		model.findDeadlocks(fixdl);
 		
 		if (statesFile != null) {
-			loadStates(model, statesFile, modulesFile);
+			loadStates(model, statesFile, modelInfo);
 		} else {
 			// in absence of a statesFile, there is a single variable x
 			// in the model, with value corresponding to the state index
@@ -178,7 +178,7 @@ public class ExplicitFiles2Model extends PrismComponent
 	}
 
 	/** Load the state information, construct the statesList and attach to model */
-	private void loadStates(ModelExplicit model, File statesFile, ModulesFile mf) throws PrismException
+	private void loadStates(ModelExplicit model, File statesFile, ModelInfo modelInfo) throws PrismException
 	{
 		int numStates = model.getNumStates();
 		List<State> statesList = new ArrayList<State>(numStates);
@@ -189,7 +189,7 @@ public class ExplicitFiles2Model extends PrismComponent
 		String s, ss[];
 		int i, j, lineNum = 0;
 
-		int numVars = mf.getNumVars();
+		int numVars = modelInfo.getNumVars();
 
 		// open file for reading, automatic close when done
 		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {

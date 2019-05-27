@@ -618,7 +618,7 @@ public class PrismCL implements PrismModelListener
 					srf = new File(importStateRewardsFilename);
 				}
 				mainLog.println("...");
-				modulesFile = prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, typeOverride);
+				prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, typeOverride);
 			} else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.parseModelFile(new File(modelFilename), typeOverride);

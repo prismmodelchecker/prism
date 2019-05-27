@@ -42,7 +42,6 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
-import parser.ast.ModulesFile;
 
 /**
  * Class to convert explicit-state file storage of a model to symbolic representation.
@@ -60,7 +59,7 @@ public class ExplicitFiles2MTBDD
 	private File stateRewardsFile;
 
 	// Model info
-	private ModulesFile modulesFile;
+	private ModelInfo modelInfo;
 	private ModelType modelType;
 	private VarList varList;
 	private int numVars;
@@ -117,18 +116,18 @@ public class ExplicitFiles2MTBDD
 
 	/**
 	 * Build a Model corresponding to the passed in states/transitions/labels files.
-	 * Variable info and model type is taken from {@code modulesFile}.
+	 * Variable info and model type is taken from a {@code ModelInfo} object.
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModulesFile modulesFile, int numStates) throws PrismException
+	public Model build(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelInfo modelInfo, int numStates) throws PrismException
 	{
 		this.statesFile = statesFile;
 		this.transFile = transFile;
 		this.labelsFile = labelsFile;
 		this.stateRewardsFile = stateRewardsFile;
-		this.modulesFile = modulesFile;
-		modelType = modulesFile.getModelType();
-		varList = modulesFile.createVarList();
+		this.modelInfo = modelInfo;
+		modelType = modelInfo.getModelType();
+		varList = modelInfo.createVarList();
 		numVars = varList.getNumVars();
 		this.numStates = numStates;
 		modelVariables = new ModelVariablesDD();
@@ -248,8 +247,6 @@ public class ExplicitFiles2MTBDD
 		// compute state rewards
 		computeStateRewards();
 
-		int numModules = 1; // just one module
-		String moduleNames[] = modulesFile.getModuleNames(); // whose name is stored here
 		Values constantValues = new Values(); // no constants
 
 		JDDNode stateRewardsArray[] = new JDDNode[1];
@@ -260,6 +257,9 @@ public class ExplicitFiles2MTBDD
 		rewardStructNames[0] = "";
 
 		// create new Model object to be returned
+		// they need a module name list, so we fake that
+		int numModules = 1;
+		String moduleNames[] = new String[] { "M" };
 		if (modelType == ModelType.DTMC) {
 			model = new ProbModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
 					moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList, varDDRowVars, varDDColVars, constantValues);

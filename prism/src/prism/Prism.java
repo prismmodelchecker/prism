@@ -53,7 +53,6 @@ import param.ModelBuilder;
 import param.ParamModel;
 import param.ParamModelChecker;
 import param.ParamResult;
-import parser.ExplicitFiles2ModulesFile;
 import parser.PrismParser;
 import parser.State;
 import parser.Values;
@@ -1918,34 +1917,32 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Load files containing an explicit list of transitions/etc. for subsequent model building.
-	 * A corresponding ModulesFile object is created and returned.
 	 * @param statesFile File containing a list of states (optional, can be null)
 	 * @param transFile File containing the list of transitions (required)
 	 * @param labelsFile File containing label definitions (optional, can be null)
 	 * @param stateRewardsFile File containing state reward definitions (optional, can be null)
 	 * @param typeOverride Type of model to be built (optional, use null if not required)
 	 */
-	public ModulesFile loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
+	public void loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
 	{
 		currentModelSource = ModelSource.EXPLICIT_FILES;
 		// Clear any existing built model(s)
 		clearBuiltModel();
-		// Construct ModulesFile
-		ExplicitFiles2ModulesFile ef2mf = new ExplicitFiles2ModulesFile(this);
-		currentModulesFile = ef2mf.buildModulesFile(statesFile, transFile, labelsFile, stateRewardsFile, typeOverride);
-		currentRewardGenerator = currentModulesFile;
+		// Construct ModelInfo
+		ExplicitFiles2ModelInfo ef2mi = new ExplicitFiles2ModelInfo(this);
+		currentModelInfo = ef2mi.buildModelInfo(statesFile, transFile, labelsFile, typeOverride);
+		currentModulesFile = null;
+		// Construct reward generator 
+		currentRewardGenerator = ef2mi.buildRewardInfo(stateRewardsFile);
 		// Store explicit files info for later
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
 		explicitFilesLabelsFile = labelsFile;
 		explicitFilesStateRewardsFile = stateRewardsFile;
-		explicitFilesNumStates = ef2mf.getNumStates();
+		explicitFilesNumStates = ef2mi.getNumStates();
 		// Reset dependent info
-		currentModelType = currentModulesFile == null ? null : currentModulesFile.getModelType();
-		currentModelInfo = currentModulesFile;
+		currentModelType = currentModelInfo == null ? null : currentModelInfo.getModelType();
 		currentDefinedMFConstants = null;
-
-		return currentModulesFile;
 	}
 
 	/**
@@ -2086,9 +2083,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				if (!getExplicit()) {
 					expf2mtbdd = new ExplicitFiles2MTBDD(this);
 					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, explicitFilesStateRewardsFile,
-							currentModulesFile, explicitFilesNumStates);
+							currentModelInfo, explicitFilesNumStates);
 				} else {
-					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModulesFile, explicitFilesNumStates);
+					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
 				}
 				break;
 			default:
