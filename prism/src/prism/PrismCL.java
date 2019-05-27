@@ -410,7 +410,7 @@ public class PrismCL implements PrismModelListener
 						if (modelBuildFail) {
 							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 							if (test) {
-								doResultTest(propertiesToCheck.get(j), new Result(modelBuildException));
+								doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), modulesFile.getConstantValues(), null);
 							}
 							break;
 						}
@@ -468,7 +468,7 @@ public class PrismCL implements PrismModelListener
 						
 						// if required, check result against expected value
 						if (test) {
-							doResultTest(propertiesToCheck.get(j), res);
+							doResultTest(propertiesToCheck.get(j), res, modulesFile.getConstantValues(), propertiesFile.getConstantValues());
 						}
 
 						// iterate to next property
@@ -481,7 +481,7 @@ public class PrismCL implements PrismModelListener
 					for (j++; j < numPropertiesToCheck; j++) {
 						results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 						if (test) {
-							doResultTest(propertiesToCheck.get(j), new Result(modelBuildException));
+							doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), modulesFile.getConstantValues(), propertiesFile.getConstantValues());
 						}
 					}
 					break;
@@ -990,23 +990,19 @@ public class PrismCL implements PrismModelListener
 
 	/**
 	 * Test a model checking result against the RESULT specifications attached
-	 * to the property (test mode).
-	 * <br>
-	 * Note: This method should only be called directly after the model checking (i.e.,
-	 * from {@code run()}, as it relies on the fact that the constant values in
-	 * the {@code modulesFile} and {@propertiesFile} reflect the values used for
-	 * model checking.
-	 * <br>
-	 * Test results are output to the log. If a test fails and {@code testExitsOnFail}
-	 * is {@code true} then {@code errorAndExit} is called.
+	 * to the property (test mode). Test results are output to the log.
+	 * If a test fails and {@code testExitsOnFail} is {@code true} then {@code errorAndExit} is called.
+	 * Model/properties file constant values should be provided in case they are used
+	 * in the RESULT specification (but either can be left null if not needed).
 	 * @param prop the property
 	 * @param res the result
+	 * @param mfConstants values for model constants
+	 * @param pfConstants values for properties file constants
 	 */
-	private void doResultTest(Property prop, Result res)
+	private void doResultTest(Property prop, Result res, Values mfConstants, Values pfConstants)
 	{
 		try {
-			mainLog.println();
-			Values allConsts = new Values(modulesFile.getConstantValues(), propertiesFile.getConstantValues());
+			Values allConsts = new Values(mfConstants, pfConstants);
 			if (prop.checkAgainstExpectedResult(res.getResult(), allConsts)) {
 				mainLog.println("Testing result: PASS");
 			} else {
