@@ -58,18 +58,25 @@ public class Values implements Cloneable //implements Comparable
 	}
 	
 	/**
-	 * Construct a new Values object by copying an existing one
+	 * Construct a new Values object by copying an existing one.
+	 * If the existing one is null, it is treated as empty. 
 	 */
 	@SuppressWarnings("unchecked")
 	public Values(Values v)
 	{
-		names = (ArrayList<String>)v.names.clone();
-		values = (ArrayList<Object>)v.values.clone();
+		if (v == null) {
+			names = new ArrayList<String>();
+			values = new ArrayList<Object>();
+		} else {
+			names = (ArrayList<String>) v.names.clone();
+			values = (ArrayList<Object>) v.values.clone();
+		}
 	}
 	
 	/**
 	 * Construct a new Values object by merging two existing ones.
 	 * There is no checking for duplicates.
+	 * Either can be null and, if so, is treated as empty. 
 	 */
 	public Values(Values v1, Values v2)
 	{
@@ -79,6 +86,7 @@ public class Values implements Cloneable //implements Comparable
 	
 	/**
 	 * Construct a new Values object by copying existing State object.
+	 * If it is null, it is treated as empty. 
 	 * Need access to model info for variable names.
 	 * @param s State object to copy.
 	 * @param modelInfo Corresponding modelInfo (for variable info/ordering)
@@ -86,9 +94,9 @@ public class Values implements Cloneable //implements Comparable
 	public Values(State s, ModelInfo modelInfo)
 	{
 		this();
-		int i, n;
-		n = s.varValues.length;
-		for (i = 0; i < n; i++) {
+		if (s == null) return;
+		int n = s.varValues.length;
+		for (int i = 0; i < n; i++) {
 			addValue(modelInfo.getVarName(i), s.varValues[i]);
 		}
 	}
@@ -106,7 +114,8 @@ public class Values implements Cloneable //implements Comparable
 	}
 	
 	/**
-	 * Add multiple values.
+	 * Add multiple values, specified as a {@link Values} object {@code v}.
+	 * If {@code v} is null, it is treated as empty. 
 	 * (Note: there is no checking for duplication/inconsistencies/etc.)
 	 */
 	public void addValues(Values v)
