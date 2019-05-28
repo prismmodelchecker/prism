@@ -1902,9 +1902,6 @@ public class PrismCL implements PrismModelListener
 			} else if (ext.equals("tra")) {
 				importtrans = true;
 				modelFilename = basename + ".tra";
-			} else if (ext.equals("tra")) {
-				importtrans = true;
-				modelFilename = basename + ".tra";
 			} else if (ext.equals("sta")) {
 				importstates = true;
 				importStatesFilename = basename + ".sta";
@@ -1919,10 +1916,10 @@ public class PrismCL implements PrismModelListener
 			else {
 				throw new PrismException("Unknown extension \"" + ext + "\" for -importmodel switch");
 			}
-			// Check at least the transition matrix was imported
-			if (!importtrans) {
-				throw new PrismException("You must import the transition matrix when using -importmodel (use option \"tra\" or \"all\")");
-			}
+		}
+		// Check at least the transition matrix was imported
+		if (!importtrans) {
+			throw new PrismException("You must import the transition matrix when using -importmodel (use option \"tra\" or \"all\")");
 		}
 		// No options supported currently
 		/*// Process options
