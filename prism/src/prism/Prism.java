@@ -2086,6 +2086,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							currentModelInfo, explicitFilesNumStates);
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
+					currentModelGenerator = null;
+					currentRewardGenerator = new ExplicitFilesRewardGenerator(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
 				}
 				break;
 			default:
@@ -2428,11 +2430,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
 		if (numRewardStructs == 0) {
 			mainLog.println("\nOmitting state reward export as there are no reward structures");
-			return;
-		}
-		
-		if (currentModelSource == ModelSource.EXPLICIT_FILES && getExplicit()) {
-			mainLog.println("\nOmitting state reward export (not supported when importing files using the explicit engine)");
 			return;
 		}
 		
