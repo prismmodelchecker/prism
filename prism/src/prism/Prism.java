@@ -1921,7 +1921,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param transFile File containing the list of transitions (required)
 	 * @param labelsFile File containing label definitions (optional, can be null)
 	 * @param stateRewardsFile File containing state reward definitions (optional, can be null)
-	 * @param typeOverride Type of model to be built (optional, use null if not required)
+	 * @param typeOverride Model type (auto-detected if {@code null})
 	 */
 	public void loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
 	{

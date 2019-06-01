@@ -602,9 +602,7 @@ public class PrismCL implements PrismModelListener
 				modulesFile = prism.importPrismPreprocFile(new File(modelFilename), prismppParamsList);
 				prism.loadPRISMModel(modulesFile);
 			} else if (importtrans) {
-				mainLog.print("\nImporting model (");
-				mainLog.print(typeOverride == null ? "MDP" : typeOverride);
-				mainLog.print(") from \"" + modelFilename + "\"");
+				mainLog.print("\nImporting model from \"" + modelFilename + "\"");
 				if (importstates) {
 					mainLog.print(", \"" + importStatesFilename + "\"");
 					sf = new File(importStatesFilename);

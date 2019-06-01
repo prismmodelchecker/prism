@@ -81,11 +81,13 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 
 	/**
 	 * Build a ModelInfo object corresponding to the passed in states/transitions/labels files.
-	 * If {@code typeOverride} is null, we assume model is an MDP.
+	 * If {@code typeOverride} is provided, this is used as the model type;
+	 * if it is null, we try to auto-detect it (or default to MDP if that cannot be done).
 	 *
 	 * @param statesFile states file (may be {@code null})
 	 * @param transFile transitions file
 	 * @param labelsFile labels file (may be {@code null})
+	 * @param typeOverride model type (auto-detected if {@code null})
 	 */
 	public ModelInfo buildModelInfo(File statesFile, File transFile, File labelsFile, ModelType typeOverride) throws PrismException
 	{
@@ -102,8 +104,21 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 			extractLabelNamesFromLabelsFile(labelsFile);
 		}
 		
-		// Set model type: if no preference stated, assume default of MDP
-		ModelType modelType = (typeOverride == null) ? ModelType.MDP : typeOverride;
+		// Set model type: if no preference stated, try to autodetect
+		ModelType modelType;
+		if (typeOverride == null) {
+			ModelType typeAutodetect = autodetectModelType(transFile);
+			if (typeAutodetect != null) {
+				mainLog.println("Auto-detected model type: " + typeAutodetect);
+			} else {
+				typeAutodetect = ModelType.MDP;
+				mainLog.println("Assuming default model type: " + typeAutodetect);
+			}
+			modelType = typeAutodetect;
+		} else {
+			mainLog.println("Using specified model type: " + typeOverride);
+			modelType = typeOverride;
+		}
 
 		// Create and return ModelInfo object with above info 
 		ModelInfo modelInfo = new ModelInfo()
@@ -333,6 +348,60 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 			}
 		} catch (IOException e) {
 			throw new PrismException("File I/O error reading from \"" + labelsFile + "\"");
+		}
+	}
+
+	/**
+	 * Autodetect the model type based on a sample of the lines from a transitions file.
+	 * If not possible, return null;
+	 * @param transFile transitions file
+	 */
+	private ModelType autodetectModelType(File transFile)
+	{
+		String s, ss[];
+
+		// Open file for reading, automatic close when done
+		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
+			// Look at first line
+			s = in.readLine();
+			if (s == null) {
+				return null;
+			}
+			ss = s.trim().split(" ");
+			// 3 parts - should be an MDP
+			if (ss.length == 3) {
+				return ModelType.MDP;
+			}
+			// Not 2 parts: error; give up
+			else if (ss.length != 2) {
+				return null;
+			}
+			// Now choose between DTMC and CTMC
+			// Read up to max remaining lines
+			int lines = 0;
+			int max = 5;
+			s = in.readLine();
+			while (s != null && lines < max) {
+				lines++;
+				ss = s.trim().split(" ");
+				// Look at probability/rate
+				double d = Double.parseDouble(ss[2]);
+				// Looks like a rate: guess CTMC
+				if (d > 1) {
+					return ModelType.CTMC;
+				}
+				// All non-rates so far: guess DTMC
+				if (lines == max) {
+					return ModelType.DTMC;
+				}
+				// Read next line
+				s = in.readLine();
+			}
+			return null;
+		} catch (NumberFormatException e) {
+			return null;
+		} catch (IOException e) {
+			return null;
 		}
 	}
 }
