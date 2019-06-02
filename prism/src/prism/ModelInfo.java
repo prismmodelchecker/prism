@@ -151,6 +151,16 @@ public interface ModelInfo
 	}
 
 	/**
+	 * Get a short description of the action strings associated with transitions/choices.
+	 * For example, for a PRISM model, this is "Module/[action]".
+	 * The default implementation just returns "Action".
+  	 */
+	public default String getActionStringDescription()
+	{
+		return "Action";
+	}
+	
+	/**
 	 * Get the number of labels (atomic propositions) defined for the model. 
 	 */
 	public default int getNumLabels()

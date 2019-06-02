@@ -869,6 +869,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 	}
 
+	@Override
+	public String getActionStringDescription()
+	{
+		return "Module/[action]";
+	}
+	
 	// check constant identifiers
 
 	private void checkConstantIdents() throws PrismLangException
