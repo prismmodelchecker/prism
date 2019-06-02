@@ -116,13 +116,13 @@ public class CexPathAsBDDs implements PathFullInfo
 	}
 
 	@Override
-	public int getModuleOrActionIndex(int step)
+	public Object getAction(int step)
 	{
-		return 0;
+		return null;
 	}
 
 	@Override
-	public String getModuleOrAction(int step)
+	public String getActionString(int step)
 	{
 		return "";
 	}

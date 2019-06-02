@@ -332,7 +332,7 @@ public class PrismCL implements PrismModelListener
 					if (!simMaxPathGiven)
 						simMaxPath = prism.getSettings().getLong(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
 					File f = (simpathFilename.equals("stdout")) ? null : new File(simpathFilename);
-					prism.generateSimulationPath(modulesFile, simpathDetails, simMaxPath, f);
+					prism.generateSimulationPath(simpathDetails, simMaxPath, f);
 				} catch (PrismException e) {
 					error(e.getMessage());
 				}

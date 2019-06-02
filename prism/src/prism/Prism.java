@@ -1750,10 +1750,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Store PRISM model
 		currentModulesFile = modulesFile;
 		// Create a model generator for the PRISM model if appropriate - we will use that where possible
-		if (currentModulesFile.getModelType() != ModelType.PTA && currentModulesFile.getSystemDefn() == null) {
+		try {
 			currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
 			currentRewardGenerator = ((ModulesFileModelGenerator) currentModelGenerator);
-		} else {
+		} catch(PrismException e) {
+			// If a ModelGenerator couldn't be created, just store null
+			// Calling getModelGenerator can be used to determine the error if needed later
 			currentModelGenerator = null;
 			currentRewardGenerator = modulesFile;
 		}
@@ -1961,6 +1963,41 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public ModulesFile getPRISMModel()
 	{
 		return currentModulesFile;
+	}
+
+	/**
+	 * Get the ModelGenerator for the currently loaded model.
+	 * This will have either have been loaded directly
+	 * using {@link #loadModelGenerator(ModelGenerator)}
+	 * or created automatically, e.g., for a PRISM model that has been loaded
+	 * using {@link #loadPRISMModel(ModulesFile)}.
+	 * Throw an explanatory exception if not possible.
+	 */
+	public ModelGenerator getModelGenerator() throws PrismException
+	{
+		if (currentModelGenerator == null) {
+			switch (currentModelSource) {
+			case PRISM_MODEL:
+				// No PRISM model
+				if (currentModulesFile == null)
+					throw new PrismException("There is no currently loaded PRISM model");
+				// PRISM model exists but no generator - this will provide the error message
+				new ModulesFileModelGenerator(currentModulesFile);
+				// Shouldn't happen, so generic error message
+				throw new PrismException("No model generator was created");
+			case MODEL_GENERATOR:
+				throw new PrismException("There is no currently loaded model generator");
+			case BUILT_MODEL:
+			case EXPLICIT_FILES:
+				buildModelIfRequired();
+				if (currentModelGenerator != null) {
+					return currentModelGenerator;
+				}
+			default:
+				throw new PrismException("No model generator was created");
+			}
+		}
+		return currentModelGenerator;
 	}
 
 	/**
@@ -3077,6 +3114,38 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Check if the currently loaded model is suitable for analysis with the simulator.
+	 * If not, an explanatory exception is thrown.
+	 */
+	public void checkModelForSimulation() throws PrismException
+	{
+		// Get (but ignore) the ModelGenerator.
+		// If creation failed before, this tries again, throwing an explanatory exception.
+		try {
+			getModelGenerator();
+		} catch (PrismException e) {
+			throw new PrismException("Simulation not possible: "+ e.getMessage());
+		}
+	}
+
+	/**
+	 * Load the current model into the simulator.
+	 */
+	public void loadModelIntoSimulator() throws PrismException
+	{
+		// Get the ModelGenerator.
+		// If creation failed before, this tries again, throwing an explanatory exception.
+		ModelGenerator modelGenForSim = null;
+		try {
+			modelGenForSim = getModelGenerator();
+		} catch (PrismException e) {
+			throw new PrismException("Simulation not possible: "+ e.getMessage());
+		}
+		// Load into simulator
+		getSimulator().loadModel(modelGenForSim, currentRewardGenerator);
+	}
+
+	/**
 	 * Check whether a property is suitable for approximate model checking using the simulator.
 	 * @param expr The property to check.
 	 */
@@ -3129,7 +3198,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		expr.checkValid(currentModelType.removeNondeterminism());
 
 		// Do simulation
-		res = getSimulator().modelCheckSingleProperty(currentModulesFile, propertiesFile, expr, initialState, maxPathLength, simMethod);
+		loadModelIntoSimulator();
+		res = getSimulator().modelCheckSingleProperty(propertiesFile, expr, initialState, maxPathLength, simMethod);
 
 		return new Result(res);
 	}
@@ -3178,7 +3248,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			expr.checkValid(currentModelType.removeNondeterminism());
 
 		// Do simulation
-		res = getSimulator().modelCheckMultipleProperties(currentModulesFile, propertiesFile, exprs, initialState, maxPathLength, simMethod);
+		loadModelIntoSimulator();
+		res = getSimulator().modelCheckMultipleProperties(propertiesFile, exprs, initialState, maxPathLength, simMethod);
 
 		Result[] resArray = new Result[res.length];
 		for (int i = 0; i < res.length; i++)
@@ -3216,7 +3287,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println("Property constants: " + undefinedConstants.getPFDefinedConstantsString());
 
 		// Do simulation
-		getSimulator().modelCheckExperiment(currentModulesFile, propertiesFile, undefinedConstants, results, expr, initialState, maxPathLength, simMethod);
+		loadModelIntoSimulator();
+		getSimulator().modelCheckExperiment(propertiesFile, undefinedConstants, results, expr, initialState, maxPathLength, simMethod);
 	}
 
 	/**
@@ -3368,16 +3440,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Generate a random path through the model using the simulator.
-	 * @param modulesFile The model
+	 * Generate a random path through the currently loaded model using the simulator.
 	 * @param details Information about the path to be generated
 	 * @param maxPathLength The maximum length of path to generate
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void generateSimulationPath(ModulesFile modulesFile, String details, long maxPathLength, File file) throws PrismException, PrismLangException
+	public void generateSimulationPath(String details, long maxPathLength, File file) throws PrismException, PrismLangException
 	{
+		loadModelIntoSimulator();
 		GenerateSimulationPath genPath = new GenerateSimulationPath(getSimulator(), mainLog);
-		genPath.generateSimulationPath(modulesFile, null, details, maxPathLength, file);
+		genPath.generateSimulationPath(null, details, maxPathLength, file);
 	}
 
 	/**

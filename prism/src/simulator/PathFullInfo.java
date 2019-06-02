@@ -82,21 +82,17 @@ public interface PathFullInfo
 	public abstract int getChoice(int step);
 
 	/**
-	 * Get the index i of the action taken for a given step.
-	 * If i>0, then i-1 is the index of an action label (0-indexed)
-	 * If i<0, then -i-1 is the index of a module (0-indexed)
-	 * If no action info is stored ({@link #hasActionInfo()} is false), returns 0. 
-	 * @param step Step index (0 = initial state/step of path)
-	 */
-	public abstract int getModuleOrActionIndex(int step);
-
-	/**
-	 * Get a string describing the action/module of a given step.
+	 * Get the action taken in a given step.
 	 * If no action info is stored ({@link #hasActionInfo()} is false), returns "". 
-	 * @param step Step index (0 = initial state/step of path)
 	 */
-	public abstract String getModuleOrAction(int step);
-
+	public abstract Object getAction(int step);
+	
+	/**
+	 * Get a string describing the action taken a given step.
+	 * If no action info is stored ({@link #hasActionInfo()} is false), returns "". 
+	 */
+	public abstract String getActionString(int step);
+	
 	/**
 	 * Get a transition reward associated with a given step.
 	 * If no reward info is stored ({@link #hasRewardInfo()} is false), returns 0.0. 

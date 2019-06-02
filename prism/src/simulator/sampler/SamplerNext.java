@@ -52,7 +52,7 @@ public class SamplerNext extends SamplerBoolean
 	}
 
 	@Override
-	public boolean update(Path path, TransitionList transList) throws PrismLangException
+	public boolean update(Path path, ModelGenerator modelGen) throws PrismException
 	{
 		// If the answer is already known we should do nothing
 		if (valueKnown)

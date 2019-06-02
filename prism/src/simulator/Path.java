@@ -27,6 +27,7 @@
 package simulator;
 
 import parser.State;
+import prism.ModelGenerator;
 
 /**
  * Classes that store and manipulate a path though a model.
@@ -45,13 +46,13 @@ public abstract class Path
 	 * Add a step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(int choice, int actionIndex, double probability, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
+	public abstract void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, double[] newStateRewards, ModelGenerator modelGen);
 
 	/**
 	 * Add a timed step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(double time, int choice, int actionIndex, double probability, double[] transRewards, State newState, double[] newStateRewards, TransitionList transitionList);
+	public abstract void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, double[] newStateRewards, ModelGenerator modelGen);
 
 	// ACCESSORS
 
@@ -76,16 +77,14 @@ public abstract class Path
 	public abstract State getCurrentState();
 
 	/**
-	 * Get the index i of the action taken in the previous step.
-	 * If i>0, then i-1 is the index of an action label (0-indexed)
-	 * If i<0, then -i-1 is the index of a module (0-indexed)
+	 * Get the action taken in the previous step.
 	 */
-	public abstract int getPreviousModuleOrActionIndex();
-
+	public abstract Object getPreviousAction();
+	
 	/**
-	 * Get a string describing the action/module of the previous step.
+	 * Get a string describing the action taken in the previous step.
 	 */
-	public abstract String getPreviousModuleOrAction();
+	public abstract String getPreviousActionString();
 	
 	/**
 	 * Get the probability or rate associated wuth the previous step.
