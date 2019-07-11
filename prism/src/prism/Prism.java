@@ -3039,12 +3039,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			try {
 				DigitalClocks dc = new DigitalClocks(this);
 				dc.translate(oldModulesFile, propertiesFile, expr);
-				currentModulesFile = dc.getNewModulesFile();
+				loadPRISMModel(dc.getNewModulesFile());
 				// evaluate constants (use exact evaluation if we are in exact computation mode)
 				currentModulesFile.setUndefinedConstants(oldModulesFile.getConstantValues(), settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED));
-				currentModelType = ModelType.MDP;
-				currentModelGenerator = new ModulesFileModelGenerator(currentModulesFile, this);
-				clearBuiltModel();
 				// If required, export generated PRISM model
 				if (exportDigital) {
 					try {
@@ -3061,7 +3058,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			} finally {
 				digital = false;
 				currentModulesFile = oldModulesFile;
-				currentModelType = ModelType.PTA;
+				currentModelType = oldModulesFile.getModelType();
 				clearBuiltModel();
 				currentModel = null;
 				currentModelExpl = null;
