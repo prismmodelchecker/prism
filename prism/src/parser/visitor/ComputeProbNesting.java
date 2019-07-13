@@ -34,11 +34,20 @@ import prism.PrismLangException;
  */
 public class ComputeProbNesting extends ASTTraverse
 {
+	// Optional properties file to look up property references;
+	PropertiesFile propertiesFile = null;
+	
 	private int currentNesting;
 	private int maxNesting;
 	
 	public ComputeProbNesting()
 	{
+		this(null);
+	}
+
+	public ComputeProbNesting(PropertiesFile propertiesFile)
+	{
+		this.propertiesFile = propertiesFile;
 		currentNesting = 0;
 		maxNesting = 0;
 	}
@@ -80,5 +89,17 @@ public class ComputeProbNesting extends ASTTraverse
 	{
 		currentNesting--;
 	}
+	
+	public void visitPost(ExpressionProp e) throws PrismLangException
+	{
+		// If possible, look up property and recurse
+		if (propertiesFile != null) {
+			Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
+			if (prop != null) {
+				prop.accept(this);
+			} else {
+				throw new PrismLangException("Unknown property reference " + e, e);
+			}
+		}
+	}
 }
-
