@@ -351,7 +351,7 @@ public class DigitalClocks
 
 		// Check that there are no nested probabilistic operators
 		if (propertyToCheck.computeProbNesting() > 1) {
-			throw new PrismLangException("Nested P operators are not allowed when using the digital clocks method", propertyToCheck);
+			throw new PrismLangException("Nested P/R operators are not allowed when using the digital clocks method", propertyToCheck);
 		}
 
 		// Check for presence of strict clock constraints
