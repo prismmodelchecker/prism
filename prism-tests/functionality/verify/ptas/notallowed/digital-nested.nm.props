@@ -1,0 +1,20 @@
+// RESULT: Error:nested
+//P<1 [ F P<1 [ F<=1 l=1 ] ];
+
+// RESULT: Error:nested
+P<1 [ F P<1 [ F l=1 ] ];
+
+// RESULT: Error:nested
+P<1 [ F R<1 [ F l=1 ] ];
+
+// RESULT: Error:nested
+R<1 [ F P<1 [ F l=1 ] ];
+
+// RESULT: Error:nested
+R<1 [ F R<1 [ F l=1 ] ];
+
+// RESULT: false
+"inner": P<1 [ F l=1 ];
+
+// RESULT: Error:nested
+Pmax=? [ F "inner" ];
