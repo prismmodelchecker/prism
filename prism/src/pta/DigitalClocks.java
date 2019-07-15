@@ -157,9 +157,8 @@ public class DigitalClocks
 		}
 
 		// Extract information about clocks from the model
-		cci = new ComputeClockInformation();
-		modulesFile.accept(cci);
-		mainLog.println("Computed clock maximums: " + cci.clockMaxs);
+		cci = new ComputeClockInformation(modulesFile, propertiesFile, propertyToCheck);
+		mainLog.println("Computed clock maximums: " + cci.getClockMaxs());
 		if (doScaling) {
 			mainLog.println("Computed GCD: " + cci.getScaleFactor());
 		}
@@ -473,17 +472,31 @@ public class DigitalClocks
 	 */
 	class ComputeClockInformation extends ASTTraverse
 	{
+		// Model/property info
+		PropertiesFile propertiesFile = null;
+		LabelList labelList = null;
+		// Clock info
 		private Map<String, List<String>> clockLists;
 		private List<String> currentClockList;
 		private Map<String, Integer> clockMaxs;
 		private Set<Integer> allClockVals;
 		private int scaleFactor;
-
-		public ComputeClockInformation()
+		
+		public ComputeClockInformation(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismLangException
 		{
+			// Extract some info needed for traversal 
+			this.propertiesFile = propertiesFile;
+			labelList = (propertiesFile == null) ? null : propertiesFile.getLabelList();
+			// Set up storage
 			clockLists = new HashMap<String, List<String>>();
 			clockMaxs = new HashMap<String, Integer>();
 			allClockVals = new HashSet<Integer>();
+			// Traverse ModulesFile first (further storage created)
+			modulesFile.accept(this);
+			// Then property (but not whole property file, to maximise possible scaling)
+			propertyToCheck.accept(this);
+			// Finally, compute GCDs and scale factor
+			scaleFactor = computeGCD(allClockVals);
 		}
 
 		private void updateMax(String clock, int val)
@@ -503,6 +516,11 @@ public class DigitalClocks
 		{
 			Integer i = clockMaxs.get(clock);
 			return (i == null) ? -1 : i;
+		}
+
+		public Map<String, Integer> getClockMaxs()
+		{
+			return clockMaxs;
 		}
 
 		/**
@@ -545,12 +563,8 @@ public class DigitalClocks
 			return (y == 0) ? x : computeGCD(y, x % y);
 		}
 
-		public void visitPost(ModulesFile e) throws PrismLangException
-		{
-			// When have traversed the model, compute GCDs and scale factor
-			scaleFactor = computeGCD(allClockVals);
-		}
-
+		// AST traversal
+		
 		public void visitPre(parser.ast.Module e) throws PrismLangException
 		{
 			// Create new array to store clocks for this module
@@ -608,6 +622,31 @@ public class DigitalClocks
 				updateMax(clock, maxVal);
 				allVals = ParserUtils.findAllValsForIntExpression(e.getOperand1(), varList, constantValues);
 				allClockVals.addAll(allVals);
+			}
+		}
+		
+		// Recurse on labels
+		public void visitPost(ExpressionLabel e) throws PrismLangException
+		{
+			if (labelList != null) {
+				int i = labelList.getLabelIndex(e.getName());
+				if (i != -1) {
+					labelList.getLabel(i).accept(this);
+				}
+			}
+		}
+		
+		// Recurse on property refs
+		public void visitPost(ExpressionProp e) throws PrismLangException
+		{
+			// If possible, look up property and recurse
+			if (propertiesFile != null) {
+				Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
+				if (prop != null) {
+					prop.accept(this);
+				} else {
+					throw new PrismLangException("Unknown property reference " + e, e);
+				}
 			}
 		}
 	}
