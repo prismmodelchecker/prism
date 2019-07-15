@@ -114,15 +114,16 @@ public class DigitalClocks
 		varList = modulesFile.createVarList();
 
 		// Check that model does not contain any closed clock constraints
-		ast = findAStrictClockConstraint(modulesFile);
-		if (ast != null)
+		ast = findAStrictClockConstraint(modulesFile, null);
+		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
+		}
 		// Check that model does not contain any diagonal clock constraints
 		// (for now; should be able to relax this later)
-		ast = findADiagonalClockConstraint(modulesFile);
-		if (ast != null)
+		ast = findADiagonalClockConstraint(modulesFile, null);
+		if (ast != null) {
 			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
-
+		}
 		// Check for any references to clocks in rewards structures - not allowed.
 		for (RewardStruct rs : modulesFile.getRewardStructs()) {
 			rs.accept(new ASTTraverseModify()
@@ -138,8 +139,9 @@ public class DigitalClocks
 			});
 		}
 		// Check that the property is suitable for checking with digital clocks
-		if (propertyToCheck != null)
+		if (propertyToCheck != null) {
 			checkProperty(propertyToCheck);
+		}
 
 		// Choose a new action label to represent time
 		timeAction = "time";
@@ -151,9 +153,10 @@ public class DigitalClocks
 		cci = new ComputeClockInformation();
 		modulesFile.accept(cci);
 		mainLog.println("Computed clock maximums: " + cci.clockMaxs);
-		if (doScaling)
+		if (doScaling) {
 			mainLog.println("Computed GCD: " + cci.getScaleFactor());
-
+		}
+		
 		// Take a copy of the whole model/properties file before translation
 		mf = (ModulesFile) modulesFile.deepCopy();
 		pf = (propertiesFile == null) ? null : (PropertiesFile) propertiesFile.deepCopy();
@@ -168,8 +171,9 @@ public class DigitalClocks
 			{
 				if (e.getDeclType() instanceof DeclarationClock) {
 					int cMax = cci.getScaledClockMax(e.getName());
-					if (cMax < 0)
+					if (cMax < 0) {
 						throw new PrismLangException("Clock " + e.getName() + " is unbounded since there are no references to it in the model");
+					}
 					DeclarationType declType = new DeclarationInt(Expression.Int(0), Expression.Int(cMax + 1));
 					Declaration decl = new Declaration(e.getName(), declType);
 					return decl;
@@ -197,8 +201,9 @@ public class DigitalClocks
 				invar = e.getInvariant();
 				invar = (invar == null) ? Expression.True() : invar.deepCopy();
 				// Collect invariant for "invariants" label
-				if (!Expression.isTrue(invar))
+				if (!Expression.isTrue(invar)) {
 					allInVariants = (allInVariants == null) ? invar.deepCopy() : Expression.And(allInVariants, invar.deepCopy());
+				}
 				// Replace all clocks x with x+1 in invariant
 				invar = (Expression) invar.accept(new ASTTraverseModify()
 				{
@@ -281,8 +286,9 @@ public class DigitalClocks
 			}
 		};
 		mf = (ModulesFile) mf.accept(asttm);
-		if (pf != null)
+		if (pf != null) {
 			pf = (PropertiesFile) pf.accept(asttm);
+		}
 
 		// Change state rewards in reward structures to use time action)
 		// (transition rewards can be left unchanged)
@@ -306,8 +312,9 @@ public class DigitalClocks
 
 		// Re-do type checking etc. on the model/properties
 		mf.tidyUp();
-		if (pf != null)
+		if (pf != null) {
 			pf.tidyUp();
+		}
 	}
 
 	/**
@@ -355,22 +362,23 @@ public class DigitalClocks
 		}
 
 		// Check for presence of strict clock constraints
-		ast = findAStrictClockConstraint(propertyToCheck);
-		if (ast != null)
+		ast = findAStrictClockConstraint(propertyToCheck, propertiesFile.getLabelList());
+		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
+		}
 		// Check for presence of diagonal clock constraints
 		// (for now; should be able to relax this later)
-		ast = findADiagonalClockConstraint(modulesFile);
-		if (ast != null)
+		ast = findADiagonalClockConstraint(propertyToCheck, propertiesFile.getLabelList());
+		if (ast != null) {
 			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
-		// TODO: also need to look in any required properties file labels
-		// (currently, these cannot even contain clocks so not an issue)
+		}
 	}
 
 	/**
 	 * Look for a strict clock constraint. If found return the offending element. Else, return null.
+	 * Optionally, pass in a LabelList to look up labels (can be null).
 	 */
-	public ASTElement findAStrictClockConstraint(ASTElement ast) throws PrismLangException
+	public ASTElement findAStrictClockConstraint(ASTElement ast, LabelList labelList) throws PrismLangException
 	{
 		try {
 			ASTTraverse astt = new ASTTraverse()
@@ -386,6 +394,17 @@ public class DigitalClocks
 							throw new PrismLangException("Found one", e);
 					}
 				}
+				
+				// Recurse on labels
+				public void visitPost(ExpressionLabel e) throws PrismLangException
+				{
+					if (labelList != null) {
+						int i = labelList.getLabelIndex(e.getName());
+						if (i != -1) {
+							labelList.getLabel(i).accept(this);
+						}
+					}
+				}
 			};
 			ast.accept(astt);
 		} catch (PrismLangException e) {
@@ -396,8 +415,9 @@ public class DigitalClocks
 
 	/**
 	 * Look for a diagonal clock constraint. If found return the offending element. Else, return null.
+	 * Optionally, pass in a LabelList to look up labels (can be null).
 	 */
-	public ASTElement findADiagonalClockConstraint(ASTElement ast) throws PrismLangException
+	public ASTElement findADiagonalClockConstraint(ASTElement ast, LabelList labelList) throws PrismLangException
 	{
 		try {
 			ASTTraverse astt = new ASTTraverse()
@@ -411,8 +431,19 @@ public class DigitalClocks
 						}
 					}
 				}
+				
+				// Recurse on labels
+				public void visitPost(ExpressionLabel e) throws PrismLangException
+				{
+					if (labelList != null) {
+						int i = labelList.getLabelIndex(e.getName());
+						if (i != -1) {
+							labelList.getLabel(i).accept(this);
+						}
+					}
+				}
 			};
-			modulesFile.accept(astt);
+			ast.accept(astt);
 		} catch (PrismLangException e) {
 			return e.getASTElement();
 		}

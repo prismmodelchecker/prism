@@ -1,0 +1,10 @@
+label "target2" = s=3 & x<2;
+
+// RESULT: 0.6
+Pmax=? [ F "target" ]
+
+// RESULT: Error:strict
+Pmax=? [ F (s=3 & x<2) ]
+
+// RESULT: Error:strict
+Pmax=? [ F "target2" ]
