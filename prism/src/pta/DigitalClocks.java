@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -30,6 +30,7 @@ import java.util.*;
 
 import parser.*;
 import parser.ast.*;
+import parser.ast.Module;
 import parser.type.*;
 import parser.visitor.*;
 import prism.*;
@@ -48,6 +49,8 @@ public class DigitalClocks
 	private Values constantValues;
 	// Variable list for model
 	private VarList varList;
+	// Time bound from property if present
+	private int timeBound = -1;
 
 	// Flags + settings
 	private boolean doScaling = true;
@@ -149,7 +152,7 @@ public class DigitalClocks
 		if (propertyToCheck != null) {
 			checkProperty(propertyToCheck, propertiesFile);
 		}
-
+		
 		// Choose a new action label to represent time
 		timeAction = "time";
 		while (modulesFile.getSynchs().contains(timeAction)) {
@@ -318,11 +321,78 @@ public class DigitalClocks
 			}
 		}
 
-		// Re-do type checking etc. on the model/properties
+		// If we are checking a time bounded property... 
+		if (timeBound != -1) {
+			
+			int scaledTimeBound = timeBound / cci.getScaleFactor();
+			
+			// First add a timer to the model
+			
+			// Create names for module/variable for timer
+			String timerModuleName = "timer";
+			while (mf.getModuleIndex(timerModuleName) != -1) {
+				timerModuleName = "_" + timerModuleName;
+			}
+			String timerVarName = "timer";
+			while (mf.isIdentUsed(timerVarName) || (pf != null && pf.isIdentUsed(timerVarName))) {
+				timerVarName = "_" + timerVarName;
+			}
+			// Store time bound as a constant
+			String timeboundName = "T";
+			while (mf.isIdentUsed(timeboundName) || (pf != null && pf.isIdentUsed(timeboundName))) {
+				timeboundName = "_" + timeboundName;
+			}
+			mf.getConstantList().addConstant(new ExpressionIdent(timeboundName), Expression.Int(scaledTimeBound), TypeInt.getInstance());
+			// Create module/variable
+			Module timerModule = new Module(timerModuleName);
+			DeclarationType timerDeclType = new DeclarationInt(Expression.Int(0),
+					Expression.Plus(new ExpressionConstant(timeboundName, TypeInt.getInstance()), Expression.Int(1)));
+			Declaration timerDecl = new Declaration(timerVarName, timerDeclType);
+			timerModule.addDeclaration(timerDecl);
+			// Construct command representing progression of time
+			Command timeCommand = new Command();
+			timeCommand.setSynch(timeAction);
+			timeCommand.setGuard(Expression.True());
+			// Construct update
+			Update up = new Update();
+			// Build expression min(timer+1,timerMax)
+			ExpressionFunc exprMin = new ExpressionFunc("min");
+			exprMin.addOperand(Expression.Plus(new ExpressionVar(timerVarName, TypeInt.getInstance()), Expression.Int(1)));
+			exprMin.addOperand(Expression.Plus(new ExpressionConstant(timeboundName, TypeInt.getInstance()), Expression.Literal(1)));
+			// Add to update
+			up.addElement(new ExpressionIdent(timerVarName), exprMin);
+			Updates ups = new Updates();
+			ups.addUpdate(Expression.Double(1.0), up);
+			timeCommand.setUpdates(ups);
+			timerModule.addCommand(timeCommand);
+			// Finally add module to model
+			mf.addModule(timerModule);
+			
+			// Then modify the property
+			
+			// Build time bound (timer <= T)
+			Expression timerRef = new ExpressionVar(timerVarName, TypeInt.getInstance()); 
+			Expression boundNew = new ExpressionBinaryOp(ExpressionBinaryOp.LE, timerRef, new ExpressionConstant(timeboundName, TypeInt.getInstance()));
+			prop.accept(new ASTTraverseModify()
+			{
+				public Object visit(ExpressionTemporal e) throws PrismLangException
+				{
+					// Push (new) time bound into target
+					e.setUpperBound(null);
+					Expression targetNew = Expression.And(e.getOperand2().deepCopy(), boundNew);
+					e.setOperand2(targetNew);
+					return e;
+				}
+			});
+		}
+							
+		// Re-do type checking, indexing, etc. on the model/properties
 		mf.tidyUp();
 		if (pf != null) {
+			pf.setModelInfo(mf);
 			pf.tidyUp();
 		}
+		prop.findAllVars(mf.getVarNames(), mf.getVarTypes());
 		// Copy across undefined constants since these get lost in the call to tidyUp()
 		mf.setSomeUndefinedConstants(modulesFile.getUndefinedConstantValues());
 		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedConstantValues());
@@ -354,15 +424,23 @@ public class DigitalClocks
 			e.setASTElement(propertyToCheck);
 			throw e;
 		}
-		
-		// Bounded properties not yet handled.
+
+		// Bounded properties: check allowable, and store time bound if so
+		timeBound = -1;
 		try {
 			propertyToCheck.accept(new ASTTraverse()
 			{
 				public void visitPost(ExpressionTemporal e) throws PrismLangException
 				{
-					if (e.getLowerBound() != null || e.getUpperBound() != null)
-						throw new PrismLangException("The digital clocks method does not yet support bounded properties");
+					if (e.getLowerBound() != null) {
+						throw new PrismLangException("The digital clocks method does not yet support lower time bounds");
+					}
+					if (e.getUpperBound() != null) {
+						if (!ExpressionTemporal.isFinally(e)) {
+							throw new PrismLangException("The digital clocks method only ssupport time bounds on F");
+						}
+						timeBound = e.getUpperBound().evaluateInt(constantValues);
+					}
 				}
 			});
 		} catch (PrismLangException e) {
@@ -622,6 +700,21 @@ public class DigitalClocks
 				updateMax(clock, maxVal);
 				allVals = ParserUtils.findAllValsForIntExpression(e.getOperand1(), varList, constantValues);
 				allClockVals.addAll(allVals);
+			}
+		}
+		
+		// Time bounds in properties
+		public void visitPost(ExpressionTemporal e) throws PrismLangException
+		{
+			// This is easier than for clock constraints since they must be constant
+			// (so just evaluate directly)
+			// We also don't care about the max value - this is done elsewhere;
+			// we just want to make sure that the values is used to compute the GCD
+			if (e.getLowerBound() != null) {
+				allClockVals.add(e.getLowerBound().evaluateInt(constantValues));
+			}
+			if (e.getUpperBound() != null) {
+				allClockVals.add(e.getUpperBound().evaluateInt(constantValues));
 			}
 		}
 		
