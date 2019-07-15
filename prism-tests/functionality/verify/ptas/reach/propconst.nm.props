@@ -1,0 +1,17 @@
+const int K = 2;
+const int L;
+
+// This tests clocks appearing in the property
+// (the use of digital clocks with -ex means that the expression
+//  is evaluated and all the types have to be correct)
+// RESULT: 1.0
+Pmax=? [ F x>=2 ];
+
+// This tests (defined) constants from the prop file
+// RESULT: 1.0
+Pmax=? [ F x>=K ];
+
+// This tests (undefined) constants from the prop file
+// RESULT: 1.0
+Pmax=? [ F x>=L ];
+

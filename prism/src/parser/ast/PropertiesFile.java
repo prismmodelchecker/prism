@@ -348,6 +348,7 @@ public class PropertiesFile extends ASTElement
 		// get label list from model file
 		mfLabels = modulesFile.getLabelList();
 		// add model file labels to combined label list (cloning them just for good measure)
+		combinedLabelList = new LabelList();
 		n = mfLabels.size();
 		for (i = 0; i < n; i++) {
 			combinedLabelList.addLabel(mfLabels.getLabelNameIdent(i), mfLabels.getLabel(i).deepCopy());

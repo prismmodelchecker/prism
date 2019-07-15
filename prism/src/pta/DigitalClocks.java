@@ -44,10 +44,6 @@ public class DigitalClocks
 	private Prism prism;
 	// Log
 	private PrismLog mainLog;
-	// Model to be converted
-	private ModulesFile modulesFile;
-	// Properties to be converted
-	private PropertiesFile propertiesFile;
 	// Constants from model
 	private Values constantValues;
 	// Variable list for model
@@ -67,6 +63,8 @@ public class DigitalClocks
 	private ModulesFile mf;
 	// Translated properties file
 	private PropertiesFile pf;
+	// Translated property to check
+	private Expression prop;
 
 	/**
 	 * Constructor.
@@ -77,6 +75,7 @@ public class DigitalClocks
 		mainLog = prism.getMainLog();
 		mf = null;
 		pf = null;
+		prop = null;
 	}
 
 	/**
@@ -96,6 +95,14 @@ public class DigitalClocks
 	}
 
 	/**
+	 * Get translated property to check.
+	 */
+	public Expression getNewPropertyToCheck()
+	{
+		return prop;
+	}
+
+	/**
 	 * Main method - translate.
 	 */
 	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismLangException
@@ -106,11 +113,11 @@ public class DigitalClocks
 
 		mainLog.println("\nPerforming digital clocks translation...");
 
-		// Store model/properties files
-		this.modulesFile = modulesFile;
-		this.propertiesFile = propertiesFile;
+		// Store some info for global access
 		constantValues = modulesFile.getConstantValues();
-		// TODO: need property constants too?
+		if (propertiesFile != null ) {
+			constantValues = new Values(constantValues, propertiesFile.getConstantValues());
+		}
 		varList = modulesFile.createVarList();
 
 		// Check that model does not contain any closed clock constraints
@@ -140,7 +147,7 @@ public class DigitalClocks
 		}
 		// Check that the property is suitable for checking with digital clocks
 		if (propertyToCheck != null) {
-			checkProperty(propertyToCheck);
+			checkProperty(propertyToCheck, propertiesFile);
 		}
 
 		// Choose a new action label to represent time
@@ -160,6 +167,7 @@ public class DigitalClocks
 		// Take a copy of the whole model/properties file before translation
 		mf = (ModulesFile) modulesFile.deepCopy();
 		pf = (propertiesFile == null) ? null : (PropertiesFile) propertiesFile.deepCopy();
+		prop = (Expression) propertyToCheck.deepCopy();
 
 		// Change the model type
 		mf.setModelType(ModelType.MDP);
@@ -289,6 +297,7 @@ public class DigitalClocks
 		if (pf != null) {
 			pf = (PropertiesFile) pf.accept(asttm);
 		}
+		prop = (Expression) prop.accept(asttm);
 
 		// Change state rewards in reward structures to use time action)
 		// (transition rewards can be left unchanged)
@@ -315,15 +324,21 @@ public class DigitalClocks
 		if (pf != null) {
 			pf.tidyUp();
 		}
+		// Copy across undefined constants since these get lost in the call to tidyUp()
+		mf.setSomeUndefinedConstants(modulesFile.getUndefinedConstantValues());
+		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedConstantValues());
 	}
 
 	/**
 	 * Check that a property is checkable with the digital clocks method.
 	 * Throw an explanatory exception if not.
+	 * Optionally, an enclosing PropertiesFile is provided, to look up
+	 * property/label references. Can be null.
 	 */
-	public void checkProperty(Expression propertyToCheck) throws PrismLangException
+	public void checkProperty(Expression propertyToCheck, PropertiesFile propertiesFile) throws PrismLangException
 	{
 		ASTElement ast;
+		LabelList labelList = (propertiesFile == null) ? null : propertiesFile.getLabelList();
 
 		// LTL not handled (look in any P operators)
 		try {
@@ -362,13 +377,13 @@ public class DigitalClocks
 		}
 
 		// Check for presence of strict clock constraints
-		ast = findAStrictClockConstraint(propertyToCheck, propertiesFile.getLabelList());
+		ast = findAStrictClockConstraint(propertyToCheck, labelList);
 		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
 		}
 		// Check for presence of diagonal clock constraints
 		// (for now; should be able to relax this later)
-		ast = findADiagonalClockConstraint(propertyToCheck, propertiesFile.getLabelList());
+		ast = findADiagonalClockConstraint(propertyToCheck, labelList);
 		if (ast != null) {
 			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
 		}
