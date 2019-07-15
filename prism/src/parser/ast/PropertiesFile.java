@@ -52,7 +52,9 @@ public class PropertiesFile extends ASTElement
 	// list of all identifiers used
 	private Vector<String> allIdentsUsed;
 
-	// actual values of (some or all) constants
+	// Values set for undefined constants (null if none)
+	private Values undefinedConstantValues;
+	// Actual values of (some or all) constants
 	private Values constantValues;
 
 	// Constructor
@@ -66,6 +68,7 @@ public class PropertiesFile extends ASTElement
 		constantList = new ConstantList();
 		properties = new Vector<Property>();
 		allIdentsUsed = new Vector<String>();
+		undefinedConstantValues = null;
 		constantValues = null;
 	}
 
@@ -555,6 +558,7 @@ public class PropertiesFile extends ASTElement
 	 */
 	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
 	{
+		undefinedConstantValues = someValues == null ? null : new Values(someValues);
 		// Might need values for ModulesFile constants too
 		constantValues = constantList.evaluateConstants(someValues, modulesFile.getConstantValues(), exact);
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
@@ -585,6 +589,7 @@ public class PropertiesFile extends ASTElement
 	 */
 	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
 	{
+		undefinedConstantValues = someValues == null ? null : new Values(someValues);
 		// Might need values for ModulesFile constants too
 		constantValues = constantList.evaluateSomeConstants(someValues, modulesFile.getConstantValues(), exact);
 		// Note: unlike ModulesFile, we don't trigger any semantic checks at this point
@@ -598,6 +603,15 @@ public class PropertiesFile extends ASTElement
 	public boolean isDefinedConstant(String name)
 	{
 		return constantList.isDefinedConstant(name);
+	}
+
+	/**
+	 * Get access to the values that have been provided for undefined constants in the model 
+	 * (e.g. via the method {@link #setUndefinedConstants(Values)}).
+	 */
+	public Values getUndefinedConstantValues()
+	{
+		return undefinedConstantValues;
 	}
 
 	/**
