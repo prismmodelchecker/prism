@@ -127,6 +127,7 @@ public class PrismCL implements PrismModelListener
 	private String importLabelsFilename = null;
 	private String importStateRewardsFilename = null;
 	private String importInitDistFilename = null;
+	private String importModelWarning = null;
 	private String propertiesFilename = null;
 	private String exportTransFilename = null;
 	private String exportStateRewardsFilename = null;
@@ -588,6 +589,9 @@ public class PrismCL implements PrismModelListener
 		// parse model
 
 		try {
+			if (importModelWarning != null) {
+				mainLog.printWarning(importModelWarning);
+			}
 			if (importpepa) {
 				mainLog.print("\nImporting PEPA file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.importPepaFile(new File(modelFilename));
@@ -1886,6 +1890,7 @@ public class PrismCL implements PrismModelListener
 		String extList = filesString.substring(i + 1);
 		String exts[] = extList.split(",");
 		// Process file extensions
+		importModelWarning = null;
 		for (String ext : exts) {
 			// Items to import
 			if (ext.equals("all")) {
@@ -1898,6 +1903,9 @@ public class PrismCL implements PrismModelListener
 				if (new File(basename + ".srew").exists()) {
 					importstaterewards = true;
 					importStateRewardsFilename = basename + ".srew";
+				}
+				if (new File(basename + ".trew").exists()) {
+					importModelWarning = "Import of transition rewards is not yet supported so " + basename + ".trew is being ignored";
 				}
 			} else if (ext.equals("tra")) {
 				importtrans = true;
