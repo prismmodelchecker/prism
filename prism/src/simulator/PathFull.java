@@ -44,7 +44,7 @@ import userinterface.graph.Graph;
 public class PathFull extends Path implements PathFullInfo
 {
 	// Model to which the path corresponds
-	private ModelInfo modulesFile;
+	private ModelInfo modelInfo;
 	private RewardGenerator rewardGen;
 	// Does model use continuous time?
 	private boolean continuousTime;
@@ -62,11 +62,11 @@ public class PathFull extends Path implements PathFullInfo
 	/**
 	 * Constructor: creates a new (empty) PathFull object for a specific model.
 	 */
-	public PathFull(ModelInfo modulesFile, RewardGenerator rewardGen)
+	public PathFull(ModelInfo modelInfo, RewardGenerator rewardGen)
 	{
 		// Store model and info
-		this.modulesFile = modulesFile;
-		continuousTime = modulesFile.getModelType().continuousTime();
+		this.modelInfo = modelInfo;
+		continuousTime = modelInfo.getModelType().continuousTime();
 		this.rewardGen = rewardGen;
 		numRewardStructs = rewardGen.getNumRewardStructs();
 		// Create list to store path
@@ -453,7 +453,7 @@ public class PathFull extends Path implements PathFullInfo
 	public void display(PathDisplayer displayer) throws PrismException
 	{
 		// In the absence of model info, do nothing
-		if (modulesFile == null) {
+		if (modelInfo == null) {
 			return;
 		}
 		// Display path
@@ -478,7 +478,7 @@ public class PathFull extends Path implements PathFullInfo
 	public void displayThreaded(PathDisplayer displayer) throws PrismException
 	{
 		// In the absence of model info, do nothing
-		if (modulesFile == null) {
+		if (modelInfo == null) {
 			return;
 		}
 		// Display path
@@ -507,7 +507,7 @@ public class PathFull extends Path implements PathFullInfo
 	 */
 	public void exportToLog(PrismLog log, boolean showTimeCumul, boolean showRewards, String colSep, ArrayList<Integer> vars) throws PrismException
 	{
-		PathToText displayer = new PathToText(log, modulesFile, rewardGen);
+		PathToText displayer = new PathToText(log, modelInfo, rewardGen);
 		displayer.setShowTimeCumul(showTimeCumul);
 		displayer.setColSep(colSep);
 		displayer.setVarsToShow(vars);
@@ -521,7 +521,7 @@ public class PathFull extends Path implements PathFullInfo
 	 */
 	public void plotOnGraph(Graph graphModel) throws PrismException
 	{
-		PathToGraph displayer = new PathToGraph(graphModel, modulesFile, rewardGen);
+		PathToGraph displayer = new PathToGraph(graphModel, modelInfo, rewardGen);
 		displayThreaded(displayer);
 	}
 

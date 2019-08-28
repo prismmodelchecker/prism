@@ -38,7 +38,7 @@ import prism.RewardGenerator;
 public class PathOnTheFly extends Path
 {
 	// Model to which the path corresponds
-	protected ModelInfo modulesFile;
+	protected ModelInfo modelInfo;
 	// Does model use continuous time?
 	protected boolean continuousTime;
 	// Model info/stats
@@ -64,15 +64,15 @@ public class PathOnTheFly extends Path
 	/**
 	 * Constructor: creates a new (empty) PathOnTheFly object for a specific model.
 	 */
-	public PathOnTheFly(ModelInfo modulesFile, RewardGenerator rewardGen)
+	public PathOnTheFly(ModelInfo modelInfo, RewardGenerator rewardGen)
 	{
 		// Store model and info
-		this.modulesFile = modulesFile;
-		continuousTime = modulesFile.getModelType().continuousTime();
+		this.modelInfo = modelInfo;
+		continuousTime = modelInfo.getModelType().continuousTime();
 		numRewardStructs = rewardGen.getNumRewardStructs();
 		// Create State objects for current/previous state
-		previousState = new State(modulesFile.getNumVars());
-		currentState = new State(modulesFile.getNumVars());
+		previousState = new State(modelInfo.getNumVars());
+		currentState = new State(modelInfo.getNumVars());
 		// Create arrays to store totals
 		totalRewards = new double[numRewardStructs];
 		previousStateRewards = new double[numRewardStructs];
