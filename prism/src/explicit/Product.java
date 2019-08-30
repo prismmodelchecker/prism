@@ -152,27 +152,60 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 	 * @throws PrismException
 	 */
 	@Override
-	public StateValues projectToOriginalModel(StateValues sv) throws PrismException
+	public StateValues projectToOriginalModel(final StateValues sv) throws PrismException
 	{
-		// the resulting state values have one value per state in the original model
-		StateValues result = new StateValues(sv.type, getOriginalModel().getNumStates());
+		// the resulting state values has one value per state in the original model
+		if (sv.getType() instanceof TypeBool) {
+			assert(sv.getBitSet() != null) : "State values are undefined.";
 
-		// iterate over all the initial states in the product
-		for (Integer productState : productModel.getInitialStates()) {
-			// get the state index of the corresponding state in the original model
-			int modelState = getModelState(productState);
-
-			if (sv.type instanceof TypeBool) {
-				result.setBooleanValue(modelState, (Boolean) sv.getValue(productState));
-			} else if (sv.type instanceof TypeInt) {
-				result.setIntValue(modelState, (Integer) sv.getValue(productState));
-			} else if (sv.type instanceof TypeDouble) {
-				result.setDoubleValue(modelState, (Double) sv.getValue(productState));
-			} else {
-				throw new PrismNotSupportedException("Handling for type "+sv.type+" not implemented.");
-			}
+			final BitSet mapped = projectToOriginalModel(sv.getBitSet());
+			return StateValues.createFromBitSet(mapped, originalModel);
 		}
+		if (sv.getType() instanceof TypeDouble) {
+			assert(sv.getDoubleArray() != null) : "State values are undefined.";
 
+			final double[] mapped = projectToOriginalModel(sv.getDoubleArray());
+			return StateValues.createFromDoubleArray(mapped, originalModel);
+		}
+		if (sv.getType() instanceof TypeInt) {
+			assert(sv.getIntArray() != null) : "State values are undefined.";
+
+			final int[] mapped = projectToOriginalModel(sv.getIntArray());
+			return StateValues.createFromIntegerArray(mapped, originalModel);
+		}
+		throw new PrismNotSupportedException("Unsupported type of state values");
+	}
+
+	public BitSet projectToOriginalModel(final BitSet values)
+	{
+		final BitSet result = new BitSet(originalModel.getNumStates());
+
+		for (int productState : productModel.getInitialStates()) {
+			int modelState = getModelState(productState);
+			result.set(modelState, values.get(productState));
+		}
+		return result;
+	}
+
+	public double[] projectToOriginalModel(final double[] values)
+	{
+		final double[] result = new double[originalModel.getNumStates()];
+
+		for (int productState : productModel.getInitialStates()) {
+			int modelState = getModelState(productState);
+			result[modelState] = values[productState];
+		}
+		return result;
+	}
+
+	public int[] projectToOriginalModel(final int[] values)
+	{
+		final int[] result = new int[originalModel.getNumStates()];
+
+		for (int productState : productModel.getInitialStates()) {
+			int modelState = getModelState(productState);
+			result[modelState] = values[productState];
+		}
 		return result;
 	}
 
