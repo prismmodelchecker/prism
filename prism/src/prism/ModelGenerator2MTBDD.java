@@ -541,6 +541,7 @@ public class ModelGenerator2MTBDD
 				j = varList.encodeToInt(i, state.varValues[i]);
 			} catch (PrismLangException e) {
 				// Won't happen
+				mainLog.println("Error during JDD encodeState for state value at index "+i);
 			}
 			res = JDD.Apply(JDD.TIMES, res, JDD.SetVectorElement(JDD.Constant(0), varDDVars[i], j, 1.0));
 		}
