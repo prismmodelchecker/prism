@@ -531,7 +531,7 @@ public class ModelGenerator2MTBDD
 	/**
 	 * Encode a state into a BDD (referencing the result).
 	 */
-	private JDDNode encodeState(State state, JDDVars[] varDDVars)
+	private JDDNode encodeState(State state, JDDVars[] varDDVars) throws PrismException
 	{
 		JDDNode res;
 		int i, j = 0;
@@ -540,7 +540,7 @@ public class ModelGenerator2MTBDD
 			try {
 				j = varList.encodeToInt(i, state.varValues[i]);
 			} catch (PrismLangException e) {
-				// Won't happen
+				throw new PrismException("Error during JDD encodeState for state value at index " + i);
 			}
 			res = JDD.Apply(JDD.TIMES, res, JDD.SetVectorElement(JDD.Constant(0), varDDVars[i], j, 1.0));
 		}
