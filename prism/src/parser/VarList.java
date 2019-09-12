@@ -315,60 +315,60 @@ public class VarList
 	}
 
 	/**
-	 * Get the value (as an Object) of a variable, from the value encoded as an integer. 
+	 * Get the value (as an Object) for the ith variable, from its encoding as an integer. 
 	 */
-	public Object decodeFromInt(int var, int val)
+	public Object decodeFromInt(int i, int val)
 	{
-		Type type = getType(var);
+		Type type = getType(i);
 		// Integer type
 		if (type instanceof TypeInt) {
-			return new Integer(val + getLow(var));
+			return val + getLow(i);
 		}
 		// Boolean type
 		else if (type instanceof TypeBool) {
-			return new Boolean(val != 0);
+			return val != 0;
 		}
 		// Anything else
 		return null;
 	}
 
 	/**
-	 * Get the integer encoding of a value for a variable, specified as an Object.
+	 * Get the integer encoding of a value for the ith variable, specified as an Object.
 	 * The Object is assumed to be of correct type (e.g. Integer, Boolean).
 	 * Throws an exception if Object is of the wrong type.
 	 */
-	public int encodeToInt(int var, Object val) throws PrismLangException
+	public int encodeToInt(int i, Object val) throws PrismLangException
 	{
-		Type type = getType(var);
+		Type type = getType(i);
 		try {
 			// Integer type
 			if (type instanceof TypeInt) {
-				return ((Integer) val).intValue() - getLow(var);
+				return ((TypeInt) type).castValueTo(val).intValue() - getLow(i);
 			}
 			// Boolean type
 			else if (type instanceof TypeBool) {
-				return ((Boolean) val).booleanValue() ? 1 : 0;
+				return ((TypeBool) type).castValueTo(val).booleanValue() ? 1 : 0;
 			}
 			// Anything else
 			else {
-				throw new PrismLangException("Unknown type " + type + " for variable " + getName(var));
+				throw new PrismLangException("Unknown type " + type + " for variable " + getName(i));
 			}
 		} catch (ClassCastException e) {
-			throw new PrismLangException("Value " + val + " is wrong type for variable " + getName(var));
+			throw new PrismLangException("Value " + val + " is wrong type for variable " + getName(i));
 		}
 	}
 
 	/**
-	 * Get the integer encoding of a value for a variable, specified as a string.
+	 * Get the integer encoding of a value for the ith variable, specified as a string.
 	 */
-	public int encodeToIntFromString(int var, String s) throws PrismLangException
+	public int encodeToIntFromString(int i, String s) throws PrismLangException
 	{
-		Type type = getType(var);
+		Type type = getType(i);
 		// Integer type
 		if (type instanceof TypeInt) {
 			try {
-				int i = Integer.parseInt(s);
-				return i - getLow(var);
+				int iVal = Integer.parseInt(s);
+				return iVal - getLow(i);
 			} catch (NumberFormatException e) {
 				throw new PrismLangException("\"" + s + "\" is not a valid integer value");
 			}
@@ -385,7 +385,7 @@ public class VarList
 		}
 		// Anything else
 		else {
-			throw new PrismLangException("Unknown type " + type + " for variable " + getName(var));
+			throw new PrismLangException("Unknown type " + type + " for variable " + getName(i));
 		}
 	}
 
