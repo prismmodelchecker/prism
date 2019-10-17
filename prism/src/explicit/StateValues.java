@@ -1706,15 +1706,19 @@ public class StateValues implements StateVector
 			} else {
 				if (printIndices) {
 					log.print(n);
-					log.print(":");
 				}
-				if (printStates && statesList != null)
+				if (printStates && statesList != null) {
+					if (printIndices) {
+						log.print(":");
+					}
 					log.print(statesList.get(n).toString());
+				}
 				if (printSparse && type instanceof TypeBool) {
 					log.println();
 				} else {
-					if (printIndices || printStates)
+					if (printIndices || printStates) {
 						log.print("=");
+					}
 					log.println(getValue(n));
 				}
 			}
