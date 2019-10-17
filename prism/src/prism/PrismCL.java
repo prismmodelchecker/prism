@@ -2417,7 +2417,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importstaterewards <file>...... Import the state rewards directly from a text file");
-		mainLog.println("-importinitdist <file>.......... Specify the initial probability distribution for transient analysis");
+		mainLog.println("-importinitdist <file>.......... Specify initial probability distribution for transient/steady-state analysis");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
