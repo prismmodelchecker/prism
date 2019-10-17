@@ -359,6 +359,10 @@ public class PrismCL implements PrismModelListener
 			// Work through list of properties to be checked
 			for (j = 0; j < numPropertiesToCheck; j++) {
 
+				if (importinitdist) {
+					prism.setStoreVector(true);
+				}
+				
 				// for simulation we can do multiple values of property constants simultaneously
 				if (simulate && undefinedConstants[j].getNumPropertyIterations() > 1) {
 					try {
@@ -400,6 +404,12 @@ public class PrismCL implements PrismModelListener
 								simMethod.reset();
 							} else {
 								throw new PrismException("Cannot use parametric model checking and simulation at the same time");
+							}
+							
+							if (importinitdist) {
+								double resNew = prism.recomputeModelCheckingResultForInitialDIstribution(res, new File(importInitDistFilename));
+								res.setResult(resNew);
+								mainLog.println("\nResult recomputed for initial distribution: " + res.getResult());
 							}
 						} catch (PrismException e) {
 							// in case of error, report it, store exception as the result and proceed

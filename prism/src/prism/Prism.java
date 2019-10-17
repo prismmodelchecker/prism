@@ -3116,6 +3116,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 	}
 
+	public double recomputeModelCheckingResultForInitialDIstribution(Result res, File fileIn) throws PrismException
+	{
+		if (res.getVector() != null && res.getResult() instanceof Double) {
+			if (!getExplicit()) {
+				StateValues initDist = new ProbModelChecker(this, currentModel, null).readDistributionFromFile(fileIn);
+				StateValues resVect = (StateValues) res.getVector();
+				return initDist.dotProduct(resVect);
+			} else {
+				explicit.StateValues initDist = new DTMCModelChecker(this).readDistributionFromFile(fileIn, currentModelExpl);
+				explicit.StateValues resVect = (explicit.StateValues) res.getVector();
+				return initDist.dotProduct(resVect);
+			}
+		}
+		throw new PrismException("Cannot recompute model checking result");
+	}
+	
 	/**
 	 * Check if the currently loaded model is suitable for analysis with the simulator.
 	 * If not, an explanatory exception is thrown.
