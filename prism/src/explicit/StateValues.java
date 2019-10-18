@@ -1275,7 +1275,7 @@ public class StateValues implements StateVector
 		if (type instanceof TypeDouble) {
 			double dotProduct = 0;
 			for (int i = 0; i < size; i++) {
-				dotProduct += valuesD[i] * sv.valuesI[i];
+				dotProduct += valuesD[i] * sv.valuesD[i];
 			}
 			return dotProduct;
 		} else {
