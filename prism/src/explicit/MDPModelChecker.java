@@ -130,7 +130,7 @@ public class MDPModelChecker extends ProbModelChecker
 //		System.out.println(" ");
 		
 		// Build model costs
-		RewardStruct  costStruct = exprRew.getRewardStructByIndexObject(modulesFile, modulesFile.getConstantValues());
+		int costStruct = exprRew.getRewardStructIndexByIndexObject(modulesFile, modulesFile.getConstantValues());
 		mainLog.println("Building cost structure...");
 		Rewards costsModel= constructRewards(model, costStruct);
 		
