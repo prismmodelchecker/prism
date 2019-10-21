@@ -1,0 +1,10 @@
+pta
+
+module M
+	
+	s : [0..1];
+	x : clock;
+	
+	[a] x>=4 -> (s'=1);
+
+endmodule

@@ -93,8 +93,6 @@ import parser.type.TypePathDouble;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismPrintStreamLog;
 import prism.PrismSettings;
 import prism.PrismNotSupportedException;
 import prism.Result;
@@ -1022,7 +1020,8 @@ final public class ParamModelChecker extends PrismComponent
 		boolean min = false;
 
 		// Get info from reward operator
-		RewardStruct rewStruct = expr.getRewardStructByIndexObject(modulesFile, constantValues);
+		
+		RewardStruct rewStruct = modulesFile.getRewardStruct(expr.getRewardStructIndexByIndexObject(modulesFile.getRewardStructNames(), constantValues));
 		RelOp relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {

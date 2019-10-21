@@ -26,12 +26,12 @@
 
 package simulator.sampler;
 
-import simulator.*;
 import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
+import prism.ModelGenerator;
 import prism.PrismException;
-import prism.PrismLangException;
+import simulator.Path;
 
 public class SamplerUntil extends SamplerBoolean
 {
@@ -57,7 +57,7 @@ public class SamplerUntil extends SamplerBoolean
 	}
 
 	@Override
-	public boolean update(Path path, TransitionList transList) throws PrismLangException
+	public boolean update(Path path, ModelGenerator modelGen) throws PrismException
 	{
 		// If the answer is already known we should do nothing
 		if (valueKnown)
@@ -75,7 +75,7 @@ public class SamplerUntil extends SamplerBoolean
 			value = false;
 		}
 		// Or, if we are now at a deadlock/self-loop
-		else if (transList != null && (transList.isDeadlock() || path.isLooping())) {
+		else if (modelGen != null && (modelGen.isDeadlock() || path.isLooping())) {
 		//else if (transList != null && (transList.isDeadlock() || transList.isDeterministicSelfLoop(currentState))) {
 			valueKnown = true;
 			value = false;

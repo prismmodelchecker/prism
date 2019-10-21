@@ -94,9 +94,12 @@ class StateAndValuePrinter implements StateAndValueConsumer
 
 		// PRISM format
 		if (printIndices) {
-			outputLog.print(stateIndex + ":");
+			outputLog.print(stateIndex);
 		}
 		if (printStates) {
+			if (printIndices) {
+				outputLog.print(":");
+			}
 			outputLog.print("(");
 			int n = varList.getNumVars();
 			for (int i = 0; i < n; i++) {
@@ -114,8 +117,9 @@ class StateAndValuePrinter implements StateAndValueConsumer
 			}
 			outputLog.print(")");
 		}
-		if (printIndices || printStates)
+		if (printIndices || printStates) {
 			outputLog.print("=");
+		}
 		outputLog.println(value);
 	}
 

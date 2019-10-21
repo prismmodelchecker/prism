@@ -51,7 +51,6 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 	
 	private GUIPrism parent;
 	private GUIMultiProperties props;
-	private ModulesFile parsedModel;
 	private boolean dispose = false;
 	private String id;
 	private int propertyInvalidStrategy = GUIMultiProperties.WARN_INVALID_PROPS;
@@ -62,9 +61,9 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 	 * whether the dialog should be modal and a Vector of properties to be displayed
 	 * for user browsing/copying.
 	 */
-	public GUIPropertyEditor(GUIMultiProperties props, ModulesFile parsedModel, int strategy) //Adding constructor
+	public GUIPropertyEditor(GUIMultiProperties props,int strategy) //Adding constructor
 	{
-		this(props, parsedModel, null, strategy);
+		this(props, null, strategy);
 	}
 	
 	/** Creates a new GUIPropertyEditor with its parent GUIPrism, a boolean stating
@@ -72,12 +71,11 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 	 * for user browsing/copying and a string showing the default value of the
 	 * property text box.
 	 */
-	public GUIPropertyEditor(GUIMultiProperties props, ModulesFile parsedModel, GUIProperty prop, int strategy) //Editing constructor
+	public GUIPropertyEditor(GUIMultiProperties props, GUIProperty prop, int strategy) //Editing constructor
 	{
 		super(props.getGUI(), false);
 		this.props = props;
 		this.parent = props.getGUI();
-		this.parsedModel = parsedModel;
 		this.propertyInvalidStrategy = strategy;
 		initComponents();
 		this.getRootPane().setDefaultButton(okayButton);
@@ -808,7 +806,7 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 		try
 		{
 			//Parse constants and labels
-			PropertiesFile fConLab = props.getPrism().parsePropertiesString(parsedModel,  props.getLabelsString()+"\n"+props.getConstantsString());
+			PropertiesFile fConLab = props.getPrism().parsePropertiesString(props.getLabelsString()+"\n"+props.getConstantsString());
 			noConstants = fConLab.getConstantList().size();
 			noLabels = fConLab.getLabelList().size();
 			
@@ -824,7 +822,7 @@ public class GUIPropertyEditor extends javax.swing.JDialog implements ActionList
 			
 			//Parse all together
 			String withConsLabs = props.getConstantsString()+"\n"+props.getLabelsString()+namedString+propertyText.getText();
-			PropertiesFile ff = props.getPrism().parsePropertiesString(parsedModel, withConsLabs);
+			PropertiesFile ff = props.getPrism().parsePropertiesString(withConsLabs);
 			
 			//Validation of number of properties
 			if(ff.getNumProperties() <= namedCount) throw new PrismException("Empty property");

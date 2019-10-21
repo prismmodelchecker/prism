@@ -55,7 +55,7 @@ public class SamplerRewardInstCont extends SamplerDouble
 	}
 
 	@Override
-	public boolean update(Path path, TransitionList transList) throws PrismLangException
+	public boolean update(Path path, ModelGenerator modelGen) throws PrismException
 	{
 		// If the answer is already known we should do nothing
 		if (valueKnown)
@@ -75,7 +75,7 @@ public class SamplerRewardInstCont extends SamplerDouble
 			}
 		}
 		// Or, if we are now at a deadlock
-		else if (transList != null && transList.isDeadlock()) {
+		else if (modelGen != null && modelGen.isDeadlock()) {
 			valueKnown = true;
 			value = path.getCurrentStateReward(rewardStructIndex);
 		}

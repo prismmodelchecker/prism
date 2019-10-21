@@ -26,14 +26,16 @@
 
 package parser.ast;
 
+import java.util.List;
+
 import param.BigRational;
 import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
-import prism.ModelInfo;
 import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.RewardGenerator;
 
 public class ExpressionReward extends ExpressionQuant
 {
@@ -111,10 +113,25 @@ public class ExpressionReward extends ExpressionQuant
 	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
 	 * Throws an exception (with explanatory message) if it cannot be found.
 	 * This means that, the method always returns a valid index if it finishes.
+	 * @param rewardGen RewardGenerator object to be used for looking up reward struct names
+	 * @param constantValues Values of constants which may be needed to evaluate the index
 	 */
-	public int getRewardStructIndexByIndexObject(ModelInfo modelInfo, Values constantValues) throws PrismException
+	public int getRewardStructIndexByIndexObject(RewardGenerator rewardGen, Values constantValues) throws PrismException
 	{
-		return getRewardStructIndexByIndexObject(rewardStructIndex, modelInfo, constantValues);
+		return getRewardStructIndexByIndexObject(rewardStructIndex, rewardGen, constantValues);
+	}
+
+	/**
+	 * Get the index of a reward structure (within a model) corresponding to the index of this R operator.
+	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
+	 * Throws an exception (with explanatory message) if it cannot be found.
+	 * This means that, the method always returns a valid index if it finishes.
+	 * @param rewardStructNames List of reward struct names
+	 * @param constantValues Values of constants which may be needed to evaluate the index
+	 */
+	public int getRewardStructIndexByIndexObject(List<String> rewardStructNames, Values constantValues) throws PrismException
+	{
+		return getRewardStructIndexByIndexObject(rewardStructIndex, rewardStructNames, constantValues);
 	}
 
 	/**
@@ -122,16 +139,35 @@ public class ExpressionReward extends ExpressionQuant
 	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
 	 * Throws an exception (with explanatory message) if it cannot be found.
 	 * This means that, the method always returns a valid index if it finishes.
+	 * @param rsi The reward structure index: Expression (evaluating to index, starting from 1) or String (name)
+	 * @param rewardGen RewardGenerator object to be used for looking up reward struct names
+	 * @param constantValues Values of constants which may be needed to evaluate the index
 	 */
-	public static int getRewardStructIndexByIndexObject(Object rsi, ModelInfo modelInfo, Values constantValues) throws PrismException
+	public static int getRewardStructIndexByIndexObject(Object rsi, RewardGenerator rewardGen, Values constantValues) throws PrismException
 	{
-		int rewStruct = -1;
+		if (rewardGen == null) {
+			throw new PrismException("No reward info to obtain reward structures");
+		}
+		return getRewardStructIndexByIndexObject(rsi, rewardGen.getRewardStructNames(), constantValues);
+	}
+
+	/**
+	 * Get the index of a reward structure (within a model) corresponding to the rsi reward structure index object.
+	 * This is 0-indexed (as used e.g. in ModulesFile), not 1-indexed (as seen by user)
+	 * Throws an exception (with explanatory message) if it cannot be found.
+	 * This means that, the method always returns a valid index if it finishes.
+	 * @param rsi The reward structure index: Expression (evaluating to index, starting from 1) or String (name)
+	 * @param rewardStructNames List of reward struct names
+	 * @param constantValues Values of constants which may be needed to evaluate the index
+	 */
+	public static int getRewardStructIndexByIndexObject(Object rsi, List<String> rewardStructNames, Values constantValues) throws PrismException
+	{
+		if (rewardStructNames.size() == 0) {
+			throw new PrismException("Model has no rewards specified");
+		}
 		// Recall: the index is an Object which is either an Integer, denoting the index (starting from 0) directly,
 		// or an expression, which can be evaluated (possibly using the passed in constants) to an index. 
-		if (modelInfo == null)
-			throw new PrismException("No model info to obtain reward structures");
-		if (modelInfo.getNumRewardStructs() == 0)
-			throw new PrismException("Model has no rewards specified");
+		int rewStruct = -1;
 		// No index specified - use the first one
 		if (rsi == null) {
 			rewStruct = 0;
@@ -139,12 +175,13 @@ public class ExpressionReward extends ExpressionQuant
 		// Expression - evaluate to an index
 		else if (rsi instanceof Expression) {
 			int i = ((Expression) rsi).evaluateInt(constantValues);
-			rsi = new Integer(i); // (for better error reporting below)
-			rewStruct = i - 1;
+			rsi = i; // (for better error reporting below)
+			// Check in range (set to -1 if not) and convert to zero-indexed
+			rewStruct = (i < 1 || i > rewardStructNames.size()) ? -1 : i - 1;
 		}
 		// String - name of reward structure
 		else if (rsi instanceof String) {
-			rewStruct = modelInfo.getRewardStructIndex((String) rsi);
+			rewStruct = rewardStructNames.indexOf((String) rsi);
 		}
 		if (rewStruct == -1) {
 			throw new PrismException("Invalid reward structure index \"" + rsi + "\"");
@@ -152,27 +189,6 @@ public class ExpressionReward extends ExpressionQuant
 		return rewStruct;
 	}
 
-	/**
-	 * Get the reward structure (from a model) corresponding to the index of this R operator.
-	 * Throws an exception (with explanatory message) if it cannot be found.
-	 */
-	public RewardStruct getRewardStructByIndexObject(ModelInfo modelInfo, Values constantValues) throws PrismException
-	{
-		int rewardStructIndex = getRewardStructIndexByIndexObject(modelInfo, constantValues);
-		return modelInfo.getRewardStruct(rewardStructIndex);
-	}
-
-	/**
-	 * Get the reward structure (from a model) corresponding to a reward structure index object.
-	 * Throws an exception (with explanatory message) if it cannot be found.
-	 */
-	public static RewardStruct getRewardStructByIndexObject(Object rsi, ModelInfo modelInfo, Values constantValues) throws PrismException
-	{
-		int rewardStructIndex = getRewardStructIndexByIndexObject(rsi, modelInfo, constantValues);
-		return modelInfo.getRewardStruct(rewardStructIndex);
-	}
-
-	
 	/**
 	 * Get info about the operator and bound.
 	 * @param constantValues Values for constants in order to evaluate any bound

@@ -1,0 +1,15 @@
+const int K = 0;
+
+label "not_end" = x<N;
+
+// RESULT: 1.0
+P=? [ F "end" ]
+
+// RESULT: 1.0
+P=? [ F x=(N+K) ]
+
+// RESULT: 0.0
+P=? [ F x=(N+K+1) ]
+
+// RESULT: 1.0
+P=? [ "not_end" U "end" ]

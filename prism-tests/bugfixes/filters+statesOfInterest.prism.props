@@ -1,0 +1,5 @@
+// Bug fix test case for filters; see commit for details
+// The "0.0+" is needed because of missing integer-valued vector export
+
+// RESULT: 13
+0.0 + filter(sum, filter(count, true, P>0[ X F s=7]), s=2);

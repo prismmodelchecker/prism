@@ -1,0 +1,17 @@
+const int K = 2;
+const int L;
+
+// RESULT: 7/8
+Pmax=? [ F<=6 s=1 ];
+
+// RESULT: 3/4
+Pmax=? [ F<=4 "target" ];
+
+// RESULT: 1/2
+Pmax=? [ F<=K "target" ];
+
+// RESULT: 1/2
+Pmax=? [ F<=L "target" ];
+
+// RESULT: Error:upper
+Pmax=? [ F>=2 "target" ];

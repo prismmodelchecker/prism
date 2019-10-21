@@ -29,6 +29,7 @@ package parser.ast;
 import jltl2ba.SimpleLTL;
 import param.BigRational;
 import parser.*;
+import parser.ast.ExpressionFilter.FilterOperator;
 import parser.visitor.*;
 import prism.ModelType;
 import prism.PrismException;
@@ -780,6 +781,11 @@ public abstract class Expression extends ASTElement
 				&& ExpressionBinaryOp.isRelOp(((ExpressionBinaryOp) expr).getOperator());
 	}
 
+	public static boolean isFilter(Expression expr, ExpressionFilter.FilterOperator opType)
+	{
+		return expr instanceof ExpressionFilter && ((ExpressionFilter) expr).getOperatorType() == opType;
+	}
+	
 	/**
 	 * Test if an expression is a function of type {@code nameCode}.
 	 */

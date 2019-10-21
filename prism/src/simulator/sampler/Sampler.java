@@ -27,11 +27,17 @@
 
 package simulator.sampler;
 
-import simulator.*;
-import simulator.method.SimulationMethod;
-import parser.ast.*;
+import parser.ast.Expression;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionReward;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionUnaryOp;
+import prism.ModelGenerator;
+import prism.ModelInfo;
 import prism.PrismException;
-import prism.PrismLangException;
+import prism.RewardGenerator;
+import simulator.Path;
+import simulator.method.SimulationMethod;
 
 /**
  * A Sampler determines values corresponding to a path property based on a sequence of simulation paths.
@@ -80,7 +86,7 @@ public abstract class Sampler
 	 * to check if there is a deadlock or self-loop.
 	 * This returns true if the sampler's value becomes (or is already) known.
 	 */
-	public abstract boolean update(Path path, TransitionList transList) throws PrismLangException;
+	public abstract boolean update(Path path, ModelGenerator modelGen) throws PrismException;
 
 	/**
 	 * Update the statistics for the sampler, assuming that the current path is finished.
@@ -142,7 +148,7 @@ public abstract class Sampler
 	 * Expression should contain no constants/formula/etc.
 	 * The model to which the property applies should also be specified. 
 	 */
-	public static Sampler createSampler(Expression expr, ModulesFile mf) throws PrismException
+	public static Sampler createSampler(Expression expr, ModelInfo modelInfo, RewardGenerator rewardGen) throws PrismException
 	{
 		Sampler sampler = null;
 		// P=?
@@ -150,14 +156,14 @@ public abstract class Sampler
 			ExpressionProb propProb = (ExpressionProb) expr;
 			// Test whether this is a simple path formula (i.e. non-LTL)
 			if (propProb.getExpression().isSimplePathFormula()) {
-				sampler = createSamplerForProbPathPropertySimple(propProb.getExpression(), mf);
+				sampler = createSamplerForProbPathPropertySimple(propProb.getExpression(), modelInfo);
 			} else {
 				throw new PrismException("LTL-style path formulas are not supported by the simulator");
 			}
 		}
 		// R=?
 		else if (expr instanceof ExpressionReward) {
-			sampler = createSamplerForRewardProperty((ExpressionReward) expr, mf);
+			sampler = createSamplerForRewardProperty((ExpressionReward) expr, modelInfo, rewardGen);
 		}
 		// Neither
 		else {
@@ -166,7 +172,7 @@ public abstract class Sampler
 		return sampler;
 	}
 
-	private static SamplerBoolean createSamplerForProbPathPropertySimple(Expression expr, ModulesFile mf) throws PrismException
+	private static SamplerBoolean createSamplerForProbPathPropertySimple(Expression expr, ModelInfo modelInfo) throws PrismException
 	{
 		// Negation/parentheses
 		if (expr instanceof ExpressionUnaryOp) {
@@ -174,12 +180,12 @@ public abstract class Sampler
 			// Parentheses
 			if (exprUnary.getOperator() == ExpressionUnaryOp.PARENTH) {
 				// Recurse
-				return createSamplerForProbPathPropertySimple(exprUnary.getOperand(), mf);
+				return createSamplerForProbPathPropertySimple(exprUnary.getOperand(), modelInfo);
 			}
 			// Negation
 			else if (exprUnary.getOperator() == ExpressionUnaryOp.NOT) {
 				// Recurse, then negate meaning
-				SamplerBoolean sampler = createSamplerForProbPathPropertySimple(exprUnary.getOperand(), mf);
+				SamplerBoolean sampler = createSamplerForProbPathPropertySimple(exprUnary.getOperand(), modelInfo);
 				sampler.negate();
 				return sampler;
 			}
@@ -194,7 +200,7 @@ public abstract class Sampler
 			// Until
 			else if (exprTemp.getOperator() == ExpressionTemporal.P_U) {
 				if (exprTemp.hasBounds()) {
-					if (mf.getModelType().continuousTime()) {
+					if (modelInfo.getModelType().continuousTime()) {
 						// Continuous-time bounded until
 						return new SamplerBoundedUntilCont(exprTemp);
 					} else {
@@ -208,32 +214,17 @@ public abstract class Sampler
 			}
 			// Anything else - convert to until and recurse
 			else {
-				return createSamplerForProbPathPropertySimple(exprTemp.convertToUntilForm(), mf);
+				return createSamplerForProbPathPropertySimple(exprTemp.convertToUntilForm(), modelInfo);
 			}
 		}
 
 		throw new PrismException("Can't create sampler for property \"" + expr + "\"");
 	}
 
-	private static SamplerDouble createSamplerForRewardProperty(ExpressionReward expr, ModulesFile mf) throws PrismException
+	private static SamplerDouble createSamplerForRewardProperty(ExpressionReward expr, ModelInfo modelInfo, RewardGenerator rewardGen) throws PrismException
 	{
 		// Extract reward structure index
-		Object rs = expr.getRewardStructIndex();
-		int rsi = -1;
-		if (mf.getNumRewardStructs() == 0)
-			throw new PrismException("Model has no rewards specified");
-		if (rs == null) {
-			rsi = 0;
-		} else if (rs instanceof Expression) {
-			rsi = ((Expression) rs).evaluateInt();
-			rs = new Integer(rsi); // for better error reporting below
-			rsi = (rsi < 1 || rsi > mf.getNumRewardStructs()) ? -1 : rsi - 1;
-		} else if (rs instanceof String) {
-			rsi = mf.getRewardStructIndex((String) rs);
-		}
-		if (rsi == -1)
-			throw new PrismException("Invalid reward structure index \"" + rs + "\"");
-
+		int rsi = expr.getRewardStructIndexByIndexObject(rewardGen, null);
 		// Construct sampler based on type
 		if (!(expr.getExpression() instanceof ExpressionTemporal)) {
 			// catch complex co-safety reward specifications
@@ -242,7 +233,7 @@ public abstract class Sampler
 		ExpressionTemporal exprTemp = (ExpressionTemporal) expr.getExpression();
 		switch (exprTemp.getOperator()) {
 		case ExpressionTemporal.R_C:
-			if (mf.getModelType().continuousTime()) {
+			if (modelInfo.getModelType().continuousTime()) {
 				// Continuous-time cumulative reward
 				return new SamplerRewardCumulCont(exprTemp, rsi);
 			} else {
@@ -250,7 +241,7 @@ public abstract class Sampler
 				return new SamplerRewardCumulDisc(exprTemp, rsi);
 			}
 		case ExpressionTemporal.R_I:
-			if (mf.getModelType().continuousTime()) {
+			if (modelInfo.getModelType().continuousTime()) {
 				// Continuous-time instantaneous reward
 				return new SamplerRewardInstCont(exprTemp, rsi);
 			} else {

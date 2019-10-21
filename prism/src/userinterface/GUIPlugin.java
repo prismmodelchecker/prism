@@ -246,6 +246,14 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	 * @param e A GUIEvent from elsewhere in the userinterface.
 	 */	
 	public abstract boolean processGUIEvent(GUIEvent e);
+
+	/**
+	 * Hook that is called for each GUIPlugin after the GUI startup has completed.
+	 */
+	public void onInitComponentsCompleted()
+	{
+		// default: do nothing
+	}
 	
 	/** Loads an XML tree stored in 'c'.
 	 * @param c The XML tree

@@ -587,7 +587,7 @@ public class Property extends ASTElement
 	@Override
 	public Property deepCopy()
 	{
-		Property prop = new Property(expr, name, comment);
+		Property prop = new Property(expr.deepCopy(), name, comment);
 		prop.setType(type);
 		prop.setPosition(this);
 		return prop;

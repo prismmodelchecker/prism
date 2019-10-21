@@ -29,6 +29,8 @@ package explicit;
 import java.io.File;
 import java.util.*;
 
+import common.IterableBitSet;
+import explicit.StateValues;
 import explicit.rewards.MCRewards;
 import explicit.rewards.Rewards;
 import explicit.rewards.StateRewardsArray;
@@ -217,6 +219,42 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	// Steady-state/transient probability computation
+
+	/**
+	 * Compute steady-state probability distribution (forwards).
+	 * Start from initial state (or uniform distribution over multiple initial states).
+	 */
+	public StateValues doSteadyState(CTMC ctmc) throws PrismException
+	{
+		return doSteadyState(ctmc, (StateValues) null);
+	}
+
+	/**
+	 * Compute steady-state probability distribution (forwards).
+	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 */
+	public StateValues doSteadyState(CTMC ctmc, File initDistFile) throws PrismException
+	{
+		StateValues initDist = readDistributionFromFile(initDistFile, ctmc);
+		return doSteadyState(ctmc, initDist);
+	}
+
+	/**
+	 * Compute steady-state probability distribution (forwards).
+	 * Optionally, use the passed in vector initDist as the initial probability distribution (time 0).
+	 * If null, start from initial state (or uniform distribution over multiple initial states).
+	 * For reasons of efficiency, when a vector is passed in, it will be trampled over,
+	 * so if you wanted it, take a copy.
+	 * @param ctmc The CTMC
+	 * @param initDist Initial distribution (will be overwritten)
+	 */
+	public StateValues doSteadyState(CTMC ctmc, StateValues initDist) throws PrismException
+	{
+		StateValues initDistNew = (initDist == null) ? buildInitialDistribution(ctmc) : initDist;
+		ModelCheckerResult res = computeSteadyStateProbs(ctmc, initDistNew.getDoubleArray());
+		return StateValues.createFromDoubleArray(res.soln, ctmc);
+	}
 
 	/**
 	 * Compute transient probability distribution (forwards).
@@ -737,6 +775,124 @@ public class CTMCModelChecker extends ProbModelChecker
 		}
 		// Do computation on DTMC
 		return createDTMCModelChecker().computeReachRewards(dtmcEmb, rewEmb, target);
+	}
+
+	/**
+	 * We compute steady-state probabilities in the embedded DTMC.
+	 * To take the exit rates into account, we have to weight the
+	 * steady-state probabilities in each BSCC, using this post-processor.
+	 * See: Baier et al, "Approximate Symbolic Model Checking of Continuous-Time Markov Chains"
+	 * CONCUR'99, p. 151
+	 */
+	private static class SteadyStateBSCCPostProcessor implements DTMCModelChecker.BSCCPostProcessor {
+		private CTMC ctmc;
+
+		public SteadyStateBSCCPostProcessor(CTMC ctmc)
+		{
+			this.ctmc = ctmc;
+		}
+
+		@Override
+		public void apply(double[] soln, BitSet bscc)
+		{
+			// compute sum_{s in BSCC} pi'[s] / E[S]
+			// where pi' are the steady-state probabilities in the BSCC of the embedded DTMC
+			double sum = 0.0;
+			for (int s : IterableBitSet.getSetBits(bscc)) {
+				double E = ctmc.getExitRate(s);
+				if (E == 0.0) // corner case: no outgoing transitions -> self-loop with rate 1
+					E = 1.0;
+
+				sum += soln[s] / E;
+			}
+
+			// set pi[s] = pi'[s] / sum for each state s in BSCC, where again
+			// pi' are the steady-state probabilities in the BSCC of the embedded DTMC
+			// and pi are the steady-state probabilities in the BSCC of the original CTMC
+			for (int s : IterableBitSet.getSetBits(bscc)) {
+				double E = ctmc.getExitRate(s);
+				if (E == 0.0) // corner case: no outgoing transitions -> self-loop with rate 1
+					E = 1.0;
+
+				soln[s] /= E;
+				soln[s] /= sum;
+			}
+		}
+
+	}
+
+	/**
+	 * Compute steady-state probabilities for an S operator, i.e., S=?[ b ].
+	 * @param ctmc the CTMC
+	 * @param b the satisfaction set of states for the inner state formula of the operators
+	 */
+	protected StateValues computeSteadyStateFormula(CTMC ctmc, BitSet b) throws PrismException
+	{
+		double multProbs[] = Utils.bitsetToDoubleArray(b, ctmc.getNumStates());
+
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		// compute the steady-state probabilities in the embedded DTMC, applying the BSCC value post-processing
+		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
+		ModelCheckerResult res = createDTMCModelChecker().computeSteadyStateBackwardsProbs(dtmcEmb, multProbs, new SteadyStateBSCCPostProcessor(ctmc));
+		return StateValues.createFromDoubleArray(res.soln, ctmc);
+	}
+
+	/**
+	 * Compute (forwards) steady-state probabilities
+	 * i.e. compute the long-run probability of being in each state,
+	 * assuming the initial distribution {@code initDist}.
+	 * For space efficiency, the initial distribution vector will be modified and values over-written,
+	 * so if you wanted it, take a copy.
+	 * @param ctmc The CTMC
+	 * @param initDist Initial distribution (will be overwritten)
+	 */
+	public ModelCheckerResult computeSteadyStateProbs(CTMC ctmc, double initDist[]) throws PrismException
+	{
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		// compute the steady-state probabilities in the embedded DTMC, applying the BSCC value post-processing
+		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
+		return createDTMCModelChecker().computeSteadyStateProbs(dtmcEmb, initDist, new SteadyStateBSCCPostProcessor(ctmc));
+	}
+
+	/**
+	 * @see DTMCModelChecker#computeSteadyStateProbsForBSCC(DTMC, BitSet, double[], BSCCPostProcessor)
+	 */
+	public ModelCheckerResult computeSteadyStateProbsForBSCC(CTMC ctmc, BitSet states, double result[]) throws PrismException
+	{
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		return createDTMCModelChecker().computeSteadyStateProbsForBSCC(dtmcEmb, states, result, new SteadyStateBSCCPostProcessor(ctmc));
+	}
+
+	/**
+	 * Compute steady-state rewards, i.e., R=?[ S ].
+	 * @param ctmc the CTMC
+	 * @param modelRewards the (state) rewards
+	 */
+	public ModelCheckerResult computeSteadyStateRewards(CTMC ctmc, MCRewards modelRewards) throws PrismException
+	{
+		int n = ctmc.getNumStates();
+		double multRewards[] = new double[n];
+
+		for (int i = 0; i < n; i++) {
+			multRewards[i] = modelRewards.getStateReward(i);
+		}
+
+		// We construct the embedded DTMC and do the steady-state computation there
+		mainLog.println("Building embedded DTMC...");
+		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+
+		// compute the steady-state rewards in the embedded DTMC, applying the BSCC value post-processing
+		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
+		return createDTMCModelChecker().computeSteadyStateBackwardsProbs(dtmcEmb, multRewards, new SteadyStateBSCCPostProcessor(ctmc));
 	}
 
 	/**

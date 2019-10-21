@@ -177,7 +177,7 @@ public class GUISimLabelList extends JList
 		{
 			try {
 				return engine.queryIsInitial() ? 1 : 0;
-			} catch (PrismLangException e) {
+			} catch (PrismException e) {
 				return -1;
 			}
 		}
@@ -187,7 +187,7 @@ public class GUISimLabelList extends JList
 		{
 			try {
 				return engine.queryIsInitial(step) ? 1 : 0;
-			} catch (PrismLangException e) {
+			} catch (PrismException e) {
 				return -1;
 			}
 		}

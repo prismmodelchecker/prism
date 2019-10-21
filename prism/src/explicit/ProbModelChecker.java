@@ -43,7 +43,6 @@ import parser.ast.ExpressionSS;
 import parser.ast.ExpressionStrategy;
 import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
-import parser.ast.RewardStruct;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypePathBool;
@@ -870,7 +869,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		MinMax minMax = opInfo.getMinMax(model.getModelType(), forAll);
 
 		// Build rewards
-		int r = expr.getRewardStructIndexByIndexObject(modelInfo, constantValues);
+		int r = expr.getRewardStructIndexByIndexObject(rewardGen, constantValues);
 		mainLog.println("Building reward structure...");
 		Rewards rewards = constructRewards(model, r);
 
@@ -896,10 +895,10 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Construct rewards for the reward structure with index r of the model generator and a model.
+	 * Construct rewards for the reward structure with index r of the reward generator and a model.
 	 * Ensures non-negative rewards.
 	 * <br>
-	 * Note: Relies on the stored ModelGenerator for constructing the reward structure.
+	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
 	 */
 	protected Rewards constructRewards(Model model, int r) throws PrismException
 	{
@@ -907,61 +906,18 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
-	 * Construct rewards for the reward structure with index r of the model generator and a model.
+	 * Construct rewards for the reward structure with index r of the reward generator and a model.
 	 * <br>
 	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
 	 * <br>
-	 * Note: Relies on the stored ModelGenerator for constructing the reward structure.
+	 * Note: Relies on the stored RewardGenerator for constructing the reward structure.
 	 */
 	protected Rewards constructRewards(Model model, int r, boolean allowNegativeRewards) throws PrismException
 	{
-		ConstructRewards constructRewards = new ConstructRewards(mainLog);
+		ConstructRewards constructRewards = new ConstructRewards(this);
 		if (allowNegativeRewards)
 			constructRewards.allowNegativeRewards();
-		return constructRewards.buildRewardStructure(model, modelGen, r);
-	}
-
-	/**
-	 * Construct rewards from a (non-negative) reward structure and a model.
-	 * <br>
-	 * Note: Deprecated, use the methods with reward structure index r instead
-	 * to allow construction from model generators.
-	 */
-	@Deprecated
-	protected Rewards constructRewards(Model model, RewardStruct rewStruct) throws PrismException
-	{
-		return constructRewards(model, rewStruct, false);
-	}
-
-	/**
-	 * Construct rewards from a reward structure and a model.
-	 * <br>
-	 * If {@code allowNegativeRewards} is true, the rewards may be positive and negative, i.e., weights.
-	 * <br>
-	 * Note: Deprecated, use the methods with reward structure index r instead
-	 * to allow construction from model generators.
-	 */
-	@Deprecated
-	protected Rewards constructRewards(Model model, RewardStruct rewStruct, boolean allowNegativeRewards) throws PrismException
-	{
-		Rewards rewards;
-		ConstructRewards constructRewards = new ConstructRewards(mainLog);
-
-		if (allowNegativeRewards)
-			constructRewards.allowNegativeRewards();
-
-		switch (model.getModelType()) {
-		case CTMC:
-		case DTMC:
-			rewards = constructRewards.buildMCRewardStructure((DTMC) model, rewStruct, constantValues);
-			break;
-		case MDP:
-			rewards = constructRewards.buildMDPRewardStructure((MDP) model, rewStruct, constantValues);
-			break;
-		default:
-			throw new PrismNotSupportedException("Cannot build rewards for " + model.getModelType() + "s");
-		}
-		return rewards;
+		return constructRewards.buildRewardStructure(model, rewardGen, r);
 	}
 
 	/**
@@ -983,6 +939,9 @@ public class ProbModelChecker extends NonProbModelChecker
 				} else {
 					rewards = checkRewardTotal(model, modelRewards, exprTemp, minMax);
 				}
+				break;
+			case ExpressionTemporal.R_S:
+				rewards = checkRewardSteady(model, modelRewards);
 				break;
 			default:
 				throw new PrismNotSupportedException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " reward operator");
@@ -1110,6 +1069,27 @@ public class ProbModelChecker extends NonProbModelChecker
 	}
 
 	/**
+	 * Compute expected rewards for a steady-state reward operator.
+	 */
+	protected StateValues checkRewardSteady(Model model, Rewards modelRewards) throws PrismException
+	{
+		// Compute/return the rewards
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+		case DTMC:
+			res = ((DTMCModelChecker) this).computeSteadyStateRewards((DTMC) model, (MCRewards) modelRewards);
+			break;
+		case CTMC:
+			res = ((CTMCModelChecker) this).computeSteadyStateRewards((CTMC) model, (MCRewards) modelRewards);
+			break;
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet handle the steady-state reward operator for " + model.getModelType() + "s");
+		}
+		result.setStrategy(res.strat);
+		return StateValues.createFromDoubleArray(res.soln, model);
+	}
+
+	/**
 	 * Compute rewards for a path formula in a reward operator.
 	 */
 	protected StateValues checkRewardPathFormula(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
@@ -1207,16 +1187,14 @@ public class ProbModelChecker extends NonProbModelChecker
 		BitSet b = checkExpression(model, expr, null).getBitSet();
 
 		// Compute/return the probabilities
-		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
 		case DTMC:
-			double multProbs[] = Utils.bitsetToDoubleArray(b, model.getNumStates());
-			res = ((DTMCModelChecker) this).computeSteadyStateBackwardsProbs((DTMC) model, multProbs);
-			break;
+			return ((DTMCModelChecker) this).computeSteadyStateFormula((DTMC) model, b);
+		case CTMC:
+			return ((CTMCModelChecker) this).computeSteadyStateFormula((CTMC) model, b);
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the S operator for " + model.getModelType() + "s");
 		}
-		return StateValues.createFromDoubleArray(res.soln, model);
 	}
 
 	// Utility methods for probability distributions
