@@ -150,6 +150,13 @@ public class ExpressionIdent extends Expression
 			return false;
 		return true;
 	}
+	
+	// Static utility methods
+	
+	public static boolean isLegalIdentifierName(String name)
+	{
+		return name.matches("[_a-zA-z][_a-zA-z0-9]*");
+	}
 }
 
 //------------------------------------------------------------------------------

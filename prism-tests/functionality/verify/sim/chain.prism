@@ -1,0 +1,17 @@
+// Completely deterministic model
+// used to do some sanity checks on statistical model checking
+
+dtmc
+
+const int N = 10;
+
+module M
+
+	x : [0..N];
+	
+	[] x<N -> (x'=x+1);
+	[] x=N -> true;
+
+endmodule
+
+label "end" = x=N;

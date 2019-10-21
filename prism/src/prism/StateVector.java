@@ -39,10 +39,15 @@ public interface StateVector
 	/**
 	 * Get the value of the ith element of the vector, as an Object.
 	 */
-	public Object getValue(int i);
+	public Object getValue(int i) throws PrismNotSupportedException;
 	
 	/**
 	 * Clear the vector, i.e. free any used memory.
 	 */
 	public void clear();
+	
+	/**
+	 * Print vector to a log/file (non-zero/non-false entries only).
+	 */
+	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException;
 }

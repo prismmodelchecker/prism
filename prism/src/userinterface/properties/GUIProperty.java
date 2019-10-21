@@ -31,14 +31,19 @@ package userinterface.properties;
 
 import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
 
-import userinterface.GUIPrism;
 import param.BigRational;
-import parser.*;
-import parser.ast.*;
-import parser.type.TypeVoid;
-import prism.*;
+import parser.Values;
+import parser.ast.Expression;
+import parser.ast.ModulesFile;
+import parser.ast.PropertiesFile;
+import prism.Interval;
+import prism.Prism;
+import prism.PrismException;
+import prism.Result;
+import prism.TileList;
+import userinterface.GUIPrism;
 
 /**
  * Encapsulates a property in the list in the GUI "Properties" tab.
@@ -356,7 +361,7 @@ public class GUIProperty
 		}
 	}
 
-	public void parse(ModulesFile m, String constantsString, String labelString)
+	public void parse(String constantsString, String labelString)
 	{
 		if (propString == null || constantsString == null || labelString == null) {
 			expr = null;
@@ -369,7 +374,7 @@ public class GUIProperty
 			boolean couldBeNoConstantsOrLabels = false;
 			PropertiesFile fConLab = null;
 			try {
-				fConLab = prism.parsePropertiesString(m, constantsString + "\n" + labelString);
+				fConLab = prism.parsePropertiesString(constantsString + "\n" + labelString);
 			} catch (PrismException e) {
 				couldBeNoConstantsOrLabels = true;
 			}
@@ -388,7 +393,7 @@ public class GUIProperty
 			
 			//Parse all together
 			String withConsLabs = constantsString + "\n" + labelString + "\n" + namedString + propString;
-			PropertiesFile ff = prism.parsePropertiesString(m, withConsLabs);
+			PropertiesFile ff = prism.parsePropertiesString(withConsLabs);
 			
 			//Validation of number of properties
 			if (ff.getNumProperties() <= namedCount)

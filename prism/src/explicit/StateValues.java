@@ -1268,6 +1268,22 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Compute dot (inner) product of this and another vector {@code sv}.
+	 */
+	public double dotProduct(StateValues sv) throws PrismException
+	{
+		if (type instanceof TypeDouble) {
+			double dotProduct = 0;
+			for (int i = 0; i < size; i++) {
+				dotProduct += valuesD[i] * sv.valuesD[i];
+			}
+			return dotProduct;
+		} else {
+			throw new PrismException("Dot product can only be applied to double vectors");
+		}
+	}
+	
+	/**
 	 * Set the elements of this vector by reading them in from a file.
 	 */
 	public void readFromFile(File file) throws PrismException
@@ -1706,15 +1722,19 @@ public class StateValues implements StateVector
 			} else {
 				if (printIndices) {
 					log.print(n);
-					log.print(":");
 				}
-				if (printStates && statesList != null)
+				if (printStates && statesList != null) {
+					if (printIndices) {
+						log.print(":");
+					}
 					log.print(statesList.get(n).toString());
+				}
 				if (printSparse && type instanceof TypeBool) {
 					log.println();
 				} else {
-					if (printIndices || printStates)
+					if (printIndices || printStates) {
 						log.print("=");
+					}
 					log.println(getValue(n));
 				}
 			}

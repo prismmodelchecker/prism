@@ -34,4 +34,4 @@ Current test sets are:
 
 See here for more details:
 
-* http://www.prismmodelchecker.org/wiki/Developers/RegressionTesting
+* https://github.com/prismmodelchecker/prism/wiki/Regression-Testing

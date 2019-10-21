@@ -106,6 +106,10 @@ public class Result
 	 */
 	public void setVector(StateVector vect)
 	{
+		// If we have a vector that was previously stored, clear it.
+		if (this.vect != null) {
+			this.vect.clear();
+		}
 		this.vect = vect;
 	}
 	

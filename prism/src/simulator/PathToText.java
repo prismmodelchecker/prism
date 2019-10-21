@@ -27,9 +27,10 @@
 package simulator;
 
 import parser.State;
-import parser.ast.ModulesFile;
+import prism.ModelInfo;
 import prism.PrismFileLog;
 import prism.PrismLog;
+import prism.RewardGenerator;
 
 /**
  * Class to display a simulation path in text form, sending to a PrismLog.
@@ -39,11 +40,12 @@ public class PathToText extends PathDisplayer
 	/** Log to display path to */
 	private PrismLog log;
 
-	// Model info
-	private ModulesFile modulesFile;
+	// Model/reward info
+	private ModelInfo modelInfo;
 	private int numVars;
-	private int numRewardStructs;
 	private boolean contTime;
+	private RewardGenerator rewardGen;
+	private int numRewardStructs;
 
 	// Config
 	private boolean showTimeCumul = true;
@@ -63,17 +65,19 @@ public class PathToText extends PathDisplayer
 	/**
 	 * Construct a {@link PathToText} object
 	 * @param log Log to output path to
-	 * @param modulesFile Model associated with path
+	 * @param modelInfo Model associated with path
+	 * @param rewardGen Rewards associated with path
 	 */
-	public PathToText(PrismLog log, ModulesFile modulesFile)
+	public PathToText(PrismLog log, ModelInfo modelInfo, RewardGenerator rewardGen)
 	{
 		this.log = log;
-		this.modulesFile = modulesFile;
+		this.modelInfo = modelInfo;
+		this.rewardGen = rewardGen;
 
-		// Get model info
-		numVars = modulesFile.getNumVars();
-		numRewardStructs = modulesFile.getNumRewardStructs();
-		contTime = modulesFile.getModelType().continuousTime();
+		// Get model/reward info
+		numVars = modelInfo.getNumVars();
+		contTime = modelInfo.getModelType().continuousTime();
+		numRewardStructs = rewardGen.getNumRewardStructs();
 	}
 
 	// Setters
@@ -121,10 +125,10 @@ public class PathToText extends PathDisplayer
 			log.print(getColSep() + "time");
 		if (varsToShow == null)
 			for (j = 0; j < numVars; j++)
-				log.print(getColSep() + modulesFile.getVarName(j));
+				log.print(getColSep() + modelInfo.getVarName(j));
 		else
 			for (int v : varsToShow)
-				log.print(getColSep() + modulesFile.getVarName(v));
+				log.print(getColSep() + modelInfo.getVarName(v));
 		if (getShowRewards()) {
 			if (numRewardStructs == 1) {
 				log.print(getColSep() + "state_reward");
@@ -166,7 +170,7 @@ public class PathToText extends PathDisplayer
 	}
 
 	@Override
-	public void displayStep(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
+	public void displayStep(double timeSpent, double timeCumul, String actionString, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
 	{
 		if (!showChangesOnly || changed) {
 			// display rewards for last state
@@ -192,7 +196,7 @@ public class PathToText extends PathDisplayer
 		firstCol = true;
 
 		// display action
-		log.print(getColSep() + action);
+		log.print(getColSep() + actionString);
 		// display probability/rate
 		if (showProbs)
 			log.print(getColSep() + probability);

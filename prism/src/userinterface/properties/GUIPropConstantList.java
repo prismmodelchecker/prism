@@ -358,7 +358,7 @@ public class GUIPropConstantList extends JTable
 		{
 			try {
 				error = null;
-				parent.getPrism().parsePropertiesString(parent.getParsedModel(), parseableToString());
+				parent.getPrism().parsePropertiesString(parseableToString());
 			}
 			catch (PrismException e) {
 				error = e;

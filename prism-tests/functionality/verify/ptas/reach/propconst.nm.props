@@ -1,0 +1,41 @@
+const int K = 2;
+const int L;
+
+label "x3" = x=3;
+
+// This tests clocks appearing in the property
+// (the use of digital clocks with -ex means that the expression
+//  is evaluated and all the types have to be correct)
+// RESULT: 1.0
+Pmax=? [ F x>=2 ];
+
+// This tests that property is traversed for clock scaling
+// (GCD should be 1 in this case)
+// RESULT: 1.0
+Pmax=? [ F x=3 ];
+
+// This also tests that property is traversed for clock scaling
+// (GCD is unaffected but clock max must be right to reach x=10)
+// RESULT: 1.0
+Pmax=? [ F x=10 ];
+
+// This tests that properties file labels are traversed for clock scaling
+// (GCD should be 1 in this case)
+// RESULT: 1.0
+Pmax=? [ F "x3" ];
+
+// This tests that property references are traversed for clock scaling
+// (GCD should be 1 in this case)
+// RESULT: 1.0
+Pmax=? [ F "p3" ];
+
+// RESULT: ?
+"p3":x=3;
+
+// This tests (defined) constants from the prop file
+// RESULT: 1.0
+Pmax=? [ F x>=K ];
+
+// This tests (undefined) constants from the prop file
+// RESULT: 1.0
+Pmax=? [ F x>=L ];

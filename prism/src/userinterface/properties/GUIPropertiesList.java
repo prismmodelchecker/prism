@@ -428,7 +428,7 @@ public class GUIPropertiesList extends JList implements KeyListener
 			int i = 0;
 			while (i < list.size()) {
 				GUIProperty p = list.get(i);
-				p.parse(parent.getParsedModel(), parent.getConstantsString(), parent.getLabelsString());
+				p.parse(parent.getConstantsString(), parent.getLabelsString());
 				if (p.isValid()) {
 					list.remove(i);
 					changed = true;

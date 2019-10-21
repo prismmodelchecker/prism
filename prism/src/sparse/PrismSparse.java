@@ -33,6 +33,7 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import odd.ODDNode;
+import odd.ODDUtils;
 import prism.NativeIntArray;
 import prism.OpsAndBoundsList;
 import prism.PrismException;
@@ -89,10 +90,7 @@ public class PrismSparse
 	{
 		// currently, the sparse engine internally uses int (signed 32bit) index values
 		// so, if the number of states is larger than Integer.MAX_VALUE, there is a problem
-		long n = odd.getEOff() + odd.getTOff();
-		if (n >= Integer.MAX_VALUE) {
-			throw new PrismNotSupportedException("The sparse engine can currently only handle up to " + Integer.MAX_VALUE + " reachable states, model has " + n + " states");
-		}
+		ODDUtils.checkInt(odd, "Currently, the sparse engine cannot handle models");
 	}
 
 	//----------------------------------------------------------------------------------------------

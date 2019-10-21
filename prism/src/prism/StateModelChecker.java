@@ -220,14 +220,16 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Remove any existing filter info
 		currentFilter = null;
 
+		// If we need to store a copy of the results vector, add a "store" filter to represent this
+		if (storeVector) {
+			ExpressionFilter exprFilter = new ExpressionFilter("store", expr);
+			exprFilter.setInvisible(true);
+			exprFilter.typeCheck();
+			expr = exprFilter;
+		}
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
-		ExpressionFilter exprFilter = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumStartStates() == 1);
-		// And if we need to store a copy of the results vector, make a note of this
-		if (storeVector) {
-			exprFilter.setStoreVector(true);
-		}
-		expr = exprFilter;
+		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumStartStates() == 1);
 		
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
@@ -1138,7 +1140,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean filterTrue = Expression.isTrue(filter);
 		// Store some more info
 		String filterStatesString = filterTrue ? "all states" : "states satisfying filter";
-		JDDNode ddFilter = checkExpressionDD(filter, statesOfInterest.copy());
+		JDDNode ddFilter = checkExpressionDD(filter,  model.getReach().copy());
 		StateListMTBDD statesFilter = new StateListMTBDD(ddFilter, model);
 		// Check if filter state set is empty; we treat this as an error
 		if (ddFilter.equals(JDD.ZERO)) {
@@ -1150,7 +1152,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// For some types of filter, store info that may be used to optimise model checking
 		FilterOperator op = expr.getOperatorType();
-		if (op == FilterOperator.STATE) {
+		if (op == FilterOperator.STATE && ODDUtils.hasIntValue(odd)) {
 			// Check filter satisfied by exactly one state
 			if (statesFilter.size() != 1) {
 				String s = "Filter should be satisfied in exactly 1 state";
@@ -1158,9 +1160,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				throw new PrismException(s);
 			}
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
-		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle) {
+		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle && ODDUtils.hasIntValue(odd)) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
-		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle) {
+		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle && ODDUtils.hasIntValue(odd)) {
 			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else {
 			currentFilter = null;
@@ -1177,8 +1179,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 
 		// Print out number of states satisfying filter
-		if (!filterInit)
+		if (!filterInit && !expr.isInvisible()) {
 			mainLog.println("\nStates satisfying filter " + filter + ": " + statesFilter.sizeString());
+		}
 
 		// Compute result according to filter type
 		op = expr.getOperatorType();
@@ -1213,6 +1216,14 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				}
 			}
 			// Result vector is unchanged; for PRINT/PRINTALL, don't store a single value (in resObj)
+			// Also, don't bother with explanation string
+			resVals = vals;
+			// Set vals to null to stop it being cleared below
+			vals = null;
+			break;
+		case STORE:
+			// Not much to do here - will be handled below when we store in the Result object
+			// Result vector is unchanged; like PRINT/PRINTALL, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
@@ -1468,10 +1479,13 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		} else {
 			result.setExplanation(null);
 		}
-		// Store vector if requested (and if not, clear it)
-		if (storeVector) {
-			result.setVector(vals);
-		} else if (vals != null) {
+		// Store vector if requested
+		if (op == FilterOperator.STORE) {
+			result.setVector(resVals);
+		}
+		// Clear old vector if present
+		// (and if the vector was not stored previously)
+		if (vals != null && !(Expression.isFilter(expr.getOperand(), FilterOperator.STORE))) {
 			vals.clear();
 		}
 		// Other derefs

@@ -382,12 +382,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			// Check model is simulate-able
 			// (bail out now else causes problems below)
-			engine.checkModelForSimulation(parsedModel);
+			getPrism().checkModelForSimulation();
 
 			// get properties constants/labels
 			PropertiesFile pf;
 			try {
-				pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString() + guiProp.getLabelsString());
+				pf = getPrism().parsePropertiesString(guiProp.getConstantsString().toString() + guiProp.getLabelsString());
 			} catch (PrismLangException e) {
 				// ignore properties if they don't parse
 				pf = null; //if any problems
@@ -434,9 +434,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			tableScroll.setViewportView(pathTable);
 
 			displayPathLoops = true;
-
-			// Create a new path in the simulator and add labels/properties 
-			engine.createNewPath(parsedModel);
+			
+			// Create a new path in the simulator and add labels/properties
+			getPrism().loadModelIntoSimulator();
+			engine.createNewPath();
 			engine.initialisePath(initialState == null ? null : new parser.State(initialState, parsedModel));
 			// Update model/path/tables/lists
 			setPathActive(true);
@@ -727,7 +728,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// get properties constants/labels
 			PropertiesFile pf;
 			try {
-				pf = getPrism().parsePropertiesString(parsedModel, guiProp.getConstantsString().toString() + guiProp.getLabelsString());
+				pf = getPrism().parsePropertiesString(guiProp.getConstantsString().toString() + guiProp.getLabelsString());
 			} catch (PrismLangException e) {
 				// ignore properties if they don't parse
 				pf = null; //if any problems
@@ -737,8 +738,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			displayPathLoops = true;
 
-			// Load new path into the simulator 
-			engine.loadPath(parsedModel, pathNew);
+			// Load new path into the simulator
+			getPrism().loadModelIntoSimulator();
+			engine.loadPath(pathNew);
 			// Update model/path/tables/lists
 			setPathActive(true);
 			pathTableModel.setPath(engine.getPathFull());
@@ -761,10 +763,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void a_exportPath()
 	{
 		try {
+			boolean exportRewards = false;
+			if (parsedModel != null && parsedModel.getNumRewardStructs() > 0) {
+				exportRewards = (question("Export the path with or without reward information?", new String[]{"With rewards", "Without rewards"}) == 0);
+			}
+
 			if (showSaveFileDialog(textFilter) != JFileChooser.APPROVE_OPTION)
 				return;
+
 			setComputing(true);
-			engine.exportPath(getChooserFile());
+			engine.exportPath(getChooserFile(), exportRewards);
 		} catch (PrismException e) {
 			error(e.getMessage());
 		} finally {
@@ -802,7 +810,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		try {
 			// Check model is simulate-able
 			// (bail out now else causes problems below)
-			engine.checkModelForSimulation(parsedModel);
+			getPrism().checkModelForSimulation();
 
 			// if necessary, get values for undefined constants from user
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, null);
@@ -840,6 +848,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			long maxPathLength = pathPlotDialog.getMaxPathLength();
 
 			// Create a new path in the simulator and plot it 
+			getPrism().loadModelIntoSimulator();
 			a_clearPath();
 			setComputing(true);
 			guiProp.tabToFront();
@@ -847,7 +856,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			guiProp.getGraphHandler().addGraph(graphModel);
 			getPrism().getMainLog().resetNumberOfWarnings();
 			parser.State initialStateObject = initialState == null ? null : new parser.State(initialState, parsedModel);
-			new SimPathPlotThread(this, engine, parsedModel, initialStateObject, simPathDetails, maxPathLength, graphModel).start();
+			new SimPathPlotThread(this, engine, initialStateObject, simPathDetails, maxPathLength, graphModel).start();
 
 			// store initial state for next time
 			lastInitialState = initialState;
@@ -1937,6 +1946,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	{
 		this.parsedModel = parsedModel;
 		pathTableModel.setParsedModel(parsedModel);
+		pathTableModel.setModelInfo(parsedModel);
 	}
 
 	/**
@@ -2255,7 +2265,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				try {
 					switch (columnIndex) {
 					case 0:
-						return engine.getTransitionModuleOrAction(rowIndex);
+						return engine.getTransitionActionString(rowIndex);
 					case 1:
 						return "" + engine.getTransitionProbability(rowIndex);
 					case 2:
@@ -2275,7 +2285,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			if (pathActive) {
 				switch (column) {
 				case 0:
-					return "Module/[action]";
+					return engine.getModel().getActionStringDescription();
 				case 1:
 					return parsedModel == null ? "Probability" : parsedModel.getModelType().probabilityOrRate();
 				case 2:

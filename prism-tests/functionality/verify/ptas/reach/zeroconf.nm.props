@@ -1,3 +1,22 @@
+const int K=2;
+const int L;
+
 // Maximum probability of configuring IP address incorrectly
 // RESULT: 130321/100130321
 "incorrect": Pmax=? [ F s=2 & ip=2 ];
+
+// As above but testing using constants
+// RESULT: 130321/100130321
+Pmax=? [ F s=2 & ip=K ];
+
+// As above but testing using (undefined) constants
+// RESULT: 130321/100130321
+Pmax=? [ F s=2 & ip=L ];
+
+const int T = 150;
+
+// Maximum probability of configuring IP address incorrectly by time T
+// RESULT (T=100): 6.51605e-4
+// RESULT (T=150): 0.00107253
+// RESULT (T=200): 0.00122154
+"deadline": Pmax=? [ F<=T s=2 & ip=2 ];

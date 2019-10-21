@@ -86,6 +86,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
 	private String exportResultsFormat = "plain";
+	private boolean exportvector = false;
 	private boolean exportPlainDeprecated = false;
 	private boolean exportModelNoBasename = false;
 	private int exportType = Prism.EXPORT_PLAIN;
@@ -103,7 +104,7 @@ public class PrismCL implements PrismModelListener
 	private boolean testExitsOnFail = true;
 
 	// property info
-	private Object propertyToCheck = null;
+	private List<Object> propertyIndices = null;
 	private String propertyString = "";
 
 	// argument to -const switch
@@ -126,6 +127,7 @@ public class PrismCL implements PrismModelListener
 	private String importLabelsFilename = null;
 	private String importStateRewardsFilename = null;
 	private String importInitDistFilename = null;
+	private String importModelWarning = null;
 	private String propertiesFilename = null;
 	private String exportTransFilename = null;
 	private String exportStateRewardsFilename = null;
@@ -140,6 +142,7 @@ public class PrismCL implements PrismModelListener
 	private String exportBSCCsFilename = null;
 	private String exportMECsFilename = null;
 	private String exportResultsFilename = null;
+	private String exportVectorFilename = null;
 	private String exportSteadyStateFilename = null;
 	private String exportTransientFilename = null;
 	private String exportStratFilename = null;
@@ -329,7 +332,7 @@ public class PrismCL implements PrismModelListener
 					if (!simMaxPathGiven)
 						simMaxPath = prism.getSettings().getLong(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH);
 					File f = (simpathFilename.equals("stdout")) ? null : new File(simpathFilename);
-					prism.generateSimulationPath(modulesFile, simpathDetails, simMaxPath, f);
+					prism.generateSimulationPath(simpathDetails, simMaxPath, f);
 				} catch (PrismException e) {
 					error(e.getMessage());
 				}
@@ -408,7 +411,7 @@ public class PrismCL implements PrismModelListener
 						if (modelBuildFail) {
 							results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 							if (test) {
-								doResultTest(propertiesToCheck.get(j), new Result(modelBuildException));
+								doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), modulesFile.getConstantValues(), null);
 							}
 							break;
 						}
@@ -446,9 +449,27 @@ public class PrismCL implements PrismModelListener
 							}
 						}
 
+						// if a results vector was stored, and we need to export it, do so
+						if (exportvector && res.getVector() != null) {
+							mainLog.print("\nExporting vector of results for all states ");
+							mainLog.println(exportVectorFilename.equals("stdout") ? "below:" : "to file \"" + exportVectorFilename + "\"...");
+							PrismFileLog tmpLog = new PrismFileLog(exportVectorFilename);
+							if (!tmpLog.ready()) {
+								errorAndExit("Couldn't open file \"" + exportVectorFilename + "\" for output");
+							}
+							boolean toStdout = exportVectorFilename.equals("stdout");
+							try {
+								res.getVector().print(tmpLog, false, false, toStdout, toStdout);
+							} catch (PrismException e) {
+								error(e.getMessage());
+							}
+							res.getVector().clear();
+							tmpLog.close();
+						}
+						
 						// if required, check result against expected value
 						if (test) {
-							doResultTest(propertiesToCheck.get(j), res);
+							doResultTest(propertiesToCheck.get(j), res, modulesFile.getConstantValues(), propertiesFile.getConstantValues());
 						}
 
 						// iterate to next property
@@ -461,7 +482,7 @@ public class PrismCL implements PrismModelListener
 					for (j++; j < numPropertiesToCheck; j++) {
 						results[j].setMultipleErrors(definedMFConstants, null, modelBuildException);
 						if (test) {
-							doResultTest(propertiesToCheck.get(j), new Result(modelBuildException));
+							doResultTest(propertiesToCheck.get(j), new Result(modelBuildException), modulesFile.getConstantValues(), propertiesFile.getConstantValues());
 						}
 					}
 					break;
@@ -568,17 +589,20 @@ public class PrismCL implements PrismModelListener
 		// parse model
 
 		try {
+			if (importModelWarning != null) {
+				mainLog.printWarning(importModelWarning);
+			}
 			if (importpepa) {
 				mainLog.print("\nImporting PEPA file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.importPepaFile(new File(modelFilename));
+				prism.loadPRISMModel(modulesFile);
 			} else if (importprismpp) {
 				mainLog.print("\nImporting PRISM preprocessor file \"" + modelFilename + "\"...\n");
 				String prismppParamsList[] = ("? " + prismppParams).split(" ");
 				modulesFile = prism.importPrismPreprocFile(new File(modelFilename), prismppParamsList);
+				prism.loadPRISMModel(modulesFile);
 			} else if (importtrans) {
-				mainLog.print("\nImporting model (");
-				mainLog.print(typeOverride == null ? "MDP" : typeOverride);
-				mainLog.print(") from \"" + modelFilename + "\"");
+				mainLog.print("\nImporting model from \"" + modelFilename + "\"");
 				if (importstates) {
 					mainLog.print(", \"" + importStatesFilename + "\"");
 					sf = new File(importStatesFilename);
@@ -592,10 +616,11 @@ public class PrismCL implements PrismModelListener
 					srf = new File(importStateRewardsFilename);
 				}
 				mainLog.println("...");
-				modulesFile = prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, typeOverride);
+				prism.loadModelFromExplicitFiles(sf, new File(modelFilename), lf, srf, typeOverride);
 			} else {
 				mainLog.print("\nParsing model file \"" + modelFilename + "\"...\n");
 				modulesFile = prism.parseModelFile(new File(modelFilename), typeOverride);
+				prism.loadPRISMModel(modulesFile);
 			}
 		} catch (FileNotFoundException e) {
 			errorAndExit("File \"" + modelFilename + "\" not found");
@@ -609,11 +634,11 @@ public class PrismCL implements PrismModelListener
 			// if properties file specified...
 			if (propertiesFilename != null) {
 				mainLog.print("\nParsing properties file \"" + propertiesFilename + "\"...\n");
-				propertiesFile = prism.parsePropertiesFile(modulesFile, new File(propertiesFilename));
+				propertiesFile = prism.parsePropertiesFile(new File(propertiesFilename));
 			}
 			// if properties were given on command line...
 			else if (!propertyString.equals("")) {
-				propertiesFile = prism.parsePropertiesString(modulesFile, propertyString);
+				propertiesFile = prism.parsePropertiesString(propertyString);
 			} else {
 				propertiesFile = null;
 			}
@@ -632,15 +657,6 @@ public class PrismCL implements PrismModelListener
 				mainLog.println("(" + (i + 1) + ") " + propertiesFile.getPropertyObject(i));
 			}
 		}
-
-		// Load model into PRISM (if not done already)
-		try {
-			if (!importtrans) {
-				prism.loadPRISMModel(modulesFile);
-			}
-		} catch (PrismException e) {
-			errorAndExit(e.getMessage());
-		}
 	}
 
 	/**
@@ -657,28 +673,30 @@ public class PrismCL implements PrismModelListener
 			numPropertiesToCheck = 0;
 		}
 		// unless specified, verify all properties
-		else if (propertyToCheck == null) {
+		else if (propertyIndices == null) {
 			numPropertiesToCheck = propertiesFile.getNumProperties();
 			for (i = 0; i < numPropertiesToCheck; i++) {
 				propertiesToCheck.add(propertiesFile.getPropertyObject(i));
 			}
 		}
-		// otherwise just verify the relevant property
+		// otherwise just verify the specified properties
 		else {
-			if (propertyToCheck instanceof Integer) {
-				int propIndex = (Integer) propertyToCheck;
-				if (propIndex <= 0 || propIndex > propertiesFile.getNumProperties())
-					errorAndExit("There is not a property " + propIndex + " to verify");
-				numPropertiesToCheck = 1;
-				propertiesToCheck.add(propertiesFile.getPropertyObject(propIndex - 1));
-			} else if (propertyToCheck instanceof String) {
-				Property p = propertiesFile.getPropertyObjectByName((String) propertyToCheck);
-				if (p == null)
-					errorAndExit("There is not a property \"" + propertyToCheck + "\" to check");
-				numPropertiesToCheck = 1;
-				propertiesToCheck.add(p);
-			} else {
-				errorAndExit("There is not a property " + propertyToCheck + " to check");
+			for (Object o : propertyIndices) {
+				if (o instanceof Integer) {
+					int propIndex = (Integer) o;
+					if (propIndex <= 0 || propIndex > propertiesFile.getNumProperties())
+						errorAndExit("There is not a property " + propIndex + " to verify");
+					numPropertiesToCheck += 1;
+					propertiesToCheck.add(propertiesFile.getPropertyObject(propIndex - 1));
+				} else if (o instanceof String) {
+					Property p = propertiesFile.getPropertyObjectByName((String) o);
+					if (p == null)
+						errorAndExit("There is not a property \"" + propertyIndices + "\" to check");
+					numPropertiesToCheck += 1;
+					propertiesToCheck.add(p);
+				} else {
+					errorAndExit("There is not a property " + propertyIndices + " to check");
+				}
 			}
 		}
 	}
@@ -950,6 +968,7 @@ public class PrismCL implements PrismModelListener
 				modelType = prism.getModelType();
 
 				// Parse time specification, store as UndefinedConstant for constant T
+				// (NB: use "null" for model to avoid a potential name clash with T)
 				String timeType = modelType.continuousTime() ? "double" : "int";
 				UndefinedConstants ucTransient = new UndefinedConstants(null, prism.parsePropertiesString(null, "const " + timeType + " T; T;"));
 				try {
@@ -973,23 +992,19 @@ public class PrismCL implements PrismModelListener
 
 	/**
 	 * Test a model checking result against the RESULT specifications attached
-	 * to the property (test mode).
-	 * <br>
-	 * Note: This method should only be called directly after the model checking (i.e.,
-	 * from {@code run()}, as it relies on the fact that the constant values in
-	 * the {@code modulesFile} and {@propertiesFile} reflect the values used for
-	 * model checking.
-	 * <br>
-	 * Test results are output to the log. If a test fails and {@code testExitsOnFail}
-	 * is {@code true} then {@code errorAndExit} is called.
+	 * to the property (test mode). Test results are output to the log.
+	 * If a test fails and {@code testExitsOnFail} is {@code true} then {@code errorAndExit} is called.
+	 * Model/properties file constant values should be provided in case they are used
+	 * in the RESULT specification (but either can be left null if not needed).
 	 * @param prop the property
 	 * @param res the result
+	 * @param mfConstants values for model constants
+	 * @param pfConstants values for properties file constants
 	 */
-	private void doResultTest(Property prop, Result res)
+	private void doResultTest(Property prop, Result res, Values mfConstants, Values pfConstants)
 	{
 		try {
-			mainLog.println();
-			Values allConsts = new Values(modulesFile.getConstantValues(), propertiesFile.getConstantValues());
+			Values allConsts = new Values(mfConstants, pfConstants);
 			if (prop.checkAgainstExpectedResult(res.getResult(), allConsts)) {
 				mainLog.println("Testing result: PASS");
 			} else {
@@ -1147,10 +1162,16 @@ public class PrismCL implements PrismModelListener
 				// which property to check (int index or string name)
 				else if (sw.equals("prop") || sw.equals("property")) {
 					if (i < args.length - 1) {
-						try {
-							propertyToCheck = Integer.parseInt(args[++i]);
-						} catch (NumberFormatException e) {
-							propertyToCheck = args[i];
+						String[] props = args[++i].trim().split(",");
+						propertyIndices = new ArrayList<Object>();
+						for (String p : props) {
+							if (!p.isEmpty()) {
+								try {
+									propertyIndices.add(Integer.parseInt(p));
+								} catch (NumberFormatException e) {
+									propertyIndices.add(p);
+								}
+							}
 						}
 					} else {
 						errorAndExit("No value specified for -" + sw + " switch");
@@ -1358,6 +1379,16 @@ public class PrismCL implements PrismModelListener
 						}
 					} else {
 						errorAndExit("No file/options specified for -" + sw + " switch");
+					}
+				}
+				// export vector of results
+				else if (sw.equals("exportvector")) {
+					if (i < args.length - 1) {
+						exportvector = true;
+						exportVectorFilename = args[++i];
+						prism.setStoreVector(true);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
 				// export model to explicit file(s)
@@ -1857,6 +1888,7 @@ public class PrismCL implements PrismModelListener
 		String extList = filesString.substring(i + 1);
 		String exts[] = extList.split(",");
 		// Process file extensions
+		importModelWarning = null;
 		for (String ext : exts) {
 			// Items to import
 			if (ext.equals("all")) {
@@ -1870,9 +1902,9 @@ public class PrismCL implements PrismModelListener
 					importstaterewards = true;
 					importStateRewardsFilename = basename + ".srew";
 				}
-			} else if (ext.equals("tra")) {
-				importtrans = true;
-				modelFilename = basename + ".tra";
+				if (new File(basename + ".trew").exists()) {
+					importModelWarning = "Import of transition rewards is not yet supported so " + basename + ".trew is being ignored";
+				}
 			} else if (ext.equals("tra")) {
 				importtrans = true;
 				modelFilename = basename + ".tra";
@@ -1890,10 +1922,10 @@ public class PrismCL implements PrismModelListener
 			else {
 				throw new PrismException("Unknown extension \"" + ext + "\" for -importmodel switch");
 			}
-			// Check at least the transition matrix was imported
-			if (!importtrans) {
-				throw new PrismException("You must import the transition matrix when using -importmodel (use option \"tra\" or \"all\")");
-			}
+		}
+		// Check at least the transition matrix was imported
+		if (!importtrans) {
+			throw new PrismException("You must import the transition matrix when using -importmodel (use option \"tra\" or \"all\")");
 		}
 		// No options supported currently
 		/*// Process options
@@ -2365,7 +2397,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-settings <file>................ Load settings from <file>");
 		mainLog.println();
 		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
-		mainLog.println("-property <n> (or -prop <n>) ... Only model check property with index/name <n>");
+		mainLog.println("-property <refs> (or -prop) .... Only model check properties included in list <refs> of indices/names");
 		mainLog.println("-const <vals> .................. Define constant values as <vals> (e.g. for experiments)");
 		mainLog.println("-steadystate (or -ss) .......... Compute steady-state probabilities (D/CTMCs only)");
 		mainLog.println("-transient <x> (or -tr <x>) .... Compute transient probabilities for time (or time range) <x> (D/CTMCs only)");
@@ -2385,7 +2417,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-importstates <file>............ Import the list of states directly from a text file");
 		mainLog.println("-importlabels <file>............ Import the list of labels directly from a text file");
 		mainLog.println("-importstaterewards <file>...... Import the state rewards directly from a text file");
-		mainLog.println("-importinitdist <file>.......... Specify the initial probability distribution for transient analysis");
+		mainLog.println("-importinitdist <file>.......... Specify initial probability distribution for transient/steady-state analysis");
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");

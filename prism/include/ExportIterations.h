@@ -76,9 +76,9 @@ public:
 	/**
 	 * Export the given vector, with size n and given type (0 = normal, VI from below, 1 = VI from above)
 	 */
-	void exportVector(double *soln, int n, int type) {
+	void exportVector(double *soln, int64_t n, int type) {
 		fprintf(fp, "<script>addVector([");
-		for (int i = 0; i < n; i++) {
+		for (int64_t i = 0; i < n; i++) {
 			if (i>0) fprintf(fp, ",");
 			double d = soln[i];
 			if (std::isinf(d)) {
@@ -103,7 +103,7 @@ public:
 		double* vec = mtbdd_to_double_vector(ddman, dd, rvars, num_rvars, odd);
 
 		// get number of states
-		int n = odd->eoff + odd->toff;
+		int64_t n = odd->eoff + odd->toff;
 
 		exportVector(vec, n, type);
 		delete[] vec;

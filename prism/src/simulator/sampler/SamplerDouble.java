@@ -28,9 +28,9 @@
 
 package simulator.sampler;
 
-import simulator.*;
+import prism.ModelGenerator;
 import prism.PrismException;
-import prism.PrismLangException;
+import simulator.Path;
 
 /**
  * Samplers for properties that associate a simulation path with a real (double) value.
@@ -77,7 +77,7 @@ public abstract class SamplerDouble extends Sampler
 	}
 
 	@Override
-	public abstract boolean update(Path path, TransitionList transList) throws PrismLangException;
+	public abstract boolean update(Path path, ModelGenerator modelGen) throws PrismException;
 
 	@Override
 	public void updateStats()

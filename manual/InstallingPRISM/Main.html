@@ -97,21 +97,26 @@ a.varlink { text-decoration:none; }
 <!--PageText-->
 <div id='wikitext'>
 <h3>Prerequisites</h3>
-<p>PRISM is known to run on Linux, Windows, Mac OS X and Solaris, including 64-bit variants of these operating systems.
+<p>PRISM is known to run on Linux, Windows and Mac OS X, including 64-bit variants of these operating systems.
 </p>
 <p class='vspace'>You will need <strong>Java</strong>, version 8 or above. The tool is known to compile and run with both the <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a> and <a class='urllink' href='http://openjdk.java.net/'>OpenJDK</a>  versions of Java. To run binary versions of PRISM, you only need the Java Runtime Environment (JRE), not the full Java Development Kit (JDK).
 </p>
 <p class='vspace'>To compile PRISM from source, you need the Java Development Kit (JDK), GNU make and a C/C++ compiler (e.g. gcc/g++). For compilation under Windows, you will need Cygwin. See below for more information:
 </p>
-<div class='vspace'></div><ul><li><a href='Main.html#windows'>Installation on Windows (32-bit)</a>
-</li><li><a href='Main.html#windows64'>Installation on Windows (64-bit)</a>
+<div class='vspace'></div><ul><li><a href='Main.html#windows'>Installation on Windows</a>
 </li><li><a href='Main.html#binaries'>Installation of Linux/Mac binary versions</a>
 </li><li><a href='Main.html#source'>Building PRISM from source (non-Windows)</a>
 </li><li><a href='Main.html#cygwin'>Building PRISM from source on Windows using Cygwin</a>
 </li><li><a href='Main.html#msys'>Building PRISM from source on Windows using MSYS</a>
+</li></ul><p class='vspace'>If you are installing on a completely fresh operating system installation (e.g. in a virtual machine), you may find the following scripts useful,
+which install the required dependencies and PRISM itself. They can be found in the <code>prism/etc/scripts</code> directory:
+</p>
+<div class='vspace'></div><ul><li><a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-ubuntu'>script to build on a clean install of Ubuntu</a>
+</li><li><a class='urllink' href='https://raw.githubusercontent.com/prismmodelchecker/prism/master/prism/etc/scripts/prism-install-rhel'>script to build on clean install of RHEL/CentOS/etc Linux</a>
 </li></ul><div class='vspace'></div><hr />
 <p class='vspace'><a name='windows' id='windows'></a>
-</p><h3>Installation on Windows (32-bit)</h3>
+<a name='windows64' id='windows64'></a>
+</p><h3>Installation on Windows</h3>
 <p>To install PRISM on Windows, just run the self-extracting installer which you <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>downloaded</a>. You do <strong>not</strong> need administrator privileges for this, just write-access to the directory chosen for installation.
 </p>
 <p class='vspace'>If requested, the installer will place shortcuts to run PRISM on the desktop and/or start menu. If not, you can run by PRISM double-clicking the file <code>xprism.bat</code> (which may just appear as <code>xprism</code>) in the <code>bin</code> folder of your PRISM folder. If nothing happens, the most likely explanation is that Java is not installed or not in your path. To check, open a command prompt window, navigate to the PRISM directory, type <code>cd bin</code>, then <code>xprism.bat</code> and examine the resulting error. If you want to create shortcuts to <code>xprism.bat</code> manually, you will find some PRISM icons in the <code>etc</code> folder.
@@ -120,7 +125,7 @@ a.varlink { text-decoration:none; }
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.0-win\bin"</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd "c:\Program Files\prism-4.5-win\bin"</span><br/>
 <span style="font-weight:bold;">prism ..\examples\dice\dice.pm</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -131,30 +136,17 @@ a.varlink { text-decoration:none; }
 <p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
 </p>
 <div class='vspace'></div><hr />
-<p class='vspace'><a name='windows64' id='windows64'></a>
-</p><h3>Installation on Windows (64-bit)</h3>
-<p>PRISM is known to run on 64-bit versions of Windows. Since we currently only provide 32-bit binary versions, you will need to install and use a 32-bit, rather than 64-bit version of Java. If not, you may see strange error messages like "<code>Can't load IA 32-bit .dll on a AMD 64-bit platform</code>".
-</p>
-<p class='vspace'>You will probably also need to update <code>bin\xprism.bat</code> (and <code>bin\prism.bat</code>, if you use it), changing <code>javaw</code> on the last line to include the full path to the 32-bit executable.
-</p>
-<p class='vspace'>Other than this, installing and running PRISM is as for the 32-bit case described above.
-</p>
-<p class='vspace'>If this is not possible for some reason, an alternative is to build PRISM from source using Cygwin (See below).
-</p>
-<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
-</p>
-<div class='vspace'></div><hr />
 <p class='vspace'><a name='binaries' id='binaries'></a>
 </p><h3>Installation of Linux/Mac binary versions</h3>
-<p>To ensure compatibility, we recommend that you compile PRISM from source on non-Windows platforms. See below for instructions. However, we do <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>provide</a> pre-compiled binary distributions for Linux (32-bit) and, depending on availability, other operating systems such as Mac OS X and Solaris.
+<p>To ensure compatibility, we recommend that you compile PRISM from source on non-Windows platforms. See below for instructions. However, we do <a class='urllink' href='http://www.prismmodelchecker.org/download.php'>provide</a> pre-compiled binary distributions for Linux and Mac OS X.
 </p>
 <p class='vspace'>To install a binary distribution, unpack the tarred/zipped PRISM distribution into a suitable location, enter the directory and run the <code>install.sh</code> script, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.0-linux.tar.gz</span><br/>
-<span style="font-weight:bold;">tar xf prism-4.0-linux.tar</span><br/>
-<span style="font-weight:bold;">cd prism-4.0-linux</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.5-linux64.tar.gz</span><br/>
+<span style="font-weight:bold;">tar xf prism-4.5-linux64.tar</span><br/>
+<span style="font-weight:bold;">cd prism-4.5-linux64</span><br/>
 <span style="font-weight:bold;">./install.sh</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -180,9 +172,9 @@ a.varlink { text-decoration:none; }
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.0-src.tar.gz</span><br/>
-<span style="font-weight:bold;">tar xf prism-4.0-src.tar</span><br/>
-<span style="font-weight:bold;">cd prism-4.0-src</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">gunzip prism-4.5-src.tar.gz</span><br/>
+<span style="font-weight:bold;">tar xf prism-4.5-src.tar</span><br/>
+<span style="font-weight:bold;">cd prism-4.5-src/prism</span><br/>
 <span style="font-weight:bold;">make</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
@@ -243,7 +235,11 @@ a.varlink { text-decoration:none; }
 </p>
 <p class='vspace'>One thing to note: make sure you unzip the PRISM distribution from within Cygwin (e.g. using <code>tar xfz prism-XXX-src.tar.gz</code>). Don't use a Windows program (Winzip, etc.) since this can cause problems.
 </p>
-<p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
+<p class='vspace'>If you use git to checkout the PRISM repository, we recommend that you use the version of git provided by Cygwin.
+If you use a native Windows version of git, you may want to disable the Unix-to-Windows line-ending conversion, e.g., via
+</p>
+<div class='vspace'></div><ul><li><code>git config --global core.autocrlf false</code>
+</li></ul><p class='vspace'><strong>Problems?</strong> See the section "<a class='wikilink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>''.
 </p>
 <div class='vspace'></div><hr />
 <p class='vspace'><a name='msys' id='msys'></a>
@@ -258,7 +254,7 @@ a.varlink { text-decoration:none; }
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>At some point it will fail, saying that it cannot find the CUDD library, this is due to the failing symlinks. We can solve this by means of a few commands: 
+<p class='vspace'>At some point it will fail, saying that it cannot find the CUDD library, this is due to the failing symlinks. You can solve this as follows: 
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock8'>

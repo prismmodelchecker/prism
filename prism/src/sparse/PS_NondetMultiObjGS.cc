@@ -379,8 +379,9 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 				
 				double val_yes = 0.0;  
 				for (int probi = 0; probi < lenProb; probi++) {
-					if (probi != ignoredWeight && yes_vec[probi]!=NULL);
-					val_yes += weights[probi] * yes_vec[probi][i];
+					if (probi != ignoredWeight && yes_vec[probi]!=NULL) {
+						val_yes += weights[probi] * yes_vec[probi][i];
+					}
 				}
 				
 				//TODO: we need to handle val_yes somehow

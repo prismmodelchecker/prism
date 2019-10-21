@@ -66,7 +66,6 @@ import parser.type.TypeInt;
 import parser.visitor.ASTTraverseModify;
 import parser.visitor.ReplaceLabels;
 import prism.Filter;
-import prism.ModelGenerator;
 import prism.ModelInfo;
 import prism.ModelType;
 import prism.Prism;
@@ -77,6 +76,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.Result;
+import prism.RewardGenerator;
 
 /**
  * Super class for explicit-state model checkers.
@@ -118,7 +118,6 @@ public class StateModelChecker extends PrismComponent
 	// Do bisimulation minimisation before model checking?
 	protected boolean doBisim = false;
 
-
 	// Do topological value iteration?
 	protected boolean doTopologicalValueIteration = false;
 
@@ -131,7 +130,7 @@ public class StateModelChecker extends PrismComponent
 	// Model info (for reward structures, etc.)
 	protected ModulesFile modulesFile = null;
 	protected ModelInfo modelInfo = null;
-	protected ModelGenerator modelGen = null;
+	protected RewardGenerator rewardGen = null;
 
 	// Properties file (for labels, constants, etc.)
 	protected PropertiesFile propertiesFile = null;
@@ -212,7 +211,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public void inheritSettings(StateModelChecker other)
 	{
-		setModulesFileAndPropertiesFile(other.modelInfo, other.propertiesFile, other.modelGen);
+		setModelCheckingInfo(other.modelInfo, other.propertiesFile, other.rewardGen);
 		setLog(other.getLog());
 		setVerbosity(other.getVerbosity());
 		setExportTarget(other.getExportTarget());
@@ -498,14 +497,14 @@ public class StateModelChecker extends PrismComponent
 	 * Set the attached model file (for e.g. reward structures when model checking)
 	 * and the attached properties file (for e.g. constants/labels when model checking)
 	 */
-	public void setModulesFileAndPropertiesFile(ModelInfo modelInfo, PropertiesFile propertiesFile, ModelGenerator modelGen)
+	public void setModelCheckingInfo(ModelInfo modelInfo, PropertiesFile propertiesFile, RewardGenerator rewardGen)
 	{
 		this.modelInfo = modelInfo;
 		if (modelInfo instanceof ModulesFile) {
 			this.modulesFile = (ModulesFile) modelInfo;
 		}
 		this.propertiesFile = propertiesFile;
-		this.modelGen = modelGen;
+		this.rewardGen = rewardGen;
 		// Get combined constant values from model/properties
 		constantValues = new Values();
 		if (modelInfo != null)
@@ -535,14 +534,16 @@ public class StateModelChecker extends PrismComponent
 		// Remove any existing filter info
 		currentFilter = null;
 
+		// If we need to store a copy of the results vector, add a "store" filter to represent this
+		if (storeVector) {
+			ExpressionFilter exprFilter = new ExpressionFilter("store", expr);
+			exprFilter.setInvisible(true);
+			exprFilter.typeCheck();
+			expr = exprFilter;
+		}
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
-		ExpressionFilter exprFilter = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
-		// And if we need to store a copy of the results vector, make a note of this
-		if (storeVector) {
-			exprFilter.setStoreVector(true);
-		}
-		expr = exprFilter;
+		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
 
 		// If required, do bisimulation minimisation
 		if (doBisim) {
@@ -572,7 +573,6 @@ public class StateModelChecker extends PrismComponent
 
 		// Clean up
 		//vals.clear();
-		result.setVector(vals);
 
 		// Return result
 		return result;
@@ -971,7 +971,7 @@ public class StateModelChecker extends PrismComponent
 		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
 		boolean filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 		// Print out number of states satisfying filter
-		if (!filterInit) {
+		if (!filterInit && !expr.isInvisible()) {
 			mainLog.println("\nStates satisfying filter " + filter + ": " + bsFilter.cardinality());
 		}
 		// Possibly optimise filter
@@ -1024,6 +1024,14 @@ public class StateModelChecker extends PrismComponent
 				}
 			}
 			// Result vector is unchanged; for PRINT/PRINTALL, don't store a single value (in resObj)
+			// Also, don't bother with explanation string
+			resVals = vals;
+			// Set vals to null to stop it being cleared below
+			vals = null;
+			break;
+		case STORE:
+			// Not much to do here - will be handled below when we store in the Result object
+			// Result vector is unchanged; like PRINT/PRINTALL, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
@@ -1224,10 +1232,13 @@ public class StateModelChecker extends PrismComponent
 		} else {
 			result.setExplanation(null);
 		}
-		// Store vector if requested (and if not, clear it)
-		if (storeVector) {
-			result.setVector(vals);
-		} else if (vals != null) {
+		// Store vector if requested
+		if (op == FilterOperator.STORE) {
+			result.setVector(resVals);
+		}
+		// Clear old vector if present
+		// (and if the vector was not stored previously)
+		if (vals != null && !(Expression.isFilter(expr.getOperand(), FilterOperator.STORE))) {
 			vals.clear();
 		}
 

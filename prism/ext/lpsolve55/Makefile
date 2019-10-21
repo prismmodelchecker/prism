@@ -24,7 +24,7 @@ endif
 
 default: all
 
-all: checks ../../lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX)
+all: checks ../../$(PRISM_LIB_DIR)/$(LIBPREFIX)lpsolve55$(LIBSUFFIX)
 
 # Try and prevent accidental makes (i.e. called manually, not from top-level Makefile)
 checks:
@@ -32,18 +32,18 @@ checks:
 	  (echo "Error: This Makefile is designed to be called from the main PRISM Makefile"; exit 1) \
 	fi; 
 
-../../lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX):
+../../$(PRISM_LIB_DIR)/$(LIBPREFIX)lpsolve55$(LIBSUFFIX):
 	mkdir -p lib
 	@(if [ "$(OSTYPE)" = "cygwin" ]; then \
-	  cp bin/$(BINDISTSUFFIX)/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib; \
+	  cp bin/$(BINDISTSUFFIX)/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../$(PRISM_LIB_DIR); \
 	else \
 	  (cd src/lp_solve_5.5/lpsolve55 && \
-	  ARCH=$(ARCH) c=$(C) sh -x $(LPSOLVE55_BUILD) \
-	  ) && mv lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib/; \
+	  ARCH=$(ARCH) c=$(CC) sh -x $(LPSOLVE55_BUILD) \
+	  ) && mv lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../$(PRISM_LIB_DIR)/; \
 	fi)
 
 clean: checks
-	rm -f lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX)
+	rm -f lib/$(LIBPREFIX)lpsolve55$(LIBSUFFIX) ../../$(PRISM_LIB_DIR)/$(LIBPREFIX)lpsolve55$(LIBSUFFIX)
 
 celan:	clean
 

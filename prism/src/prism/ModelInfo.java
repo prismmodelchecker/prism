@@ -32,7 +32,6 @@ import java.util.List;
 
 import parser.Values;
 import parser.VarList;
-import parser.ast.RewardStruct;
 import parser.type.Type;
 
 /**
@@ -105,7 +104,11 @@ public interface ModelInfo
 	/**
 	 * Get the number of variables in the model. 
 	 */
-	public int getNumVars();
+	public default int getNumVars()
+	{
+		// Default implementation just extracts from getVarNames() 
+		return getVarNames().size();
+	}
 	
 	/**
 	 * Get the names of all the variables in the model.
@@ -148,6 +151,16 @@ public interface ModelInfo
 	}
 
 	/**
+	 * Get a short description of the action strings associated with transitions/choices.
+	 * For example, for a PRISM model, this is "Module/[action]".
+	 * The default implementation just returns "Action".
+  	 */
+	public default String getActionStringDescription()
+	{
+		return "Action";
+	}
+	
+	/**
 	 * Get the number of labels (atomic propositions) defined for the model. 
 	 */
 	public default int getNumLabels()
@@ -189,59 +202,6 @@ public interface ModelInfo
 		return getLabelNames().indexOf(name);
 	}
 	
-	/**
-	 * Get the number of reward structures in the model.
-	 */
-	public default int getNumRewardStructs()
-	{
-		// Default implementation just extracts from getRewardStructNames() 
-		return getRewardStructNames().size();
-	}
-	
-	/**
-	 * Get a list of the names of the reward structures in the model.
-	 */
-	public default List<String> getRewardStructNames()
-	{
-		// No reward structures by default
-		return Collections.emptyList();
-	}
-	
-	/**
-	 * Get the index of a module by its name
-	 * (indexed from 0, not from 1 like at the user (property language) level).
-	 * Returns -1 if name does not exist.
-	 */
-	public default int getRewardStructIndex(String name)
-	{
-		// Default implementation just extracts from getRewardStructNames() 
-		return getRewardStructNames().indexOf(name);
-	}
-
-	/**
-	 * Get a reward structure by its index
-	 * (indexed from 0, not from 1 like at the user (property language) level).
-	 * Returns null if index is out of range.
-	 */
-	public default RewardStruct getRewardStruct(int i)
-	{
-		// No reward structures by default
-		return null;
-	}
-
-	/**
-	 * Returns true if the reward structure with index i defines transition rewards.
-	 * (indexed from 0, not from 1 like at the user (property language) level)
-	 * If this returns false, the model checker is allowed to ignore them (which may be more efficient).
-	 * If using an algorithm or implementation that does not support transition rewards,
-	 * you may need to return false here (as well as not defining transition rewards).
-	 */
-	public default boolean rewardStructHasTransitionRewards(int i)
-	{
-		// By default, assume that any reward structures that do exist may have transition rewards
-		return true;
-	}
-
 	// TODO: can we remove this?
 	public VarList createVarList() throws PrismException;
 }

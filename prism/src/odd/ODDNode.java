@@ -55,6 +55,17 @@ public class ODDNode
 		return ODDUtils.ODD_GetEOff(ptr);
 	}
 
+	/**
+	 * Returns the number of states for this ODD node.
+	 * Throws an arithmetic exception if the number of states
+	 * does not fit in a Java long (should not occur as that is
+	 * caught during ODD construction).
+	 */
+	public long getNumStates()
+	{
+		return Math.addExact(getTOff(), getEOff());
+	}
+
 	public ODDNode getThen()
 	{
 		return new ODDNode(ODDUtils.ODD_GetThen(ptr));

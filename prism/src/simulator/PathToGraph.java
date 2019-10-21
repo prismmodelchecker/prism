@@ -33,9 +33,10 @@ import java.util.List;
 import org.jfree.data.xy.XYDataItem;
 
 import parser.State;
-import parser.ast.ModulesFile;
 import parser.type.TypeDouble;
+import prism.ModelInfo;
 import prism.PrismException;
+import prism.RewardGenerator;
 import userinterface.graph.Graph;
 import userinterface.graph.Graph.SeriesKey;
 
@@ -49,9 +50,10 @@ public class PathToGraph extends PathDisplayer
 	private List<SeriesKey> varSeriesKeys = null;
 	private List<SeriesKey> rewardSeriesKeys = null;
 
-	// Model info
-	private ModulesFile modulesFile;
+	// Model/reward info
+	private ModelInfo modelInfo;
 	private int numVars;
+	private RewardGenerator rewardGen;
 	private int numRewardStructs;
 
 	// Displayer state
@@ -65,16 +67,18 @@ public class PathToGraph extends PathDisplayer
 	/**
 	 * Construct a {@link PathToGraph} object
 	 * @param graphModel Graph on which to plot path
-	 * @param modulesFile Model associated with path
+	 * @param modelInfo Model associated with path
+	 * @param rewardGen Rewards associated with path
 	 */
-	public PathToGraph(Graph graphModel, ModulesFile modulesFile)
+	public PathToGraph(Graph graphModel, ModelInfo modelInfo, RewardGenerator rewardGen)
 	{
 		this.graphModel = graphModel;
-		this.modulesFile = modulesFile;
+		this.modelInfo = modelInfo;
+		this.rewardGen = rewardGen;
 
-		// Get model info
-		numVars = modulesFile.getNumVars();
-		numRewardStructs = modulesFile.getNumRewardStructs();
+		// Get model/reward info
+		numVars = modelInfo.getNumVars();
+		numRewardStructs = rewardGen.getNumRewardStructs();
 	}
 
 	// Display methods
@@ -90,12 +94,12 @@ public class PathToGraph extends PathDisplayer
 		varSeriesKeys = new ArrayList<Graph.SeriesKey>();
 		if (varsToShow == null) {
 			for (int j = 0; j < numVars; j++) {
-				varSeriesKeys.add(graphModel.addSeries(modulesFile.getVarName(j)));
+				varSeriesKeys.add(graphModel.addSeries(modelInfo.getVarName(j)));
 			}
 		} else {
 			for (int j = 0; j < numVars; j++) {
 				if (varsToShow != null && varsToShow.contains(j))
-					varSeriesKeys.add(graphModel.addSeries(modulesFile.getVarName(j)));
+					varSeriesKeys.add(graphModel.addSeries(modelInfo.getVarName(j)));
 				else
 					varSeriesKeys.add(null);
 			}
@@ -103,7 +107,7 @@ public class PathToGraph extends PathDisplayer
 		if (showRewards) {
 			rewardSeriesKeys = new ArrayList<Graph.SeriesKey>();
 			for (int j = 0; j < numRewardStructs; j++) {
-				rewardSeriesKeys.add(graphModel.addSeries(modulesFile.getRewardStruct(j).getName()));
+				rewardSeriesKeys.add(graphModel.addSeries(rewardGen.getRewardStructNames().get(j)));
 			}
 		}
 
@@ -115,7 +119,7 @@ public class PathToGraph extends PathDisplayer
 	}
 
 	@Override
-	public void displayStep(double timeSpent, double timeCumul, Object action, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
+	public void displayStep(double timeSpent, double timeCumul, String actionString, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
 	{
 		displayState(timeCumul, newState, newStateRewards, !showChangesOnly);
 	}

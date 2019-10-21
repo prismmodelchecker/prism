@@ -28,6 +28,7 @@ package odd;
 
 import jdd.*;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 public class ODDUtils
 {
@@ -66,18 +67,21 @@ public class ODDUtils
 	private static native long ODD_BuildODD(long dd, long vars, int num_vars);
 	/**
 	 *  Build an ODD.
-	 * @throws PrismException if the ODD could not be constructed
+	 *  If the ODD could not be constructed, returns {@code null}.
 	 */
 	public static ODDNode BuildODD(JDDNode dd, JDDVars vars) throws PrismException
 	{
 		if (jdd.SanityJDD.enabled) {
 			// ODD construction requires the JDDVars to be in ascending order
 			jdd.SanityJDD.checkVarsAreSorted(vars);
+			jdd.SanityJDD.checkIsDDOverVars(dd, vars);
 		}
 
 		long res = ODD_BuildODD(dd.ptr(), vars.array(), vars.n());
 		if (res == 0) {
-			throw new PrismException("Can not construct ODD for this model, number of states too large: " + JDD.GetNumMintermsString(dd, vars.n()) + " states");
+			// we could not build the ODD (i.e., we had more than Long.MAX_LONG states
+			// we return null and will have to live with the limited functionality
+			return null;
 		}
 		return new ODDNode(res);
 	}
@@ -121,7 +125,57 @@ public class ODDUtils
 	{
 		return JDD.ptrToNode(ODD_SingleIndexToDD(i, odd.ptr(), vars.array(), vars.n()));
 	}
-	
+
+	/**
+	 * Checks that the given ODD has indices that can be represented by
+	 * Java integers. If that is not the case, or the ODD is {@code null},
+	 * a PrismNotSupportedException is thrown.
+	 * @param odd the ODD (may be {@code null})
+	 * @param msg Initial part of error message, will be extended with
+	 *        " with more than X states, have Y states"
+	 */
+	public static void checkInt(ODDNode odd, String msg) throws PrismNotSupportedException
+	{
+		if (odd != null) {
+			try {
+				long numStates = odd.getNumStates();
+				if (numStates > Integer.MAX_VALUE) {
+					// number of states fit in long, but not in int
+					throw new PrismNotSupportedException(msg + " with more than " + Integer.MAX_VALUE + " states, have " + numStates + " states");
+				} else {
+					// everything is fine
+					return;
+				}
+			} catch (ArithmeticException e) {
+				// number of states does not fit into long, ignore here, handled below
+			}
+		}
+
+		// we either have no ODD or eoff + toff does not fit into long
+		throw new PrismNotSupportedException(msg + " with more than " + Integer.MAX_VALUE + " states, have at least " + Long.MAX_VALUE + " states");
+	}
+
+	/**
+	 * Returns true if the given ODD has indices that can be represented by
+	 * Java integers. If the odd is {@code null}, returns false as well.
+	 * @param odd the ODD (may be {@code null})
+	 */
+	public static boolean hasIntValue(ODDNode odd)
+	{
+		if (odd == null)
+			return false;
+
+		try {
+			long numStates = odd.getNumStates();
+			if (numStates <= Integer.MAX_VALUE) {
+				return true;
+			}
+		} catch (ArithmeticException e) {
+			// number of states does not fit into long, ignore here, handled below
+		}
+		return false;
+	}
+
 	//------------------------------------------------------------------------------
 	// ODDNode methods
 	//------------------------------------------------------------------------------

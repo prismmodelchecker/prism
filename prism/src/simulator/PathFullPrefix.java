@@ -27,6 +27,7 @@
 package simulator;
 
 import parser.*;
+import prism.ModelGenerator;
 
 /**
  * Represents a prefix of an existing PathFull object.
@@ -57,13 +58,13 @@ public class PathFullPrefix extends Path
 	}
 
 	@Override
-	public void addStep(int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
 
 	@Override
-	public void addStep(double time, int choice, int moduleOrActionIndex, double probability, double[] transitionRewards, State newState, double[] newStateRewards, TransitionList transitionList)
+	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
@@ -102,15 +103,15 @@ public class PathFullPrefix extends Path
 	}
 
 	@Override
-	public int getPreviousModuleOrActionIndex()
+	public Object getPreviousAction()
 	{
-		return pathFull.getModuleOrActionIndex(prefixLength - 1);
+		return pathFull.getAction(prefixLength - 1);
 	}
-
+	
 	@Override
-	public String getPreviousModuleOrAction()
+	public String getPreviousActionString()
 	{
-		return pathFull.getModuleOrAction(prefixLength - 1);
+		return pathFull.getActionString(prefixLength - 1);
 	}
 	
 	@Override

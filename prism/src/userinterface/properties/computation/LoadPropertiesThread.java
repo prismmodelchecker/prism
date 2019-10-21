@@ -38,7 +38,6 @@ import parser.ast.*;
 public class LoadPropertiesThread extends Thread
 {
 	private GUIMultiProperties parent;
-	private ModulesFile mf;
 	private Prism pri;
 	private File file;
 	private PropertiesFile props = null;
@@ -46,15 +45,14 @@ public class LoadPropertiesThread extends Thread
 	private Exception ex;
 	
 	/** Creates a new instance of LoadPropertiesThread */
-	public LoadPropertiesThread(GUIMultiProperties parent, ModulesFile mf, File file)
+	public LoadPropertiesThread(GUIMultiProperties parent, File file)
 	{
-	   this(parent, mf, file, false);
+	   this(parent, file, false);
 	}
 	
-	public LoadPropertiesThread(GUIMultiProperties parent, ModulesFile mf, File file, boolean isInsert)
+	public LoadPropertiesThread(GUIMultiProperties parent, File file, boolean isInsert)
 	{
 		this.parent = parent;
-		this.mf = mf;
 		this.file = file;
 		this.pri = parent.getPrism();
 		this.isInsert = isInsert; 
@@ -73,7 +71,7 @@ public class LoadPropertiesThread extends Thread
 			
 			// do parsing
 			try {
-				props = pri.parsePropertiesFile(mf, file, false);
+				props = pri.parsePropertiesFile(file, false);
 			}
 			//If there was a problem with the loading, notify the interface.
 			catch (FileNotFoundException e) {
@@ -105,7 +103,6 @@ public class LoadPropertiesThread extends Thread
 					parent.propertyInsertSuccessful(props);
 				else
 					parent.propertyLoadSuccessful(props, file);
-				//System.out.println("In invokeAndWait after propertyLoadSuccessful ");
 			}});
 		}
 		// catch and ignore any thread exceptions

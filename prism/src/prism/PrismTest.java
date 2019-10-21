@@ -64,12 +64,12 @@ public class PrismTest
 			prism.loadPRISMModel(modulesFile);
 			
 			// Parse a prop, check on model 1
-			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
+			propertiesFile = prism.parsePropertiesString("P=?[F<=0.1 s1=1]");
 			result = prism.modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
 			System.out.println(result.getResult());
 			
 			// Parse another prop, check on model 1
-			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
+			propertiesFile = prism.parsePropertiesString("P=?[F<=0.1 s1=1]");
 			result = prism.modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
 			System.out.println(result.getResult());
 			
@@ -78,7 +78,7 @@ public class PrismTest
 			prism.loadPRISMModel(modulesFile);
 			
 			// Parse a prop, check on model 2
-			propertiesFile = prism.parsePropertiesString(modulesFile, "P=?[F<=0.1 s1=1]");
+			propertiesFile = prism.parsePropertiesString("P=?[F<=0.1 s1=1]");
 			result = prism.modelCheck(propertiesFile, propertiesFile.getPropertyObject(0));
 			System.out.println(result.getResult());
 			

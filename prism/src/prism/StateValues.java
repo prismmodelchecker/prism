@@ -167,7 +167,7 @@ public interface StateValues extends StateVector
 	StateValues sumOverDDVars(JDDVars sumVars, Model newModel) throws PrismException;
 
 	/** Returns an Object with the value of the i-th entry in this vector. */
-	Object getValue(int i);
+	Object getValue(int i) throws PrismNotSupportedException;
 
 	/**
 	 * Generate BDD for states in the given interval
@@ -221,7 +221,10 @@ public interface StateValues extends StateVector
 	/**
 	 * Print vector to a log/file (non-zero entries only)
 	 */
-	void print(PrismLog log) throws PrismException;
+	default void print(PrismLog log) throws PrismException
+	{
+		print(log, true, false, true, true);
+	}
 
 	/**
 	 * Print vector to a log/file.
@@ -230,7 +233,10 @@ public interface StateValues extends StateVector
 	 * @param printMatlab Print in Matlab format?
 	 * @param printStates Print states (variable values) for each element?
 	 */
-	void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
+	default void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		print(log, printSparse, printMatlab, printStates, true);
+	}
 
 	/**
 	 * Print vector to a log/file.
@@ -248,7 +254,10 @@ public interface StateValues extends StateVector
 	 * @param log The log
 	 * @param filter A BDD specifying which states to print for.
 	 */
-	void printFiltered(PrismLog log, JDDNode filter) throws PrismException;
+	default void printFiltered(PrismLog log, JDDNode filter) throws PrismException
+	{
+		printFiltered(log, filter, true, false, true);
+	}
 
 	/**
 	 * Print part of a vector to a log/file (non-zero entries only).
@@ -259,7 +268,39 @@ public interface StateValues extends StateVector
 	 * @param printMatlab Print in Matlab format?
 	 * @param printStates Print states (variable values) for each element?
 	 */
-	void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException;
+	default void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates) throws PrismException
+	{
+		printFiltered(log, filter, printSparse, printMatlab, printStates, true);
+	}
+
+	/**
+	 * Print part of a vector to a log/file (non-zero entries only).
+	 * <br>[ DEREFS: <i>none</i> ]
+	 * @param log The log
+	 * @param filter A BDD specifying which states to print for.
+	 * @param printSparse Print non-zero elements only?
+	 * @param printMatlab Print in Matlab format?
+	 * @param printStates Print states (variable values) for each element?
+	 * @param printIndices Print state indices for each element?
+	 */
+	void printFiltered(PrismLog log, JDDNode filter, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException;
+
+	/**
+	 * Iterate over all state/value pairs
+	 * and call {@code consumer.accept()} for each.
+	 * @param consumer the consumer
+	 * @param sparse only call accept for non-zero values
+	 */
+	void iterate(StateAndValueConsumer consumer, boolean sparse);
+
+	/**
+	 * Iterate over all state/value pairs
+	 * where the state is included in the filter DD and
+	 * call {@code consumer.accept()} for each.
+	 * @param consumer the consumer
+	 * @param sparse only call accept for non-zero values
+	 */
+	void iterateFiltered(JDDNode filter, StateAndValueConsumer consumer, boolean sparse);
 
 	/**
 	 * Make a (deep) copy of this vector

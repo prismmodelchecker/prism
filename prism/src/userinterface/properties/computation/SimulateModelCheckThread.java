@@ -139,11 +139,18 @@ public class SimulateModelCheckThread extends GUIComputationThread
 					}
 				}
 			}
+
 			// store results
+			ModelType currentModelType = prism.getModelType();
+			String methodString = "Simulation";
+			if (currentModelType.nondeterministic() && currentModelType.removeNondeterminism() != currentModelType) {
+				methodString += " (nondeterminism in " + currentModelType.name() + " resolved uniformly)";
+			}
+
 			for (int i = 0; i < guiProps.size(); i++) {
 				GUIProperty gp = guiProps.get(i);
 				gp.setResult((results == null) ? new Result(resultError) : results[i]);
-				gp.setMethodString("Simulation");
+				gp.setMethodString(methodString);
 				gp.setNumberOfWarnings(prism.getMainLog().getNumberOfWarnings());
 			}
 		}

@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -30,6 +30,7 @@ import java.util.*;
 
 import parser.*;
 import parser.ast.*;
+import parser.ast.Module;
 import parser.type.*;
 import parser.visitor.*;
 import prism.*;
@@ -44,14 +45,12 @@ public class DigitalClocks
 	private Prism prism;
 	// Log
 	private PrismLog mainLog;
-	// Model to be converted
-	private ModulesFile modulesFile;
-	// Properties to be converted
-	private PropertiesFile propertiesFile;
 	// Constants from model
 	private Values constantValues;
 	// Variable list for model
 	private VarList varList;
+	// Time bound from property if present
+	private int timeBound = -1;
 
 	// Flags + settings
 	private boolean doScaling = true;
@@ -67,6 +66,8 @@ public class DigitalClocks
 	private ModulesFile mf;
 	// Translated properties file
 	private PropertiesFile pf;
+	// Translated property to check
+	private Expression prop;
 
 	/**
 	 * Constructor.
@@ -77,6 +78,7 @@ public class DigitalClocks
 		mainLog = prism.getMainLog();
 		mf = null;
 		pf = null;
+		prop = null;
 	}
 
 	/**
@@ -96,6 +98,14 @@ public class DigitalClocks
 	}
 
 	/**
+	 * Get translated property to check.
+	 */
+	public Expression getNewPropertyToCheck()
+	{
+		return prop;
+	}
+
+	/**
 	 * Main method - translate.
 	 */
 	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismLangException
@@ -106,23 +116,24 @@ public class DigitalClocks
 
 		mainLog.println("\nPerforming digital clocks translation...");
 
-		// Store model/properties files
-		this.modulesFile = modulesFile;
-		this.propertiesFile = propertiesFile;
+		// Store some info for global access
 		constantValues = modulesFile.getConstantValues();
-		// TODO: need property constants too?
+		if (propertiesFile != null ) {
+			constantValues = new Values(constantValues, propertiesFile.getConstantValues());
+		}
 		varList = modulesFile.createVarList();
 
 		// Check that model does not contain any closed clock constraints
-		ast = findAStrictClockConstraint(modulesFile);
-		if (ast != null)
+		ast = findAStrictClockConstraint(modulesFile, null);
+		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
+		}
 		// Check that model does not contain any diagonal clock constraints
 		// (for now; should be able to relax this later)
-		ast = findADiagonalClockConstraint(modulesFile);
-		if (ast != null)
+		ast = findADiagonalClockConstraint(modulesFile, null);
+		if (ast != null) {
 			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
-
+		}
 		// Check for any references to clocks in rewards structures - not allowed.
 		for (RewardStruct rs : modulesFile.getRewardStructs()) {
 			rs.accept(new ASTTraverseModify()
@@ -138,9 +149,10 @@ public class DigitalClocks
 			});
 		}
 		// Check that the property is suitable for checking with digital clocks
-		if (propertyToCheck != null)
-			checkProperty(propertyToCheck);
-
+		if (propertyToCheck != null) {
+			checkProperty(propertyToCheck, propertiesFile);
+		}
+		
 		// Choose a new action label to represent time
 		timeAction = "time";
 		while (modulesFile.getSynchs().contains(timeAction)) {
@@ -148,15 +160,16 @@ public class DigitalClocks
 		}
 
 		// Extract information about clocks from the model
-		cci = new ComputeClockInformation();
-		modulesFile.accept(cci);
-		mainLog.println("Computed clock maximums: " + cci.clockMaxs);
-		if (doScaling)
+		cci = new ComputeClockInformation(modulesFile, propertiesFile, propertyToCheck);
+		mainLog.println("Computed clock maximums: " + cci.getClockMaxs());
+		if (doScaling) {
 			mainLog.println("Computed GCD: " + cci.getScaleFactor());
-
+		}
+		
 		// Take a copy of the whole model/properties file before translation
 		mf = (ModulesFile) modulesFile.deepCopy();
 		pf = (propertiesFile == null) ? null : (PropertiesFile) propertiesFile.deepCopy();
+		prop = (Expression) propertyToCheck.deepCopy();
 
 		// Change the model type
 		mf.setModelType(ModelType.MDP);
@@ -168,8 +181,9 @@ public class DigitalClocks
 			{
 				if (e.getDeclType() instanceof DeclarationClock) {
 					int cMax = cci.getScaledClockMax(e.getName());
-					if (cMax < 0)
+					if (cMax < 0) {
 						throw new PrismLangException("Clock " + e.getName() + " is unbounded since there are no references to it in the model");
+					}
 					DeclarationType declType = new DeclarationInt(Expression.Int(0), Expression.Int(cMax + 1));
 					Declaration decl = new Declaration(e.getName(), declType);
 					return decl;
@@ -197,8 +211,9 @@ public class DigitalClocks
 				invar = e.getInvariant();
 				invar = (invar == null) ? Expression.True() : invar.deepCopy();
 				// Collect invariant for "invariants" label
-				if (!Expression.isTrue(invar))
+				if (!Expression.isTrue(invar)) {
 					allInVariants = (allInVariants == null) ? invar.deepCopy() : Expression.And(allInVariants, invar.deepCopy());
+				}
 				// Replace all clocks x with x+1 in invariant
 				invar = (Expression) invar.accept(new ASTTraverseModify()
 				{
@@ -281,8 +296,10 @@ public class DigitalClocks
 			}
 		};
 		mf = (ModulesFile) mf.accept(asttm);
-		if (pf != null)
+		if (pf != null) {
 			pf = (PropertiesFile) pf.accept(asttm);
+		}
+		prop = (Expression) prop.accept(asttm);
 
 		// Change state rewards in reward structures to use time action)
 		// (transition rewards can be left unchanged)
@@ -304,19 +321,93 @@ public class DigitalClocks
 			}
 		}
 
-		// Re-do type checking etc. on the model/properties
+		// If we are checking a time bounded property... 
+		if (timeBound != -1) {
+			
+			int scaledTimeBound = timeBound / cci.getScaleFactor();
+			
+			// First add a timer to the model
+			
+			// Create names for module/variable for timer
+			String timerModuleName = "timer";
+			while (mf.getModuleIndex(timerModuleName) != -1) {
+				timerModuleName = "_" + timerModuleName;
+			}
+			String timerVarName = "timer";
+			while (mf.isIdentUsed(timerVarName) || (pf != null && pf.isIdentUsed(timerVarName))) {
+				timerVarName = "_" + timerVarName;
+			}
+			// Store time bound as a constant
+			String timeboundName = "T";
+			while (mf.isIdentUsed(timeboundName) || (pf != null && pf.isIdentUsed(timeboundName))) {
+				timeboundName = "_" + timeboundName;
+			}
+			mf.getConstantList().addConstant(new ExpressionIdent(timeboundName), Expression.Int(scaledTimeBound), TypeInt.getInstance());
+			// Create module/variable
+			Module timerModule = new Module(timerModuleName);
+			DeclarationType timerDeclType = new DeclarationInt(Expression.Int(0),
+					Expression.Plus(new ExpressionConstant(timeboundName, TypeInt.getInstance()), Expression.Int(1)));
+			Declaration timerDecl = new Declaration(timerVarName, timerDeclType);
+			timerModule.addDeclaration(timerDecl);
+			// Construct command representing progression of time
+			Command timeCommand = new Command();
+			timeCommand.setSynch(timeAction);
+			timeCommand.setGuard(Expression.True());
+			// Construct update
+			Update up = new Update();
+			// Build expression min(timer+1,timerMax)
+			ExpressionFunc exprMin = new ExpressionFunc("min");
+			exprMin.addOperand(Expression.Plus(new ExpressionVar(timerVarName, TypeInt.getInstance()), Expression.Int(1)));
+			exprMin.addOperand(Expression.Plus(new ExpressionConstant(timeboundName, TypeInt.getInstance()), Expression.Literal(1)));
+			// Add to update
+			up.addElement(new ExpressionIdent(timerVarName), exprMin);
+			Updates ups = new Updates();
+			ups.addUpdate(Expression.Double(1.0), up);
+			timeCommand.setUpdates(ups);
+			timerModule.addCommand(timeCommand);
+			// Finally add module to model
+			mf.addModule(timerModule);
+			
+			// Then modify the property
+			
+			// Build time bound (timer <= T)
+			Expression timerRef = new ExpressionVar(timerVarName, TypeInt.getInstance()); 
+			Expression boundNew = new ExpressionBinaryOp(ExpressionBinaryOp.LE, timerRef, new ExpressionConstant(timeboundName, TypeInt.getInstance()));
+			prop.accept(new ASTTraverseModify()
+			{
+				public Object visit(ExpressionTemporal e) throws PrismLangException
+				{
+					// Push (new) time bound into target
+					e.setUpperBound(null);
+					Expression targetNew = Expression.And(e.getOperand2().deepCopy(), boundNew);
+					e.setOperand2(targetNew);
+					return e;
+				}
+			});
+		}
+							
+		// Re-do type checking, indexing, etc. on the model/properties
 		mf.tidyUp();
-		if (pf != null)
+		if (pf != null) {
+			pf.setModelInfo(mf);
 			pf.tidyUp();
+		}
+		prop.findAllVars(mf.getVarNames(), mf.getVarTypes());
+		// Copy across undefined constants since these get lost in the call to tidyUp()
+		mf.setSomeUndefinedConstants(modulesFile.getUndefinedConstantValues());
+		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedConstantValues());
 	}
 
 	/**
 	 * Check that a property is checkable with the digital clocks method.
 	 * Throw an explanatory exception if not.
+	 * Optionally, an enclosing PropertiesFile is provided, to look up
+	 * property/label references. Can be null.
 	 */
-	public void checkProperty(Expression propertyToCheck) throws PrismLangException
+	public void checkProperty(Expression propertyToCheck, PropertiesFile propertiesFile) throws PrismLangException
 	{
 		ASTElement ast;
+		LabelList labelList = (propertiesFile == null) ? null : propertiesFile.getLabelList();
 
 		// LTL not handled (look in any P operators)
 		try {
@@ -333,15 +424,23 @@ public class DigitalClocks
 			e.setASTElement(propertyToCheck);
 			throw e;
 		}
-		
-		// Bounded properties not yet handled.
+
+		// Bounded properties: check allowable, and store time bound if so
+		timeBound = -1;
 		try {
 			propertyToCheck.accept(new ASTTraverse()
 			{
 				public void visitPost(ExpressionTemporal e) throws PrismLangException
 				{
-					if (e.getLowerBound() != null || e.getUpperBound() != null)
-						throw new PrismLangException("The digital clocks method does not yet support bounded properties");
+					if (e.getLowerBound() != null) {
+						throw new PrismLangException("The digital clocks method does not yet support lower time bounds");
+					}
+					if (e.getUpperBound() != null) {
+						if (!ExpressionTemporal.isFinally(e)) {
+							throw new PrismLangException("The digital clocks method only ssupport time bounds on F");
+						}
+						timeBound = e.getUpperBound().evaluateInt(constantValues);
+					}
 				}
 			});
 		} catch (PrismLangException e) {
@@ -350,27 +449,28 @@ public class DigitalClocks
 		}
 
 		// Check that there are no nested probabilistic operators
-		if (propertyToCheck.computeProbNesting() > 1) {
-			throw new PrismLangException("Nested P operators are not allowed when using the digital clocks method", propertyToCheck);
+		if (propertyToCheck.computeProbNesting(propertiesFile) > 1) {
+			throw new PrismLangException("Nested P/R operators are not allowed when using the digital clocks method", propertyToCheck);
 		}
 
 		// Check for presence of strict clock constraints
-		ast = findAStrictClockConstraint(propertyToCheck);
-		if (ast != null)
+		ast = findAStrictClockConstraint(propertyToCheck, labelList);
+		if (ast != null) {
 			throw new PrismLangException("Strict clock constraints are not allowed when using the digital clocks method", ast);
+		}
 		// Check for presence of diagonal clock constraints
 		// (for now; should be able to relax this later)
-		ast = findADiagonalClockConstraint(modulesFile);
-		if (ast != null)
+		ast = findADiagonalClockConstraint(propertyToCheck, labelList);
+		if (ast != null) {
 			throw new PrismLangException("Diagonal clock constraints are not allowed when using the digital clocks method", ast);
-		// TODO: also need to look in any required properties file labels
-		// (currently, these cannot even contain clocks so not an issue)
+		}
 	}
 
 	/**
 	 * Look for a strict clock constraint. If found return the offending element. Else, return null.
+	 * Optionally, pass in a LabelList to look up labels (can be null).
 	 */
-	public ASTElement findAStrictClockConstraint(ASTElement ast) throws PrismLangException
+	public ASTElement findAStrictClockConstraint(ASTElement ast, LabelList labelList) throws PrismLangException
 	{
 		try {
 			ASTTraverse astt = new ASTTraverse()
@@ -386,6 +486,17 @@ public class DigitalClocks
 							throw new PrismLangException("Found one", e);
 					}
 				}
+				
+				// Recurse on labels
+				public void visitPost(ExpressionLabel e) throws PrismLangException
+				{
+					if (labelList != null) {
+						int i = labelList.getLabelIndex(e.getName());
+						if (i != -1) {
+							labelList.getLabel(i).accept(this);
+						}
+					}
+				}
 			};
 			ast.accept(astt);
 		} catch (PrismLangException e) {
@@ -396,8 +507,9 @@ public class DigitalClocks
 
 	/**
 	 * Look for a diagonal clock constraint. If found return the offending element. Else, return null.
+	 * Optionally, pass in a LabelList to look up labels (can be null).
 	 */
-	public ASTElement findADiagonalClockConstraint(ASTElement ast) throws PrismLangException
+	public ASTElement findADiagonalClockConstraint(ASTElement ast, LabelList labelList) throws PrismLangException
 	{
 		try {
 			ASTTraverse astt = new ASTTraverse()
@@ -411,8 +523,19 @@ public class DigitalClocks
 						}
 					}
 				}
+				
+				// Recurse on labels
+				public void visitPost(ExpressionLabel e) throws PrismLangException
+				{
+					if (labelList != null) {
+						int i = labelList.getLabelIndex(e.getName());
+						if (i != -1) {
+							labelList.getLabel(i).accept(this);
+						}
+					}
+				}
 			};
-			modulesFile.accept(astt);
+			ast.accept(astt);
 		} catch (PrismLangException e) {
 			return e.getASTElement();
 		}
@@ -427,17 +550,31 @@ public class DigitalClocks
 	 */
 	class ComputeClockInformation extends ASTTraverse
 	{
+		// Model/property info
+		PropertiesFile propertiesFile = null;
+		LabelList labelList = null;
+		// Clock info
 		private Map<String, List<String>> clockLists;
 		private List<String> currentClockList;
 		private Map<String, Integer> clockMaxs;
 		private Set<Integer> allClockVals;
 		private int scaleFactor;
-
-		public ComputeClockInformation()
+		
+		public ComputeClockInformation(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismLangException
 		{
+			// Extract some info needed for traversal 
+			this.propertiesFile = propertiesFile;
+			labelList = (propertiesFile == null) ? null : propertiesFile.getLabelList();
+			// Set up storage
 			clockLists = new HashMap<String, List<String>>();
 			clockMaxs = new HashMap<String, Integer>();
 			allClockVals = new HashSet<Integer>();
+			// Traverse ModulesFile first (further storage created)
+			modulesFile.accept(this);
+			// Then property (but not whole property file, to maximise possible scaling)
+			propertyToCheck.accept(this);
+			// Finally, compute GCDs and scale factor
+			scaleFactor = computeGCD(allClockVals);
 		}
 
 		private void updateMax(String clock, int val)
@@ -457,6 +594,11 @@ public class DigitalClocks
 		{
 			Integer i = clockMaxs.get(clock);
 			return (i == null) ? -1 : i;
+		}
+
+		public Map<String, Integer> getClockMaxs()
+		{
+			return clockMaxs;
 		}
 
 		/**
@@ -499,12 +641,8 @@ public class DigitalClocks
 			return (y == 0) ? x : computeGCD(y, x % y);
 		}
 
-		public void visitPost(ModulesFile e) throws PrismLangException
-		{
-			// When have traversed the model, compute GCDs and scale factor
-			scaleFactor = computeGCD(allClockVals);
-		}
-
+		// AST traversal
+		
 		public void visitPre(parser.ast.Module e) throws PrismLangException
 		{
 			// Create new array to store clocks for this module
@@ -562,6 +700,46 @@ public class DigitalClocks
 				updateMax(clock, maxVal);
 				allVals = ParserUtils.findAllValsForIntExpression(e.getOperand1(), varList, constantValues);
 				allClockVals.addAll(allVals);
+			}
+		}
+		
+		// Time bounds in properties
+		public void visitPost(ExpressionTemporal e) throws PrismLangException
+		{
+			// This is easier than for clock constraints since they must be constant
+			// (so just evaluate directly)
+			// We also don't care about the max value - this is done elsewhere;
+			// we just want to make sure that the values is used to compute the GCD
+			if (e.getLowerBound() != null) {
+				allClockVals.add(e.getLowerBound().evaluateInt(constantValues));
+			}
+			if (e.getUpperBound() != null) {
+				allClockVals.add(e.getUpperBound().evaluateInt(constantValues));
+			}
+		}
+		
+		// Recurse on labels
+		public void visitPost(ExpressionLabel e) throws PrismLangException
+		{
+			if (labelList != null) {
+				int i = labelList.getLabelIndex(e.getName());
+				if (i != -1) {
+					labelList.getLabel(i).accept(this);
+				}
+			}
+		}
+		
+		// Recurse on property refs
+		public void visitPost(ExpressionProp e) throws PrismLangException
+		{
+			// If possible, look up property and recurse
+			if (propertiesFile != null) {
+				Property prop = propertiesFile.lookUpPropertyObjectByName(e.getName());
+				if (prop != null) {
+					prop.accept(this);
+				} else {
+					throw new PrismLangException("Unknown property reference " + e, e);
+				}
 			}
 		}
 	}

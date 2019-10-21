@@ -66,7 +66,9 @@ public class ExpressionFilter extends Expression
 		/** Print all (including zero) values to the log */
 		PRINTALL ("printall"),
 		/** Value for the single filter state (if there is more than one, this is an error) */
-		STATE ("state");
+		STATE ("state"),
+		/** Store the results vector (used internally) */
+		STORE ("store");
 		public final String keyword;
 		FilterOperator(final String keyword) {
 			this.keyword = keyword;
@@ -89,8 +91,6 @@ public class ExpressionFilter extends Expression
 	private boolean invisible = false;
 	// Whether or not an explanation should be displayed when model checking
 	private boolean explanationEnabled = true;
-	// Do we need to store a copy of the results vector when model checking this?
-	private boolean storeVector = false;
 	// whether this is a filter over parameters
 	private boolean param = false;
 	
@@ -152,11 +152,6 @@ public class ExpressionFilter extends Expression
 		this.explanationEnabled = explanationEnabled;
 	}
 	
-	public void setStoreVector(boolean storeVector)
-	{
-		this.storeVector = storeVector;
-	}
-	
 	public void setParam()
 	{
 		param = true;
@@ -192,11 +187,6 @@ public class ExpressionFilter extends Expression
 	public boolean getExplanationEnabled()
 	{
 		return explanationEnabled;
-	}
-	
-	public boolean getStoreVector()
-	{
-		return storeVector;
 	}
 	
 	public boolean isParam()
@@ -241,6 +231,7 @@ public class ExpressionFilter extends Expression
 		else if (opType == FilterOperator.PRINTALL) return false;
 		else if (opType == FilterOperator.ARGMIN) return false;
 		else if (opType == FilterOperator.ARGMAX) return false;
+		else if (opType == FilterOperator.STORE) return false;
 		else if (param) return false;
 		else return true;
 	}
@@ -293,7 +284,6 @@ public class ExpressionFilter extends Expression
 		result = prime * result + ((opType == null) ? 0 : opType.hashCode());
 		result = prime * result + ((operand == null) ? 0 : operand.hashCode());
 		result = prime * result + (param ? 1231 : 1237);
-		result = prime * result + (storeVector ? 1231 : 1237);
 		return result;
 	}
 
@@ -329,8 +319,6 @@ public class ExpressionFilter extends Expression
 		} else if (!operand.equals(other.operand))
 			return false;
 		if (param != other.param)
-			return false;
-		if (storeVector != other.storeVector)
 			return false;
 		return true;
 	}

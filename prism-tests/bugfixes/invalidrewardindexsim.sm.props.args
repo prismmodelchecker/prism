@@ -1,1 +1,4 @@
+# Originally a simulation bug, but now test on all engines
 -sim
+-ex
+-h

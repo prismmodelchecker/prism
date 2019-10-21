@@ -62,12 +62,6 @@ public class TestModelGenerator implements ModelGenerator
 	}
 
 	@Override
-	public int getNumVars()
-	{
-		return 1;
-	}
-	
-	@Override
 	public List<String> getVarNames()
 	{
 		return varNames;
@@ -79,12 +73,6 @@ public class TestModelGenerator implements ModelGenerator
 		return varTypes;
 	}
 
-	@Override
-	public int getNumLabels()
-	{
-		return 1;
-	}
-	
 	@Override
 	public List<String> getLabelNames()
 	{
@@ -107,12 +95,6 @@ public class TestModelGenerator implements ModelGenerator
 	}
 
 	@Override
-	public State getExploreState()
-	{
-		return exploreState;
-	}
-
-	@Override
 	public int getNumChoices() throws PrismException
 	{
 		return 1;
@@ -122,12 +104,6 @@ public class TestModelGenerator implements ModelGenerator
 	public int getNumTransitions(int i) throws PrismException
 	{
 		return x > 0 && x < n ? 2 : 1;
-	}
-
-	@Override
-	public Object getTransitionAction(int i) throws PrismException
-	{
-		return null;
 	}
 
 	@Override
@@ -162,12 +138,6 @@ public class TestModelGenerator implements ModelGenerator
 		} else {
 			throw new PrismException("Label number \"" + i + "\" not defined");
 		}
-	}
-
-	@Override
-	public boolean rewardStructHasTransitionRewards(int i)
-	{
-		return false;
 	}
 
 	@Override

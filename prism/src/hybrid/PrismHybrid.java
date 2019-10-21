@@ -79,10 +79,7 @@ public class PrismHybrid
 	{
 		// currently, the hybrid engine internally uses int (signed 32bit) index values
 		// so, if the number of states is larger than Integer.MAX_VALUE, there is a problem
-		long n = odd.getEOff() + odd.getTOff();
-		if (n >= Integer.MAX_VALUE) {
-			throw new PrismNotSupportedException("The hybrid engine can currently only handle up to " + Integer.MAX_VALUE + " reachable states, model has " + n + " states");
-		}
+		ODDUtils.checkInt(odd, "Currently, the hybrid engine cannot handle models");
 	}
 
 	//------------------------------------------------------------------------------
