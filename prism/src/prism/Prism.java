@@ -3118,10 +3118,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	public double recomputeModelCheckingResultForInitialDistribution(Result res, File fileIn) throws PrismException
 	{
-		for(int i = 0; i < 13; i++) {
-			System.out.println(res.getVector().getValue(i));
-		}
-		if (res.getVector() != null) { //&& res.getResult() instanceof Double) {
+		if (res.getVector() != null && (res.getResult() instanceof Double || res.getResult() instanceof Interval)) {
 			if (!getExplicit()) {
 				StateValues initDist = new ProbModelChecker(this, currentModel, null).readDistributionFromFile(fileIn);
 				StateValues resVect = (StateValues) res.getVector();
