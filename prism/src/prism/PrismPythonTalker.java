@@ -38,6 +38,7 @@ import parser.ast.*;
 * (this now uses the newer version of the API, released after PRISM 4.0.3)
 * Test like this:
 * PRISM_MAINCLASS=prism.PrismTest bin/prism ../prism-examples/polling/poll2.sm ../prism-examples/polling/poll3.sm
+* The aim of this class is to talk to and answer requests for RAPPORT.
 */
 public class PrismPythonTalker
 {
@@ -45,10 +46,17 @@ public class PrismPythonTalker
 	private ModulesFile currentModel;
 	private ServerSocket server;
 	String directory;
-	String fileName;
 	int socketPort;
+	public static final String SUCCESS = "success";
+	public static final String FAILURE = "failure";
 	
-	public PrismPythonTalker(int port, String workDir, String prismFile){
+	/**
+	 * Constructor initialises Prism Talker
+	 * @param port the port for the PRISM server to be on
+	 * @param workDir the working directory to be used by the server 
+	 * 				  and anyone working with it
+	 */
+	public PrismPythonTalker(int port, String workDir){
 		try{
 			PrismLog mainLog;
 			
@@ -57,24 +65,24 @@ public class PrismPythonTalker
 			server = new ServerSocket(socketPort);
 			System.out.println("PRISM server running on port " + socketPort);
 			
-			
-			fileName=prismFile;
 			directory=workDir;
 			            
-			// Init PRISM
+			// Initialise PRISM
 			//mainLog = new PrismDevNullLog();
 			mainLog = new PrismFileLog("stdout");
-			prism = new Prism( mainLog);
+			prism = new Prism(mainLog);
 			prism.initialise();
 			setExports();
 			prism.setEngine(Prism.EXPLICIT);
+			
 		} catch (PrismException e) {
 			System.out.println("Error: " + e.getMessage());
 		} catch (IOException e) {
 			System.out.println("Error: " + e.getMessage());
 		}
 	}
-
+	
+	//Getters
 	public Prism getPrism(){
 		return prism;
 	}
@@ -91,6 +99,9 @@ public class PrismPythonTalker
 		return socketPort;
 	} 
 
+	/**
+	 * Function sets export locations for adversaries etc.
+	 */
 	public void setExports(){
 		try {
 			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
@@ -110,9 +121,14 @@ public class PrismPythonTalker
 		}
 	}
 
-	public boolean loadPrismModelFile(){
+	/**
+	 * Function loads a PRISM file into Prism so it can be model checked
+	 * @param modelPath the path of the PRISM file
+	 * @return the success status of the operation
+	 */
+	public boolean loadPrismModelFile(String modelPath){
 		try{
-			currentModel = prism.parseModelFile(new File(directory+fileName));
+			currentModel = prism.parseModelFile(new File(modelPath));
 			prism.loadPRISMModel(currentModel);
 			return true;
 		} catch (FileNotFoundException e) {
@@ -125,26 +141,15 @@ public class PrismPythonTalker
 		}
 	}
 
-	public boolean callPrismPartial(String ltlString) {
-		try {
-			Result result;
-			PropertiesFile prismSpec;
-			if (loadPrismModelFile()) {
-				prismSpec=prism.parsePropertiesString(currentModel, ltlString);
-				result = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
-				return true;
-			}
-			else {
-				return false;
-			}
-		}
-		catch (PrismException e) {
-			System.out.println("Error: " + e.getMessage());
-			return false;
-		}
-	}
-
-	public Result callPrism(String ltlString, boolean generatePolicy, boolean getStateVector)  {
+	/**
+	 * Function calls Prism and returns Result object
+	 * @param ltlString The LTL property to model check
+	 * @param modelPath The location of the PRISM model file
+	 * @param generatePolicy should the model checking procedure output a policy
+	 * @param getStateVector should the Result object store the state vector
+	 * @return
+	 */
+	public Result callPrism(String ltlString, String modelPath, boolean generatePolicy, boolean getStateVector)  {
 		try {
 			PropertiesFile prismSpec;
 			Result result;
@@ -167,11 +172,19 @@ public class PrismPythonTalker
 				prism.setExportProductTrans(false);
 				prism.setExportTarget(false);
 			}
-			loadPrismModelFile();
+			
+			boolean loadSuccess = loadPrismModelFile(modelPath);
+			
+			//if loading model failed
+			if(!loadSuccess) {
+				return null;
+			}
+			
 			prism.exportStatesToFile(Prism.EXPORT_PLAIN, new File(directory + "original.sta"));
 			prismSpec=prism.parsePropertiesString(currentModel, ltlString);
 			result = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
 			return result;
+			
 		} catch (PrismException e) {
 			System.out.println("Error: " + e.getMessage());
 			return null;
@@ -180,18 +193,35 @@ public class PrismPythonTalker
 			return null;
 		}
 	}
+	
 
+	/**
+	 * Function takes an existing model checking result and does the 
+	 * dot product between the initial distribution and the result's state vector
+	 * @param res The model checking result
+	 * @param initDistFile The file containing the initial distribution
+	 * @return The dot product of the initial distribution and result vector
+	 * @throws PrismException If error in computation
+	 */
+	public double useInitialDistribution(Result res, File initDistFile) throws PrismException{
+		return prism.recomputeModelCheckingResultForInitialDistribution(res, initDistFile);
+	}
+	
+	/**
+	 * Main function runs main loop of PRISM server.
+	 * @param args as standard
+	 * @throws Exception 
+	 */
 	public static void main(String args[]) throws Exception {
-		String command;
-		List<String> commands=Arrays.asList(new String[] {"check", "plan", "get_vector", "partial_sat_guarantees", "shutdown"});
-		String ack;
-		String toClient;
-		String ltlString;
+		
+		List<String> commands=Arrays.asList(new String[] {"check", "plan", "get_vector", "partial_sat_guarantees", "shutdown", "check_init_dist"});
+		String command, ack, toClient, ltlString, modelFile;
+		ltlString = modelFile = null;
 		Socket client;
 		Result result;
-		boolean success;
 		
-		PrismPythonTalker talker=new PrismPythonTalker(Integer.parseInt(args[0]), args[1], args[2]); 
+		//set up the connection
+		PrismPythonTalker talker=new PrismPythonTalker(Integer.parseInt(args[0]), args[1]); 
 		client = talker.server.accept();
 		System.out.println("got connection on port" + talker.getSocketPort());  
 		BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
@@ -199,6 +229,7 @@ public class PrismPythonTalker
 		boolean run = true;
 		
 		while(run) { 
+			
 			command = in.readLine();
 			System.out.println("received: " + command); 
 			if(command == null){
@@ -209,59 +240,112 @@ public class PrismPythonTalker
 					System.out.println("Socket comm is unsynchronised! Trying to recover...");
 					continue;
 				}
-				if (command.equals("check")){
+				
+				// if not shutdown command, get the LTL string and model file
+				if(!command.equals("shutdown")) {
 					ltlString=in.readLine();
-					result=talker.callPrism(ltlString,false,false);
-					toClient = result.getResult().toString();
-					System.out.println("checked");
-					out.println(toClient);
-					continue;
+					modelFile = in.readLine();
+					
+					if(ltlString == null || modelFile == null) {
+						out.println(PrismPythonTalker.FAILURE);
+					}
 				}
+				
+				// command for standard model checking queries
+				if (command.equals("check")){
+					try {
+						result=talker.callPrism(ltlString, modelFile, false, false);
+						toClient = result.getResult().toString();
+						out.println(toClient);
+						continue;
+					} catch(Exception e) {
+						out.println(PrismPythonTalker.FAILURE);
+					}
+				}
+				
+				// command for planning and storing policies
 				if (command.equals("plan")){
-						ltlString=in.readLine();
-						result=talker.callPrism(ltlString,true, false);
-						toClient =  result.getResult().toString();
+					try {
+						result=talker.callPrism(ltlString, modelFile, true, false);
+						toClient = result.getResult().toString();
 						System.out.println("planned");
 						out.println(toClient);
 						continue;
+						
+					} catch(Exception e) {
+						out.println(PrismPythonTalker.FAILURE);
+					}
 				}
+				
+				// command for returning state vector after model checking
 				if (command.equals("get_vector")){
-					ltlString=in.readLine();
-					result=talker.callPrism(ltlString,false, true);
-					StateVector vect = result.getVector();
-					toClient="start";
-					out.println(toClient);
-					ack=in.readLine();
-					if(ack == "error"){
-						System.out.println("Socket error, continuing without outputting state vector");
-						continue;
-					}
-					if (vect != null) {
-						int n = vect.getSize();
-						for (int i = 0; i < n; i++) {
-							toClient=vect.getValue(i).toString();
-							out.println(toClient);
-							ack=in.readLine();
-							if(ack == "error"){
-								System.out.println("Socket error, continuing without outputting state vector");
-								continue;
-							}
+					try {
+						result=talker.callPrism(ltlString, modelFile, false, true);
+						StateVector vect = result.getVector();
+						toClient="start";
+						out.println(toClient);
+						ack=in.readLine();
+						if(ack == "error"){
+							System.out.println("Socket error, continuing without outputting state vector");
+							continue;
 						}
-						vect.clear();
+						if (vect != null) {
+							int n = vect.getSize();
+							for (int i = 0; i < n; i++) {
+								toClient=vect.getValue(i).toString();
+								out.println(toClient);
+								ack=in.readLine();
+								if(ack == "error"){
+									System.out.println("Socket error, continuing without outputting state vector");
+									continue;
+								}
+							}
+							vect.clear();
+						}
+						out.println("end");
+						continue;
+					} catch(Exception e) {
+						out.println(PrismPythonTalker.FAILURE);
 					}
-					out.println("end");
-					continue;
 				}
+				
+				// command for checking partial satisfiability guarantees
 				if (command.equals("partial_sat_guarantees")){
-					ltlString=in.readLine();
-					success = talker.callPrismPartial(ltlString);
-					if (success){
-						out.println("success");
+					result = talker.callPrism(ltlString, modelFile, false, false);
+					if (result != null){
+						out.println(PrismPythonTalker.SUCCESS);
 					} else {
-						out.println("failure");
+						out.println(PrismPythonTalker.FAILURE);
 					}
 					continue;
 				}
+				
+				// command for model checking for models with initial state distributions 
+				if (command.equals("check_init_dist")) {
+					try {
+						// get the initial distribution path
+						String initDistFile = in.readLine();
+						if (initDistFile == null) {
+							out.println(PrismPythonTalker.FAILURE);
+						}
+						
+						// make the initial call to prism
+						result = talker.callPrism(ltlString, modelFile, false, true);
+						if(result == null) {
+							out.println(PrismPythonTalker.FAILURE);
+						}
+						
+						// call the multiplication with initial distribution
+						double finalResult = talker.useInitialDistribution(result, new File(initDistFile));
+						out.println(String.valueOf(finalResult));
+						
+					} catch(Exception e) {
+						out.println(PrismPythonTalker.FAILURE);
+					}
+					continue;
+				}
+				
+				// command for shutting down the prism server
 				if (command.equals("shutdown")){
 					run=false;
 					client.close();

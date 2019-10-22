@@ -3116,9 +3116,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 	}
 
-	public double recomputeModelCheckingResultForInitialDIstribution(Result res, File fileIn) throws PrismException
+	public double recomputeModelCheckingResultForInitialDistribution(Result res, File fileIn) throws PrismException
 	{
-		if (res.getVector() != null && res.getResult() instanceof Double) {
+		for(int i = 0; i < 13; i++) {
+			System.out.println(res.getVector().getValue(i));
+		}
+		if (res.getVector() != null) { //&& res.getResult() instanceof Double) {
 			if (!getExplicit()) {
 				StateValues initDist = new ProbModelChecker(this, currentModel, null).readDistributionFromFile(fileIn);
 				StateValues resVect = (StateValues) res.getVector();
@@ -3904,7 +3907,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		PrismNative.closeDown();
 		PrismMTBDD.closeDown();
 		PrismSparse.closeDown();
-		PrismHybrid.closeDown();
 		ParamModelChecker.closeDown();
 		// Close down CUDD/JDD
 		if (cuddStarted) {
