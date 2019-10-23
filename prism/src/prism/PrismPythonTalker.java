@@ -329,7 +329,7 @@ public class PrismPythonTalker
 						toClient="start";
 						out.println(toClient);
 						ack=in.readLine();
-						if(ack == "error"){
+						if(ack.equals("error")){
 							System.out.println("Socket error, continuing without outputting state vector");
 							continue;
 						}
@@ -339,7 +339,7 @@ public class PrismPythonTalker
 								toClient=vect.getValue(i).toString();
 								out.println(toClient);
 								ack=in.readLine();
-								if(ack == "error"){
+								if(ack.equals("error")){
 									System.out.println("Socket error, continuing without outputting state vector");
 									continue;
 								}
