@@ -246,7 +246,7 @@ public class PrismPythonTalker
 	 */
 	public static void main(String args[]) throws Exception {
 		
-		List<String> commands=Arrays.asList(new String[] {"check", "plan", "get_vector", "partial_sat_guarantees", "shutdown", "check_init_dist"});
+		List<String> commands=Arrays.asList(new String[] {"check", "plan", "get_vector", "shutdown", "check_init_dist"});
 		String command, ack, toClient, ltlString, modelFile;
 		ltlString = modelFile = null;
 		Socket client;
@@ -291,7 +291,7 @@ public class PrismPythonTalker
 				
 				// command for standard model checking queries, on models with one initial state
 				// or for partial satisfiability guarantees
-				if (command.equals("check") || command.equals("partial_sat_guarantees")){
+				if (command.equals("check")){
 					try {
 						result = talker.callPrism(ltlString, modelFile, false, false);
 						if (result != null){
