@@ -104,18 +104,20 @@ public class PrismPythonTalker
 	 */
 	public void setExports(){
 		try {
+			
+			String modelFileName = computeModelFileName("");
 			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
-			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME,directory + "/adv.tra");
+			prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, directory + modelFileName + "_adv.tra");
 			prism.setExportProductStates(true);
-			prism.setExportProductStatesFilename(directory  + "/prod.sta");
+			prism.setExportProductStatesFilename(directory + modelFileName + "_prod.sta");
 			prism.setExportProductTrans(true);
-			prism.setExportProductTransFilename(directory + "/prod.tra");
+			prism.setExportProductTransFilename(directory + modelFileName + "_prod.tra");
 			prism.setExportTarget(true);
-			prism.setExportTargetFilename(directory +  "/prod.lab");
+			prism.setExportTargetFilename(directory + modelFileName + "_prod.lab");
 			prism.getSettings().setExportPropAut(true);
-			prism.getSettings().setExportPropAutFilename(directory + "/prod.aut");
+			prism.getSettings().setExportPropAutFilename(directory + modelFileName + "_prod.aut");
 			prism.setExportProductVector(true);
-			prism.setExportProductVectorFilename(directory + "/guarantees.vect");
+			prism.setExportProductVectorFilename(directory + modelFileName + "_guarantees.vect");
 		} catch (PrismException e) {
 			System.out.println("File not found Error: " + e.getMessage());
 		}
@@ -141,6 +143,29 @@ public class PrismPythonTalker
 		}
 	}
 
+	
+	/**
+	 * Given the path of a model, get the file name for all related files
+	 * @param modelPath The path of the PRISM model file
+	 * @return The file name minus directory path and extension
+	 */
+	public String computeModelFileName(String modelPath) {
+		int startOfName = modelPath.lastIndexOf('/') + 1;
+		int endOfName = modelPath.lastIndexOf('_');
+		
+		if (endOfName == -1) {
+			//go to point before extension instead
+			endOfName = modelPath.lastIndexOf('.');
+		}
+		
+		if (startOfName == -1 || endOfName == -1) {
+			return "model"; // a default
+		}
+		
+		return modelPath.substring(startOfName, endOfName);
+	}
+	
+	
 	/**
 	 * Function calls Prism and returns Result object
 	 * @param ltlString The LTL property to model check
@@ -155,17 +180,24 @@ public class PrismPythonTalker
 			Result result;
 			prism.setStoreVector(getStateVector);
 			
+			String modelFileName = computeModelFileName(modelPath);
+			if (directory.charAt(directory.length()-1) != '/') {
+				modelFileName = '/' + modelFileName;
+			}
+			
 			if(generatePolicy){
+				
+				// settings for outputting state/policy information
 				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
-				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME,directory + "/adv.tra");
+				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV_FILENAME, directory + modelFileName + "_adv.tra");
 				prism.setExportProductStates(true);
-				prism.setExportProductStatesFilename(directory  + "/prod.sta");
+				prism.setExportProductStatesFilename(directory + modelFileName + "_prod.sta");
 				prism.setExportProductTrans(true);
-				prism.setExportProductTransFilename(directory + "/prod.tra");
+				prism.setExportProductTransFilename(directory + modelFileName + "_prod.tra");
 				prism.setExportTarget(true);
-				prism.setExportTargetFilename(directory +  "/prod.lab");
+				prism.setExportTargetFilename(directory + modelFileName + "_prod.lab");
 				prism.getSettings().setExportPropAut(true);
-				prism.getSettings().setExportPropAutFilename(directory + "/prod.aut");
+				prism.getSettings().setExportPropAutFilename(directory + modelFileName + "_prod.aut");
 			} else {
 				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "None");               
 				prism.setExportProductStates(false);
@@ -180,7 +212,7 @@ public class PrismPythonTalker
 				return null;
 			}
 			
-			prism.exportStatesToFile(Prism.EXPORT_PLAIN, new File(directory + "original.sta"));
+			prism.exportStatesToFile(Prism.EXPORT_PLAIN, new File(directory + modelFileName + "_original.sta"));
 			prismSpec=prism.parsePropertiesString(currentModel, ltlString);
 			result = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
 			return result;
@@ -249,32 +281,44 @@ public class PrismPythonTalker
 					if(ltlString == null || modelFile == null) {
 						out.println(PrismPythonTalker.FAILURE);
 					}
+				} else { // if shutdown command given
+					run=false;
+					client.close();
+					talker.server.close();
+					talker.prism.closeDown();
+					continue;
 				}
 				
-				// command for standard model checking queries
-				if (command.equals("check")){
+				// command for standard model checking queries, on models with one initial state
+				// or for partial satisfiability guarantees
+				if (command.equals("check") || command.equals("partial_sat_guarantees")){
 					try {
-						result=talker.callPrism(ltlString, modelFile, false, false);
-						toClient = result.getResult().toString();
-						out.println(toClient);
-						continue;
+						result = talker.callPrism(ltlString, modelFile, false, false);
+						if (result != null){
+							out.println(result.getResult().toString());
+						} else {
+							out.println(PrismPythonTalker.FAILURE);
+						}
 					} catch(Exception e) {
 						out.println(PrismPythonTalker.FAILURE);
 					}
+					continue;
 				}
 				
 				// command for planning and storing policies
 				if (command.equals("plan")){
 					try {
 						result=talker.callPrism(ltlString, modelFile, true, false);
-						toClient = result.getResult().toString();
-						System.out.println("planned");
-						out.println(toClient);
-						continue;
+						if(result != null) {
+							out.println(talker.computeModelFileName(modelFile));
+						} else {
+							out.println(PrismPythonTalker.FAILURE);
+						}
 						
 					} catch(Exception e) {
 						out.println(PrismPythonTalker.FAILURE);
 					}
+					continue;
 				}
 				
 				// command for returning state vector after model checking
@@ -303,18 +347,7 @@ public class PrismPythonTalker
 							vect.clear();
 						}
 						out.println("end");
-						continue;
 					} catch(Exception e) {
-						out.println(PrismPythonTalker.FAILURE);
-					}
-				}
-				
-				// command for checking partial satisfiability guarantees
-				if (command.equals("partial_sat_guarantees")){
-					result = talker.callPrism(ltlString, modelFile, false, false);
-					if (result != null){
-						out.println(PrismPythonTalker.SUCCESS);
-					} else {
 						out.println(PrismPythonTalker.FAILURE);
 					}
 					continue;
@@ -345,14 +378,6 @@ public class PrismPythonTalker
 					continue;
 				}
 				
-				// command for shutting down the prism server
-				if (command.equals("shutdown")){
-					run=false;
-					client.close();
-					talker.server.close();
-					talker.prism.closeDown();
-					continue;
-				}
 			}
 		}
 		System.exit(0);
