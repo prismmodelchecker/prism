@@ -198,6 +198,8 @@ public class PrismPythonTalker
 				prism.setExportTargetFilename(directory + modelFileName + "_prod.lab");
 				prism.getSettings().setExportPropAut(true);
 				prism.getSettings().setExportPropAutFilename(directory + modelFileName + "_prod.aut");
+				prism.setExportProductVector(true);
+				prism.setExportProductVectorFilename(directory + modelFileName + "_guarantees.vect");
 			} else {
 				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "None");               
 				prism.setExportProductStates(false);
@@ -212,7 +214,9 @@ public class PrismPythonTalker
 				return null;
 			}
 			
-			prism.exportStatesToFile(Prism.EXPORT_PLAIN, new File(directory + modelFileName + "_original.sta"));
+			if(generatePolicy) {
+				prism.exportStatesToFile(Prism.EXPORT_PLAIN, new File(directory + modelFileName + "_original.sta"));
+			}
 			prismSpec=prism.parsePropertiesString(currentModel, ltlString);
 			result = prism.modelCheck(prismSpec, prismSpec.getPropertyObject(0));
 			return result;
