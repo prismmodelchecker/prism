@@ -58,7 +58,7 @@ public abstract class FunctionFactory {
 	 * @param lowerBounds lower bounds of parameters
 	 * @param upperBounds upper bounds of parameters
 	 */
-	FunctionFactory(String[] parameterNames, BigRational[] lowerBounds, BigRational[] upperBounds) {
+	public FunctionFactory(String[] parameterNames, BigRational[] lowerBounds, BigRational[] upperBounds) {
 		this.parameterNames = parameterNames;
 		this.lowerBounds = lowerBounds;
 		this.upperBounds = upperBounds;
@@ -72,31 +72,31 @@ public abstract class FunctionFactory {
 	 * Returns a function representing the number one.
 	 * @return function representing the number one
 	 */
-	abstract Function getOne();
+	public abstract Function getOne();
 	
 	/**
 	 * Returns a function representing the number zero.
 	 * @return function representing the number zero
 	 */
-	abstract Function getZero();
+	public abstract Function getZero();
 
 	/**
 	 * Returns a function representing not-a-number.
 	 * @return function representing not-a-number
 	 */
-	abstract Function getNaN();
+	public abstract Function getNaN();
 	
 	/**
 	 * Returns a function representing positive infinity.
 	 * @return function representing the positive infinity
 	 */
-	abstract Function getInf();
+	public abstract Function getInf();
 	
 	/**
 	 * Returns a function representing negative infinity.
 	 * @return function representing the negative infinity
 	 */
-	abstract Function getMInf();
+	public abstract Function getMInf();
 	
 	/**
 	 * Returns a new function which represents the same value as the
@@ -105,7 +105,7 @@ public abstract class FunctionFactory {
 	 * @param bigRat value to create a function of
 	 * @return function representing the same value as {@code bigRat}
 	 */
-	abstract Function fromBigRational(BigRational bigRat);
+	public abstract Function fromBigRational(BigRational bigRat);
 	
 	/**
 	 * Returns a function representing a single variable. 
@@ -113,7 +113,7 @@ public abstract class FunctionFactory {
 	 * @param var the variable to create a function of
 	 * @return function consisting only in one variable
 	 */
-	abstract Function getVar(int var);
+	public abstract Function getVar(int var);
 
 
 	/**
@@ -122,7 +122,7 @@ public abstract class FunctionFactory {
 	 * @param var name of the variable to create a function of
 	 * @return function consisting only in one variable
 	 */
-	Function getVar(String var) {
+	public Function getVar(String var) {
 		return getVar(varnameToInt.get(var));
 	}
 	
@@ -132,7 +132,7 @@ public abstract class FunctionFactory {
 	 * @param var index of the variable to obtain name of
 	 * @return name of {@code var}
 	 */
-	String getParameterName(int var) {
+	public String getParameterName(int var) {
 		return parameterNames[var];
 	}
 
@@ -142,7 +142,7 @@ public abstract class FunctionFactory {
 	 * @param var index of the variable to obtain lower bound of
 	 * @return lower bound of {@code var}
 	 */
-	BigRational getLowerBound(int var) {
+	public BigRational getLowerBound(int var) {
 		return lowerBounds[var];
 	}
 	
@@ -152,7 +152,7 @@ public abstract class FunctionFactory {
 	 * @param var index of the variable to obtain upper bound of
 	 * @return upper bound of {@code var}
 	 */
-	BigRational getUpperBound(int var) {
+	public BigRational getUpperBound(int var) {
 		return upperBounds[var];
 	}
 	
@@ -170,7 +170,7 @@ public abstract class FunctionFactory {
 	 * @param from number to create function of
 	 * @return function representing the number {@code from}
 	 */
-	Function fromLong(long from) {
+	public Function fromLong(long from) {
 		return fromBigRational(new BigRational(from));
 	}
 }
