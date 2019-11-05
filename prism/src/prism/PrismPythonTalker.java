@@ -274,6 +274,3 @@ public class PrismPythonTalker
 		System.exit(0);
 	}
 }
-
-
-

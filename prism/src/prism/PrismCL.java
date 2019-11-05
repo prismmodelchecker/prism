@@ -407,7 +407,7 @@ public class PrismCL implements PrismModelListener
 							}
 							
 							if (importinitdist) {
-								double resNew = prism.recomputeModelCheckingResultForInitialDIstribution(res, new File(importInitDistFilename));
+								double resNew = prism.recomputeModelCheckingResultForInitialDistribution(res, new File(importInitDistFilename));
 								res.setResult(resNew);
 								mainLog.println("\nResult recomputed for initial distribution: " + res.getResult());
 							}
