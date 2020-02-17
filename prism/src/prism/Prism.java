@@ -1983,7 +1983,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				if (currentModulesFile == null)
 					throw new PrismException("There is no currently loaded PRISM model");
 				// PRISM model exists but no generator - this will provide the error message
-				new ModulesFileModelGenerator(currentModulesFile);
+				new ModulesFileModelGenerator(currentModulesFile, this);
 				// Shouldn't happen, so generic error message
 				throw new PrismException("No model generator was created");
 			case MODEL_GENERATOR:
