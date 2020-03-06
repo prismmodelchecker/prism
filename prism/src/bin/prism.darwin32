@@ -21,7 +21,7 @@ fi
 # If there is a -javamaxmem switch, use it for PRISM_JAVAMAXMEM
 ARGS=( "$@" )
 for ((i=0;i<${#ARGS[@]};i+=1)); do
-	if [ "${ARGS[$i]}" = "-javamaxmem" ]; then
+	if [ "${ARGS[$i]}" = "-javamaxmem" -o "${ARGS[$i]}" = "--javamaxmem" ]; then
 		PRISM_JAVAMAXMEM=${ARGS[$i+1]}
 		PRISM_JAVAMAXMEM=`echo "$PRISM_JAVAMAXMEM" | awk /^[0-9]+[kmg]?$/`
 		if [ "$PRISM_JAVAMAXMEM" = "" ]; then
@@ -46,7 +46,7 @@ fi
 
 # If there is a -javastack switch, use it for PRISM_JAVASTACKSIZE
 for ((i=0;i<${#ARGS[@]};i+=1)); do
-	if [ "${ARGS[$i]}" = "-javastack" ]; then
+	if [ "${ARGS[$i]}" = "-javastack" -o "${ARGS[$i]}" = "--javastack" ]; then
 		PRISM_JAVASTACKSIZE=${ARGS[$i+1]}
 		PRISM_JAVASTACKSIZE=`echo "$PRISM_JAVASTACKSIZE" | awk /^[0-9]+[kmg]?$/`
 		if [ "$PRISM_JAVASTACKSIZE" = "" ]; then
