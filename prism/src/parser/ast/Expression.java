@@ -846,6 +846,31 @@ public abstract class Expression extends ASTElement
 	}
 	
 	/**
+	 * Test if an expression contains a minimum expected reward operator. 
+	 * Actually, this returns true if there is an R operator with "min=?" or a lower bound attached to it,
+	 * so this is just an approximation. (For example, an R operator might be embedded within
+	 * an "exists" strategy operator)
+	 */
+	public static boolean containsMinReward(Expression expr)
+	{
+		try {
+			ASTTraverse astt = new ASTTraverse()
+			{
+				public void visitPost(ExpressionReward e) throws PrismLangException
+				{
+					if (e.isMin()) {
+						throw new PrismLangException("Found one", e);
+					}
+				}
+			};
+			expr.accept(astt);
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Test if an expression contains a non-probabilistic LTL formula (i.e., a non-simple path formula). 
 	 */
 	public static boolean containsNonProbLTLFormula(Expression expr)

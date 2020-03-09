@@ -203,6 +203,17 @@ public class ExpressionReward extends ExpressionQuant
 		}
 	}
 	
+	/**
+	 * Returns true is this is a minimum rewards operator.
+	 * Actually, this returns true if the operator has "min=?" or a lower bound attached to it,
+	 * so this is just an approximation. (For example, this R operator might be embedded within
+	 * an "exists" strategy operator)
+	 */
+	public boolean isMin()
+	{
+		return getRelOp().isMin() || getRelOp().isLowerBound();
+	}
+	
 	// Methods required for Expression:
 	
 	@Override

@@ -3024,6 +3024,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			lastEngine = getEngine();
 			setEngine(Prism.EXPLICIT);
 		}
+		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER)) {
+			if (currentModelType == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
+				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
+				engineSwitch = true;
+				lastEngine = getEngine();
+				setEngine(Prism.EXPLICIT);
+			}
+		}
 		try {
 			// Build model, if necessary
 			buildModelIfRequired();
