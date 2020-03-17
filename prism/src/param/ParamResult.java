@@ -153,7 +153,7 @@ public class ParamResult
 
 				// replace constants in the expression that have a value
 				// with the value
-				exprExpected = (Expression) exprExpected.evaluatePartially(constValues, null);
+				exprExpected = (Expression) exprExpected.evaluatePartially(constValues);
 			}
 		} catch (PrismLangException e) {
 			throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for property: " + e.getMessage());
