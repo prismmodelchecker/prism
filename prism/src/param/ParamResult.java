@@ -148,7 +148,7 @@ public class ParamResult
 				for (String p : modelBuilder.getParameterNames()) {
 					constantList.addConstant(new ExpressionIdent(p), null, TypeDouble.getInstance());
 				}
-				exprExpected.findAllConstants(constantList);
+				exprExpected = (Expression) exprExpected.findAllConstants(constantList);
 				exprExpected.typeCheck();
 
 				// replace constants in the expression that have a value
