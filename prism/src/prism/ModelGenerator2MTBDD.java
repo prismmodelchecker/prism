@@ -49,7 +49,7 @@ public class ModelGenerator2MTBDD
 	private PrismLog mainLog;
 
 	// Source model generators
-	private ModelGenerator modelGen;
+	private ModelGenerator<Double> modelGen;
 	private RewardGenerator rewardGen;
 
 	// Model info
@@ -112,7 +112,7 @@ public class ModelGenerator2MTBDD
 	/**
 	 * Build a Model corresponding to the passed in model generator.
 	 */
-	public Model build(ModelGenerator modelGen, RewardGenerator rewardGen) throws PrismException
+	public Model build(ModelGenerator<Double> modelGen, RewardGenerator rewardGen) throws PrismException
 	{
 		this.modelGen = modelGen;
 		this.rewardGen = rewardGen;

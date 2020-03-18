@@ -391,7 +391,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 	
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
+	public Double getTransitionProbability(int i, int offset) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 		/*param.TransitionList transitions = getTransitionList();
@@ -406,7 +406,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 
 	@Override
-	public double getChoiceProbabilitySum(int i) throws PrismException
+	public Double getChoiceProbabilitySum(int i) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 		/*param.TransitionList transitions = getTransitionList();
@@ -414,7 +414,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 	
 	@Override
-	public double getProbabilitySum() throws PrismException
+	public Double getProbabilitySum() throws PrismException
 	{
 		throw new UnsupportedOperationException();
 		/*param.TransitionList transitions = getTransitionList();

@@ -91,7 +91,7 @@ public class PTAModelChecker extends PrismComponent
 		timer = System.currentTimeMillis();
 
 		// Build a model generator
-		ModelGenerator modelGen;
+		ModelGenerator<Double> modelGen;
 		try {
 			modelGen = new ModulesFileModelGenerator(modulesFile, this);
 		} catch (PrismException e) {

@@ -20,7 +20,7 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.RewardGenerator;
 
-public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerator
+public class ModulesFileModelGenerator implements ModelGenerator<Double>, RewardGenerator
 {
 	// Parent PrismComponent (logs, settings etc.)
 	protected PrismComponent parent;
@@ -374,21 +374,21 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 	
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
+	public Double getTransitionProbability(int i, int offset) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
 		return transitions.getChoice(i).getProbability(offset);
 	}
 
 	@Override
-	public double getChoiceProbabilitySum(int i) throws PrismException
+	public Double getChoiceProbabilitySum(int i) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
 		return transitions.getChoice(i).getProbabilitySum();
 	}
 	
 	@Override
-	public double getProbabilitySum() throws PrismException
+	public Double getProbabilitySum() throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
 		return transitions.getProbabilitySum();

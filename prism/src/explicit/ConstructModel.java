@@ -134,7 +134,7 @@ public class ConstructModel extends PrismComponent
 	 * Build the set of reachable states for a model and return it.
 	 * @param modelGen The ModelGenerator interface providing the model 
 	 */
-	public List<State> computeReachableStates(ModelGenerator modelGen) throws PrismException
+	public List<State> computeReachableStates(ModelGenerator<Double> modelGen) throws PrismException
 	{
 		constructModel(modelGen, true);
 		return getStatesList();
@@ -144,7 +144,7 @@ public class ConstructModel extends PrismComponent
 	 * Construct an explicit-state model and return it.
 	 * @param modelGen The ModelGenerator interface providing the model 
 	 */
-	public Model constructModel(ModelGenerator modelGen) throws PrismException
+	public Model constructModel(ModelGenerator<Double> modelGen) throws PrismException
 	{
 		return constructModel(modelGen, false);
 	}
@@ -156,7 +156,7 @@ public class ConstructModel extends PrismComponent
 	 * @param modelGen The ModelGenerator interface providing the model 
 	 * @param justReach If true, just build the reachable state set, not the model
 	 */
-	public Model constructModel(ModelGenerator modelGen, boolean justReach) throws PrismException
+	public Model constructModel(ModelGenerator<Double> modelGen, boolean justReach) throws PrismException
 	{
 		// Model info
 		ModelType modelType;

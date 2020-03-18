@@ -45,7 +45,7 @@ import prism.PrismNotSupportedException;
  * Class that implements the ModelGenerator interface using an explicit model.
  * Allows e.g. simulation of a built model.
  */
-public class ModelModelGenerator implements ModelGenerator
+public class ModelModelGenerator implements ModelGenerator<Double>
 {
 	// Explicit model + info
 	private Model model;
@@ -191,7 +191,7 @@ public class ModelModelGenerator implements ModelGenerator
 	}
 
 	@Override
-	public double getTransitionProbability(int i, int offset) throws PrismException
+	public Double getTransitionProbability(int i, int offset) throws PrismException
 	{
 		return trans.get(i).probs.get(offset);
 	}
