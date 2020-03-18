@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -37,12 +37,12 @@ import prism.PrismLangException;
  * Representation of a single (nondeterministic) choice in a PRISM model,
  * i.e, a list of transitions, each specified by updates to variables.
  */
-public interface Choice
+public interface Choice<Value>
 {
 	/**
 	 * Scale probability/rate of all transitions, multiplying by d.
 	 */
-	public void scaleProbabilitiesBy(double d);
+	public void scaleProbabilitiesBy(Value d);
 	
 	/**
 	 * Get the module/action for this choice, as an integer index
@@ -105,19 +105,19 @@ public interface Choice
 	/**
 	 * Get the probability/rate for the ith transition.
 	 */
-	public double getProbability(int i);
+	public Value getProbability(int i);
 	
 	/**
 	 * Get the sum of probabilities/rates for all transitions.
 	 */
-	public double getProbabilitySum();
+	public Value getProbabilitySum();
 	
 	/**
 	 * Return the index of a transition according to a probability (or rate) sum, x.
 	 * i.e. return the index of the first transition in this choice for which the
 	 * sum of probabilities/rates for that and all prior transitions exceeds x.
 	 */
-	public int getIndexByProbabilitySum(double x);
+	public int getIndexByProbabilitySum(Value x);
 	
 	public void checkValid(ModelType modelType) throws PrismException;
 	

@@ -93,7 +93,7 @@ public class PTAModelChecker extends PrismComponent
 		// Build a model generator
 		ModelGenerator<Double> modelGen;
 		try {
-			modelGen = new ModulesFileModelGenerator(modulesFile, this);
+			modelGen = new ModulesFileModelGenerator<Double>(modulesFile, this);
 		} catch (PrismException e) {
 			throw new PrismException(e.getMessage() + ". Try the digital clocks engine instead");
 		}
