@@ -1135,7 +1135,7 @@ final public class ParamModelChecker extends PrismComponent
 						varMap[i] = i;
 					}
 					Expression exprState = (Expression) expr.deepCopy().evaluatePartially(statesList.get(state), varMap);
-					Function newReward = modelBuilder.expr2function(functionFactory, exprState);
+					Function newReward = functionFactory.expr2function(exprState, constantValues);
 					for (int choice = model.stateBegin(state); choice < model.stateEnd(state); choice++) {
 						Function sumOut = model.sumLeaving(choice);
 						Function choiceReward;

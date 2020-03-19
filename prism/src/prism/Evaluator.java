@@ -27,6 +27,8 @@
 package prism;
 
 import param.BigRational;
+import param.Function;
+import param.FunctionFactory;
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
@@ -59,6 +61,11 @@ public interface Evaluator<Value>
 		return evalBigRat;
 	}
 
+	public static Evaluator<Function> createForRationalFunctions(FunctionFactory functionFactory)
+	{
+		return new EvaluatorFunction(functionFactory);
+	}
+	
 	// Methods in the Evaluator interface
 	
 	/**
@@ -461,4 +468,133 @@ public interface Evaluator<Value>
 			return false;
 		}
 	};
+	
+	// Evaluator for rational functions (using param.Function)
+	
+	class EvaluatorFunction implements Evaluator<Function>
+	{
+		protected FunctionFactory functionFactory;
+
+		public EvaluatorFunction(FunctionFactory functionFactory)
+		{
+			this.functionFactory = functionFactory;
+		}
+
+		@Override
+		public Function zero()
+		{
+			return functionFactory.getZero();
+		}
+
+		@Override
+		public Function one()
+		{
+			return functionFactory.getOne();
+		}
+
+		@Override
+		public boolean isZero(Function x)
+		{
+			// Technically, not quite right since it could miss some cases
+			// where the function is globally zero. But, if this returns true,
+			// then it _is_ zero for all values, so still useful to have
+			return x.isZero();
+		}
+
+		@Override
+		public boolean isOne(Function x)
+		{
+			// Technically, not quite right since it could miss some cases
+			// where the function is globally one. But, if this returns true,
+			// then it _is_ one for all values, so still useful to have
+			return x.isOne();
+		}
+
+		@Override
+		public boolean isFinite(Function x)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Function add(Function x, Function y)
+		{
+			return x.add(y);
+		}
+
+		@Override
+		public Function subtract(Function x, Function y)
+		{
+			return x.subtract(y);
+		}
+
+		@Override
+		public Function multiply(Function x, Function y)
+		{
+			return x.multiply(y);
+		}
+
+		@Override
+		public Function divide(Function x, Function y)
+		{
+			return x.divide(y);
+		}
+
+		@Override
+		public boolean gt(Function x, Function y)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean geq(Function x, Function y)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean equals(Function x, Function y)
+		{
+			return x.equals(y);
+		}
+		
+		@Override
+		public void checkProbabilitySum(Function sum) throws PrismException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public Function evaluate(Expression expr, Values constantValues, State state) throws PrismLangException
+		{
+			//return expr.getType().castFromBigRational(expr.evaluateExact(state);
+			return functionFactory.expr2function((Expression) expr.deepCopy().evaluatePartially(constantValues, state));
+		}
+
+		@Override
+		public double toDouble(Function x)
+		{
+			// Cannot do this, in general
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Function fromString(String s) throws NumberFormatException
+		{
+			// TODO
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean exact()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean isSymbolic()
+		{
+			return true;
+		}
+	}
 }

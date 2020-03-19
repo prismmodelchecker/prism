@@ -193,7 +193,7 @@ public class ParamResult
 			// numeric result
 			Function funcExpected;
 			try {
-				funcExpected = modelBuilder.expr2function(factory, expected);
+				funcExpected = factory.expr2function(expected);
 			} catch (PrismException e) {
 				throw new PrismException("Invalid (or unsupported) RESULT specification \"" + strExpected + "\" for " + mode + " property");
 			}

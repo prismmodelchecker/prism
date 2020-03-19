@@ -369,15 +369,18 @@ public class Updater<Value> extends PrismComponent
 			// Compute probability/rate
 			p = getProbabilityInState(ups, i, state);
 			// Check that probabilities/rates are finite (non-infinite, non-NaN) and non-negative
+			// We omit the check in symbolic (parametric) cases - too expensive
 			// Note: we indicate errors in whole Updates object because the offending
 			// probability expression has probably been simplified from original form.
-			if (!eval.isFinite(p)) {
-				String msg = modelType.probabilityOrRate() + " is not finite in state " + state.toString(modulesFile);
-				throw new PrismLangException(msg, ups);
-			}
-			if (!eval.geq(p, eval.zero())) {
-				String msg = modelType.probabilityOrRate() + " is negative in state " + state.toString(modulesFile);
-				throw new PrismLangException(msg, ups);
+			if (!eval.isSymbolic()) {
+				if (!eval.isFinite(p)) {
+					String msg = modelType.probabilityOrRate() + " is not finite in state " + state.toString(modulesFile);
+					throw new PrismLangException(msg, ups);
+				}
+				if (!eval.geq(p, eval.zero())) {
+					String msg = modelType.probabilityOrRate() + " is negative in state " + state.toString(modulesFile);
+					throw new PrismLangException(msg, ups);
+				}
 			}
 			// Skip transitions with zero probability/rate
 			if (eval.isZero(p))
@@ -396,7 +399,8 @@ public class Updater<Value> extends PrismComponent
 			throw new PrismLangException(msg, ups);
 		}
 		// Check distribution sums to 1 (if required, and if is non-empty)
-		if (doProbChecks && ch.size() > 0 && modelType.choicesSumToOne()) {
+		// As above, we omit the check in symbolic (parametric) cases - too expensive
+		if (doProbChecks && ch.size() > 0 && modelType.choicesSumToOne() && !eval.isSymbolic()) {
 			try {
 				eval.checkProbabilitySum(sum);
 			} catch (PrismException e) {

@@ -6,13 +6,17 @@ import java.util.List;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import parser.ast.ConstantList;
 import parser.ast.DeclarationType;
 import parser.ast.Expression;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionLiteral;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.RewardStruct;
 import parser.type.Type;
 import parser.type.TypeClock;
+import parser.visitor.ASTTraverseModify;
 import prism.Evaluator;
 import prism.ModelGenerator;
 import prism.ModelType;
@@ -129,8 +133,35 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	 */
 	private void initialise() throws PrismException
 	{
-		// Evaluate constants on (a copy) of the modules file, insert constant values
-		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants);
+		// Evaluate and replace constants on (a copy) of the modules file
+		// We do this using a custom traversal, rather than just calling
+		// replaceConstants() or evaluatePartially() because we also need
+		// to expand undefined constants (e.g., for parametric model checking)
+		modulesFile = (ModulesFile) modulesFile.deepCopy();
+		ConstantList constantList = modulesFile.getConstantList();
+		modulesFile = (ModulesFile) modulesFile.accept(new ASTTraverseModify()
+		{
+			public Object visit(ExpressionConstant e) throws PrismLangException
+			{
+				String name = e.getName();
+				// Constants whose values have been fixed (directly or indirectly)
+				// are replaced with constant literals
+				int i = mfConstants.getIndexOf(name);
+				if (i != -1) {
+					return new ExpressionLiteral(e.getType(), mfConstants.getValue(i));
+				}
+				// Otherwise, see if there is definition (in terms of other constants)
+				// in the model's constant list
+				int i2 = constantList.getConstantIndex(e.getName());
+				if (i2 != -1 && constantList.getConstant(i2) != null) {
+					return constantList.getConstant(i2).accept(this);
+				}
+				// If not, the constant cannot be defined (might, for example,
+				// be a parameter in parametric model checking). So leave unchanged.
+				return e;
+			}
+			
+		});
 		// Optimise arithmetic expressions (not in exact mode: can create some round-off issues)
 		if (!eval.exact()) {
 			modulesFile = (ModulesFile) modulesFile.simplify();
