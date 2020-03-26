@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import java.nio.file.Path;
 import java.util.*;
 
 import param.BigRational;
@@ -76,6 +77,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private Values undefinedConstantValues;
 	// Actual values of (some or all) constants
 	private Values constantValues;
+
+	/** (Optional) The location (file) from which this ModulesFile was obtained */
+	private Path location;
 
 	// Constructor
 
@@ -1244,6 +1248,25 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return new VarList(this);
 	}
 
+	/**
+	 * Sets the path to the file underlying this ModulesFile,
+	 * or {@code null} to designate "unknown".
+	 */
+	public void setLocation(Path location)
+	{
+		// System.err.println("Model: " + location);
+		this.location = location;
+	}
+
+	/**
+	 * Returns the path to the file underlying this ModulesFile, if known.
+	 * Returns {@code null} otherwise.
+	 */
+	public Path getLocation()
+	{
+		return location;
+	}
+
 	// Methods required for ASTElement:
 
 	/**
@@ -1360,7 +1383,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
 		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
-		
+
+		// a Path is immutable, no need for deep-copy
+		ret.location = location;
+
 		return ret;
 	}
 }

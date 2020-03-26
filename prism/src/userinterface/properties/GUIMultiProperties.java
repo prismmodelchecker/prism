@@ -413,6 +413,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			// parse property to be used for experiment
 			parsedProperties = getPrism().parsePropertiesString(
 					getLabelsString() + "\n" + getConstantsString() + "\n" + propList.getValidSelectedAndReferencedString());
+
+			if (activeFile != null)
+				parsedProperties.setLocation(activeFile.toPath().toAbsolutePath());
+
 			if (parsedProperties.getNumProperties() <= 0) {
 				error("There are no properties selected");
 				return;

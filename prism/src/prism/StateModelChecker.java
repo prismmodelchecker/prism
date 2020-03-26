@@ -1646,6 +1646,22 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			JDD.Deref(labels[i]);
 		}
 	}
+
+	
+	/** Get the optionally stored ModulesFile (may be {@code null}) */
+	public ModulesFile getModulesFile()
+	{
+		if (propertiesFile != null) {
+			return propertiesFile.getModulesFile();
+		}
+		return null;
+	}
+
+	/** Get the optionally stored ModulesFile (may be {@code null}) */
+	public PropertiesFile getPropertiesFile()
+	{
+		return propertiesFile;
+	}
 }
 
 // ------------------------------------------------------------------------------

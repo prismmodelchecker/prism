@@ -569,6 +569,9 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		modifiedSinceParse = false;
 		lastError = "Parse Successful";
 
+		if (activeFile != null)
+			parsedModel.setLocation(activeFile.toPath().toAbsolutePath());
+		
 		editor.modelParseSuccessful();
 
 		if (parseAfterParse) {
