@@ -92,6 +92,18 @@ public class PropertiesFile extends ASTElement
 		}
 	}
 
+	/** Get the attached ModelInfo */
+	public ModelInfo getModelInfo()
+	{
+		return modelInfo;
+	}
+
+	/** Get the attached ModulesFile (may be {@code null}) */
+	public ModulesFile getModulesFile()
+	{
+		return modulesFile;
+	}
+
 	public void setFormulaList(FormulaList fl)
 	{
 		formulaList = fl;
