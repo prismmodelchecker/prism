@@ -179,15 +179,15 @@ public interface PrismParserConstants {
   /** RegularExpression Id. */
   int QMARK = 84;
   /** RegularExpression Id. */
-  int DQUOTE = 85;
+  int REG_INT = 85;
   /** RegularExpression Id. */
-  int REG_INT = 86;
+  int REG_DOUBLE = 86;
   /** RegularExpression Id. */
-  int REG_DOUBLE = 87;
+  int REG_IDENTPRIME = 87;
   /** RegularExpression Id. */
-  int REG_IDENTPRIME = 88;
+  int REG_IDENT = 88;
   /** RegularExpression Id. */
-  int REG_IDENT = 89;
+  int REG_QUOTED_IDENT = 89;
   /** RegularExpression Id. */
   int PREPROC = 90;
   /** RegularExpression Id. */
@@ -283,11 +283,11 @@ public interface PrismParserConstants {
     "\"\\\'\"",
     "\"<-\"",
     "\"?\"",
-    "\"\\\"\"",
     "<REG_INT>",
     "<REG_DOUBLE>",
     "<REG_IDENTPRIME>",
     "<REG_IDENT>",
+    "<REG_QUOTED_IDENT>",
     "<PREPROC>",
     "<LEXICAL_ERROR>",
   };

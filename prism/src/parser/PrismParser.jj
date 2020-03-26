@@ -511,12 +511,12 @@ TOKEN :
 |	< PRIME:		"'" >
 |	< RENAME:		"<-" >
 |	< QMARK:		"?" >
-|	< DQUOTE:		"\"" >
 	// Regular expressions
 |	< REG_INT:			(["1"-"9"](["0"-"9"])*)|("0") >
 |	< REG_DOUBLE:		(["0"-"9"])*(".")?(["0"-"9"])+(["e","E"](["-","+"])?(["0"-"9"])+)? >
 |	< REG_IDENTPRIME:	["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*"'" >
 |	< REG_IDENT:		["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])* >
+|	< REG_QUOTED_IDENT:	"\"" (["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*) "\"" >
 |	< PREPROC:			"#"(~["#"])*"#" >
 	// Special catch-all token for lexical errors
 	// (this allows us to throw our usual exceptions in this case)
@@ -638,7 +638,7 @@ Property Property() :
 	// (this avoids some common parsing errors for semicolon-less files)
 	// Note also use of lookahead (to colon) to distinguish (optional) name from label reference
 	( { begin = getToken(1); }
-	( LOOKAHEAD(<DQUOTE> Identifier() <DQUOTE> <COLON>) <DQUOTE> name = Identifier() <DQUOTE> <COLON> )?
+	( LOOKAHEAD(QuotedIdentifier() <COLON>) name = QuotedIdentifier() <COLON> )?
 	expr = ExpressionITE(true, false)
 	{ prop = new Property(expr, name, getPrecedingCommentBlock(begin)); }
 	)
@@ -705,7 +705,7 @@ void LabelDef(LabelList labelList) throws PrismLangException :
 }
 {
 	// Lookahead required because of the error handling clause below
-	LOOKAHEAD(<LABEL> <DQUOTE>) <LABEL> ( <DQUOTE> name = IdentifierExpression() <DQUOTE> <EQ> expr = Expression(false, false) <SEMICOLON> )
+	LOOKAHEAD(<LABEL> QuotedIdentifierExpression()) <LABEL> ( name = QuotedIdentifierExpression() <EQ> expr = Expression(false, false) <SEMICOLON> )
 	{ labelList.addLabel(name, expr); }
 	// Error handling
 	| LOOKAHEAD(<LABEL>) ( <LABEL> name = IdentifierExpression() ) { throw new PrismLangException("Label names must be enclosed in double-quotes", name); }
@@ -917,7 +917,7 @@ RewardStruct RewardStruct() :
 	// Optional name
 	// (lookahead required so not misdetected as an ExpressionLabel)
 	// (which would not be allowed to appear here anyway)
-	( LOOKAHEAD(<DQUOTE>) <DQUOTE> name = Identifier() <DQUOTE> { rs.setName(name); } )?
+	( LOOKAHEAD(QuotedIdentifier()) name = QuotedIdentifier() { rs.setName(name); } )?
 	// Reward structure items
 	( { begin2 = getToken(1); s = null; } ( <LBRACKET> { s = ""; } ( s=Identifier() )? <RBRACKET> )?
 	guard = Expression(false, false) <COLON> value = Expression(false, false) <SEMICOLON>
@@ -947,7 +947,7 @@ void SystemEndsystem(ModulesFile mf) :
 	<SYSTEM>
 	// Optional name
 	// (need lookahead because names look like references)
-	( LOOKAHEAD(<DQUOTE> name = Identifier() <DQUOTE> SystemDefn()) <DQUOTE> name = Identifier() <DQUOTE> )?
+	( LOOKAHEAD(QuotedIdentifier() SystemDefn()) name = QuotedIdentifier() )?
 	// The rest
 	( sysdef = SystemDefn() )
 	<ENDSYSTEM>
@@ -1084,7 +1084,7 @@ SystemDefn SystemAtomic() :
 	// Module name
 	( name = Identifier() { sys = new SystemModule(name); } )
 	// SystemDefn reference
-	|( <DQUOTE> name = Identifier() <DQUOTE> { sys = new SystemReference(name); } )
+	|( name = QuotedIdentifier() { sys = new SystemReference(name); } )
 	// Parentheses
 	|( <LPARENTH> sys = SystemDefn() <RPARENTH> { sys = new SystemBrackets(sys); } )
 	)
@@ -1681,9 +1681,9 @@ void RewardIndex(ExpressionReward exprRew) :
 }
 {
 	// Lookahead here is to ensure that "id" is not misdetected as an ExpressionLabel
-	( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> index = Identifier() <DQUOTE> ) | index = Expression(false, false) ) <RBRACE> )
+	( <LBRACE> ( LOOKAHEAD(QuotedIdentifier()) ( index = QuotedIdentifier()) | index = Expression(false, false) ) <RBRACE> )
 	// Optional second reward structure index (for ratio objectives)
-	( <DIVIDE> ( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> indexDiv = Identifier() <DQUOTE> ) | indexDiv = Expression(false, false) ) <RBRACE> ))?
+	( <DIVIDE> ( <LBRACE> ( LOOKAHEAD(QuotedIdentifier()) ( indexDiv = QuotedIdentifier() ) | indexDiv = Expression(false, false) ) <RBRACE> ))?
 	{
 		exprRew.setRewardStructIndex(index);
 		if (indexDiv != null) {
@@ -1819,16 +1819,16 @@ String ExpressionStrategyCoalitionPlayer() :
 
 Expression ExpressionLabel(boolean prop, boolean pathprop) :
 {
-	String s;
+	ExpressionIdent qi;
 	ExpressionLabel ret = null;
 	Token begin;
 }
 {
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
-	// Label can be arbitary string or the "init" keyword
-	( begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE> )
-	{ ret = new ExpressionLabel(s); ret.setPosition(begin, getToken(0)); return ret; }
+	// Label can be arbitary quoted identifier
+	qi = QuotedIdentifierExpression()
+	{ ret = new ExpressionLabel(qi.getName()); ret.setPosition(qi,qi); return ret; }
 }
 
 // (Property) expression: filter (using "filter" keyword)
@@ -1873,6 +1873,18 @@ String Identifier() :
 	<REG_IDENT> { return getToken(0).image; }
 }
 
+String QuotedIdentifier() :
+{
+}
+{
+	<REG_QUOTED_IDENT> {
+	  String s = getToken(0).image;
+	  // remove "
+	  return s.substring(1,s.length()-1);
+	}
+}
+
+
 // Identifier (returns ExpressionIdent, storing position info)
 
 ExpressionIdent IdentifierExpression() :
@@ -1883,6 +1895,20 @@ ExpressionIdent IdentifierExpression() :
 {
 	ident = Identifier()
 	{ ret = new ExpressionIdent(ident); ret.setPosition(getToken(0)); return ret; }
+}
+
+// QuotedIdentifier (returns ExpressionIdent, storing position info)
+
+ExpressionIdent QuotedIdentifierExpression() :
+{
+	String ident;
+	ExpressionIdent ret;
+	Token begin;
+}
+{
+	{begin = getToken(1);}
+	ident = QuotedIdentifier()
+	{ ret = new ExpressionIdent(ident); ret.setPosition(begin, getToken(0)); return ret; }
 }
 
 // Identifier or min/max keyword (returns ExpressionIdent, storing position info)
