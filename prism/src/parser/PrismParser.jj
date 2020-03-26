@@ -516,7 +516,10 @@ TOKEN :
 |	< REG_DOUBLE:		(["0"-"9"])*(".")?(["0"-"9"])+(["e","E"](["-","+"])?(["0"-"9"])+)? >
 |	< REG_IDENTPRIME:	["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*"'" >
 |	< REG_IDENT:		["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])* >
+//	REG_QUOTED_IDENT has precedence before general REG_QUOTED_STRING
 |	< REG_QUOTED_IDENT:	"\"" (["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*) "\"" >
+//	REG_QUOTED_STRING: first ", then finitely often either \+arbitrary char or not(\,"), then "
+|	< REG_QUOTED_STRING:	"\"" (("\\" ~[]) | ~["\\","\""] )* "\"" >
 |	< PREPROC:			"#"(~["#"])*"#" >
 	// Special catch-all token for lexical errors
 	// (this allows us to throw our usual exceptions in this case)
@@ -1909,6 +1912,27 @@ ExpressionIdent QuotedIdentifierExpression() :
 	{begin = getToken(1);}
 	ident = QuotedIdentifier()
 	{ ret = new ExpressionIdent(ident); ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// A quoted string ("text"), returns the unquoted text
+QuotedString QuotedString() :
+{
+	String s;
+	Token begin;
+}
+{
+	{begin = getToken(1);}
+	// can be either a QUOTED_IDENT or a QUOTED_STRING
+	(  <REG_QUOTED_IDENT>  { s = getToken(0).image;}
+	 | <REG_QUOTED_STRING> { s = getToken(0).image;}
+	)
+	{
+		try {
+			return QuotedString.fromQuoted(s);
+		} catch (PrismLangException e) {
+			throw new ParseException(e.getMessage() + ", at line " + begin.next.beginLine + ", column " + begin.next.beginColumn +".");
+		}
+	}
 }
 
 // Identifier or min/max keyword (returns ExpressionIdent, storing position info)
