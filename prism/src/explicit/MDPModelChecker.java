@@ -99,10 +99,11 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Build product of MDP and automaton
 		AcceptanceType[] allowedAcceptance = {
+				AcceptanceType.REACH,
 				AcceptanceType.BUCHI,
 				AcceptanceType.RABIN,
 				AcceptanceType.GENERALIZED_RABIN,
-				AcceptanceType.REACH
+				AcceptanceType.STREETT
 		};
 		product = mcLtl.constructProductMDP(this, (MDP)model, expr, statesOfInterest, allowedAcceptance);
 		
