@@ -1545,7 +1545,10 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 	|( begin = <PMIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
 	|( begin = <PMAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } ))
 	// Path formula, optional filter
-	<LBRACKET> expr = Expression(prop, true) (filter = Filter())? <RBRACKET>
+	<LBRACKET>
+	expr = PathSpecification(prop)
+	(filter = Filter())?
+	<RBRACKET>
 	{
 		ret.setModifier(modifier == null ? null : modifier.getName());
 		ret.setRelOp(relOp);
@@ -1564,6 +1567,64 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 		else return ret;
 	}
 }
+
+// A path specification:
+// Currently, can be
+//  - an LTL formula, i.e., Expression()
+//  - a (possibly negated) HOA: ... automaton specification
+Expression PathSpecification(boolean prop) :
+{
+	Expression result;
+	ExpressionIdent kind = null;
+}
+{
+	(
+	  // HOA: ....
+	  ( LOOKAHEAD( {   getToken(1).kind==REG_IDENT
+	                && getToken(1).image.equals("HOA")
+	                && getToken(2).kind==COLON } )
+	    kind = IdentifierExpression() <COLON> <LBRACE> result = PathSpecificationHOA(prop) <RBRACE>
+	  )
+	  |
+	  // ! HOA: ....
+	  ( LOOKAHEAD( {   getToken(1).kind==NOT
+	                && getToken(2).kind==REG_IDENT
+	                && getToken(2).image.equals("HOA")
+	                && getToken(3).kind==COLON } )
+	    <NOT>
+	    kind = IdentifierExpression() <COLON> <LBRACE> result = PathSpecificationHOA(prop) <RBRACE>
+	    {result = Expression.Not(result);}
+	  )
+	  |
+  	  ( LOOKAHEAD( {    getToken(1).kind==REG_IDENT
+  	                 && getToken(2).kind==COLON } )
+  	    kind = IdentifierExpression()
+	  	{ throw new ParseException("Unknown path type '"+kind.getName()+"'"); }
+	  )
+	  |
+	  (result = Expression(prop, true))
+	)
+	{return result;}
+}
+
+
+// The inner part of a HOA: { "automatonfile", "ap" <- state-expression, ... } specification
+ExpressionHOA PathSpecificationHOA(boolean prop) :
+{
+	QuotedString hoaAutomatonFile;
+	ExpressionHOA result = null;
+	Expression stateExpression = null;
+	String ap, label;
+}
+{
+	hoaAutomatonFile = QuotedString()
+	{ result = new ExpressionHOA(hoaAutomatonFile); }
+	(<COMMA> ap = QuotedIdentifier() <RENAME> stateExpression = Expression(prop, false) {result.addRename(ap, stateExpression);} )*
+
+	{return result;}
+}
+
+
 
 // Filter for a P/S/R operator
 

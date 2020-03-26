@@ -1,0 +1,47 @@
+// explicitly resolve path via $PROPERTY_DIR
+// RESULT: 1/6
+P=?[ HOA: { "$PROPERTY_DIR/GFa_and_FGb_parity.hoa", "a" <- s=2, "b" <- s=2|s=5} ]
+
+// explicitly resolve path via $MODEL_DIR
+// RESULT: 1/6
+P=?[ HOA: { "$MODEL_DIR/GFa_and_FGb_parity.hoa", "a" <- s=2, "b" <- s=2|s=5} ]
+
+// from now on, implicitly resolve via property dir
+
+// RESULT: 1/6
+P=?[ HOA: { "GFa_and_FGb_parity.hoa", "a" <- s=2, "b" <- s=2|s=5} ]
+// RESULT: 1/6
+P=?[ (G F s=2) & (F G (s=2|s=5)) ]
+
+// RESULT: 5/6
+P=?[ ! HOA: { "GFa_and_FGb_parity.hoa", "a" <- s=2, "b" <- s=2|s=5} ]
+// RESULT: 5/6
+P=?[ !((G F s=2) & (F G (s=2|s=5))) ]
+
+
+// RESULT: 5/6
+P=?[ HOA: { "GFa_and_FGb_parity.hoa", "a" <- s>=2, "b" <- s>=3} ]
+// RESULT: 5/6
+P=?[ (G F s>=2) & (F G s>=3) ]
+// RESULT: 1/6
+P=?[ ! HOA: { "GFa_and_FGb_parity.hoa", "a" <- s>=2, "b" <- s>=3} ]
+// RESULT: 1/6
+P=?[ !((G F s>=2) & (F G s>=3)) ]
+
+// use labels directly as APs for the automaton
+label "a" = s>=2;
+label "b" = s>=3;
+// RESULT: 5/6
+P=?[ HOA: { "GFa_and_FGb_parity.hoa" } ]
+// RESULT: 1/6
+P=?[ ! HOA: { "GFa_and_FGb_parity.hoa" } ]
+
+// RESULT: 1/2
+P=?[ HOA: {"Xa_buchi.hoa"} ]
+// RESULT: 1/2
+P=?[ X "a" ]
+
+// RESULT: 1/2
+P=?[ ! HOA: {"Xa_buchi.hoa"} ]
+// RESULT: 1/2
+P=?[ ! (X "a") ]

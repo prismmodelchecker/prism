@@ -27,6 +27,7 @@
 package parser.visitor;
 
 import parser.ast.*;
+import prism.Pair;
 import prism.PrismLangException;
 
 // Performs a depth-first traversal of an asbtract syntax tree (AST).
@@ -583,6 +584,18 @@ public class ASTTraverse implements ASTVisitor
 		return null;
 	}
 	public void visitPost(ExpressionFilter e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(ExpressionHOA e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(ExpressionHOA e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getAutomatonFile() != null) e.getAutomatonFile().accept(this);
+		for (Pair<String, Expression> rename : e.getRenames())
+			rename.getValue().accept(this);
+		visitPost(e);
+		return null;
+	}
+	public void visitPost(ExpressionHOA e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(Filter e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(Filter e) throws PrismLangException

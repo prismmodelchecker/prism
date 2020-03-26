@@ -27,6 +27,7 @@
 package parser.visitor;
 
 import parser.ast.*;
+import prism.Pair;
 import prism.PrismLangException;
 
 // Variant of ASTTraverse.
@@ -596,6 +597,18 @@ public class ASTTraverseModify implements ASTVisitor
 		return e;
 	}
 	public void visitPost(ExpressionFilter e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(ExpressionHOA e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(ExpressionHOA e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getAutomatonFile() != null) e.setAutomatonFile((QuotedString) e.getAutomatonFile().accept(this));
+		for (Pair<String, Expression> rename : e.getRenames())
+			rename.setValue((Expression) rename.getValue().accept(this));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(ExpressionHOA e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(ForLoop e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ForLoop e) throws PrismLangException

@@ -1517,6 +1517,10 @@ public class NondetModelChecker extends NonProbModelChecker
 			throw new PrismException("Model checking for \"dfa\" specifications not supported yet");
 		}
 
+		if (Expression.isHOA(expr)) {
+			throw new PrismNotSupportedException("Co-safety rewards with HOA automata not supported yet");
+		}
+
 		// For LTL model checking routines
 		mcLtl = new LTLModelChecker(prism);
 

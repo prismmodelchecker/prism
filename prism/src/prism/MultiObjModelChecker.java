@@ -74,6 +74,11 @@ public class MultiObjModelChecker extends PrismComponent
 	{
 
 		// TODO (JK): Adapt to support simple path formulas with bounds via DRA construction
+		// TODO (JK): Adapt to support HOA automata
+
+		if (Expression.isHOA(ltl)) {
+			throw new PrismNotSupportedException("Multi-objective model checking with HOA automata currently not supported");
+		}
 
 		// Model check maximal state formulas
 		Vector<JDDNode> labelDDs = new Vector<JDDNode>();

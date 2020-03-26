@@ -55,6 +55,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismNotSupportedException;
+import prism.PrismPaths;
 import prism.PrismUtils;
 import acceptance.AcceptanceBuchi;
 import acceptance.AcceptanceGenRabin;
@@ -129,6 +130,7 @@ public class LTLModelChecker extends PrismComponent
 		if (!expr.isPathFormula(true)) {
 			return false;
 		}
+
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (modelType.continuousTime()) {
 				// Only support temporal bounds for discrete time models
@@ -140,6 +142,10 @@ public class LTLModelChecker extends PrismComponent
 				return false;
 			}
 		}
+
+		if (Expression.isHOA(expr))
+			return true;
+
 		return true;
 	}
 
@@ -236,14 +242,33 @@ public class LTLModelChecker extends PrismComponent
 			}
 		}
 
-		// Model check maximal state formulas
-		ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
+		if (Expression.isHOA(expr)) {
+			LTL2DA ltl2da = new LTL2DA(this);
+			time = System.currentTimeMillis();
+			mainLog.println("Parsing and constructing HOA automaton for "+expr);
+			PrismPaths paths = new PrismPaths(mc.getModulesFile(),
+			                                   mc.getPropertiesFile());
+			Vector<Expression> apExpressions = new Vector<Expression>();
+			da = ltl2da.fromExpressionHOA(expr, paths, apExpressions, allowedAcceptance);
 
-		// Convert LTL formula to deterministic automaton
-		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
-		time = System.currentTimeMillis();
-		LTL2DA ltl2da = new LTL2DA(this);
-		da = ltl2da.convertLTLFormulaToDA(ltl, mc.getConstantValues(), allowedAcceptance);
+			mainLog.println("Determining states satisfying atomic proposition labels of the automaton...");
+			for (int i=0; i<da.getAPList().size(); i++) {
+				Expression apExpression = apExpressions.get(i);
+				apExpression.typeCheck();
+				BitSet labelStates = mc.checkExpression(model, apExpression, null).getBitSet();
+				labelBS.add(labelStates);
+				da.getAPList().set(i, "L"+i);
+			}
+		} else {
+			// Model check maximal state formulas
+			ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
+
+			// Convert LTL formula to deterministic automaton
+			mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
+			time = System.currentTimeMillis();
+			LTL2DA ltl2da = new LTL2DA(this);
+			da = ltl2da.convertLTLFormulaToDA(ltl, mc.getConstantValues(), allowedAcceptance);
+		}
 		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics() + ".");
 		da.checkForCanonicalAPs(labelBS.size());
 		time = System.currentTimeMillis() - time;
