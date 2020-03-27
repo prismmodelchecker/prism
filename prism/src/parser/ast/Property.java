@@ -398,9 +398,7 @@ public class Property extends ASTElement
 				}
 				// See if it's a fraction
 				else if (strExpectedValue.matches("[0-9]+/[0-9]+")) {
-					int numer = Integer.parseInt(strExpectedValue.substring(0, strExpectedValue.indexOf('/')));
-					int denom = Integer.parseInt(strExpectedValue.substring(strExpectedValue.indexOf('/') + 1));
-					doubleExp = ((double) numer) / denom;
+					doubleExp = new BigRational(strExpectedValue).doubleValue();
 					simple = false;  // complex expression
 				}
 				// Otherwise, see if it's just a double
