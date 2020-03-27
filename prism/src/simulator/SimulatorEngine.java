@@ -302,11 +302,12 @@ public class SimulatorEngine extends PrismComponent
 				throw new PrismNotSupportedException("Random choice of multiple initial states not yet supported");
 			}
 		}
-		// Start model exploration and get initial state reward
-		computeTransitionsForState(currentState);
+		// Get initial state reward
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Initialise stored path
 		path.initialise(currentState, tmpStateRewards);
+		// Explore initial state in model generator
+		computeTransitionsForState(currentState);
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
 		updateSamplers();

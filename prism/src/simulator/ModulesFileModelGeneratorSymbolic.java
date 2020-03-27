@@ -205,6 +205,12 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 
 	@Override
+	public String getActionStringDescription()
+	{
+		return "Module/[action]";
+	}
+	
+	@Override
 	public List<String> getLabelNames()
 	{
 		return labelNames;
@@ -363,12 +369,6 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 		} else {
 			return "?";
 		}
-	}
-	
-	@Override
-	public String getActionStringDescription()
-	{
-		return "Module/[action]";
 	}
 	
 	@Override

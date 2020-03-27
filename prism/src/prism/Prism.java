@@ -1983,7 +1983,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				if (currentModulesFile == null)
 					throw new PrismException("There is no currently loaded PRISM model");
 				// PRISM model exists but no generator - this will provide the error message
-				new ModulesFileModelGenerator(currentModulesFile);
+				new ModulesFileModelGenerator(currentModulesFile, this);
 				// Shouldn't happen, so generic error message
 				throw new PrismException("No model generator was created");
 			case MODEL_GENERATOR:
@@ -3023,6 +3023,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			engineSwitch = true;
 			lastEngine = getEngine();
 			setEngine(Prism.EXPLICIT);
+		}
+		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER)) {
+			if (currentModelType == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
+				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
+				engineSwitch = true;
+				lastEngine = getEngine();
+				setEngine(Prism.EXPLICIT);
+			}
 		}
 		try {
 			// Build model, if necessary

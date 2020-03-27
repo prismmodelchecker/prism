@@ -236,6 +236,10 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		if (!startupCompleted)
 			return;
 
+		// Don't trigger parsing if the text field is empty
+		if (editor.getParseText().trim().isEmpty())
+			return;
+		
 		if (waiter != null) {
 			waiter.interrupt();
 		}

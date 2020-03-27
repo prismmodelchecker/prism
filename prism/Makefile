@@ -535,7 +535,7 @@ BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 # Build a (binary) distribution in the release directory
 
 release: JFLAGS += -source 1.8 -target 1.8
-release: all binary release_check_version build_release clean_binary
+release: clean_all all binary release_check_version build_release clean_binary
 
 release_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi

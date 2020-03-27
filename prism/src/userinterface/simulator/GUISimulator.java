@@ -407,7 +407,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			lastConstants = uCon.getMFConstantValues();
 			lastPropertyConstants = uCon.getPFConstantValues();
 			// store constants (currently, compute non-exact for simulation)
-			parsedModel.setUndefinedConstants(lastConstants, false);
+			getPrism().setPRISMModelConstants(lastConstants, false);
 			pf.setSomeUndefinedConstants(lastPropertyConstants, false);
 
 			// check here for possibility of multiple initial states
@@ -822,7 +822,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// remember constant values for next time
 			lastConstants = uCon.getMFConstantValues();
 			// store constants (currently, compute non-exact for simulation)
-			parsedModel.setUndefinedConstants(lastConstants, false);
+			getPrism().setPRISMModelConstants(lastConstants, false);
 
 			// do we need to ask for an initial state for simulation?
 			// no: just use default/random
