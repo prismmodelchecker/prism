@@ -367,6 +367,17 @@ def createLogFileName(args, dir=""):
     logFile = re.sub('^[\._]+', '', logFile)
     return logFile + ".log"
 
+# Create a valid name for a log (sub) directory based on a list of benchmark arguments
+
+def createLogDirName(args):
+    logDir = '.'.join(args)
+    logDir = re.sub('/', '_', logDir)
+    logDir = re.sub('[^a-zA-Z0-9=_, \.]', '', logDir)
+    logDir = re.sub('[ ]+', '.', logDir)
+    logDir = re.sub('[\.]+', '.', logDir)
+    logDir = re.sub('^[\._]+', '', logDir)
+    return logDir
+
 # Walk a directory and execute a callback on each file
 
 def walk(dir, meth):
@@ -476,8 +487,15 @@ def canonicaliseArgs(args):
 #==================================================================================================
 
 # Run PRISM with a given list of command-line args
+#
+# * args: list of command-line line arguments
+# * bmArgs: further list of command-line line arguments (benchmarking ones)
+# * dir: name of the directory (as a string)
 
-def runPrism(args, dir=""):
+def runPrism(args, bmArgs, dir=""):
+    # collate all arguments
+    args += bmArgs
+    
     # check if we can skip
     if options.skipDuplicates:
         canonicalArgs = canonicaliseArgs(args)
@@ -500,7 +518,10 @@ def runPrism(args, dir=""):
         if options.echoFull:
             prismArgs = ['echo', quote(' '.join(prismArgs)), ';'] + prismArgs
             if options.logDir:
-                logFile = os.path.relpath(os.path.join(options.logDir, createLogFileName(args, dir)))
+                logDir = options.logDir
+                if options.logSubdirs and bmArgs:
+                    logDir = os.path.join(logDir, createLogDirName(bmArgs))
+                logFile = os.path.relpath(os.path.join(logDir, createLogFileName(args, dir)))
                 logFile = quote(logFile)
                 if options.test:
                     prismArgs += ['|', 'tee', logFile]
@@ -513,7 +534,12 @@ def runPrism(args, dir=""):
     print(' '.join(prismArgs))
     sys.stdout.flush()
     if options.logDir:
-        logFile = os.path.join(options.logDir, createLogFileName(args, dir))
+        logDir = options.logDir
+        if options.logSubdirs and bmArgs:
+            logDir = os.path.join(logDir, createLogDirName(bmArgs))
+        if not os.path.exists(logDir):
+            os.makedirs(logDir)
+        logFile = os.path.join(logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
         prismArgs = prismArgs + ['-mainlog', logFile]
         exitCode = execute(prismArgs)
@@ -778,10 +804,10 @@ def benchmark(file, args, dir=""):
             sys.exit(1)
         argsLists = getArgsListsFromFile(options.bmFile)
         for bmArgs in argsLists:
-            runPrism(modelFileArg + args + bmArgs, dir)
+            runPrism(modelFileArg + args, bmArgs, dir)
     # If none, just use existing args
     else:
-        runPrism(modelFileArg + args, dir)
+        runPrism(modelFileArg + args, [], dir)
 
     # Verify that exported files are correct (if required)
     if not options.echo and options.test and outFiles:
@@ -1005,6 +1031,7 @@ parser.add_option("--no-renaming", action="store_true", dest="noRenaming", defau
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 parser.add_option("--models-filename", dest="modelsFilename", metavar="X", default="models", help="Read in list of models/parameters for a directory from file X, if present [default=models]")
+parser.add_option("--log-subdirs", action="store_true", dest="logSubdirs" ,default=False, help="Organise PRISM output logs in subdirectories per benchmark argument")
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
 parser.add_option("--skip-export-runs", action="store_true", dest="skipExportRuns", default=False, help="Skip all runs having exports")
 parser.add_option("--skip-duplicate-runs", action="store_true", dest="skipDuplicates", default=False, help="Skip PRISM runs which have the same arguments as an earlier run (with some heuristics to detect equivalent arguments)")
@@ -1036,9 +1063,9 @@ if options.timeout:
     except ValueError:
         print('Illegal parameter value for timeout parameter')
         sys.exit(1)
-if options.logDir and not os.path.isdir(options.logDir):
-    print("Log directory \"" + options.logDir + "\" does not exist")
-    sys.exit(1)
+# if options.logDir and not os.path.isdir(options.logDir):
+#     print("Log directory \"" + options.logDir + "\" does not exist")
+#     sys.exit(1)
 if options.nailgun:
     if options.ngprism is None:
         # derive ngprism location from the --prog setting
