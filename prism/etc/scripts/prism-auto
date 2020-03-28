@@ -835,14 +835,23 @@ def benchmark(file, args, dir=""):
     modelFileArg = [file] if (file != "") else []
 
     # Loop through benchmark options, if required
+    argsLists = []
+    # May be specified in a file
     if options.bmFile:
         if not os.path.isfile(os.path.join(options.bmFile)):
             print("Cannot read arguments from non-existing file: " + os.path.join(options.bmFile))
             sys.exit(1)
-        argsLists = getArgsListsFromFile(options.bmFile)
+        argsLists.extend(getArgsListsFromFile(options.bmFile))
+    # And/or may be specified on the command line
+    if options.bmList:
+        for bmArgsString in options.bmList.split(','):
+            argsLists.append(bmArgsString.strip().split(' '))
+            
+    # Now loop through benchmark options
+    if len(argsLists) > 0:
         for bmArgs in argsLists:
             runPrism(modelFileArg + args, bmArgs, dir)
-    # If none, just use existing args
+    # If none, just use existing args alone
     else:
         runPrism(modelFileArg + args, [], dir)
 
@@ -1052,6 +1061,7 @@ signal.signal(signal.SIGINT, signal_handler)
 parser = OptionParser(usage="usage: %prog [options] args")
 parser.add_option("-l", "--log", dest="logDir", metavar="DIR", default="", help="Store PRISM output in logs in DIR")
 parser.add_option("-a", "--args", dest="bmFile", metavar="FILE", default="", help="Read argument lists for benchmarking from FILE")
+parser.add_option("--args-list", dest="bmList", metavar="X", default="", help="Use X as argument lists for benchmarking (comma-separated)")
 parser.add_option("-e", "--echo", action="store_true", dest="echo", default=False, help="Just print out tasks, don't execute")
 parser.add_option("-m", "--matching", action="store_true", dest="matching", default=False, help="Only use matching models/properties, not all files")
 parser.add_option("-b", "--build", action="store_true", dest="build", default=False, help="Just build models, don't model check properties")
