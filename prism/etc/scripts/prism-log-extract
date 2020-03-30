@@ -19,18 +19,18 @@ from optparse import OptionParser
 
 # Details of all the fields that can be extracted from logs
 all_fields_details = [\
-    {'name': 'log_dir', 'type': 'string'}, \
-    {'name': 'log_file', 'type': 'string'}, \
-    {'name': 'model_file', 'type': 'file', 'regexp': 'Parsing model file "(.+)"...'}, \
-    {'name': 'model_consts', 'type': 'string', 'regexp': 'Model constants: (.+)'}, \
-    {'name': 'model_type', 'regexp': 'Type: *(.+)'}, \
-    {'name': 'states', 'regexp': 'States: *(.+) \((.+) initial\)'}, \
-    {'name': 'time_constr', 'regexp': 'Time for model construction: *(.+) sec'}, \
-    {'name': 'prop_file', 'type': 'file', 'regexp': 'Parsing properties file "(.+)"...'}, \
-    {'name': 'prop_consts', 'type': 'string', 'regexp': 'Property constants: (.+)'}, \
-    {'name': 'iters_check', 'regexp': 'took ([^ \n]+) iterations', 'match': 'last'}, \
-    {'name': 'time_check', 'regexp': 'Time for model checking: *(.+) sec'}, \
-    {'name': 'result', 'regexp': '^Result.*: ([^( \n]+)'}, \
+    {'name': 'log_dir', 'descr': 'Name of directory containing log file', 'type': 'string'}, \
+    {'name': 'log_file', 'descr': 'Name of log file', 'type': 'string'}, \
+    {'name': 'model_file', 'descr': 'Name of PRISM model file', 'type': 'file', 'regexp': 'Parsing model file "(.+)"...'}, \
+    {'name': 'model_consts', 'descr': 'Constants defined for model', 'type': 'string', 'regexp': 'Model constants: (.+)'}, \
+    {'name': 'model_type', 'descr': 'Model type', 'regexp': 'Type: *(.+)'}, \
+    {'name': 'states', 'descr': 'Number of states in model', 'regexp': 'States: *(.+) \((.+) initial\)'}, \
+    {'name': 'time_constr', 'descr': 'Time to construct the model', 'regexp': 'Time for model construction: *(.+) sec'}, \
+    {'name': 'prop_file', 'descr': 'Name of PRISM property file', 'type': 'file', 'regexp': 'Parsing properties file "(.+)"...'}, \
+    {'name': 'prop_consts', 'descr': 'Constants defined for property', 'type': 'string', 'regexp': 'Property constants: (.+)'}, \
+    {'name': 'iters_check', 'descr': 'Iterations for (numerica) model checking', 'regexp': 'took ([^ \n]+) iterations', 'match': 'last'}, \
+    {'name': 'time_check', 'descr': 'Time to perform mode checking', 'regexp': 'Time for model checking: *(.+) sec'}, \
+    {'name': 'result', 'descr': 'Result of mode checking', 'regexp': '^Result.*: ([^( \n]+)'}, \
 ]
 
 # Names of all fields
@@ -140,18 +140,32 @@ def print_info(info, fields):
 def printUsage():
     print("Usage: prism-log-extract ...")
 
+def print_fields():
+    print('Fields:')
+    for field in all_fields_details:
+        print('*', field['name'], ':', field['descr'])
+    print('\nMeta-fields:')
+    for meta_field, defn in meta_fields.items():
+        print('*', meta_field, ':', '<all fields>' if meta_field=='all' else ','.join(defn))
+
 def signal_handler(signal, frame):
     sys.exit(1)
 
 # Parse options
 signal.signal(signal.SIGINT, signal_handler)
 parser = OptionParser(usage="usage: %prog [options] args")
+parser.add_option("--show-fields", action="store_true", dest="showFields", default=False, help="Show all fields that can be extracted")
 parser.add_option("--fields", dest="fields", metavar="X", default="", help="Fields to extract from the log (comma-separated)")
 parser.add_option("--groupby", dest="groupby", metavar="X", default="", help="Group log entries by these fields")
 parser.add_option("--groupkey", dest="groupkey", metavar="X", default="", help="Key used for uniqueness of grouped log entries")
 parser.add_option("--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
 parser.add_option("--extension", dest="extension", metavar="ext", default="", help="Process files with name .ext")
 (options, args) = parser.parse_args()
+
+if options.showFields:
+    print_fields()
+    sys.exit(0)
+
 if len(args) < 1:
     parser.print_help()
     sys.exit(1)
