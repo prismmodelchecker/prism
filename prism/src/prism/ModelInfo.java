@@ -224,6 +224,16 @@ public interface ModelInfo
 	}
 	
 	/**
+	 * Get a list of the names of variables that have been declared to be observable
+	 * (for partially observable models)
+	 */
+	public default List<String> getObservableVars()
+	{
+		// Default implementation assumes no observable variables 
+		return Collections.emptyList();
+	}
+	
+	/**
 	 * Get a short description of the action strings associated with transitions/choices.
 	 * For example, for a PRISM model, this is "Module/[action]".
 	 * The default implementation just returns "Action".

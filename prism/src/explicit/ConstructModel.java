@@ -29,11 +29,14 @@ package explicit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import parser.Observation;
 import parser.State;
+import parser.Unobservation;
 import parser.Values;
 import parser.VarList;
 import prism.ModelGenerator;
@@ -169,10 +172,14 @@ public class ConstructModel extends PrismComponent
 		DTMCSimple dtmc = null;
 		CTMCSimple ctmc = null;
 		MDPSimple mdp = null;
+		POMDPSimple pomdp = null;
 		CTMDPSimple ctmdp = null;
 		LTSSimple lts = null;
 		ModelExplicit model = null;
 		Distribution distr = null;
+		// Observation info
+		List<String> observableVars = null;
+		List<String> unobservableVars = null;
 		// Misc
 		int i, j, nc, nt, src, dest;
 		long timer;
@@ -205,6 +212,9 @@ public class ConstructModel extends PrismComponent
 			case MDP:
 				modelSimple = mdp = new MDPSimple();
 				break;
+			case POMDP:
+				modelSimple = pomdp = new POMDPSimple();
+				break;
 			case CTMDP:
 				modelSimple = ctmdp = new CTMDPSimple();
 				break;
@@ -220,6 +230,19 @@ public class ConstructModel extends PrismComponent
 	        ((ModelExplicit) modelSimple).setVarList(varList);
 		}
 
+		// For partially observable models,
+		// get info needed to determine observability
+		if (!justReach && modelType.partiallyObservable()) {
+			List<String> allVars = modelGen.getVarNames();
+			observableVars = modelGen.getObservableVars();
+			unobservableVars = new ArrayList<>();
+			for (String varName : allVars) {
+				if (!observableVars.contains(varName)) {
+					unobservableVars.add(varName);
+				}
+			}
+		}
+		
 		// Initialise states storage
 		states = new IndexedSet<State>(true);
 		explore = new LinkedList<State>();
@@ -273,6 +296,7 @@ public class ConstructModel extends PrismComponent
 							ctmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
 							break;
 						case MDP:
+						case POMDP:
 						case CTMDP:
 							distr.add(dest, modelGen.getTransitionProbability(i, j));
 							break;
@@ -297,6 +321,12 @@ public class ConstructModel extends PrismComponent
 							mdp.addActionLabelledChoice(src, distr, modelGen.getChoiceAction(i));
 						} else {
 							mdp.addChoice(src, distr);
+						}
+					} else if (modelType == ModelType.POMDP) {
+						if (distinguishActions) {
+							pomdp.addActionLabelledChoice(src, distr, modelGen.getChoiceAction(i));
+						} else {
+							pomdp.addChoice(src, distr);
 						}
 					} else if (modelType == ModelType.CTMDP) {
 						if (distinguishActions) {
@@ -360,6 +390,9 @@ public class ConstructModel extends PrismComponent
 					model = sortStates ? new MDPSimple(mdp, permut) : mdp;
 				}
 				break;
+			case POMDP:
+				model = sortStates ? new POMDPSimple(pomdp, permut) : pomdp;
+				break;
 			case CTMDP:
 				model = sortStates ? new CTMDPSimple(ctmdp, permut) : ctmdp;
 				break;
@@ -376,6 +409,16 @@ public class ConstructModel extends PrismComponent
 			//mainLog.println("Model: " + model);
 		}
 
+		// For partially observable models, add observation info to states
+		// (do it after full model construction, including deadlock fixing,
+		// because the number of choices for each observation are checked)				this here because we need the choice count)
+		if (modelType == ModelType.POMDP) {
+			for (int s = 0; s < statesList.size(); s++) {
+				setStateObservation((POMDPSimple)model, s, statesList.get(s), observableVars, unobservableVars, modelGen);
+			}
+		}
+
+		
 		// Discard permutation
 		permut = null;
 
@@ -385,6 +428,23 @@ public class ConstructModel extends PrismComponent
 		return model;
 	}
 
+	private void setStateObservation(POMDPSimple pomdp, int s, State state, List<String> observableVars, List<String> unobservableVars, ModelGenerator modelGen) throws PrismException
+	{
+		Values values1 = new Values(state, modelGen);
+		for (String unobservableVarName : unobservableVars) {
+			values1.removeValue(unobservableVarName);
+		}
+		Observation observ = new Observation(values1, modelGen);
+		
+		Values values2 = new Values(state, modelGen);
+		for (String observableVarName : observableVars) {
+			values2.removeValue(observableVarName);
+		}
+		Unobservation unobserv = new Unobservation(values2, modelGen);
+
+		pomdp.setObservation(s, observ, unobserv);
+	}
+	
 	private void attachLabels(ModelGenerator modelGen, ModelExplicit model) throws PrismException
 	{
 		// Get state info
