@@ -437,6 +437,7 @@ TOKEN :
 |	< ENDINIT:			"endinit" >
 |	< ENDINVARIANT:		"endinvariant" >
 |	< ENDMODULE:		"endmodule" >
+|	< ENDOBSERVABLES:	"endobservables" >
 |	< ENDREWARDS:		"endrewards" >
 |	< ENDSYSTEM:		"endsystem" >
 |	< FALSE:			"false" >
@@ -457,10 +458,12 @@ TOKEN :
 |	< MODULE:			"module" >
 |	< X:				"X" >
 |	< NONDETERMINISTIC:	"nondeterministic" >
+|	< OBSERVABLES:		"observables" >
 //|	< OF:				"of" >
 |	< PMAX:				"Pmax" >
 |	< PMIN:				"Pmin" >
 |	< P:				"P" >
+|	< POMDP:			"pomdp" >
 |	< PROBABILISTIC:	"probabilistic" >
 |	< PROB:				"prob" >
 |	< PTA:				"pta" >
@@ -560,6 +563,8 @@ ModulesFile ModulesFile() throws PrismLangException :
 	rs = RewardStruct() { mf.addRewardStruct(rs); } |
 	// Initial states ("init...endinit" construct)
 	init = Init() { mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init; } |
+	// Observables
+	Observables(mf) |
 	// System definition ("system...endsystem" construct)
 	SystemEndsystem(mf)
 	)* <EOF>
@@ -680,6 +685,7 @@ ModelType ModulesFileType() :
 	| (<MDP>|<NONDETERMINISTIC>) { modelType=ModelType.MDP; }
 	| (<CTMC>|<STOCHASTIC>) { modelType=ModelType.CTMC; }
 	| <PTA> { modelType=ModelType.PTA; }
+	| <POMDP> { modelType=ModelType.POMDP; }
 	)
 	{ return modelType; }
 }
@@ -936,6 +942,19 @@ Expression Init() :
 }
 {
 	<INIT> expr = Expression(false, false) <ENDINIT> { return expr; }
+}
+
+// Observable variables
+
+void Observables(ModulesFile mf) :
+{
+	String name = null;
+}
+{
+	(<OBSERVABLES>
+	( name = Identifier() { mf.addObservableVar(name); }
+	( <COMMA> name = Identifier() { mf.addObservableVar(name); } )* )?
+	<ENDOBSERVABLES>)
 }
 
 // System definition ("system...endsystem" construct)

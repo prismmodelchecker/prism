@@ -83,9 +83,22 @@ public class State implements Comparable<State>
 	 */
 	public State(Values v, ModelInfo modelInfo) throws PrismLangException
 	{
+		this(v, modelInfo, true);
+	}
+
+	/**
+	 * Construct by copying existing Values object.
+	 * Need access to model info in case variables are not ordered correctly.
+	 * If requested, throws an exception if any variables are undefined. 
+	 * @param v Values object to copy.
+	 * @param modelInfo Model info (for variable info/ordering)
+	 * @param checkAllDef If true, check all variables are present
+	 */
+	public State(Values v, ModelInfo modelInfo, boolean checkAllDef) throws PrismLangException
+	{
 		int i, j, n;
 		n = v.getNumValues();
-		if (n != modelInfo.getNumVars()) {
+		if (checkAllDef && n != modelInfo.getNumVars()) {
 			throw new PrismLangException("Wrong number of variables in state");
 		}
 		varValues = new Object[n];

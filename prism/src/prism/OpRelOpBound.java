@@ -113,7 +113,7 @@ public class OpRelOpBound
 	{
 		MinMax minMax = MinMax.blank();
 		if (modelType.nondeterministic()) {
-			if (!(modelType == ModelType.MDP || modelType == ModelType.CTMDP)) {
+			if (!(modelType == ModelType.MDP || modelType == ModelType.POMDP || modelType == ModelType.CTMDP)) {
 				throw new PrismLangException("Don't know how to model check " + getTypeOfOperator() + " properties for " + modelType + "s");
 			}
 			if (isNumeric()) {

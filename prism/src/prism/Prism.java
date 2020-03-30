@@ -459,6 +459,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_MAX_ITERS, i);
 	}
 
+	public void setGridResolution(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_GRID_RESOLUTION, i);
+	}
+
 	public void setCUDDMaxMem(String s) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_CUDD_MAX_MEM, s);
@@ -785,6 +790,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return settings.getInteger(PrismSettings.PRISM_MAX_ITERS);
 	}
 
+	public int getGridResolution()
+	{
+		return settings.getInteger(PrismSettings.PRISM_GRID_RESOLUTION);
+	}
+	
 	public boolean getVerbose()
 	{
 		return settings.getBoolean(PrismSettings.PRISM_VERBOSE);
@@ -1787,10 +1797,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.print(currentModulesFile.getVarName(i) + " ");
 		}
 		mainLog.println();
+		if (currentModulesFile.getModelType().partiallyObservable()) {
+			mainLog.println("Observables: " + String.join(" ", currentModulesFile.getObservableVars()));
+		}
 
 		// For some models, automatically switch engine
 		switch (currentModelType) {
 		case LTS:
+		case POMDP:
 			if (!getExplicit()) {
 				mainLog.println("\nSwitching to explicit engine, which supports " + currentModelType + "s...");
 				engineOld = getEngine();

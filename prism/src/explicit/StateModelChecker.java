@@ -191,6 +191,9 @@ public class StateModelChecker extends PrismComponent
 		case CTMC:
 			mc = new CTMCModelChecker(parent);
 			break;
+		case POMDP:
+			mc = new POMDPModelChecker(parent);
+			break;
 		case CTMDP:
 			mc = new CTMDPModelChecker(parent);
 			break;
