@@ -405,14 +405,32 @@ public class PrismUtils
 	}
 
 	/**
+	 * Normalise the entries of a vector in-place such that that they sum to 1.
+	 * If {@code sum = 0.0}, all entries are set to {@code NaN} (assuming all entries are non-negative)
+	 * @param vector the vector
+	 * @return the altered vector (returned for convenience; it's the same one)
+	 */
+	public static double[] normalise(double[] vector)
+	{
+		double sum = 0.0;
+		int n = vector.length;
+		for (int state = 0; state < n; state++) {
+			sum += vector[state];
+		}
+		for (int state = 0; state < n; state++) {
+			vector[state] /= sum;
+		}
+		return vector;
+	}
+
+	/**
 	 * Normalise the given entries in the vector in-place such that that they sum to 1,
-	 * I.e., for all indizes of entries, set<br>
-	 * {@code vector[s] = vector[s] / sum}, where<br>
-	 * {@code sum = sum_{s in entries} (vector[s])<br>
-	 * If {@code sum = 0.0}, all entries are set to {@code NaN}.
+	 * i.e., for all indices {@code s}, set {@code vector[s] = vector[s] / sum},
+	 * where {@code sum = sum_{s in entries} (vector[s]).<br>
+	 * If {@code sum = 0.0}, all entries are set to {@code NaN} (assuming all entries are non-negative)
 	 * @param vector the vector
 	 * @param entries Iterable over the entries (must not contain duplicates)
-	 * @return the altered vector
+	 * @return the altered vector (returned for convenience; it's the same one)
 	 */
 	public static double[] normalise(double[] vector, IterableInt entries)
 	{
