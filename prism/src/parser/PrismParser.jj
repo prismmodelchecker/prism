@@ -464,6 +464,7 @@ TOKEN :
 |	< PMIN:				"Pmin" >
 |	< P:				"P" >
 |	< POMDP:			"pomdp" >
+|	< POPTA:			"popta" >
 |	< PROBABILISTIC:	"probabilistic" >
 |	< PROB:				"prob" >
 |	< PTA:				"pta" >
@@ -686,6 +687,7 @@ ModelType ModulesFileType() :
 	| (<CTMC>|<STOCHASTIC>) { modelType=ModelType.CTMC; }
 	| <PTA> { modelType=ModelType.PTA; }
 	| <POMDP> { modelType=ModelType.POMDP; }
+	| <POPTA> { modelType=ModelType.POPTA; }
 	)
 	{ return modelType; }
 }

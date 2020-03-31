@@ -53,16 +53,16 @@ public class CheckValid extends ASTTraverse
 				throw new PrismLangException("Steady-state reward properties cannot be used for MDPs");
 			}
 		}
-		else if (modelType == ModelType.PTA) {
+		else if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
 			if (e.getOperator() == ExpressionTemporal.R_C || e.getOperator() == ExpressionTemporal.R_I || e.getOperator() == ExpressionTemporal.R_S) {
-				throw new PrismLangException("Only reachability (F) reward properties can be used for PTAs");
+				throw new PrismLangException("Only reachability (F) reward properties can be used for " + modelType + "s");
 			}
 		}
 		// PTA only support upper time bounds
 		if (e.getLowerBound() != null) {
-			if (modelType == ModelType.PTA) {
+			if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
 				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
-						+ " operator for PTAs");
+						+ " operator for " + modelType + "s");
 			}
 		}
 		// Apart from CTMCs, we only support integer time bounds
@@ -76,9 +76,9 @@ public class CheckValid extends ASTTraverse
 				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
 						+ " operator must be integers for MDPs");
 			}
-			if (modelType == ModelType.PTA) {
+			if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
 				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
-						+ " operator must be integers for PTAs");
+						+ " operator must be integers for " + modelType + "s");
 			}
 		}
 		// Don't allow lower bounds on weak until - does not have intuitive semantics
@@ -107,8 +107,8 @@ public class CheckValid extends ASTTraverse
 		if (modelType == ModelType.MDP) {
 			throw new PrismLangException("The S operator cannot be used for MDPs");
 		}
-		if (modelType == ModelType.PTA) {
-			throw new PrismLangException("The S operator cannot be used for PTAs");
+		if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
+			throw new PrismLangException("The S operator cannot be used for " + modelType + "s");
 		}
 		/*if (modelType.nondeterministic() && e.getRelOp() == RelOp.EQ)
 			throw new PrismLangException("Can't use \"S=?\" for nondeterministic models; use \"Smin=?\" or \"Smax=?\"");*/

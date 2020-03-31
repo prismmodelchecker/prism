@@ -125,6 +125,25 @@ public enum ModelType
 			return DTMC;
 		}
 	},
+	POPTA("partially observable probabilistic timed automaton") {
+		@Override
+		public boolean continuousTime()
+		{
+			return true;
+		}
+		
+		@Override
+		public boolean partiallyObservable()
+		{
+			return true;
+		}
+		
+		@Override
+		public ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
+	},
 	PTA("probabilistic timed automaton") {
 		@Override
 		public boolean continuousTime()

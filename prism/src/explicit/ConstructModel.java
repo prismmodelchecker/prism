@@ -224,6 +224,7 @@ public class ConstructModel extends PrismComponent
 			case STPG:
 			case SMG:
 			case PTA:
+			case POPTA:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			// Attach variable info
