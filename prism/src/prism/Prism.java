@@ -2072,7 +2072,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public boolean modelCanBeBuilt()
 	{
-		if (currentModelType == ModelType.PTA)
+		if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA)
 			return false;
 		return true;
 	}
@@ -2122,8 +2122,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 
 		try {
-			if (currentModelType == ModelType.PTA) {
-				throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
+			if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA) {
+				throw new PrismException("You cannot build a " + currentModelType + " model explicitly, only perform model checking");
 			}
 
 			mainLog.print("\nBuilding model...\n");
@@ -2307,7 +2307,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		Model model;
 		List<State> statesList;
 
-		if (modulesFile.getModelType() == ModelType.PTA) {
+		if (modulesFile.getModelType() == ModelType.PTA || currentModelType == ModelType.POPTA) {
 			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
 		}
 
@@ -3042,8 +3042,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Check that property is valid for the current model type
 		prop.getExpression().checkValid(currentModelType);
 
-		// For PTAs...
-		if (currentModelType == ModelType.PTA) {
+		// PTA model checking is handled separately
+		if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA) {
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
@@ -3156,7 +3156,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		expr.checkValid(currentModelType);
 
 		// Digital clocks translation
-		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
+		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks") || currentModelType == ModelType.POPTA) {
 			digital = true;
 			ModulesFile oldModulesFile = currentModulesFile;
 			try {
