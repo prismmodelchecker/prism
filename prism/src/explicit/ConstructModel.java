@@ -354,7 +354,7 @@ public class ConstructModel extends PrismComponent
 				}
 				break;
 			case CTMDP:
-				model = sortStates ? new CTMDPSimple(ctmdp, permut) : mdp;
+				model = sortStates ? new CTMDPSimple(ctmdp, permut) : ctmdp;
 				break;
 			case STPG:
 			case SMG:
