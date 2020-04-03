@@ -397,7 +397,7 @@ public class Property extends ASTElement
 					doubleExp = Double.NaN;
 				}
 				// See if it's a fraction
-				else if (strExpectedValue.matches("[0-9]+/[0-9]+")) {
+				else if (strExpectedValue.matches("-?[0-9]+/[0-9]+")) {
 					doubleExp = new BigRational(strExpectedValue).doubleValue();
 					simple = false;  // complex expression
 				}
