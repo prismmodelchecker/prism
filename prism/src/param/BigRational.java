@@ -424,10 +424,10 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Multiply this BigRational by {@code other}.
-	 * 
-	 * @param other long to divide by
-	 * @param cancel whether ensure result rational is comprime
+	 * Divide this BigRational by {@code other}.
+	 *
+	 * @param other BigRational to divide by
+	 * @param cancel whether ensure result rational is coprime
 	 * @return result of the division
 	 */
 	public BigRational divide(BigRational other, boolean cancel)
@@ -440,7 +440,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Divides this BigRational with {@code other}.
+	 * Divide this BigRational by {@code other}.
 	 * Ensures result rational is coprime
 	 * 
 	 * @param other long to divide by
@@ -452,7 +452,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Divides this BigRational with {@code other}.
+	 * Divide this BigRational by {@code other}.
 	 * Ensures result rational is coprime
 	 * 
 	 * @param other long to divide by
@@ -464,9 +464,9 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Returns the signum function of this BigInteger.
+	 * Returns the signum function of this BigRational.
 	 * 
-	 * @return -1, 0 or 1 as the value of this BigInteger is negative, zero or positive.
+	 * @return -1, 0 or 1 as the value of this BigRational is negative, zero or positive.
 	 */
 	public int signum()
 	{
