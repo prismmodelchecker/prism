@@ -243,7 +243,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		resultString = "Result";
 		if (!("Result".equals(expr.getResultName())))
 			resultString += " (" + expr.getResultName().toLowerCase() + ")";
-		resultString += ": " + result.getResultString();
+		resultString += ": " + result.getResultAndAccuracy();
 		mainLog.print("\n" + resultString + "\n");
 
 		// Clean up
@@ -1176,6 +1176,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean b = false;
 		String resultExpl = null;
 		Object resObj = null;
+		Accuracy resAcc = null; 
 		switch (op) {
 		case PRINT:
 		case PRINTALL:
@@ -1410,6 +1411,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				d = vals.firstFromBDD(ddFilter);
 				// Store as object/vector
 				resObj = decodeFromDouble(expr.getType(), d);
+				resAcc = vals.getAccuracy();
 				resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			}
 			// Create explanation of result and print some details to log
@@ -1443,6 +1445,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// Store result
 		result.setResult(resObj);
+		result.setAccuracy(resAcc);
 		// Set result explanation (if none or disabled, clear)
 		if (expr.getExplanationEnabled() && resultExpl != null) {
 			result.setExplanation(resultExpl.toLowerCase());

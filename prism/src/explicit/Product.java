@@ -154,26 +154,29 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 	@Override
 	public StateValues projectToOriginalModel(final StateValues sv) throws PrismException
 	{
-		// the resulting state values has one value per state in the original model
+		StateValues result = null;
 		if (sv.getType() instanceof TypeBool) {
 			assert(sv.getBitSet() != null) : "State values are undefined.";
 
 			final BitSet mapped = projectToOriginalModel(sv.getBitSet());
-			return StateValues.createFromBitSet(mapped, originalModel);
+			result = StateValues.createFromBitSet(mapped, originalModel);
 		}
-		if (sv.getType() instanceof TypeDouble) {
+		else if (sv.getType() instanceof TypeDouble) {
 			assert(sv.getDoubleArray() != null) : "State values are undefined.";
 
 			final double[] mapped = projectToOriginalModel(sv.getDoubleArray());
-			return StateValues.createFromDoubleArray(mapped, originalModel);
+			result = StateValues.createFromDoubleArray(mapped, originalModel);
 		}
-		if (sv.getType() instanceof TypeInt) {
+		else if (sv.getType() instanceof TypeInt) {
 			assert(sv.getIntArray() != null) : "State values are undefined.";
 
 			final int[] mapped = projectToOriginalModel(sv.getIntArray());
-			return StateValues.createFromIntegerArray(mapped, originalModel);
+			result =  StateValues.createFromIntegerArray(mapped, originalModel);
+		} else {
+			throw new PrismNotSupportedException("Unsupported type of state values");
 		}
-		throw new PrismNotSupportedException("Unsupported type of state values");
+		result.setAccuracy(sv.getAccuracy());
+		return result;
 	}
 
 	public BitSet projectToOriginalModel(final BitSet values)

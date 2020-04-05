@@ -132,6 +132,9 @@ EXPORT extern const char *export_adv_filename;
 // export iterations filename
 EXPORT extern const char *export_iterations_filename;
 
+// details from numerical computation which may be queried
+EXPORT extern double last_error_bound;
+
 //------------------------------------------------------------------------------
 
 #endif

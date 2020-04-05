@@ -41,9 +41,30 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.type.TypeVoid;
+import prism.Accuracy.AccuracyLevel;
+import prism.Accuracy.AccuracyType;
 
 public class ResultTesting
 {
+	/**
+	 * Default level of accuracy for testing (1e-5; relative error)
+	 */
+	public static final Accuracy DEFAULT_TESTING_ACCURACY = new Accuracy(AccuracyLevel.BOUNDED, 1e-5, AccuracyType.RELATIVE);
+
+	/**
+	 * Get an Accuracy object for testing. If the one passed in is suitable,
+	 * then it is used. If it is missing (null) or just an estimate, then a
+	 * default level of testing accuracy (DEFAULT_TESTING_ACCURACY) is substituted.
+	 */
+	public static Accuracy getTestingAccuracy(Accuracy accuracy)
+	{
+		if (accuracy == null || accuracy.getLevel() == AccuracyLevel.ESTIMATED_BOUNDED) {
+			return DEFAULT_TESTING_ACCURACY;
+		} else {
+			return accuracy;
+		}
+	}
+	
 	/**
 	 * Tests a result (specified as a Result object) against the expected result,
 	 * given by a string extracted from a RESULT: specification.
@@ -304,8 +325,14 @@ public class ResultTesting
 		}
 		// Normal case: check result is in expected value overlap
 		else {
-			if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5)) {
-				throw new PrismException("Wrong result (expected " + strExpected + ", got " + doubleRes + ")");
+			// Use accuracy info where possible
+			// If it is missing, or only estimated, use default check instead
+			Accuracy accuracy = getTestingAccuracy(resultObj.getAccuracy());
+			// Check that value falls into ranges of error bounds
+			double resLow = accuracy.getResultLowerBound(doubleRes, true);
+			double resHigh = accuracy.getResultUpperBound(doubleRes, true);
+			if (!(resLow <= doubleExp && doubleExp <= resHigh)) {
+				throw new PrismException("Wrong result (expected " + strExpected + ", abs err = " + Math.abs(doubleRes - doubleExp) + " > " + accuracy.getAbsoluteErrorBound(doubleRes) + ")");
 			}
 		}
 	}
@@ -325,9 +352,12 @@ public class ResultTesting
 			throw new PrismException("Result is wrong type (" + result.getClass() + ") for (double-valued) property");
 		}
 		double doubleRes = ((Double) result).doubleValue();
+		// Use accuracy info where possible
+		// If it is missing, or only estimated, use default check instead
+		Accuracy accuracy = getTestingAccuracy(resultObj.getAccuracy());
 		// Check intervals for result and expected value overlap
-		double resLow = doubleRes * (1.0 - 1e-5);
-		double resHigh = doubleRes * (1.0 + 1e-5);
+		double resLow = accuracy.getResultLowerBound(doubleRes, true);
+		double resHigh = accuracy.getResultUpperBound(doubleRes, true);
 		if (!(resLow <= expHigh && expLow <= resHigh)) {
 			throw new PrismException("Wrong result (expected " + strExpected + ", got " + doubleRes + ")");
 		}
@@ -381,7 +411,10 @@ public class ResultTesting
 				// Try imprecise comparison
 				try {
 					double doubleExp = Double.parseDouble(strExpected);
-					boolean areClose = PrismUtils.doublesAreCloseRel(doubleExp, rationalRes.doubleValue(), 1e-5);
+					// Use default accuracy since we have no epsilon available
+					double resLow = DEFAULT_TESTING_ACCURACY.getResultLowerBound(rationalRes.doubleValue(), true);
+					double resHigh = DEFAULT_TESTING_ACCURACY.getResultUpperBound(rationalRes.doubleValue(), true);
+					boolean areClose = (resLow <= doubleExp && doubleExp <= resHigh);
 					if (areClose) {
 						if (approx) {
 							// we only have an approximate value to compare to, so we are fine here
