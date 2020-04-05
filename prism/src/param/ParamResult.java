@@ -32,6 +32,7 @@ import parser.Values;
 import parser.ast.ConstantList;
 import parser.ast.Expression;
 import parser.ast.ExpressionIdent;
+import parser.ast.ExpressionLiteral;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -129,27 +130,35 @@ public class ParamResult
 	 */
 	public boolean test(Type propertyType, String strExpected, Values constValues) throws PrismException
 	{
-		Expression exprExcepted = null;
+		Expression exprExpected = null;
 		try {
-			exprExcepted = Prism.parseSingleExpressionString(strExpected);
+			if (strExpected.equals("Infinity") || strExpected.equals("Inf")) {
+				exprExpected = new ExpressionLiteral(TypeDouble.getInstance(), BigRational.INF);
+			} else if (strExpected.equals("-Infinity") || strExpected.equals("-Inf")) {
+				exprExpected = new ExpressionLiteral(TypeDouble.getInstance(), BigRational.MINF);
+			} else if (strExpected.equals("NaN")) {
+				exprExpected =  new ExpressionLiteral(TypeDouble.getInstance(), BigRational.NAN);
+			} else {
+				exprExpected = Prism.parseSingleExpressionString(strExpected);
 
-			// the constants that can be used in the expected result expression:
-			// defined constants
-			ConstantList constantList = new ConstantList(constValues);
-			// and parametric constants
-			for (String p : modelBuilder.getParameterNames()) {
-				constantList.addConstant(new ExpressionIdent(p), null, TypeDouble.getInstance());
+				// the constants that can be used in the expected result expression:
+				// defined constants
+				ConstantList constantList = new ConstantList(constValues);
+				// and parametric constants
+				for (String p : modelBuilder.getParameterNames()) {
+					constantList.addConstant(new ExpressionIdent(p), null, TypeDouble.getInstance());
+				}
+				exprExpected.findAllConstants(constantList);
+				exprExpected.typeCheck();
+
+				// replace constants in the expression that have a value
+				// with the value
+				exprExpected = (Expression) exprExpected.evaluatePartially(constValues, null);
 			}
-			exprExcepted.findAllConstants(constantList);
-			exprExcepted.typeCheck();
-
-			// replace constants in the expression that have a value
-			// with the value
-			exprExcepted = (Expression) exprExcepted.evaluatePartially(constValues, null);
 		} catch (PrismLangException e) {
 			throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for property: " + e.getMessage());
 		}
-		return test(propertyType, exprExcepted, strExpected);
+		return test(propertyType, exprExpected, strExpected);
 	}
 
 	/**
