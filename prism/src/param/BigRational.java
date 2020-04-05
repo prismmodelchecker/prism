@@ -435,6 +435,19 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		if (other.isInf() || other.isMInf()) {
 			return NAN;
 		}
+
+		if (other.isZero()) {
+			if (this.isZero() || this.isNaN()) {
+				return BigRational.NAN;
+			} else {
+				if (this.signum() > 0) {
+					return BigRational.INF;
+				} else {
+					return BigRational.MINF;
+				}
+			}
+		}
+
 		BigRational inverseOther = new BigRational(other.den, other.num, cancel);
 		return multiply(inverseOther, cancel);
 	}
