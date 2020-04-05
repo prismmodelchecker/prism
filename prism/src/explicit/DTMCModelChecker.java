@@ -41,6 +41,7 @@ import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
+import prism.AccuracyFactory;
 import prism.ModelType;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
@@ -130,7 +131,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachProbs(product.getProductModel(), acc); 
-		probsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
+		probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -200,7 +201,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachRewards((DTMC)product.getProductModel(), productRewards, acc);
-		rewardsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
+		rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -267,6 +268,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -339,6 +341,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -528,6 +531,7 @@ public class DTMCModelChecker extends ProbModelChecker
 
 		// Return results
 		res = new ModelCheckerResult();
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.soln = soln2;
 		res.numIters = 1;
 		res.timeTaken = timer / 1000.0;
@@ -717,6 +721,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(yes, n);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
 
 		// Finished probabilistic reachability
@@ -1334,6 +1339,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -1829,6 +1835,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(inf, n, Double.POSITIVE_INFINITY);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
 
 		// Finished expected reachability
@@ -1943,6 +1950,8 @@ public class DTMCModelChecker extends ProbModelChecker
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
+		double maxDiff = PrismUtils.measureSupNorm(soln, soln2, termCrit == TermCrit.ABSOLUTE);
+		res.accuracy = AccuracyFactory.valueIteration(termCritParam, maxDiff, termCrit == TermCrit.ABSOLUTE);
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;

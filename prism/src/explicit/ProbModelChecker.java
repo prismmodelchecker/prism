@@ -47,6 +47,7 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
+import prism.AccuracyFactory;
 import prism.IntegerBound;
 import prism.OpRelOpBound;
 import prism.Prism;
@@ -702,7 +703,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**
@@ -757,7 +758,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 			result.setStrategy(res.strat);
-			sv = StateValues.createFromDoubleArray(res.soln, model);
+			sv = StateValues.createFromDoubleArrayResult(res, model);
 		} else if (windowSize == 0) {
 			// A trivial case: windowSize=0 (prob is 1 in target states, 0 otherwise)
 			sv = StateValues.createFromBitSetAsDoubles(target, model);
@@ -779,7 +780,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 			result.setStrategy(res.strat);
-			sv = StateValues.createFromDoubleArray(res.soln, model);
+			sv = StateValues.createFromDoubleArrayResult(res, model);
 		}
 
 		// perform lowerBound restricted next-step computations to
@@ -804,6 +805,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			}
 
 			sv = StateValues.createFromDoubleArray(probs, model);
+			sv.setAccuracy(AccuracyFactory.boundedNumericalIterations());
 		}
 
 		return sv;
@@ -837,7 +839,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**
@@ -984,7 +986,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**
@@ -1016,7 +1018,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Compute/return the rewards
 		// A trivial case: "C<=0" (prob is 1 in target states, 0 otherwise)
 		if (timeInt == 0 || timeDouble == 0) {
-			return new StateValues(TypeDouble.getInstance(), model.getNumStates(), new Double(0));
+			StateValues res = new StateValues(TypeDouble.getInstance(), model.getNumStates(), 0.0);
+			res.setAccuracy(AccuracyFactory.doublesFromQualitative());
+			return res;
 		}
 		// Otherwise: numerical solution
 		ModelCheckerResult res = null;
@@ -1035,7 +1039,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**
@@ -1065,7 +1069,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**
@@ -1086,7 +1090,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the steady-state reward operator for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**
@@ -1136,7 +1140,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArray(res.soln, model);
+		return StateValues.createFromDoubleArrayResult(res, model);
 	}
 
 	/**

@@ -96,7 +96,9 @@ public class BasicModelTransformation<OM extends Model, TM extends Model> implem
 			assert(sv.getDoubleArray() != null) : "State values are undefined.";
 
 			final double[] mapped = projectToOriginalModel(sv.getDoubleArray());
-			return StateValues.createFromDoubleArray(mapped, originalModel);
+			StateValues res = StateValues.createFromDoubleArray(mapped, originalModel);
+			res.setAccuracy(sv.getAccuracy());
+			return res;
 		}
 		if (sv.getType() instanceof TypeInt) {
 			assert(sv.getIntArray() != null) : "State values are undefined.";

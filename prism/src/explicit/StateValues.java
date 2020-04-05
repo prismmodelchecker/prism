@@ -42,6 +42,8 @@ import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
+import prism.Accuracy;
+import prism.AccuracyFactory;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
@@ -61,7 +63,9 @@ public class StateValues implements StateVector
 	protected int[] valuesI;
 	protected double[] valuesD;
 	protected BitSet valuesB;
-
+	
+	// Accuracy info
+	public Accuracy accuracy = null;
 	// Model info
 	protected List<State> statesList;
 
@@ -173,6 +177,19 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Create a new (double-valued) state values vector from an existing array of doubles,
+	 * stored in a ModelCheckerResult object. The array is stored directly, not copied.
+	 * Accuracy information is also copied from the ModelCheckerResult object.
+	 * Also set associated model (whose state space size should match vector size).
+	 */
+	public static StateValues createFromDoubleArrayResult(ModelCheckerResult res, Model model)
+	{
+		StateValues sv = createFromDoubleArray(res.soln, model);
+		sv.setAccuracy(res.accuracy);
+		return sv;
+	}
+	
+	/**
 	 * Create a new (double-valued) state values vector from an existing array of doubles.
 	 * The array is stored directly, not copied.
 	 * Also set associated model (whose state space size should match vector size).
@@ -207,6 +224,7 @@ public class StateValues implements StateVector
 	 * where each entry is 1.0 if in the bitset, 0.0 otherwise.
 	 * Also set associated model (and this determines the vector size).
 	 * The bitset is not modified or stored.
+	 * The accuracy for the result is also set automatically.
 	 */
 	public static StateValues createFromBitSetAsDoubles(BitSet bitset, Model model)
 	{
@@ -215,9 +233,19 @@ public class StateValues implements StateVector
 		for (int i = 0; i < size; i++) {
 			array[i] = bitset.get(i) ? 1.0 : 0.0;
 		}
-		return createFromDoubleArray(array, model);
+		StateValues sv = createFromDoubleArray(array, model);
+		sv.setAccuracy(AccuracyFactory.doublesFromQualitative());
+		return sv;
 	}
 
+	/**
+	 * Set the accuracy.
+	 */
+	public void setAccuracy(Accuracy accuracy)
+	{
+		this.accuracy = accuracy;
+	}
+	
 	/**
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
@@ -316,6 +344,14 @@ public class StateValues implements StateVector
 		}
 
 		return sol;
+	}
+
+	/**
+	 * Get the accuracy.
+	 */
+	public Accuracy getAccuracy()
+	{
+		return accuracy;
 	}
 
 	// METHODS TO MODIFY VECTOR

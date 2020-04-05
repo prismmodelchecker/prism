@@ -41,6 +41,8 @@ import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
+import prism.Accuracy;
+import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
 import prism.PrismComponent;
@@ -51,6 +53,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
+import prism.Accuracy.AccuracyLevel;
 import strat.MDStrategyArray;
 import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
@@ -137,7 +140,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachProbs((MDP) product.getProductModel(), acc, false);
-		probsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
+		probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
@@ -213,7 +216,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachRewards((MDP)product.getProductModel(), productRewards, acc, minMax.isMin());
-		rewardsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
+		rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -260,6 +263,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Return results
 		res = new ModelCheckerResult();
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.soln = soln2;
 		res.numIters = 1;
 		res.timeTaken = timer / 1000.0;
@@ -508,12 +512,14 @@ public class MDPModelChecker extends ProbModelChecker
 						res.soln[i] = res1.soln[maxQuotient.mapStateToRestrictedModel(i)];
 					}
 				}
+				res.accuracy = res1.accuracy;
 			} else {
 				res = computeReachProbsNumeric(mdp, mdpSolnMethod, no, yes, min, init, known, strat);
 			}
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(yes, n);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
 
 		// Finished probabilistic reachability
@@ -1347,6 +1353,7 @@ public class MDPModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -1401,6 +1408,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 
@@ -1908,6 +1916,7 @@ public class MDPModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -2203,6 +2212,7 @@ public class MDPModelChecker extends ProbModelChecker
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(inf, n, Double.POSITIVE_INFINITY);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
 		
 		// Store strategy

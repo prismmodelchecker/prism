@@ -38,6 +38,7 @@ import prism.NativeIntArray;
 import prism.OpsAndBoundsList;
 import prism.PrismException;
 import prism.PrismLog;
+import prism.PrismNative;
 import prism.PrismNotSupportedException;
 import dv.DoubleVector;
 import dv.IntegerVector;
@@ -181,7 +182,7 @@ public class PrismSparse
 	public static DoubleVector ProbBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, int bound) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), bound);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -192,7 +193,7 @@ public class PrismSparse
 	public static DoubleVector ProbUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr());
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -203,7 +204,7 @@ public class PrismSparse
 	public static DoubleVector ProbUntilInterval(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbUntilInterval(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -214,7 +215,7 @@ public class PrismSparse
 	public static DoubleVector ProbCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, int bound) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), bound);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -225,7 +226,7 @@ public class PrismSparse
 	public static DoubleVector ProbInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDVars rows, JDDVars cols, int time) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbInstReward(trans.ptr(), sr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -236,7 +237,7 @@ public class PrismSparse
 	public static DoubleVector ProbReachReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbReachReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr());
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -247,7 +248,7 @@ public class PrismSparse
 	public static DoubleVector ProbReachRewardInterval(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbReachRewardInterval(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -258,7 +259,7 @@ public class PrismSparse
 	public static DoubleVector ProbTransient(JDDNode trans, ODDNode odd, DoubleVector init, JDDVars rows, JDDVars cols, int time) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_ProbTransient(trans.ptr(), odd.ptr(), init.getPtr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -273,7 +274,7 @@ public class PrismSparse
 	public static DoubleVector NondetBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, int time, boolean minmax) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), time, minmax);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -284,7 +285,7 @@ public class PrismSparse
 	public static DoubleVector NondetUntil(JDDNode trans, JDDNode transActions, List<String> synchs, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax, IntegerVector strat) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetUntil(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax, (strat == null) ? 0 : strat.getPtr());
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -295,7 +296,7 @@ public class PrismSparse
 	public static DoubleVector NondetUntilInterval(JDDNode trans, JDDNode transActions, List<String> synchs, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode yes, JDDNode maybe, boolean minmax, IntegerVector strat, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetUntilInterval(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), yes.ptr(), maybe.ptr(), minmax, (strat == null) ? 0 : strat.getPtr(), flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -306,7 +307,7 @@ public class PrismSparse
 	public static DoubleVector NondetCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, int bound, boolean minmax) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), bound, minmax);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -317,7 +318,7 @@ public class PrismSparse
 	public static DoubleVector NondetInstReward(JDDNode trans, JDDNode sr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, int time, boolean minmax, JDDNode init) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetInstReward(trans.ptr(), sr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), time, minmax, init.ptr());
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -328,7 +329,7 @@ public class PrismSparse
 	public static DoubleVector NondetReachReward(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, boolean minmax) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetReachReward(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), minmax);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -339,7 +340,7 @@ public class PrismSparse
 	public static DoubleVector NondetReachRewardInterval(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_NondetReachRewardInterval(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -349,7 +350,7 @@ public class PrismSparse
 	public static double[] NondetMultiObj(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, List<String> synchs, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long[] ptr_ndsp_r = null;
 		if (rewSparseMatrix != null) {
 			ptr_ndsp_r = new long[rewSparseMatrix.length];
@@ -376,7 +377,7 @@ public class PrismSparse
 	public static double[] NondetMultiObjGS(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, DoubleVector[] yes_vec, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long[] ptr_ndsp_r = null;
 		if (rewSparseMatrix != null) {
 			ptr_ndsp_r = new long[rewSparseMatrix.length];
@@ -403,7 +404,7 @@ public class PrismSparse
 	public static double NondetMultiReach(JDDNode trans, JDDNode transActions, List<String> synchs, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, List<JDDNode> targets, OpsAndBoundsList opsAndBounds, JDDNode maybe, JDDNode start) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		// Convert lists to arrays for passing to JNI
 		int i, n = targets.size();
 		long targetsArr[] = new long[n];
@@ -426,7 +427,7 @@ public class PrismSparse
 	public static double NondetMultiReach1(JDDNode trans, JDDNode transActions, List<String> synchs, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, List<JDDNode> targets, List<JDDNode> combinations, List<Integer> combinationIDs, OpsAndBoundsList opsAndBounds, JDDNode maybe, JDDNode start) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		// Convert lists to arrays for passing to JNI
 		int i, n = targets.size();
 		long targetsArr[] = new long[n];
@@ -458,7 +459,7 @@ public class PrismSparse
 			List<JDDNode> trr, JDDNode becs) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		// Convert lists to arrays for passing to JNI
 		int i;//, n = targets.size();
 		long targetsArr[] = new long[targets.size()];
@@ -494,7 +495,7 @@ public class PrismSparse
 			List<JDDNode> trr, JDDNode becs) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		// Convert lists to arrays for passing to JNI
 		int i;//, n = targets.size();
 		long targetsArr[] = new long[targets.size()];
@@ -542,7 +543,7 @@ public class PrismSparse
 	public static DoubleVector StochBoundedUntil(JDDNode trans, ODDNode odd, JDDVars rows, JDDVars cols, JDDNode yes, JDDNode maybe, double time, DoubleVector multProbs) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long mult = (multProbs == null) ? 0 : multProbs.getPtr();
 		long ptr = PS_StochBoundedUntil(trans.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), yes.ptr(), maybe.ptr(), time, mult);
 		if (ptr == 0) throw generateExceptionForError();
@@ -554,7 +555,7 @@ public class PrismSparse
 	public static DoubleVector StochCumulReward(JDDNode trans, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, double time) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_StochCumulReward(trans.ptr(), sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -565,7 +566,7 @@ public class PrismSparse
 	public static DoubleVector StochSteadyState(JDDNode trans, ODDNode odd, JDDNode init, JDDVars rows, JDDVars cols) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_StochSteadyState(trans.ptr(), odd.ptr(), init.ptr(), rows.array(), rows.n(), cols.array(), cols.n());
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -576,7 +577,7 @@ public class PrismSparse
 	public static DoubleVector StochTransient(JDDNode trans, ODDNode odd, DoubleVector init, JDDVars rows, JDDVars cols, double time) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_StochTransient(trans.ptr(), odd.ptr(), init.getPtr(), rows.array(), rows.n(), cols.array(), cols.n(), time);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -591,7 +592,6 @@ public class PrismSparse
 	public static void ExportMatrix(JDDNode matrix, String name, JDDVars rows, JDDVars cols, ODDNode odd, int exportType, String filename) throws FileNotFoundException, PrismException
 	{
 		checkNumStates(odd);
-
 		int res = PS_ExportMatrix(matrix.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
@@ -606,7 +606,6 @@ public class PrismSparse
 	public static void ExportMDP(JDDNode mdp, JDDNode transActions, List<String> synchs, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename) throws FileNotFoundException, PrismException
 	{
 		checkNumStates(odd);
-
 		int res = PS_ExportMDP(mdp.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, name, rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
@@ -621,7 +620,6 @@ public class PrismSparse
 	public static void ExportSubMDP(JDDNode mdp, JDDNode submdp, String name, JDDVars rows, JDDVars cols, JDDVars nondet, ODDNode odd, int exportType, String filename) throws FileNotFoundException, PrismException
 	{
 		checkNumStates(odd);
-
 		int res = PS_ExportSubMDP(mdp.ptr(), submdp.ptr(), name, rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), odd.ptr(), exportType, filename);
 		if (res == -1) {
 			throw new FileNotFoundException();
@@ -640,7 +638,7 @@ public class PrismSparse
 	public static DoubleVector Power(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_Power(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -651,7 +649,7 @@ public class PrismSparse
 	public static DoubleVector PowerInterval(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode lower, JDDNode upper, boolean transpose, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_PowerInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -662,7 +660,7 @@ public class PrismSparse
 	public static DoubleVector JOR(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose, boolean row_sums, double omega) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_JOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -673,7 +671,7 @@ public class PrismSparse
 	public static DoubleVector JORInterval(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode lower, JDDNode upper, boolean transpose, boolean row_sums, double omega, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_JORInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, row_sums, omega, flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -684,7 +682,7 @@ public class PrismSparse
 	public static DoubleVector SOR(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode init, boolean transpose, boolean row_sums, double omega, boolean forwards) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_SOR(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), init.ptr(), transpose, row_sums, omega, forwards);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
@@ -695,7 +693,7 @@ public class PrismSparse
 	public static DoubleVector SORInterval(ODDNode odd, JDDVars rows, JDDVars cols, JDDNode a, JDDNode b, JDDNode lower, JDDNode upper, boolean transpose, boolean row_sums, double omega, boolean forwards, int flags) throws PrismException
 	{
 		checkNumStates(odd);
-
+		PrismNative.resetModelCheckingInfo();
 		long ptr = PS_SORInterval(odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), a.ptr(), b.ptr(), lower.ptr(), upper.ptr(), transpose, row_sums, omega, forwards, flags);
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));

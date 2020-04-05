@@ -44,6 +44,9 @@ public class StateValuesMTBDD implements StateValues
 	/** MTBDD storing vector of values */
 	JDDNode values;
 
+	/** Accuracy info */
+	Accuracy accuracy;
+	
 	// info from model
 	/** The underlying model */
 	Model model;
@@ -63,15 +66,29 @@ public class StateValuesMTBDD implements StateValues
 	
 	/**
 	 * Constructor from a JDDNode (which is stored, not copied).
+	 * Also set the accuracy info.
 	 * <br>[ STORES: values, derefed on later call to clear() ]
 	 * @param values the JddNode for the values
 	 * @param model the underlying model
 	 */
 	public StateValuesMTBDD(JDDNode values, Model model)
 	{
-		// store values vector mtbdd
-		this.values = values;
+		this (values, model, null);
+	}
 
+	/**
+	 * Constructor from a JDDNode (which is stored, not copied).
+	 * Also set the accuracy info.
+	 * <br>[ STORES: values, derefed on later call to clear() ]
+	 * @param values the JddNode for the values
+	 * @param model the underlying model
+	 * @param accuracy result accuracy info
+	 */
+	public StateValuesMTBDD(JDDNode values, Model model, Accuracy accuracy)
+	{
+		// store values vector mtbdd and accuracy
+		this.values = values;
+		setAccuracy(accuracy);
 		// get info from model
 		setModel(model);
 	}
@@ -94,13 +111,19 @@ public class StateValuesMTBDD implements StateValues
 		setModel(newModel);
 	}
 
+	@Override
+	public void setAccuracy(Accuracy accuracy)
+	{
+		this.accuracy = accuracy;
+	}
+	
 	// CONVERSION METHODS
 	
 	@Override
 	public StateValuesDV convertToStateValuesDV() throws PrismException
 	{
 		// convert to StateValuesDV, destroy (clear) old vector
-		StateValuesDV res = new StateValuesDV(values, model);
+		StateValuesDV res = new StateValuesDV(values, model, accuracy);
 		clear();
 		return res;
 	}
@@ -555,6 +578,12 @@ public class StateValuesMTBDD implements StateValues
 		return sol;
 	}
 
+	@Override
+	public Accuracy getAccuracy()
+	{
+		return accuracy;
+	}
+	
 	// PRINTING STUFF
 
 	/**
@@ -859,6 +888,6 @@ public class StateValuesMTBDD implements StateValues
 	public StateValuesMTBDD deepCopy() throws PrismException
 	{
 		JDD.Ref(values);
-		return new StateValuesMTBDD(values, model);
+		return new StateValuesMTBDD(values, model, accuracy);
 	}
 }

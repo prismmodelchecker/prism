@@ -43,6 +43,9 @@ public class StateValuesDV implements StateValues
 	/** Double vector storing values */
 	DoubleVector values;
 
+	/** Accuracy info */
+	Accuracy accuracy;
+	
 	// info from model
 	/** The underlying model */
 	Model model;
@@ -64,9 +67,21 @@ public class StateValuesDV implements StateValues
 	 */
 	public StateValuesDV(DoubleVector values, Model model)
 	{
-		// store values vector
-		this.values = values;
+		this (values, model, null);
+	}
 
+	/**
+	 * Constructor from a double vector (which is stored, not copied).
+	 * Also set the accuracy info.
+	 * @param values the double vector
+	 * @param model the underlying model
+	 * @param accuracy result accuracy info
+	 */
+	public StateValuesDV(DoubleVector values, Model model, Accuracy accuracy)
+	{
+		// store values vector and accuracy
+		this.values = values;
+		setAccuracy(accuracy);
 		// get info from model
 		setModel(model);
 	}
@@ -83,7 +98,24 @@ public class StateValuesDV implements StateValues
 	public StateValuesDV(JDDNode dd, Model model) throws PrismException
 	{
 		// TODO: Enforce/check that dd is zero for all non-reachable states
-		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model);
+		this(dd, model, null);
+	}
+
+	/**
+	 * Constructor from an MTBDD.
+	 * Also set the accuracy info.
+	 * <br>
+	 * Note: The JDDNode dd must only be non-zero for reachable states
+	 * (otherwise bad things happen)
+	 * <br>[ DEREFS: <i>none</i> ]
+	 * @param dd the double vector
+	 * @param model the underlying model
+	 * @param accuracy result accuracy info
+	 */
+	public StateValuesDV(JDDNode dd, Model model, Accuracy accuracy) throws PrismException
+	{
+		// TODO: Enforce/check that dd is zero for all non-reachable states
+		this(new DoubleVector(dd, model.getAllDDRowVars(), model.getODD()), model, accuracy);
 	}
 
 	/** Helper method: Store information about the underlying model */
@@ -102,6 +134,12 @@ public class StateValuesDV implements StateValues
 		setModel(newModel);
 	}
 
+	@Override
+	public void setAccuracy(Accuracy accuracy)
+	{
+		this.accuracy = accuracy;
+	}
+	
 	// CONVERSION METHODS
 
 	@Override
@@ -115,7 +153,7 @@ public class StateValuesDV implements StateValues
 	public StateValuesMTBDD convertToStateValuesMTBDD()
 	{
 		// convert to StateValuesMTBDD, destroy (clear) old vector
-		StateValuesMTBDD res = new StateValuesMTBDD(values.convertToMTBDD(vars, odd), model);
+		StateValuesMTBDD res = new StateValuesMTBDD(values.convertToMTBDD(vars, odd), model, accuracy);
 		clear();
 		return res;
 	}
@@ -357,6 +395,12 @@ public class StateValuesDV implements StateValues
 		return values.getBDDFromCloseValueRel(value, epsilon, vars, odd);
 	}
 
+	@Override
+	public Accuracy getAccuracy()
+	{
+		return accuracy;
+	}
+	
 	// PRINTING STUFF
 
 	@Override
@@ -609,6 +653,6 @@ public class StateValuesDV implements StateValues
 		DoubleVector dv = new DoubleVector(values.getSize());
 		dv.add(values);
 		// Return copy
-		return new StateValuesDV(dv, model);
+		return new StateValuesDV(dv, model, accuracy);
 	}
 }

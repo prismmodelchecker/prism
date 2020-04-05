@@ -58,6 +58,11 @@ public interface StateValues extends StateVector
 	void switchModel(Model newModel);
 
 	/**
+	 * Set the accuracy of the result.
+	 */
+	void setAccuracy(Accuracy accuracy);
+	
+	/**
 	 * Set the elements of this vector by reading them in from a file.
 	 */
 	void readFromFile(File file) throws PrismException;
@@ -218,6 +223,11 @@ public interface StateValues extends StateVector
 	 */
 	JDDNode getBDDFromCloseValueRel(double val, double epsilon);
 
+	/**
+	 * Get the accuracy of the result.
+	 */
+	Accuracy getAccuracy();
+	
 	/**
 	 * Print vector to a log/file (non-zero entries only)
 	 */

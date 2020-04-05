@@ -179,6 +179,20 @@ public class PrismNative
 		return PN_SetWorkingDirectory(dirname);
 	}
 	
+	// Getting (or resetting) information about model checking
+	
+	public static void resetModelCheckingInfo()
+	{
+		PN_SetLastErrorBound(Double.POSITIVE_INFINITY);
+	}
+	
+	private static native void PN_SetLastErrorBound(double d);
+	private static native double PN_GetLastErrorBound();
+	public static double getLastErrorBound()
+	{
+		return PN_GetLastErrorBound();
+	}
+
 	// Some miscellaneous native methods
 	public static native long PN_GetStdout();
 	public static native long PN_OpenFile(String filename);
