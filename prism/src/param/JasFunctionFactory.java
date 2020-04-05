@@ -133,6 +133,17 @@ final class JasFunctionFactory extends FunctionFactory {
 
 	@Override
 	public Function fromBigRational(BigRational from) {
+		if (from.isSpecial()) {
+			if (from.isInf())
+				return getInf();
+			else if (from.isMInf())
+				return getMInf();
+			else if (from.isNaN())
+				return getNaN();
+			else
+				throw new RuntimeException("Implementation error");
+		}
+
 		Quotient<BigInteger> result = jasQuotRing.fromInteger(from.getNum());
 		Quotient<BigInteger> den = jasQuotRing.fromInteger(from.getDen());
 		result = result.divide(den);
