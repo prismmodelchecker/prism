@@ -183,9 +183,12 @@ final class JasFunction extends Function {
 			return factory.getNaN();
 		}
 		if (other.isZero()) {
-			if (this.isZero()) {
-				return factory.getNaN();
+			if (this.isConstant()) {
+				// evaluate constant to return either NaN, Inf or -Inf, using BigRational division
+				return factory.fromBigRational(this.asBigRational().divide(BigRational.ZERO));
 			} else {
+				// non-constant
+				// TODO: Fix, should be 'this / 0', but that can't be represented by JAS...
 				return factory.getInf();
 			}
 		}
