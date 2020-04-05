@@ -84,9 +84,9 @@ final class JasFunction extends Function {
 		if (isNaN()) {
 			return "NaN";
 		} else if (isInf()) {
-			return "Inf";
+			return "Infinity";
 		} else if (isMInf()) {
-			return "MInf";
+			return "-Infinity";
 		}
 		return jas.toString();
 	}
