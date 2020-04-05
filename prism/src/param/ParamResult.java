@@ -132,7 +132,7 @@ public class ParamResult
 	{
 		Expression exprExpected = null;
 		try {
-			if (strExpected.equals("Infinity") || strExpected.equals("Inf")) {
+			if (strExpected.equals("Infinity") || strExpected.equals("+Infinity") || strExpected.equals("Inf") || strExpected.equals("+Inf")) {
 				exprExpected = new ExpressionLiteral(TypeDouble.getInstance(), BigRational.INF);
 			} else if (strExpected.equals("-Infinity") || strExpected.equals("-Inf")) {
 				exprExpected = new ExpressionLiteral(TypeDouble.getInstance(), BigRational.MINF);

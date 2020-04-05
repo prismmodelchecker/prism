@@ -184,7 +184,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 */
 	public BigRational(String string)
 	{
-		if (string.equals("Infinity") || string.equals("Inf")) {
+		if (string.equals("Infinity") || string.equals("+Infinity") || string.equals("Inf") || string.equals("+Inf")) {
 			this.num = new BigInteger("1");
 			this.den = new BigInteger("0");
 			return;
