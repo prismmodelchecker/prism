@@ -1005,7 +1005,7 @@ public class PrismCL implements PrismModelListener
 	{
 		try {
 			Values allConsts = new Values(mfConstants, pfConstants);
-			if (prop.checkAgainstExpectedResult(res.getResult(), allConsts)) {
+			if (prop.checkAgainstExpectedResult(res, allConsts)) {
 				mainLog.println("Testing result: PASS");
 			} else {
 				mainLog.println("Testing result: NOT TESTED");
