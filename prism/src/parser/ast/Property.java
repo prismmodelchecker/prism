@@ -453,6 +453,7 @@ public class Property extends ASTElement
 				if (strExpectedValue.equals("NaN")) {
 					if (!rationalRes.isNaN())
 						throw new PrismException("Wrong result (expected NaN, got " + rationalRes + ")");
+					rationalExp = BigRational.NAN;
 				}
 				// For integers/rationals/doubles, parse with BigRational
 				else {
