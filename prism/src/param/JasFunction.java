@@ -182,6 +182,9 @@ final class JasFunction extends Function {
 		if (this.isNaN() || other.isNaN()) {
 			return factory.getNaN();
 		}
+		if (other.isInf() || other.isMInf()) {
+			return factory.getNaN();
+		}
 		if (other.isZero()) {
 			if (this.isConstant()) {
 				// evaluate constant to return either NaN, Inf or -Inf, using BigRational division
