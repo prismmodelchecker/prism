@@ -1,0 +1,13 @@
+const int D;
+
+// RESULT (h0=2,h1=16,N=3): [0.020656523490556817,0.026807197082692098] (grid resolution 16)
+Pmin=? [ F correct=1 ]
+
+// RESULT (h0=2,h1=16,N=3): [0.9731909334062754,0.9793309413525038] (grid resolution 16)
+Pmax=? [ F correct=1 ]
+
+// RESULT (h0=2,h1=16,N=3,D=25): [0.022890048319850906,0.02541857957662759] (grid resolution 32)
+Pmin=? [ F<=D correct=1 ]
+
+// RESULT (h0=2,h1=16,N=3,D=25): [0.5274229036098491,0.5301895230846264] (grid resolution 32)
+Pmax=? [ F<=D correct=1 ]
