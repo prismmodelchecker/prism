@@ -1,0 +1,52 @@
+// 3x3 grid
+// based on Littman, Cassandra and Kaelbling
+// Learning policies for partially observable environments: Scaling up  
+// Technical Report CS, Brown University
+
+pomdp
+
+// only the target is observable which is in the south east corner
+observables
+	o
+endobservables
+
+module grid
+	
+	x : [0..2]; // x coordinate
+	y : [0..2]; // y coordinate
+	o : [0..2]; // observables
+	// 0 - initial observation
+	// 1 - in the grid (not target)
+	// 2 - observe target
+	
+	// initially randomly placed within the grid (not at the target)
+	[] o=0 -> 1/8 : (o'=1) & (x'=0) & (y'=0)
+			+ 1/8 : (o'=1) & (x'=0) & (y'=1)
+			+ 1/8 : (o'=1) & (x'=0) & (y'=2)
+			+ 1/8 : (o'=1) & (x'=1) & (y'=0)
+			+ 1/8 : (o'=1) & (x'=1) & (y'=1)
+			+ 1/8 : (o'=1) & (x'=1) & (y'=2)
+			// + 1/8 : (o'=1) & (x'=2) & (y'=0) the target
+			+ 1/8 : (o'=1) & (x'=2) & (y'=1)
+			+ 1/8 : (o'=1) & (x'=2) & (y'=2);
+			
+	// move around the grid
+	[east] o=1 & !(x=1 & y=0) -> (x'=min(x+1,2)); // not reached target
+	[east] o=1 & x=1 & y=0 -> (x'=min(x+1,2)) & (o'=2);
+	[west] o=1 -> (x'=max(x-1,0)); // not reached target
+	[north] o=1 -> (x'=min(y+1,2)); // reached target
+	[south] o=1 & !(x=2 & y=1) -> (y'=max(y-1,0)); // not reached target
+	[south] o=1 & x=2 & y=1 -> (y'=max(y-1,0)) & (o'=2); // reached target
+	
+	// reached target
+	[done] o=2 -> true;
+	
+endmodule
+
+// reward structure for number of steps to reach the target
+rewards
+        [east] true : 1;
+        [west] true : 1;
+        [north] true : 1;
+        [south] true : 1;
+endrewards

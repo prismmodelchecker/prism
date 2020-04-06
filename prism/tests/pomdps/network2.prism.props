@@ -1,0 +1,7 @@
+// minimum number of dropped packets
+// RESULT (K=2,T=3): [1.6572208448483332,1.6578400000000002] (grid resolution 50)
+R{"dropped_packets"}min=?[F sched=0 & t=T-1 & k=K-1 ]
+
+// maximum number of packets sent (dual property)
+// RESULT (K=2,T=3): [2.3421600000000002,2.342779155151662] (grid resolution 50)
+R{"packets_sent"}max=?[F sched=0 & t=T-1 & k=K-1 ]
