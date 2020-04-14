@@ -689,32 +689,34 @@ public class DTMCModelChecker extends ProbModelChecker
 		numNo = no.cardinality();
 		mainLog.println("target=" + target.cardinality() + ", yes=" + numYes + ", no=" + numNo + ", maybe=" + (n - (numYes + numNo)));
 
-		boolean termCritAbsolute = termCrit == TermCrit.ABSOLUTE;
-
-		// Compute probabilities
-		IterationMethod iterationMethod = null;
-
-		switch (linEqMethod) {
-		case POWER:
-			iterationMethod = new IterationMethodPower(termCritAbsolute, termCritParam);
-			break;
-		case JACOBI:
-			iterationMethod = new IterationMethodJacobi(termCritAbsolute, termCritParam);
-			break;
-		case GAUSS_SEIDEL:
-		case BACKWARDS_GAUSS_SEIDEL: {
-			boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-			iterationMethod = new IterationMethodGS(termCritAbsolute, termCritParam, backwards);
-			break;
-		}
-		default:
-			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
-		}
-
-		if (doIntervalIteration) {
-			res = doIntervalIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+		// Compute probabilities (if needed)
+		if (numYes + numNo < n) {
+			boolean termCritAbsolute = termCrit == TermCrit.ABSOLUTE;
+			IterationMethod iterationMethod = null;
+			switch (linEqMethod) {
+			case POWER:
+				iterationMethod = new IterationMethodPower(termCritAbsolute, termCritParam);
+				break;
+			case JACOBI:
+				iterationMethod = new IterationMethodJacobi(termCritAbsolute, termCritParam);
+				break;
+			case GAUSS_SEIDEL:
+			case BACKWARDS_GAUSS_SEIDEL: {
+				boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
+				iterationMethod = new IterationMethodGS(termCritAbsolute, termCritParam, backwards);
+				break;
+			}
+			default:
+				throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
+			}
+			if (doIntervalIteration) {
+				res = doIntervalIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+			} else {
+				res = doValueIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+			}
 		} else {
-			res = doValueIterationReachProbs(dtmc, no, yes, init, known, iterationMethod, getDoTopologicalValueIteration());
+			res = new ModelCheckerResult();
+			res.soln = Utils.bitsetToDoubleArray(yes, n);
 		}
 
 		// Finished probabilistic reachability
@@ -1799,32 +1801,34 @@ public class DTMCModelChecker extends ProbModelChecker
 		numInf = inf.cardinality();
 		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
 
-		boolean termCritAbsolute = termCrit == TermCrit.ABSOLUTE;
-
-		IterationMethod iterationMethod;
-
-		// Compute rewards
-		switch (linEqMethod) {
-		case POWER:
-			iterationMethod = new IterationMethodPower(termCritAbsolute, termCritParam);
-			break;
-		case JACOBI:
-			iterationMethod = new IterationMethodJacobi(termCritAbsolute, termCritParam);
-			break;
-		case GAUSS_SEIDEL:
-		case BACKWARDS_GAUSS_SEIDEL: {
-			boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
-			iterationMethod = new IterationMethodGS(termCritAbsolute, termCritParam, backwards);
-			break;
-		}
-		default:
-			throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
-		}
-
-		if (doIntervalIteration) {
-			res = doIntervalIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+		// Compute rewards (if needed)
+		if (numTarget + numInf < n) {
+			boolean termCritAbsolute = termCrit == TermCrit.ABSOLUTE;
+			IterationMethod iterationMethod;
+			switch (linEqMethod) {
+			case POWER:
+				iterationMethod = new IterationMethodPower(termCritAbsolute, termCritParam);
+				break;
+			case JACOBI:
+				iterationMethod = new IterationMethodJacobi(termCritAbsolute, termCritParam);
+				break;
+			case GAUSS_SEIDEL:
+			case BACKWARDS_GAUSS_SEIDEL: {
+				boolean backwards = linEqMethod == LinEqMethod.BACKWARDS_GAUSS_SEIDEL;
+				iterationMethod = new IterationMethodGS(termCritAbsolute, termCritParam, backwards);
+				break;
+			}
+			default:
+				throw new PrismException("Unknown linear equation solution method " + linEqMethod.fullName());
+			}
+			if (doIntervalIteration) {
+				res = doIntervalIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+			} else {
+				res = doValueIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+			}
 		} else {
-			res = doValueIterationReachRewards(dtmc, mcRewards, target, inf, init, known, iterationMethod, getDoTopologicalValueIteration());
+			res = new ModelCheckerResult();
+			res.soln = Utils.bitsetToDoubleArray(inf, n, Double.POSITIVE_INFINITY);
 		}
 
 		// Finished expected reachability

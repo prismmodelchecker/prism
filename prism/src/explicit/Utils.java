@@ -83,10 +83,22 @@ public class Utils
 	 */
 	public static double[] bitsetToDoubleArray(BitSet bs, int n)
 	{
+		return bitsetToDoubleArray(bs, n, 1.0);
+	}
+
+	/**
+	 * Create an n-element array of doubles from a BitSet,
+	 * setting elements whose index is set in the BitSet to {@code val}, and otherwise 0.0.
+	 *  @param bs The bitset specifying set elements
+	 *  @param n The size of the array.
+	 *  @param val The value for "set" elements
+	 */
+	public static double[] bitsetToDoubleArray(BitSet bs, int n, double val)
+	{
 		int i;
 		double res[] = new double[n];
 		for (i = 0; i < n; i++)
-			res[i] = bs.get(i) ? 1.0 : 0.0;
+			res[i] = bs.get(i) ? val : 0.0;
 		return res;
 	}
 
