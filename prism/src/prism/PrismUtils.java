@@ -94,12 +94,11 @@ public class PrismUtils
 			return false;
 		}
 		// Compute/check error
-		d1 = Math.abs(d1);
-		d2 = Math.abs(d2);
-		// For two (near) zero values, return true, for just one, return false
-		if (d1 < epsilonDouble)
-			return (d2 < epsilonDouble);
-		return (Math.abs(d1 - d2) / d1 < epsilon);
+		if (d2 == 0) {
+			// If both are zero, error is 0; otherwise +inf
+			return d1 == 0;
+		}
+		return Math.abs((d1 - d2) / d1) < epsilon;
 	}
 
 	/**
