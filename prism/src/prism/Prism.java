@@ -63,6 +63,7 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import prism.Accuracy.AccuracyLevel;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -3400,17 +3401,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// There should be just one region since no parameters are used
 		ParamResult paramResult = (ParamResult) result.getResult();
 		result.setResult(paramResult.getSimpleResult(prop.getType()));
+		result.setAccuracy(new Accuracy(AccuracyLevel.EXACT));
 
 		// Print result to log
 		String resultString = "Result";
-		if (!("Result".equals(prop.getExpression().getResultName())))
-			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
-		resultString += ": " + result.getResultString();
-		mainLog.println("\n" + resultString);
-
+		resultString += ": " + result.getResultAndAccuracy();
 		if (result.getResult() instanceof BigRational) {
-			mainLog.println(" As floating point: " + ((BigRational)result.getResult()).toApproximateString());
+			resultString += " (" + ((BigRational) result.getResult()).toApproximateString() + ")";
 		}
+		mainLog.println("\n" + resultString);
 
 		return result;
 	}
