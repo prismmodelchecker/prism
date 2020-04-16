@@ -244,6 +244,17 @@ public class ResultTesting
 			doubleExp = Double.NaN;
 			checkDoubleAgainstExpectedResult(strExpected, doubleExp, resultObj);
 		}
+		// See if it's an interval
+		else if (strExpected.matches("\\[[^,]+,[^,]+\\]")) {
+			String bounds[] = strExpected.substring(1, strExpected.length() - 1).split(",");
+			try {
+				double expLow = Double.parseDouble(bounds[0]);
+				double expHigh = Double.parseDouble(bounds[1]);
+				checkDoubleAgainstExpectedResultInterval(strExpected, expLow, expHigh, resultObj);
+			} catch (NumberFormatException e) {
+				throw new PrismException("Invalid RESULT specification \"" + strExpected + "\": " + e.getMessage());
+			}
+		}
 		// See if it's a fraction
 		else if (strExpected.matches("-?[0-9]+/[0-9]+")) {
 			doubleExp = new BigRational(strExpected).doubleValue();
@@ -295,6 +306,29 @@ public class ResultTesting
 			if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5)) {
 				throw new PrismException("Wrong result (expected " + strExpected + ", got " + doubleRes + ")");
 			}
+		}
+	}
+	
+	/**
+	 * Tests a result of type double against the expected result, given as a double.
+	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
+	 * @param strExpected Expected result string (for error message)
+	 * @param doubleExp Expected result
+	 * @param resultObj The actual result
+	 */
+	private static void checkDoubleAgainstExpectedResultInterval(String strExpected, double expLow, double expHigh, Result resultObj) throws PrismException
+	{
+		// Extract actual result
+		Object result = resultObj.getResult();
+		if (!(result instanceof Double)) {
+			throw new PrismException("Result is wrong type (" + result.getClass() + ") for (double-valued) property");
+		}
+		double doubleRes = ((Double) result).doubleValue();
+		// Check intervals for result and expected value overlap
+		double resLow = doubleRes * (1.0 - 1e-5);
+		double resHigh = doubleRes * (1.0 + 1e-5);
+		if (!(resLow <= expHigh && expLow <= resHigh)) {
+			throw new PrismException("Wrong result (expected " + strExpected + ", got " + doubleRes + ")");
 		}
 	}
 	
