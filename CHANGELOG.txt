@@ -1,6 +1,40 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Changes since version 4.5 (up-to-date wrt bf6a49e1)
+-----------------------------------------------------------------------------
+  
+New model checking features/enhancements:
+  - digital clocks engine now supports time-bounded reachability
+  - explicit engine support for steady-state computation (and S, R[S] properties)
+  - improved support in MTBDD engine for very large (>2^63) state spaces
+  - the -heuristic switch triggers automatic selection of some engines/settings
+  - the -prop switch accepts multiple (comma-separated) property indices/names
+  - MTBDD engine support for non-sparse vector printing (printall filter)
+  - examples directory tidied up and now grouped by model type
+  - many minor bugfixes
+  
+New import/export features:
+  - export of result values for all states of a model (-exportvector)
+  - basic auto-detection of model type for explicit file import
+  - simulation (path generation and statistical model checking) for explicit model imports
+  - explicit engine support for state reward import from files
+  - MTBDD engine support for export of transient/steady-state probabilities
+
+* Development changes and enhancements:
+  - extended/improved ModelGenerator interface, including methods to support simulation
+  - new RewardGenerator interface for specifying information about rewards for a model
+  - PRISM API improvements: properties can be parsed against the currently loaded model
+  - Makefile improvements: better configurability of directiories
+  - Makefile improvements: better handling of variables and sub-Makefiles, incl. CUDD
+  - new release_source Makefile target for building source releases
+
+* Benchmarking/testing changes and enhancements:
+  - new prism-log-extract script for processing PRISM log files
+  - prism-auto: new options/features (--log-subdirs, --filter-models, --args-list)
+  - allow testing RESULT specifications to be intervals [a,b]
+
+-----------------------------------------------------------------------------
 Version 4.5 (first released 19/4/2019)
 -----------------------------------------------------------------------------
 
