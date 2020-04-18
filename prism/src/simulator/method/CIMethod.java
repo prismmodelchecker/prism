@@ -31,7 +31,10 @@ import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.RelOp;
+import prism.Accuracy;
 import prism.PrismException;
+import prism.Accuracy.AccuracyLevel;
+import prism.Accuracy.AccuracyType;
 import simulator.sampler.Sampler;
 
 /**
@@ -157,6 +160,22 @@ public abstract class CIMethod extends SimulationMethod
 		default:
 			throw new PrismException("Unknown property type");
 		}
+	}
+
+	@Override
+	public Accuracy getResultAccuracy(Sampler sampler) throws PrismException
+	{
+		Accuracy accuracy;
+		// Quantitative
+		if (prOp == 0) {
+			accuracy = new Accuracy(AccuracyLevel.PROBABLY_BOUNDED, width, AccuracyType.ABSOLUTE);
+		}
+		// Bounded (accuracy error bound is meaningless)
+		else {
+			accuracy = new Accuracy(AccuracyLevel.PROBABLY_BOUNDED, 0.0, AccuracyType.ABSOLUTE);
+		}
+		accuracy.setProbability(1.0 - confidence);
+		return accuracy;
 	}
 
 	@Override

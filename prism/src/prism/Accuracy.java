@@ -65,7 +65,12 @@ public class Accuracy
 	 * The type of accuracy: absolute or relative. 
 	 */
 	private AccuracyType type;
-
+	
+	/**
+	 * If appropriate, the probability with which the accuracy is guaranteed
+	 */
+	private double probability = 1.0;
+	
 	/**
 	 * Create an accuracy of the specified level.
 	 * For "bounded" accuracies, {@link Accuracy.DEFAULT_ERROR_BOUND} is assumed.
@@ -133,6 +138,15 @@ public class Accuracy
 	public void setErrorBound(double errorBound)
 	{
 		this.errorBound = errorBound;
+	}
+	
+	/**
+	 * Set the probability with which the accuracy is guaranteed
+	 * (for the case where the level is {@link AccuracyLevel.PROBABLY_BOUNDED}).
+	 */
+	public void setProbability(double probability)
+	{
+		this.probability = probability;
 	}
 	
 	/**
@@ -249,6 +263,15 @@ public class Accuracy
 	}
 	
 	/**
+	 * Get the probability with which the accuracy is guaranteed
+	 * (for the case where the level is {@link AccuracyLevel.PROBABLY_BOUNDED}; otherwise 1.0).
+	 */
+	public double getProbability()
+	{
+		return level == AccuracyLevel.PROBABLY_BOUNDED ? probability : 1.0;
+	}
+	
+	/**
 	 * Get a string representation of the accuracy.
 	 * The actual result needs to be passed in, in order to
 	 * show both absolute and relative accuracy.
@@ -264,15 +287,24 @@ public class Accuracy
 		case ESTIMATED_BOUNDED:
 		case PROBABLY_BOUNDED:
 		default:
-			double d = (Double) result;
-			String s = "+/- " + getAbsoluteErrorBound(d);
-			if (level == AccuracyLevel.ESTIMATED_BOUNDED) {
-				s += " estimated";
-			} else if (level == AccuracyLevel.PROBABLY_BOUNDED) {
-				s += " probably";
+			// Numerical results 
+			if (result instanceof Double) {
+				double d = (Double) result;
+				String s = "+/- " + getAbsoluteErrorBound(d);
+				if (level == AccuracyLevel.ESTIMATED_BOUNDED) {
+					s += " estimated";
+				} else if (level == AccuracyLevel.PROBABLY_BOUNDED) {
+					s += " with probability " + getProbability();
+				}
+				return s + "; rel err " + getRelativeErrorBound(d);
 			}
-			return s + "; rel err " + getRelativeErrorBound(d);
+			// Non-numerical: only really makes sense for "probably"
+			else if (level == AccuracyLevel.PROBABLY_BOUNDED) {
+				return "with probability " + getProbability();
+			}
 		}
+		// Default to empty: will be ignored
+		return "";
 	}
 	
 	@Override
@@ -291,7 +323,7 @@ public class Accuracy
 			if (level == AccuracyLevel.ESTIMATED_BOUNDED) {
 				s += " estimated";
 			} else if (level == AccuracyLevel.PROBABLY_BOUNDED) {
-				s += " probably";
+				s += " with probability " + getProbability();
 			}
 			return s;
 		}
