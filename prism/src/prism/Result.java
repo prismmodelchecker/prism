@@ -188,10 +188,13 @@ public class Result
 	public String getResultAndAccuracy()
 	{
 		if (accuracy != null) {
-			return result.toString() + " (" + accuracy.toString(result) + ")";
-		} else {
-			return result.toString();
+			String accuracyString = accuracy.toString(result);
+			if (accuracyString != null && !"".equals(accuracyString)) {
+				return result.toString() + " (" + accuracy.toString(result) + ")";
+			}
 		}
+		// If accuracy is missing or blank, omit it
+		return result.toString();
 	}
 	
 	/**
