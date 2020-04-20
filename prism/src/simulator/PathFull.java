@@ -530,7 +530,7 @@ public class PathFull extends Path implements PathFullInfo
 	{
 		int i;
 		String s = "";
-		for (i = 0; i < size; i++) {
+		for (i = 0; i <= size; i++) {
 			s += getState(i) + "\n";
 		}
 		return s;
