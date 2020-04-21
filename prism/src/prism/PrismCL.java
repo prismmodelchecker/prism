@@ -2424,6 +2424,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println();
 		mainLog.println("EXPORT OPTIONS:");
 		mainLog.println("-exportresults <file[:options]>  Export the results of model checking to a file");
+		mainLog.println("-exportvector <file>  .......... Export results of model checking for all states to a file");
 		mainLog.println("-exportmodel <files[:options]> . Export the built model to file(s)");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
