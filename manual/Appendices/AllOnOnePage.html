@@ -116,6 +116,7 @@ Below, we describe:
 <div class='vspace'></div><ul><li><a href='AllOnOnePage.html#sta'>State (.sta) files</a>
 </li><li><a href='AllOnOnePage.html#tra'>Transitions (.tra) files</a>
 </li><li><a href='AllOnOnePage.html#trarows'>Transitions (.tra) files (row form)</a>
+</li><li><a href='AllOnOnePage.html#lab'>Labels (.lab) files</a>
 </li><li><a href='AllOnOnePage.html#rews'>State rewards (.rews) files</a>
 </li><li><a href='AllOnOnePage.html#rewt'>Transition rewards (.rewt) files</a>
 </li></ul><div class='vspace'></div><hr />
@@ -286,6 +287,25 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 </div>
 
 <div class='vspace'></div><hr />
+<p class='vspace'><a name='lab' id='lab'></a>
+</p><h3>Labels (.lab) files</h3>
+<p>These contain an explicit list of which <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>labels</a> are satisfied in each state.
+The first line lists the labels, assigning each one an index.
+The remaining lines list indices of all states satisfying one or more labels,
+followed by a list of the the indices of labels that that are satisfied in it.
+This includes the built-in labels <code>"init"</code> (initial states) and <code>deadlock</code> (deadlock states).
+An example is shown below, where, for example, both <code>"heads"</code> and <code>"end"</code> are satisfied in state 2.
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="text">0=&quot;init&quot; 1=&quot;deadlock&quot; 2=&quot;heads&quot; 3=&quot;tails&quot; 4=&quot;end&quot;<br />
+0: 0<br />
+2: 2 4<br />
+3: 3 4</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><hr />
 <p class='vspace'><a name='rews' id='rews'></a>
 </p><h3>State rewards (.srew) files</h3>
 <p>These contain an explicit list of the (non-zero) state rewards for a particular reward structure of a model. The first line of the file is of the form <code>n m</code> where <code>n</code> is the number of states in the model and <code>m</code> is the number of non-zero state rewards. The following <code>m</code> lines are of the form <code>i r</code>, denoting that the state reward for state <code>i</code> is <code>r</code>.
@@ -293,12 +313,12 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 <p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get rewards in 3 states (0, 4 and 5):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock9'>
+<div class='sourceblock ' id='sourceblock10'>
   <div class='sourceblocktext'><div class="text">6 3<br />
 0 2<br />
 4 1<br />
 5 1</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
@@ -310,25 +330,25 @@ except that probabilities/rates are replaced with reward values, and the number 
 <p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get non-zero transition rewards on 4 transitions:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock10'>
+<div class='sourceblock ' id='sourceblock11'>
   <div class='sourceblocktext'><div class="text">6 4<br />
 1 0 1<br />
 1 2 1<br />
 1 4 1<br />
 2 5 2</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>And or the <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock11'>
+<div class='sourceblock ' id='sourceblock12'>
   <div class='sourceblocktext'><div class="text">4 5 4<br />
 1 0 2 6<br />
 1 0 3 6<br />
 1 1 0 5<br />
 1 1 1 5</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 </div>
