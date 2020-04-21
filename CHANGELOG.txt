@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Changes since version 4.5 (up-to-date wrt bf6a49e1)
+Version 4.6 (first released 21/4/2020)
 -----------------------------------------------------------------------------
   
 New model checking features/enhancements:
@@ -32,7 +32,6 @@ New import/export features:
 * Benchmarking/testing changes and enhancements:
   - new prism-log-extract script for processing PRISM log files
   - prism-auto: new options/features (--log-subdirs, --filter-models, --args-list)
-  - allow testing RESULT specifications to be intervals [a,b]
 
 -----------------------------------------------------------------------------
 Version 4.5 (first released 19/4/2019)
