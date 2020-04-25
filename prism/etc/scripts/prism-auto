@@ -170,15 +170,19 @@ def filterModels(modelFiles, filterString, dir):
             for row in reader:
                 # Evaluate the filter using eval()
                 # Only provide access to the model type and number of states for now
-                # If any fields are missing, the filter evaluates to false
-                filterVarsAvailable = ['model_type', 'states']
-                filterVarsMissing = [key for key in filterVarsAvailable if key in filterString and not row[key]]
-                if not filterVarsMissing:
-                    if eval(filterString, {"__builtins__": {}}, {'model_type': row['model_type'], 'states': int(row['states'])}):
+                #filterVarsAvailable = ['model_type', 'states']
+                #filterVarsMissing = [key for key in filterVarsAvailable if key in filterString and not row[key]]
+                eval_model_type = row['model_type'] if row['model_type'] else None
+                eval_states = int(row['states']) if row['states'] else None
+                try:
+                    if eval(filterString, {"__builtins__": {}}, {'model_type': eval_model_type, 'states': eval_states}):
                         model = row['model_file']
                         if 'model_consts' in row and row['model_consts']:
                             model += ' -const ' + row['model_consts']
                         modelFilesFiltered.append(model)
+                # If there are any errors evaluating the exception, the filter is false
+                except (Exception):
+                    pass
         # Restrict models list to ones in the list of filter matches
         for modelFile in modelFiles:
             if modelMatches(modelFile, modelFilesFiltered):
