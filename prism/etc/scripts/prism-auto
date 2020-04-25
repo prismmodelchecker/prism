@@ -132,7 +132,7 @@ def getModelsInDir(dir):
             args = []
             for item in line.split(' '):
                 if first:
-                    modelFile = os.path.join(dir, item)
+                    modelFile = item
                     first = 0
                 else:
                     args.append(item)
@@ -141,13 +141,16 @@ def getModelsInDir(dir):
     else:
         for file in sortedListDir(dir):
             if os.path.isfile(os.path.join(dir, file)) and isPrismModelFile(file):
-                modelFiles.append((os.path.join(dir, file), []))
+                modelFiles.append((file, []))
     #print "Model files in " + dir + ": " + ' '.join( map(lambda pair: pair[0], modelFiles ))
     
     # If requested, filter the list of models
     if options.filterModels:
         modelFiles = filterModels(modelFiles, options.filterModels, dir)
-                
+        
+    # Finally, append the dir name to all the model files
+    modelFiles = map(lambda pair: (os.path.join(dir, pair[0]),pair[1]), modelFiles)
+    
     return modelFiles
 
 # Restrict a list of models to those satisfying a filter expressed as a string
@@ -172,15 +175,53 @@ def filterModels(modelFiles, filterString, dir):
                 filterVarsMissing = [key for key in filterVarsAvailable if key in filterString and not row[key]]
                 if not filterVarsMissing:
                     if eval(filterString, {"__builtins__": {}}, {'model_type': row['model_type'], 'states': int(row['states'])}):
-                        model = os.path.join(dir, row['model_file'])
-                        if 'model_consts' in row:
+                        model = row['model_file']
+                        if 'model_consts' in row and row['model_consts']:
                             model += ' -const ' + row['model_consts']
                         modelFilesFiltered.append(model)
         # Restrict models list to ones in the list of filter matches
         for modelFile in modelFiles:
-            if (modelFile[0] + ' ' + ' '.join(modelFile[1])).strip() in modelFilesFiltered:
+            if modelMatches(modelFile, modelFilesFiltered):
                 modelFilesNew.append(modelFile)
     return modelFilesNew;
+
+# Check if a model is contained in a list of possible matches
+# The model is given as a pairs of files and argument lists
+# (e.g. ("model.pm", ["-const", "N=2", "-const", "K=3"]))
+# The possible matches are a list of single strings
+# (e.g. "model.pm -const K=3,N=2")
+# Constant values are extracted and sorted for a more intelligent match
+
+def modelMatches(modelFile, possibleMatches):
+    # Extract constant defns from modelFile and sort them
+    consts = getSortedConsts(modelFile[1])
+    # If there are no constants, just check for an exact match in possibleMatches
+    if len(consts) == 0:
+        return modelFile[0] in possibleMatches
+    # Otherwise compare to each model in possibleMatches after first sorting its constant defns
+    for possibleMatch in possibleMatches:
+        # Extract name (there will also be a " " since there are >0 constants)
+        possibleMatchModel = possibleMatch[:possibleMatch.index(" ")]
+        # Extract/sort constants from argument list
+        possibleMatchConsts = getSortedConsts(("".join(re.findall("-const [^ ]+", possibleMatch))).split(" "))
+        # Compare
+        if modelFile[0] == possibleMatchModel and consts == possibleMatchConsts:
+            return True
+    return False;
+
+# Extract and sort constant values form an argument list specified as a string list,
+# e.g. ["-const", "N=2", "-const", "K=3"] would return ["K=3", "N=2"]
+
+def getSortedConsts(args):
+    consts = []
+    num_args = len(args)
+    i = 0;
+    while i < num_args:
+        if args[i] == "-const" and i+1 < num_args:
+            consts.extend(args[i+1].split(','))
+        i = i+1
+    consts.sort()
+    return consts
 
 # Get a list of all files in the directory that satisfy the given predicate
 
