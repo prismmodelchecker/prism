@@ -129,11 +129,7 @@ def grep_for_info_file(logFile, fields):
             info[field] = os.path.basename(info[field])
         if 'type' in field_details and field_details['type'] in ['string', 'file']:
             info[field] = '"' + info[field] + '"'
-    # If there is not at least a model_file, we assume something went wrong
-    if (info['model_file']):
-        return [info]
-    else:
-        return []
+    return [info]
 
 # Print info from a log, i.e. a list of fields, comma-separated
 def print_info(info, fields):
