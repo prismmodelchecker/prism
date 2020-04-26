@@ -19,6 +19,8 @@ from optparse import OptionParser
 
 # Details of all the fields that can be extracted from logs
 all_fields_details = [\
+    {'name': 'prog_name', 'descr': 'Name of program run', 'type': 'string'}, \
+    {'name': 'prog_version', 'descr': 'Version of program run', 'type': 'string', 'regexp': 'Version: ([^ \n]+)'}, \
     {'name': 'log_dir', 'descr': 'Name of directory containing log file', 'type': 'string'}, \
     {'name': 'log_file', 'descr': 'Name of log file', 'type': 'string'}, \
     {'name': 'model_file', 'descr': 'Name of PRISM model file', 'type': 'file', 'regexp': 'Parsing model file "(.+)"...'}, \
@@ -39,6 +41,7 @@ all_fields = list(map(lambda x: x['name'], all_fields_details))
 # Meta-fields
 meta_fields = {\
     'all': all_fields, \
+    'prog': ['prog_name', 'prog_version'], \
     'model': ['model_file', 'model_consts'], \
     'prop': ['prop_file', 'prop_consts'], \
     'benchmark' : ['model_file', 'model_consts', 'prop_file', 'prop_consts'], \
@@ -104,8 +107,13 @@ def grep_for_info_file(logFile, fields):
         info['log_dir'] = os.path.basename(os.path.dirname(logFile))
     if 'log_file' in fields:
         info['log_file'] = os.path.basename(logFile)
-    # For most fields, a regexp is used to grep the log
+    # For other fields, we parse the log
+    line_num = 1
     for line in open(logFile, 'r').readlines():
+        # We assume the first line printed out is the tool name
+        if line_num == 1:
+            info['prog_name'] = line.strip()
+        # For most fields, a regexp is used to grep the log
         for field in fields:
             field_details = get_field_details(field)
             if 'regexp' in field_details and (info[field] == '' or ('match' in field_details and field_details['match'] == 'last')):
@@ -113,6 +121,7 @@ def grep_for_info_file(logFile, fields):
                 m = re.search(regexp, line)
                 if not m is None:
                     info[field] = m.group(1)
+        line_num = line_num + 1
     # Some field processing based on type
     for field in info.keys():
         field_details = get_field_details(field)
