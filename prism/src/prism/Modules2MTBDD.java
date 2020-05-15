@@ -191,6 +191,11 @@ public class Modules2MTBDD
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 		
+		// check model type is supported
+		if (!(modelType == ModelType.DTMC || modelType == ModelType.MDP || modelType == ModelType.CTMC)) {
+			throw new PrismException("Symbolic construction of " + modelType + "s not supported");
+		}
+		
 		// allocate dd variables
 		allocateDDVars();
 		sortDDVars();
