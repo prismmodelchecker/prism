@@ -197,19 +197,15 @@ public class ConstructModel extends PrismComponent
 			switch (modelType) {
 			case DTMC:
 				modelSimple = dtmc = new DTMCSimple();
-				dtmc.setVarList(varList);
 				break;
 			case CTMC:
 				modelSimple = ctmc = new CTMCSimple();
-				ctmc.setVarList(varList);
 				break;
 			case MDP:
 				modelSimple = mdp = new MDPSimple();
-				mdp.setVarList(varList);
 				break;
 			case CTMDP:
 				modelSimple = ctmdp = new CTMDPSimple();
-				ctmdp.setVarList(varList);
 				break;
 			case STPG:
 			case SMG:
@@ -217,6 +213,8 @@ public class ConstructModel extends PrismComponent
 			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
+			// Attach variable info
+	        ((ModelExplicit) modelSimple).setVarList(varList);
 		}
 
 		// Initialise states storage
