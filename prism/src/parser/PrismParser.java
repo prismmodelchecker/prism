@@ -151,7 +151,7 @@ public class PrismParser implements PrismParserConstants {
                 }
                 // Override type of model if requested
                 if (typeOverride != null) {
-                        mf.setModelType(typeOverride);
+                        mf.setModelTypeInFile(typeOverride);
                 }
 
                 return mf;
@@ -371,7 +371,7 @@ public class PrismParser implements PrismParserConstants {
 
 // Modules file
   static final public 
-ModulesFile ModulesFile() throws ParseException, PrismLangException {ModelType type = ModelType.MDP;
+ModulesFile ModulesFile() throws ParseException, PrismLangException {ModelType type = null;
         int typeCount = 0;
         Token typeDupe = null;
         Declaration global;
@@ -491,8 +491,8 @@ mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init;
                         {if (true) throw new PrismLangException("There were multiple init...endinit constructs", initDupe);}
                 }
 
-                // Set model type (note default is MDP)
-                mf.setModelType(type);
+                // Set model type (might be null, i.e., unspecified)
+                mf.setModelTypeInFile(type);
 
                 // Return completed ModulesFile object
                 mf.setPosition(begin != null? begin: getToken(0), getToken(0));

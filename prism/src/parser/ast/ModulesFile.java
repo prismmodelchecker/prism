@@ -44,7 +44,9 @@ import parser.type.*;
 
 public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerator
 {
-	// Model type (enum)
+	// Model type, as specified in the model file
+	private ModelType modelTypeInFile;
+	// Model type (actual, may differ)
 	private ModelType modelType;
 
 	// Model components
@@ -84,7 +86,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		formulaList = new FormulaList();
 		labelList = new LabelList();
 		constantList = new ConstantList();
-		modelType = ModelType.MDP; // default type
+		modelTypeInFile = modelType = null; // Unspecified
 		globals = new Vector<Declaration>();
 		modules = new Vector<Object>();
 		systemDefns = new ArrayList<SystemDefn>();
@@ -119,6 +121,22 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		constantList = cl;
 	}
 
+	/**
+	 * Set the model type that is specified in the model file.
+	 * Can be null, denoting that it is unspecified.
+	 */
+	public void setModelTypeInFile(ModelType t)
+	{
+		modelTypeInFile = t;
+		// As a default, set the actual type to be the same
+		modelType = modelTypeInFile;
+	}
+
+	/**
+	 * Set the actual model type,
+	 * which may differ from the type specified in the model file.
+	 * Note: if {@link #tidyUp()} is called, this may be overwritten.
+	 */
 	public void setModelType(ModelType t)
 	{
 		modelType = t;
@@ -273,6 +291,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return constantList;
 	}
 
+	public ModelType getModelTypeInFile()
+	{
+		return modelTypeInFile;
+	}
+	
 	@Override
 	public ModelType getModelType()
 	{
@@ -705,6 +728,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Then identify/check any references to action names
 		findAllActions(synchs);
 
+		// Determine actual model type
+		// (checks/processing below this point can assume that modelType
+		//  is non-null; methods before this point cannot)
+		finaliseModelType();
+		
 		// Various semantic checks 
 		doSemanticChecks();
 		// Type checking
@@ -1244,6 +1272,21 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return new VarList(this);
 	}
 
+	/**
+	 * Determine the actual model type
+	 */
+	private void finaliseModelType()
+	{
+		// Default (if unspecified) is MDP
+		if (modelTypeInFile == null) {
+			modelType = ModelType.MDP;
+		}
+		// Otherwise, it's just whatever was specified
+		else {
+			modelType = modelTypeInFile;
+		}
+	}
+	
 	// Methods required for ASTElement:
 
 	/**
@@ -1262,7 +1305,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		String s = "", tmp;
 		int i, n;
 
-		s += modelType.toString().toLowerCase() + "\n\n";
+		if (modelTypeInFile != null) {
+			s += modelTypeInFile.toString().toLowerCase() + "\n\n";
+		}
 
 		tmp = "" + formulaList;
 		if (tmp.length() > 0)
@@ -1323,6 +1368,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Copy ASTElement stuff
 		ret.setPosition(this);
 		// Copy type
+		ret.setModelTypeInFile(modelTypeInFile);
 		ret.setModelType(modelType);
 		// Deep copy main components
 		ret.setFormulaList((FormulaList) formulaList.deepCopy());

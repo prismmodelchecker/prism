@@ -172,7 +172,7 @@ public class DigitalClocks
 		prop = (Expression) propertyToCheck.deepCopy();
 
 		// Change the model type
-		mf.setModelType(ModelType.MDP);
+		mf.setModelTypeInFile(ModelType.MDP);
 
 		// Change all clock variable declarations to bounded integers
 		mf = (ModulesFile) mf.accept(new ASTTraverseModify()
