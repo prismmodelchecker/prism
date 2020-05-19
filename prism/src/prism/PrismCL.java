@@ -1137,6 +1137,17 @@ public class PrismCL implements PrismModelListener
 					printVersion();
 					exit();
 				}
+				// set working directory
+				else if (sw.equals("dir")) {
+					if (i < args.length - 1) {
+						String workingDir = args[++i];
+						if (PrismNative.setWorkingDirectory(workingDir) != 0) {
+							errorAndExit("Could not change working directory to " + workingDir);
+						}
+					} else {
+						errorAndExit("No property specified for -" + sw + " switch");
+					}
+				}
 				// load settings
 				else if (sw.equals("settings")) {
 					if (i < args.length - 1) {
@@ -2394,6 +2405,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println();
 		mainLog.println("-help .......................... Display this help message");
 		mainLog.println("-version ....................... Display PRISM version info");
+		mainLog.println("-dir <dir> ..................... Set current working directory");
 		mainLog.println("-settings <file>................ Load settings from <file>");
 		mainLog.println();
 		mainLog.println("-pf <props> (or -pctl or -csl) . Model check properties <props>");
