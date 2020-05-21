@@ -109,11 +109,6 @@ public class LTSExplicit extends ModelExplicit implements LTS
 		throw new IllegalArgumentException();
 	}
 
-	public int getNumTransitions(int s)
-	{
-		return getNumChoices(s);
-	}
-
 	@Override
 	public boolean allSuccessorsInSet(int s, int i, BitSet set)
 	{
@@ -175,6 +170,12 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	public int getNumTransitions()
 	{
 		return numTransitions;
+	}
+
+	@Override
+	public int getNumTransitions(int s)
+	{
+		return getNumChoices(s);
 	}
 
 	@Override

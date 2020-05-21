@@ -164,6 +164,12 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 		return ctmc.getNumTransitions() + numExtraTransitions;
 	}
 
+	public int getNumTransitions(int s)
+	{
+		// TODO
+		throw new RuntimeException("Not implemented yet");
+	}
+
 	public SuccessorsIterator getSuccessors(final int s)
 	{
 		// TODO
@@ -210,12 +216,6 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	}
 
 	// Accessors (for DTMC)
-
-	public int getNumTransitions(int s)
-	{
-		// TODO
-		throw new RuntimeException("Not implemented yet");
-	}
 
 	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
 	{

@@ -32,9 +32,11 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.IntPredicate;
 
+import common.IteratorTools;
 import explicit.graphviz.Decorator;
 import parser.State;
 import parser.Values;
@@ -145,7 +147,40 @@ public interface Model
 	/**
 	 * Get the total number of transitions in the model.
 	 */
-	public int getNumTransitions();
+	public default int getNumTransitions()
+	{
+		int numStates = getNumStates();
+		int numTransitions = 0;
+		for (int s = 0; s < numStates; s++) {
+			numTransitions += getNumTransitions(s);
+		}
+		return numTransitions;
+	}
+
+	/**
+	 * Get the number of transitions from state s.
+	 */
+	public default int getNumTransitions(int s)
+	{
+		return IteratorTools.count(getSuccessorsIterator(s));
+	}
+
+	/**
+	 * Get the number of transitions leaving a set of states.
+	 * <br>
+	 * Default implementation: Iterator over the states and sum the result of getNumTransitions(s).
+	 * @param states The set of states, specified by an OfInt iterator
+	 * @return the number of transitions
+	 */
+	public default long getNumTransitions(PrimitiveIterator.OfInt states)
+	{
+		long count = 0;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			count += getNumTransitions(s);
+		}
+		return count;
+	}
 
 	/**
 	 * Get an iterator over the successors of state s.

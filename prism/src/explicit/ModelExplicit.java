@@ -353,9 +353,6 @@ public abstract class ModelExplicit implements Model
 	}
 	
 	@Override
-	public abstract int getNumTransitions();
-
-	@Override
 	public void checkForDeadlocks() throws PrismException
 	{
 		checkForDeadlocks(null);

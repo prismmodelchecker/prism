@@ -146,6 +146,12 @@ public class DTMCSparse extends DTMCExplicit
 	}
 
 	@Override
+	public int getNumTransitions(int state)
+	{
+		return rows[state + 1] - rows[state];
+	}
+
+	@Override
 	public OfInt getSuccessorsIterator(final int state)
 	{
 		return Arrays.stream(columns, rows[state], rows[state+1]).iterator();
@@ -233,12 +239,6 @@ public class DTMCSparse extends DTMCExplicit
 		for (int col = rows[state], stop = rows[state+1]; col < stop; col++) {
 			consumer.accept(state, columns[col], probabilities[col]);
 		}
-	}
-
-	@Override
-	public int getNumTransitions(int state)
-	{
-		return rows[state + 1] - rows[state];
 	}
 
 	@Override

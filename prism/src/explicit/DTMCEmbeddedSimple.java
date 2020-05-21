@@ -126,6 +126,15 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 		return ctmc.getNumTransitions() + numExtraTransitions;
 	}
 
+	public int getNumTransitions(int s)
+	{
+		if (exitRates[s] == 0) {
+			return 1;
+		} else {
+			return ctmc.getNumTransitions(s);
+		}
+	}
+
 	@Override
 	public SuccessorsIterator getSuccessors(final int s)
 	{
@@ -200,15 +209,6 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 
 	// Accessors (for DTMC)
-
-	public int getNumTransitions(int s)
-	{
-		if (exitRates[s] == 0) {
-			return 1;
-		} else {
-			return ctmc.getNumTransitions(s);
-		}
-	}
 
 	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
 	{

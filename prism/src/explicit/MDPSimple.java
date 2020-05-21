@@ -471,6 +471,17 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	}
 
 	@Override
+	public int getNumTransitions(int s)
+	{
+		int numTransitions = 0;
+		int numChoices = getNumChoices(s);
+		for (int j = 0; j < numChoices; j++) {
+			numTransitions += trans.get(s).get(j).size();
+		}
+		return numTransitions; 
+	}
+
+	@Override
 	public void findDeadlocks(boolean fix) throws PrismException
 	{
 		for (int i = 0; i < numStates; i++) {

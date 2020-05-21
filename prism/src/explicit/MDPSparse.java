@@ -478,6 +478,12 @@ public class MDPSparse extends MDPExplicit
 		return numTransitions;
 	}
 
+	@Override
+	public int getNumTransitions(int s)
+	{
+		return choiceStarts[rowStarts[s + 1]] - choiceStarts[rowStarts[s]];
+	}
+
 	private SuccessorsIterator colsIterator(int start, int end, boolean distinct)
 	{
 		return new SuccessorsIterator() {

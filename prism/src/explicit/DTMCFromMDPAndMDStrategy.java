@@ -112,13 +112,9 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 		return mdp.getConstantValues();
 	}
 
-	public int getNumTransitions()
+	public int getNumTransitions(int s)
 	{
-		int numTransitions = 0;
-		for (int s = 0; s < numStates; s++)
-			if (strat.isChoiceDefined(s))
-				numTransitions += mdp.getNumTransitions(s, strat.getChoiceIndex(s));
-		return numTransitions;
+		return strat.isChoiceDefined(s) ? mdp.getNumTransitions(s, strat.getChoiceIndex(s)) : 0;
 	}
 
 	public SuccessorsIterator getSuccessors(final int s)
@@ -164,11 +160,6 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	}
 
 	// Accessors (for DTMC)
-
-	public int getNumTransitions(int s)
-	{
-		return strat.isChoiceDefined(s) ? mdp.getNumTransitions(s, strat.getChoiceIndex(s)) : 0;
-	}
 
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
 	{

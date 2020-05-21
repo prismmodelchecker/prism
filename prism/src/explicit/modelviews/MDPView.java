@@ -109,12 +109,11 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	}
 
 	@Override
-	public int getNumTransitions()
+	public int getNumTransitions(int s)
 	{
 		int numTransitions = 0;
-		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			for (int choice = 0, numChoices = getNumChoices(state); choice < numChoices; choice++)
-				numTransitions += getNumTransitions(state, choice);
+		for (int j = 0, numChoices = getNumChoices(s); j < numChoices; j++) {
+			numTransitions += getNumTransitions(s, j);
 		}
 		return numTransitions;
 	}

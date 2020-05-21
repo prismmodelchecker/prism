@@ -42,11 +42,6 @@ import explicit.rewards.MCRewards;
 public interface DTMC extends Model
 {
 	/**
-	 * Get the number of transitions from state s.
-	 */
-	public int getNumTransitions(int s);
-
-	/**
 	 * Get an iterator over the transitions from state s.
 	 */
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s);
@@ -126,23 +121,6 @@ public interface DTMC extends Model
 		forEachTransition(s, sum::accept);
 
 		return sum.sum;
-	}
-
-	/**
-	 * Get the number of transitions leaving a set of states.
-	 * <br>
-	 * Default implementation: Iterator over the states and sum the result of getNumTransitions(s).
-	 * @param states The set of states, specified by a OfInt iterator
-	 * @return the number of transitions
-	 */
-	public default long getNumTransitions(PrimitiveIterator.OfInt states)
-	{
-		long count = 0;
-		while (states.hasNext()) {
-			int s = states.nextInt();
-			count += getNumTransitions(s);
-		}
-		return count;
 	}
 
 	/**

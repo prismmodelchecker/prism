@@ -111,13 +111,9 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 	}
 
 	@Override
-	public int getNumTransitions()
+	public int getNumTransitions(final int s)
 	{
-		int numTransitions = 0;
-		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			numTransitions += getNumTransitions(state);
-		}
-		return numTransitions;
+		return IteratorTools.count(getTransitionsIterator(s));
 	}
 
 	@Override
@@ -206,12 +202,6 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 
 
 	//--- DTMC ---
-
-	@Override
-	public int getNumTransitions(final int state)
-	{
-		return IteratorTools.count(getTransitionsIterator(state));
-	}
 
 	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)
 	{

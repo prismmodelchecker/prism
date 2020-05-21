@@ -115,13 +115,9 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		return mdp.getConstantValues();
 	}
 
-	public int getNumTransitions()
+	public int getNumTransitions(int s)
 	{
-		int numTransitions = 0;
-		for (int s = 0; s < numStates; s++)
-			if (adv[s] >= 0)
-				numTransitions += mdp.getNumTransitions(s, adv[s]);
-		return numTransitions;
+		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
 	}
 
 	public SuccessorsIterator getSuccessors(final int s)
@@ -167,12 +163,6 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	}
 
 	// Accessors (for DTMC)
-
-	@Override
-	public int getNumTransitions(int s)
-	{
-		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
-	}
 
 	@Override
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)

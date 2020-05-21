@@ -111,6 +111,12 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	}
 
 	@Override
+	public int getNumTransitions(int s)
+	{
+		return da.getNumEdges(s);
+	}
+
+	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
 		int n = da.getNumEdges(s1);
