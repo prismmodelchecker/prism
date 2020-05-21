@@ -423,7 +423,7 @@ public abstract class IterationMethod {
 		}
 
 		// Finished value iteration
-		long mvCount = iters * countTransitions(iteration.getModel(), unknownStates);
+		long mvCount = iters * iteration.getModel().getNumTransitions(unknownStates.iterator());
 		long timer = System.currentTimeMillis() - startTime;
 		mc.getLog().print("Value iteration (" + description + ")");
 		mc.getLog().print(" took " + iters + " iterations, ");
@@ -487,7 +487,7 @@ public abstract class IterationMethod {
 				// no need to call doneWith(...), as solveSingletonSCC updates
 				// both vectors for two-iteration methods
 
-				mvCount += countTransitions(iterator.getModel(), IntSet.asIntSet(state));
+				mvCount += iterator.getModel().getNumTransitions(state);
 
 				iters++;
 				if (iterationsExport != null)
@@ -522,7 +522,7 @@ public abstract class IterationMethod {
 				// iterator
 				iterator.doneWith(statesForSCC);
 
-				mvCount += itersInSCC * countTransitions(iterator.getModel(), statesForSCC);
+				mvCount += itersInSCC * iterator.getModel().getNumTransitions(statesForSCC.iterator());
 			}
 
 			if (!doneSCC) {
@@ -611,7 +611,7 @@ public abstract class IterationMethod {
 			}
 
 			// Finished value iteration
-			long mvCount = 2 * iters * countTransitions(below.getModel(), unknownStates);
+			long mvCount = 2 * iters * below.getModel().getNumTransitions(unknownStates.iterator());
 			timer = System.currentTimeMillis() - timer;
 			mc.getLog().print("Interval iteration (" + description + ")");
 			mc.getLog().print(" took " + iters + " iterations, ");
@@ -689,7 +689,7 @@ public abstract class IterationMethod {
 					// both vectors for two-iteration methods
 
 					iters++;
-					mvCount += 2 * countTransitions(below.getModel(), IntSet.asIntSet(state));
+					mvCount += 2 * below.getModel().getNumTransitions(state);
 
 					if (iterationsExport != null) {
 						iterationsExport.exportVector(below.getSolnVector(), 0);
@@ -749,7 +749,7 @@ public abstract class IterationMethod {
 					below.doneWith(statesForSCC);
 					above.doneWith(statesForSCC);
 
-					mvCount += 2 * itersInSCC * countTransitions(below.getModel(), statesForSCC);
+					mvCount += 2 * itersInSCC * below.getModel().getNumTransitions(statesForSCC.iterator());
 					finishedNonSingletonSCCs++;
 				}
 
@@ -847,16 +847,4 @@ public abstract class IterationMethod {
 			PrismUtils.checkMonotonicity(solnOld, solnNew, !fromBelow);
 		}
 	}
-
-	protected long countTransitions(Model model, IntSet unknownStates)
-	{
-		if (model instanceof DTMC) {
-			return ((DTMC)model).getNumTransitions(unknownStates.iterator());
-		} else if (model instanceof MDP) {
-			return ((MDP)model).getNumTransitions(unknownStates.iterator());
-		} else {
-			throw new IllegalArgumentException("Can only count transitions for DTMCs and MDPs, not for " + model.getModelType());
-		}
-	}
-
 }
