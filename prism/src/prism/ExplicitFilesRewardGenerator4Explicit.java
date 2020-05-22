@@ -70,7 +70,7 @@ public class ExplicitFilesRewardGenerator4Explicit extends ExplicitFilesRewardGe
 	 * @throws PrismException if an error occurs during reward extraction
 	 */
 	@Override
-	public double getStateReward(int r, int s) throws PrismException
+	public Double getStateReward(int r, int s) throws PrismException
 	{
 		if (stateRewards[r] == null) {
 			stateRewards[r] = new double[numStates];

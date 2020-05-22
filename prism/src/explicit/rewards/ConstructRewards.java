@@ -70,7 +70,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewardGen The RewardGenerator defining the rewards
 	 * @param r The index of the reward structure to build
 	 */
-	public Rewards buildRewardStructure(Model model, RewardGenerator rewardGen, int r) throws PrismException
+	public Rewards buildRewardStructure(Model model, RewardGenerator<Double> rewardGen, int r) throws PrismException
 	{
 		switch (model.getModelType()) {
 		case DTMC:
@@ -90,7 +90,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewardGen The RewardGenerator defining the rewards
 	 * @param r The index of the reward structure to build
 	 */
-	public MCRewards buildMCRewardStructure(DTMC mc, RewardGenerator rewardGen, int r) throws PrismException
+	public MCRewards buildMCRewardStructure(DTMC mc, RewardGenerator<Double> rewardGen, int r) throws PrismException
 	{
 		if (rewardGen.rewardStructHasTransitionRewards(r)) {
 			throw new PrismNotSupportedException("Explicit engine does not yet handle transition rewards for D/CTMCs");
@@ -113,7 +113,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param rewardGen The RewardGenerator defining the rewards
 	 * @param r The index of the reward structure to build
 	 */
-	public MDPRewards buildMDPRewardStructure(MDP mdp, RewardGenerator rewardGen, int r) throws PrismException
+	public MDPRewards buildMDPRewardStructure(MDP mdp, RewardGenerator<Double> rewardGen, int r) throws PrismException
 	{
 		int numStates = mdp.getNumStates();
 		List<State> statesList = mdp.getStatesList();
@@ -146,7 +146,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param r The index of the reward structure to build
 	 * @param statesLists List of states (maybe needed for state look up)
 	 */
-	private double getAndCheckStateReward(int s, RewardGenerator rewardGen, int r, List<State> statesList) throws PrismException
+	private double getAndCheckStateReward(int s, RewardGenerator<Double> rewardGen, int r, List<State> statesList) throws PrismException
 	{
 		double rew = 0;
 		Object stateIndex = null;
@@ -172,7 +172,7 @@ public class ConstructRewards extends PrismComponent
 	 * @param r The index of the reward structure to build
 	 * @param statesLists List of states (maybe needed for state look up)
 	 */
-	private double getAndCheckStateActionReward(int s, Object action, RewardGenerator rewardGen, int r, List<State> statesList) throws PrismException
+	private double getAndCheckStateActionReward(int s, Object action, RewardGenerator<Double> rewardGen, int r, List<State> statesList) throws PrismException
 	{
 		double rew = 0;
 		Object stateIndex = null;

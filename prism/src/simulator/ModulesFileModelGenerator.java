@@ -20,7 +20,7 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.RewardGenerator;
 
-public class ModulesFileModelGenerator implements ModelGenerator<Double>, RewardGenerator
+public class ModulesFileModelGenerator implements ModelGenerator<Double>, RewardGenerator<Double>
 {
 	// Parent PrismComponent (logs, settings etc.)
 	protected PrismComponent parent;
@@ -484,7 +484,7 @@ public class ModulesFileModelGenerator implements ModelGenerator<Double>, Reward
 	}
 	
 	@Override
-	public double getStateReward(int r, State state) throws PrismException
+	public Double getStateReward(int r, State state) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();
@@ -511,7 +511,7 @@ public class ModulesFileModelGenerator implements ModelGenerator<Double>, Reward
 	}
 
 	@Override
-	public double getStateActionReward(int r, State state, Object action) throws PrismException
+	public Double getStateActionReward(int r, State state, Object action) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();

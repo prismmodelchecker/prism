@@ -33,7 +33,7 @@ import prism.RewardGenerator;
  * <br>
  * Uses exact arithmetic to evaluate the various expressions in a model description.
  */
-public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic, RewardGenerator
+public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic, RewardGenerator<Double>
 {
 	// Parent PrismComponent (logs, settings etc.)
 	protected PrismComponent parent;
@@ -469,7 +469,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 	
 	@Override
-	public double getStateReward(int r, State state) throws PrismException
+	public Double getStateReward(int r, State state) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();
@@ -489,7 +489,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 
 	@Override
-	public double getStateActionReward(int r, State state, Object action) throws PrismException
+	public Double getStateActionReward(int r, State state, Object action) throws PrismException
 	{
 		RewardStruct rewStr = modulesFile.getRewardStruct(r);
 		int n = rewStr.getNumItems();

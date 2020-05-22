@@ -53,7 +53,7 @@ public class PathToGraph extends PathDisplayer
 	// Model/reward info
 	private ModelInfo modelInfo;
 	private int numVars;
-	private RewardGenerator rewardGen;
+	private RewardGenerator<Double> rewardGen;
 	private int numRewardStructs;
 
 	// Displayer state
@@ -70,7 +70,7 @@ public class PathToGraph extends PathDisplayer
 	 * @param modelInfo Model associated with path
 	 * @param rewardGen Rewards associated with path
 	 */
-	public PathToGraph(Graph graphModel, ModelInfo modelInfo, RewardGenerator rewardGen)
+	public PathToGraph(Graph graphModel, ModelInfo modelInfo, RewardGenerator<Double> rewardGen)
 	{
 		this.graphModel = graphModel;
 		this.modelInfo = modelInfo;
