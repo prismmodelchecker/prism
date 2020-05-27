@@ -52,7 +52,7 @@ import prism.PrismUtils;
  * This is much faster to access than e.g. MDPSimple and should also be more compact.
  * The catch is that you have to create the model all in one go and then can't modify it.
  */
-public class MDPSparse extends MDPExplicit
+public class MDPSparse extends MDPExplicit<Double>
 {
 	// Sparse matrix storing transition function (Steps)
 	/** Probabilities for each transition (array of size numTransitions) */
@@ -83,7 +83,7 @@ public class MDPSparse extends MDPExplicit
 	 *
 	 * @param mdp some MDP
 	 */
-	public MDPSparse(final MDP mdp)
+	public MDPSparse(final MDP<Double> mdp)
 	{
 		this(mdp, false);
 	}
@@ -94,7 +94,7 @@ public class MDPSparse extends MDPExplicit
 	 * @param mdp some MDP
 	 * @param sort Whether or not to sort column indices
 	 */
-	public MDPSparse(final MDP mdp, boolean sort)
+	public MDPSparse(final MDP<Double> mdp, boolean sort)
 	{
 		initialise(mdp.getNumStates());
 
@@ -160,7 +160,7 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	/** Helper: Does the given MDP have action labels on any of the choices? */
-	private static boolean hasActionLabels(final MDP mdp)
+	private static boolean hasActionLabels(final MDP<?> mdp)
 	{
 		for (int state = 0, numStates = mdp.getNumStates(); state < numStates; state++) {
 			for (int choice = 0, numChoices = mdp.getNumChoices(state); choice < numChoices; choice++) {
@@ -175,7 +175,7 @@ public class MDPSparse extends MDPExplicit
 	/**
 	 * Copy constructor (from MDPSimple).
 	 */
-	public MDPSparse(MDPSimple mdp)
+	public MDPSparse(MDPSimple<Double> mdp)
 	{
 		this(mdp, false);
 	}
@@ -186,7 +186,7 @@ public class MDPSparse extends MDPExplicit
 	 * @param mdp The MDP to copy
 	 * @param sort Whether or not to sort column indices
 	 */
-	public MDPSparse(MDPSimple mdp, boolean sort)
+	public MDPSparse(MDPSimple<Double> mdp, boolean sort)
 	{
 		int i, j, k;
 		TreeMap<Integer, Double> sorted = null;
@@ -207,21 +207,21 @@ public class MDPSparse extends MDPExplicit
 		j = k = 0;
 		for (i = 0; i < numStates; i++) {
 			rowStarts[i] = j;
-			for (Distribution distr : mdp.trans.get(i)) {
+			for (Distribution<Double> distr : mdp.trans.get(i)) {
 				choiceStarts[j] = k;
 				for (Map.Entry<Integer, Double> e : distr) {
 					if (sort) {
 						sorted.put(e.getKey(), e.getValue());
 					} else {
-						cols[k] = (Integer) e.getKey();
-						nonZeros[k] = (Double) e.getValue();
+						cols[k] = e.getKey();
+						nonZeros[k] = e.getValue();
 						k++;
 					}
 				}
 				if (sort) {
 					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-						cols[k] = (Integer) e.getKey();
-						nonZeros[k] = (Double) e.getValue();
+						cols[k] = e.getKey();
+						nonZeros[k] = e.getValue();
 						k++;
 					}
 					sorted.clear();
@@ -246,7 +246,7 @@ public class MDPSparse extends MDPExplicit
 	 * @param sort Whether or not to sort column indices
 	 * @param permut State space permutation
 	 */
-	public MDPSparse(MDPSimple mdp, boolean sort, int permut[])
+	public MDPSparse(MDPSimple<Double> mdp, boolean sort, int permut[])
 	{
 		int i, j, k;
 		TreeMap<Integer, Double> sorted = null;
@@ -273,7 +273,7 @@ public class MDPSparse extends MDPExplicit
 		j = k = 0;
 		for (i = 0; i < numStates; i++) {
 			rowStarts[i] = j;
-			for (Distribution distr : mdp.trans.get(permutInv[i])) {
+			for (Distribution<Double> distr : mdp.trans.get(permutInv[i])) {
 				choiceStarts[j] = k;
 				for (Map.Entry<Integer, Double> e : distr) {
 					if (sort) {
@@ -310,7 +310,7 @@ public class MDPSparse extends MDPExplicit
 	 * @param states States to copy
 	 * @param actions Actions to copy
 	 */
-	public MDPSparse(MDP mdp, List<Integer> states, List<List<Integer>> actions)
+	public MDPSparse(MDP<Double> mdp, List<Integer> states, List<List<Integer>> actions)
 	{
 		initialise(states.size());
 		for (int in : mdp.getInitialStates()) {
@@ -579,7 +579,15 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public void forEachTransition(int s, int i, TransitionConsumer c)
+	public void forEachTransition(int s, int i, TransitionConsumer<Double> c)
+	{
+		for (int col = choiceStarts[rowStarts[s] + i], stop = choiceStarts[rowStarts[s] + i + 1]; col < stop; col++) {
+			c.accept(s, cols[col], nonZeros[col]);
+		}
+	}
+
+	@Override
+	public void forEachDoubleTransition(int s, int i, DoubleTransitionConsumer c)
 	{
 		for (int col = choiceStarts[rowStarts[s] + i], stop = choiceStarts[rowStarts[s] + i + 1]; col < stop; col++) {
 			c.accept(s, cols[col], nonZeros[col]);
@@ -607,7 +615,7 @@ public class MDPSparse extends MDPExplicit
 				assert (col < end);
 				final int i = col;
 				col++;
-				return new AbstractMap.SimpleImmutableEntry<>(cols[i], nonZeros[i]);
+				return new AbstractMap.SimpleImmutableEntry<Integer, Double>(cols[i], nonZeros[i]);
 			}
 		};
 	}
@@ -947,7 +955,7 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, int strat[])
 	{
 		int j, k, l1, h1, l2, h2, stratCh = -1;
 		double d, minmax;
@@ -990,7 +998,7 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, int i, double[] vect, MCRewards mcRewards)
+	public double mvMultRewSingle(int s, int i, double[] vect, MCRewards<Double> mcRewards)
 	{
 		int j, k, l2, h2;
 		double d;
@@ -1010,7 +1018,7 @@ public class MDPSparse extends MDPExplicit
 	}
 	
 	@Override
-	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int strat[])
+	public double mvMultRewJacMinMaxSingle(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, int strat[])
 	{
 		int j, k, l1, h1, l2, h2, stratCh = -1;
 		double diag, d, minmax;
@@ -1074,7 +1082,7 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards mdpRewards, boolean min, double val)
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], MDPRewards<Double> mdpRewards, boolean min, double val)
 	{
 		int j, k, l1, h1, l2, h2;
 		double d;

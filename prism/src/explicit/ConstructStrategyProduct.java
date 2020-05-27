@@ -51,7 +51,8 @@ public class ConstructStrategyProduct
 	/**
 	 * Construct the model induced by a finite-memory strategy on a nondeterministic model
 	 */
-	public Model constructProductModel(NondetModel model, Strategy strat) throws PrismException
+	@SuppressWarnings("unchecked")
+	public <Value> Model<Value> constructProductModel(NondetModel<Value> model, Strategy<Value> strat) throws PrismException
 	{
 		ModelType modelType = model.getModelType();
 		int modelNumStates = model.getNumStates();
@@ -59,7 +60,7 @@ public class ConstructStrategyProduct
 		int prodNumStates;
 		int s_1, s_2, q_1, q_2;
 		List<State> prodStatesList = null, memStatesList = null;
-		double stratChoiceProb = 1.0;
+		Value stratChoiceProb = model.getEvaluator().one();
 
 		// This is for finite-memory strategies
 		if (!strat.hasMemory()) {
@@ -100,29 +101,29 @@ public class ConstructStrategyProduct
 		}
 		
 		// Create a (simple, mutable) model of the appropriate type
-		ModelSimple prodModel = null;
+		ModelSimple<Value> prodModel = null;
 		switch (productModelType) {
 		case DTMC: {
-			DTMCSimple dtmcProd = new DTMCSimple();
-			dtmcProd.setVarList(newVarList);
+			DTMCSimple<Value> dtmcProd = new DTMCSimple<>();
 			prodModel = dtmcProd;
 			break;
 		}
 		case MDP: {
-			MDPSimple mdpProd = new MDPSimple();
-			mdpProd.setVarList(newVarList);
+			MDPSimple<Value> mdpProd = new MDPSimple<>();
 			prodModel = mdpProd;
 			break;
 		}
 		case STPG: {
-			STPGSimple stpgProd = new STPGSimple();
-			stpgProd.setVarList(newVarList);
+			STPGSimple<Value> stpgProd = new STPGSimple<>();
 			prodModel = stpgProd;
 			break;
 		}
 		default:
 			throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
 		}
+		// Attach evaluator and variable info
+        ((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
+        ((ModelExplicit<Value>) prodModel).setVarList(newVarList);
 
 		// Encoding: 
 		// each state s' = <s, q> = s * memSize + q
@@ -152,7 +153,7 @@ public class ConstructStrategyProduct
 			queue.add(new Point(s_0, q_0));
 			switch (productModelType) {
 			case STPG:
-				((STPGSimple) prodModel).addState(((STPG) model).getPlayer(s_0));
+				((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_0));
 				break;
 			default:
 				prodModel.addState();
@@ -190,30 +191,30 @@ public class ConstructStrategyProduct
 				if (strat.isRandomised()) {
 					stratChoiceProb = strat.getChoiceActionProbability(decision, act);
 				}
-				Iterator<Map.Entry<Integer, Double>> iter;
+				Iterator<Map.Entry<Integer, Value>> iter;
 				switch (modelType) {
 				case DTMC:
-					iter = ((DTMC) model).getTransitionsIterator(s_1);
+					iter = ((DTMC<Value>) model).getTransitionsIterator(s_1);
 					break;
 				case MDP:
-					iter = ((MDP) model).getTransitionsIterator(s_1, j);
+					iter = ((MDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
 				case STPG:
-					iter = ((STPG) model).getTransitionsIterator(s_1, j);
+					iter = ((STPG<Value>) model).getTransitionsIterator(s_1, j);
 					break;
 				default:
 					throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
 				}
-				Distribution prodDistr = null;
+				Distribution<Value> prodDistr = null;
 				if (productModelType.nondeterministic()) {
-					prodDistr = new Distribution();
+					prodDistr = new Distribution<>(model.getEvaluator());
 				}
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
+					Map.Entry<Integer, Value> e = iter.next();
 					s_2 = e.getKey();
-					double prob = e.getValue();
+					Value prob = e.getValue();
 					if (strat.isRandomised()) {
-						prob *= stratChoiceProb;
+						prob = model.getEvaluator().multiply(prob, stratChoiceProb);
 					}
 					// Find corresponding memory update
 					q_2 = strat.getUpdatedMemory(q_1, model.getAction(s_1, j), s_2);
@@ -225,7 +226,7 @@ public class ConstructStrategyProduct
 						queue.add(new Point(s_2, q_2));
 						switch (productModelType) {
 						case STPG:
-							((STPGSimple) prodModel).addState(((STPG) model).getPlayer(s_2));
+							((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_2));
 							break;
 						default:
 							prodModel.addState();
@@ -239,7 +240,7 @@ public class ConstructStrategyProduct
 					}
 					switch (productModelType) {
 					case DTMC:
-						((DTMCSimple) prodModel).setProbability(map[s_1 * memSize + q_1], map[s_2 * memSize + q_2], prob);
+						((DTMCSimple<Value>) prodModel).setProbability(map[s_1 * memSize + q_1], map[s_2 * memSize + q_2], prob);
 						break;
 					case MDP:
 					case STPG:
@@ -251,10 +252,10 @@ public class ConstructStrategyProduct
 				}
 				switch (productModelType) {
 				case MDP:
-					((MDPSimple) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((MDP) model).getAction(s_1, j));
+					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((MDP<Value>) model).getAction(s_1, j));
 					break;
 				case STPG:
-					((STPGSimple) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((STPG) model).getAction(s_1, j));
+					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((STPG<Value>) model).getAction(s_1, j));
 					break;
 				default:
 					break;

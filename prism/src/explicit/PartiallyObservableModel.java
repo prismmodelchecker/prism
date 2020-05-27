@@ -34,7 +34,7 @@ import parser.State;
 /**
  * Interface for classes that provide (read-only) access to an explicit-state model with partial observability.
  */
-public interface PartiallyObservableModel extends Model
+public interface PartiallyObservableModel<Value> extends Model<Value>
 {
 	// Accessors
 

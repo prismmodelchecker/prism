@@ -26,6 +26,8 @@
 
 package strat;
 
+import java.util.ArrayList;
+
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
 import explicit.NondetModel;
@@ -37,26 +39,26 @@ import prism.PrismLog;
  * giving a different choice for each state across k steps of execution.
  * So the memory is simply the number of elapsed steps.
  */
-public class FMDStrategyStep extends StrategyExplicit
+public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 {
 	// Model size
 	private int numStates;
 	// Max number of steps considered
 	private int k;
 	// Memoryless strategy over product model
-	private StepChoices choices[];
+	private ArrayList<StepChoices> choices;
 	
 	/**
 	 * Create a blank FMDStrategyStep for a specified model and maximum step count.
 	 */
-	public FMDStrategyStep(NondetModel model, int k)
+	public FMDStrategyStep(NondetModel<Value> model, int k)
 	{
 		super(model);
 		numStates = model.getNumStates();
 		this.k = k;
-		choices = new StepChoices[numStates];
+		choices = new ArrayList<>(numStates);
 		for (int s = 0; s < numStates; s++) {
-			choices[s] = new StepChoicesArray(k);
+			choices.add(new StepChoicesArray(k));
 		}
 	}
 
@@ -66,7 +68,7 @@ public class FMDStrategyStep extends StrategyExplicit
 	 */
 	public void setStepChoice(int s, int i, int ch)
 	{
-		choices[s].setChoiceForStep(i, ch);
+		choices.get(s).setChoiceForStep(i, ch);
 	}
 	
 	/**
@@ -76,7 +78,7 @@ public class FMDStrategyStep extends StrategyExplicit
 	public void setStepChoices(int i, int ch[])
 	{
 		for (int s = 0; s < numStates; s++) {
-			choices[s].setChoiceForStep(i, ch[s]);
+			choices.get(s).setChoiceForStep(i, ch[s]);
 		}
 	}
 	
@@ -97,7 +99,7 @@ public class FMDStrategyStep extends StrategyExplicit
 	public int getChoiceIndex(int s, int m)
 	{
 		// Only defined for 0...k-1
-		return m < k ? choices[s].getChoiceForStep(m) : -1;
+		return m < k ? choices.get(s).getChoiceForStep(m) : -1;
 	}
 	
 	@Override
@@ -148,7 +150,7 @@ public class FMDStrategyStep extends StrategyExplicit
 	public void exportInducedModel(PrismLog out, int precision) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		Model prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToPrismExplicitTra(out, precision);
 	}
 
@@ -156,7 +158,7 @@ public class FMDStrategyStep extends StrategyExplicit
 	public void exportDotFile(PrismLog out, int precision) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		Model prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToDotFile(out, null, true, precision);
 	}
 

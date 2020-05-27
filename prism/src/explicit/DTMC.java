@@ -28,21 +28,30 @@ package explicit;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.TreeMap;
 
 import common.IterableStateSet;
 import common.iterable.PrimitiveIterable;
 import common.iterable.Reducible;
-import prism.*;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
+import prism.ModelType;
+import prism.Pair;
+import prism.PrismException;
+import prism.PrismLog;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state DTMC.
  */
-public interface DTMC extends Model
+public interface DTMC<Value> extends Model<Value>
 {
 	// Accessors (for Model) - default implementations
 	
@@ -58,18 +67,17 @@ public interface DTMC extends Model
 		// Output transitions to .tra file
 		int numStates = getNumStates();
 		out.print(numStates + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Pair<Double, Object>> sorted = new TreeMap<Integer, Pair<Double, Object>>();
+		TreeMap<Integer, Pair<Value, Object>> sorted = new TreeMap<Integer, Pair<Value, Object>>();
 		for (int i = 0; i < numStates; i++) {
 			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			Iterator<Map.Entry<Integer,Pair<Double, Object>>> iter = getTransitionsAndActionsIterator(i);
+			Iterator<Map.Entry<Integer,Pair<Value, Object>>> iter = getTransitionsAndActionsIterator(i);
 			while (iter.hasNext()) {
-				Map.Entry<Integer, Pair<Double, Object>> e = iter.next();
+				Map.Entry<Integer, Pair<Value, Object>> e = iter.next();
 				sorted.put(e.getKey(), e.getValue());
 			}
 			// Print out (sorted) transitions
-			for (Map.Entry<Integer, Pair<Double, Object>> e : sorted.entrySet()) {
-				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue().first));
+			for (Map.Entry<Integer, Pair<Value, Object>> e : sorted.entrySet()) {
+				out.print(i + " " + e.getKey() + " " + getEvaluator().toStringExport(e.getValue().first, precision));
 				Object action = e.getValue().second; 
 				if (action != null && !"".equals(action)) {
 					out.print(" " + action);
@@ -84,14 +92,14 @@ public interface DTMC extends Model
 	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing transitions for this state
-		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
+		Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i);
 		while (iter.hasNext()) {
-			Map.Entry<Integer, Double> e = iter.next();
+			Map.Entry<Integer, Value> e = iter.next();
 			// Print a new dot file line for the arrow for this transition
 			out.print(i + " -> " + e.getKey());
 			// Annotate this arrow with the probability 
 			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(PrismUtils.formatDouble(precision, e.getValue()));
+			d.setLabel(getEvaluator().toStringExport(e.getValue(), precision));
 			// Apply any other decorators requested
 			if (decorators != null) {
 				for (Decorator decorator : decorators) {
@@ -109,23 +117,22 @@ public interface DTMC extends Model
 		try (FileWriter out = new FileWriter(filename)) {
 			out.write(getModelType().keyword() + "\n");
 			out.write("module M\nx : [0.." + (getNumStates() - 1) + "];\n");
-			final TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
+			final TreeMap<Integer, Value> sorted = new TreeMap<Integer, Value>();
 			for (int state = 0, max = getNumStates(); state < max; state++) {
 				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
-					final Entry<Integer, Double> transition = transitions.next();
+				for (Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
+					final Entry<Integer, Value> transition = transitions.next();
 					sorted.put(transition.getKey(), transition.getValue());
 				}
 				// Print out (sorted) transitions
 				out.write("[]x=" + state + "->");
 				boolean first = true;
-				for (Entry<Integer, Double> transition : sorted.entrySet()) {
+				for (Entry<Integer, Value> transition : sorted.entrySet()) {
 					if (first)
 						first = false;
 					else
 						out.write("+");
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(PrismUtils.formatDouble(precision, transition.getValue()) + ":(x'=" + transition.getKey() + ")");
+					out.write(getEvaluator().toStringPrism(transition.getValue(), precision) + ":(x'=" + transition.getKey() + ")");
 				}
 				out.write(";\n");
 				sorted.clear();
@@ -159,15 +166,15 @@ public interface DTMC extends Model
 	/**
 	 * Get an iterator over the transitions from state s.
 	 */
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s);
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s);
 
 	/**
 	 * Get an iterator over the transitions from state s, with their attached actions if present.
 	 */
-	public default Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
+	public default Iterator<Entry<Integer, Pair<Value, Object>>> getTransitionsAndActionsIterator(int s)
 	{
-		// Default implementation just adds null actions
-		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(s);
+		// Default implementation just adds null actions 
+		final Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(s);
 		return Reducible.extend(transitions).map(transition -> attachAction(transition, null));
 	}
 
@@ -175,10 +182,10 @@ public interface DTMC extends Model
 	 * Attach an action to a transition, assuming iterators as used in
 	 * {@link #getTransitionsIterator(int)} and {@link #getTransitionsAndActionsIterator(int)}
 	 */
-	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)
+	public static <Value> Entry<Integer, Pair<Value, Object>> attachAction(final Entry<Integer, Value> transition, final Object action)
 	{
 		final Integer state = transition.getKey();
-		final Double probability = transition.getValue();
+		final Value probability = transition.getValue();
 		return new AbstractMap.SimpleImmutableEntry<>(state, new Pair<>(probability, action));
 	}
 
@@ -188,8 +195,8 @@ public interface DTMC extends Model
 	 * from state s to state t with value d.
 	 */
 	@FunctionalInterface
-	public interface TransitionConsumer {
-		void accept(int s, int t, double d);
+	public interface TransitionConsumer<Value> {
+		void accept(int s, int t, Value d);
 	}
 
 	/**
@@ -209,10 +216,10 @@ public interface DTMC extends Model
 	 * @param s the state s
 	 * @param c the consumer
 	 */
-	public default void forEachTransition(int s, TransitionConsumer c)
+	public default void forEachTransition(int s, TransitionConsumer<Value> c)
 	{
-		for (Iterator<Entry<Integer, Double>> it = getTransitionsIterator(s); it.hasNext(); ) {
-			Entry<Integer, Double> e = it.next();
+		for (Iterator<Entry<Integer, Value>> it = getTransitionsIterator(s); it.hasNext(); ) {
+			Entry<Integer, Value> e = it.next();
 			c.accept(s, e.getKey(), e.getValue());
 		}
 	}
@@ -221,11 +228,11 @@ public interface DTMC extends Model
 	 * Functional interface for a function
 	 * mapping transitions (s,t,d), i.e.,
 	 * from state s to state t with value d
-	 * to a double value.
+	 * to a numerical value.
 	 */
 	@FunctionalInterface
-	public interface TransitionToDoubleFunction {
-		double apply(int s, int t, double d);
+	public interface TransitionToValueFunction<Value> {
+		Value apply(int s, int t, Value d);
 	}
 
 	/**
@@ -237,14 +244,13 @@ public interface DTMC extends Model
 	 * @param s the state s
 	 * @param f the consumer
 	 */
-	public default double sumOverTransitions(final int s, final TransitionToDoubleFunction f)
+	public default Value sumOverTransitions(final int s, final TransitionToValueFunction<Value> f)
 	{
 		class Sum {
-			double sum = 0.0;
-
-			void accept(int s, int t, double d)
+			Value sum = getEvaluator().zero();
+			void accept(int s, int t, Value d)
 			{
-				sum += f.apply(s, t, d);
+				sum = getEvaluator().add(sum, f.apply(s, t, d));
 			}
 		}
 
@@ -333,6 +339,79 @@ public interface DTMC extends Model
 		}
 	}
 
+	// Methods for case where Value is Double
+	
+	/**
+	 * Functional interface for a consumer,
+	 * accepting transitions (s,t,d), i.e.,
+	 * from state s to state t with value d.
+	 */
+	@FunctionalInterface
+	public interface DoubleTransitionConsumer {
+		void accept(int s, int t, double d);
+	}
+
+	/**
+	 * Iterate over the outgoing transitions of state {@code s} and call the accept method
+	 * of the consumer for each of them:
+	 * <br>
+	 * Call {@code accept(s,t,d)} where t is the successor state and,
+	 * in a DTMC, d = P(s,t) is the probability from s to t,
+	 * while in CTMC, d = R(s,t) is the rate from s to t.
+	 * <p>
+	 * <i>Default implementation</i>: The default implementation relies on iterating over the
+	 * iterator returned by {@code getTransitionsIterator()}.
+	 * <p><i>Note</i>: This method is the base for the default implementation of the numerical
+	 * computation methods (mvMult, etc). In derived classes, it may thus be worthwhile to
+	 * provide a specialised implementation for this method that avoids using the Iterator mechanism.
+	 *
+	 * @param s the state s
+	 * @param c the consumer
+	 */
+	public default void forEachDoubleTransition(int s, DoubleTransitionConsumer c)
+	{
+		for (Iterator<Entry<Integer, Value>> it = getTransitionsIterator(s); it.hasNext(); ) {
+			Entry<Integer, Value> e = it.next();
+			c.accept(s, e.getKey(), getEvaluator().toDouble(e.getValue()));
+		}
+	}
+
+	/**
+	 * Functional interface for a function
+	 * mapping transitions (s,t,d), i.e.,
+	 * from state s to state t with value d
+	 * to a numerical value.
+	 */
+	@FunctionalInterface
+	public interface DoubleTransitionToDoubleFunction {
+		double apply(int s, int t, double d);
+	}
+
+	/**
+	 * Iterate over the outgoing transitions of state {@code s}, call the function {@code f}
+	 * and return the sum of the result values:
+	 * <br>
+	 * Return sum_t f(s, t, P(s,t)), where t ranges over the successors of s.
+	 *
+	 * @param s the state s
+	 * @param c the consumer
+	 */
+	public default double sumOverDoubleTransitions(final int s, final DoubleTransitionToDoubleFunction f)
+	{
+		class Sum {
+			double sum = 0.0;
+			void accept(int s, int t, double d)
+			{
+				sum += f.apply(s, t, d);
+			}
+		}
+
+		Sum sum = new Sum();
+		forEachDoubleTransition(s, sum::accept);
+
+		return sum.sum;
+	}
+
 	/**
 	 * Do a matrix-vector multiplication for
 	 * the DTMC's transition probability matrix P and the vector {@code vect} passed in.
@@ -375,7 +454,7 @@ public interface DTMC extends Model
 	 */
 	public default double mvMultSingle(int s, double vect[])
 	{
-		return sumOverTransitions(s, (__, t, prob) -> {
+		return sumOverDoubleTransitions(s, (__, t, prob) -> {
 			return prob * vect[t];
 		});
 	}
@@ -513,7 +592,7 @@ public interface DTMC extends Model
 		}
 
 		Jacobi jac = new Jacobi();
-		forEachTransition(s, jac::accept);
+		forEachDoubleTransition(s, jac::accept);
 
 		double d = jac.d;
 		double diag = jac.diag;
@@ -531,7 +610,7 @@ public interface DTMC extends Model
 	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 */
-	public default void mvMultRew(double vect[], MCRewards mcRewards, double result[], BitSet subset, boolean complement)
+	public default void mvMultRew(double vect[], MCRewards<Double> mcRewards, double result[], BitSet subset, boolean complement)
 	{
 		mvMultRew(vect, mcRewards, result, new IterableStateSet(subset, getNumStates(), complement).iterator());
 	}
@@ -543,7 +622,7 @@ public interface DTMC extends Model
 	 * @param result Vector to store result in
 	 * @param states Do multiplication for these rows, in the specified order
 	 */
-	public default void mvMultRew(double vect[], MCRewards mcRewards, double result[], PrimitiveIterator.OfInt states)
+	public default void mvMultRew(double vect[], MCRewards<Double> mcRewards, double result[], PrimitiveIterator.OfInt states)
 	{
 		while (states.hasNext()) {
 			int s = states.nextInt();
@@ -558,7 +637,7 @@ public interface DTMC extends Model
 	 * @param result Vector to store result in
 	 * @param states Do multiplication for these rows, in the specified order
 	 */
-	public default void mvMultRewJac(double vect[], MCRewards mcRewards, double result[], PrimitiveIterator.OfInt states)
+	public default void mvMultRewJac(double vect[], MCRewards<Double> mcRewards, double result[], PrimitiveIterator.OfInt states)
 	{
 		while (states.hasNext()) {
 			int s = states.nextInt();
@@ -574,7 +653,7 @@ public interface DTMC extends Model
 	 * @param absolute If true, compute absolute, rather than relative, difference
 	 * @return The maximum difference between old/new elements of {@code vect}
 	 */
-	public default double mvMultRewGS(double vect[], MCRewards mcRewards, PrimitiveIterator.OfInt states, boolean absolute)
+	public default double mvMultRewGS(double vect[], MCRewards<Double> mcRewards, PrimitiveIterator.OfInt states, boolean absolute)
 	{
 		double d, diff, maxDiff = 0.0;
 		while (states.hasNext()) {
@@ -597,7 +676,7 @@ public interface DTMC extends Model
 	 * @param checkMonotonic check monotonicity
 	 * @param fromBelow iteration from below or from above? (for ensureMonotonicity, checkMonotonicity)
 	 */
-	public default void mvMultRewGSIntervalIter(double vect[], MCRewards mcRewards, PrimitiveIterator.OfInt states, boolean ensureMonotonic, boolean checkMonotonic, boolean fromBelow) throws PrismException
+	public default void mvMultRewGSIntervalIter(double vect[], MCRewards<Double> mcRewards, PrimitiveIterator.OfInt states, boolean ensureMonotonic, boolean checkMonotonic, boolean fromBelow) throws PrismException
 	{
 		double d;
 		while (states.hasNext()) {
@@ -638,10 +717,10 @@ public interface DTMC extends Model
 	 * @param vect Vector to multiply by
 	 * @param mcRewards The rewards
 	 */
-	public default double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
+	public default double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
 		double d = mcRewards.getStateReward(s);
-		d += sumOverTransitions(s, (__, t, prob) -> {
+		d += sumOverDoubleTransitions(s, (__, t, prob) -> {
 			return prob * vect[t];
 		});
 		return d;
@@ -654,7 +733,7 @@ public interface DTMC extends Model
 	 * @param vect Vector to multiply by
 	 * @param mcRewards The rewards
 	 */
-	public default double mvMultRewJacSingle(int s, double vect[], MCRewards mcRewards)
+	public default double mvMultRewJacSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
 		class Jacobi {
 			double diag = 1.0;
@@ -672,7 +751,7 @@ public interface DTMC extends Model
 		}
 
 		Jacobi jac = new Jacobi();
-		forEachTransition(s, jac::accept);
+		forEachDoubleTransition(s, jac::accept);
 
 		double d = jac.d;
 		double diag = jac.diag;
@@ -706,7 +785,7 @@ public interface DTMC extends Model
 		Arrays.fill(result, 0);
 		// Go through matrix elements (by row)
 		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			forEachTransition(state, (s, t, prob) -> {
+			forEachDoubleTransition(state, (s, t, prob) -> {
 				result[t] += prob * vect[s];
 			});
 		}
@@ -756,7 +835,7 @@ public interface DTMC extends Model
 			int state = it.nextInt();
 
 			// ... handle all Q(state,t) entries of the generator matrix
-			forEachTransition(state, (s, t, prob) -> {
+			forEachDoubleTransition(state, (s, t, prob) -> {
 				if (s != t) {
 					// ignore self loop, diagonal entries of the generator matrix handled above
 					// update result vector entry for the *successor* state

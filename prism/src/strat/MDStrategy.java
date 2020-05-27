@@ -32,7 +32,7 @@ import prism.PrismLog;
 /**
  * Interface for classes to store memoryless deterministic (MD) strategies.
  */
-public interface MDStrategy extends Strategy
+public interface MDStrategy<Value> extends Strategy<Value>
 {
 	// Additional queries for memoryless strategies (just ignore memory)
 	

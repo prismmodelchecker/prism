@@ -90,8 +90,8 @@ public class POMDPModelChecker extends ProbModelChecker
 	 */
 	class POMDPStrategyModel
 	{
-		public MDP mdp;
-		public MDPRewards mdpRewards;
+		public MDP<Double> mdp;
+		public MDPRewards<Double> mdpRewards;
 		public List<Belief> beliefs;
 	}
 	
@@ -112,7 +112,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max probabilities (true=min, false=max)
 	 */
-	public ModelCheckerResult computeReachProbs(POMDP pomdp, BitSet remain, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
+	public ModelCheckerResult computeReachProbs(POMDP<Double> pomdp, BitSet remain, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		long timer;
@@ -153,7 +153,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param min Min or max rewards (true=min, false=max)
 	 * @param sInit State to compute for
 	 */
-	protected ModelCheckerResult computeReachProbsFixedGrid(POMDP pomdp, BitSet remain, BitSet target, boolean min, int sInit) throws PrismException
+	protected ModelCheckerResult computeReachProbsFixedGrid(POMDP<Double> pomdp, BitSet remain, BitSet target, boolean min, int sInit) throws PrismException
 	{
 		// Start fixed-resolution grid approximation
 		long timer = System.currentTimeMillis();
@@ -241,7 +241,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
 		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, null, targetObs, unknownObs, backup);
-		MDP mdp = psm.mdp;
+		MDP<Double> mdp = psm.mdp;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
 		
 		// Export strategy if requested
@@ -317,7 +317,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max rewards (true=min, false=max)
 	 */
-	public ModelCheckerResult computeReachRewards(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
+	public ModelCheckerResult computeReachRewards(POMDP<Double> pomdp, MDPRewards<Double> mdpRewards, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		long timer;
@@ -356,7 +356,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param min Min or max rewards (true=min, false=max)
 	 * @param sInit State to compute for
 	 */
-	protected ModelCheckerResult computeReachRewardsFixedGrid(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, int sInit) throws PrismException
+	protected ModelCheckerResult computeReachRewardsFixedGrid(POMDP<Double> pomdp, MDPRewards<Double> mdpRewards, BitSet target, boolean min, int sInit) throws PrismException
 	{
 		// Start fixed-resolution grid approximation
 		long timer = System.currentTimeMillis();
@@ -447,8 +447,8 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
 		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, mdpRewards, targetObs, unknownObs, backup);
-		MDP mdp = psm.mdp;
-		MDPRewards mdpRewardsNew = psm.mdpRewards;
+		MDP<Double> mdp = psm.mdp;
+		MDPRewards<Double> mdpRewardsNew = psm.mdpRewards;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
 		
 		// Export strategy if requested
@@ -524,7 +524,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * then all other states corresponding to it should also be.
 	 * Returns null if not.
 	 */
-	protected BitSet getObservationsMatchingStates(POMDP pomdp, BitSet set)
+	protected BitSet getObservationsMatchingStates(POMDP<Double> pomdp, BitSet set)
 	{
 		// Find observations corresponding to each state in the set
 		BitSet setObs = new BitSet();
@@ -551,7 +551,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * Observations are included only if all their corresponding states
 	 * are included in the passed in set.
 	 */
-	protected BitSet getObservationsCoveredByStates(POMDP pomdp, BitSet set) throws PrismException
+	protected BitSet getObservationsCoveredByStates(POMDP<Double> pomdp, BitSet set) throws PrismException
 	{
 		// Find observations corresponding to each state in the set
 		BitSet setObs = new BitSet();
@@ -576,7 +576,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * Construct a list of beliefs for a grid-based approximation of the belief space.
 	 * Only beliefs with observable values from {@code unknownObs) are added.
 	 */
-	protected List<Belief> initialiseGridPoints(POMDP pomdp, BitSet unknownObs)
+	protected List<Belief> initialiseGridPoints(POMDP<Double> pomdp, BitSet unknownObs)
 	{
 		List<Belief> gridPoints = new ArrayList<>();
 		ArrayList<ArrayList<Double>> assignment;
@@ -608,7 +608,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * If provided, also construct a list of rewards for each state.
 	 * It is stored as a list (over source beliefs) of BeliefMDPState objects.
 	 */
-	protected List<BeliefMDPState> buildBeliefMDP(POMDP pomdp, MDPRewards mdpRewards, List<Belief> beliefs)
+	protected List<BeliefMDPState> buildBeliefMDP(POMDP<Double> pomdp, MDPRewards<Double> mdpRewards, List<Belief> beliefs)
 	{
 		List<BeliefMDPState> beliefMDP = new ArrayList<>();
 		for (Belief belief: beliefs) {
@@ -623,7 +623,7 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * If provided, also construct a list of rewards for the state.
 	 * It is stored as a BeliefMDPState object.
 	 */
-	protected BeliefMDPState buildBeliefMDPState(POMDP pomdp, MDPRewards mdpRewards, Belief belief)
+	protected BeliefMDPState buildBeliefMDPState(POMDP<Double> pomdp, MDPRewards<Double> mdpRewards, Belief belief)
 	{
 		double[] beliefInDist = belief.toDistributionOverStates(pomdp);
 		BeliefMDPState beliefMDPState = new BeliefMDPState();
@@ -766,14 +766,14 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param min
 	 * @param listBeliefs
 	 */
-	protected POMDPStrategyModel buildStrategyModel(POMDP pomdp, int sInit, MDPRewards mdpRewards, BitSet targetObs, BitSet unknownObs, BeliefMDPBackUp backup) throws PrismException
+	protected POMDPStrategyModel buildStrategyModel(POMDP<Double> pomdp, int sInit, MDPRewards<Double> mdpRewards, BitSet targetObs, BitSet unknownObs, BeliefMDPBackUp backup) throws PrismException
 	{
 		// Initialise model/state/rewards storage
-		MDPSimple mdp = new MDPSimple();
+		MDPSimple<Double> mdp = new MDPSimple<>();
 		IndexedSet<Belief> exploredBeliefs = new IndexedSet<>(true);
 		LinkedList<Belief> toBeExploredBeliefs = new LinkedList<>();
 		BitSet mdpTarget = new BitSet();
-		StateRewardsSimple stateRewards = new StateRewardsSimple();
+		StateRewardsSimple<Double> stateRewards = new StateRewardsSimple<>();
 		// Add initial state
 		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
 		exploredBeliefs.add(initialBelief);
@@ -797,7 +797,7 @@ public class POMDPModelChecker extends ProbModelChecker
 				Pair<Double, Integer> valChoice = backup.apply(belief, beliefMDPState);
 				int chosenActionIndex = valChoice.second;
 				// Build a distribution over successor belief states and add to MDP
-				Distribution distr = new Distribution();
+				Distribution<Double> distr = new Distribution<>();
 				for (Map.Entry<Belief, Double> entry : beliefMDPState.trans.get(chosenActionIndex).entrySet()) {
 					double nextBeliefProb = entry.getValue();
 					Belief nextBelief = entry.getKey();
@@ -1032,14 +1032,14 @@ public class POMDPModelChecker extends ProbModelChecker
 	public static void main(String args[])
 	{
 		POMDPModelChecker mc;
-		POMDPSimple pomdp;
+		POMDPSimple<Double> pomdp;
 		ModelCheckerResult res;
 		BitSet init, target;
 		Map<String, BitSet> labels;
 		boolean min = true;
 		try {
 			mc = new POMDPModelChecker(null);
-			MDPSimple mdp = new MDPSimple();
+			MDPSimple<Double> mdp = new MDPSimple<>();
 			mdp.buildFromPrismExplicit(args[0]);
 			//mainLog.println(mdp);
 			labels = mc.loadLabelsFile(args[1]);
@@ -1056,7 +1056,7 @@ public class POMDPModelChecker extends ProbModelChecker
 				else if (args[i].equals("-nopre"))
 					mc.setPrecomp(false);
 			}
-			pomdp = new POMDPSimple(mdp);
+			pomdp = new POMDPSimple<>(mdp);
 			res = mc.computeReachRewards(pomdp, null, target, min, null);
 			System.out.println(res.soln[init.nextSetBit(0)]);
 		} catch (PrismException e) {

@@ -39,7 +39,7 @@ import prism.PrismNotSupportedException;
  * as an IntegerVector (i.e. stored natively as an array)
  * associated with a sparse/symbolic engine model.
  */
-public class MDStrategyIV extends StrategyWithStates implements MDStrategy
+public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrategy<Double>
 {
 	// Model associated with the strategy
 	private Model model;

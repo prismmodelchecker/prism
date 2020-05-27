@@ -43,20 +43,20 @@ import parser.VarList;
  * An MDPView that takes an existing MDP and removes
  * all outgoing choices for certain states.
  */
-public class MDPDroppedAllChoices extends MDPView
+public class MDPDroppedAllChoices<Value> extends MDPView<Value>
 {
-	private MDP model;
+	private MDP<Value> model;
 	private BitSet states;
 
 
 
-	public MDPDroppedAllChoices(final MDP model, final BitSet dropped)
+	public MDPDroppedAllChoices(final MDP<Value> model, final BitSet dropped)
 	{
 		this.model = model;
 		this.states = dropped;
 	}
 
-	public MDPDroppedAllChoices(final MDPDroppedAllChoices dropped)
+	public MDPDroppedAllChoices(final MDPDroppedAllChoices<Value> dropped)
 	{
 		super(dropped);
 		model = dropped.model;
@@ -68,9 +68,9 @@ public class MDPDroppedAllChoices extends MDPView
 	//--- Cloneable ---
 
 	@Override
-	public MDPDroppedAllChoices clone()
+	public MDPDroppedAllChoices<Value> clone()
 	{
-		return new MDPDroppedAllChoices(this);
+		return new MDPDroppedAllChoices<>(this);
 	}
 
 
@@ -183,7 +183,7 @@ public class MDPDroppedAllChoices extends MDPView
 	//--- MDP ---
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(final int state, final int choice)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(final int state, final int choice)
 	{
 		if (states.get(state)) {
 			throw new IndexOutOfBoundsException("choice index out of bounds");
@@ -200,7 +200,7 @@ public class MDPDroppedAllChoices extends MDPView
 	{
 		assert !fixedDeadlocks : "deadlocks already fixed";
 
-		model = MDPAdditionalChoices.fixDeadlocks((MDP) this.clone());
+		model = MDPAdditionalChoices.fixDeadlocks(this.clone());
 		states = new BitSet();
 	}
 

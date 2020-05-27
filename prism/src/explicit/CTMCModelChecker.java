@@ -52,8 +52,9 @@ public class CTMCModelChecker extends ProbModelChecker
 	
 	// Model checking functions
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected StateValues checkProbPathFormulaLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkProbPathFormulaLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			throw new PrismNotSupportedException("LTL formulas with time bounds not supported for CTMCs");
@@ -66,16 +67,17 @@ public class CTMCModelChecker extends ProbModelChecker
 		// we first handle the sub-formulas by computing their satisfaction sets,
 		// attaching them as labels to the model and modifying the formula
 		// appropriately
-		expr = handleMaximalStateFormulas((ModelExplicit) model, expr);
+		expr = handleMaximalStateFormulas((ModelExplicit<?>) model, expr);
 
 		// Now, we construct embedded DTMC and do the plain LTL computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ((CTMC<Double>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().checkProbPathFormulaLTL(dtmcEmb, expr, qual, minMax, statesOfInterest);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected StateValues checkRewardCoSafeLTL(Model model, Rewards modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkRewardCoSafeLTL(Model<?> model, Rewards<?> modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			throw new PrismNotSupportedException("LTL formulas with time bounds not supported for CTMCs");
@@ -88,22 +90,22 @@ public class CTMCModelChecker extends ProbModelChecker
 		// we first handle the sub-formulas by computing their satisfaction sets,
 		// attaching them as labels to the model and modifying the formula
 		// appropriately
-		expr = handleMaximalStateFormulas((ModelExplicit) model, expr);
+		expr = handleMaximalStateFormulas((ModelExplicit<?>) model, expr);
 
 		// Construct embedded DTMC (and convert rewards for it) and do remaining computation
 		// on that with the "pure" cosafety LTL formula
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ((CTMC<Double>)model).getImplicitEmbeddedDTMC();
 		int n = model.getNumStates();
 		StateRewardsArray rewEmb = new StateRewardsArray(n);
 		for (int i = 0; i < n; i++) {
-			rewEmb.setStateReward(i, ((MCRewards) modelRewards).getStateReward(i) / ((CTMC)model).getExitRate(i));
+			rewEmb.setStateReward(i, ((MCRewards<Double>) modelRewards).getStateReward(i) / ((CTMC<Double>)model).getExitRate(i));
 		}
 		return createDTMCModelChecker().checkRewardCoSafeLTL(dtmcEmb, rewEmb, expr, minMax, statesOfInterest);
 	}
 
 	@Override
-	protected StateValues checkExistsLTL(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkExistsLTL(Model<?> model, Expression expr, BitSet statesOfInterest) throws PrismException
 	{
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			throw new PrismNotSupportedException("LTL formulas with time bounds not supported for CTMCs");
@@ -116,16 +118,17 @@ public class CTMCModelChecker extends ProbModelChecker
 		// we first handle the sub-formulas by computing their satisfaction sets,
 		// attaching them as labels to the model and modifying the formula
 		// appropriately
-		expr = handleMaximalStateFormulas((ModelExplicit) model, expr);
+		expr = handleMaximalStateFormulas((ModelExplicit<?>) model, expr);
 
 		// Now, we construct embedded DTMC and do the plain E[ LTL ] computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<?> dtmcEmb = ((CTMC<?>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().checkExistsLTL(dtmcEmb, expr, statesOfInterest);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	protected StateValues checkProbBoundedUntil(Model model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkProbBoundedUntil(Model<?> model, ExpressionTemporal expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		double lTime, uTime; // time bounds
 		Expression exprTmp;
@@ -181,13 +184,13 @@ public class CTMCModelChecker extends ProbModelChecker
 				// check for special case of lTime == 0, this is actually an unbounded until
 				if (lTime == 0) {
 					// compute probs
-					res = computeUntilProbs((CTMC)model, b1, b2);
+					res = computeUntilProbs((CTMC<Double>)model, b1, b2);
 					probs = StateValues.createFromDoubleArray(res.soln, model);
 				} else {
 					// compute unbounded until probs
-					tmpRes = computeUntilProbs((CTMC)model, b1, b2);
+					tmpRes = computeUntilProbs((CTMC<Double>)model, b1, b2);
 					// compute bounded until probs
-					res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
+					res = computeTransientBackwardsProbs((CTMC<Double>) model, b1, b1, lTime, tmpRes.soln);
 					probs = StateValues.createFromDoubleArray(res.soln, model);
 				}
 			}
@@ -195,7 +198,7 @@ public class CTMCModelChecker extends ProbModelChecker
 			else if (lTime == 0) {
 				// nb: uTime != 0 since would be caught above (trivial case)
 				b1.andNot(b2);
-				res = computeTransientBackwardsProbs((CTMC) model, b2, b1, uTime, null);
+				res = computeTransientBackwardsProbs((CTMC<Double>) model, b2, b1, uTime, null);
 				probs = StateValues.createFromDoubleArray(res.soln, model);
 				// set values to exactly 1 for target (b2) states
 				// (these are computed inexactly during uniformisation)
@@ -209,8 +212,8 @@ public class CTMCModelChecker extends ProbModelChecker
 			else {
 				tmp = (BitSet) b1.clone();
 				tmp.andNot(b2);
-				tmpRes = computeTransientBackwardsProbs((CTMC) model, b2, tmp, uTime - lTime, null);
-				res = computeTransientBackwardsProbs((CTMC) model, b1, b1, lTime, tmpRes.soln);
+				tmpRes = computeTransientBackwardsProbs((CTMC<Double>) model, b2, tmp, uTime - lTime, null);
+				res = computeTransientBackwardsProbs((CTMC<Double>) model, b1, b1, lTime, tmpRes.soln);
 				probs = StateValues.createFromDoubleArray(res.soln, model);
 			}
 		}
@@ -224,7 +227,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * Compute steady-state probability distribution (forwards).
 	 * Start from initial state (or uniform distribution over multiple initial states).
 	 */
-	public StateValues doSteadyState(CTMC ctmc) throws PrismException
+	public StateValues doSteadyState(CTMC<Double> ctmc) throws PrismException
 	{
 		return doSteadyState(ctmc, (StateValues) null);
 	}
@@ -234,7 +237,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
 	 * If null, start from initial state (or uniform distribution over multiple initial states).
 	 */
-	public StateValues doSteadyState(CTMC ctmc, File initDistFile) throws PrismException
+	public StateValues doSteadyState(CTMC<Double> ctmc, File initDistFile) throws PrismException
 	{
 		StateValues initDist = readDistributionFromFile(initDistFile, ctmc);
 		return doSteadyState(ctmc, initDist);
@@ -249,7 +252,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param ctmc The CTMC
 	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public StateValues doSteadyState(CTMC ctmc, StateValues initDist) throws PrismException
+	public StateValues doSteadyState(CTMC<Double> ctmc, StateValues initDist) throws PrismException
 	{
 		StateValues initDistNew = (initDist == null) ? buildInitialDistribution(ctmc) : initDist;
 		ModelCheckerResult res = computeSteadyStateProbs(ctmc, initDistNew.getDoubleArray());
@@ -260,7 +263,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * Compute transient probability distribution (forwards).
 	 * Start from initial state (or uniform distribution over multiple initial states).
 	 */
-	public StateValues doTransient(CTMC ctmc, double time) throws PrismException
+	public StateValues doTransient(CTMC<Double> ctmc, double time) throws PrismException
 	{
 		return doTransient(ctmc, time, (StateValues) null);
 	}
@@ -273,7 +276,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param t Time point
 	 * @param initDistFile File containing initial distribution
 	 */
-	public StateValues doTransient(CTMC ctmc, double t, File initDistFile) throws PrismException
+	public StateValues doTransient(CTMC<Double> ctmc, double t, File initDistFile) throws PrismException
 	{
 		StateValues initDist = readDistributionFromFile(initDistFile, ctmc);
 		return doTransient(ctmc, t, initDist);
@@ -289,7 +292,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param t Time point
 	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public StateValues doTransient(CTMC ctmc, double t, StateValues initDist) throws PrismException
+	public StateValues doTransient(CTMC<Double> ctmc, double t, StateValues initDist) throws PrismException
 	{
 		StateValues initDistNew = (initDist == null) ? buildInitialDistribution(ctmc) : initDist;
 		ModelCheckerResult res = computeTransientProbs(ctmc, t, initDistNew.getDoubleArray());
@@ -304,11 +307,11 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param ctmc The CTMC
 	 * @param target Target states
 	 */
-	public ModelCheckerResult computeNextProbs(CTMC ctmc, BitSet target) throws PrismException
+	public ModelCheckerResult computeNextProbs(CTMC<Double> ctmc, BitSet target) throws PrismException
 	{
 		// Construct embedded DTMC and do computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeNextProbs(dtmcEmb, target);
 	}
 
@@ -318,11 +321,11 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param ctmc The CTMC
 	 * @param target Target states
 	 */
-	public ModelCheckerResult computeReachProbs(CTMC ctmc, BitSet target) throws PrismException
+	public ModelCheckerResult computeReachProbs(CTMC<Double> ctmc, BitSet target) throws PrismException
 	{
 		// Construct embedded DTMC and do computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeReachProbs(dtmcEmb, target);
 	}
 
@@ -334,11 +337,11 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 */
-	public ModelCheckerResult computeUntilProbs(CTMC ctmc, BitSet remain, BitSet target) throws PrismException
+	public ModelCheckerResult computeUntilProbs(CTMC<Double> ctmc, BitSet remain, BitSet target) throws PrismException
 	{
 		// Construct embedded DTMC and do computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeUntilProbs(dtmcEmb, remain, target);
 	}
 
@@ -353,11 +356,11 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param known Optionally, a set of states for which the exact answer is known
 	 * Note: if 'known' is specified (i.e. is non-null, 'init' must also be given and is used for the exact values.  
 	 */
-	public ModelCheckerResult computeReachProbs(CTMC ctmc, BitSet remain, BitSet target, double init[], BitSet known) throws PrismException
+	public ModelCheckerResult computeReachProbs(CTMC<Double> ctmc, BitSet remain, BitSet target, double init[], BitSet known) throws PrismException
 	{
 		// Construct embedded DTMC and do computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeReachProbs(dtmcEmb, remain, target, init, known);
 	}
 
@@ -368,7 +371,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param t Time bound
 	 */
-	public ModelCheckerResult computeTimeBoundedReachProbs(CTMC ctmc, BitSet target, double t) throws PrismException
+	public ModelCheckerResult computeTimeBoundedReachProbs(CTMC<Double> ctmc, BitSet target, double t) throws PrismException
 	{
 		return computeTimeBoundedUntilProbs(ctmc, null, target, t);
 	}
@@ -382,7 +385,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param t Time bound
 	 */
-	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC ctmc, BitSet remain, BitSet target, double t) throws PrismException
+	public ModelCheckerResult computeTimeBoundedUntilProbs(CTMC<Double> ctmc, BitSet remain, BitSet target, double t) throws PrismException
 	{
 		BitSet nonAbs = null;
 		if (remain != null) {
@@ -413,12 +416,12 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param t Time bound
 	 * @param multProbs Multiplication vector (optional: null means all 1s)
 	 */
-	public ModelCheckerResult computeTransientBackwardsProbs(CTMC ctmc, BitSet target, BitSet nonAbs, double t, double multProbs[]) throws PrismException
+	public ModelCheckerResult computeTransientBackwardsProbs(CTMC<Double> ctmc, BitSet target, BitSet nonAbs, double t, double multProbs[]) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[], sum[];
-		DTMC dtmc;
+		DTMC<Double> dtmc;
 		long timer;
 		// Fox-Glynn stuff
 		FoxGlynn fg;
@@ -521,7 +524,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param mcRewards The rewards
 	 * @param t Time bound
 	 */
-	public ModelCheckerResult computeCumulativeRewards(CTMC ctmc, MCRewards mcRewards, double t) throws PrismException
+	public ModelCheckerResult computeCumulativeRewards(CTMC<Double> ctmc, MCRewards<Double> mcRewards, double t) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
@@ -575,7 +578,7 @@ public class CTMCModelChecker extends ProbModelChecker
 		mainLog.println("Fox-Glynn (" + acc + "): left = " + left + ", right = " + right);
 
 		// Build (implicit) uniformised DTMC
-		DTMC dtmcUnif = ctmc.buildImplicitUniformisedDTMC(q);
+		DTMC<Double> dtmcUnif = ctmc.buildImplicitUniformisedDTMC(q);
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -636,12 +639,12 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param mcRewards The rewards
 	 * @param target Target states
 	 */
-	public ModelCheckerResult computeTotalRewards(CTMC ctmc, MCRewards mcRewards) throws PrismException
+	public ModelCheckerResult computeTotalRewards(CTMC<Double> ctmc, MCRewards<Double> mcRewards) throws PrismException
 	{
 		int i, n;
 		// Build embedded DTMC
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		// Convert rewards
 		n = ctmc.getNumStates();
 		StateRewardsArray rewEmb = new StateRewardsArray(n);
@@ -660,7 +663,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param mcRewards The rewards
 	 * @param t Time bound
 	 */
-	public ModelCheckerResult computeInstantaneousRewards(CTMC ctmc, MCRewards mcRewards, double t) throws PrismException
+	public ModelCheckerResult computeInstantaneousRewards(CTMC<Double> ctmc, MCRewards<Double> mcRewards, double t) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
@@ -707,7 +710,7 @@ public class CTMCModelChecker extends ProbModelChecker
 		mainLog.println("Fox-Glynn (" + acc + "): left = " + left + ", right = " + right);
 
 		// Build (implicit) uniformised DTMC
-		DTMC dtmcUnif = ctmc.buildImplicitUniformisedDTMC(q);
+		DTMC<Double> dtmcUnif = ctmc.buildImplicitUniformisedDTMC(q);
 
 		// Create solution vector(s)
 		soln = new double[n];
@@ -761,12 +764,12 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param mcRewards The rewards
 	 * @param target Target states
 	 */
-	public ModelCheckerResult computeReachRewards(CTMC ctmc, MCRewards mcRewards, BitSet target) throws PrismException
+	public ModelCheckerResult computeReachRewards(CTMC<Double> ctmc, MCRewards<Double> mcRewards, BitSet target) throws PrismException
 	{
 		int i, n;
 		// Build embedded DTMC
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 		// Convert rewards
 		n = ctmc.getNumStates();
 		StateRewardsArray rewEmb = new StateRewardsArray(n);
@@ -785,9 +788,9 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * CONCUR'99, p. 151
 	 */
 	private static class SteadyStateBSCCPostProcessor implements DTMCModelChecker.BSCCPostProcessor {
-		private CTMC ctmc;
+		private CTMC<Double> ctmc;
 
-		public SteadyStateBSCCPostProcessor(CTMC ctmc)
+		public SteadyStateBSCCPostProcessor(CTMC<Double> ctmc)
 		{
 			this.ctmc = ctmc;
 		}
@@ -826,13 +829,13 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param ctmc the CTMC
 	 * @param b the satisfaction set of states for the inner state formula of the operators
 	 */
-	protected StateValues computeSteadyStateFormula(CTMC ctmc, BitSet b) throws PrismException
+	protected StateValues computeSteadyStateFormula(CTMC<Double> ctmc, BitSet b) throws PrismException
 	{
 		double multProbs[] = Utils.bitsetToDoubleArray(b, ctmc.getNumStates());
 
 		// We construct the embedded DTMC and do the steady-state computation there
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 
 		// compute the steady-state probabilities in the embedded DTMC, applying the BSCC value post-processing
 		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
@@ -849,11 +852,11 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param ctmc The CTMC
 	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public ModelCheckerResult computeSteadyStateProbs(CTMC ctmc, double initDist[]) throws PrismException
+	public ModelCheckerResult computeSteadyStateProbs(CTMC<Double> ctmc, double initDist[]) throws PrismException
 	{
 		// We construct the embedded DTMC and do the steady-state computation there
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 
 		// compute the steady-state probabilities in the embedded DTMC, applying the BSCC value post-processing
 		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
@@ -863,11 +866,11 @@ public class CTMCModelChecker extends ProbModelChecker
 	/**
 	 * @see DTMCModelChecker#computeSteadyStateProbsForBSCC(DTMC, BitSet, double[], BSCCPostProcessor)
 	 */
-	public ModelCheckerResult computeSteadyStateProbsForBSCC(CTMC ctmc, BitSet states, double result[]) throws PrismException
+	public ModelCheckerResult computeSteadyStateProbsForBSCC(CTMC<Double> ctmc, BitSet states, double result[]) throws PrismException
 	{
 		// We construct the embedded DTMC and do the steady-state computation there
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 
 		return createDTMCModelChecker().computeSteadyStateProbsForBSCC(dtmcEmb, states, result, new SteadyStateBSCCPostProcessor(ctmc));
 	}
@@ -877,7 +880,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param ctmc the CTMC
 	 * @param modelRewards the (state) rewards
 	 */
-	public ModelCheckerResult computeSteadyStateRewards(CTMC ctmc, MCRewards modelRewards) throws PrismException
+	public ModelCheckerResult computeSteadyStateRewards(CTMC<Double> ctmc, MCRewards<Double> modelRewards) throws PrismException
 	{
 		int n = ctmc.getNumStates();
 		double multRewards[] = new double[n];
@@ -888,7 +891,7 @@ public class CTMCModelChecker extends ProbModelChecker
 
 		// We construct the embedded DTMC and do the steady-state computation there
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
+		DTMC<Double> dtmcEmb = ctmc.getImplicitEmbeddedDTMC();
 
 		// compute the steady-state rewards in the embedded DTMC, applying the BSCC value post-processing
 		mainLog.println("Doing steady-state computation in embedded DTMC (with exit-rate weighting for BSCC probabilities)...");
@@ -905,12 +908,12 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * @param t Time point
 	 * @param initDist Initial distribution (will be overwritten)
 	 */
-	public ModelCheckerResult computeTransientProbs(CTMC ctmc, double t, double initDist[]) throws PrismException
+	public ModelCheckerResult computeTransientProbs(CTMC<Double> ctmc, double t, double initDist[]) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[], sum[];
-		DTMC dtmc;
+		DTMC<Double> dtmc;
 		long timer;
 		// Fox-Glynn stuff
 		FoxGlynn fg;
@@ -1015,45 +1018,45 @@ public class CTMCModelChecker extends ProbModelChecker
 	// compute... methods to use a DTMCModelChecker for the computations instead
 
 	@Override
-	public BitSet computeExistsNext(Model model, BitSet target, BitSet statesOfInterest) throws PrismException
+	public BitSet computeExistsNext(Model<?> model, BitSet target, BitSet statesOfInterest) throws PrismException
 	{
 		// Construct embedded DTMC and do CTL computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<?> dtmcEmb = ((CTMC<?>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeExistsNext(dtmcEmb, target, statesOfInterest);
 	}
 
 	@Override
-	public BitSet computeForAllNext(Model model, BitSet target, BitSet statesOfInterest) throws PrismException
+	public BitSet computeForAllNext(Model<?> model, BitSet target, BitSet statesOfInterest) throws PrismException
 	{
 		// Construct embedded DTMC and do CTL computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<?> dtmcEmb = ((CTMC<?>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeForAllNext(dtmcEmb, target, statesOfInterest);
 	}
 
 	@Override
-	public BitSet computeExistsUntil(Model model, BitSet A, BitSet B) throws PrismException
+	public BitSet computeExistsUntil(Model<?> model, BitSet A, BitSet B) throws PrismException
 	{
 		// Construct embedded DTMC and do CTL computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<?> dtmcEmb = ((CTMC<?>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeExistsUntil(dtmcEmb, A, B);
 	}
 
-	public BitSet computeExistsGlobally(Model model, BitSet A) throws PrismException
+	public BitSet computeExistsGlobally(Model<?> model, BitSet A) throws PrismException
 	{
 		// Construct embedded DTMC and do CTL computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<?> dtmcEmb = ((CTMC<?>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeExistsGlobally(dtmcEmb, A);
 	}
 
-	public BitSet computeExistsRelease(Model model, BitSet A, BitSet B) throws PrismException
+	public BitSet computeExistsRelease(Model<?> model, BitSet A, BitSet B) throws PrismException
 	{
 		// Construct embedded DTMC and do CTL computation on that
 		mainLog.println("Building embedded DTMC...");
-		DTMC dtmcEmb = ((CTMC)model).getImplicitEmbeddedDTMC();
+		DTMC<?> dtmcEmb = ((CTMC<?>)model).getImplicitEmbeddedDTMC();
 		return createDTMCModelChecker().computeExistsRelease(dtmcEmb, A, B);
 	}
 
@@ -1063,13 +1066,13 @@ public class CTMCModelChecker extends ProbModelChecker
 	public static void main(String args[])
 	{
 		CTMCModelChecker mc;
-		CTMCSimple ctmc;
+		CTMCSimple<Double> ctmc;
 		ModelCheckerResult res;
 		BitSet target;
 		Map<String, BitSet> labels;
 		try {
 			mc = new CTMCModelChecker(null);
-			ctmc = new CTMCSimple();
+			ctmc = new CTMCSimple<>();
 			ctmc.buildFromPrismExplicit(args[0]);
 			ctmc.addInitialState(0);
 			//System.out.println(ctmc);

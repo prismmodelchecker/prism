@@ -33,10 +33,10 @@ import java.util.List;
 import explicit.Model;
 import explicit.Product;
 
-public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
+public class STPGRewardsSimple<Value> extends MDPRewardsSimple<Value> implements STPGRewards<Value>
 {
 	/** Nested transition rewards */
-	protected List<List<List<Double>>> nestedTransRewards;
+	protected List<List<List<Value>>> nestedTransRewards;
 
 	/**
 	 * Constructor: all zero rewards.
@@ -53,7 +53,7 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 	 * Constructor: copy MDP rewards, other rewards zero
 	 * @param rews MPD rewards to copy
 	 */
-	public STPGRewardsSimple(MDPRewardsSimple rews)
+	public STPGRewardsSimple(MDPRewardsSimple<Value> rews)
 	{
 		super(rews);
 		// Initially list is just null (denoting all 0)
@@ -65,22 +65,22 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 	/**
 	 * Set the reward for the {@code i},{@code j}th nested transition of state {@code s} to {@code r}.
 	 */
-	public void setNestedTransitionReward(int s, int i, int j, double r)
+	public void setNestedTransitionReward(int s, int i, int j, Value r)
 	{
-		List<List<Double>> list1;
-		List<Double> list2;
+		List<List<Value>> list1;
+		List<Value> list2;
 		// Nothing to do for zero reward
-		if (r == 0.0)
+		if (getEvaluator().isZero(r))
 			return;
 		// If no rewards array created yet, create it
 		if (nestedTransRewards == null) {
-			nestedTransRewards = new ArrayList<List<List<Double>>>(numStates);
+			nestedTransRewards = new ArrayList<List<List<Value>>>(numStates);
 			for (int k = 0; k < numStates; k++)
 				nestedTransRewards.add(null);
 		}
 		// If no rewards for state s yet, create list1
 		if (nestedTransRewards.get(s) == null) {
-			list1 = new ArrayList<List<Double>>();
+			list1 = new ArrayList<List<Value>>();
 			nestedTransRewards.set(s, list1);
 		} else {
 			list1 = nestedTransRewards.get(s);
@@ -94,7 +94,7 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 		}
 		// If no rewards for state s, choice i, create list2
 		if (list1.get(i) == null) {
-			list2 = new ArrayList<Double>();
+			list2 = new ArrayList<Value>();
 			list1.set(i, list2);
 		} else {
 			list2 = list1.get(i);
@@ -124,37 +124,37 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 	// Accessors
 
 	@Override
-	public double getNestedTransitionReward(int s, int i, int j)
+	public Value getNestedTransitionReward(int s, int i, int j)
 	{
-		List<List<Double>> list1;
-		List<Double> list2;
+		List<List<Value>> list1;
+		List<Value> list2;
 		if (nestedTransRewards == null || (list1 = nestedTransRewards.get(s)) == null)
-			return 0.0;
+			return getEvaluator().zero();
 		if (list1.size() <= i || (list2 = list1.get(i)) == null)
-			return 0.0;
+			return getEvaluator().zero();
 		if (list2.size() <= j)
-			return 0.0;
+			return getEvaluator().zero();
 		return list2.get(j);
 	}
 
 	// Converters
 	
 	@Override
-	public STPGRewards liftFromModel(Product<? extends Model> product)
+	public STPGRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
 	{
 		// Lift MDP part
-		MDPRewardsSimple rewardsProdMDP = (MDPRewardsSimple) ((MDPRewardsSimple) this).liftFromModel(product);
-		STPGRewardsSimple rewardsProd = new STPGRewardsSimple(rewardsProdMDP);
+		MDPRewardsSimple<Value> rewardsProdMDP = (MDPRewardsSimple<Value>) ((MDPRewardsSimple<Value>) this).liftFromModel(product);
+		STPGRewardsSimple<Value> rewardsProd = new STPGRewardsSimple<>(rewardsProdMDP);
 		// Lift nested transition rewards
-		Model modelProd = product.getProductModel();
+		Model<Value> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();		
 		if (nestedTransRewards != null) {
 			for (int s = 0; s < numStatesProd; s++) {
-				List<List<Double>> list1 = nestedTransRewards.get(product.getModelState(s));
+				List<List<Value>> list1 = nestedTransRewards.get(product.getModelState(s));
 				if (list1 != null) {
 					int n1 = list1.size();
 					for (int i = 0; i < n1; i++) {
-						List<Double> list2 = list1.get(i);
+						List<Value> list2 = list1.get(i);
 						int n2 = list2.size();
 						for (int j = 0; j < n2; j++) {
 							rewardsProd.setNestedTransitionReward(s, i, j, list2.get(j));
@@ -169,9 +169,9 @@ public class STPGRewardsSimple extends MDPRewardsSimple implements STPGRewards
 	// Other
 
 	@Override
-	public MDPRewards buildMDPRewards()
+	public MDPRewards<Value> buildMDPRewards()
 	{
-		return new MDPRewardsSimple(this);
+		return new MDPRewardsSimple<>(this);
 	}
 
 	@Override

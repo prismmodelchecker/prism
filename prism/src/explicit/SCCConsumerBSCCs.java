@@ -39,7 +39,7 @@ import prism.PrismException;
  */
 public abstract class SCCConsumerBSCCs extends SCCConsumerBitSet {
 
-	protected Model model;
+	protected Model<?> model;
 
 	/** Constructor */
 	public SCCConsumerBSCCs()
@@ -47,7 +47,7 @@ public abstract class SCCConsumerBSCCs extends SCCConsumerBitSet {
 		model = null;  // will be set by notifyStart call
 	}
 
-	public  void notifyStart(Model model)
+	public  void notifyStart(Model<?> model)
 	{
 		this.model = model;
 	}

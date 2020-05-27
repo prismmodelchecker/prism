@@ -44,16 +44,16 @@ import parser.VarList;
 /**
  * An MDPView that takes an existing MDP and removes certain choices.
  */
-public class MDPDroppedChoicesCached extends MDPView
+public class MDPDroppedChoicesCached<Value> extends MDPView<Value>
 {
-	private MDP model;
+	private MDP<Value> model;
 
 	/** pointer to first for state s */
 	private int[] startChoice;
 	/** mapping of choice to choice in original MDP */
 	private int[] mapping;
 
-	public MDPDroppedChoicesCached(final MDP model, final PairPredicateInt dropped)
+	public MDPDroppedChoicesCached(final MDP<Value> model, final PairPredicateInt dropped)
 	{
 		this.model = model;
 
@@ -80,7 +80,7 @@ public class MDPDroppedChoicesCached extends MDPView
 		}
 	}
 
-	public MDPDroppedChoicesCached(final MDPDroppedChoicesCached dropped)
+	public MDPDroppedChoicesCached(final MDPDroppedChoicesCached<Value> dropped)
 	{
 		super(dropped);
 		model = dropped.model;
@@ -91,9 +91,9 @@ public class MDPDroppedChoicesCached extends MDPView
 	//--- Cloneable ---
 
 	@Override
-	public MDPDroppedChoicesCached clone()
+	public MDPDroppedChoicesCached<Value> clone()
 	{
-		return new MDPDroppedChoicesCached(this);
+		return new MDPDroppedChoicesCached<>(this);
 	}
 
 	//--- Model ---
@@ -198,7 +198,7 @@ public class MDPDroppedChoicesCached extends MDPView
 	//--- MDP ---
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(final int state, final int choice)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(final int state, final int choice)
 	{
 		final int originalChoice = mapChoiceToOriginalModel(state, choice);
 		return model.getTransitionsIterator(state, originalChoice);
@@ -213,25 +213,25 @@ public class MDPDroppedChoicesCached extends MDPView
 	{
 		assert !fixedDeadlocks : "deadlocks already fixed";
 
-		model = MDPAdditionalChoices.fixDeadlocks((MDP) this.clone());
+		model = MDPAdditionalChoices.fixDeadlocks(this.clone());
 	}
 
 
 
 	//--- static methods
 
-	public static MDPDroppedChoicesCached dropDenormalizedDistributions(final MDP model)
+	public static <Value> MDPDroppedChoicesCached<Value> dropDenormalizedDistributions(final MDP<Value> model)
 	{
 		final PairPredicateInt denormalizedChoices = new PairPredicateInt()
 		{
 			@Override
 			public boolean test(int state, int choice)
 			{
-				final Distribution distribution = new Distribution(model.getTransitionsIterator(state, choice));
-				return distribution.sum() < 1;
+				final Distribution<Value> distribution = new Distribution<>(model.getTransitionsIterator(state, choice), model.getEvaluator());
+				return !model.getEvaluator().geq(distribution.sum(), model.getEvaluator().one());
 			}
 		};
-		return new MDPDroppedChoicesCached(model, denormalizedChoices);
+		return new MDPDroppedChoicesCached<>(model, denormalizedChoices);
 	}
 
 	public int mapChoiceToOriginalModel(final int state, final int choice)

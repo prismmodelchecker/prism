@@ -34,33 +34,30 @@ import explicit.Product;
 /**
  * Explicit-state storage of just state rewards (mutable).
  */
-public class StateRewardsSimple extends StateRewards
+public class StateRewardsSimple<Value> extends StateRewards<Value>
 {
-	/** Arraylist of state rewards **/
-	protected ArrayList<Double> stateRewards;
+	/** State rewards **/
+	protected ArrayList<Value> stateRewards;
 
 	/**
 	 * Constructor: all zero rewards.
 	 */
 	public StateRewardsSimple()
 	{
-		stateRewards = new ArrayList<Double>();
+		// Empty list (denoting all 0)
+		stateRewards = new ArrayList<Value>();
 	}
 
 	/**
 	 * Copy constructor
 	 * @param rews Rewards to copy
 	 */
-	public StateRewardsSimple(StateRewardsSimple rews)
+	public StateRewardsSimple(StateRewardsSimple<Value> rews)
 	{
 		if (rews.stateRewards == null) {
 			stateRewards = null;
 		} else {
-			int n = rews.stateRewards.size();
-			stateRewards = new ArrayList<Double>(n);
-			for (int i = 0; i < n; i++) {
-				stateRewards.add(rews.stateRewards.get(i));
-			}
+			stateRewards = new ArrayList<>(rews.stateRewards);
 		}
 	}
 
@@ -69,41 +66,50 @@ public class StateRewardsSimple extends StateRewards
 	/**
 	 * Set the reward for state {@code s} to {@code r}.
 	 */
-	public void setStateReward(int s, double r)
+	public void setStateReward(int s, Value r)
 	{
-		if (r == 0.0 && s >= stateRewards.size())
+		if (getEvaluator().isZero(r) && s >= stateRewards.size()) {
 			return;
+		}
 		// If list not big enough, extend
 		int n = s - stateRewards.size() + 1;
 		if (n > 0) {
 			for (int j = 0; j < n; j++) {
-				stateRewards.add(0.0);
+				stateRewards.add(getEvaluator().zero());
 			}
 		}
 		// Set reward
 		stateRewards.set(s, r);
 	}
 
+	/**
+	 * Add {@code r} to the state reward for state {@code s}.
+	 */
+	public void addToStateReward(int s, Value r)
+	{
+		setStateReward(s, getEvaluator().add(getStateReward(s), r));
+	}
+
 	// Accessors
 
 	@Override
-	public double getStateReward(int s)
+	public Value getStateReward(int s)
 	{
 		try {
 			return stateRewards.get(s);
 		} catch (IndexOutOfBoundsException e) {
-			return 0.0;
+			return getEvaluator().zero();
 		}
 	}
 
 	// Converters
 	
 	@Override
-	public StateRewards liftFromModel(Product<? extends Model> product)
+	public StateRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
 	{
-		Model modelProd = product.getProductModel();
+		Model<Value> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
-		StateRewardsSimple rewardsProd = new StateRewardsSimple();
+		StateRewardsSimple<Value> rewardsProd = new StateRewardsSimple<>();
 		for (int s = 0; s < numStatesProd; s++) {
 			rewardsProd.setStateReward(s, getStateReward(product.getModelState(s)));
 		}
@@ -113,8 +119,8 @@ public class StateRewardsSimple extends StateRewards
 	// Other
 
 	@Override
-	public StateRewardsSimple deepCopy()
+	public StateRewardsSimple<Value> deepCopy()
 	{
-		return new StateRewardsSimple(this);
+		return new StateRewardsSimple<>(this);
 	}
 }

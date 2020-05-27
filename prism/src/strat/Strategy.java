@@ -39,8 +39,10 @@ import simulator.RandomNumberGenerator;
  * This means that the information is queried by state index.
  * This is for a general class of strategies that may use memory,
  * but this can simply be ignored (e.g., set to -1) if not applicable.
+ * This is a generic class where {@code Value} should match the accompanying model.
+ * This is also needed for probabilities when the strategy is randomised.
  */
-public interface Strategy extends StrategyInfo
+public interface Strategy<Value> extends StrategyInfo<Value>
 {
 	/**
 	 * Get the action chosen by the strategy in the state index s
@@ -57,7 +59,7 @@ public interface Strategy extends StrategyInfo
 	 * and where the current memory of the strategy (if applicable) is m.
 	 * Pass an arbitrary value (e.g. -1) for m if memory is not relevant.
 	 */
-	public default double getChoiceActionProbability(int s, int m, Object act)
+	public default Value getChoiceActionProbability(int s, int m, Object act)
 	{
 		return getChoiceActionProbability(getChoiceAction(s, m), act);
 	}

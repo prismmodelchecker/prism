@@ -77,7 +77,7 @@ import common.StopWatch;
 public class LTLModelChecker extends PrismComponent
 {
 	/** Make LTL product accessible as a Product */
-	public class LTLProduct<M extends Model> extends Product<M>
+	public class LTLProduct<M extends Model<?>> extends Product<M>
 	{
 		private int daSize;
 		private int invMap[];
@@ -156,7 +156,7 @@ public class LTLModelChecker extends PrismComponent
 	 * actual true/false, and duplicate results (or their negations) reuse the same label. BitSets giving the states which
 	 * satisfy each label are put into the vector labelBS, which should be empty when this function is called.
 	 */
-	public Expression checkMaximalStateFormulas(StateModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
+	public Expression checkMaximalStateFormulas(StateModelChecker mc, Model<?> model, Expression expr, Vector<BitSet> labelBS) throws PrismException
 	{
 		// A state formula
 		if (expr.getType() instanceof TypeBool) {
@@ -226,7 +226,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param allowedAcceptance the allowed acceptance types
 	 * @return the DA
 	 */
-	public DA<BitSet,? extends AcceptanceOmega> constructDAForLTLFormula(ProbModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS, AcceptanceType... allowedAcceptance) throws PrismException
+	public DA<BitSet,? extends AcceptanceOmega> constructDAForLTLFormula(ProbModelChecker mc, Model<?> model, Expression expr, Vector<BitSet> labelBS, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		Expression ltl;
 		DA<BitSet,? extends AcceptanceOmega> da;
@@ -281,7 +281,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param labelBS empty vector to be filled with BitSets for subformulas
 	 * @return a DA with AcceptanceReach acceptance condition
 	 */
-	public DA<BitSet, AcceptanceReach> constructDFAForCosafetyProbLTL(StateModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
+	public DA<BitSet, AcceptanceReach> constructDFAForCosafetyProbLTL(StateModelChecker mc, Model<?> model, Expression expr, Vector<BitSet> labelBS) throws PrismException
 	{
 		// Model check maximal state formulas
 		Expression ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
@@ -320,7 +320,7 @@ public class LTLModelChecker extends PrismComponent
  	 * @param labelBS empty vector to be filled with BitSets for subformulas
 	 * @return a DA with AcceptanceReach acceptance condition
 	 */
-	public DA<BitSet, AcceptanceReach> constructDFAForCosafetyRewardLTL(StateModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
+	public DA<BitSet, AcceptanceReach> constructDFAForCosafetyRewardLTL(StateModelChecker mc, Model<?> model, Expression expr, Vector<BitSet> labelBS) throws PrismException
 	{
 		// Model check maximal state formulas
 		Expression ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
@@ -362,7 +362,7 @@ public class LTLModelChecker extends PrismComponent
  	 * @param allowedAcceptance the allowed acceptance types
 	 * @return the product with the DA
 	 */
-	public LTLProduct<DTMC> constructProductMC(ProbModelChecker mc, DTMC model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	public <Value> LTLProduct<DTMC<Value>> constructProductMC(ProbModelChecker mc, DTMC<Value> model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		return constructDAProductForLTLFormula(mc, model, expr, statesOfInterest, allowedAcceptance);
 	}
@@ -379,7 +379,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public LTLProduct<MDP> constructProductMDP(ProbModelChecker mc, MDP model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	public <Value> LTLProduct<MDP<Value>> constructProductMDP(ProbModelChecker mc, MDP<Value> model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		return constructDAProductForLTLFormula(mc, model, expr, statesOfInterest, allowedAcceptance);
 	}
@@ -396,7 +396,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public LTLProduct<STPG> constructProductSTPG(ProbModelChecker mc, STPG model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	public <Value> LTLProduct<STPG<Value>> constructProductSTPG(ProbModelChecker mc, STPG<Value> model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		return constructDAProductForLTLFormula(mc, model, expr, statesOfInterest, allowedAcceptance);
 	}
@@ -414,7 +414,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public <M extends Model> LTLProduct<M> constructDAProductForLTLFormula(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	public <Value,M extends Model<Value>> LTLProduct<M> constructDAProductForLTLFormula(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		// Convert LTL formula to automaton
 		Vector<BitSet> labelBS = new Vector<BitSet>();
@@ -443,7 +443,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public <M extends Model> LTLProduct<M> constructDFAProductForCosafetyProbLTL(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest) throws PrismException
+	public <Value,M extends Model<Value>> LTLProduct<M> constructDFAProductForCosafetyProbLTL(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest) throws PrismException
 	{
 		// Convert LTL formula to DFA
 		Vector<BitSet> labelBS = new Vector<BitSet>();
@@ -472,7 +472,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public <M extends Model> LTLProduct<M> constructDFAProductForCosafetyReward(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest) throws PrismException
+	public <Value,M extends Model<Value>> LTLProduct<M> constructDFAProductForCosafetyReward(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest) throws PrismException
 	{
 		// Convert LTL formula to DFA, with the special
 		// handling needed for cosafety reward translation
@@ -497,7 +497,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product model
 	 */
-	 public <M extends Model> LTLProduct<M> constructProductModel(DA<BitSet,? extends AcceptanceOmega> da, M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	 public <Value,M extends Model<Value>> LTLProduct<M> constructProductModel(DA<BitSet,? extends AcceptanceOmega> da, M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
 		ModelType modelType = model.getModelType();
 		int daSize = da.size();
@@ -531,22 +531,22 @@ public class LTLModelChecker extends PrismComponent
 		}
 
 		// Create a (simple, mutable) model of the appropriate type
-		ModelSimple prodModel = null;
+		ModelSimple<Value> prodModel = null;
 		switch (modelType) {
 		case DTMC: {
-			DTMCSimple dtmcProd = new DTMCSimple();
+			DTMCSimple<Value> dtmcProd = new DTMCSimple<>();
 			dtmcProd.setVarList(newVarList);
 			prodModel = dtmcProd;
 			break;
 		}
 		case MDP: {
-			MDPSimple mdpProd = new MDPSimple();
+			MDPSimple<Value> mdpProd = new MDPSimple<>();
 			mdpProd.setVarList(newVarList);
 			prodModel = mdpProd;
 			break;
 		}
 		case STPG: {
-			STPGSimple stpgProd = new STPGSimple();
+			STPGSimple<Value> stpgProd = new STPGSimple<>();
 			stpgProd.setVarList(newVarList);
 			prodModel = stpgProd;
 			break;
@@ -592,7 +592,7 @@ public class LTLModelChecker extends PrismComponent
 			queue.add(new Point(s_0, q_0));
 			switch (modelType) {
 			case STPG:
-				((STPGSimple) prodModel).addState(((STPG) model).getPlayer(s_0));
+				((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_0));
 				break;
 			default:
 				prodModel.addState();
@@ -602,7 +602,7 @@ public class LTLModelChecker extends PrismComponent
 			map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
 			if (prodStatesList != null) {
 				// Store state information for the product
-				prodStatesList.add(new State(daStatesList.get(q_0), model.getStatesList().get(s_0)));
+				prodStatesList.add(new State(daStatesList.get(q_0), (State) model.getStatesList().get(s_0)));
 			}
 		}
 
@@ -615,30 +615,30 @@ public class LTLModelChecker extends PrismComponent
 			visited.set(s_1 * daSize + q_1);
 
 			// Go through transitions from state s_1 in original model
-			int numChoices = (model instanceof NondetModel) ? ((NondetModel) model).getNumChoices(s_1) : 1;
+			int numChoices = (model instanceof NondetModel) ? ((NondetModel<Value>) model).getNumChoices(s_1) : 1;
 			for (int j = 0; j < numChoices; j++) {
-				Iterator<Map.Entry<Integer, Double>> iter;
+				Iterator<Map.Entry<Integer, Value>> iter;
 				switch (modelType) {
 				case DTMC:
-					iter = ((DTMC) model).getTransitionsIterator(s_1);
+					iter = ((DTMC<Value>) model).getTransitionsIterator(s_1);
 					break;
 				case MDP:
-					iter = ((MDP) model).getTransitionsIterator(s_1, j);
+					iter = ((MDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
 				case STPG:
-					iter = ((STPG) model).getTransitionsIterator(s_1, j);
+					iter = ((STPG<Value>) model).getTransitionsIterator(s_1, j);
 					break;
 				default:
 					throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
 				}
-				Distribution prodDistr = null;
+				Distribution<Value> prodDistr = null;
 				if (modelType.nondeterministic()) {
-					prodDistr = new Distribution();
+					prodDistr = new Distribution<>(model.getEvaluator());
 				}
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
+					Map.Entry<Integer, Value> e = iter.next();
 					s_2 = e.getKey();
-					double prob = e.getValue();
+					Value prob = e.getValue();
 					// Get BitSet representing APs (labels) satisfied by successor state s_2
 					for (int k = 0; k < numAPs; k++) {
 						s_labels.set(k, labelBS.get(Integer.parseInt(da.getAPList().get(k).substring(1))).get(s_2));
@@ -653,7 +653,7 @@ public class LTLModelChecker extends PrismComponent
 						queue.add(new Point(s_2, q_2));
 						switch (modelType) {
 						case STPG:
-							((STPGSimple) prodModel).addState(((STPG) model).getPlayer(s_2));
+							((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_2));
 							break;
 						default:
 							prodModel.addState();
@@ -667,7 +667,7 @@ public class LTLModelChecker extends PrismComponent
 					}
 					switch (modelType) {
 					case DTMC:
-						((DTMCSimple) prodModel).setProbability(map[s_1 * daSize + q_1], map[s_2 * daSize + q_2], prob);
+						((DTMCSimple<Value>) prodModel).setProbability(map[s_1 * daSize + q_1], map[s_2 * daSize + q_2], prob);
 						break;
 					case MDP:
 					case STPG:
@@ -679,10 +679,10 @@ public class LTLModelChecker extends PrismComponent
 				}
 				switch (modelType) {
 				case MDP:
-					((MDPSimple) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((MDP) model).getAction(s_1, j));
+					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((MDP<Value>) model).getAction(s_1, j));
 					break;
 				case STPG:
-					((STPGSimple) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((STPG) model).getAction(s_1, j));
+					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((STPG<Value>) model).getAction(s_1, j));
 					break;
 				default:
 					break;
@@ -724,7 +724,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param acceptance The acceptance condition
 	 */
-	public BitSet findAcceptingBSCCs(Model model, AcceptanceOmega acceptance) throws PrismException
+	public BitSet findAcceptingBSCCs(Model<?> model, AcceptanceOmega acceptance) throws PrismException
 	{
 		// Compute bottom strongly connected components (BSCCs)
 		SCCConsumerStore sccStore = new SCCConsumerStore();
@@ -751,7 +751,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param acceptance the acceptance condition
 	 * @return BitSet with the set of states that are accepting
 	 */
-	public BitSet findAcceptingECStates(NondetModel model, AcceptanceOmega acceptance) throws PrismException
+	public BitSet findAcceptingECStates(NondetModel<?> model, AcceptanceOmega acceptance) throws PrismException
 	{
 		if (acceptance instanceof AcceptanceBuchi) {
 			return findAcceptingECStatesForBuchi(model, (AcceptanceBuchi) acceptance);
@@ -770,7 +770,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param acceptance The acceptance condition
 	 */
-	public BitSet findAcceptingECStatesForBuchi(NondetModel model, AcceptanceBuchi acceptance) throws PrismException
+	public BitSet findAcceptingECStatesForBuchi(NondetModel<?> model, AcceptanceBuchi acceptance) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 
@@ -797,7 +797,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param acceptance The acceptance condition
 	 */
-	public BitSet findAcceptingECStatesForRabin(NondetModel model, AcceptanceRabin acceptance) throws PrismException
+	public BitSet findAcceptingECStatesForRabin(NondetModel<?> model, AcceptanceRabin acceptance) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 		int numStates = model.getNumStates();
@@ -833,7 +833,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param acceptance The Streett acceptance condition
 	 */
-	public BitSet findAcceptingECStatesForStreett(NondetModel model, AcceptanceStreett acceptance) throws PrismException
+	public BitSet findAcceptingECStatesForStreett(NondetModel<?> model, AcceptanceStreett acceptance) throws PrismException
 	{
 		class ECandPairs {
 			BitSet MEC;
@@ -900,7 +900,7 @@ public class LTLModelChecker extends PrismComponent
 	 * @param model The model
 	 * @param acceptance The acceptance condition
 	 */
-	public BitSet findAcceptingECStatesForGeneralizedRabin(NondetModel model, AcceptanceGenRabin acceptance) throws PrismException
+	public BitSet findAcceptingECStatesForGeneralizedRabin(NondetModel<?> model, AcceptanceGenRabin acceptance) throws PrismException
 	{
 		BitSet allAcceptingStates = new BitSet();
 		int numStates = model.getNumStates();

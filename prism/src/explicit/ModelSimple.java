@@ -35,7 +35,7 @@ import prism.PrismException;
 /**
  * Interface for simple mutable explicit-state model representations.
  */
-public interface ModelSimple extends Model
+public interface ModelSimple<Value> extends Model<Value>
 {
 	/**
 	 * Add a state to the list of initial states.

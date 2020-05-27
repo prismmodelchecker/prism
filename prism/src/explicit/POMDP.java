@@ -45,7 +45,7 @@ import prism.PrismUtils;
  * that these actions appear in the same order (in terms of choice indexing)
  * in each observationally equivalent state.
  */
-public interface POMDP extends MDP, PartiallyObservableModel
+public interface POMDP<Value> extends MDP<Value>, PartiallyObservableModel<Value>
 {
 	// Accessors (for Model) - default implementations
 	
@@ -61,20 +61,20 @@ public interface POMDP extends MDP, PartiallyObservableModel
 		// Output transitions to .tra file
 		int numStates = getNumStates();
 		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + " " + getNumObservations() + "\n");
-		TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
+		TreeMap<Integer, Value> sorted = new TreeMap<Integer, Value>();
 		for (int i = 0; i < numStates; i++) {
 			int numChoices = getNumChoices(i);
 			for (int j = 0; j < numChoices; j++) {
 				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+				Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i, j);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
+					Map.Entry<Integer, Value> e = iter.next();
 					sorted.put(e.getKey(), e.getValue());
 				}
 				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+				for (Map.Entry<Integer, Value> e : sorted.entrySet()) {
 					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()) + " " + getObservation(e.getKey()));
+					out.print(i + " " + j + " " + e.getKey() + " " + getEvaluator().toStringExport(e.getValue(), precision) + " " + getObservation(e.getKey()));
 					Object action = getAction(i, j);
 					out.print(action == null ? "\n" : (" " + action + "\n"));
 				}
@@ -176,12 +176,12 @@ public interface POMDP extends MDP, PartiallyObservableModel
 	 * Get the expected (state and transition) reward value when taking the
 	 * {@code i}th choice from belief state {@code belief}.
 	 */
-	public double getRewardAfterChoice(Belief belief, int i, MDPRewards mdpRewards);
+	public double getRewardAfterChoice(Belief belief, int i, MDPRewards<Double> mdpRewards);
 
 	/**
 	 * Get the expected (state and transition) reward value when taking the
 	 * {@code i}th choice from belief state {@code belief}.
 	 * The belief state is given as an array of probabilities over all states.
 	 */
-	public double getRewardAfterChoice(double[] belief, int i, MDPRewards mdpRewards);
+	public double getRewardAfterChoice(double[] belief, int i, MDPRewards<Double> mdpRewards);
 }

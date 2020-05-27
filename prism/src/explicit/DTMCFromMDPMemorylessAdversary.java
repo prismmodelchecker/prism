@@ -45,17 +45,17 @@ import explicit.rewards.MCRewards;
  * from an MDP and a memoryless adversary, specified as an array of integer indices.
  * This class is read-only: most of data is pointers to other model info.
  */
-public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
+public class DTMCFromMDPMemorylessAdversary<Value> extends DTMCExplicit<Value>
 {
 	// Parent MDP
-	protected MDP mdp;
+	protected MDP<Value> mdp;
 	// Adversary (array of choice indices; -1 denotes no choice)
 	protected int adv[];
 
 	/**
 	 * Constructor: create from MDP and memoryless adversary.
 	 */
-	public DTMCFromMDPMemorylessAdversary(MDP mdp, int adv[])
+	public DTMCFromMDPMemorylessAdversary(MDP<Value> mdp, int adv[])
 	{
 		this.mdp = mdp;
 		this.numStates = mdp.getNumStates();
@@ -148,25 +148,25 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	// Accessors (for DTMC)
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s)
 	{
 		if (adv[s] >= 0) {
 			return mdp.getTransitionsIterator(s, adv[s]);
 		} else {
 			// Empty iterator
-			return Collections.<Entry<Integer,Double>>emptyIterator(); 
+			return Collections.<Entry<Integer,Value>>emptyIterator(); 
 		}
 	}
 
 	@Override
-	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
+	public Iterator<Entry<Integer, Pair<Value, Object>>> getTransitionsAndActionsIterator(int s)
 	{
 		if (adv[s] >= 0) {
-			final Iterator<Entry<Integer, Double>> transitions = mdp.getTransitionsIterator(s, adv[s]);
+			final Iterator<Entry<Integer, Value>> transitions = mdp.getTransitionsIterator(s, adv[s]);
 			return Reducible.extend(transitions).map(transition -> DTMC.attachAction(transition, mdp.getAction(s, adv[s])));
 		} else {
 			// Empty iterator
-			return Collections.<Entry<Integer,Pair<Double, Object>>>emptyIterator(); 
+			return Collections.<Entry<Integer,Pair<Value, Object>>>emptyIterator(); 
 		}
 	}
 
@@ -183,7 +183,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	}
 
 	@Override
-	public double mvMultRewSingle(int s, double vect[], MCRewards mcRewards)
+	public double mvMultRewSingle(int s, double vect[], MCRewards<Double> mcRewards)
 	{
 		return adv[s] >= 0 ? mdp.mvMultRewSingle(s, adv[s], vect, mcRewards) : 0;
 	}

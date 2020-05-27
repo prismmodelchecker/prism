@@ -1,9 +1,8 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-
+//	Copyright (c) 2020-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
-//	* Christian von Essen <christian.vonessen@imag.fr> (Verimag, Grenoble)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,20 +24,34 @@
 //	
 //==============================================================================
 
-package explicit;
+package explicit.rewards;
 
-import strat.MDStrategy;
+import prism.Evaluator;
 
 /**
- * Base class for explicit-state representations of an MDP.
+ * Base class for reward classes.
  */
-public abstract class MDPExplicit<Value> extends ModelExplicit<Value> implements MDP<Value>
+public abstract class RewardsExplicit<Value> implements Rewards<Value>
 {
-	// Accessors (for MDP)
+	/** Evaluator for manipulating reward values stored here (of type {@code Value}) */
+	@SuppressWarnings("unchecked")
+	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.createForDoubles();
+
+	// Mutators
+
+	/**
+	 * Set the {@link Evaluator} object for manipulating reward values
+	 */
+	public void setEvaluator(Evaluator<Value> eval)
+	{
+		this.eval = eval;
+	}
+
+	// Accessors
 
 	@Override
-	public Model<Value> constructInducedModel(MDStrategy strat)
+	public Evaluator<Value> getEvaluator()
 	{
-		return new DTMCFromMDPAndMDStrategy<Value>(this, strat);
+		return eval;
 	}
 }

@@ -29,13 +29,16 @@ package strat;
 import java.util.Objects;
 
 import explicit.DistributionOver;
+import prism.Evaluator;
 import simulator.RandomNumberGenerator;
 
 /**
  * Super-interface for Strategy and StrategyGenerator interfaces.
  * Constants, enums and methods for basic information about strategies. 
+ * This is a generic class where {@code Value} is the type of
+ * probabilities when the strategy is randomised.
  */
-public interface StrategyInfo
+public interface StrategyInfo<Value>
 {
 	// Constants / enums
 	
@@ -88,12 +91,12 @@ public interface StrategyInfo
 	 * @param act The action to check
 	 */
 	@SuppressWarnings("unchecked")
-	public default double getChoiceActionProbability(Object decision, Object act)
+	public default Value getChoiceActionProbability(Object decision, Object act)
 	{
 		if (decision instanceof DistributionOver) {
-			return ((DistributionOver<Object>) decision).getProbability(act);
+			return ((DistributionOver<Value,Object>) decision).getProbability(act);
 		} else {
-			return Objects.equals(act, decision) ? 1.0 : 0.0;
+			return Objects.equals(act, decision) ? getEvaluator().one() : getEvaluator().zero();
 		}
 	}
 	
@@ -110,7 +113,8 @@ public interface StrategyInfo
 	{
 		if (decision instanceof DistributionOver) {
 			// Randomised strategy: check positive probability
-			return ((DistributionOver<Object>) decision).getProbability(act) > 0;
+			Value prob = ((DistributionOver<Value,Object>) decision).getProbability(act);
+			return getEvaluator().gt(prob, getEvaluator().zero());
 		} else {
 			// Deterministic strategy: check equality (including nulls)
 			return Objects.equals(act, decision);
@@ -135,10 +139,20 @@ public interface StrategyInfo
 		}
 		if (decision instanceof DistributionOver) {
 			// Randomised strategy: sample from distribution
-			return ((DistributionOver<Object>) decision).sample(rng);
+			return ((DistributionOver<Value,Object>) decision).sample(rng);
 		} else {
 			// Deterministic strategy: return unique action choice
 			return decision;
 		}
 	}
+	
+	/**
+	 * Get an Evaluator for the probability values returned when this strategy is randomised.
+	 * By default, this is an evaluator for the (usual) case when Value is Double.
+	 */
+	@SuppressWarnings("unchecked")
+	public default Evaluator<Value> getEvaluator()
+	{
+		return (Evaluator<Value>) Evaluator.createForDoubles();
+	}	
 }

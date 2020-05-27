@@ -36,7 +36,7 @@ import prism.PrismLog;
 /**
  * Interface for classes that provide (read) access to an explicit-state labelled transition system (LTS).
  */
-public interface LTS extends NondetModel
+public interface LTS<Value> extends NondetModel<Value>
 {
 	// Accessors (for Model) - default implementations
 	

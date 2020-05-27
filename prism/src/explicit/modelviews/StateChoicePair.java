@@ -1,9 +1,9 @@
 //==============================================================================
 //	
-//	Copyright (c) 2002-
+//	Copyright (c) 2016-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
-//	* Christian von Essen <christian.vonessen@imag.fr> (Verimag, Grenoble)
+//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,20 +25,26 @@
 //	
 //==============================================================================
 
-package explicit;
+package explicit.modelviews;
 
-import strat.MDStrategy;
-
-/**
- * Base class for explicit-state representations of an MDP.
- */
-public abstract class MDPExplicit<Value> extends ModelExplicit<Value> implements MDP<Value>
+public class StateChoicePair
 {
-	// Accessors (for MDP)
+	final int state;
+	final int choice;
 
-	@Override
-	public Model<Value> constructInducedModel(MDStrategy strat)
+	protected StateChoicePair(final int theState, final int theChoice)
 	{
-		return new DTMCFromMDPAndMDStrategy<Value>(this, strat);
+		state = theState;
+		choice = theChoice;
+	}
+
+	public int getState()
+	{
+		return state;
+	}
+
+	public int getChoice()
+	{
+		return choice;
 	}
 }

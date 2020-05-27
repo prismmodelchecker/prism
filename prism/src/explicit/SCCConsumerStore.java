@@ -47,7 +47,7 @@ public class SCCConsumerStore extends SCCConsumerBitSet {
 	/** Is the SCC computation finished? */
 	private boolean finished = false;
 
-	private Model model;
+	private Model<?> model;
 
 	/** Constructor */
 	public SCCConsumerStore()
@@ -56,7 +56,7 @@ public class SCCConsumerStore extends SCCConsumerBitSet {
 	}
 
 	@Override
-	public void notifyStart(Model model)
+	public void notifyStart(Model<?> model)
 	{
 		this.model = model;
 	}

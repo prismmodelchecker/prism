@@ -82,8 +82,8 @@ public class DijkstraSweepMPI {
 	}
 
 	private static boolean debug = false;
-	private MDP mdp;
-	private MDPRewards rewards;
+	private MDP<Double> mdp;
+	private MDPRewards<Double> rewards;
 	private PriorityQueue<QueueEntry> queue;
 	private double[] pState;
 	private double[] wState;
@@ -95,7 +95,7 @@ public class DijkstraSweepMPI {
 	private IncomingChoiceRelation incoming;
 	private double lambda;
 
-	private DijkstraSweepMPI(PrismComponent parent, MDP mdp, MDPRewards rewards, BitSet target, BitSet unknown)
+	private DijkstraSweepMPI(PrismComponent parent, MDP<Double> mdp, MDPRewards<Double> rewards, BitSet target, BitSet unknown)
 	{
 		this.mdp = mdp;
 		this.unknown = unknown;
@@ -197,14 +197,14 @@ public class DijkstraSweepMPI {
 	{
 		double w_x = wState[x];
 		// compute P^a_yx * w(x)
-		double Pw = mdp.sumOverTransitions(choice.getState(), choice.getChoice(), (int s, int t, double p) -> {
+		double Pw = mdp.sumOverDoubleTransitions(choice.getState(), choice.getChoice(), (int s, int t, double p) -> {
 			if (t != x) return 0.0;
 			return p * w_x;
 		});
 
 		double p_x = pState[x];
 		// compute P^a_yx * p_g(x)
-		double Pp = mdp.sumOverTransitions(choice.getState(), choice.getChoice(), (int s, int t, double p) -> {
+		double Pp = mdp.sumOverDoubleTransitions(choice.getState(), choice.getChoice(), (int s, int t, double p) -> {
 			if (t != x) return 0.0;
 			return p * p_x;
 		});
@@ -225,7 +225,7 @@ public class DijkstraSweepMPI {
 	private void update(Choice choice, BitSet target)
 	{
 		// compute P^a_y->target
-		double Pp = mdp.sumOverTransitions(choice.getState(), choice.getChoice(), (int s, int t, double p) -> {
+		double Pp = mdp.sumOverDoubleTransitions(choice.getState(), choice.getChoice(), (int s, int t, double p) -> {
 			if (target.get(t)) return p;
 			return 0.0;
 		});
@@ -250,19 +250,19 @@ public class DijkstraSweepMPI {
 			double lambda_x_a = Double.POSITIVE_INFINITY;
 
 			// check condition (I)
-			double I_sum = mdp.sumOverTransitions(x, a, (int s, int t, double p) -> {
+			double I_sum = mdp.sumOverDoubleTransitions(x, a, (int s, int t, double p) -> {
 				return p * pState[t];
 			});
 
 			if (pState[x] < I_sum) {
 				// condition (I) holds
 				double den = rewards.getStateReward(x) + rewards.getTransitionReward(x, a); // c(x,a)
-				den += mdp.sumOverTransitions(x, a, (int s, int t, double p) -> {
+				den += mdp.sumOverDoubleTransitions(x, a, (int s, int t, double p) -> {
 					return p * wState[t];
 				});
 				den -= wState[x];
 
-				double num = mdp.sumOverTransitions(x, a, (int s, int t, double p) -> {
+				double num = mdp.sumOverDoubleTransitions(x, a, (int s, int t, double p) -> {
 					return p * pState[t];
 				});
 				num -= pState[x];
@@ -279,7 +279,7 @@ public class DijkstraSweepMPI {
 		return lambda;
 	}
 
-	public static double[] computeUpperBounds(PrismComponent parent, MDP mdp, MDPRewards rewards, BitSet target, BitSet unknown)
+	public static double[] computeUpperBounds(PrismComponent parent, MDP<Double> mdp, MDPRewards<Double> rewards, BitSet target, BitSet unknown)
 	{
 		StopWatch timer = new StopWatch(parent.getLog());
 		timer.start("computing upper bound(s) for Rmin using the DSI-MP algorithm");
@@ -300,7 +300,7 @@ public class DijkstraSweepMPI {
 		return upperBounds;
 	}
 
-	public static double computeUpperBound(PrismComponent parent, MDP mdp, MDPRewards rewards, BitSet target, BitSet unknown)
+	public static double computeUpperBound(PrismComponent parent, MDP<Double> mdp, MDPRewards<Double> rewards, BitSet target, BitSet unknown)
 	{
 		double bound = 0.0;
 		final double[] upperBounds = computeUpperBounds(parent, mdp, rewards, target, unknown);

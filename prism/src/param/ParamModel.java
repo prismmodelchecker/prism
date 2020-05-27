@@ -34,7 +34,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import explicit.MDPGeneric;
+import explicit.MDP;
 import explicit.Model;
 import explicit.ModelExplicit;
 import explicit.SuccessorsIterator;
@@ -52,7 +52,7 @@ import strat.MDStrategy;
  * This turned out the be the most convenient way to implement model checking
  * for parametric models.
  */
-public final class ParamModel extends ModelExplicit implements MDPGeneric<Function>
+public final class ParamModel extends ModelExplicit<Function> implements MDP<Function>
 {
 	/** total number of nondeterministic choices over all states */
 	private int numTotalChoices;
@@ -378,7 +378,7 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 	}
 
 	@Override
-	public Model constructInducedModel(MDStrategy strat)
+	public Model<Function> constructInducedModel(MDStrategy strat)
 	{
 		throw new UnsupportedOperationException();
 	}

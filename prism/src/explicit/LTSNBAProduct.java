@@ -48,7 +48,7 @@ import jltl2dstar.NBA_State;
  * by getSuccessorsIterator()) and a non-deterministic
  * Büchi automaton (NBA).
  */
-public class LTSNBAProduct extends Product<Model>
+public class LTSNBAProduct extends Product<Model<?>>
 {
 	/** A product state */
 	private static class ProductState {

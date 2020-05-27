@@ -54,10 +54,10 @@ import strat.MDStrategy;
  * states, i.e. they don't count for statistics and player 1 states are treated
  * as successors of each other.
  */
-public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelSimple
+public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG<Value>, NondetModelSimple<Value>
 {
 	// Transition function (Steps)
-	protected List<ArrayList<DistributionSet>> trans;
+	protected List<ArrayList<DistributionSet<Value>>> trans;
 
 	// Flag: allow dupes in distribution sets?
 	public boolean allowDupes = false;
@@ -89,9 +89,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	 * Constructor: build an STPG from an MDP.
 	 * Data is copied directly from the MDP so take a copy first if you plan to keep/modify the MDP.
 	 */
-	public STPGAbstrSimple(MDPSimple m)
+	public STPGAbstrSimple(MDPSimple<Value> m)
 	{
-		DistributionSet set;
+		DistributionSet<Value> set;
 		int i;
 		// TODO: actions?
 		initialise(m.getNumStates());
@@ -111,9 +111,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		super.initialise(numStates);
 		numDistrSets = numDistrs = numTransitions = 0;
 		maxNumDistrSets = maxNumDistrs = 0;
-		trans = new ArrayList<ArrayList<DistributionSet>>(numStates);
+		trans = new ArrayList<ArrayList<DistributionSet<Value>>>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			trans.add(new ArrayList<DistributionSet>());
+			trans.add(new ArrayList<>());
 		}
 	}
 
@@ -124,17 +124,17 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		if (i >= numStates || i < 0)
 			return;
 		// Clear data structures and update stats
-		List<DistributionSet> list = trans.get(i);
+		List<DistributionSet<Value>> list = trans.get(i);
 		numDistrSets -= list.size();
-		for (DistributionSet set : list) {
+		for (DistributionSet<Value> set : list) {
 			numDistrs -= set.size();
-			for (Distribution distr : set)
+			for (Distribution<Value> distr : set)
 				numTransitions -= distr.size();
 		}
 		//TODO: recompute maxNumDistrSets
 		//TODO: recompute maxNumDistrs
 		// Remove all distribution sets
-		trans.set(i, new ArrayList<DistributionSet>(0));
+		trans.set(i, new ArrayList<>(0));
 	}
 
 	@Override
@@ -148,7 +148,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	public void addStates(int numToAdd)
 	{
 		for (int i = 0; i < numToAdd; i++) {
-			trans.add(new ArrayList<DistributionSet>());
+			trans.add(new ArrayList<>());
 		}
 		numStates += numToAdd;
 	}
@@ -157,11 +157,10 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
 		BufferedReader in;
-		Distribution distr;
-		DistributionSet distrs;
+		Distribution<Value> distr;
+		DistributionSet<Value> distrs;
 		String s, ss[];
 		int i, j, k1, k2, iLast, k1Last, k2Last, n, lineNum = 0;
-		double prob;
 
 		try {
 			// Open file
@@ -193,14 +192,14 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 					k1 = Integer.parseInt(ss[1]);
 					k2 = Integer.parseInt(ss[2]);
 					j = Integer.parseInt(ss[3]);
-					prob = Double.parseDouble(ss[4]);
+					Value prob = getEvaluator().fromString(ss[4]);
 					// For a new state or distribution set or distribution
 					if (i != iLast || k1 != k1Last || k2 != k2Last) {
 						// Add any previous distribution to the last set, create new one
 						if (distrs != null) {
 							distrs.add(distr);
 						}
-						distr = new Distribution();
+						distr = new Distribution<>(getEvaluator());
 						// Only for a new state or distribution set...
 						if (i != iLast || k1 != k1Last) {
 							// Add any previous distribution set to the last state, create new one
@@ -241,9 +240,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	 * i.e. a data structure consistent with the internals of the this class.
 	 * An optional action label (any Object type) can be specified; null if not needed.
 	 */
-	public DistributionSet newDistributionSet(Object action)
+	public DistributionSet<Value> newDistributionSet(Object action)
 	{
-		return new DistributionSet(action);
+		return new DistributionSet<>(action);
 	}
 
 	/**
@@ -253,9 +252,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	 * Returns the index of the (existing or newly added) set.
 	 * Returns -1 in case of error.
 	 */
-	public int addDistributionSet(int s, DistributionSet newSet)
+	public int addDistributionSet(int s, DistributionSet<Value> newSet)
 	{
-		ArrayList<DistributionSet> set;
+		ArrayList<DistributionSet<Value>> set;
 		// Check state exists
 		if (s >= numStates || s < 0)
 			return -1;
@@ -272,7 +271,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		maxNumDistrSets = Math.max(maxNumDistrSets, set.size());
 		numDistrs += newSet.size();
 		maxNumDistrs = Math.max(maxNumDistrs, newSet.size());
-		for (Distribution distr : newSet)
+		for (Distribution<Value> distr : newSet)
 			numTransitions += distr.size();
 		return set.size() - 1;
 	}
@@ -291,8 +290,8 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		// Need to build set to avoid duplicates
 		// So not necessarily the fastest method to access successors
 		HashSet<Integer> succs = new HashSet<Integer>();
-		for (DistributionSet distrs : trans.get(s)) {
-			for (Distribution distr : distrs) {
+		for (DistributionSet<Value> distrs : trans.get(s)) {
+			for (Distribution<Value> distr : distrs) {
 				succs.addAll(distr.getSupport());
 			}
 		}
@@ -302,8 +301,8 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
-		for (DistributionSet distrs : trans.get(s1)) {
-			for (Distribution distr : distrs) {
+		for (DistributionSet<Value> distrs : trans.get(s1)) {
+			for (Distribution<Value> distr : distrs) {
 				if (distr.contains(s2))
 					return true;
 			}
@@ -314,8 +313,8 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	@Override
 	public boolean allSuccessorsInSet(int s, BitSet set)
 	{
-		for (DistributionSet distrs : trans.get(s)) {
-			for (Distribution distr : distrs) {
+		for (DistributionSet<Value> distrs : trans.get(s)) {
+			for (Distribution<Value> distr : distrs) {
 				if (!distr.isSubsetOf(set))
 					return false;
 			}
@@ -326,8 +325,8 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	@Override
 	public boolean someSuccessorsInSet(int s, BitSet set)
 	{
-		for (DistributionSet distrs : trans.get(s)) {
-			for (Distribution distr : distrs) {
+		for (DistributionSet<Value> distrs : trans.get(s)) {
+			for (Distribution<Value> distr : distrs) {
 				if (distr.isSubsetOf(set))
 					return true;
 			}
@@ -343,9 +342,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			if (trans.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix) {
-					DistributionSet distrs = newDistributionSet(null);
-					Distribution distr = new Distribution();
-					distr.add(i, 1.0);
+					DistributionSet<Value> distrs = newDistributionSet(null);
+					Distribution<Value> distr = new Distribution<>(getEvaluator());
+					distr.add(i, getEvaluator().one());
 					distrs.add(distr);
 					addDistributionSet(i, distrs);
 				}
@@ -369,19 +368,19 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		// Custom dot format for game abstractions
 		// We ignore decorators for the moment
 		int j = -1;
-		for (DistributionSet distrs : trans.get(i)) {
+		for (DistributionSet<Value> distrs : trans.get(i)) {
 			j++;
 			String nij = "n" + i + "_" + j;
 			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
 			out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
 			int k = -1;
-			for (Distribution distr : distrs) {
+			for (Distribution<Value> distr : distrs) {
 				k++;
 				String nijk = "n" + i + "_" + j + "_" + k;
 				out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
 				out.print(nijk + " [ shape=point,label=\"\" ];\n");
-				for (Map.Entry<Integer, Double> e : distr) {
-					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + PrismUtils.formatDouble(precision, e.getValue()) + "\" ];\n");
+				for (Map.Entry<Integer, Value> e : distr) {
+					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + getEvaluator().toStringExport(e.getValue(), precision) + "\" ];\n");
 				}
 			}
 		}
@@ -461,7 +460,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	public SuccessorsIterator getSuccessors(final int s, final int i)
 	{
 		return SuccessorsIterator.chain(new Iterator<SuccessorsIterator>() {
-			private Iterator<Distribution> iterator = trans.get(s).get(i).iterator();
+			private Iterator<Distribution<Value>> iterator = trans.get(s).get(i).iterator();
 
 			@Override
 			public boolean hasNext()
@@ -472,7 +471,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			@Override
 			public SuccessorsIterator next()
 			{
-				Distribution dist = iterator.next();
+				Distribution<Value> dist = iterator.next();
 				return SuccessorsIterator.from(dist.getSupport().iterator(), true);
 			}
 		});
@@ -495,14 +494,14 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s, int i)
 	{
 		// All choices are nested
 		return null;
 	}
 
 	@Override
-	public Model constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy strat)
 	{
 		throw new RuntimeException("Not implemented");
 	}
@@ -529,9 +528,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	@Override
 	public int getNumNestedTransitions(int s, int i, int j)
 	{
-		DistributionSet ds = trans.get(s).get(i);
-		Iterator<Distribution> iter = ds.iterator();
-		Distribution distr = null;
+		DistributionSet<Value> ds = trans.get(s).get(i);
+		Iterator<Distribution<Value>> iter = ds.iterator();
+		Distribution<Value> distr = null;
 		int k = 0;
 		while (iter.hasNext() && k <= j) {
 			distr = iter.next();
@@ -544,11 +543,11 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getNestedTransitionsIterator(int s, int i, int j)
+	public Iterator<Entry<Integer, Value>> getNestedTransitionsIterator(int s, int i, int j)
 	{
-		DistributionSet ds = trans.get(s).get(i);
-		Iterator<Distribution> iter = ds.iterator();
-		Distribution distr = null;
+		DistributionSet<Value> ds = trans.get(s).get(i);
+		Iterator<Distribution<Value>> iter = ds.iterator();
+		Distribution<Value> distr = null;
 		int k = 0;
 		while (iter.hasNext() && k <= j) {
 			distr = iter.next();
@@ -566,9 +565,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		boolean b1, b2, b3;
 		for (int i : new IterableStateSet(subset, numStates)) {
 			b1 = forall1; // there exists or for all player 1 choices
-			for (DistributionSet distrs : trans.get(i)) {
+			for (DistributionSet<Value> distrs : trans.get(i)) {
 				b2 = forall2; // there exists or for all player 2 choices
-				for (Distribution distr : distrs) {
+				for (Distribution<Value> distr : distrs) {
 					b3 = distr.containsOneOf(u);
 					if (forall2) {
 						if (!b3)
@@ -596,9 +595,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		boolean b1, b2, b3;
 		for (int i : new IterableStateSet(subset, numStates)) {
 			b1 = forall1; // there exists or for all player 1 choices
-			for (DistributionSet distrs : trans.get(i)) {
+			for (DistributionSet<Value> distrs : trans.get(i)) {
 				b2 = forall2; // there exists or for all player 2 choices
-				for (Distribution distr : distrs) {
+				for (Distribution<Value> distr : distrs) {
 					b3 = distr.containsOneOf(v) && distr.isSubsetOf(u);
 					if (forall2) {
 						if (!b3)
@@ -634,20 +633,20 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		int k;
 		double d, prob, minmax1, minmax2;
 		boolean first1, first2;
-		ArrayList<DistributionSet> step;
+		ArrayList<DistributionSet<Value>> step;
 
 		minmax1 = 0;
 		first1 = true;
 		step = trans.get(s);
-		for (DistributionSet distrs : step) {
+		for (DistributionSet<Value> distrs : step) {
 			minmax2 = 0;
 			first2 = true;
-			for (Distribution distr : distrs) {
+			for (Distribution<Value> distr : distrs) {
 				// Compute sum for this distribution
 				d = 0.0;
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
+				for (Map.Entry<Integer, Value> e : distr) {
+					k = e.getKey();
+					prob = getEvaluator().toDouble(e.getValue());
 					d += prob * vect[k];
 				}
 				// Check whether we have exceeded min/max so far
@@ -671,23 +670,23 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		double d, prob, minmax2;
 		boolean first2;
 		List<Integer> res;
-		ArrayList<DistributionSet> step;
+		ArrayList<DistributionSet<Value>> step;
 
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
 		// One row of matrix-vector operation 
 		j = -1;
 		step = trans.get(s);
-		for (DistributionSet distrs : step) {
+		for (DistributionSet<Value> distrs : step) {
 			j++;
 			minmax2 = 0;
 			first2 = true;
-			for (Distribution distr : distrs) {
+			for (Distribution<Value> distr : distrs) {
 				// Compute sum for this distribution
 				d = 0.0;
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
+				for (Map.Entry<Integer, Value> e : distr) {
+					k = e.getKey();
+					prob = getEvaluator().toDouble(e.getValue());
 					d += prob * vect[k];
 				}
 				// Check whether we have exceeded min/max so far
@@ -725,21 +724,21 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		int k;
 		double diag, d, prob, minmax1, minmax2;
 		boolean first1, first2;
-		ArrayList<DistributionSet> step;
+		ArrayList<DistributionSet<Value>> step;
 
 		minmax1 = 0;
 		first1 = true;
 		step = trans.get(s);
-		for (DistributionSet distrs : step) {
+		for (DistributionSet<Value> distrs : step) {
 			minmax2 = 0;
 			first2 = true;
-			for (Distribution distr : distrs) {
+			for (Distribution<Value> distr : distrs) {
 				diag = 1.0;
 				// Compute sum for this distribution
 				d = 0.0;
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
+				for (Map.Entry<Integer, Value> e : distr) {
+					k = e.getKey();
+					prob = getEvaluator().toDouble(e.getValue());
 					if (k != s) {
 						d += prob * vect[k];
 					} else {
@@ -763,7 +762,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public void mvMultRewMinMax(double vect[], STPGRewards rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[])
+	public void mvMultRewMinMax(double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[])
 	{
 		for (int s : new IterableStateSet(subset, numStates, complement)) {
 			result[s] = mvMultRewMinMaxSingle(s, vect, rewards, min1, min2, adv);
@@ -771,29 +770,29 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, int adv[])
+	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, int adv[])
 	{
 		int dsIter, dIter, k;
 		double d, prob, minmax1, minmax2;
 		boolean first1, first2;
-		ArrayList<DistributionSet> step;
+		ArrayList<DistributionSet<Value>> step;
 
 		minmax1 = 0;
 		first1 = true;
 		dsIter = -1;
 		step = trans.get(s);
-		for (DistributionSet distrs : step) {
+		for (DistributionSet<Value> distrs : step) {
 			dsIter++;
 			minmax2 = 0;
 			first2 = true;
 			dIter = -1;
-			for (Distribution distr : distrs) {
+			for (Distribution<Value> distr : distrs) {
 				dIter++;
 				// Compute sum for this distribution
 				d = rewards.getNestedTransitionReward(s, dsIter, dIter);
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
+				for (Map.Entry<Integer, Value> e : distr) {
+					k = e.getKey();
+					prob = getEvaluator().toDouble(e.getValue());
 					d += prob * vect[k];
 				}
 				// Check whether we have exceeded min/max so far
@@ -812,31 +811,31 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val)
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, double val)
 	{
 		int dsIter, dIter, k;
 		double d, prob, minmax2;
 		boolean first2;
 		List<Integer> res;
-		ArrayList<DistributionSet> step;
+		ArrayList<DistributionSet<Value>> step;
 
 		// Create data structures to store strategy
 		res = new ArrayList<Integer>();
 		// One row of matrix-vector operation 
 		dsIter = -1;
 		step = trans.get(s);
-		for (DistributionSet distrs : step) {
+		for (DistributionSet<Value> distrs : step) {
 			dsIter++;
 			minmax2 = 0;
 			first2 = true;
 			dIter = -1;
-			for (Distribution distr : distrs) {
+			for (Distribution<Value> distr : distrs) {
 				dIter++;
 				// Compute sum for this distribution
 				d = rewards.getNestedTransitionReward(s, dsIter, dIter);
-				for (Map.Entry<Integer, Double> e : distr) {
-					k = (Integer) e.getKey();
-					prob = (Double) e.getValue();
+				for (Map.Entry<Integer, Value> e : distr) {
+					k = e.getKey();
+					prob = getEvaluator().toDouble(e.getValue());
 					d += prob * vect[k];
 				}
 				// Check whether we have exceeded min/max so far
@@ -867,7 +866,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	/**
 	 * Get the list of choices (distribution sets) for state s.
 	 */
-	public List<DistributionSet> getChoices(int s)
+	public List<DistributionSet<Value>> getChoices(int s)
 	{
 		return trans.get(s);
 	}
@@ -875,7 +874,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	/**
 	 * Get the ith choice (distribution set) for state s.
 	 */
-	public DistributionSet getChoice(int s, int i)
+	public DistributionSet<Value> getChoice(int s, int i)
 	{
 		return trans.get(s).get(i);
 	}
@@ -922,7 +921,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		// General purpose toString(), based on STPG access methods
 		int s, i, j, ni, nj;
 		boolean first, firsti, firstTr;
-		Iterator<Entry<Integer, Double>> it;
+		Iterator<Entry<Integer, Value>> it;
 		String str = "";
 		first = true;
 		str = "[ ";
@@ -947,7 +946,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 				str += "{";
 				firstTr = true;
 				while (it.hasNext()) {
-					Entry<Integer, Double> next = it.next();
+					Entry<Integer, Value> next = it.next();
 					if (firstTr)
 						firstTr = false;
 					else
@@ -973,7 +972,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 					str += "{";
 					firstTr = true;
 					while (it.hasNext()) {
-						Entry<Integer, Double> next = it.next();
+						Entry<Integer, Value> next = it.next();
 						if (firstTr)
 							firstTr = false;
 						else
@@ -1017,7 +1016,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	{
 		if (o == null || !(o instanceof STPGAbstrSimple))
 			return false;
-		STPGAbstrSimple stpg = (STPGAbstrSimple) o;
+		STPGAbstrSimple<?> stpg = (STPGAbstrSimple<?>) o;
 		if (numStates != stpg.numStates)
 			return false;
 		if (!initialStates.equals(stpg.initialStates))
@@ -1033,9 +1032,9 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	public static void main(String args[])
 	{
 		STPGModelChecker mc;
-		STPGAbstrSimple stpg;
-		DistributionSet set;
-		Distribution distr;
+		STPGAbstrSimple<Double> stpg;
+		DistributionSet<Double> set;
+		Distribution<Double> distr;
 		//ModelCheckerResult res;
 		BitSet target;
 
@@ -1046,41 +1045,41 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 
 		try {
 			// Build game
-			stpg = new STPGAbstrSimple();
+			stpg = new STPGAbstrSimple<>();
 			stpg.addStates(4);
 			// State 0 (s_0)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(1, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(0, set);
 			// State 1 (s_1,s_2,s_3)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(2, 1.0);
 			set.add(distr);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(1, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(1, set);
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(2, 0.5);
 			distr.set(3, 0.5);
 			set.add(distr);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(3, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(1, set);
 			// State 2 (s_4,s_5)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(2, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(2, set);
 			// State 3 (s_6)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution();
+			distr = new Distribution<>();
 			distr.set(3, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(3, set);

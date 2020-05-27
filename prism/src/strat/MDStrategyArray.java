@@ -35,7 +35,7 @@ import prism.PrismLog;
  * Class to store a memoryless deterministic (MD) strategy
  * as a (Java) array of choice indices associated with an explicit engine model.
  */
-public class MDStrategyArray extends StrategyExplicit implements MDStrategy
+public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements MDStrategy<Value>
 {
 	// Index of choice taken in each state (wrt model above)
 	// Other possible values: -1 (unknown), -2 (arbitrary), -3 (unreachable)
@@ -45,7 +45,7 @@ public class MDStrategyArray extends StrategyExplicit implements MDStrategy
 	 * Creates an MDStrategyArray from an integer array of choices.
 	 * The array may later be modified/delete - take a copy if you want to keep it.
 	 */
-	public MDStrategyArray(NondetModel model, int choices[])
+	public MDStrategyArray(NondetModel<Value> model, int choices[])
 	{
 		super(model);
 		this.choices = choices;
@@ -82,7 +82,7 @@ public class MDStrategyArray extends StrategyExplicit implements MDStrategy
 	@Override
 	public void exportInducedModel(PrismLog out, int precision)
 	{
-		Model dtmcInd = model.constructInducedModel(this);
+		Model<Value> dtmcInd = model.constructInducedModel(this);
 		dtmcInd.exportToPrismExplicitTra(out, precision);
 	}
 
@@ -90,7 +90,7 @@ public class MDStrategyArray extends StrategyExplicit implements MDStrategy
 	public void exportDotFile(PrismLog out, int precision)
 	{
 		// For now, we export just the reduced (induced) model
-		Model dtmcInd = model.constructInducedModel(this);
+		Model<Value> dtmcInd = model.constructInducedModel(this);
 		dtmcInd.exportToDotFile(out, null, true, precision);
 		//model.exportToDotFileWithStrat(out, null, choices, precision);
 	}

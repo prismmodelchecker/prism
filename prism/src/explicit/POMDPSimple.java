@@ -47,7 +47,7 @@ import prism.PrismUtils;
  * choice indexing) in each equivalent state. This is enforced
  * when calling setObservation().
  */
-public class POMDPSimple extends MDPSimple implements POMDP
+public class POMDPSimple<Value> extends MDPSimple<Value> implements POMDP<Value>
 {
 	/**
 	 * Information about the observations of this model.
@@ -93,7 +93,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	/**
 	 * Copy constructor.
 	 */
-	public POMDPSimple(POMDPSimple pomdp)
+	public POMDPSimple(POMDPSimple<Value> pomdp)
 	{
 		super(pomdp);
 		observationsList = new ArrayList<>(pomdp.observationsList);
@@ -107,7 +107,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	 * Construct a POMDP from an existing one and a state index permutation,
 	 * i.e. in which state index i becomes index permut[i].
 	 */
-	public POMDPSimple(POMDPSimple pomdp, int permut[])
+	public POMDPSimple(POMDPSimple<Value> pomdp, int permut[])
 	{
 		super(pomdp, permut);
 		observationsList = new ArrayList<>(pomdp.observationsList);
@@ -133,7 +133,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	/**
 	 * Construct a POMDP from an existing MDP.
 	 */
-	public POMDPSimple(MDPSimple mdp)
+	public POMDPSimple(MDPSimple<Value> mdp)
 	{
 		super(mdp);
 		initialiseObservables(mdp.numStates);
@@ -407,7 +407,8 @@ public class POMDPSimple extends MDPSimple implements POMDP
 		double[] nextBeliefInDist = new double[n];
 		for (int sp = 0; sp < n; sp++) {
 			if (beliefInDist[sp] >= 1.0e-6) {
-				Distribution distr = getChoice(sp, i);
+				@SuppressWarnings("unchecked")
+				Distribution<Double> distr = (Distribution<Double>) getChoice(sp, i);
 				for (Map.Entry<Integer, Double> e : distr) {
 					int s = (Integer) e.getKey();
 					double prob = (Double) e.getValue();
@@ -484,7 +485,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	}
 	
 	@Override
-	public double getRewardAfterChoice(Belief belief, int i, MDPRewards mdpRewards)
+	public double getRewardAfterChoice(Belief belief, int i, MDPRewards<Double> mdpRewards)
 	{
 		double[] beliefInDist = belief.toDistributionOverStates(this);
 		double cost = getRewardAfterChoice(beliefInDist, i, mdpRewards);
@@ -492,7 +493,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	}
 
 	@Override
-	public double getRewardAfterChoice(double[] beliefInDist, int i, MDPRewards mdpRewards)
+	public double getRewardAfterChoice(double[] beliefInDist, int i, MDPRewards<Double> mdpRewards)
 	{
 		double cost = 0;
 		for (int s = 0; s < beliefInDist.length; s++) {
@@ -561,7 +562,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	{
 		if (o == null || !(o instanceof POMDPSimple))
 			return false;
-		POMDPSimple mdp = (POMDPSimple) o;
+		POMDPSimple<?> mdp = (POMDPSimple<?>) o;
 		if (numStates != mdp.numStates)
 			return false;
 		if (!initialStates.equals(mdp.initialStates))

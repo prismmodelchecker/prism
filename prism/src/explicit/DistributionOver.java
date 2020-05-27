@@ -35,20 +35,21 @@ import java.util.function.Function;
 import simulator.RandomNumberGenerator;
 
 /**
- * Explicit representation of a probability distribution over objects of type T.
+ * Explicit representation of a probability distribution over objects of type {@code T}.
+ * This class is also generic in terms of the type for probabilities {@code Value}.
  */
-public class DistributionOver<T> implements Iterable<Entry<T, Double>>
+public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 {
 	// Stored as a Distribution (over integer indices) and a mapping from indices to Objects
-	private Distribution distr;
+	private Distribution<Value> distr;
 	private Function<Integer, T> objects;
 	
 	/**
 	 * Create from a Distribution (over integer indices) and a mapping from indices to Objects
 	 */
-	public static <T> DistributionOver<T> create(Distribution distr, Function<Integer, T> objects)
+	public static <Value,T> DistributionOver<Value,T> create(Distribution<Value> distr, Function<Integer, T> objects)
 	{
-		DistributionOver<T> d = new DistributionOver<>();
+		DistributionOver<Value,T> d = new DistributionOver<>();
 		d.distr = distr;
 		d.objects = objects;
 		return d;
@@ -57,25 +58,25 @@ public class DistributionOver<T> implements Iterable<Entry<T, Double>>
 	/**
 	 * Get the probability assigned to a value
 	 */
-	public double getProbability(T val)
+	public Value getProbability(T val)
 	{
-		for (Entry<Integer, Double> elem : distr) {
+		for (Entry<Integer, Value> elem : distr) {
 			T act = objects.apply(elem.getKey());
 			if (Objects.equals(act, val)) {
 				return elem.getValue();
 			}
 		}
-		return 0;
+		return distr.getEvaluator().zero();
 	}
 	
 	/**
 	 * Get an iterator over the entries of the map defining the distribution.
 	 */
-	public Iterator<Entry<T, Double>> iterator()
+	public Iterator<Entry<T, Value>> iterator()
 	{
-		return new Iterator<Entry<T, Double>>()
+		return new Iterator<Entry<T, Value>>()
 		{
-			Iterator<Entry<Integer, Double>> iter = distr.iterator();
+			Iterator<Entry<Integer, Value>> iter = distr.iterator();
 
 			@Override
 			public boolean hasNext()
@@ -84,9 +85,9 @@ public class DistributionOver<T> implements Iterable<Entry<T, Double>>
 			}
 
 			@Override
-			public Entry<T, Double> next()
+			public Entry<T, Value> next()
 			{
-				Entry<Integer, Double> e = iter.next();
+				Entry<Integer, Value> e = iter.next();
 				return new AbstractMap.SimpleImmutableEntry<>(objects.apply(e.getKey()), e.getValue());
 			}
 		};

@@ -47,10 +47,10 @@ import prism.PrismException;
  * The model is, however, easy to manipulate. For a static model (i.e. one that does not change
  * after creation), consider MDPSparse, which is more efficient. 
  */
-public class MDPSimple extends MDPExplicit implements NondetModelSimple
+public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelSimple<Value>
 {
 	// Transition function (Steps)
-	protected List<List<Distribution>> trans;
+	protected List<List<Distribution<Value>>> trans;
 
 	// Action labels
 	protected ChoiceActionsSimple actions;
@@ -85,15 +85,15 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	/**
 	 * Copy constructor.
 	 */
-	public MDPSimple(MDPSimple mdp)
+	public MDPSimple(MDPSimple<Value> mdp)
 	{
 		this(mdp.numStates);
 		copyFrom(mdp);
 		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency) 
 		for (int s = 0; s < numStates; s++) {
-			List<Distribution> distrs = trans.get(s);
-			for (Distribution distr : mdp.trans.get(s)) {
-				distrs.add(new Distribution(distr));
+			List<Distribution<Value>> distrs = trans.get(s);
+			for (Distribution<Value> distr : mdp.trans.get(s)) {
+				distrs.add(new Distribution<>(distr));
 			}
 		}
 		actions = new ChoiceActionsSimple(mdp.actions);
@@ -108,13 +108,13 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	/**
 	 * Constructor: new MDP copied from an existing DTMC.
 	 */
-	public MDPSimple(DTMCSimple dtmc)
+	public MDPSimple(DTMCSimple<Value> dtmc)
 	{
 		this(dtmc.getNumStates());
 		copyFrom(dtmc);
 		for (int s = 0; s < numStates; s++) {
 			// Note: DTMCSimple has no actions so can ignore these
-			addChoice(s, new Distribution(dtmc.getTransitions(s)));
+			addChoice(s, new Distribution<Value>(dtmc.getTransitions(s)));
 		}
 	}
 
@@ -124,16 +124,16 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	 * Note: have to build new Distributions from scratch anyway to do this,
 	 * so may as well provide this functionality as a constructor.
 	 */
-	public MDPSimple(MDPSimple mdp, int permut[])
+	public MDPSimple(MDPSimple<Value> mdp, int permut[])
 	{
 		this(mdp.numStates);
 		copyFrom(mdp, permut);
 		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency)
 		// (Since permut is a bijection, all structures and statistics are identical)
 		for (int s = 0; s < numStates; s++) {
-			List<Distribution> distrs = trans.get(permut[s]);
-			for (Distribution distr : mdp.trans.get(s)) {
-				distrs.add(new Distribution(distr, permut));
+			List<Distribution<Value>> distrs = trans.get(permut[s]);
+			for (Distribution<Value> distr : mdp.trans.get(s)) {
+				distrs.add(new Distribution<>(distr, permut));
 			}
 		}
 		actions = new ChoiceActionsSimple(mdp.actions, permut);
@@ -148,7 +148,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	/**
 	 * Construct an MDPSimple object from an MDPSparse one.
 	 */
-	public MDPSimple(MDP mdp)
+	public MDPSimple(MDP<Value> mdp)
 	{
 		this(mdp.getNumStates());
 		copyFrom(mdp);
@@ -157,10 +157,10 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 			int numChoices = getNumChoices(i);
 			for (int j = 0; j < numChoices; j++) {
 				Object action = getAction(i, j);
-				Distribution distr = new Distribution();
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+				Distribution<Value> distr = new Distribution<>(getEvaluator());
+				Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i, j);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
+					Map.Entry<Integer, Value> e = iter.next();
 					distr.set(e.getKey(), e.getValue());
 				}
 				if (action == null) {
@@ -180,9 +180,9 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 		super.initialise(numStates);
 		numDistrs = numTransitions = maxNumDistrs = 0;
 		maxNumDistrsOk = true;
-		trans = new ArrayList<List<Distribution>>(numStates);
+		trans = new ArrayList<List<Distribution<Value>>>(numStates);
 		for (int i = 0; i < numStates; i++) {
-			trans.add(new ArrayList<Distribution>());
+			trans.add(new ArrayList<Distribution<Value>>());
 		}
 		actions = new ChoiceActionsSimple();
 	}
@@ -194,9 +194,9 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 		if (s >= numStates || s < 0)
 			return;
 		// Clear data structures and update stats
-		List<Distribution> list = trans.get(s);
+		List<Distribution<Value>> list = trans.get(s);
 		numDistrs -= list.size();
-		for (Distribution distr : list) {
+		for (Distribution<Value> distr : list) {
 			numTransitions -= distr.size();
 		}
 		maxNumDistrsOk = false;
@@ -215,7 +215,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	public void addStates(int numToAdd)
 	{
 		for (int i = 0; i < numToAdd; i++) {
-			trans.add(new ArrayList<Distribution>());
+			trans.add(new ArrayList<Distribution<Value>>());
 			numStates++;
 		}
 	}
@@ -258,7 +258,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 					int source = Integer.parseInt(transition[0]);
 					int choice = Integer.parseInt(transition[1]);
 					int target = Integer.parseInt(transition[2]);
-					double prob = Double.parseDouble(transition[3]);
+					Value prob = getEvaluator().fromString(transition[3]);
 
 					if (source < 0 || source >= numStates) {
 						throw new PrismException("Problem in .tra file (line " + lineNum + "): illegal source state index " + source);
@@ -273,7 +273,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 					// and provide an error message if there are still empty distributions
 					// after having read the full .tra file
 					while (choice >= getNumChoices(source)) {
-						addChoice(source, new Distribution());
+						addChoice(source, new Distribution<>(getEvaluator()));
 						emptyDistributions++;
 					}
 
@@ -330,9 +330,9 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	 * Returns the index of the (existing or newly added) distribution.
 	 * Returns -1 in case of error.
 	 */
-	public int addChoice(int s, Distribution distr)
+	public int addChoice(int s, Distribution<Value> distr)
 	{
-		List<Distribution> set;
+		List<Distribution<Value>> set;
 		// Check state exists
 		if (s >= numStates || s < 0)
 			return -1;
@@ -358,9 +358,9 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	 * Returns the index of the (existing or newly added) distribution.
 	 * Returns -1 in case of error.
 	 */
-	public int addActionLabelledChoice(int s, Distribution distr, Object action)
+	public int addActionLabelledChoice(int s, Distribution<Value> distr, Object action)
 	{
-		List<Distribution> set;
+		List<Distribution<Value>> set;
 		// Check state exists
 		if (s >= numStates || s < 0)
 			return -1;
@@ -419,8 +419,8 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 			if (trans.get(i).isEmpty()) {
 				addDeadlockState(i);
 				if (fix) {
-					Distribution distr = new Distribution();
-					distr.add(i, 1.0);
+					Distribution<Value> distr = new Distribution<>(getEvaluator());
+					distr.add(i, getEvaluator().one());
 					addChoice(i, distr);
 				}
 			}
@@ -501,7 +501,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	}
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s, int i)
 	{
 		return trans.get(s).get(i).iterator();
 	}
@@ -513,7 +513,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	/**
 	 * Get the list of choices (distributions) for state s.
 	 */
-	public List<Distribution> getChoices(int s)
+	public List<Distribution<Value>> getChoices(int s)
 	{
 		return trans.get(s);
 	}
@@ -521,7 +521,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	/**
 	 * Get the ith choice (distribution) for state s.
 	 */
-	public Distribution getChoice(int s, int i)
+	public Distribution<Value> getChoice(int s, int i)
 	{
 		return trans.get(s).get(i);
 	}
@@ -530,7 +530,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	 * Returns the index of the choice {@code distr} for state {@code s}, if it exists.
 	 * If none, -1 is returned. If there are multiple (i.e. allowDupes is true), the first is returned. 
 	 */
-	public int indexOfChoice(int s, Distribution distr)
+	public int indexOfChoice(int s, Distribution<Value> distr)
 	{
 		return trans.get(s).indexOf(distr);
 	}
@@ -539,9 +539,9 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	 * Returns the index of the {@code action}-labelled choice {@code distr} for state {@code s}, if it exists.
 	 * If none, -1 is returned. If there are multiple (i.e. allowDupes is true), the first is returned. 
 	 */
-	public int indexOfActionLabelledChoice(int s, Distribution distr, Object action)
+	public int indexOfActionLabelledChoice(int s, Distribution<Value> distr, Object action)
 	{
-		List<Distribution> set = trans.get(s);
+		List<Distribution<Value>> set = trans.get(s);
 		int i, n = set.size();
 		if (distr == null) {
 			for (i = 0; i < n; i++) {
@@ -607,7 +607,7 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	{
 		if (o == null || !(o instanceof MDPSimple))
 			return false;
-		MDPSimple mdp = (MDPSimple) o;
+		MDPSimple<?> mdp = (MDPSimple<?>) o;
 		if (numStates != mdp.numStates)
 			return false;
 		if (!initialStates.equals(mdp.initialStates))

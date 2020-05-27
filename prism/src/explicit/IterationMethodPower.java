@@ -47,7 +47,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMult(DTMC dtmc)
+	public IterationValIter forMvMult(DTMC<Double> dtmc)
 	{
 		return new TwoVectorIteration(dtmc, null) {
 			@Override
@@ -59,7 +59,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultInterval(DTMC dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	public IterationIntervalIter forMvMultInterval(DTMC<Double> dtmc, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
 	{
 		IterationPostProcessor post = (soln, soln2, states) -> {
 			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
@@ -75,7 +75,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRew(DTMC dtmc, MCRewards rew)
+	public IterationValIter forMvMultRew(DTMC<Double> dtmc, MCRewards<Double> rew)
 	{
 		return new TwoVectorIteration(dtmc, null) {
 			@Override
@@ -87,7 +87,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultRewInterval(DTMC dtmc, MCRewards rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
+	public IterationIntervalIter forMvMultRewInterval(DTMC<Double> dtmc, MCRewards<Double> rew, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity)
 	{
 		IterationPostProcessor post = (soln, soln2, states) -> {
 			twoVectorPostProcessing(soln, soln2, states, fromBelow, enforceMonotonicity, checkMonotonicity);
@@ -103,7 +103,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultMinMax(MDP mdp, boolean min, int[] strat)
+	public IterationValIter forMvMultMinMax(MDP<Double> mdp, boolean min, int[] strat)
 	{
 		return new TwoVectorIteration(mdp, null) {
 			@Override
@@ -115,7 +115,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultMinMaxInterval(MDP mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
+	public IterationIntervalIter forMvMultMinMaxInterval(MDP<Double> mdp, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity,
 			boolean checkMonotonicity) throws PrismException
 	{
 		IterationPostProcessor post = (soln, soln2, states) -> {
@@ -138,7 +138,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultRewMinMax(MDP mdp, MDPRewards rewards, boolean min, int[] strat) throws PrismException
+	public IterationValIter forMvMultRewMinMax(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat) throws PrismException
 	{
 		return new TwoVectorIteration(mdp, null) {
 			@Override
@@ -150,7 +150,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP mdp, MDPRewards rewards, boolean min, int[] strat, boolean fromBelow,
+	public IterationIntervalIter forMvMultRewMinMaxInterval(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, boolean fromBelow,
 			boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException
 	{
 		IterationPostProcessor post = (soln, soln2, states) -> {

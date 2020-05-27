@@ -35,10 +35,10 @@ import explicit.rewards.Rewards;
  * to the labels of nodes / edges, according to the
  * given reward structure.
  */
-public class ShowRewardDecorator implements Decorator
+public class ShowRewardDecorator<Value> implements Decorator
 {
 	/** The reward structure */
-	private Rewards rewards;
+	private Rewards<Value> rewards;
 	/** Flag: should zero rewards be output? */
 	private boolean showZero;
 
@@ -46,7 +46,7 @@ public class ShowRewardDecorator implements Decorator
 	 * Constructor, suppress zero rewards in output.
 	 * @param rewards the reward structure
 	 */
-	public ShowRewardDecorator(explicit.rewards.Rewards rewards)
+	public ShowRewardDecorator(Rewards<Value> rewards)
 	{
 		this(rewards, false);
 
@@ -57,7 +57,7 @@ public class ShowRewardDecorator implements Decorator
 	 * @param rewards the reward structure
 	 * @param showZero should zero rewards be output?
 	 */
-	public ShowRewardDecorator(explicit.rewards.Rewards rewards, boolean showZero)
+	public ShowRewardDecorator(Rewards<Value> rewards, boolean showZero)
 	{
 		this.rewards = rewards;
 		this.showZero = showZero;
@@ -69,16 +69,15 @@ public class ShowRewardDecorator implements Decorator
 	@Override
 	public Decoration decorateState(int state, Decoration d)
 	{
-		double reward = 0;
+		Value reward = rewards.getEvaluator().zero();
 		if (rewards instanceof MCRewards) {
-			reward = ((MCRewards) rewards).getStateReward(state);
+			reward = ((MCRewards<Value>) rewards).getStateReward(state);
 		} else if (rewards instanceof MDPRewards) {
-			reward = ((MDPRewards) rewards).getStateReward(state);
+			reward = ((MDPRewards<Value>) rewards).getStateReward(state);
 		}
-		if (reward == 0 && !showZero) {
+		if (rewards.getEvaluator().isZero(reward) && !showZero) {
 			return d;
 		}
-
 		d.labelAddBelow("+" + reward);
 		return d;
 	}
@@ -93,8 +92,8 @@ public class ShowRewardDecorator implements Decorator
 			// transition rewards are only there for MDPRewards
 			return d;
 		}
-		double reward = ((MDPRewards) rewards).getTransitionReward(state, choice);
-		if (reward == 0 && !showZero) {
+		Value reward = ((MDPRewards<Value>) rewards).getTransitionReward(state, choice);
+		if (rewards.getEvaluator().isZero(reward) && !showZero) {
 			return d;
 		}
 

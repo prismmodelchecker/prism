@@ -31,7 +31,7 @@ import prism.ModelType;
 /**
  * Interface for classes that provide (read) access to an explicit-state CTMDP.
  */
-public interface CTMDP extends MDP
+public interface CTMDP<Value> extends MDP<Value>
 {
 	// Accessors (for Model) - default implementations
 	
@@ -48,7 +48,7 @@ public interface CTMDP extends MDP
 	/**
 	 * Compute the maximum exit rate.
 	 */
-	public double getMaxExitRate();
+	public Value getMaxExitRate();
 	
 	/**
 	 * Check if the CTMDP is locally uniform, i.e. each state has the same exit rate for all actions. 
@@ -60,11 +60,11 @@ public interface CTMDP extends MDP
 	 * (i.e. where the details are computed on the fly from this one).
 	 * @param tau Step duration
 	 */
-	public MDP buildImplicitDiscretisedMDP(double tau);
+	public MDP<Value> buildImplicitDiscretisedMDP(double tau);
 
 	/**
 	 * Build (a new) discretised (DT)MDP for this CTMDP.
 	 * @param tau Step duration
 	 */
-	public MDPSimple buildDiscretisedMDP(double tau);
+	public MDPSimple<Value> buildDiscretisedMDP(double tau);
 }

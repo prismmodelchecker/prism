@@ -34,7 +34,7 @@ import java.util.Arrays;
 /**
  * Explicit-state storage of just state rewards (as an array).
  */
-public class StateRewardsArray extends StateRewards
+public class StateRewardsArray extends StateRewards<Double>
 {
 	/** Array of state rewards **/
 	protected double stateRewards[];
@@ -79,7 +79,7 @@ public class StateRewardsArray extends StateRewards
 	// Accessors
 	
 	@Override
-	public double getStateReward(int s)
+	public Double getStateReward(int s)
 	{
 		return stateRewards[s];
 	}
@@ -87,9 +87,9 @@ public class StateRewardsArray extends StateRewards
 	// Converters
 	
 	@Override
-	public StateRewards liftFromModel(Product<? extends Model> product)
+	public StateRewards<Double> liftFromModel(Product<? extends Model<Double>> product)
 	{
-		Model modelProd = product.getProductModel();
+		Model<Double> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
 		StateRewardsArray rewardsProd = new StateRewardsArray(numStatesProd);
 		for (int s = 0; s < numStatesProd; s++) {

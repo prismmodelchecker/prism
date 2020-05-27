@@ -39,21 +39,24 @@ import simulator.RandomNumberGenerator;
  * If the strategy has memory, this is kept track of and obtained via {@link #getCurrentMemory()}.
  * The strategy can be reset, in order to query the action to be taken for arbitrary states
  * and arbitrary current memory values, by calling {@link #reset(State, int)}. 
+ * <br><br>
+ * This is a generic class where {@code Value} should match the accompanying model.
+ * This is also needed for probabilities when the strategy is randomised.
  */
-public interface StrategyGenerator extends StrategyInfo
+public interface StrategyGenerator<Value> extends StrategyInfo<Value>
 {
 	/**
 	 * Initialise the strategy, based on an initial model state.
 	 * @param state Initial state of the model
 	 */
-	public StrategyGenerator initialise(State state);
+	public StrategyGenerator<Value> initialise(State state);
 
 	/**
 	 * Update the strategy, based on the next step in a model's history.
 	 * @param action The action taken in the previous state of the model
 	 * @param state The new state of the model
 	 */
-	public StrategyGenerator update(Object action, State state);
+	public StrategyGenerator<Value> update(Object action, State state);
 	
 	/**
 	 * Reset the strategy to provide action choices for a particular state
@@ -61,7 +64,7 @@ public interface StrategyGenerator extends StrategyInfo
 	 * @param state The current state of the model
 	 * @param memory The current memory for the strategy (-1 if not applicable)
 	 */
-	public StrategyGenerator reset(State state, int memory);
+	public StrategyGenerator<Value> reset(State state, int memory);
 	
 	/**
 	 * Get the action chosen by the strategy in the current state (assuming it is deterministic). 
@@ -74,7 +77,7 @@ public interface StrategyGenerator extends StrategyInfo
 	/**
 	 * Get the probability with which an action is chosen by the strategy in the current state.
 	 */
-	public default double getCurrentChoiceActionProbability(Object act)
+	public default Value getCurrentChoiceActionProbability(Object act)
 	{
 		return getChoiceActionProbability(getCurrentChoiceAction(), act);
 	}

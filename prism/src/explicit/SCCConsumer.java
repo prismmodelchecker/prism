@@ -40,7 +40,7 @@ public interface SCCConsumer {
 	 * Call-back function, will be called once at the start.
 	 * Default implementation: Ignore.
 	 */
-	public default void notifyStart(Model model)
+	public default void notifyStart(Model<?> model)
 	{
 		// ignore
 	}

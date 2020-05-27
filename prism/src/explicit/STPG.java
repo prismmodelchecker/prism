@@ -57,7 +57,7 @@ import prism.PrismUtils;
  * Use {@link #getNumNestedChoices(s, i)}, {@link #getNestedAction(s, i)} and {@link #getNestedTransitionsIterator(s, i, j)}
  * to access the information.
  */
-public interface STPG extends MDP
+public interface STPG<Value> extends MDP<Value>
 {
 	// Accessors (for Model) - default implementations
 	
@@ -160,7 +160,7 @@ public interface STPG extends MDP
 	/**
 	 * Get an iterator over the transitions from nested choice {@code i,j} of state {@code s}.
 	 */
-	default Iterator<Entry<Integer, Double>> getNestedTransitionsIterator(int s, int i, int j)
+	default Iterator<Entry<Integer, Value>> getNestedTransitionsIterator(int s, int i, int j)
 	{
 		// Default: No nested choices
 		return null;
@@ -264,7 +264,7 @@ public interface STPG extends MDP
 	 * @param complement If true, {@code subset} is taken to be its complement (ignored if {@code subset} is null)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
-	public void mvMultRewMinMax(double vect[], STPGRewards rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[]);
+	public void mvMultRewMinMax(double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[]);
 
 	/**
 	 * Do a single row of matrix-vector multiplication and sum of action reward followed by min/max.
@@ -276,7 +276,7 @@ public interface STPG extends MDP
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 */
-	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, int adv[]);
+	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, int adv[]);
 
 	/**
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of action reward.
@@ -287,7 +287,7 @@ public interface STPG extends MDP
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param val Min or max value to match
 	 */
-	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val);
+	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards<Double> rewards, boolean min1, boolean min2, double val);
 
 	/**
 	 * Do a single row of (discounted) matrix-vector multiplication and sum of action reward followed by min/max.
@@ -300,7 +300,7 @@ public interface STPG extends MDP
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 * @param disc Discount factor
 	 */
-	void mvMultRewMinMax(double[] vect, STPGRewards rewards, boolean min1, boolean min2, double[] result, BitSet subset, boolean complement, int[] adv, double disc);
+	void mvMultRewMinMax(double[] vect, STPGRewards<Double> rewards, boolean min1, boolean min2, double[] result, BitSet subset, boolean complement, int[] adv, double disc);
 
 	/**
 	 * Checks  whether all successors of action c in state s are in a given set

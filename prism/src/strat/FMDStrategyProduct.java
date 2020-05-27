@@ -38,17 +38,17 @@ import prism.PrismLog;
  * Class to store finite-memory deterministic (FMD) strategies
  * using a memoryless Strategy and an explicit engine product model.
  */
-public class FMDStrategyProduct extends StrategyExplicit
+public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 {
 	// Product model associated with the strategy
-	private Product<? extends NondetModel> product;
+	private Product<? extends NondetModel<?>> product;
 	// Memoryless strategy over product model
-	private MDStrategy strat;
+	private MDStrategy<Value> strat;
 	
 	/**
 	 * Creates an MDStrategyArray from a memoryless Strategy and an explicit engine product model.
 	 */
-	public FMDStrategyProduct(Product<? extends NondetModel> product, MDStrategy strat)
+	public FMDStrategyProduct(Product<? extends NondetModel<Value>> product, MDStrategy<Value> strat)
 	{
 		super(product.getOriginalModel());
 		this.product = product;
@@ -152,7 +152,7 @@ public class FMDStrategyProduct extends StrategyExplicit
 	public void exportInducedModel(PrismLog out, int precision) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		Model prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToPrismExplicitTra(out, precision);
 	}
 
@@ -160,7 +160,7 @@ public class FMDStrategyProduct extends StrategyExplicit
 	public void exportDotFile(PrismLog out, int precision) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		Model prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToDotFile(out, null, true, precision);
 	}
 

@@ -35,7 +35,7 @@ import prism.PrismException;
  * Base class for implementations of Strategy
  * with additional support to query by State (i.e., StrategyGenerator)
  */
-public abstract class StrategyWithStates implements Strategy, StrategyGenerator
+public abstract class StrategyWithStates<Value> implements Strategy<Value>, StrategyGenerator<Value>
 {
 	// State look-up functionality
 	
@@ -70,7 +70,7 @@ public abstract class StrategyWithStates implements Strategy, StrategyGenerator
 	protected int currentMemory = -1;
 	
 	@Override
-	public StrategyGenerator initialise(State state)
+	public StrategyGenerator<Value> initialise(State state)
 	{
 		currentState = state;
 		currentStateIndex = stateLookUp.apply(state);
@@ -79,7 +79,7 @@ public abstract class StrategyWithStates implements Strategy, StrategyGenerator
 	}
 
 	@Override
-	public StrategyGenerator update(Object action, State state)
+	public StrategyGenerator<Value> update(Object action, State state)
 	{
 		currentState = state;
 		currentStateIndex = stateLookUp.apply(state);
@@ -88,7 +88,7 @@ public abstract class StrategyWithStates implements Strategy, StrategyGenerator
 	}
 	
 	@Override
-	public StrategyGenerator reset(State state, int memory)
+	public StrategyGenerator<Value> reset(State state, int memory)
 	{
 		currentState = state;
 		currentStateIndex = stateLookUp.apply(state);

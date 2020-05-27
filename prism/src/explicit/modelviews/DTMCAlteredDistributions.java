@@ -46,37 +46,36 @@ import explicit.DTMC;
 /**
  * A view of a DTMC where for selected states the transitions are changed.
  * <br>
- * The new transitions are given by a function (int state) -> Iterator<Entry<Integer, Double>,
+ * The new transitions are given by a function (int state) -> Iterator<Entry<Integer, Value>,
  * i.e., providing an iterator over the outgoing transitions. A return value of {@code null}
  * is interpreted as "keep the original transitions".
  */
-public class DTMCAlteredDistributions extends DTMCView
+public class DTMCAlteredDistributions<Value> extends DTMCView<Value>
 {
-	private static final Predicate<Entry<Integer, Double>> nonZero =
-			(Entry<Integer, Double> e) -> {return e.getValue() > 0.0; };
+	private DTMC<Value> model;
+	private IntFunction<Iterator<Entry<Integer, Value>>> mapping;
 
-	private DTMC model;
-	private IntFunction<Iterator<Entry<Integer, Double>>> mapping;
-
-
-
+	private Predicate<Entry<Integer, Value>> nonZero;
+	
 	/**
 	 * If {@code mapping} returns {@code null} for a state, the original transitions are preserved.
 	 *
 	 * @param model a DTMC
 	 * @param mapping from states to (new) distributions or null
 	 */
-	public DTMCAlteredDistributions(final DTMC model, final IntFunction<Iterator<Entry<Integer, Double>>> mapping)
+	public DTMCAlteredDistributions(final DTMC<Value> model, final IntFunction<Iterator<Entry<Integer, Value>>> mapping)
 	{
 		this.model = model;
 		this.mapping = mapping;
+		nonZero = (Entry<Integer, Value> e) -> { return model.getEvaluator().gt(e.getValue(), model.getEvaluator().zero()); };
 	}
 
-	public DTMCAlteredDistributions(final DTMCAlteredDistributions altered)
+	public DTMCAlteredDistributions(final DTMCAlteredDistributions<Value> altered)
 	{
 		super(altered);
 		model = altered.model;
 		mapping = altered.mapping;
+		nonZero = (Entry<Integer, Value> e) -> { return model.getEvaluator().gt(e.getValue(), model.getEvaluator().zero()); };
 	}
 
 
@@ -84,9 +83,9 @@ public class DTMCAlteredDistributions extends DTMCView
 	//--- Cloneable ---
 
 	@Override
-	public DTMCAlteredDistributions clone()
+	public DTMCAlteredDistributions<Value> clone()
 	{
-		return new DTMCAlteredDistributions(this);
+		return new DTMCAlteredDistributions<>(this);
 	}
 
 
@@ -164,9 +163,9 @@ public class DTMCAlteredDistributions extends DTMCView
 	//--- DTMC ---
 
 	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(final int state)
+	public Iterator<Entry<Integer, Value>> getTransitionsIterator(final int state)
 	{
-		final Iterator<Entry<Integer, Double>> transitions = mapping.apply(state);
+		final Iterator<Entry<Integer, Value>> transitions = mapping.apply(state);
 		if (transitions == null) {
 			return model.getTransitionsIterator(state);
 		}
@@ -190,11 +189,11 @@ public class DTMCAlteredDistributions extends DTMCView
 
 	//--- static methods ---
 
-	public static DTMCAlteredDistributions fixDeadlocks(final DTMC model)
+	public static <Value> DTMCAlteredDistributions<Value> fixDeadlocks(final DTMC<Value> model)
 	{
 		final BitSet deadlockStates = new BitSet();
 		model.getDeadlockStates().forEach(deadlockStates::set);
-		final DTMCAlteredDistributions fixed = addSelfLoops(model, deadlockStates);
+		final DTMCAlteredDistributions<Value> fixed = addSelfLoops(model, deadlockStates);
 		fixed.deadlockStates = deadlockStates;
 		fixed.fixedDeadlocks = true;
 		return fixed;
@@ -204,20 +203,20 @@ public class DTMCAlteredDistributions extends DTMCView
 	 * Return a view where the outgoing transitions for all states in the given set
 	 * are replaced by probability 1 self-loops.
 	 */
-	public static DTMCAlteredDistributions addSelfLoops(final DTMC model, final BitSet states)
+	public static <Value> DTMCAlteredDistributions<Value> addSelfLoops(final DTMC<Value> model, final BitSet states)
 	{
-		final IntFunction<Iterator<Entry<Integer, Double>>> addLoops = new IntFunction<Iterator<Entry<Integer, Double>>>()
+		final IntFunction<Iterator<Entry<Integer, Value>>> addLoops = new IntFunction<Iterator<Entry<Integer, Value>>>()
 		{
 			@Override
-			public Iterator<Entry<Integer, Double>> apply(final int state)
+			public Iterator<Entry<Integer, Value>> apply(final int state)
 			{
 				if (states.get(state)) {
-					Entry<Integer,Double> transition = new AbstractMap.SimpleImmutableEntry<>(state, 1.0);
+					Entry<Integer,Value> transition = new AbstractMap.SimpleImmutableEntry<>(state, model.getEvaluator().one());
 					return new SingletonIterator.Of<>(transition);
 				}
 				return null;
 			}
 		};
-		return new DTMCAlteredDistributions(model, addLoops);
+		return new DTMCAlteredDistributions<>(model, addLoops);
 	}
 }
