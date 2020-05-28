@@ -133,12 +133,6 @@ public class LTSFromDA extends ModelExplicit implements LTS
 		throw new RuntimeException("Not implemented yet");
 	}
 
-	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
 	// Methods to implement NondetModel
 
 	@Override

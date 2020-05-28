@@ -26,6 +26,8 @@
 
 package explicit;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
@@ -98,6 +100,39 @@ public interface DTMC extends Model
 			}
 
 			out.println(d.toString());
+		}
+	}
+
+	@Override
+	default void exportToPrismLanguage(final String filename) throws PrismException
+	{
+		try (FileWriter out = new FileWriter(filename)) {
+			out.write(getModelType().keyword() + "\n");
+			out.write("module M\nx : [0.." + (getNumStates() - 1) + "];\n");
+			final TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
+			for (int state = 0, max = getNumStates(); state < max; state++) {
+				// Extract transitions and sort by destination state index (to match PRISM-exported files)
+				for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
+					final Entry<Integer, Double> transition = transitions.next();
+					sorted.put(transition.getKey(), transition.getValue());
+				}
+				// Print out (sorted) transitions
+				out.write("[]x=" + state + "->");
+				boolean first = true;
+				for (Entry<Integer, Double> transition : sorted.entrySet()) {
+					if (first)
+						first = false;
+					else
+						out.write("+");
+					// Note use of PrismUtils.formatDouble to match PRISM-exported files
+					out.write(PrismUtils.formatDouble(transition.getValue()) + ":(x'=" + transition.getKey() + ")");
+				}
+				out.write(";\n");
+				sorted.clear();
+			}
+			out.write("endmodule\n");
+		} catch (IOException e) {
+			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
 		}
 	}
 

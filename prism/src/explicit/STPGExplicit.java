@@ -36,6 +36,7 @@ import java.util.Map.Entry;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.STPGRewards;
 import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLog;
 
 /**
@@ -43,7 +44,7 @@ import prism.PrismLog;
  */
 public class STPGExplicit extends MDPSimple implements STPG
 {
-	/** Which player owns each state, i.e. stateOwners[i] is owned by player i (1 or 2) */
+	/** Which player owns each state,fl i.e. stateOwners[i] is owned by player i (1 or 2) */
 	protected List<Integer> stateOwners;
 
 	// Constructors
@@ -161,6 +162,13 @@ public class STPGExplicit extends MDPSimple implements STPG
 	{
 		// Resolve conflict: STPG interface does not (currently) extend MDP  
 		STPG.super.exportToPrismExplicitTra(out);
+	}
+
+	@Override
+	public void exportToPrismLanguage(final String filename) throws PrismException
+	{
+		// Resolve conflict: STPG interface does not (currently) extend MDP  
+		STPG.super.exportToPrismLanguage(filename);
 	}
 
 	// Accessors (for STPG)

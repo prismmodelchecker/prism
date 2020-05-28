@@ -168,11 +168,4 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	{
 		throw new UnsupportedOperationException();
 	}
-
-	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
 }

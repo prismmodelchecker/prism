@@ -35,7 +35,6 @@ import common.IterableStateSet;
 
 import explicit.rewards.STPGRewards;
 import prism.PrismException;
-import prism.PrismNotSupportedException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
@@ -390,12 +389,6 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		throw new RuntimeException("Not yet supported");
 	}
 	
-	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
-	{
-		throw new PrismNotSupportedException("Export to STPG PRISM models not supported");
-	}
-
 	@Override
 	public String infoString()
 	{

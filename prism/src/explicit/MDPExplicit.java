@@ -27,14 +27,8 @@
 
 package explicit;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
 
-import prism.PrismException;
 import prism.PrismUtils;
 import strat.MDStrategy;
 
@@ -65,53 +59,6 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 		s += "Choices:     " + getNumChoices() + "\n";
 		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates) + "\n";
 		return s;
-	}
-
-	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
-	{
-		int i, j, numChoices;
-		boolean first;
-		FileWriter out;
-		TreeMap<Integer, Double> sorted;
-		Object action;
-		try {
-			// Output transitions to PRISM language file
-			out = new FileWriter(filename);
-			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (numStates - 1) + "];\n");
-			sorted = new TreeMap<Integer, Double>();
-			for (i = 0; i < numStates; i++) {
-				numChoices = getNumChoices(i);
-				for (j = 0; j < numChoices; j++) {
-					// Extract transitions and sort by destination state index (to match PRISM-exported files)
-					Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-					while (iter.hasNext()) {
-						Map.Entry<Integer, Double> e = iter.next();
-						sorted.put(e.getKey(), e.getValue());
-					}
-					// Print out (sorted) transitions
-					action = getAction(i, j);
-					out.write(action != null ? ("[" + action + "]") : "[]");
-					out.write("x=" + i + "->");
-					first = true;
-					for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-						if (first)
-							first = false;
-						else
-							out.write("+");
-						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.write(PrismUtils.formatDouble(e.getValue()) + ":(x'=" + e.getKey() + ")");
-					}
-					out.write(";\n");
-					sorted.clear();
-				}
-			}
-			out.write("endmodule\n");
-			out.close();
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
 	}
 
 	// Accessors (for NondetModel)

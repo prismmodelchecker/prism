@@ -27,13 +27,10 @@
 
 package explicit.modelviews;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
-import java.util.TreeMap;
 import java.util.function.IntFunction;
 
 import common.IterableStateSet;
@@ -43,8 +40,6 @@ import explicit.DTMC;
 import explicit.Distribution;
 import explicit.SuccessorsIterator;
 import prism.Pair;
-import prism.PrismException;
-import prism.PrismUtils;
 
 /**
  * Base class for a DTMC view, i.e., a virtual DTMC that is obtained
@@ -115,39 +110,6 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 			public boolean hasNext() {return transitions.hasNext();}
 			public int nextInt() {return transitions.next().getKey();}
 		}, true);
-	}
-
-	@Override
-	public void exportToPrismLanguage(final String filename) throws PrismException
-	{
-		try (FileWriter out = new FileWriter(filename)) {
-			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (getNumStates() - 1) + "];\n");
-			final TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
-			for (int state = 0, max = getNumStates(); state < max; state++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
-					final Entry<Integer, Double> transition = transitions.next();
-					sorted.put(transition.getKey(), transition.getValue());
-				}
-				// Print out (sorted) transitions
-				out.write("[]x=" + state + "->");
-				boolean first = true;
-				for (Entry<Integer, Double> transition : sorted.entrySet()) {
-					if (first)
-						first = false;
-					else
-						out.write("+");
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(PrismUtils.formatDouble(transition.getValue()) + ":(x'=" + transition.getKey() + ")");
-				}
-				out.write(";\n");
-				sorted.clear();
-			}
-			out.write("endmodule\n");
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
 	}
 
 	@Override

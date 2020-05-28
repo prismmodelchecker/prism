@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 
 import explicit.rewards.STPGRewards;
 import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
 
@@ -95,6 +96,12 @@ public interface STPG extends NondetModel
 		}
 	}
 
+	@Override
+	default void exportToPrismLanguage(final String filename) throws PrismException
+	{
+		throw new UnsupportedOperationException();
+	}
+	
 	// Accessors
 	
 	/**

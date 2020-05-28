@@ -30,6 +30,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 
 import prism.ModelType;
+import prism.PrismException;
 import prism.PrismLog;
 
 /**
@@ -61,6 +62,12 @@ public interface LTS extends NondetModel
 		}
 	}
 	
+	@Override
+	default void exportToPrismLanguage(String filename) throws PrismException
+	{
+		throw new UnsupportedOperationException();
+	}
+
 	// Accessors (for NondetModel) - default implementations
 	
 	@Override
