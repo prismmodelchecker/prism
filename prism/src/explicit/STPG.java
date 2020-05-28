@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import explicit.rewards.STPGRewards;
+import prism.ModelType;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state stochastic two-player game (STPG).
@@ -53,6 +54,16 @@ import explicit.rewards.STPGRewards;
  */
 public interface STPG extends NondetModel
 {
+	// Accessors (for Model) - default implementations
+	
+	@Override
+	default ModelType getModelType()
+	{
+		return ModelType.STPG;
+	}
+
+	// Accessors
+	
 	/**
 	 * Get the player that owns state {@code s} (1 or 2 for an STPG).
 	 */

@@ -34,7 +34,6 @@ import java.util.Map.Entry;
 
 import parser.State;
 import parser.Values;
-import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -69,11 +68,6 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	}
 
 	// Accessors (for Model)
-
-	public ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
 
 	public int getNumStates()
 	{

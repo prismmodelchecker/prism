@@ -34,7 +34,6 @@ import java.io.*;
 import common.IterableStateSet;
 
 import explicit.rewards.STPGRewards;
-import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import prism.PrismLog;
@@ -273,12 +272,6 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	// Accessors (for ModelSimple)
-
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.STPG;
-	}
 
 	@Override
 	public int getNumTransitions()

@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 
-import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import strat.MDStrategy;
@@ -158,12 +157,6 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	public void buildFromPrismExplicit(String filename) throws PrismException
 	{
 		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.LTS;
 	}
 
 	@Override

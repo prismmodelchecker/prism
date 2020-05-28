@@ -26,10 +26,8 @@
 
 package explicit;
 
-import java.util.Map;
 import java.util.BitSet;
-
-import prism.ModelType;
+import java.util.Map;
 
 /**
  * Simple explicit-state representation of a CTMC.
@@ -82,14 +80,6 @@ public class CTMCSimple extends DTMCSimple implements CTMC
 	public CTMCSimple(CTMCSimple ctmc, int permut[])
 	{
 		super(ctmc, permut);
-	}
-
-	// Accessors (for ModelSimple, overrides DTMCSimple)
-	
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.CTMC;
 	}
 
 	// Accessors (for CTMC)

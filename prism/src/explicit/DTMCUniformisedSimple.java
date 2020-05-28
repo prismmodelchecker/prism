@@ -35,7 +35,6 @@ import java.util.Map.Entry;
 
 import parser.State;
 import parser.Values;
-import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import explicit.rewards.MCRewards;
@@ -88,11 +87,6 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	}
 	
 	// Accessors (for Model)
-
-	public ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
 
 	public int getNumStates()
 	{

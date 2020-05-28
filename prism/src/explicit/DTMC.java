@@ -32,6 +32,7 @@ import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
 import common.iterable.IterableInt;
+import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
 import explicit.rewards.MCRewards;
@@ -41,6 +42,16 @@ import explicit.rewards.MCRewards;
  */
 public interface DTMC extends Model
 {
+	// Accessors (for Model) - default implementations
+	
+	@Override
+	default ModelType getModelType()
+	{
+		return ModelType.DTMC;
+	}
+
+	// Accessors
+	
 	/**
 	 * Get an iterator over the transitions from state s.
 	 */

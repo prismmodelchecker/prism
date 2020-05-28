@@ -32,7 +32,6 @@ import java.util.Map.Entry;
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
-import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import strat.MDStrategy;
@@ -66,11 +65,6 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	}
 
 	// Accessors (for Model)
-
-	public ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
 
 	public int getNumStates()
 	{

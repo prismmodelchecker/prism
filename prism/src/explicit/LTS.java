@@ -26,9 +26,18 @@
 
 package explicit;
 
+import prism.ModelType;
+
 /**
  * Interface for classes that provide (read) access to an explicit-state labelled transition system (LTS).
  */
 public interface LTS extends NondetModel
 {
+	// Accessors (for Model) - default implementations
+	
+	@Override
+	default ModelType getModelType()
+	{
+		return ModelType.LTS;
+	}
 }

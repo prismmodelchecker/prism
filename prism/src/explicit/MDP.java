@@ -37,6 +37,7 @@ import java.util.PrimitiveIterator.OfInt;
 import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
+import prism.ModelType;
 import prism.PrismUtils;
 
 /**
@@ -48,6 +49,16 @@ import prism.PrismUtils;
  */
 public interface MDP extends MDPGeneric<Double>
 {
+	// Accessors (for Model) - default implementations
+	
+	@Override
+	default ModelType getModelType()
+	{
+		return ModelType.MDP;
+	}
+
+	// Accessors
+	
 	/**
 	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
 	 */

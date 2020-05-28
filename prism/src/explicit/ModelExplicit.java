@@ -38,7 +38,6 @@ import java.util.TreeSet;
 import parser.State;
 import parser.Values;
 import parser.VarList;
-import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismFileLog;
@@ -247,9 +246,6 @@ public abstract class ModelExplicit implements Model
 	}
 
 	// Accessors (for Model interface)
-
-	@Override
-	public abstract ModelType getModelType();
 
 	@Override
 	public int getNumStates()

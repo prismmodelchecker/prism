@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import prism.ModelType;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.STPGRewards;
+import prism.ModelType;
 
 /**
  * Simple explicit-state representation of a (turn-based) stochastic two-player game (STPG).
@@ -151,7 +151,8 @@ public class STPGExplicit extends MDPSimple implements STPG
 	@Override
 	public ModelType getModelType()
 	{
-		return ModelType.STPG;
+		// Resolve conflict: STPG interface does not (currently) extend MDP  
+		return STPG.super.getModelType();
 	}
 
 	// Accessors (for STPG)

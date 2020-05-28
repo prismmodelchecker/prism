@@ -105,12 +105,6 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 	//--- Model ---
 
 	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
-
-	@Override
 	public int getNumTransitions(final int s)
 	{
 		return IteratorTools.count(getTransitionsIterator(s));

@@ -35,7 +35,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
@@ -48,12 +47,6 @@ import explicit.graphviz.Decorator;
 public abstract class MDPExplicit extends ModelExplicit implements MDP
 {
 	// Accessors (for Model)
-
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.MDP;
-	}
 
 	@Override
 	public String infoString()

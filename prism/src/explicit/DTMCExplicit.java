@@ -35,7 +35,6 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import explicit.graphviz.Decorator;
-import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
 import prism.PrismLog;
@@ -48,12 +47,6 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 {
 	// Accessors (for Model)
 	
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
-
 	@Override
 	public void exportToPrismExplicitTra(PrismLog out)
 	{

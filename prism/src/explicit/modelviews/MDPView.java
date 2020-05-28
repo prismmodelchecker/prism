@@ -33,22 +33,21 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.PrimitiveIterator;
 import java.util.Map.Entry;
+import java.util.PrimitiveIterator;
 import java.util.TreeMap;
 
 import common.IteratorTools;
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismUtils;
-import strat.MDStrategy;
 import explicit.DTMCFromMDPAndMDStrategy;
 import explicit.Distribution;
 import explicit.MDP;
 import explicit.Model;
 import explicit.SuccessorsIterator;
 import explicit.graphviz.Decorator;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismUtils;
+import strat.MDStrategy;
 
 /**
  * Base class for an MDP view, i.e., a virtual MDP that is obtained
@@ -101,12 +100,6 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 
 
 	//--- Model ---
-
-	@Override
-	public ModelType getModelType()
-	{
-		return ModelType.MDP;
-	}
 
 	@Override
 	public int getNumTransitions(int s)
