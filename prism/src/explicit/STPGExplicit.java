@@ -171,6 +171,20 @@ public class STPGExplicit extends MDPSimple implements STPG
 		STPG.super.exportToPrismLanguage(filename);
 	}
 
+	@Override
+	public String infoString()
+	{
+		// Resolve conflict: STPG interface does not (currently) extend MDP  
+		return STPG.super.infoString();
+	}
+
+	@Override
+	public String infoStringTable()
+	{
+		// Resolve conflict: STPG interface does not (currently) extend MDP  
+		return STPG.super.infoStringTable();
+	}
+
 	// Accessors (for STPG)
 
 	@Override

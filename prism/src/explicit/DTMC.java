@@ -136,6 +136,24 @@ public interface DTMC extends Model
 		}
 	}
 
+	@Override
+	default String infoString()
+	{
+		String s = "";
+		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
+		s += ", " + getNumTransitions() + " transitions";
+		return s;
+	}
+
+	@Override
+	default String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + getNumTransitions() + "\n";
+		return s;
+	}
+
 	// Accessors
 	
 	/**

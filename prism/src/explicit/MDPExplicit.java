@@ -29,7 +29,6 @@ package explicit;
 
 import java.util.HashSet;
 
-import prism.PrismUtils;
 import strat.MDStrategy;
 
 /**
@@ -37,30 +36,6 @@ import strat.MDStrategy;
  */
 public abstract class MDPExplicit extends ModelExplicit implements MDP
 {
-	// Accessors (for Model)
-
-	@Override
-	public String infoString()
-	{
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		s += ", " + getNumChoices() + " choices";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates);
-		return s;
-	}
-
-	@Override
-	public String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		s += "Choices:     " + getNumChoices() + "\n";
-		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates) + "\n";
-		return s;
-	}
-
 	// Accessors (for NondetModel)
 	
 	@Override

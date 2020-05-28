@@ -105,26 +105,6 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 		}, true);
 	}
 
-	@Override
-	public String infoString()
-	{
-		String s = "";
-		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		return s;
-	}
-
-	@Override
-	public String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		return s;
-	}
-
-
-
 	//--- DTMC ---
 
 	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)

@@ -68,6 +68,24 @@ public interface LTS extends NondetModel
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	default String infoString()
+	{
+		String s = "";
+		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
+		s += ", " + getNumTransitions() + " transitions";
+		return s;
+	}
+
+	@Override
+	default String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + getNumTransitions() + "\n";
+		return s;
+	}
+
 	// Accessors (for NondetModel) - default implementations
 	
 	@Override

@@ -144,18 +144,6 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		// No deadlocks by definition
 	}
 
-	@Override
-	public String infoString()
-	{
-		return mdp.infoString() + " + " + "???"; // TODO
-	}
-
-	@Override
-	public String infoStringTable()
-	{
-		return mdp.infoString() + " + " + "???\n"; // TODO
-	}
-
 	// Accessors (for DTMC)
 
 	@Override
