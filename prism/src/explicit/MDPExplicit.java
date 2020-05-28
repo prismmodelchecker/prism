@@ -71,36 +71,6 @@ public abstract class MDPExplicit extends ModelExplicit implements MDP
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
-	{
-		int i, j, numChoices;
-		Object action;
-		TreeMap<Integer, Double> sorted;
-		// Output transitions to .tra file
-		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
-		sorted = new TreeMap<Integer, Double>();
-		for (i = 0; i < numStates; i++) {
-			numChoices = getNumChoices(i);
-			for (j = 0; j < numChoices; j++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
-					action = getAction(i, j);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-				sorted.clear();
-			}
-		}
-	}
-
-	@Override
 	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		int j, numChoices;

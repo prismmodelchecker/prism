@@ -26,7 +26,6 @@
 
 package explicit;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -40,7 +39,6 @@ import parser.Values;
 import parser.VarList;
 import prism.Prism;
 import prism.PrismException;
-import prism.PrismFileLog;
 import prism.PrismLog;
 
 /**
@@ -356,31 +354,6 @@ public abstract class ModelExplicit implements Model
 
 	@Override
 	public abstract void checkForDeadlocks(BitSet except) throws PrismException;
-
-	@Override
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
-	{
-		// Default implementation - just output .tra file
-		// (some models might override this)
-		exportToPrismExplicitTra(baseFilename + ".tra");
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException
-	{
-		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToPrismExplicitTra(log);
-		}
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(File file) throws PrismException
-	{
-		exportToPrismExplicitTra(file.getPath());
-	}
-
-	@Override
-	public abstract void exportToPrismExplicitTra(PrismLog out);
 
 	@Override
 	public abstract void exportToPrismLanguage(String filename) throws PrismException;

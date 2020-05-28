@@ -122,27 +122,6 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(final PrismLog log)
-	{
-		// Output transitions to .tra file
-		log.print(getNumStates() + " " + getNumTransitions() + "\n");
-		final TreeMap<Integer, Double> sorted = new TreeMap<>();
-		for (int state = 0, max = getNumStates(); state < max; state++) {
-			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
-				final Entry<Integer, Double> transition = transitions.next();
-				sorted.put(transition.getKey(), transition.getValue());
-			}
-			// Print out (sorted) transitions
-			for (Entry<Integer, Double> transition : sorted.entrySet()) {
-				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				log.print(state + " " + transition.getKey() + " " + PrismUtils.formatDouble(transition.getValue()) + "\n");
-			}
-			sorted.clear();
-		}
-	}
-
-	@Override
 	public void exportToPrismLanguage(final String filename) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {

@@ -35,6 +35,8 @@ import common.iterable.IterableInt;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismUtils;
 import explicit.rewards.MCRewards;
 
 /**
@@ -48,6 +50,34 @@ public interface DTMC extends Model
 	default ModelType getModelType()
 	{
 		return ModelType.DTMC;
+	}
+
+	@Override
+	default void exportToPrismExplicitTra(PrismLog out)
+	{
+		// Output transitions to .tra file
+		int numStates = getNumStates();
+		out.print(numStates + " " + getNumTransitions() + "\n");
+		TreeMap<Integer, Pair<Double, Object>> sorted = new TreeMap<Integer, Pair<Double, Object>>();
+		for (int i = 0; i < numStates; i++) {
+			// Extract transitions and sort by destination state index (to match PRISM-exported files)
+			Iterator<Map.Entry<Integer,Pair<Double, Object>>> iter = getTransitionsAndActionsIterator(i);
+			while (iter.hasNext()) {
+				Map.Entry<Integer, Pair<Double, Object>> e = iter.next();
+				sorted.put(e.getKey(), e.getValue());
+			}
+			// Print out (sorted) transitions
+			for (Map.Entry<Integer, Pair<Double, Object>> e : sorted.entrySet()) {
+				// Note use of PrismUtils.formatDouble to match PRISM-exported files
+				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue().first));
+				Object action = e.getValue().second; 
+				if (action != null && !"".equals(action)) {
+					out.print(" " + action);
+				}
+				out.print("\n");
+			}
+			sorted.clear();
+		}
 	}
 
 	// Accessors

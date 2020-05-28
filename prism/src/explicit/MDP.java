@@ -30,14 +30,17 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
+import java.util.TreeMap;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import prism.ModelType;
+import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -55,6 +58,34 @@ public interface MDP extends MDPGeneric<Double>
 	default ModelType getModelType()
 	{
 		return ModelType.MDP;
+	}
+
+	@Override
+	default void exportToPrismExplicitTra(PrismLog out)
+	{
+		// Output transitions to .tra file
+		int numStates = getNumStates();
+		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
+		TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
+		for (int i = 0; i < numStates; i++) {
+			int numChoices = getNumChoices(i);
+			for (int j = 0; j < numChoices; j++) {
+				// Extract transitions and sort by destination state index (to match PRISM-exported files)
+				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Double> e = iter.next();
+					sorted.put(e.getKey(), e.getValue());
+				}
+				// Print out (sorted) transitions
+				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
+					// Note use of PrismUtils.formatDouble to match PRISM-exported files
+					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
+					Object action = getAction(i, j);
+					out.print(action == null ? "\n" : (" " + action + "\n"));
+				}
+				sorted.clear();
+			}
+		}
 	}
 
 	// Accessors

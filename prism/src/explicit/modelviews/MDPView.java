@@ -112,32 +112,6 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(final PrismLog out)
-	{
-		final int numStates = getNumStates();
-		// Output transitions to .tra file
-		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
-		final TreeMap<Integer, Double> sorted = new TreeMap<>();
-		for (int state = 0; state < numStates; state++) {
-			for (int choice = 0, numChoices = getNumChoices(state); choice < numChoices; choice++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state, choice); transitions.hasNext();) {
-					final Entry<Integer, Double> trans = transitions.next();
-					sorted.put(trans.getKey(), trans.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(state + " " + choice + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
-					final Object action = getAction(state, choice);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-				sorted.clear();
-			}
-		}
-	}
-
-	@Override
 	public void exportToPrismLanguage(final String filename) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {

@@ -48,34 +48,6 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	// Accessors (for Model)
 	
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
-	{
-		int i;
-		TreeMap<Integer, Pair<Double, Object>> sorted;
-		// Output transitions to .tra file
-		out.print(numStates + " " + getNumTransitions() + "\n");
-		sorted = new TreeMap<Integer, Pair<Double, Object>>();
-		for (i = 0; i < numStates; i++) {
-			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			Iterator<Map.Entry<Integer,Pair<Double, Object>>> iter = getTransitionsAndActionsIterator(i);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Pair<Double, Object>> e = iter.next();
-				sorted.put(e.getKey(), e.getValue());
-			}
-			// Print out (sorted) transitions
-			for (Map.Entry<Integer, Pair<Double, Object>> e : sorted.entrySet()) {
-				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue().first));
-				Object action = e.getValue().second; 
-				if (action != null && !"".equals(action))
-					out.print(" " + action);
-				out.print("\n");
-			}
-			sorted.clear();
-		}
-	}
-
-	@Override
 	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);

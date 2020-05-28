@@ -302,25 +302,42 @@ public interface Model
 	 */
 	public void checkForDeadlocks(BitSet except) throws PrismException;
 
+	// Export methods (explicit files)
+	
 	/**
 	 * Export to explicit format readable by PRISM (i.e. a .tra file, etc.).
 	 */
-	public void exportToPrismExplicit(String baseFilename) throws PrismException;
+	default void exportToPrismExplicit(String baseFilename) throws PrismException
+	{
+		// Default implementation - just output .tra file
+		// (some models might override this)
+		exportToPrismExplicitTra(baseFilename + ".tra");
+	}
 
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(String filename) throws PrismException;
+	default void exportToPrismExplicitTra(String filename) throws PrismException
+	{
+		try (PrismFileLog log = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(log);
+		}
+	}
 
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(File file) throws PrismException;
+	default void exportToPrismExplicitTra(File file) throws PrismException
+	{
+		exportToPrismExplicitTra(file.getPath());
+	}
 	
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
 	public void exportToPrismExplicitTra(PrismLog log);
+	
+	// Export methods (dot files)
 	
 	/**
 	 * Export to a dot file.

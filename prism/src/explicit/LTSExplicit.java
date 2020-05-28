@@ -178,12 +178,6 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void exportTransitionsToDotFile(int s, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		for (Iterator<Integer> it = getSuccessorsIterator(s); it.hasNext(); ) {

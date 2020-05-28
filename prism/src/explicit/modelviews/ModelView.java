@@ -27,15 +27,14 @@
 
 package explicit.modelviews;
 
-import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 
-import common.iterable.FilteringIterable;
 import common.IterableBitSet;
-import common.iterable.IterableInt;
 import common.IterableStateSet;
+import common.iterable.FilteringIterable;
+import common.iterable.IterableInt;
 import explicit.Model;
 import explicit.PredecessorRelation;
 import explicit.StateValues;
@@ -44,7 +43,6 @@ import parser.VarList;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismFileLog;
 import prism.PrismLog;
 
 /**
@@ -136,26 +134,6 @@ public abstract class ModelView implements Model
 		if (deadlocks.hasNext()) {
 			throw new PrismException(getModelType() + " has a deadlock in state " + deadlocks.nextInt());
 		}
-	}
-
-	@Override
-	public void exportToPrismExplicit(final String baseFilename) throws PrismException
-	{
-		exportToPrismExplicitTra(baseFilename + ".tra");
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(final String filename) throws PrismException
-	{
-		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToPrismExplicitTra(log);
-		}
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(final File file) throws PrismException
-	{
-		exportToPrismExplicitTra(file.getPath());
 	}
 
 	@Override

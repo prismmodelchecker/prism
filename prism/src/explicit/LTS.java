@@ -27,6 +27,7 @@
 package explicit;
 
 import prism.ModelType;
+import prism.PrismLog;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state labelled transition system (LTS).
@@ -39,5 +40,11 @@ public interface LTS extends NondetModel
 	default ModelType getModelType()
 	{
 		return ModelType.LTS;
+	}
+
+	@Override
+	default void exportToPrismExplicitTra(PrismLog out)
+	{
+		throw new UnsupportedOperationException();
 	}
 }

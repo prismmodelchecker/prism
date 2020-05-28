@@ -26,25 +26,24 @@
 
 package param;
 
-import java.io.File;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
-import parser.Values;
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLog;
-import strat.MDStrategy;
 import explicit.MDPGeneric;
 import explicit.Model;
 import explicit.ModelExplicit;
 import explicit.SuccessorsIterator;
 import explicit.graphviz.Decorator;
+import parser.Values;
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismLog;
+import strat.MDStrategy;
 
 /**
  * Represents a parametric Markov model.
@@ -256,18 +255,6 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 
 	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(File file) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}

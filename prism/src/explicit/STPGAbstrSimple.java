@@ -358,36 +358,6 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
-	{
-		int i, j, k;
-		TreeMap<Integer, Double> sorted;
-		// Output transitions to .tra file
-		out.print(numStates + " " + numDistrSets + " " + numDistrs + " " + numTransitions + "\n");
-		sorted = new TreeMap<Integer, Double>();
-		for (i = 0; i < numStates; i++) {
-			j = -1;
-			for (DistributionSet distrs : trans.get(i)) {
-				j++;
-				k = -1;
-				for (Distribution distr : distrs) {
-					k++;
-					// Extract transitions and sort by destination state index (to match PRISM-exported files)
-					for (Map.Entry<Integer, Double> e : distr) {
-						sorted.put(e.getKey(), e.getValue());
-					}
-					// Print out (sorted) transitions
-					for (Map.Entry<Integer, Double> e : distr) {
-						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.print(i + " " + j + " " + k + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
-					}
-					sorted.clear();
-				}
-			}
-		}
-	}
-
-	@Override
 	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
 		int j, k;
