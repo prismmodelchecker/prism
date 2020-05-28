@@ -28,14 +28,13 @@ package automata;
 
 import java.util.BitSet;
 
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLog;
-import strat.MDStrategy;
 import explicit.LTS;
 import explicit.Model;
 import explicit.ModelExplicit;
 import explicit.SuccessorsIterator;
+import prism.ModelType;
+import prism.PrismException;
+import strat.MDStrategy;
 
 /**
  * Class giving access to the labelled transition system (LTS) underlying a deterministic automaton (DA).
@@ -203,12 +202,6 @@ public class LTSFromDA extends ModelExplicit implements LTS
 
 	@Override
 	public Model constructInducedModel(MDStrategy strat)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat)
 	{
 		throw new RuntimeException("Not implemented yet");
 	}

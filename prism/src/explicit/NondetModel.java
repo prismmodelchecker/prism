@@ -28,7 +28,6 @@ package explicit;
 
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.PrimitiveIterator;
 import java.util.function.IntPredicate;
 
 import prism.PrismLog;

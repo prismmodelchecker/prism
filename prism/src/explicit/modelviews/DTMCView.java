@@ -31,23 +31,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.TreeMap;
 import java.util.function.IntFunction;
 
-import common.IteratorTools;
 import common.IterableStateSet;
+import common.IteratorTools;
 import common.iterable.MappingIterator;
 import explicit.DTMC;
 import explicit.Distribution;
 import explicit.SuccessorsIterator;
-import explicit.graphviz.Decorator;
-import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -188,31 +184,5 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 	{
 		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state);
 		return new MappingIterator.From<>(transitions, transition -> attachAction(transition, null));
-	}
-
-
-	//--- ModelView ---
-
-	/**
-	 * @see explicit.DTMCExplicit#exportTransitionsToDotFile(int, PrismLog) DTMCExplicit
-	 **/
-	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
-	{
-		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
-		while (iter.hasNext()) {
-			Map.Entry<Integer, Double> e = iter.next();
-			out.print(i + " -> " + e.getKey());
-
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(e.getValue().toString());
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
-				}
-			}
-
-			out.println(d.toString());
-		}
 	}
 }

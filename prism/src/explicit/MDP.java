@@ -37,6 +37,7 @@ import java.util.TreeMap;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
+import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import prism.ModelType;
@@ -86,6 +87,82 @@ public interface MDP extends MDPGeneric<Double>
 				sorted.clear();
 			}
 		}
+	}
+
+	@Override
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	{
+		int j, numChoices;
+		String nij;
+		Object action;
+		numChoices = getNumChoices(i);
+		for (j = 0; j < numChoices; j++) {
+			action = getAction(i, j);
+			nij = "n" + i + "_" + j;
+			out.print(i + " -> " + nij + " ");
+
+			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+			d.attributes().put("arrowhead", "none");
+			d.setLabel(j + (action != null ? ":" + action : ""));
+
+			if (decorators != null) {
+				for (Decorator decorator : decorators) {
+					d = decorator.decorateTransition(i, j, d);
+				}
+			}
+			out.print(d);
+			out.println(";");
+
+			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
+
+			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+			while (iter.hasNext()) {
+				Map.Entry<Integer, Double> e = iter.next();
+				out.print(nij + " -> " + e.getKey() + " ");
+
+				d = new explicit.graphviz.Decoration();
+				d.setLabel(e.getValue().toString());
+
+				if (decorators != null) {
+					for (Decorator decorator : decorators) {
+						d = decorator.decorateProbability(i, e.getKey(), j, e.getValue(), d);
+					}
+				}
+
+				out.print(d);
+				out.println(";");
+			}
+		}
+	}
+
+	// Accessors (for NondetModel) - default implementations
+	
+	@Override
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	{
+		int numStates = getNumStates();
+		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
+		for (int i = 0; i < numStates; i++) {
+			if (mark != null && mark.get(i))
+				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
+			int numChoices = getNumChoices(i);
+			for (int j = 0; j < numChoices; j++) {
+				String style = (strat[i] == j) ? ",color=\"#ff0000\",fontcolor=\"#ff0000\"" : "";
+				Object action = getAction(i, j);
+				String nij = "n" + i + "_" + j;
+				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
+				if (action != null)
+					out.print(":" + action);
+				out.print("\"" + style + " ];\n");
+				out.print(nij + " [ shape=point,height=0.1,label=\"\"" + style + " ];\n");
+				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Double> e = iter.next();
+					out.print(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\"" + style + " ];\n");
+				}
+			}
+		}
+		out.print("}\n");
 	}
 
 	// Accessors

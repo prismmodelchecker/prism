@@ -37,6 +37,7 @@ import prism.Pair;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
+import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 
 /**
@@ -77,6 +78,26 @@ public interface DTMC extends Model
 				out.print("\n");
 			}
 			sorted.clear();
+		}
+	}
+
+	@Override
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	{
+		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
+		while (iter.hasNext()) {
+			Map.Entry<Integer, Double> e = iter.next();
+			out.print(i + " -> " + e.getKey());
+
+			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
+			d.setLabel(e.getValue().toString());
+			if (decorators != null) {
+				for (Decorator decorator : decorators) {
+					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
+				}
+			}
+
+			out.println(d.toString());
 		}
 	}
 

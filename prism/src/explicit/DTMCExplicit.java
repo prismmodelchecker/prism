@@ -48,26 +48,6 @@ public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 	// Accessors (for Model)
 	
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
-	{
-		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
-		while (iter.hasNext()) {
-			Map.Entry<Integer, Double> e = iter.next();
-			out.print(i + " -> " + e.getKey());
-
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(e.getValue().toString());
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
-				}
-			}
-
-			out.println(d.toString());
-		}
-	}
-
-	@Override
 	public void exportToPrismLanguage(String filename) throws PrismException
 	{
 		int i;

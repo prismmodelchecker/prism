@@ -26,6 +26,9 @@
 
 package explicit;
 
+import java.util.BitSet;
+import java.util.Iterator;
+
 import prism.ModelType;
 import prism.PrismLog;
 
@@ -44,6 +47,24 @@ public interface LTS extends NondetModel
 
 	@Override
 	default void exportToPrismExplicitTra(PrismLog out)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	default void exportTransitionsToDotFile(int s, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	{
+		for (Iterator<Integer> it = getSuccessorsIterator(s); it.hasNext(); ) {
+			Integer successor = it.next();
+			// we ignore decorators here
+			out.println(s + " -> " + successor + ";");
+		}
+	}
+	
+	// Accessors (for NondetModel) - default implementations
+	
+	@Override
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat)
 	{
 		throw new UnsupportedOperationException();
 	}

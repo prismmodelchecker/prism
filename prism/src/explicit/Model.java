@@ -387,7 +387,8 @@ public interface Model
 	 * @param out PrismLog to export to
 	 * @param mark States to highlight (ignored if null)
 	 */
-	default void exportToDotFile(PrismLog out, BitSet mark) {
+	default void exportToDotFile(PrismLog out, BitSet mark)
+	{
 		if (mark == null) {
 			exportToDotFile(out);
 		}

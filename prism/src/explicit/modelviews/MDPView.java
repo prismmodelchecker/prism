@@ -29,10 +29,8 @@ package explicit.modelviews;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.TreeMap;
@@ -43,9 +41,7 @@ import explicit.Distribution;
 import explicit.MDP;
 import explicit.Model;
 import explicit.SuccessorsIterator;
-import explicit.graphviz.Decorator;
 import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
 
@@ -236,82 +232,5 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	public Model constructInducedModel(final MDStrategy strat)
 	{
 		return new DTMCFromMDPAndMDStrategy(this, strat);
-	}
-
-	@Override
-	public void exportToDotFileWithStrat(final PrismLog out, final BitSet mark, final int[] strat)
-	{
-		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
-		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			if (mark != null && mark.get(state))
-				out.print(state + " [style=filled  fillcolor=\"#cccccc\"]\n");
-			for (int choice = 0, numChoices = getNumChoices(state); choice < numChoices; choice++) {
-				final String style = (strat[state] == choice) ? ",color=\"#ff0000\",fontcolor=\"#ff0000\"" : "";
-				final Object action = getAction(state, choice);
-				final String nij = "n" + state + "_" + choice;
-				out.print(state + " -> " + nij + " [ arrowhead=none,label=\"" + choice);
-				if (action != null) {
-					out.print(":" + action);
-				}
-				out.print("\"" + style + " ];\n");
-				out.print(nij + " [ shape=point,height=0.1,label=\"\"" + style + " ];\n");
-				for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state, choice); transitions.hasNext();) {
-					Entry<Integer, Double> trans = transitions.next();
-					out.print(nij + " -> " + trans.getKey() + " [ label=\"" + trans.getValue() + "\"" + style + " ];\n");
-				}
-			}
-		}
-		out.print("}\n");
-	}
-
-	//--- ModelView ---
-
-	/**
-	 * @see explicit.MDPExplicit#exportTransitionsToDotFile(int, PrismLog) MDPExplicit
-	 **/
-	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
-	{
-		int j, numChoices;
-		String nij;
-		Object action;
-		numChoices = getNumChoices(i);
-		for (j = 0; j < numChoices; j++) {
-			action = getAction(i, j);
-			nij = "n" + i + "_" + j;
-			out.print(i + " -> " + nij + " ");
-
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.attributes().put("arrowhead", "none");
-			d.setLabel(j + (action != null ? ":" + action : ""));
-
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateTransition(i, j, d);
-				}
-			}
-			out.print(d);
-			out.println(";");
-
-			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
-
-			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Double> e = iter.next();
-				out.print(nij + " -> " + e.getKey() + " ");
-
-				d = new explicit.graphviz.Decoration();
-				d.setLabel(e.getValue().toString());
-
-				if (decorators != null) {
-					for (Decorator decorator : decorators) {
-						d = decorator.decorateProbability(i, e.getKey(), j, e.getValue(), d);
-					}
-				}
-
-				out.print(d);
-				out.println(";");
-			}
-		}
 	}
 }
