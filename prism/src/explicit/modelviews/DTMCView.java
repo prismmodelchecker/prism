@@ -34,7 +34,6 @@ import java.util.PrimitiveIterator;
 import java.util.function.IntFunction;
 
 import common.IterableStateSet;
-import common.IteratorTools;
 import common.iterable.MappingIterator;
 import explicit.DTMC;
 import explicit.Distribution;
@@ -94,12 +93,6 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 
 
 	//--- Model ---
-
-	@Override
-	public int getNumTransitions(final int s)
-	{
-		return IteratorTools.count(getTransitionsIterator(s));
-	}
 
 	@Override
 	public SuccessorsIterator getSuccessors(final int state)

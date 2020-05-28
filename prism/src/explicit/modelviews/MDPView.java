@@ -32,7 +32,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 
-import common.IteratorTools;
 import explicit.DTMCFromMDPAndMDStrategy;
 import explicit.Distribution;
 import explicit.MDP;
@@ -94,16 +93,6 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	//--- Model ---
 
 	@Override
-	public int getNumTransitions(int s)
-	{
-		int numTransitions = 0;
-		for (int j = 0, numChoices = getNumChoices(s); j < numChoices; j++) {
-			numTransitions += getNumTransitions(s, j);
-		}
-		return numTransitions;
-	}
-
-	@Override
 	public String infoString()
 	{
 		final int numStates = getNumStates();
@@ -130,26 +119,6 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	//--- NondetModel ---
 
 	@Override
-	public int getNumChoices()
-	{
-		int numChoices = 0;
-		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			numChoices += getNumChoices(state);
-		}
-		return numChoices;
-	}
-
-	@Override
-	public int getMaxNumChoices()
-	{
-		int maxNumChoices = 0;
-		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			maxNumChoices = Math.max(maxNumChoices, getNumChoices(state));
-		}
-		return maxNumChoices;
-	}
-
-	@Override
 	public boolean areAllChoiceActionsUnique()
 	{
 		final HashSet<Object> actions = new HashSet<Object>();
@@ -166,12 +135,6 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 			}
 		}
 		return true;
-	}
-
-	@Override
-	public int getNumTransitions(final int state, final int choice)
-	{
-		return IteratorTools.count(getTransitionsIterator(state, choice));
 	}
 
 	@Override

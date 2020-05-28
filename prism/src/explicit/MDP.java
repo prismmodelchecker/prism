@@ -39,6 +39,7 @@ import java.util.TreeMap;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
+import common.IteratorTools;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
@@ -178,6 +179,12 @@ public interface MDP extends MDPGeneric<Double>
 	}
 
 	// Accessors (for NondetModel) - default implementations
+	
+	@Override
+	default int getNumTransitions(final int s, final int i)
+	{
+		return IteratorTools.count(getTransitionsIterator(s, i));
+	}
 	
 	@Override
 	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])

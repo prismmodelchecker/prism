@@ -48,12 +48,26 @@ public interface NondetModel extends Model
 	/**
 	 * Get the maximum number of nondeterministic choices in any state.
 	 */
-	public int getMaxNumChoices();
+	default int getMaxNumChoices()
+	{
+		int maxNumChoices = 0;
+		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
+			maxNumChoices = Math.max(maxNumChoices, getNumChoices(state));
+		}
+		return maxNumChoices;
+	}
 
 	/**
 	 * Get the total number of nondeterministic choices over all states.
 	 */
-	public int getNumChoices();
+	default int getNumChoices()
+	{
+		int numChoices = 0;
+		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
+			numChoices += getNumChoices(state);
+		}
+		return numChoices;
+	}
 
 	/**
 	 * Get the action label (if any) for choice {@code i} of state {@code s}.
