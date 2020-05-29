@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import prism.PrismException;
@@ -176,42 +177,28 @@ public class MDPSimple extends MDPExplicit implements NondetModelSimple
 	/**
 	 * Construct an MDPSimple object from an MDPSparse one.
 	 */
-	public MDPSimple(MDPSparse mdp)
+	public MDPSimple(MDP mdp)
 	{
-		this(mdp.numStates);
+		this(mdp.getNumStates());
 		copyFrom(mdp);
-		// Copy storage directly to avoid worrying about duplicate distributions (and for efficiency)
-		for (int s = 0; s < numStates; s++) {
-			for (int c = 0; c < mdp.getNumChoices(s); c++) {
+		int numStates = getNumStates();
+		for (int i = 0; i < numStates; i++) {
+			int numChoices = getNumChoices(i);
+			for (int j = 0; j < numChoices; j++) {
+				Object action = getAction(i, j);
 				Distribution distr = new Distribution();
-				Iterator<Entry<Integer, Double>> it = mdp.getTransitionsIterator(s, c);
-				while (it.hasNext()) {
-					Entry<Integer, Double> entry = it.next();
-					distr.add(entry.getKey(), entry.getValue());
+				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Double> e = iter.next();
+					distr.set(e.getKey(), e.getValue());
 				}
-				this.addChoice(s, distr);
+				if (action == null) {
+					addActionLabelledChoice(i, distr, action);
+				} else {
+					addChoice(i, distr);
+				}
 			}
 		}
-
-		if (mdp.actions != null) {
-			actions = new ArrayList<List<Object>>(numStates);
-			for (int s = 0; s < numStates; s++)
-				actions.add(null);
-			for (int s = 0; s < numStates; s++) {
-				int n = mdp.getNumChoices(s);
-				List<Object> list = new ArrayList<Object>(n);
-				for (int i = 0; i < n; i++) {
-					list.add(mdp.getAction(s, i));
-				}
-				actions.set(s, list);
-			}
-		}
-		// Copy flags/stats too
-		allowDupes = false; // TODO check this
-		numDistrs = mdp.numDistrs;
-		numTransitions = mdp.numTransitions;
-		maxNumDistrs = mdp.maxNumDistrs;
-		maxNumDistrsOk = true; // TODO not sure
 	}
 
 	// Mutators (for ModelSimple)

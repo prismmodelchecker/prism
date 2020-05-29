@@ -77,47 +77,47 @@ public abstract class ModelExplicit implements Model
 	// Mutators
 
 	/**
-	 * Copy data from another ModelExplicit (used by superclass copy constructors).
+	 * Copy data from another Model (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 */
-	public void copyFrom(ModelExplicit model)
+	public void copyFrom(Model model)
 	{
-		numStates = model.numStates;
-		for (int in : model.initialStates) {
+		numStates = model.getNumStates();
+		for (int in : model.getInitialStates()) {
 			addInitialState(in);
 		}
-		for (int dl : model.deadlocks) {
+		for (int dl : model.getDeadlockStates()) {
 			addDeadlockState(dl);
 		}
 		// Shallow copy of read-only stuff
-		statesList = model.statesList;
-		constantValues = model.constantValues;
-		labels = model.labels;
-		varList = model.varList;
+		statesList = model.getStatesList();
+		constantValues = model.getConstantValues();
+		labels = model.getLabelToStatesMap();
+		varList = model.getVarList();
 	}
 
 	/**
-	 * Copy data from another ModelExplicit and a state index permutation,
+	 * Copy data from another Model and a state index permutation,
 	 * i.e. state index i becomes index permut[i]
 	 * (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 * Pointer to states list is NOT copied (since now wrong).
 	 */
-	public void copyFrom(ModelExplicit model, int permut[])
+	public void copyFrom(Model model, int permut[])
 	{
-		numStates = model.numStates;
-		for (int in : model.initialStates) {
+		numStates = model.getNumStates();
+		for (int in : model.getInitialStates()) {
 			addInitialState(permut[in]);
 		}
-		for (int dl : model.deadlocks) {
+		for (int dl : model.getDeadlockStates()) {
 			addDeadlockState(permut[dl]);
 		}
 		// Shallow copy of (some) read-only stuff
 		// (i.e. info that is not broken by permute)
 		statesList = null;
-		constantValues = model.constantValues;
+		constantValues = model.getConstantValues();
 		labels.clear();
-		varList = model.varList;
+		varList = model.getVarList();
 	}
 
 	/**
