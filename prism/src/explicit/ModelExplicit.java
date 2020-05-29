@@ -347,6 +347,12 @@ public abstract class ModelExplicit implements Model
 	}
 	
 	@Override
+	public Map<String, BitSet> getLabelToStatesMap()
+	{
+		return labels;
+	}
+	
+	@Override
 	public void checkForDeadlocks() throws PrismException
 	{
 		checkForDeadlocks(null);

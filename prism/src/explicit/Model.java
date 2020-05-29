@@ -32,8 +32,10 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.IntPredicate;
 
 import common.IteratorTools;
@@ -141,9 +143,25 @@ public interface Model
 	 */
 	public Set<String> getLabels();
 
-	/** Returns true if a label with the given name is attached to this model */
+	/**
+	 * Returns true if a label with the given name is attached to this model
+	 */
 	public boolean hasLabel(String name);
 
+	/**
+	 * Get the mapping from labels that are (optionally) stored
+	 * to the sets of states that satisfy them.
+	 */
+	default Map<String, BitSet> getLabelToStatesMap()
+	{
+		// Default implementation creates a new map on demand
+		Map<String, BitSet> labels = new TreeMap<String, BitSet>();
+		for (String name : getLabels()) {
+			labels.put(name, getLabelStates(name));
+		}
+		return labels;
+	}
+	
 	/**
 	 * Get the total number of transitions in the model.
 	 */
