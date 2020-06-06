@@ -734,7 +734,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportTransFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 
 			if (exportPlainDeprecated)
@@ -751,7 +751,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportStateRewardsFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -765,7 +765,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportTransRewardsFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -779,7 +779,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportStatesFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -792,7 +792,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportSpyFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -805,7 +805,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportDotFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -819,7 +819,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportTransDotFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -833,7 +833,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportTransDotStatesFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -850,7 +850,7 @@ public class PrismCL implements PrismModelListener
 			catch (IOException | InterruptedException e) {
 				error("Problem generating dot file: " + e.getMessage());
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -882,7 +882,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportSCCsFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -896,7 +896,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportBSCCsFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 
@@ -910,7 +910,7 @@ public class PrismCL implements PrismModelListener
 			catch (FileNotFoundException e) {
 				error("Couldn't open file \"" + exportMECsFilename + "\" for output");
 			} catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 	}
@@ -938,7 +938,7 @@ public class PrismCL implements PrismModelListener
 				prism.doSteadyState(exportType, exportSteadyStateFile, importinitdist ? new File(importInitDistFilename) : null);
 			} catch (PrismException e) {
 				// In case of error, report it and proceed
-				error(e.getMessage());
+				error(e);
 			}
 		}
 	}
@@ -985,7 +985,7 @@ public class PrismCL implements PrismModelListener
 			}
 			// In case of error, report it and proceed
 			catch (PrismException e) {
-				error(e.getMessage());
+				error(e);
 			}
 		}
 	}
@@ -2578,6 +2578,19 @@ public class PrismCL implements PrismModelListener
 
 	/**
 	 * Report a (non-fatal) error to the log.
+	 * In test mode, this _will_ result in an exit,
+	 * unless we are in test-all mode or the passed in error
+	 * is a PrismNotSupportedException, which is not
+	 * treated as a normal error (e.g., by prism-auto/prism-test)
+	 */
+	private void error(PrismException e)
+	{
+		error(e.getMessage(), e instanceof PrismNotSupportedException);
+	}
+
+	/**
+	 * Report a (non-fatal) error to the log.
+	 * In test (but not test-all) mode, this _will_ result in an exit.
 	 */
 	private void error(String s)
 	{
@@ -2586,7 +2599,8 @@ public class PrismCL implements PrismModelListener
 
 	/**
 	 * Report a (non-fatal) error to the log.
-	 * Optionally, requested that we do not exit, even if test mode is enabled
+	 * In test (but not test-all) mode, this _will_ result in an exit.
+	 * The latter can be overridden by setting dontExit to true.
 	 */
 	private void error(String s, boolean dontExit)
 	{

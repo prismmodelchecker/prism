@@ -2531,7 +2531,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		
 		if (getExplicit())
-			throw new PrismException("Export of transition rewards not yet supported by explicit engine");
+			throw new PrismNotSupportedException("Export of transition rewards not yet supported by explicit engine");
 
 		// Can only do ordered version of export for MDPs
 		if (currentModelType == ModelType.MDP) {
