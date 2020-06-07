@@ -480,7 +480,7 @@ public class ConstructModel extends PrismComponent
 			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
 			ConstructModel constructModel = new ConstructModel(prism);
 			constructModel.setSortStates(true);
-			simulator.ModulesFileModelGenerator modelGen = new simulator.ModulesFileModelGenerator(modulesFile, constructModel);
+			simulator.ModulesFileModelGenerator modelGen = simulator.ModulesFileModelGenerator.create(modulesFile, constructModel);
 			Model model = constructModel.constructModel(modelGen);
 			model.exportToPrismExplicitTra(args[1]);
 		} catch (FileNotFoundException e) {

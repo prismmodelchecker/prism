@@ -81,6 +81,7 @@ public class PTAModelChecker extends PrismComponent
 	/**
 	 * Model check a property.
 	 */
+	@SuppressWarnings("unchecked")
 	public Result check(Expression expr) throws PrismException
 	{
 		Result res;
@@ -93,7 +94,7 @@ public class PTAModelChecker extends PrismComponent
 		// Build a model generator
 		ModelGenerator<Double> modelGen;
 		try {
-			modelGen = new ModulesFileModelGenerator<Double>(modulesFile, this);
+			modelGen = (ModelGenerator<Double>) ModulesFileModelGenerator.create(modulesFile, this);
 		} catch (PrismException e) {
 			throw new PrismException(e.getMessage() + ". Try the digital clocks engine instead");
 		}

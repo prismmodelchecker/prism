@@ -3,6 +3,9 @@ package simulator;
 import java.util.ArrayList;
 import java.util.List;
 
+import param.BigRational;
+import param.Function;
+import param.FunctionFactory;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -59,23 +62,76 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
-	 * An {@link Evaluator} of the appropriate type is created.
-	 * So, this static creator method should generally be preferred to calling the constructors directly.
-	 * Throw an explanatory exception if this is not possible.
+	 * This method assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * The method takes care of {@link Evaluator} creation so should be preferred to calling constructors directly.
+	 * Throw an explanatory exception if the model generator cannot be created.
 	 * @param modulesFile The PRISM model
 	 * @param parent Parent, used e.g. for settings (can be null)
 	 */
 	public static ModulesFileModelGenerator<?> create(ModulesFile modulesFile, PrismComponent parent) throws PrismException
 	{
-		// For now, we just create an Evaluator<Double>
-		Evaluator<Double> evalDbl = Evaluator.createForDoubles();
-		return new ModulesFileModelGenerator<Double>(modulesFile, evalDbl, parent);
+		return create(modulesFile, false, parent);
 	}
 	
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
-	 * Creates a default {@link Evaluator}{@code <Double>} so only works for {@code ModulesFileModelGenerator<Double>}.
-	 * Throw an explanatory exception if this is not possible.
+	 * If {@code exact} is true, the ModelGenerator will use {@link BigRational}s not doubles for probabilities.
+	 * The method takes care of {@link Evaluator} creation so should be preferred to calling constructors directly.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param exact Use exact arithmetic?
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<?> create(ModulesFile modulesFile, boolean exact, PrismComponent parent) throws PrismException
+	{
+		return new ModulesFileModelGenerator<>(modulesFile, createEvaluator(modulesFile, exact), parent);
+	}
+	
+	/**
+	 * Helper function to create an Evaluator of the appropriate type.
+	 */
+	private static Evaluator<?> createEvaluator(ModulesFile modulesFile, boolean exact) throws PrismException
+	{
+		if (!exact) {
+			return Evaluator.createForDoubles();
+		} else {
+			return Evaluator.createForBigRationals();
+		}
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method builds a generator for a parametric model using the function factory provided.
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Function>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param functionFactory Factory for creating/manipulating rational functions 
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, FunctionFactory functionFactory, PrismComponent parent) throws PrismException
+	{
+		Evaluator<Function> eval = Evaluator.createForRationalFunctions(functionFactory);
+		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Double>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Double> createForDoubles(ModulesFile modulesFile, PrismComponent parent) throws PrismException
+	{
+		Evaluator<Double> eval = Evaluator.createForDoubles();
+		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
+	}
+	
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This constructor assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * Throw an explanatory exception if the model generator cannot be created.
 	 * @param modulesFile The PRISM model
 	 */
 	public ModulesFileModelGenerator(ModulesFile modulesFile) throws PrismException
@@ -85,8 +141,8 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
-	 * Throw an explanatory exception if this is not possible.
-	 * Creates a default {@link Evaluator}{@code <Double>} so only works for {@code ModulesFileModelGenerator<Double>}.
+	 * This constructor assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
+	 * Throw an explanatory exception if the model generator cannot be created.
 	 * @param modulesFile The PRISM model
 	 * @param parent Parent, used e.g. for settings (can be null)
 	 */
@@ -99,7 +155,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
 	 * Takes in an {@link Evaluator}{@code <Value>} to match the type parameter {@code Value} of this class.
-	 * Throw an explanatory exception if this is not possible.
+	 * Throw an explanatory exception if the model generator cannot be created.
 	 * @param modulesFile The PRISM model
 	 * @param eval Evaluator matching the type parameter {@code Value} of this class
 	 * @param parent Parent, used e.g. for settings (can be null)
