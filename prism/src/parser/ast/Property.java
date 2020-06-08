@@ -27,6 +27,7 @@
 package parser.ast;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,13 +109,13 @@ public class Property extends ASTElement
 	/**
 	 * Tests a result against the expected result for this Property, specified by an embedded "RESULT: xxx"
 	 * string in the accompanying comment (immediately preceding it in the property specification).
-	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx". 
+	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx".
 	 * The result should ideally be passed in as a {@link prism.Result} object, but can also
 	 * be given directly as an object of the appropriate type: Boolean, Double, etc.)
 	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
 	 * Otherwise, the method successfully exits, returning a boolean value that indicates
 	 * whether or not a check was actually applied (i.e. if the result specification is of the
-	 * form "RESULT: ?") then false is returned; otherwise true.   
+	 * form "RESULT: ?") then false is returned; otherwise true.
 	 * @param result The actual result
 	 * @return Whether or not the check was performed
 	 */
@@ -126,29 +127,49 @@ public class Property extends ASTElement
 	/**
 	 * Tests a result against the expected result for this Property, specified by an embedded "RESULT: xxx"
 	 * string in the accompanying comment (immediately preceding it in the property specification).
-	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx". 
+	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx".
 	 * The result should ideally be passed in as a {@link prism.Result} object, but can also
 	 * be given directly as an object of the appropriate type: Boolean, Double, etc.)
 	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
 	 * Otherwise, the method successfully exits, returning a boolean value that indicates
 	 * whether or not a check was actually applied (i.e. if the result specification is of the
-	 * form "RESULT: ?") then false is returned; otherwise true.   
+	 * form "RESULT: ?") then false is returned; otherwise true.
 	 * @param result The actual result
-	 * @param constValues The values of any undefined constants (null if none)
+	 * @param constValues The values of any constants (null if none)
 	 * @return Whether or not the check was performed
 	 */
 	public boolean checkAgainstExpectedResult(Object result, Values constValues) throws PrismException
 	{
+		return checkAgainstExpectedResult(result, constValues, null);
+	}
+
+	/**
+	 * Tests a result against the expected result for this Property, specified by an embedded "RESULT: xxx"
+	 * string in the accompanying comment (immediately preceding it in the property specification).
+	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx".
+	 * The result should ideally be passed in as a {@link prism.Result} object, but can also
+	 * be given directly as an object of the appropriate type: Boolean, Double, etc.)
+	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
+	 * Otherwise, the method successfully exits, returning a boolean value that indicates
+	 * whether or not a check was actually applied (i.e. if the result specification is of the
+	 * form "RESULT: ?") then false is returned; otherwise true.
+	 * @param result The actual result
+	 * @param constValues The values of any constants (null if none)
+	 * @param params The names of any parameters, for "symbolic" results (null if none)
+	 * @return Whether or not the check was performed
+	 */
+	public boolean checkAgainstExpectedResult(Object result, Values constValues, List<String> params) throws PrismException
+	{
 		Result resultObj = (result instanceof Result) ? ((Result) result) : new Result(result);
 		String strExpected = getExpectedResultString(constValues);
-		return ResultTesting.checkAgainstExpectedResultString(strExpected, constValues, expr.getType(), resultObj);
+		return ResultTesting.checkAgainstExpectedResultString(strExpected, constValues, params, expr.getType(), resultObj);
 	}
 
 	/**
 	 * Get the expected result by extracting from the appropriate RESULT annotation.
 	 * This is done by finding the first RESULT whose constant values (if any) all match those
 	 * provided in {@code constValues}. A PrismException is thrown if no matching RESULT is found.
-	 * @param constValues The values of any undefined constants (null if none)
+	 * @param constValues The values of any constants (null if none)
 	 */
 	private String getExpectedResultString(Values constValues) throws PrismException
 	{
@@ -220,7 +241,7 @@ public class Property extends ASTElement
 	 * This is done by an exact string match against the provided string of constant values.
 	 * A PrismException is thrown if no matching RESULT is found.
 	 * This method actually looks at all RESULTs and complains if there multiple matches. 
-	 * @param constValues The values of any undefined constants (null or "" if none)
+	 * @param constValues The values of any constants (null or "" if none)
 	 */
 	@SuppressWarnings("unused")
 	private String getExpectedResultString(String constValues) throws PrismException

@@ -28,6 +28,8 @@
 
 package param;
 
+import java.util.List;
+
 import parser.Values;
 import parser.ast.ConstantList;
 import parser.ast.Expression;
@@ -125,10 +127,11 @@ public class ParamResult
 	 * @param propertyType the type of the checked property
 	 * @param strExpected the expected result (as a String)
 	 * @param constValues the model/property constants used during the checking
+	 * @param params The names of any parameters, i.e., still undefined constants (null if none)
 	 * @return true if the test succeeds
 	 * @throws PrismException on test failure
 	 */
-	public boolean test(Type propertyType, String strExpected, Values constValues) throws PrismException
+	public boolean test(Type propertyType, String strExpected, Values constValues, List<String> params) throws PrismException
 	{
 		Expression exprExpected = null;
 		try {
@@ -145,7 +148,7 @@ public class ParamResult
 				// defined constants
 				ConstantList constantList = new ConstantList(constValues);
 				// and parametric constants
-				for (String p : modelBuilder.getParameterNames()) {
+				for (String p : params) {
 					constantList.addConstant(new ExpressionIdent(p), null, TypeDouble.getInstance());
 				}
 				exprExpected = (Expression) exprExpected.findAllConstants(constantList);

@@ -52,12 +52,13 @@ public class ResultTesting
 	 * whether or not a check was actually applied (i.e. if the result specification is of the
 	 * form "RESULT: ?") then false is returned; otherwise true.   
 	 * @param strExpected Expected result
-	 * @param constValues The values of any undefined constants (null or "" if none)
+	 * @param constValues The values of any constants (null if none)
+	 * @param params The names of any still undefined constants (null if none)
 	 * @param type The type of the property yielding this result
 	 * @param resultObj The result to check
 	 * @return Whether or not the check was performed
 	 */
-	public static boolean checkAgainstExpectedResultString(String strExpected, Values constValues, Type type, Result resultObj) throws PrismException
+	public static boolean checkAgainstExpectedResultString(String strExpected, Values constValues, List<String> params, Type type, Result resultObj) throws PrismException
 	{
 		Object result = resultObj.getResult();
 		// Check for special "don't care" case
@@ -73,7 +74,7 @@ public class ResultTesting
 		}
 		// Check result of parametric model checking
 		if (result instanceof ParamResult) {
-			return ((ParamResult) result).test(type, strExpected, constValues);
+			return ((ParamResult) result).test(type, strExpected, constValues, params);
 		}
 		// Otherwise, check depends on the type of the property  
 		// Boolean-valued properties

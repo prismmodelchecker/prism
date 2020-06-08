@@ -33,6 +33,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import common.StackTraceHelper;
@@ -1005,7 +1007,8 @@ public class PrismCL implements PrismModelListener
 	{
 		try {
 			Values allConsts = new Values(mfConstants, pfConstants);
-			if (prop.checkAgainstExpectedResult(res, allConsts)) {
+			List<String> allParams = param ? Arrays.asList(paramNames) : Collections.emptyList(); 
+			if (prop.checkAgainstExpectedResult(res, allConsts, allParams)) {
 				mainLog.println("Testing result: PASS");
 			} else {
 				mainLog.println("Testing result: NOT TESTED");
