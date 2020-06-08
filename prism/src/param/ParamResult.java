@@ -55,8 +55,6 @@ public class ParamResult
 	private ParamMode mode;
 	/** The actual result */
 	private RegionValues regionValues;
-	/** The model builder (for accessing expr2func) */
-	private ModelBuilder modelBuilder;
 	/** The function factory used for model checking */
 	private FunctionFactory factory;
 
@@ -66,11 +64,10 @@ public class ParamResult
 	 * @param modelBuilder the model builder used during checking
 	 * @param factory the function factory used during checking
 	 */
-	public ParamResult(ParamMode mode, RegionValues regionValues, ModelBuilder modelBuilder, FunctionFactory factory)
+	public ParamResult(ParamMode mode, RegionValues regionValues, FunctionFactory factory)
 	{
 		this.mode = mode;
 		this.regionValues = regionValues;
-		this.modelBuilder = modelBuilder;
 		this.factory = factory;
 	}
 

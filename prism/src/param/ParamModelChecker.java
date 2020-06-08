@@ -141,8 +141,6 @@ final public class ParamModelChecker extends PrismComponent
 	private Lumper.BisimType bisimType;
 	private boolean simplifyRegions;
 
-	private ModelBuilder modelBuilder;
-	
 	/**
 	 * Constructor
 	 */
@@ -263,7 +261,7 @@ final public class ParamModelChecker extends PrismComponent
 		// Store result
 		result = new Result();
 		vals.clearExceptInit();
-		result.setResult(new ParamResult(mode, vals, modelBuilder, functionFactory));
+		result.setResult(new ParamResult(mode, vals, functionFactory));
 		
 		/* // Output plot to tex file
 		if (paramLower.length == 2) {
@@ -1249,9 +1247,4 @@ final public class ParamModelChecker extends PrismComponent
 	public static void closeDown() {
 		ComputerThreads.terminate();
 	}
-
-	public void setModelBuilder(ModelBuilder builder)
-	{
-		this.modelBuilder = builder;
-	}	
 }
