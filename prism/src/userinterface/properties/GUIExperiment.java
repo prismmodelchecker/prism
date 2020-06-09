@@ -367,12 +367,12 @@ public class GUIExperiment
 
 							// iterate to next property
 							undefinedConstants.iterateProperty();
-							yield();
+							Thread.yield();
 						}
 					}
 					// iterate to next model
 					undefinedConstants.iterateModel();
-					yield();
+					Thread.yield();
 				}
 
 				SwingUtilities.invokeAndWait(new Runnable()
