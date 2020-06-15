@@ -27,7 +27,11 @@
 package parser;
 
 import java.util.*;
+import java.util.function.Function;
 
+import common.iterable.CartesianProduct;
+import common.iterable.FunctionalIterable;
+import common.iterable.Interval;
 import prism.*;
 import parser.ast.*;
 import parser.type.*;
@@ -255,7 +259,15 @@ public class VarList
 	 */
 	public Type getType(int i)
 	{
-		return vars.get(i).decl.getDeclType().getType();
+		return getType(vars.get(i));
+	}
+
+	/**
+	 * Get the type of a variable.
+	 */
+	public Type getType(Var var)
+	{
+		return var.decl.getDeclType().getType();
 	}
 
 	/**
@@ -434,45 +446,30 @@ public class VarList
 	}
 
 	/**
-	 * Get a list of all possible states over the variables in this list. Use with care!
+	 * Get an iterable of all possible states over the variables in this list.
+	 * States will be generated on the fly during iteration.
+	 * Use with care!
 	 */
-	public List<State> getAllStates() throws PrismLangException
+	public FunctionalIterable<Object[]> getAllAssignments() throws PrismLangException
 	{
-		List<State> allStates;
-		State state, stateNew;
-
-		int numVars = getNumVars();
-		allStates = new ArrayList<State>();
-		allStates.add(new State(numVars));
-		for (int i = 0; i < numVars; i++) {
-			if (getType(i) instanceof TypeBool) {
-				int n = allStates.size();
-				for (int j = 0; j < n; j++) {
-					state = allStates.get(j);
-					stateNew = new State(state);
-					stateNew.setValue(i, true);
-					state.setValue(i, false);
-					allStates.add(stateNew);
-				}
-			} else if (getType(i) instanceof TypeInt) {
-				int lo = getLow(i);
-				int hi = getHigh(i);
-				int n = allStates.size();
-				for (int j = 0; j < n; j++) {
-					state = allStates.get(j);
-					for (int k = lo + 1; k < hi + 1; k++) {
-						stateNew = new State(state);
-						stateNew.setValue(i, k);
-						allStates.add(stateNew);
-					}
-					state.setValue(i, lo);
-				}
-			} else {
-				throw new PrismLangException("Cannot determine all values for a variable of type " + getType(i));
+		for (Var var : vars) {
+			Type type = getType(var);
+			if ((type instanceof TypeBool) || (type instanceof TypeInt)) {
+				continue;
 			}
+			throw new PrismLangException("Cannot determine all values for a variable of type " + getType(var));
 		}
 
-		return allStates;
+		// convert variable list to list of domains
+		List<Boolean> booleans              = Arrays.asList(false, true);
+		Function<Var, Iterable<?>> toDomain = var -> (getType(var) instanceof TypeBool)
+		                                              ? booleans
+		                                              : new Interval(var.low, var.high + 1);
+		FunctionalIterable<Var> variables   = FunctionalIterable.extend(vars);
+		Iterable<Iterable<?>> domains       = variables.map(toDomain);
+
+		// iterate states from Cartesian product
+		return CartesianProduct.mutableOf(domains);
 	}
 
 	/**

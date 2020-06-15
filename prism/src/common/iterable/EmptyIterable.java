@@ -25,42 +25,63 @@
 //	
 //==============================================================================
 
-
 package common.iterable;
 
-import java.util.Iterator;
+import common.iterable.FunctionalPrimitiveIterable.IterableDouble;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableLong;
 
 /**
  * Base class for Iterables returning empty iterators,
  * static helpers for common primitive iterators.
  */
-public abstract class EmptyIterable<T> implements Iterable<T>
+public abstract class EmptyIterable<E> implements FunctionalIterable<E>
 {
-	private static final Of<?> OF = new Of<>();
-	private static final OfInt OF_INT = new OfInt();
+	private static final Of<?>    OF        = new Of<>();
 	private static final OfDouble OF_DOUBLE = new OfDouble();
+	private static final OfInt    OF_INT    = new OfInt();
+	private static final OfLong   OF_LONG   = new OfLong();
 
 	@SuppressWarnings("unchecked")
-	public static <T> Of<T> Of() {
-		return (Of<T>) OF;
+	public static <E> Of<E> Of()
+	{
+		return (Of<E>) OF;
 	}
 
-	public static OfInt OfInt() {
-		return OF_INT;
-	}
-
-	public static OfDouble OfDouble() {
+	public static OfDouble OfDouble()
+	{
 		return OF_DOUBLE;
 	}
 
-	public static class Of<T> extends EmptyIterable<T>
+	public static OfInt OfInt()
+	{
+		return OF_INT;
+	}
+
+	public static OfLong OfLong()
+	{
+		return OF_LONG;
+	}
+
+	public static class Of<E> extends EmptyIterable<E>
 	{
 		private Of() {};
 
 		@Override
-		public Iterator<T> iterator()
+		public EmptyIterator.Of<E> iterator()
 		{
 			return EmptyIterator.Of();
+		}
+	}
+
+	public static class OfDouble extends EmptyIterable<Double> implements IterableDouble
+	{
+		private OfDouble() {};
+	
+		@Override
+		public EmptyIterator.OfDouble iterator()
+		{
+			return EmptyIterator.OfDouble();
 		}
 	}
 
@@ -83,17 +104,6 @@ public abstract class EmptyIterable<T> implements Iterable<T>
 		public EmptyIterator.OfLong iterator()
 		{
 			return EmptyIterator.OfLong();
-		}
-	}
-
-	public static class OfDouble extends EmptyIterable<Double> implements IterableDouble
-	{
-		private OfDouble() {};
-
-		@Override
-		public EmptyIterator.OfDouble iterator()
-		{
-			return EmptyIterator.OfDouble();
 		}
 	}
 }

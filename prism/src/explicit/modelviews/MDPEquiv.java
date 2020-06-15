@@ -36,7 +36,6 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 
 import common.functions.primitive.PairPredicateInt;
-import common.iterable.FilteringIterator;
 import common.IterableBitSet;
 import common.IterableStateSet;
 import common.IteratorTools;
@@ -81,7 +80,7 @@ public class MDPEquiv extends MDPView
 				numChoices[representative] = model.getNumChoices(representative);
 			} else {
 				final IterableBitSet eqStates = new IterableBitSet(equivalenceClass);
-				numChoices[representative] = IteratorTools.sum(new MappingIterator.FromIntToInt(eqStates, model::getNumChoices));
+				numChoices[representative] = IteratorTools.sum(new MappingIterator.FromIntToInt(eqStates.iterator(), model::getNumChoices));
 				StateChoicePair[] choices = originalChoices[representative] = new StateChoicePair[numChoices[representative]];
 				assert representative == equivalenceClass.nextSetBit(0);
 				int choice = model.getNumChoices(representative);
@@ -232,7 +231,7 @@ public class MDPEquiv extends MDPView
 		}
 		Iterator<Integer> successors = model.getSuccessorsIterator(originalState, originalChoice);
 		if (hasTransitionToNonRepresentative.get(originalState)) {
-			return FilteringIterator.dedupe(new MappingIterator.From<>(successors, this::mapStateToRestrictedModel));
+			return (new MappingIterator.From<>(successors, this::mapStateToRestrictedModel)).distinct();
 		}
 		return successors;
 	}

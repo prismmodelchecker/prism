@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.iterable.FilteringIterable;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import common.IterableBitSet;
-import common.iterable.IterableInt;
 import common.IterableStateSet;
 import explicit.Model;
 import explicit.PredecessorRelation;

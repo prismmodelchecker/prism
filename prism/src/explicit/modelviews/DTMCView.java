@@ -89,7 +89,7 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 		};
 		String s = "trans: [ ";
 		final IterableStateSet states = new IterableStateSet(getNumStates());
-		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.FromInt<>(states, getDistribution);
+		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.FromInt<>(states.iterator(), getDistribution);
 		while (distributions.hasNext()) {
 			final Entry<Integer, Distribution> dist = distributions.next();
 			s += dist.getKey() + ": " + dist.getValue();

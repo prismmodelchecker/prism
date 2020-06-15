@@ -27,7 +27,9 @@
 
 package common.functions.primitive;
 
-/** Functional interface for a predicate  (int, int) -> boolean */
+/**
+ * Functional interface for a predicate (int, int) -> boolean.
+ */
 @FunctionalInterface
 public interface PairPredicateInt
 {

@@ -27,45 +27,137 @@
 
 package common.iterable;
 
-import java.util.Iterator;
-import java.util.PrimitiveIterator;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.DoublePredicate;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
+import common.IterableBitSet;
+import common.iterable.FunctionalPrimitiveIterable.IterableDouble;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableLong;
+
 /**
  * Base class for Iterables around FilteringIterators,
- * static constructors for deduplicating entries. */
-public abstract class FilteringIterable<T> implements Iterable<T>
+ * static constructors for deduplicating entries.
+ */
+public abstract class FilteringIterable<E, I extends Iterable<E>> implements FunctionalIterable<E>
 {
-	protected final Iterable<T> iterable;
+	protected final I iterable;
 
-	public FilteringIterable(final Iterable<T> iterable)
+	public FilteringIterable(I iterable)
 	{
+		Objects.requireNonNull(iterable);
 		this.iterable = iterable;
 	}
 
-	public static class Of<T> extends FilteringIterable<T>
+	public static abstract class DistinctIterable<E, I extends FunctionalIterable<E>> implements FunctionalIterable<E>
 	{
-		private Predicate<? super T> predicate;
+		protected I source;
+		protected I distinct;
+	
+		@SuppressWarnings("unchecked")
+		public DistinctIterable(Iterable<E> source)
+		{
+			this.source   = (I) FunctionalIterable.extend(source);
+			this.distinct = null;
+		}
+	
+	
+	
+		public static class Of<E> extends DistinctIterable<E, FunctionalIterable<E>>
+		{
+			public Of(Iterable<E> source)
+			{
+				super(source);
+			}
+	
+			@Override
+			public FunctionalIterator<E> iterator()
+			{
+				if (source == null) {
+					return distinct.iterator();
+				}
+				Set<E> set                 = new HashSet<E>();
+				FunctionalIterable<E> iter = source.filter(set::add);
+				distinct                   = FunctionalIterable.extend(set);
+				source                     = null;
+				return iter.iterator();
+			}
+		}
+	
+	
+	
+		public static class OfInt extends DistinctIterable<Integer, IterableInt> implements IterableInt
+		{
+			public OfInt(IterableInt source)
+			{
+				super(source);
+			}
+	
+			@Override
+			public FunctionalPrimitiveIterator.OfInt iterator()
+			{
+				if (source == null) {
+					distinct.iterator();
+				}
+				BitSet bits          = new BitSet();
+				IntPredicate set     = (int i) -> {if (bits.get(i)) return false; else bits.set(i); return true;};
+				IterableInt filtered = source.filter(set);
+				distinct             = IterableBitSet.getSetBits(bits);
+				source               = null;
+				return FunctionalIterator.extend(filtered.iterator());
+			}
+		}
+	}
 
-		public Of(Iterable<T> iterable, Predicate<? super T> predicate)
+
+
+	public static class Of<E> extends FilteringIterable<E, Iterable<E>>
+	{
+		protected final Predicate<? super E> predicate;
+
+		public Of(Iterable<E> iterable, Predicate<? super E> predicate)
 		{
 			super(iterable);
 			this.predicate = predicate;
 		}
 
 		@Override
-		public Iterator<T> iterator()
+		public FunctionalIterator<E> iterator()
 		{
-			return new FilteringIterator.Of<>(iterable, predicate);
+			return new FilteringIterator.Of<>(iterable.iterator(), predicate);
 		}
 	}
 
-	public static class OfInt extends FilteringIterable<Integer> implements IterableInt
+
+
+	public static class OfDouble extends FilteringIterable<Double, IterableDouble> implements IterableDouble
 	{
-		private IntPredicate predicate;
+		protected final DoublePredicate predicate;
+	
+		public OfDouble(IterableDouble iterable, DoublePredicate predicate)
+		{
+			super(iterable);
+			this.predicate = predicate;
+		}
+	
+		@Override
+		public FunctionalPrimitiveIterator.OfDouble iterator()
+		{
+			return new FilteringIterator.OfDouble(iterable.iterator(), predicate);
+		}
+	}
+
+
+
+	public static class OfInt extends FilteringIterable<Integer, IterableInt> implements IterableInt
+	{
+		protected final IntPredicate predicate;
 
 		public OfInt(IterableInt iterable, IntPredicate predicate)
 		{
@@ -74,15 +166,17 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		}
 
 		@Override
-		public PrimitiveIterator.OfInt iterator()
+		public FunctionalPrimitiveIterator.OfInt iterator()
 		{
-			return new FilteringIterator.OfInt((IterableInt) iterable, predicate);
+			return new FilteringIterator.OfInt(iterable.iterator(), predicate);
 		}
 	}
 
-	public static class OfLong extends FilteringIterable<Long> implements IterableLong
+
+
+	public static class OfLong extends FilteringIterable<Long, IterableLong> implements IterableLong
 	{
-		private LongPredicate predicate;
+		protected final LongPredicate predicate;
 
 		public OfLong(IterableLong iterable, LongPredicate predicate)
 		{
@@ -91,74 +185,9 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		}
 
 		@Override
-		public PrimitiveIterator.OfLong iterator()
+		public FunctionalPrimitiveIterator.OfLong iterator()
 		{
-			return new FilteringIterator.OfLong((IterableLong) iterable, predicate);
+			return new FilteringIterator.OfLong(iterable.iterator(), predicate);
 		}
-	}
-
-	public static class OfDouble extends FilteringIterable<Double> implements IterableDouble
-	{
-		private DoublePredicate predicate;
-
-		public OfDouble(IterableDouble iterable, DoublePredicate predicate)
-		{
-			super(iterable);
-			this.predicate = predicate;
-		}
-
-		@Override
-		public PrimitiveIterator.OfDouble iterator()
-		{
-			return new FilteringIterator.OfDouble((IterableDouble) iterable, predicate);
-		}
-	}
-
-	public static IterableInt dedupe(IterableInt iterable)
-	{
-		return new IterableInt()
-		{
-			@Override
-			public PrimitiveIterator.OfInt iterator()
-			{
-				return FilteringIterator.dedupe(iterable.iterator());
-			}
-		};
-	}
-
-	public static IterableLong dedupe(IterableLong iterable)
-	{
-		return new IterableLong()
-		{
-			@Override
-			public PrimitiveIterator.OfLong iterator()
-			{
-				return FilteringIterator.dedupe(iterable.iterator());
-			}
-		};
-	}
-
-	public static IterableDouble dedupe(IterableDouble iterable)
-	{
-		return new IterableDouble()
-		{
-			@Override
-			public PrimitiveIterator.OfDouble iterator()
-			{
-				return FilteringIterator.dedupe(iterable.iterator());
-			}
-		};
-	}
-
-	public static <T> Iterable<T> dedupe(Iterable<T> iterable)
-	{
-		return new Iterable<T>()
-		{
-			@Override
-			public Iterator<T> iterator()
-			{
-				return FilteringIterator.dedupe(iterable.iterator());
-			}
-		};
 	}
 }

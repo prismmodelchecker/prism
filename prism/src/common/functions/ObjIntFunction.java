@@ -24,13 +24,21 @@
 //	
 //==============================================================================
 
-package common.iterable;
+package common.functions;
 
-import java.util.PrimitiveIterator.OfInt;
+import java.util.Objects;
+import java.util.function.Function;
 
-/** Iterable for a PrimitiveIterator.OfInt */
-public interface IterableInt extends Iterable<Integer>
+/**
+ * Functional interface for a binary function (T, R) -> int.
+ */
+@FunctionalInterface
+public interface ObjIntFunction<T, R>
 {
-	@Override
-	public OfInt iterator();
+	R apply(T t, int i);
+
+	default <V> ObjIntFunction<T, V> andThen(Function<? super R, ? extends V> after) {
+		Objects.requireNonNull(after);
+		return (T t, int i) -> after.apply(apply(t, i));
+	}
 }
