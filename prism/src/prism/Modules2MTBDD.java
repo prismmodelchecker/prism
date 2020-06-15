@@ -2066,8 +2066,16 @@ public class Modules2MTBDD
 		else {
 			start = JDD.Constant(1);
 			for (i = 0; i < numVars; i++) {
-				tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], varList.getStart(i)-varList.getLow(i), 1);
-				start = JDD.And(start, tmp);
+				Object startObj = modulesFile.getVarDeclaration(i).getStartOrDefault().evaluate(constantValues);
+				try {
+					int startInt = varList.encodeToInt(i, startObj);
+					tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], startInt, 1);
+					start = JDD.And(start, tmp);
+				} catch (PrismLangException e) {
+					// attach initial value spec for better error reporting
+					e.setASTElement(modulesFile.getVarDeclaration(i).getStart());
+					throw e;
+				}
 			}
 		}
 	}

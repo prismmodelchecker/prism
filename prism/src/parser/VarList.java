@@ -35,7 +35,7 @@ import parser.type.*;
 /**
  * Class to store information about the set of variables in a PRISM model.
  * Assumes that any constants in the model have been given fixed values.
- * Thus, initial/min/max values for all variables are known.
+ * Thus, min/max values for all variables are known.
  * VarList also takes care of how each variable will be encoded to an integer
  * (e.g. for (MT)BDD representation).
  */
@@ -131,7 +131,7 @@ public class VarList
 	private Var createVar(Declaration decl, int module, Values constantValues) throws PrismLangException
 	{
 		Var var;
-		int low, high, start;
+		int low, high;
 		DeclarationType declType;
 
 		// Create new Var object
@@ -147,7 +147,6 @@ public class VarList
 			DeclarationInt intdecl = (DeclarationInt) declType;
 			low = intdecl.getLow().evaluateInt(constantValues);
 			high = intdecl.getHigh().evaluateInt(constantValues);
-			start = decl.getStartOrDefault().evaluateInt(constantValues);
 			// Check range is valid
 			if (high - low <= 0) {
 				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + decl.getName() + "\"";
@@ -157,40 +156,31 @@ public class VarList
 				String s = "Range for variable \"" + decl.getName() + "\" (" + low + "-" + high + ") is too big";
 				throw new PrismLangException(s, decl);
 			}
-			// Check start is valid
-			if (start < low || start > high) {
-				String s = "Invalid initial value (" + start + ") for variable \"" + decl.getName() + "\"";
-				throw new PrismLangException(s, decl);
-			}
 		}
 		// Variable is a Boolean
 		else if (declType instanceof DeclarationBool) {
 			low = 0;
 			high = 1;
-			start = (decl.getStartOrDefault().evaluateBoolean(constantValues)) ? 1 : 0;
 		}
 		// Variable is a clock
 		else if (declType instanceof DeclarationClock) {
 			// Create dummy info
 			low = 0;
 			high = 1;
-			start = 0;
 		}
 		// Variable is an (unbounded) integer
 		else if (declType instanceof DeclarationIntUnbounded) {
 			// Create dummy range info
 			low = 0;
 			high = 1;
-			start = decl.getStartOrDefault().evaluateInt(constantValues);
 		}
 		else {
 			throw new PrismLangException("Unknown variable type \"" + declType + "\" in declaration", decl);
 		}
 
-		// Store low/high/start and return
+		// Store low/high and return
 		var.low = low;
 		var.high = high;
-		var.start = start;
 
 		return var;
 	}
@@ -307,14 +297,6 @@ public class VarList
 	}
 
 	/**
-	 * Get the initial value of the ith variable in this list (when encoded as an integer).
-	 */
-	public int getStart(int i)
-	{
-		return vars.get(i).start;
-	}
-
-	/**
 	 * Get the value (as an Object) for the ith variable, from its encoding as an integer. 
 	 */
 	public Object decodeFromInt(int i, int val)
@@ -336,6 +318,7 @@ public class VarList
 	 * Get the integer encoding of a value for the ith variable, specified as an Object.
 	 * The Object is assumed to be of correct type (e.g. Integer, Boolean).
 	 * Throws an exception if Object is of the wrong type.
+	 * Also throws an exception if the value is out of range.
 	 */
 	public int encodeToInt(int i, Object val) throws PrismLangException
 	{
@@ -343,7 +326,11 @@ public class VarList
 		try {
 			// Integer type
 			if (type instanceof TypeInt) {
-				return ((TypeInt) type).castValueTo(val).intValue() - getLow(i);
+				int intVal = ((TypeInt) type).castValueTo(val).intValue();
+				if (intVal < getLow(i) || intVal > getHigh(i)) {
+					throw new PrismLangException("Value " + val + " out of range for variable " + getName(i));
+				}
+				return intVal - getLow(i);
 			}
 			// Boolean type
 			else if (type instanceof TypeBool) {
@@ -368,6 +355,9 @@ public class VarList
 		if (type instanceof TypeInt) {
 			try {
 				int iVal = Integer.parseInt(s);
+				if (iVal < getLow(i) || iVal > getHigh(i)) {
+					throw new PrismLangException("Value " + iVal + " out of range for variable " + getName(i));
+				}
 				return iVal - getLow(i);
 			} catch (NumberFormatException e) {
 				throw new PrismLangException("\"" + s + "\" is not a valid integer value");
@@ -529,7 +519,6 @@ public class VarList
 		// Info about how variable is encoded as an integer
 		public int low;
 		public int high;
-		public int start;
 
 		// Default constructor
 		public Var()
@@ -543,7 +532,6 @@ public class VarList
 			module = var.module;
 			low = var.low;
 			high = var.high;
-			start = var.start;
 		}
 	}
 }
