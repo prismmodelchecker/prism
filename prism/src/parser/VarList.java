@@ -29,6 +29,7 @@ package parser;
 import java.util.*;
 
 import prism.*;
+import parser.VarList.Var;
 import parser.ast.*;
 import parser.type.*;
 
@@ -96,10 +97,7 @@ public class VarList
 	 */
 	public void addVar(Declaration decl, int module, Values constantValues) throws PrismLangException
 	{
-		Var var = createVar(decl, module, constantValues);
-		vars.add(var);
-		totalNumBits += getRangeLogTwo(vars.size() - 1);
-		nameMap.put(decl.getName(), vars.size() - 1);
+		addVar(decl.getName(), decl.getDeclType(), module, constantValues);
 	}
 
 	/**
@@ -110,7 +108,7 @@ public class VarList
 	 */
 	public void addVar(int i, Declaration decl, int module, Values constantValues) throws PrismLangException
 	{
-		Var var = createVar(decl, module, constantValues);
+		Var var = createVar(decl.getName(), decl.getDeclType(), module, constantValues);
 		vars.add(i, var);
 		totalNumBits += getRangeLogTwo(i);
 		// Recompute name map
@@ -123,25 +121,37 @@ public class VarList
 	}
 
 	/**
-	 * Create a new variable object to the store in the list.
-	 * @param decl Declaration defining the variable
+	 * Add a new variable to the end of the VarList.
+	 * @param name Variable name
+	 * @param declType Type declaration defining the variable
 	 * @param module Index of module containing variable
 	 * @param constantValues Values of constants needed to evaluate low/high/etc.
 	 */
-	private Var createVar(Declaration decl, int module, Values constantValues) throws PrismLangException
+	public void addVar(String name, DeclarationType declType, int module, Values constantValues) throws PrismLangException
+	{
+		Var var = createVar(name, declType, module, constantValues);
+		vars.add(var);
+		totalNumBits += getRangeLogTwo(vars.size() - 1);
+		nameMap.put(name, vars.size() - 1);
+	}
+
+	/**
+	 * Create a new variable object to the store in the list.
+	 * @param name Variable name
+	 * @param declType Type declaration defining the variable
+	 * @param module Index of module containing variable
+	 * @param constantValues Values of constants needed to evaluate low/high/etc.
+	 */
+	private Var createVar(String name, DeclarationType declType, int module, Values constantValues) throws PrismLangException
 	{
 		Var var;
 		int low, high;
-		DeclarationType declType;
 
 		// Create new Var object
-		var = new Var();
-
-		// Store name/type/module
-		var.decl = decl;
+		var = new Var(name, declType.getType());
+		var.declType = declType;
 		var.module = module;
-
-		declType = decl.getDeclType();
+		
 		// Variable is a bounded integer
 		if (declType instanceof DeclarationInt) {
 			DeclarationInt intdecl = (DeclarationInt) declType;
@@ -149,12 +159,12 @@ public class VarList
 			high = intdecl.getHigh().evaluateInt(constantValues);
 			// Check range is valid
 			if (high - low <= 0) {
-				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + decl.getName() + "\"";
-				throw new PrismLangException(s, decl);
+				String s = "Invalid range (" + low + "-" + high + ") for variable \"" + name + "\"";
+				throw new PrismLangException(s, declType);
 			}
 			if ((long) high - (long) low >= Integer.MAX_VALUE) {
-				String s = "Range for variable \"" + decl.getName() + "\" (" + low + "-" + high + ") is too big";
-				throw new PrismLangException(s, decl);
+				String s = "Range for variable \"" + name + "\" (" + low + "-" + high + ") is too big";
+				throw new PrismLangException(s, declType);
 			}
 		}
 		// Variable is a Boolean
@@ -175,7 +185,7 @@ public class VarList
 			high = 1;
 		}
 		else {
-			throw new PrismLangException("Unknown variable type \"" + declType + "\" in declaration", decl);
+			throw new PrismLangException("Unknown variable type \"" + declType + "\" in declaration", declType);
 		}
 
 		// Store low/high and return
@@ -212,24 +222,11 @@ public class VarList
 	}
 
 	/**
-	 * Get the declaration of the ith variable in this list.
+	 * Get the declaration type of the ith variable in this list.
 	 */
-	public Declaration getDeclaration(int i)
+	public DeclarationType getDeclarationType(int i)
 	{
-		return vars.get(i).decl;
-	}
-
-	/**
-	 * Get the index in this VarList for a given declaration.
-	 */
-	public int getIndexFromDeclaration(Declaration d)
-	{
-		for (int i=0;i<vars.size();i++) {
-			if (vars.get(i).decl == d) {
-				return i;
-			}
-		}
-		return -1;
+		return vars.get(i).declType;
 	}
 
 	/**
@@ -237,7 +234,7 @@ public class VarList
 	 */
 	public String getName(int i)
 	{
-		return vars.get(i).decl.getName();
+		return vars.get(i).name;
 	}
 
 	/**
@@ -245,7 +242,7 @@ public class VarList
 	 */
 	public Type getType(int i)
 	{
-		return vars.get(i).decl.getDeclType().getType();
+		return vars.get(i).type;
 	}
 
 	/**
@@ -512,23 +509,31 @@ public class VarList
 	 */
 	class Var
 	{
-		// Basic info (name/type/etc.) stored as Declaration
-		public Declaration decl;
+		// Name
+		public String name;
+		// Type
+		public Type type;
+		// Further type info from variable declaration
+		public DeclarationType declType;
 		// Index of containing module (-1 for a global)
 		public int module;
 		// Info about how variable is encoded as an integer
 		public int low;
 		public int high;
 
-		// Default constructor
-		public Var()
+		/** Default constructor */
+		public Var(String name, Type type)
 		{
+			this.name = name;
+			this.type = type;
 		}
 
-		// Copy constructor
+		/** Copy constructor */
 		public Var(Var var)
 		{
-			decl = (Declaration) var.decl.deepCopy();
+			name = var.name;
+			type = var.type;
+			declType = (DeclarationType) var.declType.deepCopy();
 			module = var.module;
 			low = var.low;
 			high = var.high;
