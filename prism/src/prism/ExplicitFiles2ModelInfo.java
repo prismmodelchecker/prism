@@ -102,6 +102,8 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 		// This way, expressions can refer to the labels later on.
 		if (labelsFile != null) {
 			extractLabelNamesFromLabelsFile(labelsFile);
+		} else {
+			labelNames = new ArrayList<>();
 		}
 		
 		// Set model type: if no preference stated, try to autodetect
