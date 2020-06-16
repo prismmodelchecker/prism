@@ -32,7 +32,12 @@ import java.util.List;
 
 import parser.Values;
 import parser.VarList;
+import parser.ast.DeclarationBool;
+import parser.ast.DeclarationIntUnbounded;
+import parser.ast.DeclarationType;
 import parser.type.Type;
+import parser.type.TypeBool;
+import parser.type.TypeInt;
 
 /**
  * Interface for classes that provide some basic (syntactic) information about a probabilistic model.
@@ -151,6 +156,74 @@ public interface ModelInfo
 	}
 
 	/**
+	 * Get a declaration providing more information about
+	 * the type of the {@code i}th variable in the model.
+	 * For example, for integer variables, this can define
+	 * the lower and upper bounds of the range of the variable.
+	 * This is specified using a subclass of {@link DeclarationType},
+	 * which specifies info such as bounds using {@link Expression} objects.
+	 * These can use constants which will later be supplied,
+	 * e.g., via the {@link #setSomeUndefinedConstants(Values) method.
+	 * If this method is not provided, a default implementation supplies sensible
+	 * declarations, but these are _unbounded_ for integers.
+	 * {@code i} should always be between 0 and getNumVars() - 1.
+	 */
+	public default DeclarationType getVarDeclarationType(int i) throws PrismException
+	{
+		Type type = getVarType(i);
+		// Construct default declarations for basic types (int/boolean)
+		if (type instanceof TypeInt) {
+			return new DeclarationIntUnbounded();
+		} else if (type instanceof TypeBool) {
+			return new DeclarationBool();
+		}
+		throw new PrismException("No default declaration avaiable for type " + type);
+	}
+	
+	/**
+	 * Get the (optionally specified) "module" that the {@code i}th variable in
+	 * the model belongs to (e.g., the PRISM language divides models into such modules).
+	 * This method returns the index of module; use {@link #getModuleName(int)}
+	 * to obtain the name of the corresponding module.
+	 * If there is no module info, or the variable is "global" and does not belong
+	 * to a specific model, this returns -1. A default implementation always returns -1.
+	 * {@code i} should always be between 0 and getNumVars() - 1.
+	 */
+	public default int getVarModuleIndex(int i)
+	{
+		// Default is -1 (unspecified or "global")
+		return -1;
+	}
+
+	/**
+	 * Get the name of the {@code i}th "module"; these are optionally used to
+	 * organise variables within the model, e.g., in the PRISM modelling language.
+	 * The module containing a variable is available via {@link #getVarModuleIndex(int)}.
+	 * This method should return a valid module name for any (non -1)
+	 * value returned by {@link #getVarModuleIndex(int)}.
+	 */
+	public default String getModuleName(int i)
+	{
+		// No names needed by default
+		return null;
+	}
+
+	/**
+	 * Create a {@link VarList} object, collating information about all the variables
+	 * in the model. This provides various helper functions to work with variables.
+	 * This list is created once all undefined constant values have been provided.
+	 * A default implementation of this method creates a {@link VarList} object
+	 * automatically from the variable info supplied by {@link ModelInfo}.
+	 * Generally, this requires {@link #getVarDeclarationType(int)} to
+	 * be properly implemented (beyond the default implementation) so that
+	 * variable ranges can be determined.
+	 */
+	public default VarList createVarList() throws PrismException
+	{
+		return new VarList(this); 
+	}
+	
+	/**
 	 * Get a short description of the action strings associated with transitions/choices.
 	 * For example, for a PRISM model, this is "Module/[action]".
 	 * The default implementation just returns "Action".
@@ -201,7 +274,4 @@ public interface ModelInfo
 		// Default implementation just extracts from getLabelNames() 
 		return getLabelNames().indexOf(name);
 	}
-	
-	// TODO: can we remove this?
-	public VarList createVarList() throws PrismException;
 }

@@ -74,10 +74,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private String[] moduleNames;
 	// List of synchronising actions
 	private Vector<String> synchs;
-	// Lists of variable info (declaration, name, type)
+	// Lists of variable info (declaration, name, type, module index)
 	private Vector<Declaration> varDecls;
 	private Vector<String> varNames;
 	private Vector<Type> varTypes;
+	private Vector<Integer> varModules;
 
 	// Values set for undefined constants (null if none)
 	private Values undefinedConstantValues;
@@ -103,6 +104,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
+		varModules = new Vector<Integer>();
 		undefinedConstantValues = null;
 		constantValues = null;
 	}
@@ -657,6 +659,18 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return varTypes;
 	}
 
+	@Override
+	public DeclarationType getVarDeclarationType(int i)
+	{
+		return varDecls.get(i).getDeclType();
+	}
+
+	@Override
+	public int getVarModuleIndex(int i)
+	{
+		return varModules.get(i);
+	}
+
 	public boolean isGlobalVariable(String s)
 	{
 		int i, n;
@@ -694,6 +708,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		varDecls.clear();
 		varNames.clear();
 		varTypes.clear();
+		varModules.clear();
 		
 		// Expansion of formulas and renaming
 
@@ -939,6 +954,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			varDecls.add(getGlobal(i));
 			varNames.add(s);
 			varTypes.add(getGlobal(i).getType());
+			varModules.add(-1);
 		}
 
 		// locals
@@ -952,6 +968,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 				varDecls.add(module.getDeclaration(j));
 				varNames.add(s);
 				varTypes.add(module.getDeclaration(j).getType());
+				varModules.add(i);
 			}
 		}
 
@@ -1232,11 +1249,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
+		varModules = new Vector<Integer>();
 		// Globals
 		for (Declaration decl : globals) {
 			varDecls.add(decl);
 			varNames.add(decl.getName());
 			varTypes.add(decl.getType());
+			varModules.add(-1);
 		}
 		// Locals
 		n = modules.size();
@@ -1245,6 +1264,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 				varDecls.add(decl);
 				varNames.add(decl.getName());
 				varTypes.add(decl.getType());
+				varModules.add(i);
 			}
 		}
 		// Find all instances of variables, replace identifiers with variables.
@@ -1257,7 +1277,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 * Assumes that values for constants have been provided for the model.
 	 * Also performs various syntactic checks on the variables.   
 	 */
-	public VarList createVarList() throws PrismLangException
+	public VarList createVarList() throws PrismException
 	{
 		return new VarList(this);
 	}
@@ -1393,6 +1413,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
 		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
+		ret.varModules = (varModules == null) ? null : (Vector<Integer>)varModules.clone();
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 		
 		return ret;

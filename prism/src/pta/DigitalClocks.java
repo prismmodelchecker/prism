@@ -108,7 +108,7 @@ public class DigitalClocks
 	/**
 	 * Main method - translate.
 	 */
-	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismLangException
+	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismException
 	{
 		int i, n;
 		ASTElement ast;

@@ -60,35 +60,20 @@ public class VarList
 	}
 
 	/**
-	 * Construct variable list for a ModulesFile.
-	 */
-	public VarList(ModulesFile modulesFile) throws PrismLangException
+	* Construct variable list for a ModelInfo object.
+	*/
+	public VarList(ModelInfo modelInfo) throws PrismException
 	{
 		this();
 
-		int i, j, n, n2;
-		parser.ast.Module module;
-		Declaration decl;
-
-		// First add all globals to the list
-		n = modulesFile.getNumGlobals();
-		for (i = 0; i < n; i++) {
-			decl = modulesFile.getGlobal(i);
-			addVar(decl, -1, modulesFile.getConstantValues());
-		}
-
-		// Then add all module variables to the list
-		n = modulesFile.getNumModules();
-		for (i = 0; i < n; i++) {
-			module = modulesFile.getModule(i);
-			n2 = module.getNumDeclarations();
-			for (j = 0; j < n2; j++) {
-				decl = module.getDeclaration(j);
-				addVar(decl, i, modulesFile.getConstantValues());
-			}
+		int numVars = modelInfo.getNumVars();
+		for (int i = 0; i < numVars; i++) {
+			DeclarationType declType = modelInfo.getVarDeclarationType(i);
+			int module = modelInfo.getVarModuleIndex(i);
+			addVar(modelInfo.getVarName(i), declType, module, modelInfo.getConstantValues());
 		}
 	}
-
+	 
 	/**
 	 * Add a new variable to the end of the VarList.
 	 * @param decl Declaration defining the variable

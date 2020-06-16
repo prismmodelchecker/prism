@@ -6,6 +6,7 @@ import java.util.List;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import parser.ast.DeclarationType;
 import parser.ast.Expression;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
@@ -90,7 +91,7 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	 * (Re-)Initialise the class ready for model exploration
 	 * (can only be done once any constants needed have been provided)
 	 */
-	private void initialise() throws PrismLangException
+	private void initialise() throws PrismException
 	{
 		// Evaluate constants on (a copy) of the modules file, insert constant values and optimize arithmetic expressions
 		modulesFile = (ModulesFile) modulesFile.deepCopy().replaceConstants(mfConstants).simplify();
@@ -166,6 +167,30 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 
 	@Override
+	public DeclarationType getVarDeclarationType(int i) throws PrismException
+	{
+		return modulesFile.getVarDeclarationType(i);
+	}
+	
+	@Override
+	public int getVarModuleIndex(int i)
+	{
+		return modulesFile.getVarModuleIndex(i);
+	}
+	
+	@Override
+	public String getModuleName(int i)
+	{
+		return modulesFile.getModuleName(i);
+	}
+	
+	@Override
+	public VarList createVarList() throws PrismException
+	{
+		return varList;
+	}
+	
+	@Override
 	public int getNumLabels()
 	{
 		return labelList.size();	
@@ -193,12 +218,6 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	public int getLabelIndex(String label)
 	{
 		return labelList.getLabelIndex(label);
-	}
-	
-	@Override
-	public VarList createVarList()
-	{
-		return varList;
 	}
 	
 	// Methods for ModelGenerator interface

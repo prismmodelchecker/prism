@@ -33,6 +33,7 @@ import java.util.Map;
 
 import parser.State;
 import parser.VarList;
+import parser.ast.DeclarationType;
 import parser.type.Type;
 import prism.ModelGenerator;
 import prism.ModelInfo;
@@ -95,6 +96,24 @@ public class ModelModelGenerator implements ModelGenerator
 		return modelInfo.getVarTypes();
 	}
 
+	@Override
+	public DeclarationType getVarDeclarationType(int i) throws PrismException
+	{
+		return modelInfo.getVarDeclarationType(i);
+	}
+
+	@Override
+	public int getVarModuleIndex(int i)
+	{
+		return modelInfo.getVarModuleIndex(i);
+	}
+	
+	@Override
+	public String getModuleName(int i)
+	{
+		return modelInfo.getModuleName(i);
+	}
+	
 	@Override
 	public VarList createVarList() throws PrismException
 	{
