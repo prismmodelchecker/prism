@@ -72,7 +72,6 @@ import prism.PrismUtils;
 import prism.UndefinedConstants;
 import simulator.PathFullInfo;
 import simulator.SimulatorEngine;
-import simulator.networking.SimulatorNetworkHandler;
 import userinterface.GUIConstantsPicker;
 import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
@@ -84,7 +83,6 @@ import userinterface.properties.GUIMultiProperties;
 import userinterface.properties.GUIPropertiesEvent;
 import userinterface.properties.GUIPropertiesList;
 import userinterface.properties.GUIProperty;
-import userinterface.simulator.networking.GUINetworkEditor;
 import userinterface.util.GUIComputationEvent;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIExitEvent;
@@ -231,10 +229,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		displayStyleFast = true;
 		displayPathLoops = true;
-
-		GUINetworkEditor netEdit = new GUINetworkEditor(getGUI(), new SimulatorNetworkHandler());
-
-		getPrism().getSettings().setFileSelector(PrismSettings.SIMULATOR_NETWORK_FILE, netEdit);
 
 		autoTimeCheck.setSelected(true);
 		currentUpdatesTable.requestFocus();

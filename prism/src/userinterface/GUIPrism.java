@@ -146,7 +146,6 @@ public class GUIPrism extends JFrame
 		userinterface.properties.GUIMultiProperties props;
 		userinterface.simulator.GUISimulator sim;
 		userinterface.log.GUILog log;
-		userinterface.GUINetwork nw;
 		// Create
 		fileMenu = new userinterface.GUIFileMenu(g);
 		clipboardPlugin = new GUIClipboard(g);
@@ -154,7 +153,6 @@ public class GUIPrism extends JFrame
 		sim = new userinterface.simulator.GUISimulator(g);
 		props = new userinterface.properties.GUIMultiProperties(g, sim);
 		log = new userinterface.log.GUILog(g);
-		nw = new userinterface.GUINetwork(g);
 		// Add to list
 		ArrayList<GUIPlugin> plugs = new ArrayList<GUIPlugin>();
 		plugs.add(fileMenu);
@@ -163,7 +161,6 @@ public class GUIPrism extends JFrame
 		plugs.add(props);
 		plugs.add(sim);
 		plugs.add(log);
-		plugs.add(nw);
 		// Make some plugins aware of others
 		sim.setGUIMultiModel(model);
 		// Return list
