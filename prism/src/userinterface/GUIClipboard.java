@@ -348,11 +348,6 @@ public class GUIClipboard extends GUIPlugin
         actionSelectAll.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.png"));     
     }
     
-    public OptionsPanel getOptions()
-    {
-        return null;
-    }
-    
     public void notifySettings(prism.PrismSettings settings)
     {}
 

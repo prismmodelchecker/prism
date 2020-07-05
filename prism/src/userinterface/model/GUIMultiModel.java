@@ -60,7 +60,6 @@ import prism.PrismSettingsListener;
 import userinterface.GUIClipboardEvent;
 import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
-import userinterface.OptionsPanel;
 import userinterface.util.GUIComputationEvent;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIExitEvent;
@@ -1202,11 +1201,6 @@ public class GUIMultiModel extends GUIPlugin implements PrismSettingsListener
 		add(topPanel, BorderLayout.CENTER);
 
 		doEnables();
-	}
-
-	public OptionsPanel getOptions()
-	{
-		return null;
 	}
 
 	public void notifySettings(PrismSettings settings)

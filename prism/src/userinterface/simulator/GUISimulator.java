@@ -75,7 +75,6 @@ import simulator.SimulatorEngine;
 import userinterface.GUIConstantsPicker;
 import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
-import userinterface.OptionsPanel;
 import userinterface.graph.Graph;
 import userinterface.model.GUIModelEvent;
 import userinterface.model.GUIMultiModel;
@@ -944,11 +943,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public javax.swing.JMenu getMenu()
 	{
 		return simulatorMenu;
-	}
-
-	public OptionsPanel getOptions()
-	{
-		return null;
 	}
 
 	public String getTabText()

@@ -308,9 +308,6 @@ public class GUIPrism extends JFrame
 			if (plug.getToolBar() != null) {
 				toolPanel.add(plug.getToolBar());
 			}
-			if (plug.getOptions() != null) {
-				options.addPanel(plug.getOptions());
-			}
 			if (plug instanceof userinterface.log.GUILog) {
 				logPlug = (userinterface.log.GUILog) plug;
 			}
