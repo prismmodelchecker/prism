@@ -979,6 +979,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 			//collect the numbers obtained from methods executed above.
 			Point newPoint = new Point(result);
+			mainLog.println("Computed point: " + newPoint);
 
 			if (verbose) {
 				mainLog.println("\n" + numberOfPoints + ": New point is " + newPoint + ".");
