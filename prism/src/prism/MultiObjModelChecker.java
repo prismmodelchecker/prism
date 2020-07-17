@@ -759,6 +759,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 		double timer = System.currentTimeMillis();
 		boolean min = false;
+		int advCounter = 0;
 
 		// Determine whether we are using Gauss-Seidel value iteration
 		boolean useGS = (settings.getChoice(PrismSettings.PRISM_MDP_SOLN_METHOD) == Prism.MDP_MULTI_GAUSSSEIDEL);
@@ -836,9 +837,6 @@ public class MultiObjModelChecker extends PrismComponent
 
 		JDD.Deref(a);
 
-		// Disable adversary generation (if it was switched on) for these initial computations
-		PrismNative.setExportAdv(Prism.EXPORT_ADV_NONE);
-
 		for (int i = 0; i < dimProb; i++) {
 			double[] result = null;
 
@@ -846,6 +844,11 @@ public class MultiObjModelChecker extends PrismComponent
 			Point direction = new Point(dimProb + dimReward);
 			direction.setCoord(i, 1);
 			try {
+				// If adversary generation is enabled, we amend the filename so that multiple adversaries can be exported
+				String advFileName = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
+				if (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
+					PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileName, ++advCounter));
+				}
 				mainLog.println("Optimising weighted sum for probability objective " + (i + 1) + "/" + dimProb + ": weights " + direction);
 				if (useGS) {
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
@@ -892,6 +895,11 @@ public class MultiObjModelChecker extends PrismComponent
 			Point direction = new Point(dimProb + dimReward);
 			direction.setCoord(dimProb + i, 1);
 			try {
+				// If adversary generation is enabled, we amend the filename so that multiple adversaries can be exported
+				String advFileName = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
+				if (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
+					PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileName, ++advCounter));
+				}
 				mainLog.println("Optimising weighted sum for reward objective " + (i + 1) + "/" + dimReward + ": weights " + direction);
 				if (useGS) {
 					result = PrismSparse.NondetMultiObjGS(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
@@ -931,9 +939,6 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 		}
 
-		// Reinstate temporarily-disabled adversary generation setting
-		PrismNative.setExportAdv(exportAdvSetting);
-
 		if (verbose)
 			mainLog.println("Points for the initial tile: " + pointsForInitialTile);
 
@@ -954,9 +959,8 @@ public class MultiObjModelChecker extends PrismComponent
 			// If adversary generation is enabled, we amend the filename so that multiple adversaries can be exported
 			String advFileName = settings.getString(PrismSettings.PRISM_EXPORT_ADV_FILENAME);
 			if (settings.getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
-				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileName, iters));
+				PrismNative.setExportAdvFilename(PrismUtils.addCounterSuffixToFilename(advFileName, ++advCounter));
 			}
-
 			mainLog.println("Optimising weighted sum of objectives: weights " + direction);
 			double[] result;
 			if (useGS) {
