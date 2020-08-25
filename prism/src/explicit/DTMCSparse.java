@@ -228,11 +228,43 @@ public class DTMCSparse extends DTMCExplicit
 	//--- DTMC ---
 
 	@Override
-	public void forEachTransition(int state, TransitionConsumer consumer)
+	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
 	{
-		for (int col = rows[state], stop = rows[state+1]; col < stop; col++) {
-			consumer.accept(state, columns[col], probabilities[col]);
+		T result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
 		}
+		return result;
+	}
+
+	@Override
+	public double reduceTransitions(int state, double init, DoubleTransitionFunction fn)
+	{
+		double result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public int reduceTransitions(int state, int init, IntTransitionFunction fn)
+	{
+		int result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
+	}
+
+	@Override
+	public long reduceTransitions(int state, long init, LongTransitionFunction fn)
+	{
+		long result = init;
+		for (int col = rows[state], stop = rows[state+1]; col < stop; col++){
+			result = fn.apply(result, state, columns[col], probabilities[col]);
+		}
+		return result;
 	}
 
 	@Override

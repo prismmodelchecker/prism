@@ -182,13 +182,40 @@ public class DTMCFromMDPAndMDStrategy extends DTMCExplicit
 	}
 
 	@Override
-	public void forEachTransition(int s, TransitionConsumer c)
+	public <T> T reduceTransitions(int state, T init, ObjTransitionFunction<T> fn)
 	{
-		if (!strat.isChoiceDefined(s)) {
-			return;
+		if (!strat.isChoiceDefined(state)) {
+			return init;
 		}
-		mdp.forEachTransition(s, strat.getChoiceIndex(s), c::accept);
+		return mdp.reduceTransitions(state, strat.getChoiceIndex(state), init, fn);
 	}
+
+	@Override
+	public double reduceTransitions(int state, double init, DoubleTransitionFunction fn)
+	{
+		if (!strat.isChoiceDefined(state)) {
+			return init;
+		}
+		return mdp.reduceTransitions(state, strat.getChoiceIndex(state), init, fn);
+	}
+
+	@Override
+	public int reduceTransitions(int state, int init, IntTransitionFunction fn)
+	{
+		if (!strat.isChoiceDefined(state)) {
+			return init;
+		}
+		return mdp.reduceTransitions(state, strat.getChoiceIndex(state), init, fn);
+	}
+
+	@Override
+	public long reduceTransitions(int state, long init, LongTransitionFunction fn)
+	{
+		if (!strat.isChoiceDefined(state)) {
+			return init;
+		}
+		return mdp.reduceTransitions(state, strat.getChoiceIndex(state), init, fn);
+}
 
 	@Override
 	public double mvMultSingle(int s, double vect[])
