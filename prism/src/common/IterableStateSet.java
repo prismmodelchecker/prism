@@ -32,7 +32,7 @@ import java.util.BitSet;
 import common.iterable.EmptyIterable;
 import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import common.iterable.FunctionalPrimitiveIterator.OfInt;
-import common.iterable.RangeIntIterable;
+import common.iterable.Range;
 
 /**
  * A convenience wrapper around IterableBitSet that handles the three cases of
@@ -94,12 +94,12 @@ public class IterableStateSet implements IterableInt
 			if (complement) {
 				this.setOfStates = EmptyIterable.OfInt();
 			} else {
-				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
+				this.setOfStates = reversed ? new Range(numStates).reversed() : new Range(numStates);
 			}
 		} else if (setOfStates.isEmpty()) {
 			// no states
 			if (complement) {
-				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
+				this.setOfStates = reversed ? new Range(numStates).reversed() : new Range(numStates);
 			} else {
 				this.setOfStates = EmptyIterable.OfInt();
 			}

@@ -226,8 +226,8 @@ public abstract class ChainedIterable<E, I extends Iterable<E>> implements Funct
 		IteratorTools.printIterator("chain1", chain1.iterator());
 		System.out.println("max    = " + chain1.reduce(Math::max));
 
-		final Interval i1 = new Interval(1, 4);
-		final Interval i2 = new Interval(5, 10, 2);
+		final Range i1 = new Range(1, 4);
+		final Range i2 = new Range(5, 10, 2);
 		final IterableInt chain2 = new ChainedIterable.OfInt(i1, i2);
 		IteratorTools.printIterator("chain2", chain2.iterator());
 		System.out.println("max    = " + chain2.reduce((IntBinaryOperator) Math::max));
