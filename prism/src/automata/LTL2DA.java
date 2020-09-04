@@ -33,9 +33,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Vector;
 
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
 import jhoafparser.parser.HOAFParser;
@@ -47,9 +49,14 @@ import jltl2ba.LTLFragments;
 import jltl2dstar.LTL2Rabin;
 import parser.Values;
 import parser.ast.Expression;
+import parser.ast.ExpressionHOA;
+import parser.ast.ExpressionLabel;
+import parser.ast.ExpressionUnaryOp;
+import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
+import prism.PrismPaths;
 import prism.PrismSettings;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
@@ -318,6 +325,120 @@ public class LTL2DA extends PrismComponent
 			throw new PrismException("The external LTL->DA tool returned an automaton with " + acceptance.getType()
 					+ " acceptance, which is not yet supported for model checking this model / property");
 		}
+	}
+
+	/**
+	 * Reads a HOA automaton from the given file and returns the parsed automaton.
+	 * Throws a PrismException if the automaton does not have one of the allowed acceptance conditions.
+	 */
+	public DA<BitSet, ? extends AcceptanceOmega> readHOA(String filename, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		DA<BitSet, ? extends AcceptanceOmega> result;
+		try {
+			try {
+				HOAF2DA consumerDA = new HOAF2DA();
+
+				mainLog.println("Reading HOA automaton from "+filename+"...");
+				InputStream input = new FileInputStream(filename);
+				HOAFParser.parseHOA(input, consumerDA);
+				result = consumerDA.getDA();
+			} catch (HOAF2DA.TransitionBasedAcceptanceException e) {
+				// try again, this time transforming to state acceptance
+				getLog().println("Automaton with transition-based acceptance, automatically converting to state-based acceptance...");
+				HOAF2DA consumerDA = new HOAF2DA();
+				HOAIntermediateStoreAndManipulate consumerTransform = new HOAIntermediateStoreAndManipulate(consumerDA, new ToStateAcceptance());
+
+				InputStream input = new FileInputStream(filename);
+				HOAFParser.parseHOA(input, consumerTransform);
+				result = consumerDA.getDA();
+			}
+
+			if (result == null) {
+				throw new PrismException("Could not construct DA");
+			}
+		} catch (ParseException e) {
+			throw new PrismException("Reading from " + filename + ", parse error: "+e.getMessage());
+		} catch (PrismException e) {
+			throw new PrismException("Reading from " + filename + ", " + e.getMessage());
+		} catch (IOException e) {
+			throw new PrismException("I/O error: " + e.getMessage());
+		}
+
+		if (!getSettings().getBoolean(PrismSettings.PRISM_NO_DA_SIMPLIFY)) {
+			result = DASimplifyAcceptance.simplifyAcceptance(this, result, allowedAcceptance);
+		}
+
+		AcceptanceOmega acceptance = result.getAcceptance();
+		if (AcceptanceType.contains(allowedAcceptance, acceptance.getType())) {
+			return result;
+		} else if (AcceptanceType.contains(allowedAcceptance, AcceptanceType.GENERIC)) {
+			// The specific acceptance type is not allowed, but GENERIC is allowed
+			//   -> transform to generic acceptance and switch acceptance condition
+			DA.switchAcceptance(result, acceptance.toAcceptanceGeneric());
+			return result;
+		} else {
+			throw new PrismNotSupportedException("HOA automaton has acceptance "+acceptance.getType()+", which is not yet supported for model checking this model / property");
+		}
+	}
+
+	/**
+	 * Handles a ExpressionHOA expression, possibly negated.
+	 * Reads the HOA automaton from the specified file and returns the parsed automaton.
+	 *
+	 * If the expression is of the form "! HOA: {....}" will attempt to negate the automaton
+	 * via an appropriate switch of the acceptance condition.
+	 *
+	 * Throws a PrismException if the automaton does not have one of the allowed acceptance conditions.
+	 * @param expr the expression
+	 * @param paths path information for relative locations
+	 * @param allowed acceptance
+	 */
+	public DA<BitSet, ? extends AcceptanceOmega> fromExpressionHOA(Expression expr, PrismPaths paths, Vector<Expression> apExpressions, AcceptanceType... allowedAcceptance) throws PrismException
+	{
+		boolean negate = false;
+		while (Expression.isNot(expr) || Expression.isParenth(expr)) {
+			if (Expression.isNot(expr)) {
+				negate = !negate;
+				expr = ((ExpressionUnaryOp)expr).getOperand();
+			} else if (Expression.isParenth(expr)) {
+				expr = ((ExpressionUnaryOp)expr).getOperand();
+			} else {
+				throw new PrismException("implementation error");
+			}
+		}
+		if (!(expr instanceof ExpressionHOA)) {
+			throw new PrismException("Expected HOA path automaton expression, found "+expr);
+		}
+		ExpressionHOA exprHOA = (ExpressionHOA) expr;
+
+		Path automatonFile = paths.resolvePropertyResource(mainLog, exprHOA.getAutomatonFile().getText(), "HOA automaton file");
+
+		DA<BitSet, ? extends AcceptanceOmega> da = readHOA(automatonFile.toString(), allowedAcceptance);
+
+		assert(apExpressions.size() == 0);
+		for (String ap : da.getAPList()) {
+			// default: ap corresponds to label expression
+			apExpressions.add(new ExpressionLabel(ap));
+		}
+
+		// handle renames
+		for (Pair<String, Expression> rename : exprHOA.getRenames()) {
+			int i = da.getAPList().indexOf(rename.getKey());
+			if (i == -1) {
+				throw new PrismException("Can not rename label \"" + rename.getKey() +"\", not an atomic proposition of the automaton");
+			} else {
+				apExpressions.set(i, rename.getValue());
+			}
+		}
+
+		if (negate) {
+			String before = da.getAutomataType();
+			AcceptanceOmega negated = da.getAcceptance().complement(da.size(), allowedAcceptance);
+			DA.switchAcceptance(da, negated);
+			mainLog.println("Switch to complement automaton, it is now a " + da.getAutomataType() + ", was a " +before + ".");
+		}
+
+		return da;
 	}
 
 	/** Check whether we should use an external LTL->DA tool */

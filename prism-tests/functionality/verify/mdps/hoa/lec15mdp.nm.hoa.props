@@ -1,0 +1,33 @@
+// RESULT: 3/4
+Pmax=?[ HOA: { "GFa_and_FGb_rabin.hoa", "a" <- s>=3, "b" <- s<=4} ]
+// RESULT: 3/4
+Pmax=?[ (G F s>=3) & (F G (s<=4)) ]
+
+// RESULT: 0
+Pmin=?[ HOA: { "GFa_and_FGb_rabin.hoa", "a" <- s>=3, "b" <- s<=4} ]
+// RESULT: 0
+Pmin=?[ (G F s>=3) & (F G (s<=4)) ]
+
+// RESULT: 0
+1 - Pmax=?[ ! HOA: { "GFa_and_FGb_rabin.hoa", "a" <- s>=3, "b" <- s<=4} ]
+// RESULT: 0
+1 - Pmax=?[ !((G F s>=3) & (F G (s<=4))) ]
+
+// use labels directly as APs for the automaton
+label "a" = s>=3;
+label "b" = s<=4;
+// RESULT: 3/4
+Pmax=?[ HOA: { "GFa_and_FGb_rabin.hoa" } ]
+
+
+// RESULT: 0.3
+Pmax=?[ HOA: { "Xa_buchi.hoa", "a" <- s=1 } ]
+// RESULT: 0.3
+Pmax=?[ X s=1 ]
+
+// RESULT: 0
+Pmin=?[ HOA: { "Xa_buchi.hoa", "a" <- s=1 } ]
+// RESULT: 0
+Pmin=?[ X s=1 ]
+
+

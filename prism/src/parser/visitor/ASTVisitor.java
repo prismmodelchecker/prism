@@ -51,6 +51,7 @@ public interface ASTVisitor
 	public Object visit(RenamedModule e) throws PrismLangException;
 	public Object visit(RewardStruct e) throws PrismLangException;
 	public Object visit(RewardStructItem e) throws PrismLangException;
+	public Object visit(QuotedString quotedString) throws PrismLangException;
 	// ASTElement/SystemDefn classes
 	public Object visit(SystemInterleaved e) throws PrismLangException;
 	public Object visit(SystemFullParallel e) throws PrismLangException;
@@ -80,6 +81,7 @@ public interface ASTVisitor
 	public Object visit(ExpressionLabel e) throws PrismLangException;
 	public Object visit(ExpressionProp e) throws PrismLangException;
 	public Object visit(ExpressionFilter e) throws PrismLangException;
+	public Object visit(ExpressionHOA e) throws PrismLangException;
 	// ASTElement classes (misc.)
 	public Object visit(Filter e) throws PrismLangException;
 	public Object visit(ForLoop e) throws PrismLangException;

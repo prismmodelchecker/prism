@@ -181,6 +181,11 @@ public class LTLModelChecker extends PrismComponent
 				return false;
 			}
 		}
+
+		if (Expression.isHOA(expr)) {
+			return true;
+		}
+
 		return true;
 	}
 
@@ -302,14 +307,14 @@ public class LTLModelChecker extends PrismComponent
 	 * (L0, L1, etc.) which become the atomic propositions in the resulting DA. JDDNodes giving the states which
 	 * satisfy each label are put into the vector {@code labelBS}, which should be empty when this function is called.
 	 *
-	 * @param mc a ModelChecker, used for checking maximal state formulas
+	 * @param mc a StateModelChecker, used for checking maximal state formulas
 	 * @param model the model
 	 * @param expr a path expression, i.e. the LTL formula
 	 * @param labelBS empty vector to be filled with JDDNodes for subformulas 
 	 * @param allowedAcceptance the allowed acceptance types
 	 * @return the DA
 	 */
-	public DA<BitSet,? extends AcceptanceOmega> constructDAForLTLFormula(ModelChecker mc, Model model, Expression expr, Vector<JDDNode> labelDDs, AcceptanceType... allowedAcceptance) throws PrismException
+	public DA<BitSet,? extends AcceptanceOmega> constructDAForLTLFormula(StateModelChecker mc, Model model, Expression expr, Vector<JDDNode> labelDDs, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		if (Expression.containsTemporalTimeBounds(expr)) {
 			if (model.getModelType().continuousTime()) {
@@ -320,15 +325,37 @@ public class LTLModelChecker extends PrismComponent
 				throw new PrismException("Time-bounded operators not supported in LTL: " + expr);
 			}
 		}
+		
+		long time;
+		DA<BitSet, ? extends AcceptanceOmega> da;
 
-		// Model check maximal state formulas
-		Expression ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelDDs);
+		if (Expression.isHOA(expr)) {
+			LTL2DA ltl2da = new LTL2DA(this);
+			time = System.currentTimeMillis();
+			mainLog.println("Parsing and constructing HOA automaton for "+expr);
+			PrismPaths paths = new PrismPaths(mc.getModulesFile(),
+			                                  mc.getPropertiesFile());
+			Vector<Expression> apExpressions = new Vector<Expression>();
+			da = ltl2da.fromExpressionHOA(expr, paths, apExpressions, allowedAcceptance);
 
-		// Convert LTL formula to deterministic automaton (DA)
-		mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
-		long time  = System.currentTimeMillis();
-		LTL2DA ltl2da = new LTL2DA(this);
-		DA<BitSet, ? extends AcceptanceOmega> da = ltl2da.convertLTLFormulaToDA(ltl, mc.getConstantValues(), allowedAcceptance);
+			mainLog.println("Determining states satisfying atomic proposition labels of the automaton...");
+			for (int i=0; i<da.getAPList().size(); i++) {
+				Expression apExpression = apExpressions.get(i);
+				apExpression.typeCheck();
+				JDDNode labelStates = mc.checkExpressionDD(apExpression, model.getReach().copy());
+				labelDDs.add(labelStates);
+				da.getAPList().set(i, "L"+i);
+			}
+		} else {
+			// Model check maximal state formulas
+			Expression ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelDDs);
+
+			// Convert LTL formula to deterministic automaton (DA)
+			mainLog.println("\nBuilding deterministic automaton (for " + ltl + ")...");
+			time  = System.currentTimeMillis();
+			LTL2DA ltl2da = new LTL2DA(this);
+			da = ltl2da.convertLTLFormulaToDA(ltl, mc.getConstantValues(), allowedAcceptance);
+		}
 		da.checkForCanonicalAPs(labelDDs.size());
 		mainLog.println(da.getAutomataType()+" has " + da.size() + " states, " + da.getAcceptance().getSizeStatistics() + ".");
 		time = System.currentTimeMillis() - time;
@@ -343,7 +370,6 @@ public class LTLModelChecker extends PrismComponent
 
 		return da;
 	}
-
 
 	/**
 	 * Construct the product of a DA and a DTMC/CTMC, starting from a given set

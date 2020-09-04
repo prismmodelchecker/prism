@@ -511,12 +511,15 @@ TOKEN :
 |	< PRIME:		"'" >
 |	< RENAME:		"<-" >
 |	< QMARK:		"?" >
-|	< DQUOTE:		"\"" >
 	// Regular expressions
 |	< REG_INT:			(["1"-"9"](["0"-"9"])*)|("0") >
 |	< REG_DOUBLE:		(["0"-"9"])*(".")?(["0"-"9"])+(["e","E"](["-","+"])?(["0"-"9"])+)? >
 |	< REG_IDENTPRIME:	["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*"'" >
 |	< REG_IDENT:		["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])* >
+//	REG_QUOTED_IDENT has precedence before general REG_QUOTED_STRING
+|	< REG_QUOTED_IDENT:	"\"" (["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*) "\"" >
+//	REG_QUOTED_STRING: first ", then finitely often either \+arbitrary char or not(\,"), then "
+|	< REG_QUOTED_STRING:	"\"" (("\\" ~[]) | ~["\\","\""] )* "\"" >
 |	< PREPROC:			"#"(~["#"])*"#" >
 	// Special catch-all token for lexical errors
 	// (this allows us to throw our usual exceptions in this case)
@@ -638,7 +641,7 @@ Property Property() :
 	// (this avoids some common parsing errors for semicolon-less files)
 	// Note also use of lookahead (to colon) to distinguish (optional) name from label reference
 	( { begin = getToken(1); }
-	( LOOKAHEAD(<DQUOTE> Identifier() <DQUOTE> <COLON>) <DQUOTE> name = Identifier() <DQUOTE> <COLON> )?
+	( LOOKAHEAD(QuotedIdentifier() <COLON>) name = QuotedIdentifier() <COLON> )?
 	expr = ExpressionITE(true, false)
 	{ prop = new Property(expr, name, getPrecedingCommentBlock(begin)); }
 	)
@@ -705,7 +708,7 @@ void LabelDef(LabelList labelList) throws PrismLangException :
 }
 {
 	// Lookahead required because of the error handling clause below
-	LOOKAHEAD(<LABEL> <DQUOTE>) <LABEL> ( <DQUOTE> name = IdentifierExpression() <DQUOTE> <EQ> expr = Expression(false, false) <SEMICOLON> )
+	LOOKAHEAD(<LABEL> QuotedIdentifierExpression()) <LABEL> ( name = QuotedIdentifierExpression() <EQ> expr = Expression(false, false) <SEMICOLON> )
 	{ labelList.addLabel(name, expr); }
 	// Error handling
 	| LOOKAHEAD(<LABEL>) ( <LABEL> name = IdentifierExpression() ) { throw new PrismLangException("Label names must be enclosed in double-quotes", name); }
@@ -917,7 +920,7 @@ RewardStruct RewardStruct() :
 	// Optional name
 	// (lookahead required so not misdetected as an ExpressionLabel)
 	// (which would not be allowed to appear here anyway)
-	( LOOKAHEAD(<DQUOTE>) <DQUOTE> name = Identifier() <DQUOTE> { rs.setName(name); } )?
+	( LOOKAHEAD(QuotedIdentifier()) name = QuotedIdentifier() { rs.setName(name); } )?
 	// Reward structure items
 	( { begin2 = getToken(1); s = null; } ( <LBRACKET> { s = ""; } ( s=Identifier() )? <RBRACKET> )?
 	guard = Expression(false, false) <COLON> value = Expression(false, false) <SEMICOLON>
@@ -947,7 +950,7 @@ void SystemEndsystem(ModulesFile mf) :
 	<SYSTEM>
 	// Optional name
 	// (need lookahead because names look like references)
-	( LOOKAHEAD(<DQUOTE> name = Identifier() <DQUOTE> SystemDefn()) <DQUOTE> name = Identifier() <DQUOTE> )?
+	( LOOKAHEAD(QuotedIdentifier() SystemDefn()) name = QuotedIdentifier() )?
 	// The rest
 	( sysdef = SystemDefn() )
 	<ENDSYSTEM>
@@ -1084,7 +1087,7 @@ SystemDefn SystemAtomic() :
 	// Module name
 	( name = Identifier() { sys = new SystemModule(name); } )
 	// SystemDefn reference
-	|( <DQUOTE> name = Identifier() <DQUOTE> { sys = new SystemReference(name); } )
+	|( name = QuotedIdentifier() { sys = new SystemReference(name); } )
 	// Parentheses
 	|( <LPARENTH> sys = SystemDefn() <RPARENTH> { sys = new SystemBrackets(sys); } )
 	)
@@ -1542,7 +1545,10 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 	|( begin = <PMIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
 	|( begin = <PMAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } ))
 	// Path formula, optional filter
-	<LBRACKET> expr = Expression(prop, true) (filter = Filter())? <RBRACKET>
+	<LBRACKET>
+	expr = PathSpecification(prop)
+	(filter = Filter())?
+	<RBRACKET>
 	{
 		ret.setModifier(modifier == null ? null : modifier.getName());
 		ret.setRelOp(relOp);
@@ -1561,6 +1567,64 @@ Expression ExpressionProb(boolean prop, boolean pathprop) :
 		else return ret;
 	}
 }
+
+// A path specification:
+// Currently, can be
+//  - an LTL formula, i.e., Expression()
+//  - a (possibly negated) HOA: ... automaton specification
+Expression PathSpecification(boolean prop) :
+{
+	Expression result;
+	ExpressionIdent kind = null;
+}
+{
+	(
+	  // HOA: ....
+	  ( LOOKAHEAD( {   getToken(1).kind==REG_IDENT
+	                && getToken(1).image.equals("HOA")
+	                && getToken(2).kind==COLON } )
+	    kind = IdentifierExpression() <COLON> <LBRACE> result = PathSpecificationHOA(prop) <RBRACE>
+	  )
+	  |
+	  // ! HOA: ....
+	  ( LOOKAHEAD( {   getToken(1).kind==NOT
+	                && getToken(2).kind==REG_IDENT
+	                && getToken(2).image.equals("HOA")
+	                && getToken(3).kind==COLON } )
+	    <NOT>
+	    kind = IdentifierExpression() <COLON> <LBRACE> result = PathSpecificationHOA(prop) <RBRACE>
+	    {result = Expression.Not(result);}
+	  )
+	  |
+  	  ( LOOKAHEAD( {    getToken(1).kind==REG_IDENT
+  	                 && getToken(2).kind==COLON } )
+  	    kind = IdentifierExpression()
+	  	{ throw new ParseException("Unknown path type '"+kind.getName()+"'"); }
+	  )
+	  |
+	  (result = Expression(prop, true))
+	)
+	{return result;}
+}
+
+
+// The inner part of a HOA: { "automatonfile", "ap" <- state-expression, ... } specification
+ExpressionHOA PathSpecificationHOA(boolean prop) :
+{
+	QuotedString hoaAutomatonFile;
+	ExpressionHOA result = null;
+	Expression stateExpression = null;
+	String ap, label;
+}
+{
+	hoaAutomatonFile = QuotedString()
+	{ result = new ExpressionHOA(hoaAutomatonFile); }
+	(<COMMA> ap = QuotedIdentifier() <RENAME> stateExpression = Expression(prop, false) {result.addRename(ap, stateExpression);} )*
+
+	{return result;}
+}
+
+
 
 // Filter for a P/S/R operator
 
@@ -1681,9 +1745,9 @@ void RewardIndex(ExpressionReward exprRew) :
 }
 {
 	// Lookahead here is to ensure that "id" is not misdetected as an ExpressionLabel
-	( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> index = Identifier() <DQUOTE> ) | index = Expression(false, false) ) <RBRACE> )
+	( <LBRACE> ( LOOKAHEAD(QuotedIdentifier()) ( index = QuotedIdentifier()) | index = Expression(false, false) ) <RBRACE> )
 	// Optional second reward structure index (for ratio objectives)
-	( <DIVIDE> ( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> indexDiv = Identifier() <DQUOTE> ) | indexDiv = Expression(false, false) ) <RBRACE> ))?
+	( <DIVIDE> ( <LBRACE> ( LOOKAHEAD(QuotedIdentifier()) ( indexDiv = QuotedIdentifier() ) | indexDiv = Expression(false, false) ) <RBRACE> ))?
 	{
 		exprRew.setRewardStructIndex(index);
 		if (indexDiv != null) {
@@ -1819,16 +1883,16 @@ String ExpressionStrategyCoalitionPlayer() :
 
 Expression ExpressionLabel(boolean prop, boolean pathprop) :
 {
-	String s;
+	ExpressionIdent qi;
 	ExpressionLabel ret = null;
 	Token begin;
 }
 {
 	// This production is only allowed in expressions if the "prop" parameter is true
 	{ if (!prop) throw generateParseException(); }
-	// Label can be arbitary string or the "init" keyword
-	( begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE> )
-	{ ret = new ExpressionLabel(s); ret.setPosition(begin, getToken(0)); return ret; }
+	// Label can be arbitary quoted identifier
+	qi = QuotedIdentifierExpression()
+	{ ret = new ExpressionLabel(qi.getName()); ret.setPosition(qi,qi); return ret; }
 }
 
 // (Property) expression: filter (using "filter" keyword)
@@ -1873,6 +1937,18 @@ String Identifier() :
 	<REG_IDENT> { return getToken(0).image; }
 }
 
+String QuotedIdentifier() :
+{
+}
+{
+	<REG_QUOTED_IDENT> {
+	  String s = getToken(0).image;
+	  // remove "
+	  return s.substring(1,s.length()-1);
+	}
+}
+
+
 // Identifier (returns ExpressionIdent, storing position info)
 
 ExpressionIdent IdentifierExpression() :
@@ -1883,6 +1959,41 @@ ExpressionIdent IdentifierExpression() :
 {
 	ident = Identifier()
 	{ ret = new ExpressionIdent(ident); ret.setPosition(getToken(0)); return ret; }
+}
+
+// QuotedIdentifier (returns ExpressionIdent, storing position info)
+
+ExpressionIdent QuotedIdentifierExpression() :
+{
+	String ident;
+	ExpressionIdent ret;
+	Token begin;
+}
+{
+	{begin = getToken(1);}
+	ident = QuotedIdentifier()
+	{ ret = new ExpressionIdent(ident); ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// A quoted string ("text"), returns the unquoted text
+QuotedString QuotedString() :
+{
+	String s;
+	Token begin;
+}
+{
+	{begin = getToken(1);}
+	// can be either a QUOTED_IDENT or a QUOTED_STRING
+	(  <REG_QUOTED_IDENT>  { s = getToken(0).image;}
+	 | <REG_QUOTED_STRING> { s = getToken(0).image;}
+	)
+	{
+		try {
+			return QuotedString.fromQuoted(s);
+		} catch (PrismLangException e) {
+			throw new ParseException(e.getMessage() + ", at line " + begin.next.beginLine + ", column " + begin.next.beginColumn +".");
+		}
+	}
 }
 
 // Identifier or min/max keyword (returns ExpressionIdent, storing position info)
