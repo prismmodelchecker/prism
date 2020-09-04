@@ -185,7 +185,7 @@ public class SCCInfo implements SCCConsumer
 			}
 
 			@Override
-			public int cardinality()
+			public long count()
 			{
 				return getNumStatesInSCC(sccIndex);
 			}

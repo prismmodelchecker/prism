@@ -1549,7 +1549,7 @@ public class MDPModelChecker extends ProbModelChecker
 		for (int scc = 0, numSCCs = sccs.getNumSCCs(); scc < numSCCs; scc++) {
 			IntSet statesForSCC = sccs.getStatesForSCC(scc);
 
-			int cardinality = statesForSCC.cardinality();
+			int cardinality = Math.toIntExact(statesForSCC.cardinality());
 
 			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
 			while (itSCC.hasNext()) {
@@ -1661,7 +1661,7 @@ public class MDPModelChecker extends ProbModelChecker
 			double q = 0;
 			double p = 1;
 
-			int cardinality = statesForSCC.cardinality();
+			int cardinality = Math.toIntExact(statesForSCC.cardinality());
 
 			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
 			while (itSCC.hasNext()) {
