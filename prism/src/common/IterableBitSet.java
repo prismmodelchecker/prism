@@ -29,6 +29,7 @@ package common;
 
 import java.util.BitSet;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.iterable.IterableInt;
@@ -51,6 +52,7 @@ public class IterableBitSet implements IterableInt
 	 */
 	public IterableBitSet(BitSet set)
 	{
+		Objects.requireNonNull(set);
 		this.set = set;
 		this.clearBits = false;
 		this.reversed = false;
@@ -83,6 +85,7 @@ public class IterableBitSet implements IterableInt
 	 */
 	public IterableBitSet(BitSet set, Integer maxIndex, boolean clearBits, boolean reversed)
 	{
+		Objects.requireNonNull(set);
 		this.set = set;
 		this.maxIndex = maxIndex;
 		this.clearBits = clearBits;
