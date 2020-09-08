@@ -587,6 +587,14 @@ public class MDPSparse extends MDPExplicit
 	}
 
 	@Override
+	public void forEachTransition(int s, int i, TransitionConsumer c)
+	{
+		for (int col = choiceStarts[rowStarts[s] + i], stop = choiceStarts[rowStarts[s] + i + 1]; col < stop; col++) {
+			c.accept(s, cols[col], nonZeros[col]);
+		}
+	}
+
+	@Override
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(final int s, final int i)
 	{
 		return new Iterator<Entry<Integer, Double>>()
