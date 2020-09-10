@@ -34,6 +34,7 @@ import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
 import common.iterable.IterableInt;
+import common.iterable.MappingIterator;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
@@ -164,7 +165,23 @@ public interface DTMC extends Model
 	/**
 	 * Get an iterator over the transitions from state s, with their attached actions if present.
 	 */
-	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s);
+	public default Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
+	{
+		// Default implementation just adds null actions 
+		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(s);
+		return new MappingIterator.From<>(transitions, transition -> attachAction(transition, null));
+	}
+
+	/**
+	 * Attach an action to a transition, assuming iterators as used in
+	 * {@link #getTransitionsIterator(int)} and {@link #getTransitionsAndActionsIterator(int)}
+	 */
+	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)
+	{
+		final Integer state = transition.getKey();
+		final Double probability = transition.getValue();
+		return new AbstractMap.SimpleImmutableEntry<>(state, new Pair<>(probability, action));
+	}
 
 	/**
 	 * Functional interface for a consumer,

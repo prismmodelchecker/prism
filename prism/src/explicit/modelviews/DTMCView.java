@@ -38,7 +38,6 @@ import common.iterable.MappingIterator;
 import explicit.DTMC;
 import explicit.Distribution;
 import explicit.SuccessorsIterator;
-import prism.Pair;
 
 /**
  * Base class for a DTMC view, i.e., a virtual DTMC that is obtained
@@ -103,21 +102,5 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 			public boolean hasNext() {return transitions.hasNext();}
 			public int nextInt() {return transitions.next().getKey();}
 		}, true);
-	}
-
-	//--- DTMC ---
-
-	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)
-	{
-		final Integer state = transition.getKey();
-		final Double probability = transition.getValue();
-		return new AbstractMap.SimpleImmutableEntry<>(state, new Pair<>(probability, action));
-	}
-
-	@Override
-	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(final int state)
-	{
-		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state);
-		return new MappingIterator.From<>(transitions, transition -> attachAction(transition, null));
 	}
 }

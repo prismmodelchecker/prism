@@ -26,58 +26,9 @@
 
 package explicit;
 
-import java.util.AbstractMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import prism.Pair;
-
 /**
  * Base class for explicit-state representations of a DTMC.
  */
 public abstract class DTMCExplicit extends ModelExplicit implements DTMC
 {
-	// Accessors (for DTMC)
-	
-	@Override
-	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
-	{
-		// Default implementation: extend iterator, setting all actions to null
-		return new AddDefaultActionToTransitionsIterator(getTransitionsIterator(s), null);
-	}
-
-	public class AddDefaultActionToTransitionsIterator implements Iterator<Map.Entry<Integer, Pair<Double, Object>>>
-	{
-		private Iterator<Entry<Integer, Double>> transIter;
-		private Object defaultAction;
-		private Entry<Integer, Double> next;
-
-		public AddDefaultActionToTransitionsIterator(Iterator<Entry<Integer, Double>> transIter, Object defaultAction)
-		{
-			this.transIter = transIter;
-			this.defaultAction = defaultAction;
-		}
-
-		@Override
-		public Entry<Integer, Pair<Double, Object>> next()
-		{
-			next = transIter.next();
-			final Integer state = next.getKey();
-			final Double probability = next.getValue();
-			return new AbstractMap.SimpleImmutableEntry<>(state, new Pair<>(probability, defaultAction));
-		}
-
-		@Override
-		public boolean hasNext()
-		{
-			return transIter.hasNext();
-		}
-
-		@Override
-		public void remove()
-		{
-			// Do nothing: read-only
-		}
-	}
 }
