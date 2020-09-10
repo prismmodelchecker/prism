@@ -86,6 +86,9 @@ ifeq ($(OSTYPE),linux)
 	ifneq (,$(findstring ia64, $(shell uname -m)))
 		ARCH = ia64
 	endif
+	ifneq (,$(findstring aarch64, $(shell uname -m)))
+		ARCH = aarch64
+	endif
 endif
 # For Mac/Windows, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
@@ -218,10 +221,18 @@ ifeq ($(OSTYPE),linux)
 		LDFLAGS = $(CFLAGS)
 		BINDISTSUFFIX = linux64
 	else
+	ifeq ($(ARCH),aarch64)
+		# Position Independent Code required on Aarch64
+		CFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS = --std=c++11 $(CFLAGS)
+		LDFLAGS = $(CFLAGS)
+		BINDISTSUFFIX = linux64
+	else
 		CFLAGS = -m32 -malign-double -DHAVE_IEEE_754 -DBSD $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = $(CFLAGS)
 		BINDISTSUFFIX = linux32
+	endif
 	endif
 	endif
 	BIN_TARGETS=prism.linux xprism.linux
