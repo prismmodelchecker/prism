@@ -359,8 +359,8 @@ public class Updater extends PrismComponent
 		for (i = 0; i < n; i++) {
 			// Compute probability/rate
 			p = ups.getProbabilityInState(i, state);
-			// Check for negative/NaN probabilities/rates
-			if (Double.isNaN(p) || p < 0) {
+			// Check for non-finite/NaN probabilities/rates
+			if (!Double.isFinite(p) || p < 0) {
 				String s = modelType.choicesSumToOne() ? "Probability" : "Rate";
 				s += " is invalid (" + p + ") in state " + state.toString(modulesFile);
 				// Note: we indicate error in whole Updates object because the offending
