@@ -37,7 +37,6 @@ import parser.VarList;
 import parser.ast.Command;
 import parser.ast.Module;
 import parser.ast.ModulesFile;
-import parser.ast.RewardStruct;
 import parser.ast.Update;
 import parser.ast.Updates;
 import prism.ModelType;
@@ -259,54 +258,6 @@ public class Updater extends PrismComponent
 		//transitionList.checkForErrors(state, varList);
 		
 		//System.out.println(transitionList);
-	}
-
-	/**
-	 * Calculate the state rewards for a given state.
-	 * @param state The state to compute rewards for
-	 * @param store An array in which to store the rewards
-	 */
-	public void calculateStateRewards(State state, double[] store) throws PrismLangException
-	{
-		int i, j, n;
-		double d;
-		RewardStruct rw;
-		for (i = 0; i < numRewardStructs; i++) {
-			rw = modulesFile.getRewardStruct(i);
-			n = rw.getNumItems();
-			d = 0.0;
-			for (j = 0; j < n; j++) {
-				if (!rw.getRewardStructItem(j).isTransitionReward())
-					if (rw.getStates(j).evaluateBoolean(state))
-						d += rw.getReward(j).evaluateDouble(state);
-			}
-			store[i] = d;
-		}
-	}
-
-	/**
-	 * Calculate the transition rewards for a given state and outgoing choice.
-	 * @param state The state to compute rewards for
-	 * @param ch The choice from the state to compute rewards for
-	 * @param store An array in which to store the rewards
-	 */
-	public void calculateTransitionRewards(State state, Choice ch, double[] store) throws PrismLangException
-	{
-		int i, j, n;
-		double d;
-		RewardStruct rw;
-		for (i = 0; i < numRewardStructs; i++) {
-			rw = modulesFile.getRewardStruct(i);
-			n = rw.getNumItems();
-			d = 0.0;
-			for (j = 0; j < n; j++) {
-				if (rw.getRewardStructItem(j).isTransitionReward())
-					if (rw.getRewardStructItem(j).getSynchIndex() == Math.max(0, ch.getModuleOrActionIndex()))
-						if (rw.getStates(j).evaluateBoolean(state))
-							d += rw.getReward(j).evaluateDouble(state);
-			}
-			store[i] = d;
-		}
 	}
 	
 	// Private helpers
