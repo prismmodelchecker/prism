@@ -454,8 +454,8 @@ public class ConstructRewards extends PrismComponent
 	private void checkStateReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
 	{
 		String error = null;
-		if (Double.isNaN(rew)) {
-			error = "State reward evaluates to NaN";
+		if (!Double.isFinite(rew)) {
+			error = "State reward is not finite";
 		} else if (!allowNegative && rew < 0) {
 			error = "State reward is negative (" + rew + ")";
 		}
@@ -483,8 +483,8 @@ public class ConstructRewards extends PrismComponent
 	private void checkTransitionReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
 	{
 		String error = null;
-		if (Double.isNaN(rew)) {
-			error = "Transition reward evaluates to NaN";
+		if (!Double.isFinite(rew)) {
+			error = "Transition reward is not finite";
 		} else if (!allowNegative && rew < 0) {
 			error = "Transition reward is negative (" + rew + ")";
 		}

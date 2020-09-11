@@ -1968,9 +1968,23 @@ public class Modules2MTBDD
 				if (synch == null) {
 					// restrict rewards to relevant states
 					item = JDD.Apply(JDD.TIMES, states, rewards);
-					// check for negative rewards
-					if ((d = JDD.FindMin(item)) < 0) {
-						s = "Reward structure item contains negative rewards (" + d + ").";
+					// check for infinite/NaN/negative rewards
+					double dmin = JDD.FindMin(item);
+					double dmax = JDD.FindMax(item);
+					if (!Double.isFinite(dmin)) {
+						s = "Reward structure item contains non-finite rewards (" + dmin + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (!Double.isFinite(dmax)) {
+						s = "Reward structure item contains non-finite rewards (" + dmax + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (dmin < 0) {
+						s = "Reward structure item contains negative rewards (" + dmin + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
@@ -2001,9 +2015,23 @@ public class Modules2MTBDD
 					item = JDD.Apply(JDD.TIMES, item, states);
 					// multiply by reward values
 					item = JDD.Apply(JDD.TIMES, item, rewards);
-					// check for negative rewards
-					if ((d = JDD.FindMin(item)) < 0) {
-						s = "Reward structure item contains negative rewards (" + d + ").";
+					// check for infinite/NaN/negative rewards
+					double dmin = JDD.FindMin(item);
+					double dmax = JDD.FindMax(item);
+					if (!Double.isFinite(dmin)) {
+						s = "Reward structure item contains non-finite rewards (" + dmin + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (!Double.isFinite(dmax)) {
+						s = "Reward structure item contains non-finite rewards (" + dmax + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (dmin < 0) {
+						s = "Reward structure item contains negative rewards (" + dmin + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));

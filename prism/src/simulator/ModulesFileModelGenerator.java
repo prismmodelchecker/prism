@@ -415,8 +415,15 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 				Expression guard = rewStr.getStates(i);
 				if (guard.evaluateBoolean(modulesFile.getConstantValues(), state)) {
 					double rew = rewStr.getReward(i).evaluateDouble(modulesFile.getConstantValues(), state);
-					if (Double.isNaN(rew))
-						throw new PrismLangException("Reward structure evaluates to NaN at state " + state, rewStr.getReward(i));
+					// Check reward is finite/non-negative (would be checked at model construction time,
+					// but more fine grained error reporting can be done here)
+					// Note use of original model since modulesFile may have been simplified
+					if (!Double.isFinite(rew)) {
+						throw new PrismLangException("Reward structure is not finite at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+					}
+					if (rew < 0) {
+						throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+					}
 					d += rew;
 				}
 			}
@@ -437,8 +444,15 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 				if (action == null ? (cmdAction.isEmpty()) : action.equals(cmdAction)) {
 					if (guard.evaluateBoolean(modulesFile.getConstantValues(), state)) {
 						double rew = rewStr.getReward(i).evaluateDouble(modulesFile.getConstantValues(), state);
-						if (Double.isNaN(rew))
-							throw new PrismLangException("Reward structure evaluates to NaN at state " + state, rewStr.getReward(i));
+						// Check reward is finite/non-negative (would be checked at model construction time,
+						// but more fine grained error reporting can be done here)
+						// Note use of original model since modulesFile may have been simplified
+						if (!Double.isFinite(rew)) {
+							throw new PrismLangException("Reward structure is not finite at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+						}
+						if (rew < 0) {
+							throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+						}
 						d += rew;
 					}
 				}
