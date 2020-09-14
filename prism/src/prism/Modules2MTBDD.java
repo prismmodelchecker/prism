@@ -1560,8 +1560,8 @@ public class Modules2MTBDD
 			// compute min/max sums
 			dmin = JDD.FindMin(tmp);
 			double dmax = JDD.FindMax(tmp);
-			// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
-			if (dmin != dmin || dmax != dmax) {
+			// check sums for NaNs
+			if (Double.isNaN(dmin) || Double.isNaN(dmax)) {
 				JDD.Deref(tmp);
 				String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
 				s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
@@ -1570,7 +1570,7 @@ public class Modules2MTBDD
 				throw new PrismLangException(s, command);
 			}
 			// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
-			if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
+			if (modelType != ModelType.CTMC && !PrismUtils.doublesAreEqual(dmin, 1.0)) {
 				JDD.Deref(tmp);
 				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
 				s += " (e.g. " + dmin + ") for some states. ";
@@ -1587,14 +1587,14 @@ public class Modules2MTBDD
 				throw new PrismLangException(s, command);
 			}
 			// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
-			if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
+			if (modelType != ModelType.CTMC && !PrismUtils.doublesAreEqual(dmax, 1.0)) {
 				JDD.Deref(tmp);
 				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
 				s += " (e.g. " + dmax + ") for some states. ";
 				s += "Perhaps the guard needs to be strengthened";
 				throw new PrismLangException(s, command);
 			}
-			if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
+			if (modelType == ModelType.CTMC && Double.isInfinite(dmax)) {
 				JDD.Deref(tmp);
 				String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
 				s += "Perhaps the guard needs to be strengthened";
