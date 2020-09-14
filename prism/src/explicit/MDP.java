@@ -409,7 +409,7 @@ public interface MDP extends MDPGeneric<Double>
 			double d = mvMultSingle(s, choice, vect);
 
 			// Store strategy info if value matches
-			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
+			if (PrismUtils.doublesAreEqual(val, d)) {
 				result.add(choice);
 			}
 		}
@@ -900,7 +900,7 @@ public interface MDP extends MDPGeneric<Double>
 		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
 			double d = mvMultRewSingle(s, choice, vect, mdpRewards);
 			// Store strategy info if value matches
-			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
+			if (PrismUtils.doublesAreEqual(val, d)) {
 				result.add(choice);
 			}
 		}

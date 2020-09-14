@@ -288,7 +288,7 @@ public class PrismUtils
 	 */
 	public static boolean doublesAreEqual(double d1, double d2)
 	{
-		return doublesAreCloseAbs(d1, d2, epsilonDouble);
+		return doublesAreCloseRel(d1, d2, epsilonDouble);
 	}
 
 	/**

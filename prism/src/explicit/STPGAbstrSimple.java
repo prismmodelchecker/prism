@@ -699,7 +699,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			}
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
-			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {
+			if (PrismUtils.doublesAreEqual(val, minmax2)) {
 				res.add(j);
 				//res.add(distrs.getAction());
 			}
@@ -849,7 +849,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			minmax2 += rewards.getTransitionReward(s, dsIter);
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
-			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {
+			if (PrismUtils.doublesAreEqual(val, minmax2)) {
 				res.add(dsIter);
 				//res.add(distrs.getAction());
 			}

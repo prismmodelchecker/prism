@@ -855,7 +855,7 @@ public class MDPSparse extends MDPExplicit
 				d += nonZeros[k] * vect[cols[k]];
 			}
 			// Store strategy info if value matches
-			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
+			if (PrismUtils.doublesAreEqual(val, d)) {
 				res.add(j - l1);
 			}
 		}
@@ -1103,7 +1103,7 @@ public class MDPSparse extends MDPExplicit
 			}
 			d += mdpRewards.getStateReward(s);
 			// Store strategy info if value matches
-			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
+			if (PrismUtils.doublesAreEqual(val, d)) {
 				res.add(j - l1);
 			}
 		}

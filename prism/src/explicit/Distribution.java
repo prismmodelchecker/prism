@@ -303,7 +303,7 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 			Map.Entry<Integer, Double> e = i.next();
 			d1 = e.getValue();
 			d2 = d.map.get(e.getKey());
-			if (d2 == null || !PrismUtils.doublesAreClose(d1, d2, 1e-12, false))
+			if (d2 == null || !PrismUtils.doublesAreEqual(d1, d2))
 				return false;
 		}
 		return true;
