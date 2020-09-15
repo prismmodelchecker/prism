@@ -14,6 +14,7 @@
 # If this is a problem, the best solution is to create symlinks.
 
 export PRISM_SRC_DIR     = src
+export PRISM_TESTS_DIR   = unit-tests
 export PRISM_CLASSES_DIR = classes
 export PRISM_OBJ_DIR     = obj
 export PRISM_LIB_DIR     = lib
@@ -176,6 +177,7 @@ else
 endif
 LD = $(CXX)
 JAVAC = javac
+JAVA = java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -333,7 +335,7 @@ EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
 default: all
 
-all: cuddpackage extpackages prism
+all: cuddpackage extpackages prism make_tests
 
 # Build our customised version of CUDD
 cuddpackage: checks
@@ -396,6 +398,14 @@ make_dirs:
 	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
 		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
 	fi;
+
+# Compile unit tests
+make_tests:
+	@echo Making $(PRISM_TESTS_DIR) ...; \
+	(cd $(PRISM_TESTS_DIR) && \
+	$(MAKE) \
+	CLASSPATHSEP="$(CLASSPATHSEP)") \
+	|| exit 1;
 
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
@@ -472,6 +482,10 @@ count_loc:
 ###########
 # Testing #
 ###########
+
+# Run all unit tests
+unittests:
+	$(JAVA) -jar lib/junit-platform-console-standalone.jar -cp classes --scan-classpath
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
@@ -613,7 +627,7 @@ clean: checks
 celan: clean
 
 # Clean PRISM + CUDD and external libs
-clean_all: checks clean_cudd clean_ext clean
+clean_all: checks clean_cudd clean_ext clean clean_tests
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && $(MAKE) distclean)
@@ -625,6 +639,9 @@ clean_ext:
 	  $(MAKE) -s clean) \
 	  || exit 1; \
 	done )
+
+clean_tests:
+	@(cd $(PRISM_TESTS_DIR) && $(MAKE) clean)
 
 # Remove just the prism.jar binary
 clean_binary:
