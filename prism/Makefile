@@ -20,6 +20,7 @@ export PRISM_LIB_DIR     = lib
 export PRISM_INCLUDE_DIR = include
 export PRISM_IMAGES_DIR  = images
 export PRISM_DTDS_DIR    = dtds
+export PRISM_TESTS_DIR   = unit-tests
 
 # Location of CUDD (used to be variable; now mainly fixed with the git repo layout)
 
@@ -176,6 +177,7 @@ else
 endif
 LD = $(CXX)
 JAVAC = javac
+JAVA = java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -397,6 +399,14 @@ make_dirs:
 		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
 	fi;
 
+# Compile unit tests
+make_tests:
+	@echo Making $(PRISM_TESTS_DIR) ...; \
+	(cd $(PRISM_TESTS_DIR) && \
+	$(MAKE) \
+	CLASSPATHSEP="$(CLASSPATHSEP)") \
+	|| exit 1;
+
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
 	@for target in $(BIN_TARGETS); do \
@@ -472,6 +482,10 @@ count_loc:
 ###########
 # Testing #
 ###########
+
+# Run all unit tests
+unittests: make_tests
+	$(JAVA) -jar lib/junit-platform-console-standalone.jar -cp classes --scan-classpath
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
@@ -613,7 +627,7 @@ clean: checks
 celan: clean
 
 # Clean PRISM + CUDD and external libs
-clean_all: checks clean_cudd clean_ext clean
+clean_all: checks clean_cudd clean_ext clean clean_tests
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && $(MAKE) distclean)
@@ -625,6 +639,9 @@ clean_ext:
 	  $(MAKE) -s clean) \
 	  || exit 1; \
 	done )
+
+clean_tests:
+	@(cd $(PRISM_TESTS_DIR) && $(MAKE) clean)
 
 # Remove just the prism.jar binary
 clean_binary:
