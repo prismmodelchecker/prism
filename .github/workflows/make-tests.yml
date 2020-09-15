@@ -25,4 +25,5 @@ jobs:
       working-directory: ./prism
       run: |
         make
+        make unittests
         make tests
