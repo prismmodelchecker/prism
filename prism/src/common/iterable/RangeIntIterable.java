@@ -3,6 +3,7 @@
 //	Copyright (c) 2016-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -24,18 +25,15 @@
 //	
 //==============================================================================
 
-
 package common.iterable;
 
-import java.util.PrimitiveIterator;
-
 /**
- * An Iterable that returns a Primitive.OfInt iterator for all the integers
- * between two values, first and last (inclusive).
+ * An Iterable that returns a Functional Primitive.OfInt iterator
+ * for all the integers between two values, first and last (inclusive).
  * If first > last, then the sequence is descending (first, first-1, ..., last+1, last),
  * otherwise it is ascending (first, first+1, ..., last-1, last).
   */
-public class RangeIntIterable implements IterableInt
+public class RangeIntIterable implements FunctionalPrimitiveIterable.OfInt
 {
 	/** The first integer of the sequence */
 	final private int first;
@@ -57,9 +55,9 @@ public class RangeIntIterable implements IterableInt
 	}
 
 	@Override
-	public PrimitiveIterator.OfInt iterator()
+	public FunctionalPrimitiveIterator.OfInt iterator()
 	{
-		return new PrimitiveIterator.OfInt()
+		return new FunctionalPrimitiveIterator.OfInt()
 		{
 			int current = first;
 

@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -25,75 +25,139 @@
 //	
 //==============================================================================
 
-
 package common.iterable;
 
-import java.util.Iterator;
-
 /**
- * Base class for Iterables returning empty iterators,
- * static helpers for common primitive iterators.
+ * Abstract base class for empty Iterables.
+ * The four natural implementations (generic, double, int, and long)
+ * are implemented as Singletons and their instances accessible by a static method.
+ *
+ * @param <E> type of the Iterable's elements
  */
-public abstract class EmptyIterable<T> implements Iterable<T>
+public abstract class EmptyIterable<E> implements FunctionalIterable<E>
 {
-	private static final Of<?> OF = new Of<>();
-	private static final OfInt OF_INT = new OfInt();
-	private static final OfDouble OF_DOUBLE = new OfDouble();
-
+	/**
+	 * Get unique instance for elements of a generic type.
+	 *
+	 * @param <E> type of the Iterable's elements
+	 */
 	@SuppressWarnings("unchecked")
-	public static <T> Of<T> Of() {
-		return (Of<T>) OF;
-	}
-
-	public static OfInt OfInt() {
-		return OF_INT;
-	}
-
-	public static OfDouble OfDouble() {
-		return OF_DOUBLE;
-	}
-
-	public static class Of<T> extends EmptyIterable<T>
+	public static <E> Of<E> of()
 	{
-		private Of() {};
+		return (Of<E>) Of.OF;
+	}
+
+	/**
+	 * Get unique instance for {@code double} elements.
+	 */
+	public static OfDouble ofDouble()
+	{
+		return OfDouble.OF_DOUBLE;
+	}
+
+	/**
+	 * Get unique instance for {@code int} elements.
+	 */
+	public static OfInt ofInt()
+	{
+		return OfInt.OF_INT;
+	}
+
+	/**
+	 * Get unique instance for {@code long} elements.
+	 */
+	public static OfLong ofLong()
+	{
+		return OfLong.OF_LONG;
+	}
+
+
+
+	/**
+	 * Generic implementation of an empty Iterable as Singleton.
+	 *
+	 * @param <E> type of the Iterable's elements
+	 */
+	public static class Of<E> extends EmptyIterable<E>
+	{
+		/** Singleton instance elements of a generic type */
+		private static final Of<?> OF = new Of<>();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private Of() {}
 
 		@Override
-		public Iterator<T> iterator()
+		public EmptyIterator.Of<E> iterator()
 		{
-			return EmptyIterator.Of();
+			return EmptyIterator.of();
 		}
 	}
 
-	public static class OfInt extends EmptyIterable<Integer> implements IterableInt
+
+
+	/**
+	 * Primitive specialisation for {@code double} of an empty Iterable as Singleton.
+	 */
+	public static class OfDouble extends EmptyIterable<Double> implements FunctionalPrimitiveIterable.OfDouble
 	{
-		private OfInt() {};
+		/** Singleton instance for {@code double} elements */
+		private static final EmptyIterable.OfDouble OF_DOUBLE = new EmptyIterable.OfDouble();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private OfDouble() {}
+	
+		@Override
+		public EmptyIterator.OfDouble iterator()
+		{
+			return EmptyIterator.ofDouble();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation for {@code int} of an empty Iterable as Singleton.
+	 */
+	public static class OfInt extends EmptyIterable<Integer> implements FunctionalPrimitiveIterable.OfInt
+	{
+		/** Singleton instance for {@code int} elements */
+		private static final EmptyIterable.OfInt OF_INT = new EmptyIterable.OfInt();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private OfInt() {}
 
 		@Override
 		public EmptyIterator.OfInt iterator()
 		{
-			return EmptyIterator.OfInt();
+			return EmptyIterator.ofInt();
 		}
 	}
 
-	public static class OfLong extends EmptyIterable<Long> implements IterableLong
+
+
+	/**
+	 * Primitive specialisation for {@code long} of an empty Iterable as Singleton.
+	 */
+	public static class OfLong extends EmptyIterable<Long> implements FunctionalPrimitiveIterable.OfLong
 	{
-		private OfLong() {};
+		/** Singleton instance for {@code long} elements*/
+		private static final EmptyIterable.OfLong OF_LONG = new EmptyIterable.OfLong();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private OfLong() {}
 
 		@Override
 		public EmptyIterator.OfLong iterator()
 		{
-			return EmptyIterator.OfLong();
-		}
-	}
-
-	public static class OfDouble extends EmptyIterable<Double> implements IterableDouble
-	{
-		private OfDouble() {};
-
-		@Override
-		public EmptyIterator.OfDouble iterator()
-		{
-			return EmptyIterator.OfDouble();
+			return EmptyIterator.ofLong();
 		}
 	}
 }

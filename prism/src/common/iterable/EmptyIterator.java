@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -27,36 +27,53 @@
 
 package common.iterable;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 /**
- * Base class for empty Iterators,
- * static helpers for common primitive iterators.
+ * Abstract base class for empty Iterators.
+ * The four natural implementations (generic, double, int, and long)
+ * are implemented as Singletons and their instances accessible by a static method.
+ *
+ * @param <E> type of the Iterator's elements
  */
-public abstract class EmptyIterator<T> implements Iterator<T>
+public abstract class EmptyIterator<E> implements FunctionalIterator<E>
 {
-	private static final Of<?> OF           = new Of<>();
-	private static final OfInt OF_INT       = new OfInt();
-	private static final OfLong OF_LONG     = new OfLong();
-	private static final OfDouble OF_DOUBLE = new OfDouble();
-
+	/**
+	 * Get unique instance for elements of a generic type.
+	 *
+	 * @param <E> type of the Iterator's elements
+	 */
 	@SuppressWarnings("unchecked")
-	public static <T> Of<T> Of() {
-		return (Of<T>) OF;
+	public static <E> Of<E> of()
+	{
+		return (Of<E>) Of.OF;
 	}
 
-	public static OfInt OfInt() {
-		return OF_INT;
+	/**
+	 * Get unique instance for {@code double} elements.
+	 */
+	public static OfDouble ofDouble()
+	{
+		return OfDouble.OF_DOUBLE;
 	}
 
-	public static OfLong OfLong() {
-		return OF_LONG;
+	/**
+	 * Get unique instance for {@code int} elements.
+	 */
+	public static OfInt ofInt()
+	{
+		return OfInt.OF_INT;
 	}
 
-	public static OfDouble OfDouble() {
-		return OF_DOUBLE;
+	/**
+	 * Get unique instance for {@code long} elements.
+	 */
+	public static OfLong ofLong()
+	{
+		return OfLong.OF_LONG;
 	}
 
 	@Override
@@ -65,47 +82,195 @@ public abstract class EmptyIterator<T> implements Iterator<T>
 		return false;
 	}
 
-	public static class Of<T> extends EmptyIterator<T>
+	@Override
+	public EmptyIterator<E> dedupe()
 	{
-		private Of() {};
+		return this;
+	}
+
+	@Override
+	public EmptyIterator<E> distinct()
+	{
+		return this;
+	}
+
+
+
+	/**
+	 * Generic implementation of an empty Iterator as Singleton.
+	 *
+	 * @param <E> type of the Iterator's elements
+	 */
+	public static class Of<E> extends EmptyIterator<E>
+	{
+		/** Singleton instance elements of a generic type */
+		private static final Of<?> OF = new Of<>();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private Of() {}
 
 		@Override
-		public T next()
+		public E next()
 		{
 			throw new NoSuchElementException();
 		}
 	}
 
-	public static class OfInt extends EmptyIterator<Integer> implements PrimitiveIterator.OfInt
+
+
+	/**
+	 * Primitive specialisation for {@code double} of an empty Iterator as Singleton.
+	 */
+	public static class OfDouble extends EmptyIterator<Double> implements FunctionalPrimitiveIterator.OfDouble
 	{
-		private OfInt() {};
+		/** Singleton instance for {@code double} elements */
+		private static final EmptyIterator.OfDouble OF_DOUBLE = new EmptyIterator.OfDouble();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private OfDouble() {}
+
+		@Override
+		public double nextDouble()
+		{
+			throw new NoSuchElementException();
+		}
+
+		@Override
+		public EmptyIterator.OfDouble dedupe()
+		{
+			return this;
+		}
+
+		@Override
+		public EmptyIterator.OfDouble distinct()
+		{
+			return this;
+		}
+
+		@Override
+		public OptionalDouble max()
+		{
+			return OptionalDouble.empty();
+		}
+
+		@Override
+		public OptionalDouble min()
+		{
+			return max();
+		}
+
+		@Override
+		public double sum()
+		{
+			return 0.0;
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation for {@code int} of an empty Iterator as Singleton.
+	 */
+	public static class OfInt extends EmptyIterator<Integer> implements FunctionalPrimitiveIterator.OfInt
+	{
+		/** Singleton instance for {@code int} elements */
+		private static final EmptyIterator.OfInt OF_INT = new EmptyIterator.OfInt();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private OfInt() {}
 
 		@Override
 		public int nextInt()
 		{
 			throw new NoSuchElementException();
 		}
+
+		@Override
+		public EmptyIterator.OfInt dedupe()
+		{
+			return this;
+		}
+
+		@Override
+		public EmptyIterator.OfInt distinct()
+		{
+			return this;
+		}
+
+		@Override
+		public OptionalInt max()
+		{
+			return OptionalInt.empty();
+		}
+
+		@Override
+		public OptionalInt min()
+		{
+			return max();
+		}
+
+		@Override
+		public long sum()
+		{
+			return 0;
+		}
 	}
 
-	public static class OfLong extends EmptyIterator<Long> implements PrimitiveIterator.OfLong
+
+
+	/**
+	 * Primitive specialisation for {@code long} of an empty Iterator as Singleton.
+	 */
+	public static class OfLong extends EmptyIterator<Long> implements FunctionalPrimitiveIterator.OfLong
 	{
-		private OfLong() {};
+		/** Singleton instance for {@code long} elements*/
+		private static final EmptyIterator.OfLong OF_LONG = new EmptyIterator.OfLong();
+
+		/**
+		 * Private constructor for the Singleton instance.
+		 */
+		private OfLong() {}
 
 		@Override
 		public long nextLong()
 		{
 			throw new NoSuchElementException();
 		}
-	}
-
-	public static class OfDouble extends EmptyIterator<Double> implements PrimitiveIterator.OfDouble
-	{
-		private OfDouble() {};
 
 		@Override
-		public double nextDouble()
+		public EmptyIterator.OfLong dedupe()
 		{
-			throw new NoSuchElementException();
+			return this;
+		}
+
+		@Override
+		public EmptyIterator.OfLong distinct()
+		{
+			return this;
+		}
+
+		@Override
+		public OptionalLong max()
+		{
+			return OptionalLong.empty();
+		}
+
+		@Override
+		public OptionalLong min()
+		{
+			return max();
+		}
+
+		@Override
+		public long sum()
+		{
+			return 0;
 		}
 	}
 }
