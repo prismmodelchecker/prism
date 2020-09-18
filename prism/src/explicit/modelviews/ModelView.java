@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.iterable.FilteringIterable;
+import common.iterable.FunctionalPrimitiveIterable;
 import common.IterableBitSet;
-import common.iterable.IterableInt;
 import common.IterableStateSet;
 import explicit.Model;
 import explicit.PredecessorRelation;
@@ -80,7 +80,7 @@ public abstract class ModelView implements Model
 	}
 
 	@Override
-	public IterableInt getDeadlockStates()
+	public FunctionalPrimitiveIterable.OfInt getDeadlockStates()
 	{
 		return new IterableBitSet(deadlockStates);
 	}
@@ -117,9 +117,9 @@ public abstract class ModelView implements Model
 		}
 	}
 
-	public IterableInt findDeadlocks(final BitSet except)
+	public FunctionalPrimitiveIterable.OfInt findDeadlocks(final BitSet except)
 	{
-		IterableInt states = new IterableStateSet(except, getNumStates(), true);
+		IterableStateSet states = new IterableStateSet(except, getNumStates(), true);
 		return new FilteringIterable.OfInt(states, state -> !getSuccessorsIterator(state).hasNext());
 	}
 

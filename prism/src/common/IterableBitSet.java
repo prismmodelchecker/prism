@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2014-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -30,9 +30,9 @@ package common;
 import java.util.BitSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.PrimitiveIterator.OfInt;
 
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.FunctionalPrimitiveIterator;
 
 /**
  * Convenience class to loop easily over the set/clear bits of a BitSet.
@@ -40,12 +40,12 @@ import common.iterable.IterableInt;
  * For example:<br/><br/>
  * <code>for (Integer index : getSetBits(set)) { ... }</code><br/>
  */
-public class IterableBitSet implements IterableInt
+public class IterableBitSet implements FunctionalPrimitiveIterable.OfInt
 {
-	private BitSet set;
-	private boolean clearBits = false;
-	private boolean reversed = false;
-	private Integer maxIndex = null;
+	protected BitSet set;
+	protected boolean clearBits = false;
+	protected boolean reversed = false;
+	protected Integer maxIndex = null;
 
 	/**
 	 * Constructor for an Iterable that iterates over the set bits of {@code set}
@@ -93,7 +93,7 @@ public class IterableBitSet implements IterableInt
 	}
 
 	/** Implementation of the iterator over the set bits */
-	private class SetBitsIterator implements OfInt
+	private class SetBitsIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
 		private int next = set.nextSetBit(0);
@@ -127,7 +127,7 @@ public class IterableBitSet implements IterableInt
 	}
 
 	/** Implementation of the iterator over the set bits (reverse order) */
-	private class SetBitsReversedIterator implements OfInt
+	private class SetBitsReversedIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
 		private int next = set.nextSetBit(0);
@@ -168,7 +168,7 @@ public class IterableBitSet implements IterableInt
 	}
 
 	/** Implementation of the iterator over the cleared bits, requires that {@code maxIndex != null} */
-	private class ClearBitsIterator implements OfInt
+	private class ClearBitsIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
 		private int next = set.nextClearBit(0);
@@ -202,7 +202,7 @@ public class IterableBitSet implements IterableInt
 	}
 
 	/** Implementation of the iterator over the clear bits (reverse order), requires that {@code maxIndex != null} */
-	private class ClearBitsReversedIterator implements OfInt
+	private class ClearBitsReversedIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
 		private int next = set.nextSetBit(0);
@@ -239,7 +239,7 @@ public class IterableBitSet implements IterableInt
 	}
 
 	@Override
-	public OfInt iterator()
+	public FunctionalPrimitiveIterator.OfInt iterator()
 	{
 		if (clearBits == false) {
 			if (reversed) {

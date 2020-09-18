@@ -252,7 +252,7 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	@Override
 	public int getNumTransitions(final int state, final int choice)
 	{
-		return IteratorTools.count(getTransitionsIterator(state, choice));
+		return Math.toIntExact(IteratorTools.count(getTransitionsIterator(state, choice)));
 	}
 
 	@Override
