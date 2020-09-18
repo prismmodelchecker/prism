@@ -1,9 +1,8 @@
 //==============================================================================
 //	
-//	Copyright (c) 2016-
+//	Copyright (c) 2020-
 //	Authors:
 //	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
-//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,24 +24,16 @@
 //	
 //==============================================================================
 
-package common.functions.primitive;
+package common.functions;
 
 /**
- * Functional interface for a predicate (int, int) -> boolean.
+ * Functional interface for a binary function (int, double) -> int.
  */
 @FunctionalInterface
-public interface PairPredicateInt
+public interface IntDoubleToIntFunction
 {
 	/**
-	 * Evaluates this predicate on the given arguments.
+	 * Applies this function to the given arguments.
 	 */
-	boolean test(int i, int j);
-
-	/**
-	 * Returns a predicate that represents the logical negation of this predicate.
-	 */
-	default PairPredicateInt negate()
-	{
-		return (i, j) -> !test(i, j);
-	}
+	int applyAsInt(int i, double d);
 }

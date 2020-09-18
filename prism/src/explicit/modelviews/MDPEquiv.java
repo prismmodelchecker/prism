@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
 
-import common.functions.primitive.PairPredicateInt;
+import common.functions.PairPredicateInt;
 import common.iterable.FilteringIterator;
 import common.IterableBitSet;
 import common.IterableStateSet;
