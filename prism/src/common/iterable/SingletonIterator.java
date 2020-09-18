@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,24 +26,48 @@
 
 package common.iterable;
 
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
-import java.util.PrimitiveIterator;
 
 /**
- * Base class for an iterator that ranges over a single element,
- * static helpers for common primitive iterators.
+ * Abstract base class for Iterators ranging over a single element.
+ *
+ * @param <E> type of the Iterators's elements
  */
-public abstract class SingletonIterator<T> implements Iterator<T>
+public abstract class SingletonIterator<E> implements FunctionalIterator<E>
 {
-	public static class Of<T> extends SingletonIterator<T>
+	@Override
+	public SingletonIterator<E> dedupe()
 	{
-		private Optional<T> element;
+		return this;
+	}
 
-		public Of(T element)
+	@Override
+	public SingletonIterator<E> distinct()
+	{
+		return this;
+	}
+
+
+
+	/**
+	 * Generic implementation of an singleton Iterator.
+	 *
+	 * @param <E> type of the Iterator's elements
+	 */
+	public static class Of<E> extends SingletonIterator<E>
+	{
+		/** The single element */
+		protected Optional<E> element;
+
+		/**
+		 * Constructor for an Iterator ranging over a single element.
+		 *
+		 * @param element the single element of the Iterator
+		 */
+		public Of(E element)
 		{
 			this.element = Optional.of(element);
 		}
@@ -55,66 +79,35 @@ public abstract class SingletonIterator<T> implements Iterator<T>
 		}
 
 		@Override
-		public T next()
+		public E next()
 		{
-			Optional<T> result = element;
+			E next = element.get();
+			release();
+			return next;
+		}
+
+		@Override
+		public void release()
+		{
 			element = Optional.empty();
-			return result.get();
 		}
 	}
 
-	public static class OfInt extends SingletonIterator<Integer> implements PrimitiveIterator.OfInt
+
+
+	/**
+	 * Primitive specialisation for {@code double} of an singleoton Iterator.
+	 */
+	public static class OfDouble extends SingletonIterator<Double> implements FunctionalPrimitiveIterator.OfDouble
 	{
-		private OptionalInt element;
+		/** The single element */
+		protected OptionalDouble element;
 
-		public OfInt(int element)
-		{
-			this.element = OptionalInt.of(element);
-		}
-
-		@Override
-		public boolean hasNext()
-		{
-			return element.isPresent();
-		}
-
-		@Override
-		public int nextInt()
-		{
-			OptionalInt result = element;
-			element = OptionalInt.empty();
-			return result.getAsInt();
-		}
-	}
-
-	public static class OfLong extends SingletonIterator<Long> implements PrimitiveIterator.OfLong
-	{
-		private OptionalLong element;
-
-		public OfLong(Long element)
-		{
-			this.element = OptionalLong.of(element);
-		}
-
-		@Override
-		public boolean hasNext()
-		{
-			return element.isPresent();
-		}
-
-		@Override
-		public long nextLong()
-		{
-			OptionalLong result = element;
-			element = OptionalLong.empty();
-			return result.getAsLong();
-		}
-	}
-
-	public static class OfDouble extends SingletonIterator<Double> implements PrimitiveIterator.OfDouble
-	{
-		private OptionalDouble element;
-
+		/**
+		 * Constructor for an Iterator ranging over a single element.
+		 *
+		 * @param element the single element of the Iterator
+		 */
 		public OfDouble(double element)
 		{
 			this.element = OptionalDouble.of(element);
@@ -129,9 +122,194 @@ public abstract class SingletonIterator<T> implements Iterator<T>
 		@Override
 		public double nextDouble()
 		{
-			OptionalDouble result = element;
+			double next = element.getAsDouble();
+			release();
+			return next;
+		}
+
+		@Override
+		public SingletonIterator.OfDouble dedupe()
+		{
+			return this;
+		}
+
+		@Override
+		public SingletonIterator.OfDouble distinct()
+		{
+			return this;
+		}
+
+		@Override
+		public OptionalDouble max()
+		{
+			OptionalDouble max = element;
+			release();
+			return max;
+		}
+
+		@Override
+		public OptionalDouble min()
+		{
+			return max();
+		}
+
+		@Override
+		public double sum()
+		{
+			return max().orElse(0.0);
+		}
+
+		@Override
+		public void release()
+		{
 			element = OptionalDouble.empty();
-			return result.getAsDouble();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation for {@code int} of an singleoton Iterator.
+	 */
+	public static class OfInt extends SingletonIterator<Integer> implements FunctionalPrimitiveIterator.OfInt
+	{
+		/** The single element */
+		protected OptionalInt element;
+
+		/**
+		 * Constructor for an Iterator ranging over a single element.
+		 *
+		 * @param element the single element of the Iterator
+		 */
+		public OfInt(int element)
+		{
+			this.element = OptionalInt.of(element);
+		}
+
+		@Override
+		public boolean hasNext()
+		{
+			return element.isPresent();
+		}
+
+		@Override
+		public int nextInt()
+		{
+			int next = element.getAsInt();
+			release();
+			return next;
+		}
+
+		@Override
+		public SingletonIterator.OfInt dedupe()
+		{
+			return this;
+		}
+
+		@Override
+		public SingletonIterator.OfInt distinct()
+		{
+			return this;
+		}
+
+		@Override
+		public OptionalInt max()
+		{
+			OptionalInt max = element;
+			release();
+			return max;
+		}
+
+		@Override
+		public OptionalInt min()
+		{
+			return max();
+		}
+
+		@Override
+		public long sum()
+		{
+			return max().orElse(0);
+		}
+
+		@Override
+		public void release()
+		{
+			element = OptionalInt.empty();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation for {@code long} of an singleoton Iterator.
+	 */
+	public static class OfLong extends SingletonIterator<Long> implements FunctionalPrimitiveIterator.OfLong
+	{
+		/** The single element */
+		protected OptionalLong element;
+
+		/**
+		 * Constructor for an Iterator ranging over a single element.
+		 *
+		 * @param element the single element of the Iterator
+		 */
+		public OfLong(Long element)
+		{
+			this.element = OptionalLong.of(element);
+		}
+
+		@Override
+		public boolean hasNext()
+		{
+			return element.isPresent();
+		}
+
+		@Override
+		public long nextLong()
+		{
+			long next = element.getAsLong();
+			release();
+			return next;
+		}
+
+		@Override
+		public SingletonIterator.OfLong dedupe()
+		{
+			return this;
+		}
+
+		@Override
+		public SingletonIterator.OfLong distinct()
+		{
+			return this;
+		}
+
+		@Override
+		public OptionalLong max()
+		{
+			OptionalLong max = element;
+			release();
+			return max;
+
+		}
+
+		@Override
+		public OptionalLong min()
+		{
+			return element;
+		}
+
+		@Override
+		public long sum()
+		{
+			return element.orElse(0);
+		}
+
+		@Override
+		public void release()
+		{
+			element = OptionalLong.empty();
 		}
 	}
 }

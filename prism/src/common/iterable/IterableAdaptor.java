@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,11 +26,40 @@
 
 package common.iterable;
 
-import java.util.PrimitiveIterator.OfLong;
+import java.util.Objects;
+import java.util.function.Consumer;
 
-/** Iterable for a PrimitiveIterator.OfLong */
-public interface IterableLong extends Iterable<Long>
+/**
+ * An adaptor that extends non-functional Iterables with the methods provided by {@link FunctionalIterable}.
+ *
+ * @param <E> type of the {@link Iterable}'s elements
+ * @param <I> type of the Iterable to extend
+ */
+public class IterableAdaptor<E> implements FunctionalIterable<E>
 {
+	/** the Iterable that is extended */
+	protected final Iterable<E> iterable;
+
+	/**
+	 * Generic constructor that wraps an Iterable.
+	 *
+	 * @param iterable the {@link Iterable} to be extended
+	 */
+	public IterableAdaptor(Iterable<E> iterable)
+	{
+		Objects.requireNonNull(iterable);
+		this.iterable = iterable;
+	}
+
 	@Override
-	public OfLong iterator();
+	public FunctionalIterator<E> iterator()
+	{
+		return FunctionalIterator.extend(iterable.iterator());
+	}
+
+	@Override
+	public void forEach(Consumer<? super E> action)
+	{
+		iterable.forEach(action);
+	}
 }

@@ -24,7 +24,6 @@
 //	
 //==============================================================================
 
-
 package explicit;
 
 import java.util.Iterator;
@@ -35,7 +34,7 @@ import java.util.Spliterators;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
-import common.iterable.FilteringIterator;
+import common.iterable.FunctionalIterator;
 import common.iterable.SingletonIterator;
 
 /**
@@ -70,7 +69,7 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 		if (successorsAreDistinct()) {
 			return this;
 		} else {
-			return new SuccessorsIteratorFromOfInt(FilteringIterator.dedupe(this), true);
+			return new SuccessorsIteratorFromOfInt(FunctionalIterator.extend(this).distinct(), true);
 		}
 	}
 

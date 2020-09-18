@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import prism.Pair;
 import prism.PrismException;
 import explicit.rewards.MCRewards;
