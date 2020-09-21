@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.iterable.FilteringIterable;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
 import common.IterableBitSet;
-import common.iterable.IterableInt;
 import common.IterableStateSet;
 import explicit.Model;
 import explicit.PredecessorRelation;

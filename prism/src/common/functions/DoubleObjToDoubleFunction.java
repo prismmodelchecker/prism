@@ -1,9 +1,8 @@
 //==============================================================================
 //	
-//	Copyright (c) 2016-
+//	Copyright (c) 2020-
 //	Authors:
 //	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
-//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,24 +24,28 @@
 //	
 //==============================================================================
 
-package common.functions.primitive;
+package common.functions;
+
+import java.util.Objects;
+import java.util.function.DoubleUnaryOperator;
 
 /**
- * Functional interface for a predicate (int, int) -> boolean.
+ * Functional interface for a binary function (double, T) -> double.
  */
 @FunctionalInterface
-public interface PairPredicateInt
+public interface DoubleObjToDoubleFunction<T>
 {
 	/**
-	 * Evaluates this predicate on the given arguments.
+	 * Applies this function to the given arguments.
 	 */
-	boolean test(int i, int j);
+	double applyAsDouble(double d, T t);
 
 	/**
-	 * Returns a predicate that represents the logical negation of this predicate.
+	 * Returns a composed function that first applies this function to
+	 * its input, and then applies the {@code after} function to the result.
 	 */
-	default PairPredicateInt negate()
-	{
-		return (i, j) -> !test(i, j);
+	default <V> DoubleObjToDoubleFunction<T> andThen(DoubleUnaryOperator after) {
+		Objects.requireNonNull(after);
+		return (double d, T t) -> after.applyAsDouble(applyAsDouble(d, t));
 	}
 }

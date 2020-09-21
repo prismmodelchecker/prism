@@ -3,7 +3,6 @@
 //	Copyright (c) 2016-
 //	Authors:
 //	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
-//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,24 +24,42 @@
 //	
 //==============================================================================
 
-package common.functions.primitive;
+package common.iterable;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
- * Functional interface for a predicate (int, int) -> boolean.
+ * An adaptor that extends non-functional Iterables with the methods provided by {@link FunctionalIterable}.
+ *
+ * @param <E> type of the {@link Iterable}'s elements
+ * @param <I> type of the Iterable to extend
  */
-@FunctionalInterface
-public interface PairPredicateInt
+public class IterableAdaptor<E> implements FunctionalIterable<E>
 {
-	/**
-	 * Evaluates this predicate on the given arguments.
-	 */
-	boolean test(int i, int j);
+	/** the Iterable that is extended */
+	protected final Iterable<E> iterable;
 
 	/**
-	 * Returns a predicate that represents the logical negation of this predicate.
+	 * Generic constructor that wraps an Iterable.
+	 *
+	 * @param iterable the {@link Iterable} to be extended
 	 */
-	default PairPredicateInt negate()
+	public IterableAdaptor(Iterable<E> iterable)
 	{
-		return (i, j) -> !test(i, j);
+		Objects.requireNonNull(iterable);
+		this.iterable = iterable;
+	}
+
+	@Override
+	public FunctionalIterator<E> iterator()
+	{
+		return FunctionalIterator.extend(iterable.iterator());
+	}
+
+	@Override
+	public void forEach(Consumer<? super E> action)
+	{
+		iterable.forEach(action);
 	}
 }

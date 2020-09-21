@@ -27,9 +27,9 @@
 package explicit;
 
 import java.util.Arrays;
-import java.util.PrimitiveIterator.OfInt;
 
 import common.IntSet;
+import common.iterable.FunctionalPrimitiveIterator.OfInt;
 import prism.PrismLog;
 
 /**
@@ -184,7 +184,7 @@ public class SCCInfo implements SCCConsumer
 			}
 
 			@Override
-			public int cardinality()
+			public long count()
 			{
 				return getNumStatesInSCC(sccIndex);
 			}

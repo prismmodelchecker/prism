@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -24,13 +24,28 @@
 //	
 //==============================================================================
 
-package common.iterable;
+package common.functions;
 
-import java.util.PrimitiveIterator.OfInt;
+import java.util.Objects;
+import java.util.function.Function;
 
-/** Iterable for a PrimitiveIterator.OfInt */
-public interface IterableInt extends Iterable<Integer>
+/**
+ * Functional interface for a binary function (T, int) -> R.
+ */
+@FunctionalInterface
+public interface ObjIntFunction<T, R>
 {
-	@Override
-	public OfInt iterator();
+	/**
+	 * Applies this function to the given arguments.
+	 */
+	R apply(T t, int i);
+
+	/**
+	 * Returns a composed function that first applies this function to
+	 * its input, and then applies the {@code after} function to the result.
+	 */
+	default <V> ObjIntFunction<T, V> andThen(Function<? super R, ? extends V> after) {
+		Objects.requireNonNull(after);
+		return (T t, int i) -> after.apply(apply(t, i));
+	}
 }

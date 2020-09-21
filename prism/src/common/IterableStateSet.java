@@ -3,7 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
-//	* Steffen Märcker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Märcker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,13 +25,14 @@
 //	
 //==============================================================================
 
-
 package common;
 
 import java.util.BitSet;
-import java.util.PrimitiveIterator.OfInt;
 
-import common.iterable.*;
+import common.iterable.EmptyIterable;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterator.OfInt;
+import common.iterable.Range;
 
 /**
  * A convenience wrapper around IterableBitSet that handles the three cases of
@@ -40,7 +41,7 @@ import common.iterable.*;
  */
 public class IterableStateSet implements IterableInt
 {
-	private final IterableInt setOfStates;
+	protected final IterableInt setOfStates;
 
 	/**
 	 * Constructor (iterate over all states 0..numStates-1)
@@ -93,12 +94,12 @@ public class IterableStateSet implements IterableInt
 			if (complement) {
 				this.setOfStates = EmptyIterable.OfInt();
 			} else {
-				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
+				this.setOfStates = reversed ? new Range(numStates).reversed() : new Range(numStates);
 			}
 		} else if (setOfStates.isEmpty()) {
 			// no states
 			if (complement) {
-				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
+				this.setOfStates = reversed ? new Range(numStates).reversed() : new Range(numStates);
 			} else {
 				this.setOfStates = EmptyIterable.OfInt();
 			}

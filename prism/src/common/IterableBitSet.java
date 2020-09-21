@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2014-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -29,9 +29,10 @@ package common;
 
 import java.util.BitSet;
 import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator.OfInt;
+import java.util.Objects;
 
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterator.OfInt;
 
 /**
  * Convenience class to loop easily over the set/clear bits of a BitSet.
@@ -41,16 +42,17 @@ import common.iterable.IterableInt;
  */
 public class IterableBitSet implements IterableInt
 {
-	private BitSet set;
-	private boolean clearBits = false;
-	private boolean reversed = false;
-	private Integer maxIndex = null;
+	protected BitSet set;
+	protected boolean clearBits = false;
+	protected boolean reversed = false;
+	protected Integer maxIndex = null;
 
 	/**
 	 * Constructor for an Iterable that iterates over the set bits of {@code set}
 	 */
 	public IterableBitSet(BitSet set)
 	{
+		Objects.requireNonNull(set);
 		this.set = set;
 		this.clearBits = false;
 		this.reversed = false;
@@ -83,6 +85,7 @@ public class IterableBitSet implements IterableInt
 	 */
 	public IterableBitSet(BitSet set, Integer maxIndex, boolean clearBits, boolean reversed)
 	{
+		Objects.requireNonNull(set);
 		this.set = set;
 		this.maxIndex = maxIndex;
 		this.clearBits = clearBits;

@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -88,8 +88,8 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 			}
 		};
 		String s = "trans: [ ";
-		final IterableStateSet states = new IterableStateSet(getNumStates());
-		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.FromInt<>(states, getDistribution);
+		IterableStateSet states = new IterableStateSet(getNumStates());
+		Iterator<Entry<Integer, Distribution>> distributions = states.iterator().map(getDistribution);
 		while (distributions.hasNext()) {
 			final Entry<Integer, Distribution> dist = distributions.next();
 			s += dist.getKey() + ": " + dist.getValue();
@@ -210,7 +210,7 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 	@Override
 	public int getNumTransitions(final int state)
 	{
-		return IteratorTools.count(getTransitionsIterator(state));
+		return Math.toIntExact(IteratorTools.count(getTransitionsIterator(state)));
 	}
 
 	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)
@@ -224,7 +224,7 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(final int state)
 	{
 		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state);
-		return new MappingIterator.From<>(transitions, transition -> attachAction(transition, null));
+		return new MappingIterator.ObjToObj<>(transitions, transition -> attachAction(transition, null));
 	}
 
 
