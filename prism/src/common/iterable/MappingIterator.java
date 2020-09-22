@@ -190,7 +190,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected IntFunction<T> function;
 
-		public FromInt(IterableInt iterable, IntFunction<T> function)
+		public FromInt(PrimitiveIterable.OfInt iterable, IntFunction<T> function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -213,7 +213,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected IntUnaryOperator function;
 
-		public FromIntToInt(IterableInt iterable, IntUnaryOperator function)
+		public FromIntToInt(PrimitiveIterable.OfInt iterable, IntUnaryOperator function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -236,7 +236,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected IntToDoubleFunction function;
 
-		public FromIntToDouble(IterableInt iterable, IntToDoubleFunction function)
+		public FromIntToDouble(PrimitiveIterable.OfInt iterable, IntToDoubleFunction function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -259,7 +259,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected IntToLongFunction function;
 
-		public FromIntToLong(IterableInt iterable, IntToLongFunction function)
+		public FromIntToLong(PrimitiveIterable.OfInt iterable, IntToLongFunction function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -282,7 +282,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected DoubleFunction<T> function;
 
-		public FromDouble(IterableDouble iterable, DoubleFunction<T> function)
+		public FromDouble(PrimitiveIterable.OfDouble iterable, DoubleFunction<T> function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -305,7 +305,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected DoubleToIntFunction function;
 
-		public FromDoubleToInt(IterableDouble iterable, DoubleToIntFunction function)
+		public FromDoubleToInt(PrimitiveIterable.OfDouble iterable, DoubleToIntFunction function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -328,7 +328,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected DoubleUnaryOperator function;
 
-		public FromDoubleToDouble(IterableDouble iterable, DoubleUnaryOperator function)
+		public FromDoubleToDouble(PrimitiveIterable.OfDouble iterable, DoubleUnaryOperator function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -351,7 +351,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected DoubleToLongFunction function;
 
-		public FromDoubleToLong(IterableDouble iterable, DoubleToLongFunction function)
+		public FromDoubleToLong(PrimitiveIterable.OfDouble iterable, DoubleToLongFunction function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -374,7 +374,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected LongFunction<T> function;
 
-		public FromLong(IterableLong iterable, LongFunction<T> function)
+		public FromLong(PrimitiveIterable.OfLong iterable, LongFunction<T> function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -397,7 +397,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected LongToIntFunction function;
 
-		public FromLongToInt(IterableLong iterable, LongToIntFunction function)
+		public FromLongToInt(PrimitiveIterable.OfLong iterable, LongToIntFunction function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -420,7 +420,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected LongToDoubleFunction function;
 
-		public FromLongToDouble(IterableLong iterable, LongToDoubleFunction function)
+		public FromLongToDouble(PrimitiveIterable.OfLong iterable, LongToDoubleFunction function)
 		{
 			this(iterable.iterator(), function);
 		}
@@ -443,7 +443,7 @@ public abstract class MappingIterator<S, T> implements Iterator<T>
 	{
 		protected LongUnaryOperator function;
 
-		public FromLongToLong(IterableLong iterable, LongUnaryOperator function)
+		public FromLongToLong(PrimitiveIterable.OfLong iterable, LongUnaryOperator function)
 		{
 			this(iterable.iterator(), function);
 		}

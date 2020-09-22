@@ -35,7 +35,7 @@ import java.util.PrimitiveIterator;
  * If first > last, then the sequence is descending (first, first-1, ..., last+1, last),
  * otherwise it is ascending (first, first+1, ..., last-1, last).
   */
-public class RangeIntIterable implements IterableInt
+public class RangeIntIterable implements PrimitiveIterable.OfInt
 {
 	/** The first integer of the sequence */
 	final private int first;

@@ -171,7 +171,7 @@ public abstract class FilteringIterator<T> implements Iterator<T>
 		protected final IntPredicate predicate;
 		private int next;
 
-		public OfInt(IterableInt iterable, IntPredicate predicate)
+		public OfInt(PrimitiveIterable.OfInt iterable, IntPredicate predicate)
 		{
 			this(iterable.iterator(), predicate);
 		}
@@ -210,7 +210,7 @@ public abstract class FilteringIterator<T> implements Iterator<T>
 		protected final LongPredicate predicate;
 		private long next;
 
-		public OfLong(IterableLong iterable, LongPredicate predicate)
+		public OfLong(PrimitiveIterable.OfLong iterable, LongPredicate predicate)
 		{
 			this(iterable.iterator(), predicate);
 		}
@@ -249,7 +249,7 @@ public abstract class FilteringIterator<T> implements Iterator<T>
 		protected final DoublePredicate predicate;
 		private double next;
 
-		public OfDouble(IterableDouble iterable, DoublePredicate predicate)
+		public OfDouble(PrimitiveIterable.OfDouble iterable, DoublePredicate predicate)
 		{
 			this(iterable.iterator(), predicate);
 		}

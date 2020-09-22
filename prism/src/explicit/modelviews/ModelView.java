@@ -34,7 +34,7 @@ import java.util.PrimitiveIterator.OfInt;
 import common.IterableBitSet;
 import common.IterableStateSet;
 import common.iterable.FilteringIterable;
-import common.iterable.IterableInt;
+import common.iterable.PrimitiveIterable;
 import explicit.Model;
 import explicit.PredecessorRelation;
 import explicit.StateValues;
@@ -78,7 +78,7 @@ public abstract class ModelView implements Model
 	}
 
 	@Override
-	public IterableInt getDeadlockStates()
+	public PrimitiveIterable.OfInt getDeadlockStates()
 	{
 		return new IterableBitSet(deadlockStates);
 	}
@@ -115,9 +115,9 @@ public abstract class ModelView implements Model
 		}
 	}
 
-	public IterableInt findDeadlocks(final BitSet except)
+	public PrimitiveIterable.OfInt findDeadlocks(final BitSet except)
 	{
-		IterableInt states = new IterableStateSet(except, getNumStates(), true);
+		PrimitiveIterable.OfInt states = new IterableStateSet(except, getNumStates(), true);
 		return new FilteringIterable.OfInt(states, state -> !getSuccessorsIterator(state).hasNext());
 	}
 

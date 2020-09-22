@@ -64,7 +64,7 @@ public abstract class EmptyIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfInt extends EmptyIterable<Integer> implements IterableInt
+	public static class OfInt extends EmptyIterable<Integer> implements PrimitiveIterable.OfInt
 	{
 		private OfInt() {};
 
@@ -75,7 +75,7 @@ public abstract class EmptyIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfLong extends EmptyIterable<Long> implements IterableLong
+	public static class OfLong extends EmptyIterable<Long> implements PrimitiveIterable.OfLong
 	{
 		private OfLong() {};
 
@@ -86,7 +86,7 @@ public abstract class EmptyIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfDouble extends EmptyIterable<Double> implements IterableDouble
+	public static class OfDouble extends EmptyIterable<Double> implements PrimitiveIterable.OfDouble
 	{
 		private OfDouble() {};
 

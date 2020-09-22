@@ -20,7 +20,7 @@ public abstract class SingletonIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfInt extends SingletonIterable<Integer> implements IterableInt
+	public static class OfInt extends SingletonIterable<Integer> implements PrimitiveIterable.OfInt
 	{
 		final int element;
 
@@ -36,7 +36,7 @@ public abstract class SingletonIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfLong extends SingletonIterable<Long> implements IterableLong
+	public static class OfLong extends SingletonIterable<Long> implements PrimitiveIterable.OfLong
 	{
 		final long element;
 
@@ -52,7 +52,7 @@ public abstract class SingletonIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfDouble extends SingletonIterable<Double> implements IterableDouble
+	public static class OfDouble extends SingletonIterable<Double> implements PrimitiveIterable.OfDouble
 	{
 		final double element;
 
