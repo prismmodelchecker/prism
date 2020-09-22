@@ -33,8 +33,8 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
-import common.iterable.IterableInt;
 import common.iterable.MappingIterator;
+import common.iterable.PrimitiveIterable;
 import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
@@ -740,7 +740,7 @@ public interface DTMC extends Model
 	 * @param deltaT deltaT conditioning factor
 	 * @param states subset of states to consider
 	 */
-	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, IterableInt states)
+	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, PrimitiveIterable.OfInt states)
 	{
 		// Recall that the generator matrix Q has entries
 		//       Q(s,s) = -sum_{t!=s} prob(s,t)

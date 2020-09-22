@@ -63,11 +63,11 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		}
 	}
 
-	public static class OfInt extends FilteringIterable<Integer> implements IterableInt
+	public static class OfInt extends FilteringIterable<Integer> implements PrimitiveIterable.OfInt
 	{
 		private IntPredicate predicate;
 
-		public OfInt(IterableInt iterable, IntPredicate predicate)
+		public OfInt(PrimitiveIterable.OfInt iterable, IntPredicate predicate)
 		{
 			super(iterable);
 			this.predicate = predicate;
@@ -76,15 +76,15 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		@Override
 		public PrimitiveIterator.OfInt iterator()
 		{
-			return new FilteringIterator.OfInt((IterableInt) iterable, predicate);
+			return new FilteringIterator.OfInt((PrimitiveIterable.OfInt) iterable, predicate);
 		}
 	}
 
-	public static class OfLong extends FilteringIterable<Long> implements IterableLong
+	public static class OfLong extends FilteringIterable<Long> implements PrimitiveIterable.OfLong
 	{
 		private LongPredicate predicate;
 
-		public OfLong(IterableLong iterable, LongPredicate predicate)
+		public OfLong(PrimitiveIterable.OfLong iterable, LongPredicate predicate)
 		{
 			super(iterable);
 			this.predicate = predicate;
@@ -93,15 +93,15 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		@Override
 		public PrimitiveIterator.OfLong iterator()
 		{
-			return new FilteringIterator.OfLong((IterableLong) iterable, predicate);
+			return new FilteringIterator.OfLong((PrimitiveIterable.OfLong) iterable, predicate);
 		}
 	}
 
-	public static class OfDouble extends FilteringIterable<Double> implements IterableDouble
+	public static class OfDouble extends FilteringIterable<Double> implements PrimitiveIterable.OfDouble
 	{
 		private DoublePredicate predicate;
 
-		public OfDouble(IterableDouble iterable, DoublePredicate predicate)
+		public OfDouble(PrimitiveIterable.OfDouble iterable, DoublePredicate predicate)
 		{
 			super(iterable);
 			this.predicate = predicate;
@@ -110,13 +110,13 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		@Override
 		public PrimitiveIterator.OfDouble iterator()
 		{
-			return new FilteringIterator.OfDouble((IterableDouble) iterable, predicate);
+			return new FilteringIterator.OfDouble((PrimitiveIterable.OfDouble) iterable, predicate);
 		}
 	}
 
-	public static IterableInt dedupe(IterableInt iterable)
+	public static PrimitiveIterable.OfInt dedupe(PrimitiveIterable.OfInt iterable)
 	{
-		return new IterableInt()
+		return new PrimitiveIterable.OfInt()
 		{
 			@Override
 			public PrimitiveIterator.OfInt iterator()
@@ -126,9 +126,9 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		};
 	}
 
-	public static IterableLong dedupe(IterableLong iterable)
+	public static PrimitiveIterable.OfLong dedupe(PrimitiveIterable.OfLong iterable)
 	{
-		return new IterableLong()
+		return new PrimitiveIterable.OfLong()
 		{
 			@Override
 			public PrimitiveIterator.OfLong iterator()
@@ -138,9 +138,9 @@ public abstract class FilteringIterable<T> implements Iterable<T>
 		};
 	}
 
-	public static IterableDouble dedupe(IterableDouble iterable)
+	public static PrimitiveIterable.OfDouble dedupe(PrimitiveIterable.OfDouble iterable)
 	{
-		return new IterableDouble()
+		return new PrimitiveIterable.OfDouble()
 		{
 			@Override
 			public PrimitiveIterator.OfDouble iterator()

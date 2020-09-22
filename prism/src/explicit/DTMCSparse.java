@@ -38,8 +38,8 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.function.Function;
 
 import common.IterableStateSet;
-import common.iterable.IterableInt;
 import common.iterable.MappingIterator;
+import common.iterable.PrimitiveIterable;
 import explicit.rewards.MCRewards;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -358,7 +358,7 @@ public class DTMCSparse extends DTMCExplicit
 	}
 
 	@Override
-	public void vmMultPowerSteadyState(double vect[], double result[], double[] diagsQ, double deltaT, IterableInt states)
+	public void vmMultPowerSteadyState(double vect[], double result[], double[] diagsQ, double deltaT, PrimitiveIterable.OfInt states)
 	{
 		// Recall that the generator matrix Q has entries
 		//       Q(s,s) = -sum_{t!=s} prob(s,t)
