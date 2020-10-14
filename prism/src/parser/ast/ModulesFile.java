@@ -37,6 +37,7 @@ import parser.State;
 import parser.Values;
 import parser.VarList;
 import parser.type.Type;
+import parser.visitor.ASTTraverse;
 import parser.visitor.ASTVisitor;
 import parser.visitor.ModulesFileSemanticCheck;
 import parser.visitor.ModulesFileSemanticCheckAfterConstants;
@@ -1287,14 +1288,44 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 */
 	private void finaliseModelType()
 	{
-		// Default (if unspecified) is MDP
+		// If unspecified, auto-detect model type
 		if (modelTypeInFile == null) {
-			modelType = ModelType.MDP;
+			boolean nonProb = isNonProbabilistic();
+			// MDP/LTS depending if probabilistic
+			modelType = nonProb ? ModelType.LTS : ModelType.MDP;
 		}
 		// Otherwise, it's just whatever was specified
 		else {
 			modelType = modelTypeInFile;
 		}
+	}
+	
+	/**
+	 * Check whether this model is non-probabilistic,
+	 * i.e., whether none of the commands are probabilistic. 
+	 */
+	private boolean isNonProbabilistic()
+	{
+		try {
+			// Search through commands, checking for probabilities
+			accept(new ASTTraverse()
+			{
+				public Object visit(Updates e) throws PrismLangException
+				{
+					int n = e.getNumUpdates();
+					for (int i = 0; i < n; i++) {
+						if (e.getProbability(i) != null) {
+							throw new PrismLangException("Found one");
+						}
+					}
+					visitPost(e);
+					return null;
+				}
+			});
+		} catch (PrismLangException e) {
+			return false;
+		}
+		return true;
 	}
 	
 	// Methods required for ASTElement:

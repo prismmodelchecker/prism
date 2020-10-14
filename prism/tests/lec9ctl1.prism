@@ -1,0 +1,17 @@
+// Simple LTS from Lec 9 of Computer-Aided Verification
+
+module M
+
+s:[0..3];
+
+[] s=0 -> (s'=1);
+[] s=0 -> (s'=2);
+[] s=1 -> (s'=1);
+[] s=1 -> (s'=3);
+[] s=2 -> (s'=1);
+[] s=3 -> (s'=3);
+
+endmodule
+
+label "a" = s=0 | s=1;
+label "b" = s=0 | s=3;

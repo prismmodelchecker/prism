@@ -170,6 +170,7 @@ public class ConstructModel extends PrismComponent
 		CTMCSimple ctmc = null;
 		MDPSimple mdp = null;
 		CTMDPSimple ctmdp = null;
+		LTSSimple lts = null;
 		ModelExplicit model = null;
 		Distribution distr = null;
 		// Misc
@@ -207,10 +208,12 @@ public class ConstructModel extends PrismComponent
 			case CTMDP:
 				modelSimple = ctmdp = new CTMDPSimple();
 				break;
+			case LTS:
+				modelSimple = lts = new LTSSimple();
+				break;
 			case STPG:
 			case SMG:
 			case PTA:
-			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			// Attach variable info
@@ -273,10 +276,16 @@ public class ConstructModel extends PrismComponent
 						case CTMDP:
 							distr.add(dest, modelGen.getTransitionProbability(i, j));
 							break;
+						case LTS:
+							if (distinguishActions) {
+								lts.addActionLabelledTransition(src, dest, modelGen.getChoiceAction(i));
+							} else {
+								lts.addTransition(src, dest);
+							}
+							break;
 						case STPG:
 						case SMG:
 						case PTA:
-						case LTS:
 							throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 						}
 					}
@@ -354,10 +363,12 @@ public class ConstructModel extends PrismComponent
 			case CTMDP:
 				model = sortStates ? new CTMDPSimple(ctmdp, permut) : ctmdp;
 				break;
+			case LTS:
+				model = sortStates ? new LTSSimple(lts, permut) : lts;
+				break;
 			case STPG:
 			case SMG:
 			case PTA:
-			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			model.setStatesList(statesList);

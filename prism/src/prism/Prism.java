@@ -285,6 +285,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
 
+	// Info about automatic engine switching
+	private int engineOld = -1;
+	private boolean engineSwitched = false;
+
 	//------------------------------------------------------------------------------
 	// Constructors + options methods
 	//------------------------------------------------------------------------------
@@ -1782,6 +1786,32 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.print(currentModulesFile.getVarName(i) + " ");
 		}
 		mainLog.println();
+
+		// For some models, automatically switch engine
+		switch (currentModelType) {
+		case LTS:
+			if (!getExplicit()) {
+				mainLog.println("\nSwitching to explicit engine, which supports " + currentModelType + "s...");
+				engineOld = getEngine();
+				engineSwitched = true;
+				try {
+					setEngine(Prism.EXPLICIT);
+				} catch (PrismException e) {
+					// Won't happen
+				}
+			}
+			break;
+		// For other models, switch engine back if changed earlier
+		default:
+			if (engineSwitched) {
+				try {
+					setEngine(engineOld);
+				} catch (PrismException e) {
+					// Won't happen
+				}
+				engineSwitched = false;
+			}
+		}
 
 		// If required, export parsed PRISM model
 		if (exportPrism) {
