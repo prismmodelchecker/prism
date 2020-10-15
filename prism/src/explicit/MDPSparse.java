@@ -188,7 +188,7 @@ public class MDPSparse extends MDPExplicit
 	 */
 	public MDPSparse(MDPSimple mdp, boolean sort)
 	{
-		int i, j, k, n;
+		int i, j, k;
 		TreeMap<Integer, Double> sorted = null;
 		initialise(mdp.getNumStates());
 		copyFrom(mdp);
@@ -204,16 +204,9 @@ public class MDPSparse extends MDPExplicit
 		cols = new int[numTransitions];
 		choiceStarts = new int[numDistrs + 1];
 		rowStarts = new int[numStates + 1];
-		actions = mdp.actions == null ? null : new Object[numDistrs];
 		j = k = 0;
 		for (i = 0; i < numStates; i++) {
 			rowStarts[i] = j;
-			if (mdp.actions != null) {
-				n = mdp.getNumChoices(i);
-				for (int l = 0; l < n; l++) {
-					actions[j + l] = mdp.getAction(i, l);
-				}
-			}
 			for (Distribution distr : mdp.trans.get(i)) {
 				choiceStarts[j] = k;
 				for (Map.Entry<Integer, Double> e : distr) {
@@ -238,6 +231,7 @@ public class MDPSparse extends MDPExplicit
 		}
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
+		actions = mdp.actions.convertToSparseStorage(mdp);
 	}
 
 	/**
@@ -252,7 +246,7 @@ public class MDPSparse extends MDPExplicit
 	 */
 	public MDPSparse(MDPSimple mdp, boolean sort, int permut[])
 	{
-		int i, j, k, n;
+		int i, j, k;
 		TreeMap<Integer, Double> sorted = null;
 		int permutInv[];
 		initialise(mdp.getNumStates());
@@ -274,16 +268,9 @@ public class MDPSparse extends MDPExplicit
 		cols = new int[numTransitions];
 		choiceStarts = new int[numDistrs + 1];
 		rowStarts = new int[numStates + 1];
-		actions = mdp.actions == null ? null : new Object[numDistrs];
 		j = k = 0;
 		for (i = 0; i < numStates; i++) {
 			rowStarts[i] = j;
-			if (mdp.actions != null) {
-				n = mdp.getNumChoices(permutInv[i]);
-				for (int l = 0; l < n; l++) {
-					actions[j + l] = mdp.getAction(permutInv[i], l);
-				}
-			}
 			for (Distribution distr : mdp.trans.get(permutInv[i])) {
 				choiceStarts[j] = k;
 				for (Map.Entry<Integer, Double> e : distr) {
@@ -308,6 +295,7 @@ public class MDPSparse extends MDPExplicit
 		}
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
+		actions = mdp.actions.convertToSparseStorage(mdp);
 	}
 
 	/**
