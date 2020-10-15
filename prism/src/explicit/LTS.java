@@ -93,4 +93,11 @@ public interface LTS extends NondetModel
 	{
 		throw new UnsupportedOperationException();
 	}
+	
+	// Accessors
+	
+	/**
+	 * Get the successor state for the {@code i}th choice/transition from state {@code s}.
+	 */
+	public int getSuccessor(int s, int i);
 }

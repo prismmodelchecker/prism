@@ -193,4 +193,12 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	{
 		throw new RuntimeException("Not implemented yet");
 	}
+	
+	// Methods to implement LTS
+	
+	@Override
+	public int getSuccessor(int s, int i)
+	{
+		return da.getEdgeDest(s, i); 
+	}
 }
