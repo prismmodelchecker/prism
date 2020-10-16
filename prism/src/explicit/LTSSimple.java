@@ -46,6 +46,9 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 	// Transition relation
 	protected List<List<Integer>> trans;
 	
+	// Action labels
+	protected ChoiceActionsSimple actions;
+
 	// Statistics: total number of transitions
 	protected int numTransitions;
 
@@ -81,6 +84,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 				succs.add(succ);
 			}
 		}
+		actions = new ChoiceActionsSimple(lts.actions);
 		// Copy stats too
 		numTransitions = lts.numTransitions;
 	}
@@ -100,6 +104,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 				succs.add(permut[succ]);
 			}
 		}
+		actions = new ChoiceActionsSimple(lts.actions, permut);
 		// Copy stats too
 		numTransitions = lts.numTransitions;
 	}
@@ -114,6 +119,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 		for (int i = 0; i < numStates; i++) {
 			trans.add(new ArrayList<Integer>());
 		}
+		actions = new ChoiceActionsSimple();
 		numTransitions = 0;
 	}
 
@@ -124,6 +130,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 		List<Integer> list = trans.get(s);
 		numTransitions -= list.size();
 		list.clear();
+		actions.clearState(s);
 	}
 
 	@Override
@@ -150,11 +157,35 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 
 	// Mutators (other)
 	
+	/**
+	 * Add a transition from state {@code s} (which must exist) to state {code t}.
+	 */
 	public void addTransition(int s, int t)
 	{
 		// We don't care if a transition from s to t already exists
 		trans.get(s).add(t);
 		numTransitions++;
+	}
+
+	/**
+	 * Add a transition from state {@code s} (which must exist)
+	 * to state {code t}, labelled with {@code action}.
+	 */
+	public void addActionLabelledTransition(int s, int t, Object action)
+	{
+		// We don't care if a transition from s to t already exists
+		trans.get(s).add(t);
+		actions.setAction(s, trans.get(s).size() - 1, action);
+		numTransitions++;
+	}
+
+	/**
+	 * Set the action label for choice/transition i in some state s.
+	 * Note that i is the index of the choice/transition, not the destination.
+	 */
+	public void setAction(int s, int i, Object action)
+	{
+		actions.setAction(s, i, action);
 	}
 
 	// Accessors (for Model)
@@ -211,8 +242,7 @@ public class LTSSimple extends ModelExplicit implements LTS, NondetModelSimple
 	@Override
 	public Object getAction(int s, int i)
 	{
-		// we don't have action labels
-		return null;
+		return actions.getAction(s, i);
 	}
 
 	@Override
