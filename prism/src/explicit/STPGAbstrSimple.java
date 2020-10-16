@@ -359,21 +359,18 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	@Override
 	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
-		int j, k;
-		String nij, nijk;
-		j = -1;
-
-		// we ignore decorators for the moment
-
+		// Custom dot format for game abstractions
+		// We ignore decorators for the moment
+		int j = -1;
 		for (DistributionSet distrs : trans.get(i)) {
 			j++;
-			nij = "n" + i + "_" + j;
+			String nij = "n" + i + "_" + j;
 			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
 			out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
-			k = -1;
+			int k = -1;
 			for (Distribution distr : distrs) {
 				k++;
-				nijk = "n" + i + "_" + j + "_" + k;
+				String nijk = "n" + i + "_" + j + "_" + k;
 				out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
 				out.print(nijk + " [ shape=point,label=\"\" ];\n");
 				for (Map.Entry<Integer, Double> e : distr) {

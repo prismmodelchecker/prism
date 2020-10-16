@@ -87,20 +87,23 @@ public interface DTMC extends Model
 	@Override
 	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
+		// Iterate through outgoing transitions for this state
 		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
 		while (iter.hasNext()) {
 			Map.Entry<Integer, Double> e = iter.next();
+			// Print a new dot file line for the arrow for this transition
 			out.print(i + " -> " + e.getKey());
-
+			// Annotate this arrow with the probability 
 			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
 			d.setLabel(e.getValue().toString());
+			// Apply any other decorators requested
 			if (decorators != null) {
 				for (Decorator decorator : decorators) {
 					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
 				}
 			}
-
-			out.println(d.toString());
+			// Append to the dot file line for this transition
+			out.println(" " + d.toString() + ";");
 		}
 	}
 
