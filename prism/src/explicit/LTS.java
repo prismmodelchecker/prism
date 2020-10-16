@@ -49,7 +49,17 @@ public interface LTS extends NondetModel
 	@Override
 	default void exportToPrismExplicitTra(PrismLog out)
 	{
-		throw new UnsupportedOperationException();
+		// Output transitions to .tra file
+		int numStates = getNumStates();
+		out.print(numStates + " " + getNumChoices() + "\n");
+		for (int i = 0; i < numStates; i++) {
+			int numChoices = getNumChoices(i);
+			for (int j = 0; j < numChoices; j++) {
+				out.print(i + " " + j + " " + getSuccessor(i, j));
+				Object action = getAction(i, j);
+				out.print(action == null ? "\n" : (" " + action + "\n"));
+			}
+		}
 	}
 
 	@Override
