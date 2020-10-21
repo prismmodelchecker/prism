@@ -185,13 +185,6 @@ public class MDPAdditionalChoices extends MDPView
 		return (additional == null) ?  null : additional.get(choice - numOriginalChoices);
 	}
 
-	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		return model.areAllChoiceActionsUnique() && super.areAllChoiceActionsUnique();
-	}
-
-
 
 	//--- MDP ---
 

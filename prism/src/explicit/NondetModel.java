@@ -27,6 +27,7 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.function.IntPredicate;
 
@@ -76,8 +77,28 @@ public interface NondetModel extends Model
 
 	/**
 	 * Do all choices in in each state have a unique action label?
+	 * <br><br>
+	 * NB: "true" does not imply that all choices are labelled,
+	 * e.g., an a-labelled choice and an unlabelled one _are_ considered unique;
+	 * multiple unlabelled choices are _not_ considered unique.
 	 */
-	public boolean areAllChoiceActionsUnique();
+	public default boolean areAllChoiceActionsUnique()
+	{
+		int numStates = getNumStates();
+		HashSet<Object> sActions = new HashSet<Object>();
+		for (int s = 0; s < numStates; s++) {
+			int n = getNumChoices(s);
+			if (n > 1) {
+				sActions.clear();
+				for (int i = 0; i < n; i++) {
+					if (!sActions.add(getAction(s, i))) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
 	
 	/**
 	 * Get the number of transitions from choice {@code i} of state {@code s}.

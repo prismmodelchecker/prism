@@ -27,7 +27,6 @@
 
 package explicit.modelviews;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
@@ -88,25 +87,6 @@ public abstract class MDPView extends ModelView implements MDP, Cloneable
 	}
 
 	//--- NondetModel ---
-
-	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		final HashSet<Object> actions = new HashSet<Object>();
-		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
-			final int numChoices = getNumChoices(state);
-			if (numChoices <= 1) {
-				continue;
-			}
-			actions.clear();
-			for (int choice = 0; choice < numChoices; choice++) {
-				if (!actions.add(getAction(state, choice))) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
 
 	@Override
 	public SuccessorsIterator getSuccessors(final int state, final int choice)

@@ -170,12 +170,6 @@ public class MDPDroppedAllChoices extends MDPView
 	}
 
 	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		return model.areAllChoiceActionsUnique() ? true : super.areAllChoiceActionsUnique();
-	}
-
-	@Override
 	public Iterator<Integer> getSuccessorsIterator(final int state, final int choice)
 	{
 		if (states.get(state)) {

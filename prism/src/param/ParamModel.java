@@ -429,13 +429,6 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 		return null;
 	}
 
-	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		// we don't know
-		return false;
-	}
-
 	/**
 	 * Allocates memory for subsequent construction of model. 
 	 * 

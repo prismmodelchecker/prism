@@ -290,12 +290,6 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		throw new RuntimeException("Not implemented");
-	}
-
-	@Override
 	public int getNumTransitions(int s, int i)
 	{
 		int sOriginal = translateState(s);

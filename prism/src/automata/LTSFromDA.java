@@ -165,12 +165,6 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		return false;
-	}
-
-	@Override
 	public int getNumTransitions(int s, int i)
 	{
 		return 1;

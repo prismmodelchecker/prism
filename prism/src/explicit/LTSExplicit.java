@@ -90,13 +90,6 @@ public class LTSExplicit extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		// as we don't assign action labels, they are not unique
-		return false;
-	}
-
-	@Override
 	public int getNumTransitions(int s, int i)
 	{
 		if (i < getNumChoices(s)) {
