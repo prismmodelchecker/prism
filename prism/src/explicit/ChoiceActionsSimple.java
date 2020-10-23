@@ -79,13 +79,15 @@ public class ChoiceActionsSimple
 	{
 		actions = null;
 		if (cas.actions != null) {
-			int numStates = cas.actions.size();
+			// NB: permut.length is a more reliable source of numStates
+			// since cas.actions may be undersized
+			int numStates = permut.length;
 			actions = new ArrayList<ArrayList<Object>>(numStates);
 			for (int s = 0; s < numStates; s++) {
 				actions.add(null);
 			}
 			for (int s = 0; s < numStates; s++) {
-				if (cas.actions.get(s) != null) {
+				if (s < cas.actions.size() && cas.actions.get(s) != null) {
 					actions.set(permut[s], new ArrayList<>(cas.actions.get(s)));
 				}
 			}
