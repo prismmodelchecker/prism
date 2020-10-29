@@ -62,6 +62,24 @@ public class DTMCSimple extends DTMCExplicit implements ModelSimple
 	}
 
 	/**
+	 * Constructor: new DMTC from (square) transition matrix.
+	 */
+	public DTMCSimple(List<List<Double>> transitionMatrix) throws PrismException
+	{
+		this(transitionMatrix.size());
+		for (int i = 0; i < numStates; i++) {
+			// ensure square matrix
+			int distSize = transitionMatrix.get(i).size();
+			if (distSize != numStates) {
+				throw new PrismException("expected row" + i + "of transition matrix to be size" + numStates + ", got " + distSize);
+			}
+			for (int j = 0; j < distSize; j++) {
+				setProbability(i,j,transitionMatrix.get(i).get(j));
+			}
+		}
+	}
+
+	/**
 	 * Copy constructor.
 	 */
 	public DTMCSimple(DTMCSimple dtmc)
