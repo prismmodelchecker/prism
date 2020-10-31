@@ -30,7 +30,7 @@ package parser;
  * Information required to evaluate an expression, where no variable value info is available.
  * Constant values (if needed/present) are stored in a Values object.
  */
-public class EvaluateContextConstants implements EvaluateContext
+public class EvaluateContextConstants extends EvaluateContext
 {
 	private Values constantValues;
 

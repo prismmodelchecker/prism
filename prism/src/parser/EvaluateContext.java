@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,17 +27,19 @@
 package parser;
 
 /**
- * Information required to evaluate an expression. 
+ * Classes providing the information required to evaluate an expression.
+ * Primarily, this means providing values for variables.
+ * Optionally, values for constants can also be supplied.
  */
-public interface EvaluateContext
+public abstract class EvaluateContext
 {
 	/**
 	 * Return the value for a constant (by name); null if unknown.
 	 */
-	public Object getConstantValue(String name);
+	public abstract Object getConstantValue(String name);
 
 	/**
 	 * Return the value for a variable (by name or index); null if unknown.
 	 */
-	public Object getVarValue(String name, int index);
+	public abstract Object getVarValue(String name, int index);
 }
