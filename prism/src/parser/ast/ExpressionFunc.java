@@ -26,11 +26,13 @@
 
 package parser.ast;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import common.SafeCast;
 import param.BigRational;
 import parser.*;
+import parser.EvaluateContext.EvalMode;
 import parser.visitor.*;
 import prism.PrismLangException;
 import prism.PrismUtils;
@@ -174,406 +176,420 @@ public class ExpressionFunc extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		int n = getNumOperands();
-		Object[] eval = new Object[n];
-		for (int i = 0; i < n; i++) {
-			eval[i] = getOperand(i).evaluate(ec);
+		try {
+			int n = getNumOperands();
+			Object[] eval = new Object[n];
+			for (int i = 0; i < n; i++) {
+				eval[i] = getOperand(i).evaluate(ec);
+			}
+			return apply(eval, ec.getEvaluationMode());
+		} catch (PrismLangException e) {
+			e.setASTElement(this);
+			throw e;
 		}
-		return apply(eval);
 	}
 
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this function instance to the arguments provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
+	 */
+	public Object apply(Object[] eval, EvalMode evalMode) throws PrismLangException
 	{
 		switch (code) {
 		case MIN:
-			return evaluateMinExact(ec);
+			return applyMin(eval, evalMode);
 		case MAX:
-			return evaluateMaxExact(ec);
+			return applyMax(eval, evalMode);
 		case FLOOR:
-			return evaluateFloorExact(ec);
+			return applyFloor(eval[0], evalMode);
 		case CEIL:
-			return evaluateCeilExact(ec);
+			return applyCeil(eval[0], evalMode);
 		case ROUND:
-			return evaluateRoundExact(ec);
+			return applyRound(eval[0], evalMode);
 		case POW:
-			return evaluatePowExact(ec);
+			return applyPow(eval[0], eval[1], evalMode);
 		case MOD:
-			return evaluateModExact(ec);
+			return applyMod(eval[0], eval[1], evalMode);
 		case LOG:
-			return evaluateLogExact(ec);
+			return applyLog(eval[0], eval[1], evalMode);
 		}
 		throw new PrismLangException("Unknown function \"" + name + "\"", this);
 	}
 	
 	/**
-	 * Apply this function instance to the arguments provided
+	 * Apply this (unary) function instance to the argument provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	public Object apply(Object[] eval) throws PrismLangException
-	{
-		switch (code) {
-		case MIN:
-			return applyMin(eval);
-		case MAX:
-			return applyMax(eval);
-		case FLOOR:
-			return applyFloor(eval[0]);
-		case CEIL:
-			return applyCeil(eval[0]);
-		case ROUND:
-			return applyRound(eval[0]);
-		case POW:
-			return applyPow(eval[0], eval[1]);
-		case MOD:
-			return applyMod(eval[0], eval[1]);
-		case LOG:
-			return applyLog(eval[0], eval[1]);
-		}
-		throw new PrismLangException("Unknown function \"" + name + "\"", this);
-	}
-	
-	/**
-	 * Apply this (unary) function instance to the argument provided
-	 */
-	public Object applyUnary(Object eval) throws PrismLangException
+	public Object applyUnary(Object eval, EvalMode evalMode) throws PrismLangException
 	{
 		switch (code) {
 		case FLOOR:
-			return applyFloor(eval);
+			return applyFloor(eval, evalMode);
 		case CEIL:
-			return applyCeil(eval);
+			return applyCeil(eval, evalMode);
 		case ROUND:
-			return applyRound(eval);
+			return applyRound(eval, evalMode);
 		}
 		throw new PrismLangException("Unknown unary function \"" + name + "\"", this);
 	}
 	
 	/**
-	 * Apply this (binary, or n-ary) function instance to the argument provided
+	 * Apply this (binary, or n-ary) function instance to the argument provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	public Object applyBinary(Object eval1, Object eval2) throws PrismLangException
+	public Object applyBinary(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
 		switch (code) {
 		case MIN:
-			return applyMinBinary(eval1, eval2);
+			return applyMinBinary(eval1, eval2, evalMode);
 		case MAX:
-			return applyMaxBinary(eval1, eval2);
+			return applyMaxBinary(eval1, eval2, evalMode);
 		case POW:
-			return applyPow(eval1, eval2);
+			return applyPow(eval1, eval2, evalMode);
 		case MOD:
-			return applyMod(eval1, eval2);
+			return applyMod(eval1, eval2, evalMode);
 		case LOG:
-			return applyLog(eval1, eval2);
+			return applyLog(eval1, eval2, evalMode);
 		}
 		throw new PrismLangException("Unknown binary function \"" + name + "\"", this);
 	}
 	
 	/**
-	 * Apply this (min) function instance to the arguments provided
+	 * Apply this (min) function instance to the arguments provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyMin(Object[] eval) throws PrismLangException
+	private Object applyMin(Object[] eval, EvalMode evalMode) throws PrismLangException
 	{
 		int n = eval.length;
 		// All arguments ints
 		if (getType() instanceof TypeInt) {
-			int iMin = (int) TypeInt.getInstance().castValueTo(eval[0]);
-			for (int i = 1; i < n; i++) {
-				int j = (int) TypeInt.getInstance().castValueTo(eval[i]);
-				iMin = (j < iMin) ? j : iMin;
+			switch (evalMode) {
+			case FP:
+				int iMin = (int) eval[0];
+				for (int i = 1; i < n; i++) {
+					iMin = Math.min(iMin, (int) eval[i]);
+				}
+				return iMin;
+			case EXACT:
+				BigInteger biMin = (BigInteger) eval[0];
+				for (int i = 1; i < n; i++) {
+					biMin = biMin.min((BigInteger) eval[i]);
+				}
+				return biMin;
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
-			return iMin;
 		}
-		// Arguments mix of ints and doubles - convert to doubles
+		// One or more arguments doubles - convert all to doubles
 		else {
-			double dMin = (double) TypeDouble.getInstance().castValueTo(eval[0]);
-			for (int i = 1; i < n; i++) {
-				double d = (double) TypeDouble.getInstance().castValueTo(eval[i]);
-				dMin = (d < dMin) ? d : dMin;
+			switch (evalMode) {
+			case FP:
+				double dMin = (double) TypeDouble.getInstance().castValueTo(eval[0], evalMode);
+				for (int i = 1; i < n; i++) {
+					dMin = Math.min(dMin, (double) TypeDouble.getInstance().castValueTo(eval[i], evalMode));
+				}
+				return dMin;
+			case EXACT:
+				BigRational brMin = (BigRational) TypeDouble.getInstance().castValueTo(eval[0], evalMode);
+				for (int i = 1; i < n; i++) {
+					brMin = brMin.min((BigRational) TypeDouble.getInstance().castValueTo(eval[i], evalMode));
+				}
+				return brMin;
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
-			return dMin;
 		}
 	}
 
 	/**
-	 * Apply this (min) function instance to the arguments provided
+	 * Apply this (min) function instance to the argument provided.
+	 * The argument is assumed to be the correct kind of Object for its type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyMinBinary(Object eval1, Object eval2) throws PrismLangException
+	private Object applyMinBinary(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
 		// All arguments ints
 		if (getType() instanceof TypeInt) {
-			int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
-			int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
-			return Math.min(i1, i2);
+			switch (evalMode) {
+			case FP:
+				return Math.min((int) eval1, (int) eval2);
+			case EXACT:
+				return ((BigInteger) eval1).min((BigInteger) eval2);
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		}
-		// Arguments mix of ints and doubles - convert to doubles
+		// One or more arguments doubles - convert all to doubles
 		else {
-			double d1 = (double) TypeDouble.getInstance().castValueTo(eval1);
-			double d2 = (double) TypeDouble.getInstance().castValueTo(eval2);
-			return Math.min(d1, d2);
+			Object eval1D = TypeDouble.getInstance().castValueTo(eval1, evalMode);
+			Object eval2D = TypeDouble.getInstance().castValueTo(eval2, evalMode);
+			switch (evalMode) {
+			case FP:
+				return Math.min((double) eval1D, (double) eval2D);
+			case EXACT:
+				return ((BigRational) eval1D).min((BigRational) eval2D);
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		}
-	}
-
-	private BigRational evaluateMinExact(EvaluateContext ec) throws PrismLangException
-	{
-		BigRational min;
-	
-		min = getOperand(0).evaluateExact(ec);
-		for (int i = 1, n = getNumOperands(); i < n; i++) {
-			min = min.min(getOperand(i).evaluateExact(ec));
-		}
-		return min;
 	}
 
 	/**
-	 * Apply this (max) function instance to the arguments provided
+	 * Apply this (max) function instance to the arguments provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyMax(Object[] eval) throws PrismLangException
+	private Object applyMax(Object[] eval, EvalMode evalMode) throws PrismLangException
 	{
 		int n = eval.length;
 		// All arguments ints
 		if (getType() instanceof TypeInt) {
-			int iMax = (int) TypeInt.getInstance().castValueTo(eval[0]);
-			for (int i = 1; i < n; i++) {
-				int j = (int) TypeInt.getInstance().castValueTo(eval[i]);
-				iMax = (j > iMax) ? j : iMax;
+			switch (evalMode) {
+			case FP:
+				int iMax = (int) eval[0];
+				for (int i = 1; i < n; i++) {
+					iMax = Math.max(iMax, (int) eval[i]);
+				}
+				return iMax;
+			case EXACT:
+				BigInteger biMax = (BigInteger) eval[0];
+				for (int i = 1; i < n; i++) {
+					biMax = biMax.max((BigInteger) eval[i]);
+				}
+				return biMax;
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
-			return iMax;
 		}
-		// Arguments mix of ints and doubles - convert to doubles
+		// One or more arguments doubles - convert all to doubles
 		else {
-			double dMax = (double) TypeDouble.getInstance().castValueTo(eval[0]);
-			for (int i = 1; i < n; i++) {
-				double d = (double) TypeDouble.getInstance().castValueTo(eval[i]);
-				dMax = (d > dMax) ? d : dMax;
+			switch (evalMode) {
+			case FP:
+				double dMax = (double) TypeDouble.getInstance().castValueTo(eval[0], evalMode);
+				for (int i = 1; i < n; i++) {
+					dMax = Math.max(dMax, (double) TypeDouble.getInstance().castValueTo(eval[i], evalMode));
+				}
+				return dMax;
+			case EXACT:
+				BigRational brMax = (BigRational) TypeDouble.getInstance().castValueTo(eval[0], evalMode);
+				for (int i = 1; i < n; i++) {
+					brMax = brMax.max((BigRational) TypeDouble.getInstance().castValueTo(eval[i], evalMode));
+				}
+				return brMax;
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
-			return dMax;
 		}
 	}
 
 	/**
-	 * Apply this (max) function instance to the arguments provided
+	 * Apply this (max) function instance to the argument provided.
+	 * The argument is assumed to be the correct kind of Object for its type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyMaxBinary(Object eval1, Object eval2) throws PrismLangException
+	private Object applyMaxBinary(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
 		// All arguments ints
 		if (getType() instanceof TypeInt) {
-			int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
-			int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
-			return Math.max(i1, i2);
+			switch (evalMode) {
+			case FP:
+				return Math.max((int) eval1, (int) eval2);
+			case EXACT:
+				return ((BigInteger) eval1).max((BigInteger) eval2);
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		}
-		// Arguments mix of ints and doubles - convert to doubles
+		// One or more arguments doubles - convert all to doubles
 		else {
-			double d1 = (double) TypeDouble.getInstance().castValueTo(eval1);
-			double d2 = (double) TypeDouble.getInstance().castValueTo(eval2);
-			return Math.max(d1, d2);
+			Object eval1D = TypeDouble.getInstance().castValueTo(eval1, evalMode);
+			Object eval2D = TypeDouble.getInstance().castValueTo(eval2, evalMode);
+			switch (evalMode) {
+			case FP:
+				return Math.max((double) eval1D, (double) eval2D);
+			case EXACT:
+				return ((BigRational) eval1D).max((BigRational) eval2D);
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		}
-	}
-
-	private BigRational evaluateMaxExact(EvaluateContext ec) throws PrismLangException
-	{
-		BigRational max;
-
-		max = getOperand(0).evaluateExact(ec);
-		for (int i = 1, n = getNumOperands(); i < n; i++) {
-			max = max.max(getOperand(i).evaluateExact(ec));
-		}
-		return max;
 	}
 
 	/**
-	 * Apply this (floor) function instance to the argument provided
+	 * Apply this (floor) function instance to the argument provided.
+	 * The argument is assumed to be the correct kind of Object for its type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyFloor(Object eval) throws PrismLangException
+	private Object applyFloor(Object eval, EvalMode evalMode) throws PrismLangException
 	{
 		try {
-			return evaluateFloor((double) TypeDouble.getInstance().castValueTo(eval));
-		} catch (PrismLangException e) {
-			e.setASTElement(this);
-			throw e;
-		}
-	}
-
-	public static int evaluateFloor(double arg) throws PrismLangException
-	{
-		try {
-			return SafeCast.toIntExact(Math.floor(arg));
+			// Double argument so may need to cast to double first
+			Object evalD = TypeDouble.getInstance().castValueTo(eval, evalMode);
+			switch (evalMode) {
+			case FP:
+				return SafeCast.toIntExact(Math.floor((double) evalD));
+			case EXACT:
+				return ((BigRational) evalD).floor().bigIntegerValue();
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		} catch (ArithmeticException e) {
-			throw new PrismLangException("Cannot take floor() of " + arg + ": " + e.getMessage());
+			throw new PrismLangException("Error evaluating " + getName() + ":" + e.getMessage(), this);
 		}
-	}
-
-	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
-	{
-		return getOperand(0).evaluateExact(ec).floor();
 	}
 
 	/**
-	 * Apply this (ceil) function instance to the argument provided
+	 * Apply this (ceil) function instance to the argument provided.
+	 * The argument is assumed to be the correct kind of Object for its type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyCeil(Object eval) throws PrismLangException
+	private Object applyCeil(Object eval, EvalMode evalMode) throws PrismLangException
 	{
 		try {
-			return evaluateCeil((double) TypeDouble.getInstance().castValueTo(eval));
-		} catch (PrismLangException e) {
-			e.setASTElement(this);
-			throw e;
-		}
-	}
-
-	public static int evaluateCeil(double arg) throws PrismLangException
-	{
-		try {
-			return SafeCast.toIntExact(Math.ceil(arg));
+			// Double argument so may need to cast to double first
+			Object evalD = TypeDouble.getInstance().castValueTo(eval, evalMode);
+			switch (evalMode) {
+			case FP:
+				return SafeCast.toIntExact(Math.ceil((double) evalD));
+			case EXACT:
+				return ((BigRational) evalD).ceil().bigIntegerValue();
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		} catch (ArithmeticException e) {
-			throw new PrismLangException("Cannot take ceil() of " + arg + ": " + e.getMessage());
+			throw new PrismLangException("Error evaluating " + getName() + ":" + e.getMessage(), this);
 		}
-	}
-
-	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
-	{
-		return getOperand(0).evaluateExact(ec).ceil();
 	}
 
 	/**
-	 * Apply this (round) function instance to the argument provided
+	 * Apply this (round) function instance to the argument provided.
+	 * The argument is assumed to be the correct kind of Object for its type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Integer applyRound(Object eval) throws PrismLangException
+	private Object applyRound(Object eval, EvalMode evalMode) throws PrismLangException
 	{
 		try {
-			return evaluateRound((double) TypeDouble.getInstance().castValueTo(eval));
-		} catch (PrismLangException e) {
-			e.setASTElement(this);
-			throw e;
-		}
-	}
-
-	public static int evaluateRound(double arg) throws PrismLangException
-	{
-		try {
-			return SafeCast.toIntExact(Math.round(arg));
+			// Double argument so may need to cast to double first
+			Object evalD = TypeDouble.getInstance().castValueTo(eval, evalMode);
+			switch (evalMode) {
+			case FP:
+				return SafeCast.toIntExact(Math.round((double) evalD));
+			case EXACT:
+				return ((BigRational) evalD).round().bigIntegerValue();
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
 		} catch (ArithmeticException e) {
-			throw new PrismLangException("Cannot take round() of " + arg + ": " + e.getMessage());
+			throw new PrismLangException("Error evaluating " + getName() + ":" + e.getMessage(), this);
 		}
-	}
-
-	public BigRational evaluateRoundExact(EvaluateContext ec) throws PrismLangException
-	{
-		return getOperand(0).evaluateExact(ec).round();
 	}
 
 	/**
 	 * Apply this (pow) function instance to the arguments provided
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyPow(Object eval1, Object eval2) throws PrismLangException
+	private Object applyPow(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
-		try {
-			// All arguments ints
-			if (getType() instanceof TypeInt) {
-				int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
-				int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
-				return evaluatePowInt(i1, i2);
+		// All arguments ints
+		if (getType() instanceof TypeInt) {
+			switch (evalMode) {
+			case FP:
+				int iBase = (int) eval1;
+				int iExp = (int) eval2;
+				// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
+				if (iExp < 0)
+					throw new PrismLangException("Negative exponent not allowed for integer power", this);
+				try {
+					return SafeCast.toIntExact(Math.pow(iBase, iExp));
+				} catch (ArithmeticException e) {
+					throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage(), this);
+				}
+			case EXACT:
+				BigInteger biBase = (BigInteger) eval1;
+				BigInteger biExp = (BigInteger) eval2;
+				// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
+				if (biExp.compareTo(BigInteger.ZERO) < 0)
+					throw new PrismLangException("Negative exponent not allowed for integer power", this);
+				try {
+					return biBase.pow(biExp.intValue());
+				} catch (ArithmeticException e) {
+					throw new PrismLangException("Can not compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
+				}
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
-			// Arguments mix of ints and doubles - convert to doubles
-			else {
-				double d1 = (double) TypeDouble.getInstance().castValueTo(eval1);
-				double d2 = (double) TypeDouble.getInstance().castValueTo(eval2);
-				return evaluatePowDouble(d1, d2);
+		}
+		// One or more arguments doubles - convert all to doubles
+		else {
+			Object base = TypeDouble.getInstance().castValueTo(eval1);
+			Object exp = TypeDouble.getInstance().castValueTo(eval2);
+			switch (evalMode) {
+			case FP:
+				return Math.pow((double) base, (double) exp);
+			case EXACT:
+				return ((BigRational) base).pow(((BigRational) exp).toInt());
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
-		} catch (PrismLangException e) {
-			e.setASTElement(this);
-			throw e;
-		}
-	}
-
-	public static int evaluatePowInt(int base, int exp) throws PrismLangException
-	{
-		// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
-		if (exp < 0)
-			throw new PrismLangException("Negative exponent not allowed for integer power");
-		try {
-			return SafeCast.toIntExact(Math.pow(base, exp));
-		} catch (ArithmeticException e) {
-			throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage());
-		}
-	}
-
-	public static double evaluatePowDouble(double base, double exp) throws PrismLangException
-	{
-		return Math.pow(base, exp);
-	}
-
-	public BigRational evaluatePowExact(EvaluateContext ec) throws PrismLangException
-	{
-		BigRational base = getOperand(0).evaluateExact(ec);
-		BigRational exp = getOperand(1).evaluateExact(ec);
-
-		try {
-			int expInt = exp.toInt();
-			return base.pow(expInt);
-		} catch (PrismLangException e) {
-			throw new PrismLangException("Can not compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
 		}
 	}
 
 	/**
-	 * Apply this (mod) function instance to the arguments provided
+	 * Apply this (mod) function instance to the arguments provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyMod(Object eval1, Object eval2) throws PrismLangException
+	private Object applyMod(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
-		try {
-			int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
-			int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
-			return evaluateMod(i1, i2);
-		} catch (PrismLangException e) {
-			e.setASTElement(this);
-			throw e;
+		// Both arguments are integers
+		switch (evalMode) {
+		case FP:
+			int i1 = (int) eval1;
+			int i2 = (int) eval2;
+			// Non-positive divisor not allowed 
+			if (i2 <= 0) {
+				throw new PrismLangException("Attempt to compute modulo with non-positive divisor", this);
+			}
+			// Take care of negative case (% is remainder, not modulo)
+			int rem = i1 % i2;
+			return (rem < 0) ? rem + i2 : rem;
+		case EXACT:
+			BigInteger bi1 = (BigInteger) eval1;
+			BigInteger bi2 = (BigInteger) eval2;
+			// Non-positive divisor not allowed 
+			if (bi2.compareTo(BigInteger.ZERO) <= 0) {
+				throw new PrismLangException("Attempt to compute modulo with non-positive divisor");
+			}
+			return bi1.mod(bi2);
+		default:
+			throw new PrismLangException("Unknown evaluation mode " + evalMode);
 		}
-	}
-
-	public static int evaluateMod(int i, int j) throws PrismLangException
-	{
-		// Non-positive divisor not allowed 
-		if (j <= 0)
-			throw new PrismLangException("Attempt to compute modulo with non-positive divisor");
-		// Take care of negative case (% is remainder, not modulo)
-		int rem = i % j;
-		return (rem < 0) ? rem + j : rem;
-	}
-
-	public BigRational evaluateModExact(EvaluateContext ec) throws PrismLangException
-	{
-		BigRational a = getOperand(0).evaluateExact(ec);
-		BigRational b = getOperand(1).evaluateExact(ec);
-
-		if (!a.isInteger() && !b.isInteger()) {
-			throw new PrismLangException("Can not compute mod for non-integer arguments", this);
-		}
-		return new BigRational(a.getNum().mod(b.getNum()));
 	}
 
 	/**
-	 * Apply this (log) function instance to the arguments provided
+	 * Apply this (log) function instance to the arguments provided.
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
 	 */
-	private Object applyLog(Object eval1, Object eval2) throws PrismLangException
+	private Object applyLog(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
-		try {
-			double d1 = (int) TypeDouble.getInstance().castValueTo(eval1);
-			double d2 = (int) TypeDouble.getInstance().castValueTo(eval2);
-			return evaluateLog(d1, d2);
-		} catch (PrismLangException e) {
-			e.setASTElement(this);
-			throw e;
+		// Double arguments so may need to cast to double first
+		Object x = TypeDouble.getInstance().castValueTo(eval1, evalMode);
+		Object b = TypeDouble.getInstance().castValueTo(eval2, evalMode);
+		switch (evalMode) {
+		case FP:
+			// Type will be double; so evaluate both operands and cast to doubles
+			return PrismUtils.log((double) x, (double) b);
+		case EXACT:
+			throw new PrismLangException("Currently, can not compute log exactly", this);
+		default:
+			throw new PrismLangException("Unknown evaluation mode " + evalMode);
 		}
-	}
-
-	public static double evaluateLog(double x, double b) throws PrismLangException
-	{
-		return PrismUtils.log(x, b);
-	}
-
-	public BigRational evaluateLogExact(EvaluateContext ec) throws PrismLangException
-	{
-		throw new PrismLangException("Currently, can not compute log exactly", this);
 	}
 
 	@Override

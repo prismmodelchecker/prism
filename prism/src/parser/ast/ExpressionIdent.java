@@ -26,9 +26,8 @@
 
 package parser.ast;
 
-import param.BigRational;
-import parser.*;
-import parser.visitor.*;
+import parser.EvaluateContext;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
 
 public class ExpressionIdent extends Expression
@@ -78,14 +77,6 @@ public class ExpressionIdent extends Expression
 	
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
-	{
-		// This should never be called.
-		// The ExpressionIdent should have been converted to an ExpressionVar/ExpressionConstant/...
-		throw new PrismLangException("Could not evaluate identifier", this);
-	}
-
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		// This should never be called.
 		// The ExpressionIdent should have been converted to an ExpressionVar/ExpressionConstant/...

@@ -424,7 +424,7 @@ public class Preprocessor
 			// otherwise increment to see if we have finished yet
 			else {
 				// increment for loop
-				i = values.getIntValueOf(fl.getLHS());
+				i = (int) values.getValueOf(fl.getLHS());
 				i += fl.getStep().evaluateInt(null, values);
 				// if loop is not finished...
 				if (i <= fl.getTo().evaluateInt(null, values)) {

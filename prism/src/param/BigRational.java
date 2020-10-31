@@ -321,6 +321,8 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		if (value instanceof BigRational) {
 			BigRational v = (BigRational)value;
 			return new BigRational(v.num, v.den);
+		} else if (value instanceof BigInteger) {
+			return new BigRational((BigInteger) value);
 		} else if (value instanceof Integer) {
 			return new BigRational((int) value);
 		} else if (value instanceof Long) {
@@ -685,7 +687,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 
 		// TODO JK: In case of fraction / overflow, this method should not throw an
 		// exception but return some imprecise result. We are conservative here. In the future,
-		// it may make sense to have an intValueExact (similar to BigInteger)
+		// it may make sense to have a longValueExact (similar to BigInteger)
 		if (!isInteger()) {
 			throw new ArithmeticException("Can not convert fractional number to long");
 		}
@@ -701,6 +703,35 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	{
 		// TODO JK: Better precision?
 		return (float)doubleValue();
+	}
+
+	/**
+	 * Returns the value of the specified number as a {code BigInteger},
+	 * which may involve rounding or truncation.
+	 * <br>
+	 * Note: In contrast to the standard Number.intValue() behaviour,
+	 * this implementation throws an Arithmetic exception if the underlying
+	 * rational number is not an integer.
+	 * <br>
+	 * Since {code BigInteger} cannot represent infinity,
+	 * Positive and negative infinity are mapped to Long.MAX_VALUE and Long.MIN_VALUE,
+	 * respectively, NaN is mapped to 0 (per the Java Language Specification).
+	 *
+	 * @return  the numeric value represented by this object after conversion
+	 *          to type {code BigInteger}.
+	 */
+	public BigInteger bigIntegerValue()
+	{
+		if (isSpecial()) {
+			if (isInf()) return BigInteger.valueOf(Long.MAX_VALUE);
+			if (isMInf()) return BigInteger.valueOf(Long.MIN_VALUE);
+			if (isNaN()) return BigInteger.ZERO;  // per Java Language Specification
+		}
+
+		if (!isInteger()) {
+			throw new ArithmeticException("Can not convert fractional number to int");
+		}
+		return getNum();
 	}
 
 	/**

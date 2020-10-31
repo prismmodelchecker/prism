@@ -26,7 +26,6 @@
 
 package parser.ast;
 
-import param.BigRational;
 import parser.EvaluateContext;
 import parser.type.Type;
 import parser.type.TypeBool;
@@ -459,12 +458,6 @@ public class ExpressionFilter extends Expression
 	
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
-	{
-		throw new PrismLangException("Cannot evaluate a filter without a model");
-	}
-
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a filter without a model");
 	}

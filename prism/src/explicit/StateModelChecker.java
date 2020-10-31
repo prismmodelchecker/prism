@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import parser.EvaluateContext.EvalMode;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -691,7 +692,7 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Apply operation
-		res1.applyFunction(expr.getType(), (v1, v2, v3) -> expr.apply(v1, v2, v3), res2, res3);
+		res1.applyFunction(expr.getType(), (v1, v2, v3) -> expr.apply(v1, v2, v3, EvalMode.FP), res2, res3);
 		res2.clear();
 		res3.clear();
 
@@ -717,7 +718,7 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Apply operation
-		res1.applyFunction(expr.getType(), (v1, v2) -> expr.apply(v1, v2), res2);
+		res1.applyFunction(expr.getType(), (v1, v2) -> expr.apply(v1, v2, EvalMode.FP), res2);
 		res2.clear();
 
 		return res1;
@@ -740,7 +741,7 @@ public class StateModelChecker extends PrismComponent
 			return res1;
 
 		// Apply operation
-		res1.applyFunction(expr.getType(), v -> expr.apply(v));
+		res1.applyFunction(expr.getType(), v -> expr.apply(v, EvalMode.FP));
 
 		return res1;
 	}
@@ -777,7 +778,7 @@ public class StateModelChecker extends PrismComponent
 
 		// Apply operation
 		try {
-			res1.applyFunction(expr.getType(), v -> expr.applyUnary(v));
+			res1.applyFunction(expr.getType(), v -> expr.applyUnary(v, EvalMode.FP));
 		} catch (PrismException e) {
 			if (res1 != null)
 				res1.clear();
@@ -804,7 +805,7 @@ public class StateModelChecker extends PrismComponent
 
 		// Apply operation
 		try {
-			res1.applyFunction(expr.getType(), (v1, v2) -> expr.applyBinary(v1, v2), res2);
+			res1.applyFunction(expr.getType(), (v1, v2) -> expr.applyBinary(v1, v2, EvalMode.FP), res2);
 			res2.clear();
 		} catch (PrismException e) {
 			if (res1 != null)
@@ -837,7 +838,7 @@ public class StateModelChecker extends PrismComponent
 			}
 			// Apply operation
 			try {
-				res1.applyFunction(expr.getType(), (v1, v2) -> expr.applyBinary(v1, v2), res2);
+				res1.applyFunction(expr.getType(), (v1, v2) -> expr.applyBinary(v1, v2, EvalMode.FP), res2);
 				res2.clear();
 			} catch (PrismException e) {
 				if (res1 != null)

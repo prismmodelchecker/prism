@@ -34,10 +34,34 @@ package parser;
 public abstract class EvaluateContext
 {
 	/**
+	 * Evaluation mode (floating point? exact?)
+	 */
+	public enum EvalMode { FP, EXACT }
+	protected EvalMode evalMode = EvalMode.FP;
+	
+	/**
 	 * Constant values (optional)
 	 */
 	protected Values constantValues = null;
 	
+	/**
+	 * Set the evaluation mode (floating point? exact?)
+	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
+	 */
+	public EvaluateContext setEvaluationMode(EvalMode evalMode)
+	{
+		this.evalMode = evalMode;
+		return this;
+	}
+
+	/**
+	 * Get the evaluation mode (floating point? exact?)
+	 */
+	public EvalMode getEvaluationMode()
+	{
+		return evalMode;
+	}
+
 	/**
 	 * Set the constant values. The Values object is stored, not copied.
 	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
@@ -47,7 +71,7 @@ public abstract class EvaluateContext
 		this.constantValues = constantValues;
 		return this;
 	}
-
+	
 	/**
 	 * Return the value for a constant (by name); null if unknown.
 	 */

@@ -26,11 +26,10 @@
 
 package parser.ast;
 
-import param.BigRational;
-import parser.*;
-import parser.visitor.*;
+import parser.EvaluateContext;
+import parser.type.Type;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
-import parser.type.*;
 
 public class ExpressionVar extends Expression
 {
@@ -89,19 +88,13 @@ public class ExpressionVar extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
+		// Extract variable value from the evaluation context
 		Object res = ec.getVarValue(name, index);
-		if (res == null)
+		if (res == null) {
 			throw new PrismLangException("Could not evaluate variable", this);
-		return res;
-	}
-
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
-	{
-		Object res = ec.getVarValue(name, index);
-		if (res == null)
-			throw new PrismLangException("Could not evaluate variable", this);
-		return BigRational.from(res);
+		}
+		// And cast it to the right type/mode if needed
+		return getType().castValueTo(res, ec.getEvaluationMode());
 	}
 
 	@Override
