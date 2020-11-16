@@ -124,6 +124,24 @@ public class HOAF2DA implements HOAConsumer {
 	 */
 	private long expectedNumberOfEdgesPerState;
 
+	/**
+	 * If we do not know the number of states beforehand (knowSize = false),
+	 * we track here if we have seen a state definition for all states. True for index i if
+	 * state i had no definition yet.
+	 */
+	private BitSet statesWithoutDefinition = null;
+
+
+	/** In the knowSize=false case, ensure that all states (including with index id) exist */
+	private void ensureStateExists(int id) {
+		// generate as many intermediate states as required so that state with id exists
+		while (id >= da.size()) {
+			int i = da.addState();
+			// remember that we don't have a definition yet
+			statesWithoutDefinition.set(i);
+		}
+	}
+
 	/** Clear the various state information */
 	public void clear() {
 		aps = new APSet();
@@ -143,6 +161,8 @@ public class HOAF2DA implements HOAConsumer {
 		acceptanceSets = null;
 		negateAcceptanceSetMembership = null;
 		apList = null;
+
+		statesWithoutDefinition = null;
 	}
 
 	/** Constructor */
@@ -248,18 +268,27 @@ public class HOAF2DA implements HOAConsumer {
 
 	@Override
 	public void notifyBodyStart() throws HOAConsumerException {
-		if (!knowSize) {
-			throw new HOAConsumerException("Can currently only parse automata where the number of states is specified in the header");
-		}
 		if (!knowStartState) {
 			throw new HOAConsumerException("Not a deterministic automaton: No initial state specified (Start header)");
 		}
-		if (startState >= size) {
+		if (knowSize && startState >= size) {
 			throw new HOAConsumerException("Initial state "+startState+" is out of range");
 		}
 
-		da = new DA<BitSet,AcceptanceGeneric>(size);
-		da.setStartState(startState);
+		if (knowSize) {
+			da = new DA<BitSet,AcceptanceGeneric>(size);
+			da.setStartState(startState);
+		} else {
+			// init with empty DA
+			da = new DA<BitSet,AcceptanceGeneric>();
+			// and prepare the bitset used to track whether we had definitions for all states or not
+			statesWithoutDefinition = new BitSet();
+
+			// ensure that all states in the DA up to the startState index are allocated
+			// and then set the start state
+			ensureStateExists(startState);
+			da.setStartState(startState);
+		}
 
 		if (apList == null) {
 			// no call to setAPs
@@ -461,9 +490,17 @@ public class HOAF2DA implements HOAConsumer {
 		if(labelExpr != null) {
 			throw new HOAConsumerException("State "+id+" has a state label, currently only supports labels on transitions");
 		}
-		
-		if (id >= size) {
-			throw new HOAConsumerException("Illegal state index "+id+", out of range");
+
+		if (knowSize) {
+			// we know the number of states, so if we are out of range then it's a hard error
+			if (id >= size) {
+				throw new HOAConsumerException("Illegal state index "+id+", out of range");
+			}
+		} else {
+			// ensure that all states up to id are allocated
+			ensureStateExists(id);
+			// and remember that state id actually had a definition
+			statesWithoutDefinition.clear(id);
 		}
 
 		if (accSignature != null) {
@@ -494,6 +531,14 @@ public class HOAF2DA implements HOAConsumer {
 		}
 
 		int to = conjSuccessors.get(0);
+
+		if (knowSize) {
+			if (to >= size) {
+				throw new HOAConsumerException("Illegal state index "+to+" in edge from state "+stateId+", out of range");
+			}
+		} else {
+			ensureStateExists(to);
+		}
 
 		BitSet edge = new BitSet();
 		long tmp = implicitEdgeHelper.nextImplicitEdge();
@@ -600,6 +645,14 @@ public class HOAF2DA implements HOAConsumer {
 
 		int to = conjSuccessors.get(0);
 
+		if (knowSize) {
+			if (to >= size) {
+				throw new HOAConsumerException("Illegal state index "+to+" in edge from state "+stateId+", out of range");
+			}
+		} else {
+			ensureStateExists(to);
+		}
+
 		for (APMonom monom : labelExpressionToAPMonom(labelExpr)) {
 			APMonom2APElements it = new APMonom2APElements(aps, monom);
 			while(it.hasNext()) {
@@ -633,10 +686,20 @@ public class HOAF2DA implements HOAConsumer {
 
 	@Override
 	public void notifyEnd() throws HOAConsumerException {
+		if (!knowSize) {
+			// We did not know the number of states a-priori, so we check that all states
+			// that we have allocated actually had a definition
+			if (!statesWithoutDefinition.isEmpty()) {
+				int stateId = statesWithoutDefinition.nextSetBit(0);
+				throw new HOAConsumerException(statesWithoutDefinition.cardinality() + " states (e.g., state "
+				                               + stateId + ") have no definition (automaton is required to be complete and deterministic)");
+			}
+		}
+
 		// flip acceptance sets that need negating
 		if (negateAcceptanceSetMembership != null) {
 			for (int index : negateAcceptanceSetMembership) {
-				acceptanceSets.get(index).flip(0, size);
+				acceptanceSets.get(index).flip(0, da.size());
 			}
 		}
 
