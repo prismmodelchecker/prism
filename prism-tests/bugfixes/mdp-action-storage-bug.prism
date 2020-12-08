@@ -1,0 +1,11 @@
+mdp
+
+module M
+
+	s:[0..3];
+	
+	[a] s=0 -> (s'=2);
+	[b] s=2 -> (s'=1);
+
+endmodule
+

@@ -166,6 +166,8 @@ public class ChoiceActionsSimple
 	 * Convert to "sparse" storage for a given model,
 	 * i.e., a single array where all actions are stored in
 	 * order, per state and then per choice.
+	 * A corresponding NondetModel is required because the
+	 * number of states and choices per state may be unknown.
 	 * If this action storage is completely empty,
 	 * then this method may simply return null.
 	 */
@@ -180,7 +182,7 @@ public class ChoiceActionsSimple
 			for (int s = 0; s < numStates; s++) {
 				int numChoices = model.getNumChoices(s);
 				for (int i = 0; i < numChoices; i++) {
-					arr[count++] = model.getAction(s, i);
+					arr[count++] = getAction(s, i);
 				}
 			}
 			return arr;

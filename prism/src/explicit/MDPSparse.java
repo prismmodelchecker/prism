@@ -231,7 +231,9 @@ public class MDPSparse extends MDPExplicit
 		}
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
-		actions = mdp.actions.convertToSparseStorage(mdp);
+		// Copy the actions too
+		// Note: could pass 'mdp' or 'this' to convertToSparseStorage (use latter for consistency)
+		actions = mdp.actions.convertToSparseStorage(this);
 	}
 
 	/**
@@ -295,7 +297,9 @@ public class MDPSparse extends MDPExplicit
 		}
 		choiceStarts[numDistrs] = numTransitions;
 		rowStarts[numStates] = numDistrs;
-		actions = mdp.actions.convertToSparseStorage(mdp);
+		// Copy the actions too (after permuting)
+		// Note: we pass _this_ new, permuted model to convertToSparseStorage
+		actions = new ChoiceActionsSimple(mdp.actions, permut).convertToSparseStorage(this);
 	}
 
 	/**
