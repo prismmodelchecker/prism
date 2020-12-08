@@ -144,12 +144,17 @@ public class ChoiceActionsSimple
 	
 	public Object getAction(int s, int i)
 	{
-		// Empty list means no (null) actions everywhere
+		// Null list means no (null) actions everywhere
 		if (actions == null) {
 			return null;
 		}
 		try {
-			return actions.get(s).get(i);
+			ArrayList<Object> list = actions.get(s);
+			// Null list means no (null) actions in this state
+			if (list == null) {
+				return null;
+			}
+			return list.get(i);
 		}
 		// Lists may be under-sized, indicating no action added 
 		catch (IndexOutOfBoundsException e) {
