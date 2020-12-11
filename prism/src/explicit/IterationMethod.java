@@ -401,8 +401,8 @@ public abstract class IterationMethod {
 	 */
 	public ModelCheckerResult doValueIteration(ProbModelChecker mc, String description, IterationValIter iteration, IntSet unknownStates, long startTime, ExportIterations iterationsExport) throws PrismException
 	{
+		double maxIters = mc.maxIters;
 		int iters = 0;
-		final int maxIters = mc.maxIters;
 		boolean done = false;
 
 		PeriodicTimer updatesTimer = new PeriodicTimer(ProbModelChecker.UPDATE_DELAY);
@@ -464,9 +464,9 @@ public abstract class IterationMethod {
 	public ModelCheckerResult doTopologicalValueIteration(ProbModelChecker mc, String description, SCCInfo sccs, IterationMethod.IterationValIter iterator, SingletonSCCSolver singletonSCCSolver, long startTime, ExportIterations iterationsExport) throws PrismException
 	{
 		// Start iterations
+		double maxIters = mc.maxIters;
 		int iters = 0;
 		long mvCount = 0;
-		final int maxIters = mc.maxIters;
 
 		int numSCCs = sccs.getNumSCCs();
 		int numNonSingletonSCCs = sccs.countNonSingletonSCCs();
@@ -572,8 +572,8 @@ public abstract class IterationMethod {
 	public ModelCheckerResult doIntervalIteration(ProbModelChecker mc, String description, IterationIntervalIter below, IterationIntervalIter above, IntSet unknownStates, long timer, ExportIterations iterationsExport) throws PrismException {
 		try {
 			// Start iterations
+			double maxIters = mc.maxIters;
 			int iters = 0;
-			final int maxIters = mc.maxIters;
 			boolean done = false;
 
 			PeriodicTimer updatesTimer = new PeriodicTimer(ProbModelChecker.UPDATE_DELAY);
@@ -664,9 +664,9 @@ public abstract class IterationMethod {
 	public ModelCheckerResult doTopologicalIntervalIteration(ProbModelChecker mc, String description, SCCInfo sccs, IterationIntervalIter below, IterationIntervalIter above, SingletonSCCSolver singletonSCCSolver, long timer, ExportIterations iterationsExport) throws PrismException {
 		try {
 			// Start iterations
+			double maxIters = mc.maxIters;
 			int iters = 0;
 			long mvCount = 0;
-			final int maxIters = mc.maxIters;
 
 			PeriodicTimer updatesTimer = new PeriodicTimer(ProbModelChecker.UPDATE_DELAY);
 			updatesTimer.start();

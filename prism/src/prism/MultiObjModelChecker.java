@@ -749,11 +749,11 @@ public class MultiObjModelChecker extends PrismComponent
 	{
 		//TODO this method does not work for more than 2 objectives
 		int numberOfPoints = 0;
-		int rewardStepBounds[] = new int[rewards.size()];
+		double rewardStepBounds[] = new double[rewards.size()];
 		for (int i = 0; i < rewardStepBounds.length; i++)
 			rewardStepBounds[i] = opsAndBounds.getRewardStepBound(i);
 
-		int probStepBounds[] = new int[targets.length];
+		double probStepBounds[] = new double[targets.length];
 		for (int i = 0; i < probStepBounds.length; i++)
 			probStepBounds[i] = opsAndBounds.getProbStepBound(i);
 
@@ -1040,11 +1040,11 @@ public class MultiObjModelChecker extends PrismComponent
 			List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		int numberOfPoints = 0;
-		int rewardStepBounds[] = new int[rewards.size()];
+		double rewardStepBounds[] = new double[rewards.size()];
 		for (int i = 0; i < rewardStepBounds.length; i++)
 			rewardStepBounds[i] = opsAndBounds.getRewardStepBound(i);
 
-		int probStepBounds[] = new int[targets.length];
+		double probStepBounds[] = new double[targets.length];
 		for (int i = 0; i < probStepBounds.length; i++)
 			probStepBounds[i] = opsAndBounds.getProbStepBound(i);
 
@@ -1150,7 +1150,7 @@ public class MultiObjModelChecker extends PrismComponent
 				//System.out.println("Not doing GS");
 				result = PrismSparse.NondetMultiObj(modelProduct.getODD(), modelProduct.getAllDDRowVars(), modelProduct.getAllDDColVars(),
 						modelProduct.getAllDDNondetVars(), false, st, adversary, trans_matrix, modelProduct.getSynchs(), null, null,
-						new NDSparseMatrix[] { rewSparseMatrices[0] }, new double[] { 1.0 }, new int[] { rewardStepBounds[0] });
+						new NDSparseMatrix[] { rewSparseMatrices[0] }, new double[] { 1.0 }, new double[] { rewardStepBounds[0] });
 			}
 			numberOfPoints++;
 
