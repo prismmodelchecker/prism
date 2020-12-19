@@ -697,6 +697,17 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return false;
 	}
 	
+	public boolean containsClockVariables()
+	{
+		int n = getNumVars();
+		for (int i = 0; i < n; i++) {
+			if (getVarDeclaration(i).getDeclType() instanceof DeclarationClock) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Method to "tidy up" after parsing (must be called)
 	 * (do some checks and extract some information)
@@ -1290,9 +1301,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	{
 		// If unspecified, auto-detect model type
 		if (modelTypeInFile == null) {
+			boolean isRealTime = containsClockVariables();
 			boolean nonProb = isNonProbabilistic();
-			// MDP/LTS depending if probabilistic
-			modelType = nonProb ? ModelType.LTS : ModelType.MDP;
+			if (isRealTime) {
+				modelType = ModelType.PTA;
+			} else {
+				modelType = nonProb ? ModelType.LTS : ModelType.MDP;
+			}
 		}
 		// Otherwise, it's just whatever was specified
 		else {
