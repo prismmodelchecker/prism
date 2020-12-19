@@ -40,6 +40,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -2221,8 +2223,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		repaint();
 	}
 
+	enum UpdateTableModelColumn {
+		ACTION, PROB, UPDATE
+	};
+	
 	class UpdateTableModel extends AbstractTableModel
 	{
+		private List<UpdateTableModelColumn> visibleColumns = new ArrayList<>();
 		public boolean oldUpdate;
 		private int oldStep;
 
@@ -2235,7 +2242,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public int getColumnCount()
 		{
-			return pathActive ? 3 : 0;
+			return visibleColumns.size();
 		}
 
 		public int getRowCount()
@@ -2251,12 +2258,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (pathActive) {
 				try {
-					switch (columnIndex) {
-					case 0:
+					switch (visibleColumns.get(columnIndex)) {
+					case ACTION:
 						return engine.getTransitionActionString(rowIndex);
-					case 1:
+					case PROB:
 						return "" + engine.getTransitionProbability(rowIndex);
-					case 2:
+					case UPDATE:
 						return engine.getTransitionUpdateString(rowIndex);
 					default:
 						return "";
@@ -2268,21 +2275,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			return "";
 		}
 
-		public String getColumnName(int column)
+		public String getColumnName(int columnIndex)
 		{
 			if (pathActive) {
-				switch (column) {
-				case 0:
+				switch (visibleColumns.get(columnIndex)) {
+				case ACTION:
 					return engine.getModel().getActionStringDescription();
-				case 1:
+				case PROB:
 					return parsedModel == null ? "Probability" : parsedModel.getModelType().probabilityOrRate();
-				case 2:
+				case UPDATE:
 					return "Update";
 				default:
 					return "";
 				}
-			} else
-				return "";
+			}
+			return "";
 		}
 
 		/**
@@ -2295,12 +2302,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 			oldUpdate = false;
 			oldStep = -1;
+			setVisibleColumns();
 			doEnables();
 			fireTableDataChanged();
-
 			currentUpdatesTable.setEnabled(true);
 			currentUpdatesTable.setToolTipText("Double click on an update to manually execute it");
-
 			if (getRowCount() > 0) {
 				currentUpdatesTable.getSelectionModel().setSelectionInterval(0, 0);
 			}
@@ -2311,19 +2317,18 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		 */
 		public void updateUpdatesTable(int oldStep) throws PrismException
 		{
-			if (oldStep == pathTable.getRowCount() - 1) // if current state selected
-			{
+			if (oldStep == pathTable.getRowCount() - 1) {
+				// if current state selected
 				updateUpdatesTable();
 			} else {
 				this.oldStep = oldStep;
 				oldUpdate = true;
+				setVisibleColumns();
 				doEnables();
 				engine.computeTransitionsForStep(oldStep);
 				fireTableDataChanged();
-
 				currentUpdatesTable.setEnabled(false);
 				currentUpdatesTable.setToolTipText(null);
-
 				if (getRowCount() > 0) {
 					int selectThis = engine.getChoiceOfPathStep(oldStep);
 					currentUpdatesTable.getSelectionModel().setSelectionInterval(selectThis, selectThis);
@@ -2331,6 +2336,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 
+		public void setVisibleColumns()
+		{
+			visibleColumns.clear();
+			visibleColumns.add(UpdateTableModelColumn.ACTION);
+			if (parsedModel != null && parsedModel.getModelType().isProbabilistic()) {
+				visibleColumns.add(UpdateTableModelColumn.PROB);
+			}
+			visibleColumns.add(UpdateTableModelColumn.UPDATE);
+		}
+		
 		public void restartUpdatesTable()
 		{
 			fireTableStructureChanged();
