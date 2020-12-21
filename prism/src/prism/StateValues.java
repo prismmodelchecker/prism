@@ -31,6 +31,7 @@ import java.io.File;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.ast.RelOp;
+import prism.Accuracy.AccuracyType;
 
 /**
  * Interface for classes for state-indexed vectors of (integer or double) values
@@ -194,6 +195,20 @@ public interface StateValues extends StateVector
 	 * <br>[ REFS: <i>result</i> ]
 	 */
 	JDDNode getBDDFromInterval(double lo, double hi);
+
+	/**
+	 * Generate BDD for states whose value is close to 'value'
+	 * (if present, accuracy info used to determine closeness)
+	 * <br>[ REFS: <i>result</i> ]
+	 * @param val the value
+	 * @param epsilon the error bound
+	 * @param abs true for absolute error calculation
+	 */
+	default JDDNode getBDDFromCloseValue(double val)
+	{
+		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
+		return getBDDFromCloseValue(val, accuracy.getErrorBound(), accuracy.getType() == AccuracyType.ABSOLUTE);
+	}
 
 	/**
 	 * Generate BDD for states whose value is close to 'value'
