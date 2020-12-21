@@ -1712,7 +1712,7 @@ public class StateValues implements StateVector
 
 		// Check if all zero
 		if (printSparse && !printMatlab && count == 0) {
-			log.println("(all zero)");
+			log.println(type == TypeBool.getInstance() ? "(none)" : "(all zero)");
 			return;
 		}
 
