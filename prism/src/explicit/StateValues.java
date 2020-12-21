@@ -48,6 +48,7 @@ import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismUtils;
+import prism.ResultTesting;
 import prism.StateVector;
 
 /**
@@ -322,22 +323,44 @@ public class StateValues implements StateVector
 
 	/**
 	 * Generate BitSet for states whose value is close to 'value'
+	 * (if present, accuracy info used to determine closeness)
+	 * The type of 'value' is assumed to match that of the vector.
+	 */
+	public BitSet getBitSetFromCloseValue(Object value) throws PrismException
+	{
+		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
+		return getBitSetFromCloseValue(value, accuracy);
+	}
+
+	/**
+	 * Generate BitSet for states whose value is close to 'value'
 	 * (within either absolute or relative error 'epsilon')
 	 * The type of 'value' is assumed to match that of the vector.
 	 */
 	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs) throws PrismException
+	{
+		Accuracy accuracy = new Accuracy(Accuracy.AccuracyLevel.BOUNDED, epsilon, abs);
+		return getBitSetFromCloseValue(value, accuracy);
+	}
+
+	/**
+	 * Generate BitSet for states whose value is close to 'value'
+	 * (use the passed in level of accuracy to determine closeness)
+	 * The type of 'value' is assumed to match that of the vector.
+	 */
+	public BitSet getBitSetFromCloseValue(Object value, Accuracy accuracy) throws PrismException
 	{
 		BitSet sol = new BitSet();
 
 		if (type instanceof TypeInt) {
 			int valueI = ((Integer) value).intValue();
 			for (int i = 0; i < size; i++) {
-				sol.set(i, PrismUtils.doublesAreClose(valuesI[i], valueI, epsilon, abs));
+				sol.set(i, PrismUtils.measureSupNormAbs(valuesI[i], valueI) <= accuracy.getAbsoluteErrorBound(valuesI[i]));
 			}
 		} else if (type instanceof TypeDouble) {
 			double valueD = ((Double) value).doubleValue();
 			for (int i = 0; i < size; i++) {
-				sol.set(i, PrismUtils.doublesAreClose(valuesD[i], valueD, epsilon, abs));
+				sol.set(i, PrismUtils.measureSupNormAbs(valuesD[i], valueD) <= accuracy.getAbsoluteErrorBound(valuesD[i]));
 			}
 		} else {
 			throw new PrismException("Can't getBitSetFromCloseValue for a vector of type " + type);
