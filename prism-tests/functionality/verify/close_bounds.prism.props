@@ -1,0 +1,15 @@
+const int x = 6;
+
+// RESULT: 1/6
+P=? [ F s=7 & d=x ]
+
+// RESULT: true
+P>=0.16666 [ F s=7 & d=x ]
+
+// RESULT (exact=false): Error "accuracy"
+// RESULT (exact=true): true
+P>=0.1666666666 [ F s=7 & d=x ]
+
+// RESULT (exact=false): Error "accuracy"
+// RESULT (exact=true): true
+P>=1/6 [ F s=7 & d=x ]

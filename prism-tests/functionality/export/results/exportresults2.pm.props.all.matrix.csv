@@ -1,4 +1,4 @@
-"P>0.5 [ F s=7&d>x ]"
+"P>0.55 [ F s=7&d>x ]"
 "x"
 1, 2, 3
 true, true, false

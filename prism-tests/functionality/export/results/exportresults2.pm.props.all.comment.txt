@@ -1,7 +1,7 @@
 // RESULT (x=1): true
 // RESULT (x=2): true
 // RESULT (x=3): false
-P>0.5 [ F s=7&d>x ]
+P>0.55 [ F s=7&d>x ]
 
 // RESULT: 0.46875
 P=? [ F<=5 s=7&d>3 ]
