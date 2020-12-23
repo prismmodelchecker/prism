@@ -1224,7 +1224,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			ddMatch = vals.getBDDFromCloseValue(d);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			break;
@@ -1238,7 +1238,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			ddMatch = vals.getBDDFromCloseValue(d);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			break;
@@ -1248,7 +1248,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			mainLog.print("\nMinimum value over " + filterStatesString + ": ");
 			mainLog.println(decodeFromDouble(expr.getType(), d));
 			// Find states that (are close to) selected value
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			ddMatch = vals.getBDDFromCloseValue(d);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
@@ -1264,7 +1264,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			mainLog.print("\nMaximum value over " + filterStatesString + ": ");
 			mainLog.println(decodeFromDouble(expr.getType(), d));
 			// Find states that (are close to) selected value
-			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
+			ddMatch = vals.getBDDFromCloseValue(d);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
