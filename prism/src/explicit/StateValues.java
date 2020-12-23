@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Predicate;
 
 import parser.State;
 import parser.ast.ExpressionBinaryOp;
@@ -293,22 +294,22 @@ public class StateValues implements StateVector
 			switch (relOp) {
 			case GEQ:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] >= bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x >= bound, i, "compare to " + bound));
 				}
 				break;
 			case GT:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] > bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x > bound, i, "compare to " + bound));
 				}
 				break;
 			case LEQ:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] <= bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x <= bound, i, "compare to " + bound));
 				}
 				break;
 			case LT:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] < bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x < bound, i, "compare to " + bound));
 				}
 				break;
 			default:
@@ -321,6 +322,32 @@ public class StateValues implements StateVector
 		return sol;
 	}
 
+	/**
+	 * Test a predicate (over double values) against the {@code i}th vector element,
+	 * checking whether this can be done safely given the vector's accuracy (if known).
+	 * Return the (boolean) result, or throw an exception if the values is not accurate enough.
+	 * It is assumed that it suffices to check that the valuation of the predicate
+	 * is the same at the lower and upper accuracy ranges of the value.
+	 * @param pred Predicate to test
+	 * @param i Index of element to check
+	 * @param descr Description of operation for error message
+	 */
+	private boolean testDoublePredicateWithAccuracyCheck(Predicate<Double> pred, int i, String descr) throws PrismException
+	{
+		double value = valuesD[i];
+		if (accuracy != null) {
+			boolean resultLow = pred.test(accuracy.getResultLowerBound(value));
+			boolean resultHigh = pred.test(accuracy.getResultUpperBound(value));
+			if (resultLow != resultHigh) {
+				if (descr == null) {
+					descr = "test predicate";
+				}
+				throw new PrismException("Accuracy of result " + value  + " is not enough to " + descr);
+			}
+		}
+		return pred.test(value);
+	}
+	
 	/**
 	 * Generate BitSet for states whose value is close to 'value'
 	 * (if present, accuracy info used to determine closeness)
