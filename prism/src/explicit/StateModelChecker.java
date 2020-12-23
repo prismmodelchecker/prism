@@ -1051,8 +1051,7 @@ public class StateModelChecker extends PrismComponent
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			// TODO: un-hard-code precision once StateValues knows hoe precise it is
-			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
+			bsMatch = vals.getBitSetFromCloseValue(resObj);
 			bsMatch.and(bsFilter);
 			break;
 		case MAX:
@@ -1064,8 +1063,7 @@ public class StateModelChecker extends PrismComponent
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			// TODO: un-hard-code precision once StateValues knows hoe precise it is
-			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
+			bsMatch = vals.getBitSetFromCloseValue(resObj);
 			bsMatch.and(bsFilter);
 			break;
 		case ARGMIN:
@@ -1073,8 +1071,7 @@ public class StateModelChecker extends PrismComponent
 			resObj = vals.minOverBitSet(bsFilter);
 			mainLog.print("\nMinimum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			// TODO: un-hard-code precision once StateValues knows hoe precise it is
-			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
+			bsMatch = vals.getBitSetFromCloseValue(resObj);
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
@@ -1088,8 +1085,7 @@ public class StateModelChecker extends PrismComponent
 			resObj = vals.maxOverBitSet(bsFilter);
 			mainLog.print("\nMaximum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			// TODO: un-hard-code precision once StateValues knows hoe precise it is
-			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
+			bsMatch = vals.getBitSetFromCloseValue(resObj);
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
