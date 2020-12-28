@@ -367,6 +367,10 @@ public class DigitalClocks
 			timerModule.addCommand(timeCommand);
 			// Finally add module to model
 			mf.addModule(timerModule);
+			// For POPTAs, the variable needs to be observable
+			if (modulesFile.getModelType().partiallyObservable()) {
+				mf.addObservableVar(timerVarName);
+			}
 			
 			// Then modify the property
 			

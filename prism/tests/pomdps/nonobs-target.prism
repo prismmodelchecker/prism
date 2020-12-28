@@ -1,0 +1,16 @@
+pomdp
+
+observables o endobservables
+
+module M
+
+	s : [0..10];
+	o : [0..3];
+	
+	[] s=0 -> 0.5:(s'=1)&(o'=1) + 0.5:(s'=2)&(o'=1);
+	[g1] o=1 -> (o'=(s=1)?2:3);
+	[g2] o=1 -> (o'=(s=2)?2:3);
+//	[] s=3 -> 0.5:(s'=4) + 0.5:(s'=5);
+	[] o>=2 -> true;
+		
+endmodule
