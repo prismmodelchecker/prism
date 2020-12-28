@@ -220,7 +220,7 @@ public class Accuracy
 		if (type == AccuracyType.RELATIVE) {
 			return errorBound;
 		} else {
-			return (errorBound == 0.0 || Double.isFinite(result)) ? 0.0 : errorBound / Math.abs(result);
+			return (errorBound == 0.0 || Double.isInfinite(result)) ? 0.0 : errorBound / Math.abs(result);
 		}
 	}
 	
