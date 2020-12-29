@@ -1299,19 +1299,23 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 */
 	private void finaliseModelType()
 	{
-		// If unspecified, auto-detect model type
+		// First, fix a "base" model type
+		// If unspecified, auto-detect
 		if (modelTypeInFile == null) {
-			boolean isRealTime = containsClockVariables();
-			boolean nonProb = isNonProbabilistic();
-			if (isRealTime) {
-				modelType = ModelType.PTA;
-			} else {
-				modelType = nonProb ? ModelType.LTS : ModelType.MDP;
-			}
+			boolean isNonProb = isNonProbabilistic();
+			modelType = isNonProb ? ModelType.LTS : ModelType.MDP;
 		}
 		// Otherwise, it's just whatever was specified
 		else {
 			modelType = modelTypeInFile;
+		}
+		// Then, even if already specified, update the model type
+		// based on the existence of certain features
+		boolean isRealTime = containsClockVariables();
+		if (isRealTime) {
+			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
+				modelType = ModelType.PTA;
+			}
 		}
 	}
 	
