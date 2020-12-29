@@ -68,7 +68,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
 	private List<String> rewardStructNames; // Names of reward structures
 	private Expression initStates; // Initial states specification
-	private List<String> obsVars; // Observable variables
+	private boolean hasObservables; // Observables info
+	private List<String> obsVars;
 
 	// Lists of all identifiers used and where
 	private HashMap<String, ASTElement> identUsage;
@@ -102,6 +103,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		rewardStructs = new ArrayList<RewardStruct>();
 		rewardStructNames = new ArrayList<String>();
 		initStates = null;
+		hasObservables = false;
 		obsVars = new ArrayList<String>();
 		identUsage = new HashMap<>();
 		varDecls = new Vector<Declaration>();
@@ -258,6 +260,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		initStates = e;
 	}
 
+	public void setHasObservables(boolean hasObservables)
+	{
+		this.hasObservables = hasObservables;
+	}
+	
 	public void addObservableVar(String n)
 	{
 		obsVars.add(n);
@@ -543,6 +550,15 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return initStates;
 	}
 
+	/**
+	 * Does this model have an observables...endobservables block?
+	 * (i.e., is it a partially observable model?)
+	 */
+	public boolean hasObservables()
+	{
+		return hasObservables;
+	}
+	
 	@Override
 	public List<String> getObservableVars()
 	{
@@ -1335,9 +1351,17 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Then, even if already specified, update the model type
 		// based on the existence of certain features
 		boolean isRealTime = containsClockVariables();
+		boolean isPartObs = hasObservables();
 		if (isRealTime) {
 			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
 				modelType = ModelType.PTA;
+			}
+		}
+		if (isPartObs) {
+			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
+				modelType = ModelType.POMDP;
+			} else if (modelType == ModelType.PTA) {
+				modelType = ModelType.POPTA;
 			}
 		}
 	}
@@ -1407,7 +1431,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			tmp += "\n";
 		s += tmp;
 
-		if (!obsVars.isEmpty()) {
+		if (hasObservables()) {
 			s += "observables " + String.join(",", obsVars) + " endobservables\n\n";
 		}
 
@@ -1479,6 +1503,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 		if (initStates != null)
 			ret.setInitialStates(initStates.deepCopy());
+		ret.hasObservables = hasObservables;
 		for (String ov : obsVars)
 			ret.addObservableVar(ov);
 		// Copy other (generated) info

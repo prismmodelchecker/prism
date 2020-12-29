@@ -953,7 +953,7 @@ void Observables(ModulesFile mf) :
 	String name = null;
 }
 {
-	(<OBSERVABLES>
+	(<OBSERVABLES> { mf.setHasObservables(true); }
 	( name = Identifier() { mf.addObservableVar(name); }
 	( <COMMA> name = Identifier() { mf.addObservableVar(name); } )* )?
 	<ENDOBSERVABLES>)
