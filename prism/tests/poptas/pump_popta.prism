@@ -13,7 +13,7 @@ popta
 
 // can see the state of the pump and its local variables and all clocks
 observables
-	p, messages, l, m, guess, correct, x, y
+	p, l, m, guess, correct, x, y
 endobservables
 
 // delays for high sending 0 and 1 (both need to be >1)

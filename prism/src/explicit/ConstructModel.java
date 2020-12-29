@@ -236,6 +236,11 @@ public class ConstructModel extends PrismComponent
 		if (!justReach && modelType.partiallyObservable()) {
 			List<String> allVars = modelGen.getVarNames();
 			observableVars = modelGen.getObservableVars();
+			for (String obsVar : observableVars) {
+				if (!allVars.contains(obsVar)) {
+					throw new PrismException("Observable " + obsVar + " is not a variable");
+				}
+			}
 			unobservableVars = new ArrayList<>();
 			for (String varName : allVars) {
 				if (!observableVars.contains(varName)) {
