@@ -1389,6 +1389,7 @@ Expression Init() throws ParseException {Expression expr = null;
   static final public 
 void Observables(ModulesFile mf) throws ParseException {String name = null;
     jj_consume_token(OBSERVABLES);
+mf.setHasObservables(true);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case REG_IDENT:{
       name = Identifier();
@@ -3765,12 +3766,6 @@ fl.setLHS(s);
     finally { jj_save(17, xla); }
   }
 
-  static private boolean jj_3R_33()
- {
-    if (jj_3R_30()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_164()
  {
     if (jj_scan_token(MAX)) return true;
@@ -4247,15 +4242,6 @@ fl.setLHS(s);
     return false;
   }
 
-  static private boolean jj_3_2()
- {
-    if (jj_scan_token(DQUOTE)) return true;
-    if (jj_3R_30()) return true;
-    if (jj_scan_token(DQUOTE)) return true;
-    if (jj_scan_token(COLON)) return true;
-    return false;
-  }
-
   static private boolean jj_3R_141()
  {
     if (jj_3R_153()) return true;
@@ -4265,6 +4251,15 @@ fl.setLHS(s);
   static private boolean jj_3R_178()
  {
     if (jj_3R_147()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2()
+ {
+    if (jj_scan_token(DQUOTE)) return true;
+    if (jj_3R_30()) return true;
+    if (jj_scan_token(DQUOTE)) return true;
+    if (jj_scan_token(COLON)) return true;
     return false;
   }
 
@@ -5595,6 +5590,12 @@ fl.setLHS(s);
     if (jj_scan_token(LPARENTH)) return true;
     if (jj_3R_39()) return true;
     if (jj_scan_token(RPARENTH)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_33()
+ {
+    if (jj_3R_30()) return true;
     return false;
   }
 
