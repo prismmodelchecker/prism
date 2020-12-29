@@ -816,6 +816,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		//  is non-null; methods before this point cannot)
 		finaliseModelType();
 		
+		// Check observables
+		checkObservables();
 		// Various semantic checks 
 		doSemanticChecks();
 		// Type checking
@@ -1094,6 +1096,19 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		if (firstCycle != -1) {
 			String s = "Cyclic dependency from references in system...endsystem definition \"" + getSystemDefnName(firstCycle) + "\"";
 			throw new PrismLangException(s, getSystemDefn(firstCycle));
+		}
+	}
+	
+	/**
+	 * Check "observables...endobservables" construct
+	 */
+	private void checkObservables() throws PrismLangException
+	{
+		if (getModelType().partiallyObservable() && !hasObservables) {
+			throw new PrismLangException(getModelType() + "s must specify observables");
+		}
+		if (hasObservables() && !getModelType().partiallyObservable()) {
+			throw new PrismLangException(getModelType() + "s cannot specify observables");
 		}
 	}
 	
