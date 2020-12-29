@@ -38,8 +38,9 @@ import java.util.TreeSet;
 
 import explicit.rewards.MDPRewards;
 import explicit.rewards.MDPRewardsSimple;
-import parser.Observation;
 import prism.Accuracy;
+import prism.AccuracyFactory;
+import prism.Pair;
 import prism.Accuracy.AccuracyLevel;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -193,11 +194,15 @@ public class POMDPModelChecker extends ProbModelChecker
 		timer2 = System.currentTimeMillis() - timer2;
 		mainLog.print("Belief space value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer2 / 1000.0 + " seconds.");
-
-		// find discretized grid points to approximate the initialBelief
+		
+		// Find discretized grid points to approximate the initialBelief
+		// Also get (approximate) accuracy of result from value iteration
 		Belief initialBelief = pomdp.getInitialBelief();
 		double outerBound = interpolateOverGrid(initialBelief.so, initialBelief, vhash_backUp);
-		mainLog.println("Outer bound: " + outerBound);
+		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
+		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
+		// Print result
+		mainLog.println("Outer bound: " + outerBound + " (" + outerBoundAcc.toString(outerBound) + ")");
 		
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
@@ -219,26 +224,38 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Solve MDP to get inner bound
 		ModelCheckerResult mcRes = mcMDP.computeReachProbs(mdp, mdp.getLabelStates("target"), true);
 		double innerBound = mcRes.soln[0];
-		mainLog.println("Inner bound: " + innerBound);
+		Accuracy innerBoundAcc = mcRes.accuracy;
+		// Print result
+		String innerBoundStr = "" + innerBound;
+		if (innerBoundAcc != null) {
+			innerBoundStr += " (" + innerBoundAcc.toString(innerBound) + ")";
+		}
+		mainLog.println("Inner bound: " + innerBoundStr);
 
 		// Finished fixed-resolution grid approximation
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("\nFixed-resolution grid approximation (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + timer / 1000.0 + " seconds.");
 
-		// Extract Store result
-		double lowerBound = Math.min(innerBound, outerBound);
-		double upperBound = Math.max(innerBound, outerBound);
-		mainLog.println("Result bounds: [" + lowerBound + "," + upperBound + "]");
+		// Extract and store result
+		Pair<Double,Accuracy> resultValAndAcc;
+		if (min) {
+			resultValAndAcc = AccuracyFactory.valueAndAccuracyFromInterval(outerBound, outerBoundAcc, innerBound, innerBoundAcc);
+		} else {
+			resultValAndAcc = AccuracyFactory.valueAndAccuracyFromInterval(innerBound, innerBoundAcc, outerBound, outerBoundAcc);
+		}
+		double resultVal = resultValAndAcc.first;
+		Accuracy resultAcc = resultValAndAcc.second;
+		mainLog.println("Result bounds: [" + resultAcc.getResultLowerBound(resultVal) + "," + resultAcc.getResultUpperBound(resultVal) + "]");
 		double soln[] = new double[pomdp.getNumStates()];
 		for (int initialState : pomdp.getInitialStates()) {
-			soln[initialState] = (lowerBound + upperBound) / 2.0;
+			soln[initialState] = resultVal;
 		}
 
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
-		res.accuracy = new Accuracy(AccuracyLevel.BOUNDED, (upperBound - lowerBound) / 2.0);
+		res.accuracy = resultAcc;
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;
@@ -383,10 +400,14 @@ public class POMDPModelChecker extends ProbModelChecker
 		mainLog.print("Belief space value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer2 / 1000.0 + " seconds.");
 
-		// find discretized grid points to approximate the initialBelief
+		// Find discretized grid points to approximate the initialBelief
+		// Also get (approximate) accuracy of result from value iteration
 		Belief initialBelief = pomdp.getInitialBelief();
 		double outerBound = interpolateOverGrid(initialBelief.so, initialBelief, vhash_backUp);
-		mainLog.println("Outer bound: " + outerBound);
+		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
+		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
+		// Print result
+		mainLog.println("Outer bound: " + outerBound + " (" + outerBoundAcc.toString(outerBound) + ")");
 		
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
@@ -419,26 +440,38 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Solve MDP to get inner bound
 		ModelCheckerResult mcRes = mcMDP.computeReachRewards(mdp, mdpRewardsNew, mdp.getLabelStates("target"), true);
 		double innerBound = mcRes.soln[0];
-		mainLog.println("Inner bound: " + innerBound);
+		Accuracy innerBoundAcc = mcRes.accuracy;
+		// Print result
+		String innerBoundStr = "" + innerBound;
+		if (innerBoundAcc != null) {
+			innerBoundStr += " (" + innerBoundAcc.toString(innerBound) + ")";
+		}
+		mainLog.println("Inner bound: " + innerBoundStr);
 
 		// Finished fixed-resolution grid approximation
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("\nFixed-resolution grid approximation (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + timer / 1000.0 + " seconds.");
 
-		// Extract Store result
-		double lowerBound = Math.min(innerBound, outerBound);
-		double upperBound = Math.max(innerBound, outerBound);
-		mainLog.println("Result bounds: [" + lowerBound + "," + upperBound + "]");
+		// Extract and store result
+		Pair<Double,Accuracy> resultValAndAcc;
+		if (min) {
+			resultValAndAcc = AccuracyFactory.valueAndAccuracyFromInterval(outerBound, outerBoundAcc, innerBound, innerBoundAcc);
+		} else {
+			resultValAndAcc = AccuracyFactory.valueAndAccuracyFromInterval(innerBound, innerBoundAcc, outerBound, outerBoundAcc);
+		}
+		double resultVal = resultValAndAcc.first;
+		Accuracy resultAcc = resultValAndAcc.second;
+		mainLog.println("Result bounds: [" + resultAcc.getResultLowerBound(resultVal) + "," + resultAcc.getResultUpperBound(resultVal) + "]");
 		double soln[] = new double[pomdp.getNumStates()];
 		for (int initialState : pomdp.getInitialStates()) {
-			soln[initialState] = (lowerBound + upperBound) / 2.0;
+			soln[initialState] = resultVal;
 		}
 
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
-		res.accuracy = new Accuracy(AccuracyLevel.BOUNDED, (upperBound - lowerBound) / 2.0);
+		res.accuracy = resultAcc;
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;

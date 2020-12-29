@@ -203,6 +203,35 @@ public class PrismUtils
 	 * Measure supremum norm, either absolute or relative,
 	 * return the maximum difference.
 	 */
+	public static <X> double measureSupNorm(HashMap<X,Double> map1, HashMap<X,Double> map2, boolean abs)
+	{
+		assert(map1.size() == map2.size());
+		double value = 0;
+		Set<Entry<X,Double>> entries = map1.entrySet();
+		for (Entry<X,Double> entry : entries) {
+			double diff;
+			double d1 = entry.getValue();
+			if (map2.get(entry.getKey()) != null) {
+				double d2 = map2.get(entry.getKey());
+				if (abs) {
+					diff = measureSupNormAbs(d1, d2);
+				} else {
+					diff = measureSupNormRel(d1, d2);
+				}
+				if (diff > value) {
+					value = diff;
+				}
+			} else {
+				diff = Double.POSITIVE_INFINITY;
+			}
+		}
+		return value;
+	}
+
+	/**
+	 * Measure supremum norm, either absolute or relative,
+	 * return the maximum difference.
+	 */
 	public static double measureSupNorm(double[] d1, double[] d2, boolean abs)
 	{
 		int n = d1.length;

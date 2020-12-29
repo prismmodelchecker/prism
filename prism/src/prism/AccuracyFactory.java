@@ -92,4 +92,47 @@ public class AccuracyFactory
 	{
 		return new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
 	}
+	
+	/**
+	 * Create a pair of a (double) value and an associated {@link Accuracy} object
+	 * representing an interval of values, specified by its lower and upper bounds.
+	 * Optionally, the accuracy of each bound can be specified. 
+	 * @param loVal Lower bound
+	 * @param loAcc Lower bound accuracy
+	 * @param hiVal Upper bound
+	 * @param hiAcc Upper bound accuracy
+	 */
+	public static Pair<Double,Accuracy> valueAndAccuracyFromInterval(double loVal, Accuracy loAcc, double hiVal, Accuracy hiAcc) throws PrismException 
+	{
+		// Don't support probabilistic accuracy bounds
+		if (loAcc != null && loAcc.getLevel() == AccuracyLevel.PROBABLY_BOUNDED) {
+			throw new PrismException("Cannot create interval accuracy from probabilistic bounds");
+		}
+		if (loAcc != null && loAcc.getLevel() == AccuracyLevel.PROBABLY_BOUNDED) {
+			throw new PrismException("Cannot create interval accuracy from probabilistic bounds");
+		}
+		// Extract lower/upper bounds (taking into account accuracy if present)
+		double lo = loAcc == null ? loVal : loAcc.getResultLowerBound(loVal);
+		double hi = hiAcc == null ? hiVal : hiAcc.getResultLowerBound(hiVal);
+		// Compute new mid point value and error bound
+		double mid = (lo + hi) / 2.0;
+		double err = (hi - lo) / 2.0;
+		// Compute accuracy of new result value:
+		// "bounded" if lower/upper bounds were provided with bounded accuracy;
+		// "estimated bounded" if either bound was estimated or missing;
+		// "exactfp" if "bounded" with error 0
+		AccuracyLevel accLev;
+		if (loAcc == null || loAcc.getLevel() == AccuracyLevel.ESTIMATED_BOUNDED) {
+			accLev = AccuracyLevel.ESTIMATED_BOUNDED;
+		} else if (hiAcc == null || hiAcc.getLevel() == AccuracyLevel.ESTIMATED_BOUNDED) {
+			accLev = AccuracyLevel.ESTIMATED_BOUNDED;
+		} else if (err == 0.0) {
+			accLev = AccuracyLevel.EXACT_FLOATING_POINT;
+		} else {
+			accLev = AccuracyLevel.BOUNDED;
+		}
+		// Return pair
+		Accuracy acc = new Accuracy(accLev, err, true);
+		return new Pair<>(mid, acc);
+	}
 }
