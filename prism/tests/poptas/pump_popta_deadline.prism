@@ -2,7 +2,7 @@ pomdp
 
 // can see the state of the pump and its local variables and all clocks
 observables
-	p, messages, l, m, guess, correct, x, y, t
+	p, l, m, guess, correct, x, y, t
 endobservables
 
 label "invariants" = (p=0=>true)&(p=1=>y<=1)&(p=2=>y<=0)&(l=0=>x<=0)&(l=1=>x<=Tout)&(l=2=>x<=0)&(l=3=>true);
