@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Without priorities
+
+prism network2.prism -const K=20,T=2 network.props
+#prism network3.prism -const K=20,T=2 network.props
+
+prism network2_noidle.prism -const K=20,T=2 network.props
+#prism network3_noidle.prism -const K=20,T=2 network.props
+
+# With priorities
+
+prism network2_priorities.prism -const K=20,T=2 network_priorities.props
+#prism network3_priorities.prism -const K=20,T#=2 network_priorities.props
+
+prism network2_priorities_noidle.prism -const K=20,T=2 network_priorities.props
+#prism network3_priorities_noidle.prism -const K=20,T=2 network_priorities.props

@@ -1,0 +1,41 @@
+// Example 2 from
+// "Verification and Control of Partially Observable Probabilistic Real-Time Systems"
+// Norman/Parker/Zou, FORMATS 2015
+// Or Example 4 from
+// "Verification and Control of Partially Observable Probabilistic Systems"
+// Norman/Parker/Zou, Real-Time Systems, 53(3), 2017
+
+popta
+
+observables x, o endobservables
+
+module M
+
+	x : clock;
+	l : [0..3] init 0;
+	o : [0..2] init 0; // 0, 1&2, 3
+
+	invariant
+		(l=0 => x<=1) &
+		(l=1 => x<=2) &
+		(l=2 => x<=2) &
+		(l=3 => true)
+	endinvariant
+
+	[a0] l=0 & x<=1 -> 1/2 : (l'=1)&(o'=1) + 1/2 : (l'=2)&(o'=1)&(x'=0);
+	
+	[a1] l=1 & x<=2 -> (l'=3)&(o'=2);
+	[a2] l=1 & x<=2 -> (l'=3)&(o'=2);
+	
+	[a1] l=2 & x<=2 -> (l'=3)&(o'=2);
+	[a2] l=2 & x<=2 -> (l'=3)&(o'=2);
+
+endmodule
+
+label "goal" = o=2;
+
+rewards
+	[a2] l=1 : 1;
+	[a1] l=2 : 1;
+	l=0 : 1;
+endrewards

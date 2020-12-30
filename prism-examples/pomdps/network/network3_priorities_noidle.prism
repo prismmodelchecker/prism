@@ -1,0 +1,137 @@
+// network unitization example with partially observable channels based on:
+// L. Yang, S. Murugesan and J. Zhang
+// Real-Kime Scheduling over Markovian Channels: When Partial Observability Meets Hard Deadlines
+// IEEE Global Kelecommunications Conference (GLOBECOM'11), pages 1-5, 2011
+
+pomdp
+
+observables
+	sched, k, t, packet1, packet2, packet3, priority1, priority2, priority3 //, chan1, chan2, chan3
+endobservables
+
+// timing constants
+const int K; // total number of time periods
+const int T; // number of slots per time period
+
+// probabilities that channels change states
+// channel of user 1
+const double p1 = 0.8; // prob remain on
+const double r1 = 0.2; // prob move from off to on
+// channel of user 2
+const double p2 = 0.6; // prob remain on
+const double r2 = 0.4; // prob move from off to on
+// channel of user 3
+const double p3 = 0.7; // prob remain on
+const double r3 = 0.3; // prob move from off to on
+
+// scheduler
+module scheduler
+
+	k : [0..K-1]; // current time period
+	t : [0..T-1]; // correct slot
+	sched : [0..1]; // local state
+	
+	// next slot/time period 
+	[slot] sched=0 & t<T-1 -> (sched'=1) & (t'=t+1);
+	[slot] sched=0 & t=T-1 & k<K-1 -> (sched'=1) & (t'=0) & (k'=k+1);
+
+	// make scheduling choice
+	[idle]  sched=1 & packet1=0 & packet2=0 & packet3=0 -> (sched'=0);
+	[send1] sched=1 -> (sched'=0);
+	[send2] sched=1 -> (sched'=0);
+	[send3] sched=1 -> (sched'=0);
+
+	// loop when finished
+	[] sched=0 & t=T-1 & k=K-1 -> true;	
+
+endmodule
+
+// packets for first channel
+module packet1
+
+	packet1 : [0..1]; // packet to send in current period
+
+	// next slot
+	[slot] t=0 -> (packet1'=1); // new period so new packet
+	[slot] t>0 -> true;
+	// sending
+	[send1]	packet1=1 & chan1=1 -> (packet1'=0); // channel up
+	[send1]	packet1=1 & chan1=0 -> true; // channel down
+
+endmodule
+
+// construct further channels' packets through renaming
+module packet2=packet1[packet1=packet2,send1=send2,chan1=chan2] endmodule
+module packet3=packet1[packet1=packet3,send1=send3,chan1=chan3] endmodule
+
+// priority of the packets for channel 1
+module priority1
+
+	priority1 : [0..3];
+	
+	// new period so new packet and randomly assign priority
+	[slot] t=0 -> 0.1 : (priority1'=1) + 0.3 : (priority1'=2) + 0.6 : (priority1'=3);
+	// priority already assigned for this period
+	[slot] t>0 -> true;
+	
+	// reset priority when packet has been sent
+	[send1] chan1=0 -> true;
+	[send1] chan1=1 -> (priority1'=0);
+	
+endmodule
+
+// construct further priorities through renaming
+module priority2 = priority1[priority1=priority2,chan1=chan2,send1=send2] endmodule
+module priority3 = priority1[priority1=priority3,chan1=chan3,send1=send3] endmodule
+
+// first channel status
+module channel1
+
+	chan1 : [0..1]; // status of channel (off/on)
+
+	// initialise
+	[slot] t=0 & k=0 -> 0.5 : (chan1'=0) + 0.5 : (chan1'=1);
+	// next slot
+	[slot] chan1=0 & !(t=0 & k=0) -> 1 - r1 : (chan1'=0) + r1 : (chan1'=1);
+	[slot] chan1=1 & !(t=0 & k=0) -> 1 - p1 : (chan1'=0) + p1 : (chan1'=1);
+
+endmodule
+
+// construct further channels through renaming
+module channel2=channel1[chan1=chan2,p1=p2,r1=r2] endmodule
+module channel3=channel1[chan1=chan3,p1=p3,r1=r3] endmodule
+
+// reward structure for number of dropped packets
+// (need to be careful as we update k and t at the start of the time slot)
+rewards "dropped_packets"
+	[slot] t=0 & k>0 : ((packet1=0)?0:1) + ((packet2=0)?0:1) + ((packet3=0)?0:1);
+	[idle] t=T-1 & k=K-1 : ((packet1=0)?0:1) + ((packet2=0)?0:1) + ((packet3=0)?0:1);
+	[send1] t=T-1 & k=K-1 & chan1=0 : ((packet1=0)?0:1) + ((packet2=0)?0:1) + ((packet3=0)?0:1);
+	[send2] t=T-1 & k=K-1 & chan2=0 : ((packet1=0)?0:1) + ((packet2=0)?0:1) + ((packet3=0)?0:1);
+	[send3] t=T-1 & k=K-1 & chan3=0 : ((packet1=0)?0:1) + ((packet2=0)?0:1) + ((packet3=0)?0:1);
+	[send1] t=T-1 & k=K-1 & chan1=1 : ((packet2=0)?0:1) + ((packet3=0)?0:1);
+	[send2] t=T-1 & k=K-1 & chan2=1 : ((packet1=0)?0:1) + ((packet3=0)?0:1);
+	[send3] t=T-1 & k=K-1 & chan3=1 : ((packet1=0)?0:1) + ((packet2=0)?0:1);
+endrewards
+
+// reward structure for number of sent packets
+rewards "packets_sent"
+	[send1] chan1=1 : 1;
+	[send2] chan2=1 : 1;
+	[send3] chan3=1 : 1;
+endrewards
+
+const double beta=1; // discount factor
+
+// (discounted) reward structure based on priorities
+rewards "priority"
+	[send1] chan1=1 & priority1=1 : 1 * pow(beta,t + k*T);
+	[send2] chan2=1 & priority2=1 : 1 * pow(beta,t + k*T);
+	[send3] chan3=1 & priority3=1 : 1 * pow(beta,t + k*T);
+	[send1] chan1=1 & priority1=2 : 10 * pow(beta,t + k*T);
+	[send2] chan2=1 & priority2=2 : 10 * pow(beta,t + k*T);
+	[send3] chan3=1 & priority3=2 : 10 * pow(beta,t + k*T);
+	[send1] chan1=1 & priority1=3 : 20 * pow(beta,t + k*T);
+	[send2] chan2=1 & priority2=3 : 20 * pow(beta,t + k*T);
+	[send3] chan3=1 & priority3=3 : 20 * pow(beta,t + k*T);
+endrewards

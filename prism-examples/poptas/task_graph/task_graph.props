@@ -1,0 +1,5 @@
+// Minimum expected time to complete all tasks
+R{"time"}min=? [ F "tasks_complete" ]; 
+
+// Minimum expected energy to complete all tasks
+R{"energy"}min=? [ F "tasks_complete" ]; 
