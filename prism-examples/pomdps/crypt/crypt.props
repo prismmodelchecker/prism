@@ -1,0 +1,8 @@
+// Minimum probability to guess correctly which cryptographer paid
+Pmin=? [ F correct=1 ]
+
+// Maximum probability to guess correctly which cryptographer paid
+Pmax=? [ F correct=1 ]
+
+
+

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# basic model
+
+prism repudiation.prism repudiation.props -const K=4 -gridresolution 12
+prism repudiation.prism repudiation.props -const K=8 -gridresolution 4
+
+# complex model
+
+prism repudiation_complex.prism repudiation.props -const K=4 -gridresolution 12
+prism repudiation_complex.prism repudiation.props -const K=8 -gridresolution 4

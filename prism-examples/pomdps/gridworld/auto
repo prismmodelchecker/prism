@@ -1,0 +1,7 @@
+#!/bin/bash
+
+prism 3x3grid.prism grid.props
+prism 4x4grid.prism grid.props
+
+prism 3x3grid_bounded.prism grid_bounded.props -const K=2
+prism 4x4grid_bounded.prism grid_bounded.props -const K=2

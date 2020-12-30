@@ -1,0 +1,2 @@
+// Maximum probability to reach goal (for use with step bound property)
+Pmax=? [ F o=2 ]

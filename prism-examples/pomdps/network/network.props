@@ -1,0 +1,5 @@
+// Minimum number of dropped packets
+R{"dropped_packets"}min=?[F sched=0 & t=T-1 & k=K-1 ]
+
+// Maximum number of packets sent (dual property)
+R{"packets_sent"}max=?[F sched=0 & t=T-1 & k=K-1 ]

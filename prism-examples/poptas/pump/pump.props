@@ -1,0 +1,19 @@
+const int D;
+
+// Minimum probability low guesses correctly
+Pmin=? [ F correct=1 ]
+
+// Maximum probability low guesses correctly
+Pmax=? [ F correct=1 ]
+
+// Minimum probability low guesses correctly within time D
+Pmin=? [ F<=D correct=1 ]
+
+// Maximum probability low guesses correctly within time D
+Pmax=? [ F<=D correct=1 ]
+
+// Minimum expected time to send all messages
+Rmin=? [ F l=2 ]
+
+// Minimum expected time to send all messages
+Rmin=? [ F l=2 ]
