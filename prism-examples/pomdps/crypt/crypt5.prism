@@ -70,7 +70,7 @@ module crypt4 =crypt1[coin1=coin4, s1=s4, p1=p4, agree1=agree4, coin2=coin5, cho
 module crypt5
 	
 	coin5 : [0..2];
-	s5 : [0..1];
+	s5 : [0..2];
 	agree5 : [0..1];
 	guess : [0..3];
 	correct : [0..1];
@@ -87,13 +87,14 @@ module crypt5
 	[choose5] s5=0 & coin5>0 & coin1>0 & !(coin5=coin1) & (pay=p5) -> (s5'=1) & (agree5'=1);
 	
 	// after everyone has announced guess who payed
-	[done] s5=1 & guess=0 -> (guess'=1);
-	[done] s5=1 & guess=0 -> (guess'=2);
-	[done] s5=1 & guess=0 -> (guess'=3);
-	[done] s5=1 & guess=0 -> (guess'=4);
+	[done] s5=1 -> (s5'=2);
+	[guess1] s5=2 & guess=0 -> (guess'=1);
+	[guess2] s5=2 & guess=0 -> (guess'=2);
+	[guess3] s5=2 & guess=0 -> (guess'=3);
+	[guess4] s5=2 & guess=0 -> (guess'=4);
 	
 	// check whether guessed correctly
-	[check] s5=1 & guess>0 & guess=pay -> (correct'=1);
-	[check] s5=1 & guess>0 & !(guess=pay) -> true;
+	[check] s5=2 & guess>0 & guess=pay -> (correct'=1);
+	[check] s5=2 & guess>0 & !(guess=pay) -> true;
 
 endmodule

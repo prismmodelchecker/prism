@@ -61,8 +61,8 @@ module low
 	[ack_l] l=1&m<N&x<=Tout -> (l'=0) & (m'=m+1) & (x'=0);
 	[ack_l] l=1&m=N&x<=Tout -> (l'=2) & (x'=0);
 	[nack_l] l=1&x=Tout -> (l'=0) & (x'=0);
-	[] l=2&guess=-1&x=0 -> (guess'=0);
-	[] l=2&guess=-1&x=0 -> (guess'=1);
+	[guess0] l=2&guess=-1&x=0 -> (guess'=0);
+	[guess1] l=2&guess=-1&x=0 -> (guess'=1);
 	[] l=2&guess>=0&guess=bit&x=0&t<=D -> (l'=3) & (correct'=1);
 	[] l=2&guess>=0&guess!=bit&x=0&t<=D -> (l'=3);
 	[time] (l=0=>x+1<=0)&(l=1=>x+1<=Tout)&(l=2=>x+1<=0)&(l=3=>true) -> 1.0 : (x'=min(x+1, 11));

@@ -88,7 +88,7 @@ module originator
 	[ack] o=2 & ack<N-1 & x<=AD -> (o'=1) & (ack'=min(ack+1,K)) & (x'=0); // not last
 	[ack] o=2 & ack=N-1 & x<=AD -> (o'=3) & (ack'=min(ack+1,K)) & (x'=0); // last
 	// no ack arrives within time bound
-	[] o=2 & x>=AD -> (o'=4) & (x'=0); // ack not arrived within expected interval (stop) 
+	[noack] o=2 & x>=AD -> (o'=4) & (x'=0); // ack not arrived within expected interval (stop) 
 	
 endmodule
 
@@ -124,8 +124,8 @@ module malicious_recipient
 	[ack] r=2 & y>=ad -> (r'=1); // send ack
 	
 	// try and decode
-	[] r=2 -> (r'=3); // decode probabilistically
-	[] r=2 -> (r'=4); // decode correctly
+	[decp] r=2 -> (r'=3); // decode probabilistically
+	[dec] r=2 -> (r'=4); // decode correctly
 	
 	// decoding probabilistically (if fails can try again or send ack)
 	[] r=3 & y>=3 -> 0.75 : (r'=2) & (y'=0) + 0.25 : (r'=5) & (y'=0);

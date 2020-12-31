@@ -88,7 +88,7 @@ module originator
 	[ack] o=2 & ack<N-1 & x<=AD -> (o'=1) & (ack'=min(ack+1,K)) & (x'=0); // not last
 	[ack] o=2 & ack=N-1 & x<=AD -> (o'=3) & (ack'=min(ack+1,K)) & (x'=0); // last
 	// no ack arrives within time bound
-	[] o=2 & x>=AD -> (o'=3) & (x'=0); // ack not arrived within expected interval (stop) 
+	[noack] o=2 & x>=AD -> (o'=3) & (x'=0); // ack not arrived within expected interval (stop) 
 		
 endmodule
 
