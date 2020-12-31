@@ -273,6 +273,15 @@ public class ConstructModel extends PrismComponent
 			// Look at each outgoing choice in turn
 			nc = modelGen.getNumChoices();
 			for (i = 0; i < nc; i++) {
+				// If required, check for duplicate actions here
+				if (modelType.partiallyObservable()) {
+					if (((NondetModel) modelSimple).getChoiceByAction(src, modelGen.getChoiceAction(i)) != -1) {
+						String act = modelGen.getChoiceAction(i) == null ? "" : modelGen.getChoiceAction(i).toString();
+						String err = modelType + " is not allowed duplicate action";
+						err += " (\"" + act + "\") in state " + state.toString(modelGen);
+						throw new PrismException(err);
+					}
+				}
 				// For nondet models, collect transitions in a Distribution
 				if (!justReach && modelType.nondeterministic()) {
 					distr = new Distribution();

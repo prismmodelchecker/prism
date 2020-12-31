@@ -76,6 +76,27 @@ public interface NondetModel extends Model
 	public Object getAction(int s, int i);
 
 	/**
+	 * Get the index of the (first) choice in state {@code s} with action label {@code action}.
+	 * Action labels (which are {@link Object}s) are tested for equality using {@link Object#equals()}.
+	 * Returns -1 if there is no matching action.
+	 */
+	public default int getChoiceByAction(int s, Object action)
+	{
+		int numChoices = getNumChoices(s);
+		for (int i = 0; i < numChoices; i++) {
+			Object a = getAction(s, i);
+			if (a == null) {
+				if (action == null) {
+					return i;
+				}
+			} else if (a.equals(action)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
 	 * Do all choices in in each state have a unique action label?
 	 * <br><br>
 	 * NB: "true" does not imply that all choices are labelled,
