@@ -49,19 +49,20 @@ module crypt1
 	
 	// make choice (once relevant coins have been flipped)
 	// does not pay
-	[a1] s1=0 & coin1>0 & coin2>0 & coin1=coin2 & (pay!=p1) -> (s1'=1) & (agree1'=1);
-	[d1] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay!=p1) -> (s1'=1);
+	[choose1] s1=0 & coin1>0 & coin2>0 & coin1=coin2 & (pay!=p1) -> (s1'=1) & (agree1'=1);
+	[choose1] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay!=p1) -> (s1'=1);
 	// pays
-	[d1] s1=0 & coin1>0 & coin2>0 & coin1=coin2 & (pay=p1) -> (s1'=1);
-	[a1] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay=p1) -> (s1'=1) & (agree1'=1);
+	[choose1] s1=0 & coin1>0 & coin2>0 & coin1=coin2 & (pay=p1) -> (s1'=1);
+	[choose1] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay=p1) -> (s1'=1) & (agree1'=1);
 
 	// when everyone has announced
 	[done] s1=1 -> true;
 
 endmodule
+
 // construct further cryptographers through renaming
-module crypt2 =crypt1[coin1=coin2, s1=s2, p1=p2, agree1=agree2, coin2=coin3, a1=a2, d1=d2 ] endmodule
-module crypt3 =crypt1[coin1=coin3, s1=s3, p1=p3, agree1=agree3, coin2=coin4, a1=a3, d1=d3 ] endmodule
+module crypt2 =crypt1[coin1=coin2, s1=s2, p1=p2, agree1=agree2, coin2=coin3, choose1=choose2 ] endmodule
+module crypt3 =crypt1[coin1=coin3, s1=s3, p1=p3, agree1=agree3, coin2=coin4, choose1=choose3 ] endmodule
 
 // the cryptographer that guesses who pays
 module crypt4
@@ -77,11 +78,11 @@ module crypt4
 	
 	// make choice (once relevant coins have been flipped)
 	// assume does not pay
-	[a4] s4=0 & coin4>0 & coin1>0 & coin4=coin1 -> (s4'=1) & (agree4'=1);
-	[d4] s4=0 & coin4>0 & coin1>0 & !(coin4=coin1) -> (s4'=1);
+	[choose4] s4=0 & coin4>0 & coin1>0 & coin4=coin1 -> (s4'=1) & (agree4'=1);
+	[choose4] s4=0 & coin4>0 & coin1>0 & !(coin4=coin1) -> (s4'=1);
 	// pays
-	[d4] s4=0 & coin4>0 & coin1>0 & coin4=coin1 & (pay=p4) -> (s4'=1);
-	[a4] s4=0 & coin4>0 & coin1>0 & !(coin4=coin1) & (pay=p4) -> (s4'=1) & (agree4'=1);
+	[choose4] s4=0 & coin4>0 & coin1>0 & coin4=coin1 & (pay=p4) -> (s4'=1);
+	[choose4] s4=0 & coin4>0 & coin1>0 & !(coin4=coin1) & (pay=p4) -> (s4'=1) & (agree4'=1);
 	
 	// after everyone has announced guess who payed
 	[done] s4=1 & guess=0 -> (guess'=1);
