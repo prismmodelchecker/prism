@@ -13,7 +13,7 @@ popta
 
 // can see the state of the pump and its local variables and all clocks
 observables
-	p, l, m, guess, correct, x, y
+	h, p, l, m, guess, correct, x, y
 endobservables
 
 // delays for high sending 0 and 1 (both need to be >1)
@@ -33,10 +33,14 @@ const int Tout = 10;
 
 module high
 
+	h : [0..1] init 0; // local state
+	// 0 choose bit
+	// 1 done
+	
 	bit : [-1..1] init -1; // bit high is trying transmit
 
 	// randomly choose bit it is trying to send to low
-	[] bit=-1 -> 1/2 : (bit'=0) + 1/2 : (bit'=1);
+	[] h=0 -> 1/2 : (h'=1)&(bit'=0) + 1/2 : (h'=1)&(bit'=1);
 
 endmodule
 
