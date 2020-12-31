@@ -25,28 +25,28 @@ module scheduler
 	task6 : [0..3]; // (DxCx(A+B)) + ((A+B)+(CxD))
 	
 	// start task 1
-	[p1_add] task1=0 -> (task1'=1);
-	[p2_add] task1=0 -> (task1'=2);
+	[p1_add1] task1=0 -> (task1'=1);
+	[p2_add1] task1=0 -> (task1'=2);
 
 	// start task 2
-	[p1_mult] task2=0 -> (task2'=1);
-	[p2_mult] task2=0 -> (task2'=2);
+	[p1_mult2] task2=0 -> (task2'=1);
+	[p2_mult2] task2=0 -> (task2'=2);
 	
 	// start task 3 (must wait for task 1 to complete)
-	[p1_mult] task3=0 & task1=3 -> (task3'=1);
-	[p2_mult] task3=0 & task1=3 -> (task3'=2);
+	[p1_mult3] task3=0 & task1=3 -> (task3'=1);
+	[p2_mult3] task3=0 & task1=3 -> (task3'=2);
 
 	// start task 4 (must wait for tasks 1 and 2 to complete)
-	[p1_add] task4=0 & task1=3 & task2=3 -> (task4'=1);
-	[p2_add] task4=0 & task1=3 & task2=3 -> (task4'=2);
+	[p1_add4] task4=0 & task1=3 & task2=3 -> (task4'=1);
+	[p2_add4] task4=0 & task1=3 & task2=3 -> (task4'=2);
 	
 	// start task 5 (must wait for task 3 to complete)
-	[p1_mult] task5=0 & task3=3 -> (task5'=1);
-	[p2_mult] task5=0 & task3=3 -> (task5'=2);
+	[p1_mult5] task5=0 & task3=3 -> (task5'=1);
+	[p2_mult5] task5=0 & task3=3 -> (task5'=2);
 	
 	// start task 6 (must wait for tasks 4 and 5 to complete)
-	[p1_add] task6=0 & task4=3 & task5=3 -> (task6'=1);
-	[p2_add] task6=0 & task4=3 & task5=3 -> (task6'=2);
+	[p1_add6] task6=0 & task4=3 & task5=3 -> (task6'=1);
+	[p2_add6] task6=0 & task4=3 & task5=3 -> (task6'=2);
 	
 	// a task finishes on processor 1
 	[p1_done] task1=1 -> (task1'=3);
@@ -91,16 +91,24 @@ module P1
 	[start] p1=0 -> 0.5 : (p1'=1) & (sleep1'=0) + 0.5 : (p1'=1) & (sleep1'=1);
 	
 	// start from sleep state
-	[p1_add]  p1=1 & sleep1=1 -> (p1'=2) & (x1'=0) & (sleep1'=0); // add
-	[p1_mult] p1=1 & sleep1=1 -> (p1'=3) & (x1'=0) & (sleep1'=0); // multiply
+	[p1_add1]  p1=1 & sleep1=1 -> (p1'=2) & (x1'=0) & (sleep1'=0); // add
+	[p1_add4]  p1=1 & sleep1=1 -> (p1'=2) & (x1'=0) & (sleep1'=0); // add
+	[p1_add6]  p1=1 & sleep1=1 -> (p1'=2) & (x1'=0) & (sleep1'=0); // add
+	[p1_mult2] p1=1 & sleep1=1 -> (p1'=3) & (x1'=0) & (sleep1'=0); // multiply
+	[p1_mult3] p1=1 & sleep1=1 -> (p1'=3) & (x1'=0) & (sleep1'=0); // multiply
+	[p1_mult5] p1=1 & sleep1=1 -> (p1'=3) & (x1'=0) & (sleep1'=0); // multiply
 
 	// start from idle state
-	[p1_add]  p1=1 & sleep1=0 -> (p1'=4) & (x1'=0); // add
-	[p1_mult] p1=1 & sleep1=0 -> (p1'=5) & (x1'=0); // multiply
+	[p1_add1]  p1=1 & sleep1=0 -> (p1'=4) & (x1'=0); // add
+	[p1_add4]  p1=1 & sleep1=0 -> (p1'=4) & (x1'=0); // add
+	[p1_add6]  p1=1 & sleep1=0 -> (p1'=4) & (x1'=0); // add
+	[p1_mult2] p1=1 & sleep1=0 -> (p1'=5) & (x1'=0); // multiply
+	[p1_mult3] p1=1 & sleep1=0 -> (p1'=5) & (x1'=0); // multiply
+	[p1_mult5] p1=1 & sleep1=0 -> (p1'=5) & (x1'=0); // multiply
 
 	// wake from sleep
-	[] p1=2 & x1=4 -> (p1'=4) & (x1'=0); // add
-	[] p1=3 & x1=4 -> (p1'=5) & (x1'=0); // multiply
+	[p1] p1=2 & x1=4 -> (p1'=4) & (x1'=0); // add
+	[p1] p1=3 & x1=4 -> (p1'=5) & (x1'=0); // multiply
 
 	// finish
 	[p1_done] p1=4 & x1=2 -> (1-sleep) : (p1'=1) 
@@ -122,8 +130,12 @@ module P2
     endinvariant
 	
 	// start
-	[p2_add]  p2=0 -> (p2'=1) & (x2'=0); // add
-	[p2_mult] p2=0 -> (p2'=2) & (x2'=0); // multiply
+	[p2_add1]  p2=0 -> (p2'=1) & (x2'=0); // add
+	[p2_add4]  p2=0 -> (p2'=1) & (x2'=0); // add
+	[p2_add6]  p2=0 -> (p2'=1) & (x2'=0); // add
+	[p2_mult2] p2=0 -> (p2'=2) & (x2'=0); // multiply
+	[p2_mult3] p2=0 -> (p2'=2) & (x2'=0); // multiply
+	[p2_mult5] p2=0 -> (p2'=2) & (x2'=0); // multiply
 
 	// finish
 	[p2_done] p2=1 & x2=5 -> (p2'=0); // add

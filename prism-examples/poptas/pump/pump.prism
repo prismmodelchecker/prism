@@ -104,8 +104,8 @@ module low
 	[nack_l] l=1 & x=Tout -> (l'=0) & (x'=0); // timeout (nack)
 		
 	// when finished sending immediately guess value high was trying to send
-	[] l=2 & guess=-1 & x=0 -> (guess'=0);
-	[] l=2 & guess=-1 & x=0 -> (guess'=1);
+	[guess0] l=2 & guess=-1 & x=0 -> (guess'=0);
+	[guess1] l=2 & guess=-1 & x=0 -> (guess'=1);
 	// and then immediately check if it is correct
 	[] l=2 & guess>=0 & guess=bit  & x=0 -> (l'=3) & (correct'=1);
 	[] l=2 & guess>=0 & guess!=bit & x=0 -> (l'=3);
