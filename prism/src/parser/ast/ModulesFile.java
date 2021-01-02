@@ -68,9 +68,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
 	private List<String> rewardStructNames; // Names of reward structures
 	private Expression initStates; // Initial states specification
-	private boolean hasObservables; // Observables info
-	private List<String> obsVars;
-
+	private List<ObservableVars> observableVarLists; // Observable variables lists
+	private List<Observable> observableDefns; // Standalone observable definitions
+	
 	// Info about all identifiers used
 	private IdentUsage identUsage;
 	private IdentUsage quotedIdentUsage;
@@ -83,6 +83,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private Vector<String> varNames;
 	private Vector<Type> varTypes;
 	private Vector<Integer> varModules;
+	// Lists of observable info
+	private List<Observable> observables;
+	private List<String> observableNames;
+	private List<Type> observableTypes;
+	private List<String> observableVars;
 
 	// Values set for undefined constants (null if none)
 	private Values undefinedConstantValues;
@@ -104,14 +109,18 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		rewardStructs = new ArrayList<RewardStruct>();
 		rewardStructNames = new ArrayList<String>();
 		initStates = null;
-		hasObservables = false;
-		obsVars = new ArrayList<String>();
+		observableVarLists = new ArrayList<>();
+		observableDefns = new ArrayList<>();
 		identUsage = new IdentUsage();
 		quotedIdentUsage = new IdentUsage(true);
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
 		varModules = new Vector<Integer>();
+		observables = new ArrayList<>();
+		observableNames = new ArrayList<>();
+		observableTypes = new ArrayList<>();
+		observableVars = new ArrayList<>();
 		undefinedConstantValues = null;
 		constantValues = null;
 	}
@@ -262,14 +271,36 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		initStates = e;
 	}
 
-	public void setHasObservables(boolean hasObservables)
+	/**
+	 * Add an observable variables list
+	 */
+	public void addObservableVarList(ObservableVars obsVars)
 	{
-		this.hasObservables = hasObservables;
+		observableVarLists.add(obsVars);
 	}
 	
-	public void addObservableVar(String n)
+	/**
+	 * Set the ith observable variables list
+	 */
+	public void setObservableVarList(int i, ObservableVars obsVars)
 	{
-		obsVars.add(n);
+		observableVarLists.set(i, obsVars);
+	}
+	
+	/**
+	 * Add a (standalone) observable definition
+	 */
+	public void addObservableDefinition(Observable obs)
+	{
+		observableDefns.add(obs);
+	}
+	
+	/**
+	 * Set the ith (standalone) observable definition
+	 */
+	public void setObservableDefinition(int i, Observable obs)
+	{
+		observableDefns.set(i, obs);
 	}
 	
 	// Get methods
@@ -343,7 +374,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	{
 		return globals.elementAt(i);
 	}
-
+	
 	public int getNumModules()
 	{
 		return modules.size();
@@ -553,20 +584,46 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 
 	/**
-	 * Does this model have an observables...endobservables block?
+	 * Does this model define observables?
 	 * (i.e., is it a partially observable model?)
 	 */
 	public boolean hasObservables()
 	{
-		return hasObservables;
+		return observableVarLists.size() > 0 || observableDefns.size() > 0;
 	}
 	
-	@Override
-	public List<String> getObservableVars()
+	/**
+	 * Get the number of lists of observable variables
+	 */
+	public int getNumObservableVarLists()
 	{
-		return obsVars;
+		return observableVarLists.size();
 	}
 	
+	/**
+	 * Get the ith list of observable variables
+	 */
+	public ObservableVars getObservableVarList(int i)
+	{
+		return observableVarLists.get(i);
+	}
+	
+	/**
+	 * Get the number of (standalone) observable definitions
+	 */
+	public int getNumObservableDefinitions()
+	{
+		return observableDefns.size();
+	}
+	
+	/**
+	 * Get the ith (standalone) observable definition
+	 */
+	public Observable getObservableDefinition(int i)
+	{
+	 return observableDefns.get(i);
+	}
+
 	/**
 	 * Look up a property by name.
 	 * Returns null if not found.
@@ -746,16 +803,6 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return false;
 	}
 
-	public boolean isVarObservable(int i)
-	{
-		return obsVars.contains(varNames.get(i));
-	}
-	
-	public boolean isVarObservable(String s)
-	{
-		return obsVars.contains(s);
-	}
-	
 	@Override
 	public boolean containsUnboundedVariables()
 	{
@@ -778,6 +825,34 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			}
 		}
 		return false;
+	}
+	
+	public Observable getObservable(int i)
+	{
+		return observables.get(i);
+	}
+	
+	@Override
+	public boolean isVarObservable(int i)
+	{
+		return observableVars.contains(getVarName(i));
+	}
+	
+	public boolean isVarObservable(String varName)
+	{
+		return observableVars.contains(varName);
+	}
+	
+	@Override
+	public List<String> getObservableNames()
+	{
+		return observableNames;
+	}
+	
+	@Override
+	public List<Type> getObservableTypes()
+	{
+		return observableTypes;
 	}
 	
 	/**
@@ -850,12 +925,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		//  is non-null; methods before this point cannot)
 		finaliseModelType();
 		
-		// Check observables
-		checkObservables();
 		// Various semantic checks 
 		doSemanticChecks();
 		// Type checking
 		typeCheck();
+		// Check observables
+		checkObservables();
 		
 		// If there are no undefined constants, set up values for constants
 		// (to avoid need for a later call to setUndefinedConstants).
@@ -1123,15 +1198,57 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 	
 	/**
-	 * Check "observables...endobservables" construct
+	 * Check definitions of observables,
+	 * and extract/store information about them.
 	 */
 	private void checkObservables() throws PrismLangException
 	{
-		if (getModelType().partiallyObservable() && !hasObservables) {
+		// Check observable definitions are present/absent, as required
+		if (getModelType().partiallyObservable() && !hasObservables()) {
 			throw new PrismLangException(getModelType() + "s must specify observables");
 		}
 		if (hasObservables() && !getModelType().partiallyObservable()) {
 			throw new PrismLangException(getModelType() + "s cannot specify observables");
+		}
+		// Extract info about observables from
+		// observable variable lists and/or observable definitions
+		for (ObservableVars obsVars : observableVarLists) {
+			int n = obsVars.getNumVars();
+			for (int i = 0; i < n; i++) {
+				if (!(obsVars.getVar(i) instanceof ExpressionVar)) {
+					throw new PrismLangException("Observable variables list can only contain variables", obsVars.getVar(i));
+				}
+				ExpressionVar exprVar = (ExpressionVar) obsVars.getVar(i);
+				String name = exprVar.getName();
+				addObservable(name, obsVars.getVar(i), exprVar, exprVar);
+			}
+		}
+		for (Observable obs : observableDefns) {
+			String name = obs.getName();
+			ExpressionVar exprVar = null;
+			if (obs.getDefinition() instanceof ExpressionVar) {
+				exprVar = (ExpressionVar) obs.getDefinition();
+			}
+			addObservable(name, obs, obs.getDefinition(), exprVar);
+		}
+	}
+	
+	/**
+	 * Add info about an observable, from an
+	 * observable variable list or observable definition
+	 * @param name Observable name
+	 * @param decl Where the observable is declared
+	 * @param defn Observable definition expression
+	 * @param exprVar If observable is a variable, the variable reference
+	 */
+	private void addObservable(String name, ASTElement decl, Expression defn, ExpressionVar exprVar) throws PrismLangException
+	{
+		checkAndAddQuotedIdentifier(name, decl, "observable");
+		observables.add(new Observable(name, defn));
+		observableNames.add(name);
+		observableTypes.add(defn.getType());
+		if (exprVar != null) {
+			observableVars.add(exprVar.getName());
 		}
 	}
 	
@@ -1469,10 +1586,16 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			tmp += "\n";
 		s += tmp;
 
-		if (hasObservables()) {
-			s += "observables " + String.join(",", obsVars) + " endobservables\n\n";
+		for (ObservableVars obsVars : observableVarLists) {
+			s += obsVars + "\n\n";
 		}
-
+		for (Observable obs : observableDefns) {
+			s += obs + "\n";
+		}
+		if (!observableDefns.isEmpty()) {
+			s += "\n";
+		}
+		
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
 			s += "global " + getGlobal(i) + ";\n";
@@ -1541,9 +1664,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 		if (initStates != null)
 			ret.setInitialStates(initStates.deepCopy());
-		ret.hasObservables = hasObservables;
-		for (String ov : obsVars)
-			ret.addObservableVar(ov);
+		for (ObservableVars obsVars : observableVarLists)
+			ret.observableVarLists.add(obsVars.deepCopy());
+		for (Observable obs : observableDefns)
+			ret.observableDefns.add(obs.deepCopy());
 		// Copy other (generated) info
 		ret.identUsage = (identUsage == null) ? null : identUsage.deepCopy();
 		ret.quotedIdentUsage = (quotedIdentUsage == null) ? null : quotedIdentUsage.deepCopy();
@@ -1557,6 +1681,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
 		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
 		ret.varModules = (varModules == null) ? null : (Vector<Integer>)varModules.clone();
+		for (Observable obs : observables)
+			ret.observables.add(obs.deepCopy());
+		ret.observableNames = (observableNames == null) ? null : new ArrayList<>(observableNames);
+		ret.observableTypes = (observableTypes == null) ? null : new ArrayList<>(observableTypes);
+		ret.observableVars = (observableVars == null) ? null : new ArrayList<>(observableVars);
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 		
 		return ret;

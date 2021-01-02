@@ -1798,7 +1798,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		mainLog.println();
 		if (currentModulesFile.getModelType().partiallyObservable()) {
-			mainLog.println("Observables: " + String.join(" ", currentModulesFile.getObservableVars()));
+			mainLog.println("Observables: " + String.join(" ", currentModulesFile.getObservableNames()));
 		}
 
 		// For some models, automatically switch engine

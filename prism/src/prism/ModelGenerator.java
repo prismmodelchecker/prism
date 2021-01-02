@@ -332,4 +332,20 @@ public interface ModelGenerator extends ModelInfo
 		// No labels by default
 		throw new PrismException("Label number \"" + i + "\" not defined");
 	}
+	
+	/**
+	 * Get the observation when entering state {@code state}.
+	 * This is represented as a {@link parser.State} object, with one value per observable.
+	 * For models that are not partially observable, null can be returned.
+	 * (for partially observable models only)
+	 * @param state The state
+	 */
+	public default State getObservation(State state) throws PrismException
+	{
+		if (!getModelType().partiallyObservable()) {
+			return null;
+		}
+		// Undefined by default
+		throw new PrismException("Observation not defined");
+	}
 }

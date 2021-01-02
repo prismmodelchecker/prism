@@ -3,6 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Xueyi Zou <xz972@york.ac.uk> (University of York)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -28,8 +29,7 @@ package explicit;
 
 import java.util.List;
 
-import parser.Observation;
-import parser.Unobservation;
+import parser.State;
 
 /**
  * Interface for classes that provide (read-only) access to an explicit-state model with partial observability.
@@ -41,12 +41,12 @@ public interface PartiallyObservableModel extends Model
 	/**
 	 * Get access to a list of observations (optionally stored).
 	 */
-	public List<Observation> getObservationsList();
+	public List<State> getObservationsList();
 
 	/**
 	 * Get access to a list of unobservations (optionally stored).
 	 */
-	public List<Unobservation> getUnobservationsList();
+	public List<State> getUnobservationsList();
 
 	/**
 	 * Get the total number of observations over all states.

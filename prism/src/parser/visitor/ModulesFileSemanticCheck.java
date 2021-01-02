@@ -44,6 +44,7 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 	//private Module inModule = null;
 	private Expression inInvariant = null;
 	private Expression inGuard = null;
+	private ASTElement inObservable = null;
 	//private Update inUpdate = null;
 
 	public ModulesFileSemanticCheck(ModulesFile modulesFile)
@@ -257,6 +258,30 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 		}
 	}
 
+	public void visitPre(ObservableVars e) throws PrismLangException
+	{
+		defaultVisitPre(e);
+		inObservable = e;
+	}
+
+	public void visitPost(ObservableVars e) throws PrismLangException
+	{
+		inObservable = null;
+		defaultVisitPost(e);
+	}
+	
+	public void visitPre(Observable e) throws PrismLangException
+	{
+		defaultVisitPre(e);
+		inObservable = e;
+	}
+
+	public void visitPost(Observable e) throws PrismLangException
+	{
+		inObservable = null;
+		defaultVisitPost(e);
+	}
+	
 	public void visitPost(SystemRename e) throws PrismLangException
 	{
 		int i, n;
@@ -334,10 +359,10 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 				throw new PrismLangException("Modules in a PTA cannot access non-local variables", e);
 			}
 		}*/
-		// Clock references, in models, can only appear in invariants and guards
+		// Clock references, in models, can only appear in certain places
 		// (Note: type checking has not been done, but we know types for ExpressionVars)
 		if (e.getType() instanceof TypeClock) {
-			if (inInvariant == null && inGuard == null) {
+			if (inInvariant == null && inGuard == null && inObservable == null) {
 				throw new PrismLangException("Reference to a clock variable cannot appear here", e);
 			}
 		}

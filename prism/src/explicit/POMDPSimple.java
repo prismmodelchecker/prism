@@ -33,8 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import explicit.rewards.MDPRewards;
-import parser.Observation;
-import parser.Unobservation;
+import parser.State;
 import prism.PrismException;
 import prism.PrismUtils;
 
@@ -44,13 +43,17 @@ import prism.PrismUtils;
  */
 public class POMDPSimple extends MDPSimple implements POMDP
 {
-	/** Information about the observations of this model,
-	 * i.e. the Observation object corresponding to each observation index. */
-	protected List<Observation> observationsList;
+	/**
+	 * Information about the observations of this model.
+	 * Each observation is a State containing the value for each observable.
+	 */
+	protected List<State> observationsList;
 
-	/** Information about the unobservations of this model,
-	 * i.e. the Unobservation object corresponding to each unobservation index. */
-	protected List<Unobservation> unobservationsList;
+	/**
+	 * Information about the unobservations of this model.
+	 * Each observation is a State containing the value of variables that are not observable.
+	 */
+	protected List<State> unobservationsList;
 
 	/** One state corresponding to each observation (used to look up info about it) */
 	protected List<Integer> observationStates;
@@ -193,7 +196,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	/**
 	 * Set the associated (read-only) observation list.
 	 */
-	public void setObservationsList(List<Observation> observationsList)
+	public void setObservationsList(List<State> observationsList)
 	{
 		this.observationsList = observationsList;
 	}
@@ -201,7 +204,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	/**
 	 * Set the associated (read-only) observation list.
 	 */
-	public void setUnobservationsList(List<Unobservation> unobservationsList)
+	public void setUnobservationsList(List<State> unobservationsList)
 	{
 		this.unobservationsList = unobservationsList;
 	}
@@ -210,9 +213,14 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	 * Set the observation info for a state.
 	 * If the actions for existing states with this observation do not match,
 	 * an explanatory exception is thrown (so this should be done after transitions
-	 * have been added to the state).
+	 * have been added to the state). Optionally, a list of names of the
+	 * observables can be passed for error reporting.
+	 * @param s State
+	 * @param observ Observation
+	 * @param unobserv Unobservation
+	 * @param observableNames Names of observables (optional)
 	 */
-	public void setObservation(int s, Observation observ, Unobservation unobserv) throws PrismException
+	public void setObservation(int s, State observ, State unobserv, List<String> observableNames) throws PrismException
 	{
 		int oIndex = observationsList.indexOf(observ);
 		if (oIndex == -1) {
@@ -223,7 +231,8 @@ public class POMDPSimple extends MDPSimple implements POMDP
 		try {
 			setObservation(s, oIndex);
 		} catch (PrismException e) {
-			throw new PrismException("Problem with observation " + observ + ": " + e.getMessage());
+			String sObs = observableNames == null ? observ.toString() : observ.toString(observableNames);
+			throw new PrismException("Problem with observation " + sObs + ": " + e.getMessage());
 		}
 		int unobservIndex = unobservationsList.indexOf(unobserv);
 		if (unobservIndex == -1) {
@@ -278,13 +287,13 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	// Accessors (for PartiallyObservableModel)
 	
 	@Override
-	public List<Observation> getObservationsList()
+	public List<State> getObservationsList()
 	{
 		return observationsList;
 	}
 
 	@Override
-	public List<Unobservation> getUnobservationsList()
+	public List<State> getUnobservationsList()
 	{
 		return unobservationsList;
 	}

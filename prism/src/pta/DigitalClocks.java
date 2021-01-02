@@ -31,6 +31,7 @@ import java.util.*;
 import parser.*;
 import parser.ast.*;
 import parser.ast.Module;
+import parser.ast.Observable;
 import parser.type.*;
 import parser.visitor.*;
 import prism.*;
@@ -369,7 +370,7 @@ public class DigitalClocks
 			mf.addModule(timerModule);
 			// For POPTAs, the variable needs to be observable
 			if (modulesFile.getModelType().partiallyObservable()) {
-				mf.addObservableVar(timerVarName);
+				mf.addObservableDefinition(new Observable(timerVarName, new ExpressionVar(timerVarName, TypeInt.getInstance())));
 			}
 			
 			// Then modify the property

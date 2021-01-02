@@ -30,7 +30,7 @@ package explicit;
 import java.util.Arrays;
 import java.util.List;
 
-import parser.Unobservation;
+import parser.State;
 import prism.PrismUtils;
 
 /**
@@ -144,7 +144,7 @@ public class Belief implements Comparable<Belief>
 	 */
 	public String toString(PartiallyObservableModel poModel)
 	{
-		List<Unobservation> unobs = poModel.getUnobservationsList();
+		List<State> unobs = poModel.getUnobservationsList();
 		String s = poModel.getObservationsList().get(so).toString();
 		boolean first = true;
 		for (int i = 0; i < bu.length; i++) {

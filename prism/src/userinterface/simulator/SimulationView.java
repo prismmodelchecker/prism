@@ -28,9 +28,12 @@
 
 package userinterface.simulator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.TreeSet;
 
-import parser.ast.*;
+import parser.ast.ModulesFile;
+import parser.ast.RewardStruct;
 import parser.type.Type;
 import prism.PrismSettings;
 import userinterface.simulator.GUIViewDialog.RewardListItem;

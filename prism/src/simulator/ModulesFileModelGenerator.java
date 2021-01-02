@@ -191,9 +191,9 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 	
 	@Override
-	public List<String> getObservableVars()
+	public boolean isVarObservable(int i)
 	{
-		return modulesFile.getObservableVars();
+		return modulesFile.isVarObservable(i);
 	}
 	
 	@Override
@@ -224,6 +224,12 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	public int getLabelIndex(String label)
 	{
 		return labelList.getLabelIndex(label);
+	}
+	
+	@Override
+	public List<String> getObservableNames()
+	{
+		return modulesFile.getObservableNames();
 	}
 	
 	// Methods for ModelGenerator interface
@@ -407,6 +413,21 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	{
 		Expression expr = labelList.getLabel(i);
 		return expr.evaluateBoolean(exploreState);
+	}
+	
+	@Override
+	public State getObservation(State state) throws PrismException
+	{
+		if (!modelType.partiallyObservable()) {
+			return null;
+		}
+		int numObservables = getNumObservables();
+		State sObs = new State(numObservables);
+		for (int i = 0; i < numObservables; i++) {
+			Object oObs = modulesFile.getObservable(i).getDefinition().evaluate(modulesFile.getConstantValues(), state);
+			sObs.setValue(i, oObs);
+		}
+		return sObs;
 	}
 	
 	// Methods for RewardGenerator interface
