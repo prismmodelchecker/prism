@@ -391,6 +391,12 @@ public class SimulatorEngine extends PrismComponent
 			// Execute
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
+		case LTS:
+			// Pick a random choice
+			i = rng.randomUnifInt(modelGen.getNumChoices());
+			// Execute
+			executeTransition(i, 0, -1);
+			break;
 		default:
 			throw new PrismNotSupportedException(modelType + " not supported");
 		}
