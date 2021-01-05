@@ -28,7 +28,9 @@
 package explicit;
 
 import java.util.Arrays;
+import java.util.List;
 
+import parser.Unobservation;
 import prism.PrismUtils;
 
 /**
@@ -133,6 +135,26 @@ public class Belief implements Comparable<Belief>
 				return -1;
 		}
 		return 0;
+	}
+
+	/**
+	 * Convert to string representation, using observation info,
+	 * e.g. "(6),0.5:(8)+0.5:(9)" for an observable variable equal to 6
+	 * and an unobservable variable equally likely to be 8 or 9.
+	 */
+	public String toString(PartiallyObservableModel poModel)
+	{
+		List<Unobservation> unobs = poModel.getUnobservationsList();
+		String s = poModel.getObservationsList().get(so).toString();
+		boolean first = true;
+		for (int i = 0; i < bu.length; i++) {
+			if (bu[i] > 0) {
+				s += first ? "," : "+";
+				s += bu[i] + ":" + unobs.get(i).toString();
+				first = false;
+			}
+		}
+		return s;
 	}
 
 	@Override
