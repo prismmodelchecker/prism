@@ -28,7 +28,9 @@
 package explicit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import explicit.graphviz.Decoration;
+import explicit.graphviz.Decorator;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.MDPRewardsSimple;
 import prism.Accuracy;
@@ -212,10 +216,16 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Export?
 		if (stratFilename != null) {
 			mdp.exportToPrismExplicitTra(stratFilename);
-			mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
-//			for (int ii = 0; ii < mdp.getNumStates(); ii++) {
-//				System.out.println(ii + ":" + listBeliefs.get(ii));
-//			}
+			//mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
+			mdp.exportToDotFile(stratFilename + ".dot", Collections.singleton(new Decorator()
+			{
+				@Override
+				public Decoration decorateState(int state, Decoration d)
+				{
+					d.labelAddBelow(listBeliefs.get(state).toString(pomdp));
+					return d;
+				}
+			}));
 		}
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
 		MDPModelChecker mcMDP = new MDPModelChecker(this);
@@ -427,10 +437,16 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Export?
 		if (stratFilename != null) {
 			mdp.exportToPrismExplicitTra(stratFilename);
-			mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
-//			for (int ii = 0; ii < mdp.getNumStates(); ii++) {
-//				System.out.println(ii + ":" + listBeliefs.get(ii));
-//			}
+			//mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
+			mdp.exportToDotFile(stratFilename + ".dot", Collections.singleton(new Decorator()
+			{
+				@Override
+				public Decoration decorateState(int state, Decoration d)
+				{
+					d.labelAddBelow(listBeliefs.get(state).toString(pomdp));
+					return d;
+				}
+			}));
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
