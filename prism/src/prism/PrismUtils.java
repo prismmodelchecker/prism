@@ -177,9 +177,6 @@ public class PrismUtils
 	 */
 	public static <X> boolean doublesAreClose(HashMap<X,Double> map1, HashMap<X,Double> map2, double epsilon, boolean abs)
 	{
-		if (map1.size() != map2.size()) {
-			return false;
-		}
 		Set<Entry<X,Double>> entries = map1.entrySet();
 		for (Entry<X,Double> entry : entries) {
 			double d1 = (double) entry.getValue();
@@ -193,7 +190,7 @@ public class PrismUtils
 						return false;
 				}
 			} else {
-				return false;
+				// Only check over common elements
 			}
 		}
 		return true;
@@ -205,7 +202,6 @@ public class PrismUtils
 	 */
 	public static <X> double measureSupNorm(HashMap<X,Double> map1, HashMap<X,Double> map2, boolean abs)
 	{
-		assert(map1.size() == map2.size());
 		double value = 0;
 		Set<Entry<X,Double>> entries = map1.entrySet();
 		for (Entry<X,Double> entry : entries) {
@@ -222,7 +218,7 @@ public class PrismUtils
 					value = diff;
 				}
 			} else {
-				diff = Double.POSITIVE_INFINITY;
+				// Only check over common elements
 			}
 		}
 		return value;
@@ -234,9 +230,7 @@ public class PrismUtils
 	 */
 	public static double measureSupNorm(double[] d1, double[] d2, boolean abs)
 	{
-		int n = d1.length;
-		assert( n == d2.length);
-
+		int n = Math.min(d1.length, d2.length);
 		double value = 0;
 		if (abs) {
 			for (int i=0; i < n; i++) {
@@ -281,9 +275,6 @@ public class PrismUtils
 	 */
 	public static double measureSupNormInterval(double[] lower, double[] upper, boolean abs, PrimitiveIterator.OfInt indizes)
 	{
-		int n = lower.length;
-		assert( n== upper.length);
-
 		double value = 0;
 		while (indizes.hasNext()) {
 			int i = indizes.nextInt();
@@ -300,9 +291,7 @@ public class PrismUtils
 	 */
 	public static double measureSupNormInterval(double[] lower, double[] upper, boolean abs)
 	{
-		int n = lower.length;
-		assert( n== upper.length);
-
+		int n = Math.min(lower.length, upper.length);
 		double value = 0;
 		for (int i=0; i < n; i++) {
 			double diff = measureSupNormInterval(lower[i], upper[i], abs);
