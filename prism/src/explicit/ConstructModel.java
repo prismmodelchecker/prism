@@ -426,7 +426,7 @@ public class ConstructModel extends PrismComponent
 
 		// For partially observable models, add observation info to states
 		// (do it after full model construction, including deadlock fixing,
-		// because the number of choices for each observation are checked)				this here because we need the choice count)
+		// because the number of choices for each observation are checked)
 		if (modelType == ModelType.POMDP) {
 			for (int s = 0; s < statesList.size(); s++) {
 				setStateObservation((POMDPSimple)model, s, statesList.get(s), observableVars, unobservableVars, modelGen);
