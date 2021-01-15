@@ -525,8 +525,8 @@ public class StateModelChecker extends PrismComponent
 	/**
 	 * Model check an expression, process and return the result.
 	 * Information about states and model constants should be attached to the model.
-	 * For other required info (labels, reward structures, etc.), use the methods
-	 * {@link #setModulesFile} and {@link #setPropertiesFile}
+	 * For other required info (labels, reward structures, etc.), use the method
+	 * {@link #setModelCheckingInfo(ModelInfo, PropertiesFile, RewardGenerator)}.
 	 * to attach the original model/properties files.
 	 */
 	public Result check(Model model, Expression expr) throws PrismException
@@ -588,9 +588,8 @@ public class StateModelChecker extends PrismComponent
 	/**
 	 * Model check an expression and return a vector result values over all states.
 	 * Information about states and model constants should be attached to the model.
-	 * For other required info (labels, reward structures, etc.), use the methods
-	 * {@link #setModulesFile} and {@link #setPropertiesFile}
-	 * to attach the original model/properties files.
+	 * For other required info (labels, reward structures, etc.), use the method
+	 * {@link #setModelCheckingInfo(ModelInfo, PropertiesFile, RewardGenerator)}.
 	 * @param statesOfInterest a set of states for which results should be calculated (null = all states).
 	 *        The calculated values for states not of interest are arbitrary and should to be ignored.
 	 */
