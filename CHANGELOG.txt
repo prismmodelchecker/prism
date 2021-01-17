@@ -2,19 +2,30 @@ This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
 
-Latest changes (up to 517709e8):
+Latest changes (up to 2cedf62a):
 
-* Allow testing RESULT specifications to be intervals [a,b]
-* prism-log-extract: New (meta)fields: prog_name, prog_version, prog
-* Fixed to compile on Java 14
-* Add -dir switch to set current working dir in command line and GUI
-* Consistent treatment of negative/infinite/NaN rewards in symbolic/explicit engines
-* ModelGenerator improvements: auto-generates VarList; stores module info
-* HOAF2DA: Support HOA input without a number-of-states header
-* Disable tree of model info in GUI
-* Support for LTS model checking
-* Improved model type auto-detect when unspecified (MDP/PTA/LTS)
-* Bugfixes & refactoring
+* New model checking functionality
+  - support for POMDP/POPTA model checking
+  - support for LTS model checking
+  - reporting of model checking accuracy
+
+* Features/enhancements:
+  - bounded properties (e.g. P<p) raise error if results are too inaccurate
+  - improved model type auto-detection (MDP/PTA/LTS/POMDP/POPTA)
+  - new -dir switch to set current working dir in command line and GUI
+  - support HOA input (HOAF2DA) without a number-of-states header
+
+* Fixes
+  - fixed to compile on Java 14
+  - consistent treatment of negative/infinite/NaN rewards in symbolic/explicit engines
+  - disable tree of model info in GUI
+  
+* Development and code-level changes
+  - testing RESULT specifications can be intervals [a,b]
+  - prism-log-extract: new (meta)fields: prog_name, prog_version, prog
+  - ModelGenerator improvements: auto-generates VarList; stores module info
+  - explicit model refactoring: more default implementations in interfaces
+  - bugfixes & refactoring
 
 -----------------------------------------------------------------------------
 Version 4.6 (first released 21/4/2020)
