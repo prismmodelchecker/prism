@@ -181,6 +181,7 @@ public class ForwardsReach
 					throw new PrismException(s);
 				}
 			}
+            boolean found_some_transition_guaranteed_to_be_enabled = false;
 			// For each outgoing transition...
 			for (Transition transition : pta.getTransitions(lz.loc)) {
 				dests = new int[transition.getNumEdges()];
@@ -188,11 +189,20 @@ public class ForwardsReach
 				boolean unenabled = false;
 				Edge unenabledEdge = null;
 				count = 0;
+                boolean found_some_edge_not_enabled = false;
 				for (Edge edge : transition.getEdges()) {
 					// Do "discrete post" for this edge
 					// (followed by c-closure)
 					lz2 = lz.deepCopy();
 					lz2.dPost(edge);
+                    {
+                        LocZone lz3 = lz2.deepCopy();
+                        lz3.dPre(edge);
+                        lz3.zone.createComplement().intersect(lz2.zone);
+                        if (!lz3.zone.isEmpty()) {
+                            found_some_edge_not_enabled = true;
+                        }
+                    }
 					lz2.cClosure(pta);
 					// If non-empty, create edge, also adding state to X if new 
 					if (!lz2.zone.isEmpty()) {
@@ -220,7 +230,16 @@ public class ForwardsReach
 					}
 					graph.addTransition(src, transition, dests, null);
 				}
+                if (!found_some_edge_not_enabled) {
+                    found_some_transition_guaranteed_to_be_enabled = true;
+                }
 			}
+            if (!pta.getTransitions(lz.loc).isEmpty() && !found_some_transition_guaranteed_to_be_enabled) {
+                throw new PrismException(
+                        "Badly formed PTA at location " + pta.getLocationNameString(lz.loc) + " when " + lz.zone +
+                                " has exiting transitions but all may be disabled " +
+                                "by the invariants of some of their targets.");
+            }
 			// Check for another possible cause of timelock:
 			// no PTA transitions *enabled* and not possible for time to diverge
 			// (NB: This should be defunct now because of earlier timelock check)
