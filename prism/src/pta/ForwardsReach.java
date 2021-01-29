@@ -194,12 +194,21 @@ public class ForwardsReach
 					// Do "discrete post" for this edge
 					// (followed by c-closure)
 					lz2 = lz.deepCopy();
+					System.out.println("\nSS1: "+lz2);
 					lz2.dPost(edge);
+					System.out.println("SS2: "+lz2);
                     {
                         LocZone lz3 = lz2.deepCopy();
+						System.out.println("SS3: "+lz3);
                         lz3.dPre(edge);
-                        lz3.zone.createComplement().intersect(lz2.zone);
-                        if (!lz3.zone.isEmpty()) {
+						System.out.println("SS4: "+lz3);
+                        NCZone complement=lz3.zone.createComplement();
+						System.out.println("SS4b: "+complement);
+						complement.addConstraints(transition.getGuardConstraints());
+						System.out.println("SS5: "+complement);
+						complement.intersect(lz.zone);
+						System.out.println("SS6: "+complement);
+                        if (!complement.isEmpty()) {
                             found_some_edge_not_enabled = true;
                         }
                     }
