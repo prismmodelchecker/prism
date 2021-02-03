@@ -2072,7 +2072,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public boolean modelCanBeBuilt()
 	{
-		if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA)
+		if (currentModelType.realTime())
 			return false;
 		return true;
 	}
@@ -2122,7 +2122,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 
 		try {
-			if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA) {
+			if (currentModelType.realTime()) {
 				throw new PrismException("You cannot build a " + currentModelType + " model explicitly, only perform model checking");
 			}
 
@@ -2307,8 +2307,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		Model model;
 		List<State> statesList;
 
-		if (modulesFile.getModelType() == ModelType.PTA || currentModelType == ModelType.POPTA) {
-			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
+		if (modulesFile.getModelType().realTime()) {
+			throw new PrismException("You cannot build a " + modulesFile.getModelType() + " model explicitly, only perform model checking");
 		}
 
 		mainLog.print("\nBuilding model...\n");
@@ -3042,8 +3042,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Check that property is valid for the current model type
 		prop.getExpression().checkValid(currentModelType);
 
-		// PTA model checking is handled separately
-		if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA) {
+		// PTA (and similar) model checking is handled separately
+		if (currentModelType.realTime()) {
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 

@@ -169,8 +169,8 @@ public class ModulesFileSemanticCheck extends SemanticCheck
 
 	public void visitPost(DeclarationClock e) throws PrismLangException
 	{
-		// Clocks are only allowed in timed automata like models
-		if (!(modulesFile.getModelType() == ModelType.PTA || modulesFile.getModelType() == ModelType.POPTA)) {
+		// Clocks are only allowed in real-time models
+		if (!(modulesFile.getModelType().realTime())) {
 			throw new PrismLangException("Clock variables are not allowed in " + modulesFile.getModelType() + " models", e);
 		}
 	}
