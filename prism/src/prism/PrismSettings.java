@@ -1190,7 +1190,7 @@ public class PrismSettings implements Observer
 		reg.addSwitch("linprog", "lp", new FlagSwitch(() -> {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
-		}), "", "Use linear programming for multi-objective model checking");
+		}), "", "Use linear programming for MDP solution (explicit engine) and multi-objective model checking");
 		reg.addSwitch("multimaxpoints", (sw, a) -> {
 			int n = a.nextInt(sw);
 			if (n < 0) throw new PrismException("Invalid value for -" + sw + " switch");

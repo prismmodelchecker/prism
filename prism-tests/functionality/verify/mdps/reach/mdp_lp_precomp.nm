@@ -1,0 +1,18 @@
+// MDP where precomputation (prob0/prob1) fully resolves all states before the
+// LP numeric solver is invoked, exercising the early-exit path when -lp is selected.
+// s=0: two choices — self-loop (Pmin adversary loops forever -> Pmin=0) and
+//       go to s=1 (Pmax agent reaches target -> Pmax=1).
+// After precomputation: yes={s=0,s=1} for Pmax; no={s=0}, yes={s=1} for Pmin.
+// maybe=0 in both cases, so the LP is not called and no numeric iteration occurs.
+
+mdp
+
+module M
+s : [0..1] init 0;
+
+[] s=0 -> 1:(s'=0);  // self-loop
+[] s=0 -> 1:(s'=1);  // -> target
+
+endmodule
+
+label "done" = s=1;

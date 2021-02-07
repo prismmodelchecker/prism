@@ -1,0 +1,30 @@
+// MDP with two unknown states (s=0, s=2) that each have a "bad" choice
+// to an absorbing non-target state (s=1, which is in the Rmin-inf set since
+// Pmax(reach target from s=1) = 0).  Tests the toInf guard in
+// computeReachRewardsLP: without it the LP pins x_s2 <= 0 (via the bad
+// choice, using the LP value 0 for the inf state rather than infinity),
+// and the single post-LP GS sweep processes s=0 before s=2 is corrected,
+// yielding Rmin(s=0)=0 instead of the correct value 10.
+
+mdp
+
+module M
+s : [0..4] init 0;
+
+[] s=0 -> 1:(s'=1);  // bad: -> absorbing non-target
+[] s=0 -> 1:(s'=2);  // good: -> s2
+
+[] s=1 -> 1:(s'=1);  // absorbing non-target (Pmax(reach "done") = 0)
+
+[] s=2 -> 1:(s'=1);  // bad: -> absorbing non-target
+[] s=2 -> 1:(s'=3);  // good: -> s3
+
+[] s=3 -> 1:(s'=4);  // -> target
+
+endmodule
+
+label "done" = s=4;
+
+rewards
+	s=3 : 10;
+endrewards

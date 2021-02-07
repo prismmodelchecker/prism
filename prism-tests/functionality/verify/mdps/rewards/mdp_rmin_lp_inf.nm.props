@@ -1,0 +1,4 @@
+// RESULT: 10
+Rmin=? [ F "done" ]
+// RESULT: Infinity
+Rmax=? [ F "done" ]
