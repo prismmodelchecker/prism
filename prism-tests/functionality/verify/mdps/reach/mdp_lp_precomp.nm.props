@@ -1,0 +1,4 @@
+// RESULT: 0
+Pmin=? [ F "done" ]
+// RESULT: 1
+Pmax=? [ F "done" ]
