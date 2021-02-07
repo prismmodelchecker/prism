@@ -54,8 +54,12 @@ import explicit.rewards.WeightedSumMDPRewards;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
+import lpsolve.LpSolve;
+import lpsolve.LpSolveException;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
+import prism.Accuracy;
+import prism.Accuracy.AccuracyLevel;
 import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
@@ -351,12 +355,6 @@ public class MDPModelChecker extends ProbModelChecker
 
 		boolean doPmaxQuotient = this.doPmaxQuotient;
 
-		// Switch to a supported method, if necessary
-		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
-			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
-			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
-		}
-
 		// Check for some unsupported combinations
 		if (mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE) {
 			if (!(precomp && prob0))
@@ -384,6 +382,14 @@ public class MDPModelChecker extends ProbModelChecker
 		if (mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION || mdpSolnMethod == MDPSolnMethod.MODIFIED_POLICY_ITERATION) {
 			if (known != null) {
 				throw new PrismException("Policy iteration methods cannot be passed 'known' values for some states");
+			}
+		}
+		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
+			if (!(precomp && prob0)) {
+				throw new PrismNotSupportedException("Prob0 precomputation must be enabled for linear programming");
+			}
+			if (!min && (genStrat || exportAdv)) {
+				throw new PrismNotSupportedException("Currently, explicit engine does not support adversary construction for linear programming and Rmax");
 			}
 		}
 
@@ -573,6 +579,9 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismNotSupportedException("Interval iteration currently not supported for policy iteration");
 			}
 			res = computeReachProbsModPolIter(mdp, no, yes, min, strat);
+			break;
+		case LINEAR_PROGRAMMING:
+			res = computeReachProbsLP(mdp, no, yes, min, strat);
 			break;
 		default:
 			throw new PrismException("Unknown MDP solution method " + mdpSolnMethod.fullName());
@@ -1224,6 +1233,121 @@ public class MDPModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.numIters = totalIters;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Compute reachability probabilities using linear programming.
+	 * @param mdp: The MDP
+	 * @param no: Probability 0 states
+	 * @param yes: Probability 1 states
+	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	protected ModelCheckerResult computeReachProbsLP(MDP mdp, BitSet no, BitSet yes, boolean min, int strat[]) throws PrismException
+	{
+		double soln[] = null;
+		long timer;
+
+		// Start solution
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
+
+		// Store num states
+		int n = mdp.getNumStates();
+		
+		// Determine set of states actually need to perform computation for
+		BitSet unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(yes);
+		unknown.andNot(no);
+		
+		try {
+			// Initialise LP solver
+			LpSolve solver = LpSolve.makeLp(0, n);
+			solver.setVerbose(lpsolve.LpSolve.CRITICAL);
+			solver.setAddRowmode(true);
+			// Set up arrays for passing LP to solver
+			double row[] = new double[n + 1];
+			int colno[] = new int[n + 1];
+			// Set objective function
+			if (min) {
+				solver.setMaxim();
+			} else {
+				solver.setMinim();
+			}
+			for (int s : new IterableBitSet(unknown)) {
+				row[s + 1] = 1.0;
+			}
+			solver.setObjFn(row);
+			// Add constraints
+			for (int s = 0; s < n; s++) {
+				solver.setBounds(s + 1, 0, 1);
+				if (yes.get(s)) {
+					row[0] = 1.0;
+					colno[0] = s + 1;
+					solver.addConstraintex(1, row, colno, LpSolve.EQ, 1.0);
+				} else if (no.get(s)) {
+					row[0] = 1.0;
+					colno[0] = s + 1;
+					solver.addConstraintex(1, row, colno, LpSolve.EQ, 0.0);
+				} else {
+					int numChoices = mdp.getNumChoices(s);
+					for (int i = 0; i < numChoices; i++) {
+						int count = 0;
+						row[count] = 1.0;
+						colno[count] = s + 1;
+						count++;
+						Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
+						while (iter.hasNext()) {
+							Map.Entry<Integer, Double> e = iter.next();
+							int t = e.getKey();
+							double p = e.getValue();
+							if (t == s) {
+								row[0] -= p;
+							} else {
+								row[count] = -p;
+								colno[count] = t + 1;
+								count++;
+							}
+						}
+						solver.addConstraintex(count, row, colno, min ? LpSolve.LE : LpSolve.GE, 0.0);
+					}
+				}
+			}
+			// Solve LP
+			solver.setAddRowmode(false);
+			//solver.printLp();
+			int lpRes = solver.solve();
+			if (lpRes == lpsolve.LpSolve.OPTIMAL) {
+				soln = solver.getPtrVariables();
+			} else {
+				throw new PrismException("Error solving LP" + (lpRes == lpsolve.LpSolve.INFEASIBLE ? " (infeasible)" : ""));
+			}
+			// Clean up
+			solver.deleteLp();
+		} catch (LpSolveException e) {
+			throw new PrismException("Error solving LP: " +e.getMessage());
+		}
+		
+		// We do an extra iteration of VI (using GS since we have just one solution vector)
+		// If strategy generation was requested (strat != null), this takes care of it
+		// (NB: that only works reliably for min - max needs more work - but this is disallowed earlier)
+		// It also has the side-effect of sometimes fixing small round-off errors from LP
+		mdp.mvMultGSMinMax(soln, min, unknown, false, true, strat);
+		
+		// Finished solution
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Linear programming");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+		
+		// Return results
+		// (Note we don't add the strategy - the one passed in is already there
+		// and might have some existing choices stored for other states).
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = soln;
+		res.accuracy = new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
 		res.timeTaken = timer / 1000.0;
 		return res;
 	}
@@ -2082,7 +2206,7 @@ public class MDPModelChecker extends ProbModelChecker
 		MDPSolnMethod mdpSolnMethod = this.mdpSolnMethod;
 
 		// Switch to a supported method, if necessary
-		if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL || mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION)) {
+		if (!(mdpSolnMethod == MDPSolnMethod.VALUE_ITERATION || mdpSolnMethod == MDPSolnMethod.GAUSS_SEIDEL || mdpSolnMethod == MDPSolnMethod.POLICY_ITERATION || mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING)) {
 			mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
 			mainLog.printWarning("Switching to MDP solution method \"" + mdpSolnMethod.fullName() + "\"");
 		}
@@ -2096,6 +2220,14 @@ public class MDPModelChecker extends ProbModelChecker
 		if (doIntervalIteration) {
 			if (mdpSolnMethod != MDPSolnMethod.VALUE_ITERATION && mdpSolnMethod != MDPSolnMethod.GAUSS_SEIDEL) {
 				throw new PrismNotSupportedException("Currently, explicit engine only supports interval iteration with value iteration or Gauss-Seidel for MDPs");
+			}
+		}
+		if (mdpSolnMethod == MDPSolnMethod.LINEAR_PROGRAMMING) {
+			if (!(precomp && prob1)) {
+				throw new PrismNotSupportedException("Prob1 precomputation must be enabled for linear programming");
+			}
+			if (!min && (genStrat || exportAdv)) {
+				throw new PrismNotSupportedException("Currently, explicit engine does not support adversary construction for linear programming and Rmax");
 			}
 		}
 
@@ -2259,6 +2391,9 @@ public class MDPModelChecker extends ProbModelChecker
 				throw new PrismNotSupportedException("Interval iteration currently not supported for policy iteration");
 			}
 			res = computeReachRewardsPolIter(mdp, mdpRewards, target, inf, min, strat);
+			break;
+		case LINEAR_PROGRAMMING:
+			res = computeReachRewardsLP(mdp, mdpRewards, target, inf, min, strat);
 			break;
 		default:
 			throw new PrismException("Unknown MDP solution method " + method.fullName());
@@ -2644,6 +2779,130 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Compute expected reachability rewards using linear programming.
+	 * @param mdp: The MDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	protected ModelCheckerResult computeReachRewardsLP(MDP mdp, MDPRewards mdpRewards, BitSet target, BitSet inf, boolean min, int strat[]) throws PrismException
+	{
+		double soln[] = null;
+		long timer;
+
+		// Start solution
+		timer = System.currentTimeMillis();
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
+
+		// Store num states
+		int n = mdp.getNumStates();
+		
+		// Determine set of states actually need to perform computation for
+		BitSet unknown = new BitSet();
+		unknown.set(0, n);
+		unknown.andNot(target);
+		unknown.andNot(inf);
+		
+		try {
+			// Initialise LP solver
+			LpSolve solver = LpSolve.makeLp(0, n);
+			solver.setVerbose(lpsolve.LpSolve.CRITICAL);
+			solver.setAddRowmode(true);
+			// Set up arrays for passing LP to solver
+			double row[] = new double[n + 1];
+			int colno[] = new int[n + 1];
+			// Set objective function
+			if (min) {
+				solver.setMaxim();
+			} else {
+				solver.setMinim();
+			}
+			for (int s : new IterableBitSet(unknown)) {
+				row[s + 1] = 1.0;
+			}
+			solver.setObjFn(row);
+			// Add constraints
+			for (int s = 0; s < n; s++) {
+				solver.setBounds(s + 1, 0, Double.POSITIVE_INFINITY);
+				if (!unknown.get(s)) {
+					row[0] = 1.0;
+					colno[0] = s + 1;
+					solver.addConstraintex(1, row, colno, LpSolve.EQ, 0.0);
+				} else {
+					int numChoices = mdp.getNumChoices(s);
+					for (int i = 0; i < numChoices; i++) {
+						int count = 0;
+						row[count] = 1.0;
+						colno[count] = s + 1;
+						count++;
+						boolean toInf = false;
+						Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
+						while (iter.hasNext()) {
+							Map.Entry<Integer, Double> e = iter.next();
+							int t = e.getKey();
+							double p = e.getValue();
+							if (t == s) {
+								row[0] -= p;
+							} else {
+								row[count] = -p;
+								colno[count] = t + 1;
+								count++;
+							}
+							toInf = toInf || inf.get(t);
+						}
+						// We ignore choices that may lead to an inf states
+						// (inf states are not handled by the LP so given value 0)
+						if (!toInf) {
+							double rew = mdpRewards.getStateReward(s) + mdpRewards.getTransitionReward(s, i);
+							solver.addConstraintex(count, row, colno, min ? LpSolve.LE : LpSolve.GE, rew);
+						}
+					}
+				}
+			}
+			// Solve LP
+			solver.setAddRowmode(false);
+			//solver.printLp();
+			int lpRes = solver.solve();
+			if (lpRes == lpsolve.LpSolve.OPTIMAL) {
+				soln = solver.getPtrVariables();
+			} else {
+				throw new PrismException("Error solving LP" + (lpRes == lpsolve.LpSolve.INFEASIBLE ? " (infeasible)" : ""));
+			}
+			// Clean up
+			solver.deleteLp();
+		} catch (LpSolveException e) {
+			throw new PrismException("Error solving LP: " +e.getMessage());
+		}
+		
+		// Set value for states with infinite rewards
+		for (int s : new IterableBitSet(inf)) {
+			soln[s] = Double.POSITIVE_INFINITY;
+		}
+		
+		// We do an extra iteration of VI (using GS since we have just one solution vector)
+		// If strategy generation was requested (strat != null), this takes care of it
+		// (NB: that only works reliably for min - max needs more work - but this is disallowed earlier)
+		// It also has the side-effect of sometimes fixing small round-off errors from LP
+		mdp.mvMultRewGSMinMax(soln, mdpRewards, min, unknown, false, true, strat);
+		
+		// Finished solution
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Linear programming");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+		
+		// Return results
+		// (Note we don't add the strategy - the one passed in is already there
+		// and might have some existing choices stored for other states).
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = soln;
+		res.accuracy = new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
 	 * Compute weighted multi-objective expected reachability rewards,
 	 * i.e. compute the min/max weighted multi-objective reward accumulated to reach a state in {@code target}.
 	 * @param mdp The MDP
@@ -2831,7 +3090,6 @@ public class MDPModelChecker extends ProbModelChecker
 		// Update time taken
 		res.timeTaken = timer / 1000.0;
 		res.timePre = timerProb1 / 1000.0;
-
 		return res;
 	}
 

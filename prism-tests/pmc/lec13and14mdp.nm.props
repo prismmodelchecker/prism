@@ -12,3 +12,8 @@
 	filter(forall, P<0.1 [ F "a" ] <=> false);
 	// RESULT: true
 	filter(forall, P>0 [ F "a" ] <=> (s=0|s=1|s=2));
+	
+	// RESULT: 5/3
+	Rmin=? [ F "a" ];
+	// RESULT: Infinity
+	Rmax=? [ F "a" ];
