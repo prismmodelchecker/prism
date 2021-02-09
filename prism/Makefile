@@ -78,7 +78,7 @@ endif
 # Architecture #
 ################
 
-# For Linux, we use uname to see if we are on a 64-bit (AMD64 or Itanium) machine
+# For Linux/Mac, we use uname to check the architecture
 ifeq ($(OSTYPE),linux)
 	ifneq (,$(findstring 86_64, $(shell uname -m)))
 		ARCH = amd64
@@ -90,17 +90,16 @@ ifeq ($(OSTYPE),linux)
 		ARCH = aarch64
 	endif
 endif
-# For Mac/Windows, we decide whether to build in 64-bit mode based on
-# whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),darwin)
-    JAVA_VERSION_STRING = $(shell java -version 2>&1)
-    ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
-        ARCH = x86_64
-    endif
-    ifneq (,$(findstring 64-Bit, $(JAVA_VERSION_STRING)))
-        ARCH = x86_64
-    endif
+	ifneq (,$(findstring x86_64, $(shell uname -m)))
+		ARCH = x86_64
+	endif
+	ifneq (,$(findstring arm64, $(shell uname -m)))
+		ARCH = arm64
+	endif
 endif
+# For Windows, we decide whether to build in 64-bit mode based on
+# whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),cygwin)
     JAVA_VERSION_STRING = $(shell java -version 2>&1)
     ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
@@ -294,11 +293,19 @@ ifeq ($(OSTYPE),darwin)
 		BINDISTSUFFIX = osx64
 		BIN_TARGETS=prism.darwin64 xprism.linux
 	else
+	ifeq ($(ARCH),arm64)
+		CFLAGS = -arch arm64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CXXFLAGS = --std=c++11 $(CFLAGS)
+		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
+		BINDISTSUFFIX = osx64
+		BIN_TARGETS=prism.darwin64 xprism.linux
+	else
 		CFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx32
 		BIN_TARGETS=prism.darwin32 xprism.linux
+	endif
 	endif
 	JFLAGS = -encoding UTF8
 	SHARED = -dynamiclib
