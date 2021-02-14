@@ -51,6 +51,7 @@ public class PropertiesFile extends ASTElement
 
 	// Info about all identifiers used
 	private IdentUsage identUsage;
+	private IdentUsage quotedIdentUsage;
 
 	// Values set for undefined constants (null if none)
 	private Values undefinedConstantValues;
@@ -68,6 +69,7 @@ public class PropertiesFile extends ASTElement
 		constantList = new ConstantList();
 		properties = new Vector<Property>();
 		identUsage = new IdentUsage();
+		quotedIdentUsage = new IdentUsage(true);
 		undefinedConstantValues = null;
 		constantValues = null;
 	}
@@ -273,6 +275,22 @@ public class PropertiesFile extends ASTElement
 		return identUsage.isIdentUsed(ident);
 	}
 
+	/**
+	 * Check if a quoted identifier is already used somewhere here or in the model
+	 * (as a label or property name)
+	 * and throw an exception if it is. Otherwise, add it to the list.
+	 * @param ident The name of the (new) identifier
+	 * @param decl Where the identifier is declared
+	 * @param use Optionally, the identifier's usage (e.g. "constant")
+	 */
+	private void checkAndAddQuotedIdentifier(String ident, ASTElement decl, String use) throws PrismLangException
+	{
+		// Check model first
+		modelInfo.checkQuotedIdent(ident, decl, use);
+		// Then check/add here in the properties file
+		quotedIdentUsage.checkAndAddIdentifier(ident, decl, use, "the properties");
+	}
+	
 	// method to tidy up (called after parsing)
 
 	public void tidyUp() throws PrismLangException
@@ -346,38 +364,25 @@ public class PropertiesFile extends ASTElement
 
 	private void checkLabelIdents() throws PrismLangException
 	{
-		int i, n;
-		String s;
-		Vector<String> labelIdents;
-		LabelList mfLabels;
-
-		// get label list from model file
-		mfLabels = modulesFile.getLabelList();
-		// add model file labels to combined label list (cloning them just for good measure)
+		// check for identifier clashes
+		int n = labelList.size();
+		for (int i = 0; i < n; i++) {
+			String s = labelList.getLabelName(i);
+			checkAndAddQuotedIdentifier(s, labelList.getLabelNameIdent(i), "label");
+		}
+		
+		// build combined label list
 		combinedLabelList = new LabelList();
+		// first add model file labels to combined label list (cloning them just for good measure)
+		LabelList mfLabels = modulesFile.getLabelList();
 		n = mfLabels.size();
-		for (i = 0; i < n; i++) {
+		for (int i = 0; i < n; i++) {
 			combinedLabelList.addLabel(mfLabels.getLabelNameIdent(i), mfLabels.getLabel(i).deepCopy());
 		}
-		// go thru labels
+		// then add labels from here
 		n = labelList.size();
-		labelIdents = new Vector<String>();
-		for (i = 0; i < n; i++) {
-			s = labelList.getLabelName(i);
-			// see if ident has been used already for a label in model file
-			if (mfLabels.getLabelIndex(s) != -1) {
-				throw new PrismLangException("Label \"" + s + "\" already defined in model file", labelList.getLabelNameIdent(i));
-			}
-			// see if ident has been used already for a label
-			if (labelIdents.contains(s)) {
-				throw new PrismLangException("Duplicated label name \"" + s + "\"", labelList.getLabelNameIdent(i));
-			}
-			// store identifier
-			// and add label to combined list
-			else {
-				labelIdents.addElement(s);
-				combinedLabelList.addLabel(labelList.getLabelNameIdent(i), labelList.getLabel(i));
-			}
+		for (int i = 0; i < n; i++) {
+			combinedLabelList.addLabel(labelList.getLabelNameIdent(i), labelList.getLabel(i));
 		}
 	}
 
@@ -398,35 +403,11 @@ public class PropertiesFile extends ASTElement
 	 */
 	private void checkPropertyNames() throws PrismLangException
 	{
-		int i, n;
-		String s;
-		Vector<String> propNames;
-		LabelList mfLabels;
-
-		// get label list from model file
-		mfLabels = modulesFile.getLabelList();
-		// Go thru properties
-		n = properties.size();
-		propNames = new Vector<String>();
-		for (i = 0; i < n; i++) {
-			s = properties.get(i).getName();
-			if (s == null)
-				continue;
-			// see if ident has been used already for a label in model file
-			if (mfLabels.getLabelIndex(s) != -1) {
-				throw new PrismLangException("Property name \"" + s + "\" clashes with label in model file", getPropertyObject(i));
-			}
-			// see if ident has been used already for a label in properties file
-			if (labelList.getLabelIndex(s) != -1) {
-				throw new PrismLangException("Property name \"" + s + "\" clashes with label", getPropertyObject(i));
-			}
-			// see if ident has been used already for a property name
-			if (propNames.contains(s)) {
-				throw new PrismLangException("Duplicated property name \"" + s + "\"", getPropertyObject(i));
-			}
-			// store identifier
-			else {
-				propNames.addElement(s);
+		int n = properties.size();
+		for (int i = 0; i < n; i++) {
+			String s = properties.get(i).getName();
+			if (s != null) {
+				checkAndAddQuotedIdentifier(s, getPropertyObject(i), "property");
 			}
 		}
 	}

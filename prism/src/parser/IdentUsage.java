@@ -36,6 +36,9 @@ import prism.PrismLangException;
  */
 public class IdentUsage
 {
+	// Are these identifiers used in (double) quotes?
+	private boolean quoted = false;
+	
 	// Where identifiers were declared (AST element)
 	private HashMap<String, ASTElement> identDecls;
 	// Uses of identifiers (e.g. "constant")
@@ -45,6 +48,15 @@ public class IdentUsage
 
 	public IdentUsage()
 	{
+		this(false);
+	}
+	
+	/**
+	 * @param quoted Are these identifiers used in (double) quotes?
+	 */
+	public IdentUsage(boolean quoted)
+	{
+		this.quoted = quoted;
 		identDecls = new HashMap<>();
 		identUses = new HashMap<>();
 		identLocs = new HashMap<>();
@@ -95,7 +107,8 @@ public class IdentUsage
 		if (existing != null) {
 			// Construct error message if identifier exists already
 			String identStr = use != null ? ("Name of " + use) : "Identifier";
-			identStr += " " + ident + "";
+			String qu = quoted ? "\"" : "";
+			identStr += " " + qu + ident + qu;
 			String existingUse = identUses.get(ident);
 			existingUse = (existingUse == null) ? "" : " for a " + existingUse;
 			String existingLoc = identLocs.get(ident);
@@ -107,7 +120,7 @@ public class IdentUsage
 	@SuppressWarnings("unchecked")
 	public IdentUsage deepCopy()
 	{
-		IdentUsage ret = new IdentUsage();
+		IdentUsage ret = new IdentUsage(quoted);
 		ret.identDecls = (HashMap<String, ASTElement>) identDecls.clone();
 		return ret;
 	}
