@@ -49,8 +49,8 @@ public class PropertiesFile extends ASTElement
 	private ConstantList constantList;
 	private Vector<Property> properties; // Properties
 
-	// Lists of all identifiers used and where
-	private HashMap<String, ASTElement> identUsage;
+	// Info about all identifiers used
+	private IdentUsage identUsage;
 
 	// Values set for undefined constants (null if none)
 	private Values undefinedConstantValues;
@@ -67,7 +67,7 @@ public class PropertiesFile extends ASTElement
 		combinedLabelList = new LabelList();
 		constantList = new ConstantList();
 		properties = new Vector<Property>();
-		identUsage = new HashMap<>();
+		identUsage = new IdentUsage();
 		undefinedConstantValues = null;
 		constantValues = null;
 	}
@@ -253,21 +253,15 @@ public class PropertiesFile extends ASTElement
 	 * (as a formula, constant or variable)
 	 * and throw an exception if it is. Otherwise, add it to the list.
 	 * @param ident The name of the (new) identifier
-	 * @param e Where the identifier is declared in the model 
+	 * @param decl Where the identifier is declared
+	 * @param use Optionally, the identifier's usage (e.g. "constant")
 	 */
-	private void checkAndAddIdentifier(String ident, ASTElement e) throws PrismLangException
+	private void checkAndAddIdentifier(String ident, ASTElement decl, String use) throws PrismLangException
 	{
-		// Check model file first
-		if (modulesFile.isIdentUsed(ident)) {
-			throw new PrismLangException("Identifier \"" + ident + "\" is already used in the model file", e);
-		}
-		// Then check here in the properties file
-		ASTElement existing = identUsage.get(ident);
-		if (existing != null) {
-			throw new PrismLangException("Identifier \"" + ident + "\" is already used", e);
-		}
-		// Finally, add
-		identUsage.put(ident, e);
+		// Check model first
+		modelInfo.checkIdent(ident, decl, use);
+		// Then check/add here in the properties file
+		identUsage.checkAndAddIdentifier(ident, decl, use, "the properties");
 	}
 	
 	/**
@@ -276,7 +270,7 @@ public class PropertiesFile extends ASTElement
 	 */
 	public boolean isIdentUsed(String ident)
 	{
-		return identUsage.containsKey(ident);
+		return identUsage.isIdentUsed(ident);
 	}
 
 	// method to tidy up (called after parsing)
@@ -343,7 +337,7 @@ public class PropertiesFile extends ASTElement
 		int n = formulaList.size();
 		for (int i = 0; i < n; i++) {
 			String s = formulaList.getFormulaName(i);
-			checkAndAddIdentifier(s, formulaList.getFormulaNameIdent(i));
+			checkAndAddIdentifier(s, formulaList.getFormulaNameIdent(i), "formula");
 		}
 	}
 
@@ -395,7 +389,7 @@ public class PropertiesFile extends ASTElement
 		int n = constantList.size();
 		for (int i = 0; i < n; i++) {
 			String s = constantList.getConstantName(i);
-			checkAndAddIdentifier(s, constantList.getConstantNameIdent(i));
+			checkAndAddIdentifier(s, constantList.getConstantNameIdent(i), "constant");
 		}
 	}
 
@@ -674,7 +668,6 @@ public class PropertiesFile extends ASTElement
 	/**
 	 * Perform a deep copy.
 	 */
-	@SuppressWarnings("unchecked")
 	public ASTElement deepCopy()
 	{
 		int i, n;
@@ -691,7 +684,7 @@ public class PropertiesFile extends ASTElement
 			ret.addProperty((Property) getPropertyObject(i).deepCopy());
 		}
 		// Copy other (generated) info
-		ret.identUsage = (identUsage == null) ? null : (HashMap<String, ASTElement>) identUsage.clone();
+		ret.identUsage = (identUsage == null) ? null : identUsage.deepCopy();
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 
 		return ret;

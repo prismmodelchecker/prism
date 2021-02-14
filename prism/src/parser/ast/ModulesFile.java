@@ -27,12 +27,12 @@
 package parser.ast;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
 import param.BigRational;
+import parser.IdentUsage;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -71,8 +71,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private boolean hasObservables; // Observables info
 	private List<String> obsVars;
 
-	// Lists of all identifiers used and where
-	private HashMap<String, ASTElement> identUsage;
+	// Info about all identifiers used
+	private IdentUsage identUsage;
 	// List of all module names
 	private String[] moduleNames;
 	// List of synchronising actions
@@ -105,7 +105,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		initStates = null;
 		hasObservables = false;
 		obsVars = new ArrayList<String>();
-		identUsage = new HashMap<>();
+		identUsage = new IdentUsage();
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
@@ -580,24 +580,28 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 * (as a formula, constant or variable)
 	 * and throw an exception if it is. Otherwise, add it to the list.
 	 * @param ident The name of the (new) identifier
-	 * @param e Where the identifier is declared in the model 
+	 * @param decl Where the identifier is declared in the model
+	 * @param use Optionally, the identifier's usage (e.g. "constant")
 	 */
-	private void checkAndAddIdentifier(String ident, ASTElement e) throws PrismLangException
+	private void checkAndAddIdentifier(String ident, ASTElement decl, String use) throws PrismLangException
 	{
-		ASTElement existing = identUsage.get(ident);
-		if (existing != null) {
-			throw new PrismLangException("Identifier \"" + ident + "\" is already used in the model", e);
-		}
-		identUsage.put(ident, e);
+		identUsage.checkAndAddIdentifier(ident, decl, use, "the model");
 	}
 	
-	/**
-	 * Check if an identifier is already used somewhere in the model
-	 * (as a formula, constant or variable)
-	 */
+	@Override
 	public boolean isIdentUsed(String ident)
 	{
-		return identUsage.containsKey(ident);
+		// Goes beyond default implementation in ModelInfo:
+		// also looks at formulas
+		return identUsage.isIdentUsed(ident);
+	}
+
+	@Override
+	public void checkIdent(String ident, ASTElement decl, String use) throws PrismLangException
+	{
+		// Goes beyond default implementation in ModelInfo:
+		// also looks at formulas, and produces better error messages
+		identUsage.checkIdent(ident, decl, use);
 	}
 
 	// get individual module name
@@ -841,7 +845,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		int n = formulaList.size();
 		for (int i = 0; i < n; i++) {
 			String s = formulaList.getFormulaName(i);
-			checkAndAddIdentifier(s, formulaList.getFormulaNameIdent(i));
+			checkAndAddIdentifier(s, formulaList.getFormulaNameIdent(i), "formula");
 		}
 	}
 
@@ -988,7 +992,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		int n = constantList.size();
 		for (int i = 0; i < n; i++) {
 			String s = constantList.getConstantName(i);
-			checkAndAddIdentifier(s, constantList.getConstantNameIdent(i));
+			checkAndAddIdentifier(s, constantList.getConstantNameIdent(i), "constant");
 		}
 	}
 
@@ -1003,7 +1007,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		int n = getNumGlobals();
 		for (int i = 0; i < n; i++) {
 			String s = getGlobal(i).getName();
-			checkAndAddIdentifier(s, getGlobal(i));
+			checkAndAddIdentifier(s, getGlobal(i), "variable");
 			varDecls.add(getGlobal(i));
 			varNames.add(s);
 			varTypes.add(getGlobal(i).getType());
@@ -1017,7 +1021,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			int numLocals = module.getNumDeclarations();
 			for (int j = 0; j < numLocals; j++) {
 				String s = module.getDeclaration(j).getName();
-				checkAndAddIdentifier(s, module.getDeclaration(j));
+				checkAndAddIdentifier(s, module.getDeclaration(j), "variable");
 				varDecls.add(module.getDeclaration(j));
 				varNames.add(s);
 				varTypes.add(module.getDeclaration(j).getType());
@@ -1522,7 +1526,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		for (String ov : obsVars)
 			ret.addObservableVar(ov);
 		// Copy other (generated) info
-		ret.identUsage = (identUsage == null) ? null : (HashMap<String, ASTElement>) identUsage.clone();
+		ret.identUsage = (identUsage == null) ? null : identUsage.deepCopy();
 		ret.moduleNames = (moduleNames == null) ? null : moduleNames.clone();
 		ret.synchs = (synchs == null) ? null : (Vector<String>)synchs.clone();
 		if (varDecls != null) {
