@@ -271,13 +271,13 @@ public class SimulationView extends Observable
 			{
 				int i = 0;
 				for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-					visibleVariables.add(new Variable(i, parsedModel.getGlobal(g).getName(), parsedModel.getGlobal(g).getType()));
+					visibleVariables.add(new Variable(i, parsedModel.getGlobal(g).getName(), parsedModel.getGlobal(g).getType(), -1));
 					i++;
 				}
 				for (int m = 0; m < parsedModel.getNumModules(); m++) {
 					parser.ast.Module module = parsedModel.getModule(m);
 					for (int v = 0; v < module.getNumDeclarations(); v++) {
-						visibleVariables.add(new Variable(i, module.getDeclaration(v).getName(), module.getDeclaration(v).getType()));
+						visibleVariables.add(new Variable(i, module.getDeclaration(v).getName(), module.getDeclaration(v).getType(), m));
 						i++;
 					}
 				}
@@ -318,12 +318,14 @@ public class SimulationView extends Observable
 		private int index;
 		private String name;
 		private Type type;
+		private int moduleIndex;
 
-		public Variable(int index, String name, Type type)
+		public Variable(int index, String name, Type type, int moduleIndex)
 		{
 			this.index = index;
 			this.name = name;
 			this.type = type;
+			this.moduleIndex = moduleIndex;
 		}
 
 		public int getIndex()
@@ -341,6 +343,11 @@ public class SimulationView extends Observable
 			return type;
 		}
 
+		public int getModuleIndex()
+		{
+			return moduleIndex;
+		}
+		
 		public String toString()
 		{
 			return name;
