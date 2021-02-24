@@ -128,7 +128,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 
 	public boolean canShowTime()
 	{
-		return parsedModel.getModelType().continuousTime();
+		return modelInfo.getModelType().continuousTime();
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				return "Time";
 			case VARIABLES:
 				int module = (Integer) visibleGroups.get(groupIndex).info;
-				return module == -1 ? "Globals" : parsedModel.getModuleName(module);
+				return module == -1 ? "Globals" : modelInfo.getModuleName(module);
 			case REWARDS:
 				return "Rewards";
 			default:
@@ -188,7 +188,7 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				return null;
 			case VARIABLES:
 				int module = (Integer) visibleGroups.get(groupIndex).info;
-				return module == -1 ? "Global variables" : "Variables of module " + parsedModel.getModuleName(module);
+				return module == -1 ? "Global variables" : "Variables of module " + modelInfo.getModuleName(module);
 			case REWARDS:
 				return "State, transition and cumulative rewards";
 			default:
