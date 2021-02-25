@@ -303,10 +303,12 @@ public class SimulatorEngine extends PrismComponent
 				throw new PrismNotSupportedException("Random choice of multiple initial states not yet supported");
 			}
 		}
+		// Get initial observation
+		State currentObs = modelGen.getObservation(currentState);
 		// Get initial state reward
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Initialise stored path
-		path.initialise(currentState, tmpStateRewards);
+		path.initialise(currentState, currentObs, tmpStateRewards);
 		// Explore initial state in model generator
 		computeTransitionsForState(currentState);
 		// Reset and then update samplers for any loaded properties
@@ -373,6 +375,7 @@ public class SimulatorEngine extends PrismComponent
 			executeTransition(ref.i, ref.offset, -1);
 			break;
 		case MDP:
+		case POMDP:
 			// Pick a random choice
 			i = rng.randomUnifInt(modelGen.getNumChoices());
 			// Pick a random transition from this choice
@@ -858,10 +861,12 @@ public class SimulatorEngine extends PrismComponent
 		calculateTransitionRewards(path.getCurrentState(), action, tmpTransitionRewards);
 		// Compute next state
 		currentState.copy(modelGen.computeTransitionTarget(i, offset));
+		// Compute observation for new state
+		State currentObs = modelGen.getObservation(currentState);
 		// Compute state rewards for new state
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(index, action, actionString, p, tmpTransitionRewards, currentState, tmpStateRewards, modelGen);
+		path.addStep(index, action, actionString, p, tmpTransitionRewards, currentState, currentObs, tmpStateRewards, modelGen);
 		// Explore new state in model generator
 		computeTransitionsForState(currentState);
 		// Update samplers for any loaded properties
@@ -896,10 +901,12 @@ public class SimulatorEngine extends PrismComponent
 		calculateTransitionRewards(path.getCurrentState(), action, tmpTransitionRewards);
 		// Compute next state
 		currentState.copy(modelGen.computeTransitionTarget(i, offset));
+		// Compute observation for new state
+		State currentObs = modelGen.getObservation(currentState);
 		// Compute state rewards for new state
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
-		path.addStep(time, index, action, actionString, p, tmpTransitionRewards, currentState, tmpStateRewards, modelGen);
+		path.addStep(time, index, action, actionString, p, tmpTransitionRewards, currentState, currentObs, tmpStateRewards, modelGen);
 		// Explore new state in model generator
 		computeTransitionsForState(currentState);
 		// Update samplers for any loaded properties
@@ -1276,6 +1283,16 @@ public class SimulatorEngine extends PrismComponent
 	public State getStateOfPathStep(int step)
 	{
 		return ((PathFull) path).getState(step);
+	}
+
+	/**
+	 * Get the observation at a given step of the path.
+	 * (Not applicable for on-the-fly paths)
+	 * @param step Step index (0 = initial state/step of path)
+	 */
+	public State getObservationOfPathStep(int step)
+	{
+		return ((PathFull) path).getObservation(step);
 	}
 
 	/**

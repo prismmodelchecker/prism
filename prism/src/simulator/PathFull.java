@@ -89,7 +89,7 @@ public class PathFull extends Path implements PathFullInfo
 	// MUTATORS (for Path)
 
 	@Override
-	public void initialise(State initialState, double[] initialStateRewards)
+	public void initialise(State initialState, State initialObs, double[] initialStateRewards)
 	{
 		clear();
 		// Add new step item to the path
@@ -97,6 +97,7 @@ public class PathFull extends Path implements PathFullInfo
 		steps.add(step);
 		// Add (copies of) initial state and state rewards to new step
 		step.state = new State(initialState);
+		step.obs = initialObs == null ? null : new State(initialObs);
 		step.stateRewards = initialStateRewards.clone();
 		// Set cumulative time/reward (up until entering this state)
 		step.timeCumul = 0.0;
@@ -108,15 +109,15 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, double[] newStateRewards,
+	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards,
 			ModelGenerator modelGen)
 	{
-		addStep(1.0, choice, action, actionString, probability, transitionRewards, newState, newStateRewards, modelGen);
+		addStep(1.0, choice, action, actionString, probability, transitionRewards, newState, newObs, newStateRewards, modelGen);
 	}
 
 	@Override
 	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState,
-			double[] newStateRewards, ModelGenerator modelGen)
+			State newObs, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		Step stepOld, stepNew;
 		// Add info to last existing step
@@ -130,8 +131,9 @@ public class PathFull extends Path implements PathFullInfo
 		// Add new step item to the path
 		stepNew = new Step();
 		steps.add(stepNew);
-		// Add (copies of) new state and state rewards to new step
+		// Add (copies of) new state, observation and state rewards to new step
 		stepNew.state = new State(newState);
+		stepNew.obs = newObs == null ? null : new State(newObs);
 		stepNew.stateRewards = newStateRewards.clone();
 		// Set cumulative time/rewards (up until entering this state)
 		stepNew.timeCumul = stepOld.timeCumul + time;
@@ -242,6 +244,12 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
+	public State getCurrentObservation()
+	{
+		return steps.get(steps.size() - 1).obs;
+	}
+
+	@Override
 	public Object getPreviousAction()
 	{
 		return steps.get(steps.size() - 2).action;
@@ -339,6 +347,12 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(step).state;
 	}
 
+	@Override
+	public State getObservation(int step)
+	{
+		return steps.get(step).obs;
+	}
+	
 	@Override
 	public double getStateReward(int step, int rsi)
 	{
@@ -545,6 +559,7 @@ public class PathFull extends Path implements PathFullInfo
 		{
 			// Set (unknown) defaults and initialise arrays
 			state = null;
+			obs = null;
 			stateRewards = new double[numRewardStructs];
 			timeCumul = 0.0;
 			rewardsCumul = new double[numRewardStructs];
@@ -558,6 +573,8 @@ public class PathFull extends Path implements PathFullInfo
 
 		// Current state (before transition)
 		public State state;
+		// Observation for current state
+		public State obs;
 		// State rewards for current state
 		public double stateRewards[];
 		// Cumulative time spent up until entering this state
