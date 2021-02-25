@@ -228,23 +228,29 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	 */
 	public void setObservation(int s, State observ, State unobserv, List<String> observableNames) throws PrismException
 	{
+		// See if the observation already exists and add it if not
 		int oIndex = observationsList.indexOf(observ);
 		if (oIndex == -1) {
+			// Add new observation
 			observationsList.add(observ);
-			observationStates.add(-1);
 			oIndex = observationsList.size() - 1;
+			// Also extend the observationStates list, to be filled shortly
+			observationStates.add(-1);
 		}
+		// Assign the observation (index) to the state
 		try {
 			setObservation(s, oIndex);
 		} catch (PrismException e) {
 			String sObs = observableNames == null ? observ.toString() : observ.toString(observableNames);
 			throw new PrismException("Problem with observation " + sObs + ": " + e.getMessage());
 		}
+		// See if the unobservation already exists and add it if not
 		int unobservIndex = unobservationsList.indexOf(unobserv);
 		if (unobservIndex == -1) {
 			unobservationsList.add(unobserv);
 			unobservIndex = unobservationsList.size() - 1;
 		}
+		// Assign the unobservation (index) to the state
 		unobservablesMap.set(s, unobservIndex);
 	}
 	
@@ -381,44 +387,21 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	}
 
 	@Override
-	public double getCostAfterAction(Belief belief, int action, MDPRewards mdpRewards)
+	public Belief getBeliefAfterChoice(Belief belief, int i)
 	{
 		double[] beliefInDist = belief.toDistributionOverStates(this);
-		double cost = getCostAfterAction(beliefInDist, action, mdpRewards);
-		return cost;
-	}
-
-	@Override
-	public double getCostAfterAction(double[] beliefInDist, int action, MDPRewards mdpRewards)
-	{
-		double cost = 0;
-		for (int i = 0; i < beliefInDist.length; i++) {
-			if (beliefInDist[i] == 0) {
-				cost += 0;
-			} else {
-				cost += beliefInDist[i] * (mdpRewards.getTransitionReward(i, action) + mdpRewards.getStateReward(i));
-			}
-
-		}
-		return cost;
-	}
-
-	@Override
-	public Belief getBeliefAfterAction(Belief belief, int action)
-	{
-		double[] beliefInDist = belief.toDistributionOverStates(this);
-		double[] nextBeliefInDist = getBeliefInDistAfterAction(beliefInDist, action);
+		double[] nextBeliefInDist = getBeliefInDistAfterChoice(beliefInDist, i);
 		return beliefInDistToBelief(nextBeliefInDist);
 	}
 
 	@Override
-	public double[] getBeliefInDistAfterAction(double[] beliefInDist, int action)
+	public double[] getBeliefInDistAfterChoice(double[] beliefInDist, int i)
 	{
 		int n = beliefInDist.length;
 		double[] nextBeliefInDist = new double[n];
 		for (int sp = 0; sp < n; sp++) {
 			if (beliefInDist[sp] >= 1.0e-6) {
-				Distribution distr = getChoice(sp, action);
+				Distribution distr = getChoice(sp, i);
 				for (Map.Entry<Integer, Double> e : distr) {
 					int s = (Integer) e.getKey();
 					double prob = (Double) e.getValue();
@@ -429,71 +412,93 @@ public class POMDPSimple extends MDPSimple implements POMDP
 		return nextBeliefInDist;
 	}
 
-	@Override // SLOW
-	public double getObservationProbAfterAction(Belief belief, int action, int observation)
-	{
-		double[] beliefInDist = belief.toDistributionOverStates(this);
-		double prob = getObservationProbAfterAction(beliefInDist, action, observation);
-		return prob;
-	}
-
-	@Override // SLOW
-	public double getObservationProbAfterAction(double[] beliefInDist, int action, int observation)
-	{
-		double[] beliefAfterAction = this.getBeliefInDistAfterAction(beliefInDist, action);
-		int s;
-		double prob = 0;
-		for (s = 0; s < beliefAfterAction.length; s++) {
-			prob += beliefAfterAction[s] * getObservationProb(s, observation);
-		}
-		return prob;
-	}
-
-	public void computeObservationProbsAfterAction(double[] beliefInDist, int action, HashMap<Integer, Double> observation_probs)
-	{
-		double[] beliefAfterAction = this.getBeliefInDistAfterAction(beliefInDist, action);
-		for (int s = 0; s < beliefAfterAction.length; s++) {
-			int o = getObservation(s);
-			double probToAdd = beliefAfterAction[s];
-			if (probToAdd > 1e-6) {
-				Double lookup = observation_probs.get(o);
-				if (lookup == null)
-					observation_probs.put(o, probToAdd);
-				else
-					observation_probs.put(o, lookup + probToAdd);
-			}
-		}
-	}
-	
 	@Override
-	public Belief getBeliefAfterActionAndObservation(Belief belief, int action, int observation)
+	public Belief getBeliefAfterChoiceAndObservation(Belief belief, int i, int o)
 	{
 		double[] beliefInDist = belief.toDistributionOverStates(this);
-		double[] nextBeliefInDist = getBeliefInDistAfterActionAndObservation(beliefInDist, action, observation);
+		double[] nextBeliefInDist = getBeliefInDistAfterChoiceAndObservation(beliefInDist, i, o);
 		Belief nextBelief = beliefInDistToBelief(nextBeliefInDist);
-		if (nextBelief.so != observation) {
-			System.err.println(nextBelief.so + "<--" + observation
-					+ " something wrong with POMDPSimple.getBeliefAfterActionAndObservation(Belief belief, int action, int observation)");
-		}
+		assert(nextBelief.so == o);
 		return nextBelief;
 	}
 
 	@Override
-	public double[] getBeliefInDistAfterActionAndObservation(double[] beliefInDist, int action, int observation)
+	public double[] getBeliefInDistAfterChoiceAndObservation(double[] beliefInDist, int i, int o)
 	{
 		int n = beliefInDist.length;
 		double[] nextBelief = new double[n];
-		double[] beliefAfterAction = this.getBeliefInDistAfterAction(beliefInDist, action);
-		int i;
+		double[] beliefAfterAction = this.getBeliefInDistAfterChoice(beliefInDist, i);
 		double prob;
-		for (i = 0; i < n; i++) {
-			prob = beliefAfterAction[i] * getObservationProb(i, observation);
-			nextBelief[i] = prob;
+		for (int s = 0; s < n; s++) {
+			prob = beliefAfterAction[s] * getObservationProb(s, o);
+			nextBelief[s] = prob;
 		}
 		PrismUtils.normalise(nextBelief);
 		return nextBelief;
 	}
 
+	@Override // SLOW
+	public double getObservationProbAfterChoice(Belief belief, int i, int o)
+	{
+		double[] beliefInDist = belief.toDistributionOverStates(this);
+		double prob = getObservationProbAfterChoice(beliefInDist, i, o);
+		return prob;
+	}
+
+	@Override // SLOW
+	public double getObservationProbAfterChoice(double[] beliefInDist, int i, int o)
+	{
+		double[] beliefAfterAction = this.getBeliefInDistAfterChoice(beliefInDist, i);
+		int s;
+		double prob = 0;
+		for (s = 0; s < beliefAfterAction.length; s++) {
+			prob += beliefAfterAction[s] * getObservationProb(s, o);
+		}
+		return prob;
+	}
+
+	@Override
+	public HashMap<Integer, Double> computeObservationProbsAfterAction(double[] belief, int i)
+	{
+		HashMap<Integer, Double> probs = new HashMap<>();
+		double[] beliefAfterAction = this.getBeliefInDistAfterChoice(belief, i);
+		for (int s = 0; s < beliefAfterAction.length; s++) {
+			int o = getObservation(s);
+			double probToAdd = beliefAfterAction[s];
+			if (probToAdd > 1e-6) {
+				Double lookup = probs.get(o);
+				if (lookup == null) {
+					probs.put(o, probToAdd);
+				} else {
+					probs.put(o, lookup + probToAdd);
+				}
+			}
+		}
+		return probs;
+	}
+	
+	@Override
+	public double getRewardAfterChoice(Belief belief, int i, MDPRewards mdpRewards)
+	{
+		double[] beliefInDist = belief.toDistributionOverStates(this);
+		double cost = getRewardAfterChoice(beliefInDist, i, mdpRewards);
+		return cost;
+	}
+
+	@Override
+	public double getRewardAfterChoice(double[] beliefInDist, int i, MDPRewards mdpRewards)
+	{
+		double cost = 0;
+		for (int s = 0; s < beliefInDist.length; s++) {
+			if (beliefInDist[s] == 0) {
+				cost += 0;
+			} else {
+				cost += beliefInDist[s] * (mdpRewards.getTransitionReward(s, i) + mdpRewards.getStateReward(s));
+			}
+
+		}
+		return cost;
+	}
 
 	// Helpers
 	

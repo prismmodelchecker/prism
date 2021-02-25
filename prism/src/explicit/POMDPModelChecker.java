@@ -28,7 +28,6 @@
 package explicit;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
@@ -45,7 +43,6 @@ import explicit.rewards.MDPRewardsSimple;
 import prism.Accuracy;
 import prism.AccuracyFactory;
 import prism.Pair;
-import prism.Accuracy.AccuracyLevel;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -122,21 +119,19 @@ public class POMDPModelChecker extends ProbModelChecker
 		mainLog.println("Starting fixed-resolution grid approximation (" + (min ? "min" : "max") + ")...");
 
 		// Find out the observations for the target states
-		LinkedList<Integer> targetObservs = getAndCheckTargetObservations(pomdp, target);
+		BitSet targetObs = getAndCheckTargetObservations(pomdp, target);
 		
 		// Initialise the grid points
 		ArrayList<Belief> gridPoints = new ArrayList<>();//the set of grid points (discretized believes)
 		ArrayList<Belief> unknownGridPoints = new ArrayList<>();//the set of unknown grid points (discretized believes)
-		initialiseGridPoints(pomdp, targetObservs, gridPoints, unknownGridPoints);
+		initialiseGridPoints(pomdp, targetObs, gridPoints, unknownGridPoints);
 		int unK = unknownGridPoints.size();
 		mainLog.print("Grid statistics: resolution=" + gridResolution);
 		mainLog.println(", points=" + gridPoints.size() + ", unknown points=" + unK);
 		
-		// Construct grid belief "MDP" (over all unknown grid points_)
+		// Construct grid belief "MDP" (over all unknown grid points)
 		mainLog.println("Building belief space approximation...");
-		List<List<HashMap<Integer, Double>>> observationProbs = new ArrayList<>();//memoization for reuse
-		List<List<HashMap<Integer, Belief>>> nextBelieves = new ArrayList<>();//memoization for reuse
-		buildBeliefMDP(pomdp, unknownGridPoints, observationProbs, nextBelieves);
+		List<List<HashMap<Belief, Double>>> beliefMDP = buildBeliefMDP(pomdp, unknownGridPoints);
 		
 		// HashMap for storing real time values for the discretized grid belief states
 		HashMap<Belief, Double> vhash = new HashMap<>();
@@ -159,26 +154,25 @@ public class POMDPModelChecker extends ProbModelChecker
 		boolean done = false;
 		while (!done && iters < maxIters) {
 			// Iterate over all (unknown) grid points
-			for (int i = 0; i < unK; i++) {
-				Belief b = unknownGridPoints.get(i);
-				int numChoices = pomdp.getNumChoicesForObservation(b.so);
+			for (int b = 0; b < unK; b++) {
+				Belief belief = unknownGridPoints.get(b);
+				int numChoices = pomdp.getNumChoicesForObservation(belief.so);
 
 				chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-				for (int a = 0; a < numChoices; a++) {
+				for (int i = 0; i < numChoices; i++) {
 					value = 0;
-					for (Map.Entry<Integer, Double> entry : observationProbs.get(i).get(a).entrySet()) {
-						int o = entry.getKey();
-						double observationProb = entry.getValue();
-						Belief nextBelief = nextBelieves.get(i).get(a).get(o);
+					for (Map.Entry<Belief, Double> entry : beliefMDP.get(b).get(i).entrySet()) {
+						double nextBeliefProb = entry.getValue();
+						Belief nextBelief = entry.getKey();
 						// find discretized grid points to approximate the nextBelief
-						value += observationProb * interpolateOverGrid(o, nextBelief, vhash_backUp);
+						value += nextBeliefProb * interpolateOverGrid(nextBelief, vhash_backUp);
 					}
 					if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6)) {
 						chosenValue = value;
 					}
 				}
 				//update V(b) to the chosenValue
-				vhash.put(b, chosenValue);
+				vhash.put(belief, chosenValue);
 			}
 			// Check termination
 			done = PrismUtils.doublesAreClose(vhash, vhash_backUp, termCritParam, termCrit == TermCrit.RELATIVE);
@@ -202,7 +196,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Find discretized grid points to approximate the initialBelief
 		// Also get (approximate) accuracy of result from value iteration
 		Belief initialBelief = pomdp.getInitialBelief();
-		double outerBound = interpolateOverGrid(initialBelief.so, initialBelief, vhash_backUp);
+		double outerBound = interpolateOverGrid(initialBelief, vhash_backUp);
 		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
 		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
 		// Print result
@@ -328,29 +322,27 @@ public class POMDPModelChecker extends ProbModelChecker
 		mainLog.println("Starting fixed-resolution grid approximation (" + (min ? "min" : "max") + ")...");
 
 		// Find out the observations for the target states
-		LinkedList<Integer> targetObservs = getAndCheckTargetObservations(pomdp, target);
+		BitSet targetObs = getAndCheckTargetObservations(pomdp, target);
 
 		// Initialise the grid points
 		ArrayList<Belief> gridPoints = new ArrayList<>();//the set of grid points (discretized believes)
 		ArrayList<Belief> unknownGridPoints = new ArrayList<>();//the set of unknown grid points (discretized believes)
-		initialiseGridPoints(pomdp, targetObservs, gridPoints, unknownGridPoints);
+		initialiseGridPoints(pomdp, targetObs, gridPoints, unknownGridPoints);
 		int unK = unknownGridPoints.size();
 		mainLog.print("Grid statistics: resolution=" + gridResolution);
 		mainLog.println(", points=" + gridPoints.size() + ", unknown points=" + unK);
 		
-		// Construct grid belief "MDP" (over all unknown grid points_)
+		// Construct grid belief "MDP" (over all unknown grid points)
 		mainLog.println("Building belief space approximation...");
-		List<List<HashMap<Integer, Double>>> observationProbs = new ArrayList<>();// memoization for reuse
-		List<List<HashMap<Integer, Belief>>> nextBelieves = new ArrayList<>();// memoization for reuse
-		buildBeliefMDP(pomdp, unknownGridPoints, observationProbs, nextBelieves);
+		List<List<HashMap<Belief, Double>>> beliefMDP = buildBeliefMDP(pomdp, unknownGridPoints);
 		// Rewards
 		List<List<Double>> rewards = new ArrayList<>(); // memoization for reuse
-		for (int i = 0; i < unK; i++) {
-			Belief b = unknownGridPoints.get(i);
-			int numChoices = pomdp.getNumChoicesForObservation(b.so);
+		for (int b = 0; b < unK; b++) {
+			Belief belief = unknownGridPoints.get(b);
+			int numChoices = pomdp.getNumChoicesForObservation(belief.so);
 			List<Double> action_reward = new ArrayList<>();// for memoization
-			for (int a = 0; a < numChoices; a++) {
-				action_reward.add(pomdp.getCostAfterAction(b, a, mdpRewards)); // c(a,b)
+			for (int i = 0; i < numChoices; i++) {
+				action_reward.add(pomdp.getRewardAfterChoice(belief, i, mdpRewards)); // c(a,b)
 			}
 			rewards.add(action_reward);
 		}
@@ -371,25 +363,24 @@ public class POMDPModelChecker extends ProbModelChecker
 		boolean done = false;
 		while (!done && iters < maxIters) {
 			// Iterate over all (unknown) grid points
-			for (int i = 0; i < unK; i++) {
-				Belief b = unknownGridPoints.get(i);
-				int numChoices = pomdp.getNumChoicesForObservation(b.so);
+			for (int b = 0; b < unK; b++) {
+				Belief belief = unknownGridPoints.get(b);
+				int numChoices = pomdp.getNumChoicesForObservation(belief.so);
 				chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-				for (int a = 0; a < numChoices; a++) {
-					value = rewards.get(i).get(a);
-					for (Map.Entry<Integer, Double> entry : observationProbs.get(i).get(a).entrySet()) {
-						int o = entry.getKey();
-						double observationProb = entry.getValue();
-						Belief nextBelief = nextBelieves.get(i).get(a).get(o);
+				for (int i = 0; i < numChoices; i++) {
+					value = rewards.get(b).get(i);
+					for (Map.Entry<Belief, Double> entry : beliefMDP.get(b).get(i).entrySet()) {
+						double nextBeliefProb = entry.getValue();
+						Belief nextBelief = entry.getKey();
 						// find discretized grid points to approximate the nextBelief
-						value += observationProb * interpolateOverGrid(o, nextBelief, vhash_backUp);
+						value += nextBeliefProb * interpolateOverGrid(nextBelief, vhash_backUp);
 					}
 					if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6)) {
 						chosenValue = value;
 					}
 				}
 				//update V(b) to the chosenValue
-				vhash.put(b, chosenValue);
+				vhash.put(belief, chosenValue);
 			}
 			// Check termination
 			done = PrismUtils.doublesAreClose(vhash, vhash_backUp, termCritParam, termCrit == TermCrit.RELATIVE);
@@ -413,7 +404,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Find discretized grid points to approximate the initialBelief
 		// Also get (approximate) accuracy of result from value iteration
 		Belief initialBelief = pomdp.getInitialBelief();
-		double outerBound = interpolateOverGrid(initialBelief.so, initialBelief, vhash_backUp);
+		double outerBound = interpolateOverGrid(initialBelief, vhash_backUp);
 		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
 		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
 		// Print result
@@ -430,7 +421,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		for (int ii = 0; ii < numStates; ii++) {
 			if (mdp.getNumChoices(ii) > 0) {
 				int action = ((Integer) mdp.getAction(ii, 0));
-				double rew = pomdp.getCostAfterAction(listBeliefs.get(ii), action, mdpRewards);
+				double rew = pomdp.getRewardAfterChoice(listBeliefs.get(ii), action, mdpRewards);
 				mdpRewardsNew.addToStateReward(ii, rew);
 			}
 		}
@@ -495,37 +486,34 @@ public class POMDPModelChecker extends ProbModelChecker
 
 	/**
 	 * Get a list of target observations from a set of target states
-	 * (both are represented by their indices).
+	 * (both are represented by BitSets over their indices).
 	 * Also check that the set of target states corresponds to a set
 	 * of observations, and throw an exception if not.
 	 */
-	protected LinkedList<Integer> getAndCheckTargetObservations(POMDP pomdp, BitSet target) throws PrismException
+	protected BitSet getAndCheckTargetObservations(POMDP pomdp, BitSet target) throws PrismException
 	{
 		// Find observations corresponding to each state in the target
-		TreeSet<Integer> targetObservsSet = new TreeSet<>();
+		BitSet targetObs = new BitSet();
 		for (int s = target.nextSetBit(0); s >= 0; s = target.nextSetBit(s + 1)) {
-			targetObservsSet.add(pomdp.getObservation(s));
+			targetObs.set(pomdp.getObservation(s));
 		}
-		LinkedList<Integer> targetObservs = new LinkedList<>(targetObservsSet);
-		// Rereate the set of target states from the target observations
-		// and make sure it matches
+		// Recreate the set of target states from the target observations and make sure it matches
 		BitSet target2 = new BitSet();
 		int numStates = pomdp.getNumStates();
 		for (int s = 0; s < numStates; s++) {
-			if (targetObservs.contains(pomdp.getObservation(s))) {
+			if (targetObs.get(pomdp.getObservation(s))) {
 				target2.set(s);
 			}
 		}
 		if (!target.equals(target2)) {
 			throw new PrismException("Target is not observable");
 		}
-		return targetObservs;
+		return targetObs;
 	}
 	
-	protected void initialiseGridPoints(POMDP pomdp, LinkedList<Integer> targetObservs, ArrayList<Belief> gridPoints, ArrayList<Belief> unknownGridPoints)
+	protected void initialiseGridPoints(POMDP pomdp, BitSet targetObs, ArrayList<Belief> gridPoints, ArrayList<Belief> unknownGridPoints)
 	{
 		ArrayList<ArrayList<Double>> assignment;
-		boolean isTargetObserv;
 		int numObservations = pomdp.getNumObservations();
 		int numUnobservations = pomdp.getNumUnobservations();
 		int numStates = pomdp.getNumStates();
@@ -537,12 +525,6 @@ public class POMDPModelChecker extends ProbModelChecker
 				}
 			}
 			assignment = fullAssignment(unobservsForObserv.size(), gridResolution);
-
-			isTargetObserv = targetObservs.isEmpty() ? false : ((Integer) targetObservs.peekFirst() == so);
-			if (isTargetObserv) {
-				targetObservs.removeFirst();
-			}
-
 			for (ArrayList<Double> inner : assignment) {
 				double[] bu = new double[numUnobservations];
 				int k = 0;
@@ -553,47 +535,57 @@ public class POMDPModelChecker extends ProbModelChecker
 
 				Belief g = new Belief(so, bu);
 				gridPoints.add(g);
-				if (!isTargetObserv) {
+				if (!targetObs.get(so)) {
 					unknownGridPoints.add(g);
 				}
 			}
 		}
 	}
 	
-	protected void buildBeliefMDP(POMDP pomdp, ArrayList<Belief> unknownGridPoints, List<List<HashMap<Integer, Double>>> observationProbs, List<List<HashMap<Integer, Belief>>> nextBelieves)
+	/**
+	 * Construct (part of) a belief MDP, just for the set of passed in belief states.
+	 * It is stored as a list (over source beliefs) of lists (over choices)
+	 * of distributions over target beliefs, stored as a hashmap.
+	 */
+	protected List<List<HashMap<Belief, Double>>> buildBeliefMDP(POMDP pomdp, List<Belief> beliefs)
 	{
-		int unK = unknownGridPoints.size();
-		for (int i = 0; i < unK; i++) {
-			Belief b = unknownGridPoints.get(i);
-			double[] beliefInDist = b.toDistributionOverStates(pomdp);
-			//mainLog.println("Belief " + i + ": " + b);
-			//mainLog.print("Belief dist:");
-			//mainLog.println(beliefInDist);
-			List<HashMap<Integer, Double>> action_observation_probs = new ArrayList<>();// for memoization
-			List<HashMap<Integer, Belief>> action_observation_Believes = new ArrayList<>();// for memoization
-			int numChoices = pomdp.getNumChoicesForObservation(b.so);
-			for (int a = 0; a < numChoices; a++) {
-				//mainLog.println(i+"/"+unK+", "+a+"/"+numChoices);
-				HashMap<Integer, Double> observation_probs = new HashMap<>();// for memoization
-				HashMap<Integer, Belief> observation_believes = new HashMap<>();// for memoization
-				((POMDPSimple) pomdp).computeObservationProbsAfterAction(beliefInDist, a, observation_probs);
-				for (Map.Entry<Integer, Double> entry : observation_probs.entrySet()) {
-					int o = entry.getKey();
-					//mainLog.println(i+"/"+unK+", "+a+"/"+numChoices+", "+o+"/"+numObservations);
-					Belief nextBelief = pomdp.getBeliefAfterActionAndObservation(b, a, o);
-					//mainLog.print(i + "/" + unK + ", " + a + "/" + numChoices + ", " + o + "/" + numObservations);
-					//mainLog.println(" - " + entry.getValue() + ":" + nextBelief);
-					observation_believes.put(o, nextBelief);
-				}
-				action_observation_probs.add(observation_probs);
-				action_observation_Believes.add(observation_believes);
-			}
-			observationProbs.add(action_observation_probs);
-			nextBelieves.add(action_observation_Believes);
+		List<List<HashMap<Belief, Double>>> beliefMDP = new ArrayList<>();
+		for (Belief belief: beliefs) {
+			beliefMDP.add(buildBeliefMDPState(pomdp, belief));
 		}
+		return beliefMDP;
 	}
 	
-	protected double interpolateOverGrid(int o, Belief belief, HashMap<Belief, Double> vhash)
+	/**
+	 * Construct a single single state (belief) of a belief MDP, stored as a
+	 * list (over choices) of distributions over target beliefs, stored as a hashmap.
+	 */
+	protected List<HashMap<Belief, Double>> buildBeliefMDPState(POMDP pomdp, Belief belief)
+	{
+		double[] beliefInDist = belief.toDistributionOverStates(pomdp);
+		List<HashMap<Belief, Double>> beliefMDPState = new ArrayList<>();
+		// And for each choice
+		int numChoices = pomdp.getNumChoicesForObservation(belief.so);
+		for (int i = 0; i < numChoices; i++) {
+			// Get successor observations and their probs
+			HashMap<Integer, Double> obsProbs = pomdp.computeObservationProbsAfterAction(beliefInDist, i);
+			HashMap<Belief, Double> beliefDist = new HashMap<>();
+			// Find the belief for each observations
+			for (Map.Entry<Integer, Double> entry : obsProbs.entrySet()) {
+				int o = entry.getKey();
+				Belief nextBelief = pomdp.getBeliefAfterChoiceAndObservation(belief, i, o);
+				beliefDist.put(nextBelief, entry.getValue());
+			}
+			beliefMDPState.add(beliefDist);
+		}
+		return beliefMDPState;
+	}
+	
+	/**
+	 * Approximate the value for a belief {@code belief} by interpolating over values {@code gridValues}
+	 * for a representative set of beliefs whose convex hull is the full belief space.
+	 */
+	protected double interpolateOverGrid(Belief belief, HashMap<Belief, Double> gridValues)
 	{
 		ArrayList<double[]> subSimplex = new ArrayList<>();
 		double[] lambdas = new double[belief.bu.length];
@@ -602,7 +594,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		double val = 0;
 		for (int j = 0; j < lambdas.length; j++) {
 			if (lambdas[j] >= 1e-6) {
-				val += lambdas[j] * vhash.get(new Belief(o, subSimplex.get(j)));
+				val += lambdas[j] * gridValues.get(new Belief(belief.so, subSimplex.get(j)));
 			}
 		}
 		return val;
@@ -627,8 +619,9 @@ public class POMDPModelChecker extends ProbModelChecker
 			src++;
 			if (isTargetBelief(b.toDistributionOverStates(pomdp), target)) {
 				mdpTarget.set(src);
+			} else {
+				extractBestActions(src, b, vhash, pomdp, mdpRewards, min, exploredBelieves, toBeExploredBelives, mdp);
 			}
-			extractBestActions(src, b, vhash, pomdp, mdpRewards, min, exploredBelieves, toBeExploredBelives, target, mdp);
 		}
 		
 		mdp.addLabel("target", mdpTarget);
@@ -824,45 +817,25 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param beliefList
 	 */
 	protected void extractBestActions(int src, Belief belief, HashMap<Belief, Double> vhash, POMDP pomdp, MDPRewards mdpRewards, boolean min,
-			IndexedSet<Belief> exploredBelieves, LinkedList<Belief> toBeExploredBelives, BitSet target, MDPSimple mdp)
+			IndexedSet<Belief> exploredBelieves, LinkedList<Belief> toBeExploredBelives, MDPSimple mdp)
 	{
-		if (isTargetBelief(belief.toDistributionOverStates(pomdp), target)) {
-			// Add self-loop
-			/*Distribution distr = new Distribution();
-			distr.set(src, 1);
-			mdp.addActionLabelledChoice(src, distr, null);*/
-			return;
-		}
-			
-		double[] beliefInDist = belief.toDistributionOverStates(pomdp);
 		double chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
 		int chosenActionIndex = -1;
 		ArrayList<Integer> bestActions = new ArrayList<>();
-		List<Double> action_reward = new ArrayList<>();
-		List<HashMap<Integer, Double>> action_observation_probs = new ArrayList<>();
-		List<HashMap<Integer, Belief>> action_observation_Believes = new ArrayList<>();
 		//evaluate each action in b
 		int numChoices = pomdp.getNumChoicesForObservation(belief.so);
+		List<HashMap<Belief, Double>> beliefMDPState = buildBeliefMDPState(pomdp, belief);
 		for (int a = 0; a < numChoices; a++) {
 			double value = 0;
 			if (mdpRewards != null) {
-				value = pomdp.getCostAfterAction(belief, a, mdpRewards); // c(a,b)	
+				value = pomdp.getRewardAfterChoice(belief, a, mdpRewards); // c(a,b)
 			}
-			// Build/store successor observations, probabilities and resulting beliefs
-			HashMap<Integer, Double> observation_probs = new HashMap<>();
-			HashMap<Integer, Belief> observation_believes = new HashMap<>();
-			((POMDPSimple) pomdp).computeObservationProbsAfterAction(beliefInDist, a, observation_probs);
-			for (Map.Entry<Integer, Double> entry : observation_probs.entrySet()) {
-				int o = entry.getKey();
-				Belief nextBelief = pomdp.getBeliefAfterActionAndObservation(belief, a, o);
-				observation_believes.put(o, nextBelief);
-				double observationProb = observation_probs.get(o);
-				value += observationProb * interpolateOverGrid(o, nextBelief, vhash);
+			for (Map.Entry<Belief, Double> entry : beliefMDPState.get(a).entrySet()) {
+				double nextBeliefProb = entry.getValue();
+				Belief nextBelief = entry.getKey();
+				value += nextBeliefProb * interpolateOverGrid(nextBelief, vhash);
 			}
-			// Store the list of observations, probabilities and resulting beliefs for this action
-			action_observation_probs.add(observation_probs);
-			action_observation_Believes.add(observation_believes);
-
+			
 			//select action that minimizes/maximizes Q(a,b), i.e. value
 			if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6))//value<bestValue
 			{
@@ -881,10 +854,9 @@ public class POMDPModelChecker extends ProbModelChecker
 
 		Distribution distr = new Distribution();
 		for (Integer a : bestActions) {
-			for (Map.Entry<Integer, Double> entry : action_observation_probs.get(a).entrySet()) {
-				int o = entry.getKey();
-				double observationProb = entry.getValue();
-				Belief nextBelief = action_observation_Believes.get(a).get(o);
+			for (Map.Entry<Belief, Double> entry : beliefMDPState.get(a).entrySet()) {
+				double nextBeliefProb = entry.getValue();
+				Belief nextBelief = entry.getKey();
 				if (exploredBelieves.add(nextBelief)) {
 					// If so, add to the explore list
 					toBeExploredBelives.add(nextBelief);
@@ -893,7 +865,7 @@ public class POMDPModelChecker extends ProbModelChecker
 				}
 				// Get index of state in state set
 				int dest = exploredBelieves.getIndexOfLastAdd();
-				distr.add(dest, observationProb);
+				distr.add(dest, nextBeliefProb);
 			}
 		}
 		// Add transition distribution, with choice _index_ encoded as action

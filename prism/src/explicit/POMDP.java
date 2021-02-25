@@ -27,6 +27,7 @@
 
 package explicit;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -38,6 +39,11 @@ import prism.PrismUtils;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state POMDP.
+ * <br><br>
+ * POMDPs require that states with the same observation have the same set of
+ * available actions. Class implementing this interface must further ensure
+ * that these actions appear in the same order (in terms of choice indexing)
+ * in each observationally equivalent state.
  */
 public interface POMDP extends MDP, PartiallyObservableModel
 {
@@ -105,46 +111,71 @@ public interface POMDP extends MDP, PartiallyObservableModel
 	// Accessors
 	
 	/**
-	 * Get initial belief state
+	 * Get the initial belief state, as a {@link Belief} object.
 	 */
 	public Belief getInitialBelief();
 
 	/**
-	 * Get initial belief state as an distribution over all states (array).
+	 * Get the initial belief state, as an array of probabilities over all states.
 	 */
 	public double[] getInitialBeliefInDist();
 
 	/**
-	 * Get the updated belief after action {@code action}.
+	 * Get the belief state (as a {@link Belief} object)
+	 * after taking the {@code i}th choice from belief state {@code belief}.
 	 */
-	public Belief getBeliefAfterAction(Belief belief, int action);
+	public Belief getBeliefAfterChoice(Belief belief, int i);
 
 	/**
-	 * Get the updated belief after action {@code action} using the distribution over all states belief representation.
+	 * Get the belief state (as an array of probabilities over all states)
+	 * after taking the {@code i}th choice from belief state {@code belief}.
 	 */
-	public double[] getBeliefInDistAfterAction(double[] belief, int action);
+	public double[] getBeliefInDistAfterChoice(double[] belief, int i);
 
 	/**
-	 * Get the updated belief after action {@code action} and observation {@code observation}.
+	 * Get the belief state (as a {@link Belief} object)
+	 * after taking the {@code i}th choice from belief state {@code belief}
+	 * and seeing observation {@code o} in the next state.
 	 */
-	public Belief getBeliefAfterActionAndObservation(Belief belief, int action, int observation);
+	public Belief getBeliefAfterChoiceAndObservation(Belief belief, int i, int o);
 
 	/**
-	 * Get the updated belief after action {@code action} and observation {@code observation} using the distribution over all states belief representation.
+	 * Get the belief state (as an array of probabilities over all states)
+	 * after taking the {@code i}th choice from belief state {@code belief}
+	 * and seeing observation {@code o} in the next state.
 	 */
-	public double[] getBeliefInDistAfterActionAndObservation(double[] belief, int action, int observation);
+	public double[] getBeliefInDistAfterChoiceAndObservation(double[] belief, int i, int o);
 
 	/**
-	 * Get the probability of an observation {@code observation}} after action {@code action} from belief {@code belief}.
+	 * Get the probability of seeing observation {@code o} after taking the
+	 * {@code i}th choice from belief state {@code belief}.
 	 */
-	public double getObservationProbAfterAction(Belief belief, int action, int observation);
-
-	public double getObservationProbAfterAction(double[] belief, int action, int observation);
+	public double getObservationProbAfterChoice(Belief belief, int i, int o);
 
 	/**
-	 * Get the cost (reward) of an action {@code action}} from a belief {@code belief}.
+	 * Get the probability of seeing observation {@code o} after taking the
+	 * {@code i}th choice from belief state {@code belief}.
+	 * The belief state is given as an array of probabilities over all states.
 	 */
-	public double getCostAfterAction(Belief belief, int action, MDPRewards mdpRewards);
+	public double getObservationProbAfterChoice(double[] belief, int i, int o);
 
-	public double getCostAfterAction(double[] belief, int action, MDPRewards mdpRewards);
+	/**
+	 * Get the (non-zero) probabilities of seeing each observation after taking the
+	 * {@code i}th choice from belief state {@code belief}.
+	 * The belief state is given as an array of probabilities over all states.
+	 */
+	public HashMap<Integer, Double> computeObservationProbsAfterAction(double[] belief, int i);
+	
+	/**
+	 * Get the expected (state and transition) reward value when taking the
+	 * {@code i}th choice from belief state {@code belief}.
+	 */
+	public double getRewardAfterChoice(Belief belief, int i, MDPRewards mdpRewards);
+
+	/**
+	 * Get the expected (state and transition) reward value when taking the
+	 * {@code i}th choice from belief state {@code belief}.
+	 * The belief state is given as an array of probabilities over all states.
+	 */
+	public double getRewardAfterChoice(double[] belief, int i, MDPRewards mdpRewards);
 }
