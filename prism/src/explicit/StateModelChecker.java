@@ -909,8 +909,7 @@ public class StateModelChecker extends PrismComponent
 		int numStates = model.getNumStates();
 		StateValues res = new StateValues(expr.getType(), model);
 		for (int i = 0; i < numStates; i++) {
-			int iObservation = poModel.getObservation(i);
-			State observation = poModel.getObservationsList().get(iObservation);
+			State observation = poModel.getObservationAsState(i);
 			Object val = observation.varValues[iObservable];
 			res.setValue(i, val);
 		}

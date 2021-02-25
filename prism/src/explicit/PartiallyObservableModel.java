@@ -70,9 +70,41 @@ public interface PartiallyObservableModel extends Model
 	public int getObservation(int s);
 
 	/**
+	 * Get the observation of state {@code s} as a {@code State}.
+	 * Equivalent to calling {@link #getObservation(int)}
+	 * and then looking up via {@link #getObservationsList()}.
+	 * Returns null if the observation is unavailable.
+	 */
+	public default State getObservationAsState(int s)
+	{
+		int o = getObservation(s);
+		List<State> obsList = getObservationsList();
+		if (obsList != null && obsList.size() > o) {
+			return obsList.get(o);
+		}
+		return null;
+	}
+
+	/**
 	 * Get the unobservation of state {@code s}.
 	 */
 	public int getUnobservation(int s);
+
+	/**
+	 * Get the unobservation of state {@code s} as a {@code State}.
+	 * Equivalent to calling {@link #getUnbservation(int)}
+	 * and then looking up via {@link #getUnobservationsList()}.
+	 * Returns null if the unobservation is unavailable.
+	 */
+	public default State getUnobservationAsState(int s)
+	{
+		int u = getUnobservation(s);
+		List<State> unobsList = getUnobservationsList();
+		if (unobsList != null && unobsList.size() > u) {
+			return unobsList.get(u);
+		}
+		return null;
+	}
 
 	/**
 	 * Get the probability of observing observation {@code o} in state {@code s}.
