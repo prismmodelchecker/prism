@@ -111,6 +111,12 @@ public interface POMDP extends MDP, PartiallyObservableModel
 	// Accessors
 	
 	/**
+	 * Get the action label (if any) for choice {@code i} of observation {@code o}
+	 * (this is the same for all states with this observation).
+	 */
+	public Object getActionForObservation(int o, int i);
+	
+	/**
 	 * Get the initial belief state, as a {@link Belief} object.
 	 */
 	public Belief getInitialBelief();

@@ -365,6 +365,12 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	// Accessors (for POMDP)
 
 	@Override
+	public Object getActionForObservation(int o, int i)
+	{
+		return getAction(observationStates.get(o), i);
+	}
+	
+	@Override
 	public Belief getInitialBelief()
 	{
 		double[] initialBeliefInDist = new double[numStates];

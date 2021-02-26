@@ -39,7 +39,7 @@ import java.util.Set;
 import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MDPRewards;
-import explicit.rewards.MDPRewardsSimple;
+import explicit.rewards.StateRewardsSimple;
 import prism.Accuracy;
 import prism.AccuracyFactory;
 import prism.Pair;
@@ -205,7 +205,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
 		List<Belief> listBeliefs = new ArrayList<>();
-		MDPSimple mdp = buildStrategyModel(pomdp, null, vhash, vhash_backUp, target, min, listBeliefs);
+		MDP mdp = buildStrategyModel(pomdp, null, vhash, targetObs, min, listBeliefs).mdp;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
 		// Export?
 		if (stratFilename != null) {
@@ -413,18 +413,10 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
 		List<Belief> listBeliefs = new ArrayList<>();
-		MDPSimple mdp = buildStrategyModel(pomdp, mdpRewards, vhash, vhash_backUp, target, min, listBeliefs);
+		POMDPStrategyModel psm = buildStrategyModel(pomdp, mdpRewards, vhash, targetObs, min, listBeliefs);
+		MDP mdp = psm.mdp;
+		MDPRewards mdpRewardsNew = psm.mdpRewards;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
-		// Build rewards too
-		MDPRewardsSimple mdpRewardsNew = new MDPRewardsSimple(mdp.getNumStates());
-		int numStates = mdp.getNumStates();
-		for (int ii = 0; ii < numStates; ii++) {
-			if (mdp.getNumChoices(ii) > 0) {
-				int action = ((Integer) mdp.getAction(ii, 0));
-				double rew = pomdp.getRewardAfterChoice(listBeliefs.get(ii), action, mdpRewards);
-				mdpRewardsNew.addToStateReward(ii, rew);
-			}
-		}
 		// Export?
 		if (stratFilename != null) {
 			mdp.exportToPrismExplicitTra(stratFilename);
@@ -600,33 +592,121 @@ public class POMDPModelChecker extends ProbModelChecker
 		return val;
 	}
 	
-	protected MDPSimple buildStrategyModel(POMDP pomdp, MDPRewards mdpRewards, HashMap<Belief, Double> vhash, HashMap<Belief, Double> vhash_backUp, BitSet target, boolean min, List<Belief> listBeliefs)
+	class POMDPStrategyModel
 	{
-		
-		// extract optimal policy and store it in file named stratFilename
-		Belief initialBelief = pomdp.getInitialBelief();
+		public MDP mdp;
+		public MDPRewards mdpRewards;
+	}
+	
+	/**
+	 * Build a (Markov chain) model representing the fragment of the belief MDP induced by an optimal strategy.
+	 * The model is stored as an MDP to allow easier attachment of optional actions.
+	 * @param pomdp
+	 * @param mdpRewards
+	 * @param vhash
+	 * @param vhash_backUp
+	 * @param target
+	 * @param min
+	 * @param listBeliefs
+	 */
+	protected POMDPStrategyModel buildStrategyModel(POMDP pomdp, MDPRewards mdpRewards, HashMap<Belief, Double> vhash, BitSet targetObs, boolean min, List<Belief> listBeliefs)
+	{
+		// Initialise model/state/rewards storage
 		MDPSimple mdp = new MDPSimple();
-		BitSet mdpTarget = new BitSet();
 		IndexedSet<Belief> exploredBelieves = new IndexedSet<>(true);
 		LinkedList<Belief> toBeExploredBelives = new LinkedList<>();
+		BitSet mdpTarget = new BitSet();
+		StateRewardsSimple stateRewards = new StateRewardsSimple();
+		// Add initial state
+		Belief initialBelief = pomdp.getInitialBelief();
 		exploredBelieves.add(initialBelief);
 		toBeExploredBelives.offer(initialBelief);
 		mdp.addState();
 		mdp.addInitialState(0);
+		
+		// Explore model
 		int src = -1;
 		while (!toBeExploredBelives.isEmpty()) {
 			Belief b = toBeExploredBelives.pollFirst();
 			src++;
-			if (isTargetBelief(b.toDistributionOverStates(pomdp), target)) {
+			
+			if (targetObs.get(b.so)) {
 				mdpTarget.set(src);
 			} else {
-				extractBestActions(src, b, vhash, pomdp, mdpRewards, min, exploredBelieves, toBeExploredBelives, mdp);
+				extractBestActions(src, b, vhash, pomdp, mdpRewards, min, exploredBelieves, toBeExploredBelives, mdp, stateRewards);
 			}
 		}
-		
+		// Attach a label marking target states
 		mdp.addLabel("target", mdpTarget);
 		listBeliefs.addAll(exploredBelieves.toArrayList());
-		return mdp;
+		// Return
+		POMDPStrategyModel psm = new POMDPStrategyModel();
+		psm.mdp = mdp;
+		psm.mdpRewards = stateRewards;
+		return psm;
+	}
+	
+	/**
+	 * Find the best action for this belief state, add the belief state to the list
+	 * of ones examined so far, and store the strategy info. We store this as an MDP.
+	 * @param belief Belief state to examine
+	 * @param vhash
+	 * @param pomdp
+	 * @param mdpRewards
+	 * @param min
+	 * @param beliefList
+	 */
+	protected void extractBestActions(int src, Belief belief, HashMap<Belief, Double> vhash, POMDP pomdp, MDPRewards mdpRewards, boolean min,
+			IndexedSet<Belief> exploredBelieves, LinkedList<Belief> toBeExploredBelives, MDPSimple mdp, StateRewardsSimple stateRewards)
+	{
+		double chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+		int chosenActionIndex = -1;
+		//evaluate each action in b
+		int numChoices = pomdp.getNumChoicesForObservation(belief.so);
+		List<HashMap<Belief, Double>> beliefMDPState = buildBeliefMDPState(pomdp, belief);
+		for (int a = 0; a < numChoices; a++) {
+			double value = 0;
+			if (mdpRewards != null) {
+				value = pomdp.getRewardAfterChoice(belief, a, mdpRewards); // c(a,b)
+			}
+			for (Map.Entry<Belief, Double> entry : beliefMDPState.get(a).entrySet()) {
+				double nextBeliefProb = entry.getValue();
+				Belief nextBelief = entry.getKey();
+				value += nextBeliefProb * interpolateOverGrid(nextBelief, vhash);
+			}
+			
+			//select action that minimizes/maximizes Q(a,b), i.e. value
+			if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6))//value<bestValue
+			{
+				chosenValue = value;
+				chosenActionIndex = a;
+			} else if (Math.abs(value - chosenValue) < 1.0e-6)//value==chosenValue
+			{
+				//random tie broker
+				chosenActionIndex = Math.random() < 0.5 ? a : chosenActionIndex;
+				chosenActionIndex = a;
+			}
+		}
+		// Build a distribution over successor belief states and add to MDP 
+		Distribution distr = new Distribution();
+		for (Map.Entry<Belief, Double> entry : beliefMDPState.get(chosenActionIndex).entrySet()) {
+			double nextBeliefProb = entry.getValue();
+			Belief nextBelief = entry.getKey();
+			// Add each successor belief to the MDP and the "to explore" set if new
+			if (exploredBelieves.add(nextBelief)) {
+				toBeExploredBelives.add(nextBelief);
+				mdp.addState();
+			}
+			// Get index of state in state set
+			int dest = exploredBelieves.getIndexOfLastAdd();
+			distr.add(dest, nextBeliefProb);
+		}
+		// Add transition distribution, with choice _index_ encoded as action
+		mdp.addActionLabelledChoice(src, distr, pomdp.getActionForObservation(belief.so, chosenActionIndex));
+		// Store reward too, if needed
+		if (mdpRewards != null) {
+			stateRewards.setStateReward(src, pomdp.getRewardAfterChoice(belief, chosenActionIndex, mdpRewards));
+		}
 	}
 	
 	protected ArrayList<ArrayList<Integer>> assignGPrime(int startIndex, int min, int max, int length)
@@ -806,72 +886,6 @@ public class POMDPModelChecker extends ProbModelChecker
 		return true;
 	}
 
-	/**
-	 * Find the best action for this belief state, add the belief state to the list
-	 * of ones examined so far, and store the strategy info. We store this as an MDP.
-	 * @param belief Belief state to examine
-	 * @param vhash
-	 * @param pomdp
-	 * @param mdpRewards
-	 * @param min
-	 * @param beliefList
-	 */
-	protected void extractBestActions(int src, Belief belief, HashMap<Belief, Double> vhash, POMDP pomdp, MDPRewards mdpRewards, boolean min,
-			IndexedSet<Belief> exploredBelieves, LinkedList<Belief> toBeExploredBelives, MDPSimple mdp)
-	{
-		double chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-		int chosenActionIndex = -1;
-		ArrayList<Integer> bestActions = new ArrayList<>();
-		//evaluate each action in b
-		int numChoices = pomdp.getNumChoicesForObservation(belief.so);
-		List<HashMap<Belief, Double>> beliefMDPState = buildBeliefMDPState(pomdp, belief);
-		for (int a = 0; a < numChoices; a++) {
-			double value = 0;
-			if (mdpRewards != null) {
-				value = pomdp.getRewardAfterChoice(belief, a, mdpRewards); // c(a,b)
-			}
-			for (Map.Entry<Belief, Double> entry : beliefMDPState.get(a).entrySet()) {
-				double nextBeliefProb = entry.getValue();
-				Belief nextBelief = entry.getKey();
-				value += nextBeliefProb * interpolateOverGrid(nextBelief, vhash);
-			}
-			
-			//select action that minimizes/maximizes Q(a,b), i.e. value
-			if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6))//value<bestValue
-			{
-				chosenValue = value;
-				chosenActionIndex = a;
-				bestActions.clear();
-				bestActions.add(chosenActionIndex);
-			} else if (Math.abs(value - chosenValue) < 1.0e-6)//value==chosenValue
-			{
-				//random tie broker
-				chosenActionIndex = Math.random() < 0.5 ? a : chosenActionIndex;
-				bestActions.clear();
-				bestActions.add(a);
-			}
-		}
-
-		Distribution distr = new Distribution();
-		for (Integer a : bestActions) {
-			for (Map.Entry<Belief, Double> entry : beliefMDPState.get(a).entrySet()) {
-				double nextBeliefProb = entry.getValue();
-				Belief nextBelief = entry.getKey();
-				if (exploredBelieves.add(nextBelief)) {
-					// If so, add to the explore list
-					toBeExploredBelives.add(nextBelief);
-					// And to model
-					mdp.addState();
-				}
-				// Get index of state in state set
-				int dest = exploredBelieves.getIndexOfLastAdd();
-				distr.add(dest, nextBeliefProb);
-			}
-		}
-		// Add transition distribution, with choice _index_ encoded as action
-		mdp.addActionLabelledChoice(src, distr, bestActions.get(0));
-	}
-	
 	public static boolean isTargetBelief(double[] belief, BitSet target)
 	{
 		 double prob=0;
