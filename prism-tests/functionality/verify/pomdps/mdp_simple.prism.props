@@ -4,6 +4,9 @@ Pmax=? [ F t=1 ];
 // RESULT: 0.1
 Pmin=? [ F t=1 ];
 
+// RESULT: 0.3
+Pmax=? [ s<=2 U t=1 ];
+
 // RESULT: 3.0
 Rmax=? [ F t>0 ];
 
