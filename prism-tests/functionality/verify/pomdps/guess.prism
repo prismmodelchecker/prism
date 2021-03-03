@@ -1,0 +1,28 @@
+pomdp
+
+const double p = 0.2;
+
+module M
+
+	s : [0..2]; // state
+	h : [0..3]; // hidden var
+
+	[toss] s=0 -> 0.1:(s'=1)&(h'=1) + 0.3:(s'=1)&(h'=2) + 0.6:(s'=1)&(h'=3);
+	//[loop] s=0 -> true; // uncommenting this gives bad bounds
+	[guess1] s=1 -> (s'=(h=1)?2:3);
+	[guess2] s=1 -> (s'=(h=2)?2:3);
+	[guess3] s=1 -> (s'=(h=3)?2:3);
+	[loop] s=2 -> true;
+
+endmodule
+
+observables s endobservables
+
+label "correct" = s=2;
+
+rewards "guesses"
+	[guess1] true : 1;
+	[guess2] true : 1;
+	[guess3] true : 1;
+endrewards
+
