@@ -1,0 +1,35 @@
+// Simple MDP tests cases, used during development of stochastic game model checking
+// Converted to (special case of) POMDP for testing
+
+pomdp
+
+observables s, t endobservables
+
+module m1
+	s : [0..5];
+	t : [0..2];
+
+	[a] s=0 & t=0 -> (s'=1);
+	[b] s=0 & t=0 -> 0.1 : (t'=1)&(s'=0) + 0.9 : (t'=2)&(s'=0);
+
+	[a] s=1 & t=0 -> (s'=2);
+	[b] s=1 & t=0 -> 0.2 : (t'=1)&(s'=0) + 0.8 : (t'=2)&(s'=0);
+
+	[a] s=2 & t=0 -> (s'=3);
+	[b] s=2 & t=0 -> 0.3 : (t'=1)&(s'=1) + 0.7 : (t'=2)&(s'=1);
+
+	[a] s=3 & t=0 -> (s'=4);
+	[b] s=3 & t=0 -> 0.4 : (t'=1)&(s'=0)+ 0.6 : (t'=2)&(s'=0);
+
+	[a] s=4 & t=0 -> (s'=5);
+	[b] s=4 & t=0 -> 0.5 : (t'=1)&(s'=0) + 0.5 : (t'=2)&(s'=0);
+
+	[] s=5 & t=0 -> (t'=1)&(s'=0);
+
+	[] t>0 -> true;
+
+endmodule
+
+rewards 
+    mod(s,2)=0 : 1;
+endrewards
