@@ -378,7 +378,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 			initialBeliefInDist[i] = 1;
 		}
 		PrismUtils.normalise(initialBeliefInDist);
-		return beliefInDistToBelief(initialBeliefInDist);
+		return new Belief(initialBeliefInDist, this);
 	}
 
 	@Override
@@ -397,7 +397,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	{
 		double[] beliefInDist = belief.toDistributionOverStates(this);
 		double[] nextBeliefInDist = getBeliefInDistAfterChoice(beliefInDist, i);
-		return beliefInDistToBelief(nextBeliefInDist);
+		return new Belief(nextBeliefInDist, this);
 	}
 
 	@Override
@@ -423,7 +423,7 @@ public class POMDPSimple extends MDPSimple implements POMDP
 	{
 		double[] beliefInDist = belief.toDistributionOverStates(this);
 		double[] nextBeliefInDist = getBeliefInDistAfterChoiceAndObservation(beliefInDist, i, o);
-		Belief nextBelief = beliefInDistToBelief(nextBeliefInDist);
+		Belief nextBelief = new Belief(nextBeliefInDist, this);
 		assert(nextBelief.so == o);
 		return nextBelief;
 	}
