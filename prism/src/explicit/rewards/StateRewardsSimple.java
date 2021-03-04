@@ -91,7 +91,7 @@ public class StateRewardsSimple extends StateRewards
 	{
 		try {
 			return stateRewards.get(s);
-		} catch (ArrayIndexOutOfBoundsException e) {
+		} catch (IndexOutOfBoundsException e) {
 			return 0.0;
 		}
 	}
