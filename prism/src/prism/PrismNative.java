@@ -93,16 +93,30 @@ public class PrismNative
 		PN_SetLinEqMethodParam(d);
 	}
 	
+	private static int termCrit;
 	private static native void PN_SetTermCrit(int i);
 	public static void setTermCrit(int i)
 	{
 		PN_SetTermCrit(i);
+		// Cache locally too
+		termCrit = i;
+	}
+	public static int getTermCrit()
+	{
+		return termCrit;
 	}
 	
+	private static double termCritParam;
 	private static native void PN_SetTermCritParam(double d);
 	public static void setTermCritParam(double d)
 	{
 		PN_SetTermCritParam(d);
+		// Cache locally too
+		termCritParam = d;
+	}
+	public static double getTermCritParam()
+	{
+		return termCritParam;
 	}
 	
 	private static native void PN_SetMaxIters(int i);
@@ -165,6 +179,20 @@ public class PrismNative
 		return PN_SetWorkingDirectory(dirname);
 	}
 	
+	// Getting (or resetting) information about model checking
+	
+	public static void resetModelCheckingInfo()
+	{
+		PN_SetLastErrorBound(Double.POSITIVE_INFINITY);
+	}
+	
+	private static native void PN_SetLastErrorBound(double d);
+	private static native double PN_GetLastErrorBound();
+	public static double getLastErrorBound()
+	{
+		return PN_GetLastErrorBound();
+	}
+
 	// Some miscellaneous native methods
 	public static native long PN_GetStdout();
 	public static native long PN_OpenFile(String filename);

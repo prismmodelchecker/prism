@@ -37,7 +37,6 @@ import parser.VarList;
 import parser.ast.Command;
 import parser.ast.Module;
 import parser.ast.ModulesFile;
-import parser.ast.RewardStruct;
 import parser.ast.Update;
 import parser.ast.Updates;
 import prism.ModelType;
@@ -260,54 +259,6 @@ public class Updater extends PrismComponent
 		
 		//System.out.println(transitionList);
 	}
-
-	/**
-	 * Calculate the state rewards for a given state.
-	 * @param state The state to compute rewards for
-	 * @param store An array in which to store the rewards
-	 */
-	public void calculateStateRewards(State state, double[] store) throws PrismLangException
-	{
-		int i, j, n;
-		double d;
-		RewardStruct rw;
-		for (i = 0; i < numRewardStructs; i++) {
-			rw = modulesFile.getRewardStruct(i);
-			n = rw.getNumItems();
-			d = 0.0;
-			for (j = 0; j < n; j++) {
-				if (!rw.getRewardStructItem(j).isTransitionReward())
-					if (rw.getStates(j).evaluateBoolean(state))
-						d += rw.getReward(j).evaluateDouble(state);
-			}
-			store[i] = d;
-		}
-	}
-
-	/**
-	 * Calculate the transition rewards for a given state and outgoing choice.
-	 * @param state The state to compute rewards for
-	 * @param ch The choice from the state to compute rewards for
-	 * @param store An array in which to store the rewards
-	 */
-	public void calculateTransitionRewards(State state, Choice ch, double[] store) throws PrismLangException
-	{
-		int i, j, n;
-		double d;
-		RewardStruct rw;
-		for (i = 0; i < numRewardStructs; i++) {
-			rw = modulesFile.getRewardStruct(i);
-			n = rw.getNumItems();
-			d = 0.0;
-			for (j = 0; j < n; j++) {
-				if (rw.getRewardStructItem(j).isTransitionReward())
-					if (rw.getRewardStructItem(j).getSynchIndex() == Math.max(0, ch.getModuleOrActionIndex()))
-						if (rw.getStates(j).evaluateBoolean(state))
-							d += rw.getReward(j).evaluateDouble(state);
-			}
-			store[i] = d;
-		}
-	}
 	
 	// Private helpers
 	
@@ -359,8 +310,8 @@ public class Updater extends PrismComponent
 		for (i = 0; i < n; i++) {
 			// Compute probability/rate
 			p = ups.getProbabilityInState(i, state);
-			// Check for negative/NaN probabilities/rates
-			if (Double.isNaN(p) || p < 0) {
+			// Check for non-finite/NaN probabilities/rates
+			if (!Double.isFinite(p) || p < 0) {
 				String s = modelType.choicesSumToOne() ? "Probability" : "Rate";
 				s += " is invalid (" + p + ") in state " + state.toString(modulesFile);
 				// Note: we indicate error in whole Updates object because the offending

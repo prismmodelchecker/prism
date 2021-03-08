@@ -183,7 +183,7 @@ public class PrismParser
 		}
 		// Override type of model if requested
 		if (typeOverride != null) {
-			mf.setModelType(typeOverride);
+			mf.setModelTypeInFile(typeOverride);
 		}
 		
 		return mf;
@@ -437,6 +437,7 @@ TOKEN :
 |	< ENDINIT:			"endinit" >
 |	< ENDINVARIANT:		"endinvariant" >
 |	< ENDMODULE:		"endmodule" >
+|	< ENDOBSERVABLES:	"endobservables" >
 |	< ENDREWARDS:		"endrewards" >
 |	< ENDSYSTEM:		"endsystem" >
 |	< FALSE:			"false" >
@@ -457,10 +458,13 @@ TOKEN :
 |	< MODULE:			"module" >
 |	< X:				"X" >
 |	< NONDETERMINISTIC:	"nondeterministic" >
+|	< OBSERVABLES:		"observables" >
 //|	< OF:				"of" >
 |	< PMAX:				"Pmax" >
 |	< PMIN:				"Pmin" >
 |	< P:				"P" >
+|	< POMDP:			"pomdp" >
+|	< POPTA:			"popta" >
 |	< PROBABILISTIC:	"probabilistic" >
 |	< PROB:				"prob" >
 |	< PTA:				"pta" >
@@ -531,7 +535,7 @@ TOKEN :
 
 ModulesFile ModulesFile() throws PrismLangException :
 {
-	ModelType type = ModelType.MDP;
+	ModelType type = null;
 	int typeCount = 0;
 	Token typeDupe = null;
 	Declaration global;
@@ -560,6 +564,8 @@ ModulesFile ModulesFile() throws PrismLangException :
 	rs = RewardStruct() { mf.addRewardStruct(rs); } |
 	// Initial states ("init...endinit" construct)
 	init = Init() { mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init; } |
+	// Observables
+	Observables(mf) |
 	// System definition ("system...endsystem" construct)
 	SystemEndsystem(mf)
 	)* <EOF>
@@ -574,8 +580,8 @@ ModulesFile ModulesFile() throws PrismLangException :
 			throw new PrismLangException("There were multiple init...endinit constructs", initDupe);
 		}
 		
-		// Set model type (note default is MDP)
-		mf.setModelType(type);
+		// Set model type (might be null, i.e., unspecified)
+		mf.setModelTypeInFile(type);
 		
 		// Return completed ModulesFile object
 		mf.setPosition(begin != null? begin: getToken(0), getToken(0));
@@ -680,6 +686,8 @@ ModelType ModulesFileType() :
 	| (<MDP>|<NONDETERMINISTIC>) { modelType=ModelType.MDP; }
 	| (<CTMC>|<STOCHASTIC>) { modelType=ModelType.CTMC; }
 	| <PTA> { modelType=ModelType.PTA; }
+	| <POMDP> { modelType=ModelType.POMDP; }
+	| <POPTA> { modelType=ModelType.POPTA; }
 	)
 	{ return modelType; }
 }
@@ -869,9 +877,11 @@ void UpdateElement(Update update) :
 {
 	ExpressionIdent var = null;
 	Expression expr = null;
+	Token begin = null;
 }
 {
-	<LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH> { update.addElement(var, expr); }
+	begin = <LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH>
+	{ UpdateElement ue = new UpdateElement(var, expr); ue.setPosition(begin, getToken(0)); update.addElement(ue); }
 }
 
 // Module renaming
@@ -934,6 +944,19 @@ Expression Init() :
 }
 {
 	<INIT> expr = Expression(false, false) <ENDINIT> { return expr; }
+}
+
+// Observable variables
+
+void Observables(ModulesFile mf) :
+{
+	String name = null;
+}
+{
+	(<OBSERVABLES> { mf.setHasObservables(true); }
+	( name = Identifier() { mf.addObservableVar(name); }
+	( <COMMA> name = Identifier() { mf.addObservableVar(name); } )* )?
+	<ENDOBSERVABLES>)
 }
 
 // System definition ("system...endsystem" construct)

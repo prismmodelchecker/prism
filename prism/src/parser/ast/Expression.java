@@ -176,7 +176,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public Object evaluate() throws PrismLangException
 	{
-		return evaluate(new EvaluateContextValues(null, null));
+		return evaluate(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -186,7 +186,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public Object evaluate(Values constantValues) throws PrismLangException
 	{
-		return evaluate(new EvaluateContextValues(constantValues, null));
+		return evaluate(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -251,14 +251,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public int evaluateInt(EvaluateContext ec) throws PrismLangException
 	{
-		Object o = evaluate(ec);
-		if (o instanceof Integer) {
-			return ((Integer) o).intValue();
-		}
-		if (o instanceof Boolean) {
-			return ((Boolean) o).booleanValue() ? 1 : 0;
-		}
-		throw new PrismLangException("Cannot evaluate to an integer", this);
+		return evaluateObjectAsInt(evaluate(ec));
 	}
 
 	/**
@@ -268,7 +261,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public int evaluateInt() throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextValues(null, null));
+		return evaluateInt(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -279,7 +272,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public int evaluateInt(Values constantValues) throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextValues(constantValues, null));
+		return evaluateInt(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -344,6 +337,21 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Evaluate this object as an integer.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
+	 */
+	public static int evaluateObjectAsInt(Object o) throws PrismLangException
+	{
+		if (o instanceof Integer) {
+			return ((Integer) o).intValue();
+		}
+		if (o instanceof Boolean) {
+			return ((Boolean) o).booleanValue() ? 1 : 0;
+		}
+		throw new PrismLangException("Cannot evaluate " + o + " to an integer");
+	}
+
+	/**
 	 * Evaluate this expression as a double.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 */
@@ -372,7 +380,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public double evaluateDouble() throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextValues(null, null));
+		return evaluateDouble(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -383,7 +391,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public double evaluateDouble(Values constantValues) throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextValues(constantValues, null));
+		return evaluateDouble(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -467,7 +475,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public boolean evaluateBoolean() throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextValues(null, null));
+		return evaluateBoolean(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -478,7 +486,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public boolean evaluateBoolean(Values constantValues) throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextValues(constantValues, null));
+		return evaluateBoolean(new EvaluateContextConstants(constantValues));
 	}
 
 	/**
@@ -550,7 +558,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public BigRational evaluateExact() throws PrismLangException
 	{
-		return evaluateExact(new EvaluateContextValues(null, null));
+		return evaluateExact(new EvaluateContextConstants(null));
 	}
 
 	/**
@@ -561,7 +569,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public BigRational evaluateExact(Values constantValues) throws PrismLangException
 	{
-		return evaluateExact(new EvaluateContextValues(constantValues, null));
+		return evaluateExact(new EvaluateContextConstants(constantValues));
 	}
 
 	/**

@@ -63,6 +63,7 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
+import prism.Accuracy.AccuracyLevel;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -153,6 +154,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int LOCKSTEP = 2;
 	public static final int SCCFIND = 3;
 
+	// state space cut-off to trigger MTBDD engine
+	protected static final int MTBDD_STATES_THRESHOLD = 100000000;
+	
 	// Options for type of strategy export
 	public enum StrategyExportType {
 		ACTIONS, INDICES, INDUCED_MODEL, DOT_FILE;
@@ -281,6 +285,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
+
+	// Info about automatic engine switching
+	private int engineOld = -1;
+	private boolean engineSwitched = false;
 
 	//------------------------------------------------------------------------------
 	// Constructors + options methods
@@ -449,6 +457,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void setMaxIters(int i) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_MAX_ITERS, i);
+	}
+
+	public void setGridResolution(int i) throws PrismException
+	{
+		settings.set(PrismSettings.PRISM_GRID_RESOLUTION, i);
 	}
 
 	public void setCUDDMaxMem(String s) throws PrismException
@@ -777,6 +790,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return settings.getInteger(PrismSettings.PRISM_MAX_ITERS);
 	}
 
+	public int getGridResolution()
+	{
+		return settings.getInteger(PrismSettings.PRISM_GRID_RESOLUTION);
+	}
+	
 	public boolean getVerbose()
 	{
 		return settings.getBoolean(PrismSettings.PRISM_VERBOSE);
@@ -1779,6 +1797,36 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.print(currentModulesFile.getVarName(i) + " ");
 		}
 		mainLog.println();
+		if (currentModulesFile.getModelType().partiallyObservable()) {
+			mainLog.println("Observables: " + String.join(" ", currentModulesFile.getObservableVars()));
+		}
+
+		// For some models, automatically switch engine
+		switch (currentModelType) {
+		case LTS:
+		case POMDP:
+			if (!getExplicit()) {
+				mainLog.println("\nSwitching to explicit engine, which supports " + currentModelType + "s...");
+				engineOld = getEngine();
+				engineSwitched = true;
+				try {
+					setEngine(Prism.EXPLICIT);
+				} catch (PrismException e) {
+					// Won't happen
+				}
+			}
+			break;
+		// For other models, switch engine back if changed earlier
+		default:
+			if (engineSwitched) {
+				try {
+					setEngine(engineOld);
+				} catch (PrismException e) {
+					// Won't happen
+				}
+				engineSwitched = false;
+			}
+		}
 
 		// If required, export parsed PRISM model
 		if (exportPrism) {
@@ -2024,7 +2072,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public boolean modelCanBeBuilt()
 	{
-		if (currentModelType == ModelType.PTA)
+		if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA)
 			return false;
 		return true;
 	}
@@ -2074,8 +2122,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 
 		try {
-			if (currentModelType == ModelType.PTA) {
-				throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
+			if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA) {
+				throw new PrismException("You cannot build a " + currentModelType + " model explicitly, only perform model checking");
 			}
 
 			mainLog.print("\nBuilding model...\n");
@@ -2259,7 +2307,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		Model model;
 		List<State> statesList;
 
-		if (modulesFile.getModelType() == ModelType.PTA) {
+		if (modulesFile.getModelType() == ModelType.PTA || currentModelType == ModelType.POPTA) {
 			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
 		}
 
@@ -2528,7 +2576,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		
 		if (getExplicit())
-			throw new PrismException("Export of transition rewards not yet supported by explicit engine");
+			throw new PrismNotSupportedException("Export of transition rewards not yet supported by explicit engine");
 
 		// Can only do ordered version of export for MDPs
 		if (currentModelType == ModelType.MDP) {
@@ -2980,7 +3028,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
-		boolean engineSwitch = false;
+		boolean engineSwitch = false, switchToMTBDDEngine = false;
 		int lastEngine = -1;
 
 		if (!digital)
@@ -2994,8 +3042,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Check that property is valid for the current model type
 		prop.getExpression().checkValid(currentModelType);
 
-		// For PTAs...
-		if (currentModelType == ModelType.PTA) {
+		// PTA model checking is handled separately
+		if (currentModelType == ModelType.PTA || currentModelType == ModelType.POPTA) {
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
@@ -3008,6 +3056,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			FastAdaptiveUniformisationModelChecker fauMC;
 			fauMC = new FastAdaptiveUniformisationModelChecker(this, currentModulesFile, propertiesFile);
 			return fauMC.check(prop.getExpression());
+		}
+		// Heuristic choices of engine/method
+		if (settings.getString(PrismSettings.PRISM_HEURISTIC).equals("Speed")) {
+			mainLog.printWarning("Switching to sparse engine and (backwards) Gauss Seidel (default for heuristic=speed).");
+			engineSwitch = true;
+			lastEngine = getEngine();
+			setEngine(Prism.SPARSE);
+			settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
+
 		}
 		// Auto-switch engine if required
 		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
@@ -3044,14 +3101,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 							+ "Either switch to the explicit engine or add more action labels to the model");
 			}
 
-			if (!getExplicit() && !engineSwitch && getEngine() != MTBDD) {
-				// check if we need to switch to MTBDD engine
+			// Check if we need to switch to MTBDD engine
+			if (!getExplicit() && getEngine() != MTBDD) {
 				long n = currentModel.getNumStates();
+				// Either because number of states is two big for double-valued solution vectors
 				if (n == -1 || n > Integer.MAX_VALUE) {
 					mainLog.printWarning("Switching to MTBDD engine, as number of states is too large for " + engineStrings[getEngine()] + " engine.");
+					switchToMTBDDEngine = true;
+				}
+				// Or based on heuristic choices of engine/method
+				// (sparse/hybrid typically v slow if need to work with huge state spaces)
+				else if (settings.getString(PrismSettings.PRISM_HEURISTIC).equals("Speed") && n > MTBDD_STATES_THRESHOLD) {
+					mainLog.printWarning("Switching to MTBDD engine (default for heuristic=speed and this state space size).");
+					switchToMTBDDEngine = true;
+				}
+				// NB: Need to make sure solution methods supported for MTBDDs are used
+				if (switchToMTBDDEngine) {
 					engineSwitch = true;
 					lastEngine = getEngine();
 					setEngine(Prism.MTBDD);
+					settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, "Jacobi");
 				}
 			}
 
@@ -3087,7 +3156,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		expr.checkValid(currentModelType);
 
 		// Digital clocks translation
-		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
+		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks") || currentModelType == ModelType.POPTA) {
 			digital = true;
 			ModulesFile oldModulesFile = currentModulesFile;
 			try {
@@ -3207,8 +3276,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheckSimulator(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
 	{
-		Object res = null;
-
 		// Print info
 		mainLog.printSeparator();
 		mainLog.println("\nSimulating: " + expr);
@@ -3226,9 +3293,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Do simulation
 		loadModelIntoSimulator();
-		res = getSimulator().modelCheckSingleProperty(propertiesFile, expr, initialState, maxPathLength, simMethod);
+		Result res = getSimulator().modelCheckSingleProperty(propertiesFile, expr, initialState, maxPathLength, simMethod);
 
-		return new Result(res);
+		return res;
 	}
 
 	/**
@@ -3248,8 +3315,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result[] modelCheckSimulatorSimultaneously(PropertiesFile propertiesFile, List<Expression> exprs, Values definedPFConstants, State initialState,
 			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
-		Object[] res = null;
-
 		// Print info
 		mainLog.printSeparator();
 		mainLog.print("\nSimulating");
@@ -3276,11 +3341,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Do simulation
 		loadModelIntoSimulator();
-		res = getSimulator().modelCheckMultipleProperties(propertiesFile, exprs, initialState, maxPathLength, simMethod);
+		Result[] resArray = getSimulator().modelCheckMultipleProperties(propertiesFile, exprs, initialState, maxPathLength, simMethod);
 
-		Result[] resArray = new Result[res.length];
-		for (int i = 0; i < res.length; i++)
-			resArray[i] = new Result(res[i]);
 		return resArray;
 	}
 
@@ -3362,17 +3424,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// There should be just one region since no parameters are used
 		ParamResult paramResult = (ParamResult) result.getResult();
 		result.setResult(paramResult.getSimpleResult(prop.getType()));
+		result.setAccuracy(new Accuracy(AccuracyLevel.EXACT));
 
 		// Print result to log
 		String resultString = "Result";
-		if (!("Result".equals(prop.getExpression().getResultName())))
-			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
-		resultString += ": " + result.getResultString();
-		mainLog.println("\n" + resultString);
-
+		resultString += ": " + result.getResultAndAccuracy();
 		if (result.getResult() instanceof BigRational) {
-			mainLog.println(" As floating point: " + ((BigRational)result.getResult()).toApproximateString());
+			resultString += " (" + ((BigRational) result.getResult()).toApproximateString() + ")";
 		}
+		mainLog.println("\n" + resultString);
 
 		return result;
 	}
@@ -3623,8 +3683,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
 		if (time < 0)
 			throw new PrismException("Cannot compute transient probabilities for negative time value");
-		if (fileOut != null && getEngine() == MTBDD)
-			throw new PrismException("Transient probability export only supported for sparse/hybrid engines");
 		if (exportType == EXPORT_MRMC)
 			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)
@@ -3720,8 +3778,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Do some checks
 		if (!(currentModelType == ModelType.CTMC || currentModelType == ModelType.DTMC))
 			throw new PrismException("Steady-state probabilities only computed for DTMCs/CTMCs");
-		if (fileOut != null && getEngine() == MTBDD)
-			throw new PrismException("Transient probability export only supported for sparse/hybrid engines");
 		if (exportType == EXPORT_MRMC)
 			exportType = EXPORT_PLAIN; // no specific states format for MRMC
 		if (exportType == EXPORT_ROWS)

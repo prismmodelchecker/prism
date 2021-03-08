@@ -1,0 +1,93 @@
+// dining cryptographers
+// gxn 27/01/16
+
+// pomdp model
+pomdp
+
+// observable variables (for crypt3)
+// the announcements of all cryptographers 
+// only its own coin and the coin of its left neighbour
+// if it guesses correctly (this is the target so needs to be observable)
+// also local states of modules this only indicates:
+// - if a cryptographer has announced
+// - if the master has made its choice
+observables
+	coin1, coin3, m, s1, s2, s3, guess, correct, agree1, agree2, agree3
+endobservables
+
+// constants used in renaming
+const int p1=1;
+const int p2=2;
+const int p3=3;
+
+module master
+	
+	m : [0..1]; // local state (has chosen who pays)
+	pay : [1..3]; // who actually pays
+	
+	// randomly choose who pays
+	[] m=0 -> 1/2 : (m'=1) & (pay'=1) + 1/2 : (m'=1) & (pay'=2);
+	
+	// test cases
+	//[] m=0 -> (m'=1); // master pays
+	//[] m=0 -> (m'=1) & (pay'=1); // crypt 1 pays
+	//[] m=0 -> (m'=1) & (pay'=2); // crypt 2 pays
+	//[] m=0 -> (m'=1) & (pay'=3); // crypt 3 pays
+	
+endmodule
+
+module crypt1
+	
+	coin1 : [0..2]; // value of coin
+	s1 : [0..1]; // local state (has announced yet)
+	agree1 : [0..1]; // agree or not
+	
+	// flip coin and share values
+	[flip] m=1 & coin1=0 -> 0.5 : (coin1'=1) + 0.5 : (coin1'=2);
+	
+	// make choice (once relevant coins have been flipped)
+	// does not pay
+	[choose1] s1=0 & coin1>0 & coin2>0 & coin1=coin2 & (pay!=p1) -> (s1'=1) & (agree1'=1);
+	[choose1] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay!=p1) -> (s1'=1);
+	// pays
+	[choose1] s1=0 & coin1>0 & coin2>0 & coin1=coin2 & (pay=p1) -> (s1'=1);
+	[choose1] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay=p1) -> (s1'=1) & (agree1'=1);
+
+	// when everyone has announced
+	[done] s1=1 -> true;
+
+endmodule
+
+// construct further cryptographers through renaming
+module crypt2 =crypt1[coin1=coin2, s1=s2, p1=p2, agree1=agree2, coin2=coin3, choose1=choose2 ] endmodule
+
+// the cryptographer that guesses who pays
+module crypt3
+	
+	coin3 : [0..2];
+	s3 : [0..2];
+	agree3 : [0..1];
+	guess : [0..3];
+	correct : [0..1];
+	
+	// flip coin
+	[flip] m=1 & coin3=0 -> 0.5 : (coin3'=1) + 0.5 : (coin3'=2);
+	
+	// make choice (once relevant coins have been flipped)
+	// assume does not pay
+	[choose3] s3=0 & coin3>0 & coin1>0 & coin3=coin1 -> (s3'=1) & (agree3'=1);
+	[choose3] s3=0 & coin3>0 & coin1>0 & !(coin3=coin1) -> (s3'=1);
+	// pays
+	[choose3] s3=0 & coin3>0 & coin1>0 & coin3=coin1 & (pay=p3) -> (s3'=1);
+	[choose3] s3=0 & coin3>0 & coin1>0 & !(coin3=coin1) & (pay=p3) -> (s3'=1) & (agree3'=1);
+	
+	// after everyone has announced guess who payed
+	[done] s3=1 -> (s3'=2);
+	[guess1] s3=2 & guess=0 -> (guess'=1);
+	[guess2] s3=2 & guess=0 -> (guess'=2);
+	
+	// check whether guessed correctly
+	[check] s3=2 & guess>0 & guess=pay -> (correct'=1);
+	[check] s3=2 & guess>0 & !(guess=pay) -> true;
+
+endmodule

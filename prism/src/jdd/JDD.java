@@ -955,6 +955,20 @@ public class JDD
 	}
 
 	/**
+	 * Returns the minimum terminal in the part of
+	 * dd that overlaps with filter.
+	 * If filter is empty, returns +infinity.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>filter</i> ]
+	 */
+	public static double FindMinOver(JDDNode dd, JDDNode filter)
+	{
+		JDDNode filtered = JDD.ITE(filter, dd.copy(), JDD.PlusInfinity());
+		double rv = FindMin(filtered);
+		JDD.Deref(filtered);
+		return rv;
+	}
+
+	/**
 	 * returns maximum terminal in dd
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
@@ -974,6 +988,20 @@ public class JDD
 	{
 		double rv = DD_FindMaxFinite(dd.ptr());
 		checkForCuddError();
+		return rv;
+	}
+
+	/**
+	 * Returns the maximum terminal in the part of
+	 * dd that overlaps with filter.
+	 * If filter is empty, returns -infinity.
+	 * <br>[ REFS: <i>none</i>, DEREFS: <i>filter</i> ]
+	 */
+	public static double FindMaxOver(JDDNode dd, JDDNode filter)
+	{
+		JDDNode filtered = JDD.ITE(filter, dd.copy(), JDD.MinusInfinity());
+		double rv = FindMax(filtered);
+		JDD.Deref(filtered);
 		return rv;
 	}
 

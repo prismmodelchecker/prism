@@ -28,14 +28,13 @@ package automata;
 
 import java.util.BitSet;
 
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLog;
-import strat.MDStrategy;
 import explicit.LTS;
 import explicit.Model;
 import explicit.ModelExplicit;
 import explicit.SuccessorsIterator;
+import prism.ModelType;
+import prism.PrismException;
+import strat.MDStrategy;
 
 /**
  * Class giving access to the labelled transition system (LTS) underlying a deterministic automaton (DA).
@@ -111,6 +110,12 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	}
 
 	@Override
+	public int getNumTransitions(int s)
+	{
+		return da.getNumEdges(s);
+	}
+
+	@Override
 	public boolean isSuccessor(int s1, int s2)
 	{
 		int n = da.getNumEdges(s1);
@@ -124,18 +129,6 @@ public class LTSFromDA extends ModelExplicit implements LTS
 
 	@Override
 	public void checkForDeadlocks(BitSet except) throws PrismException
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
-	{
-		throw new RuntimeException("Not implemented yet");
-	}
-
-	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
 	{
 		throw new RuntimeException("Not implemented yet");
 	}
@@ -172,12 +165,6 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	}
 
 	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		return false;
-	}
-
-	@Override
 	public int getNumTransitions(int s, int i)
 	{
 		return 1;
@@ -206,10 +193,12 @@ public class LTSFromDA extends ModelExplicit implements LTS
 	{
 		throw new RuntimeException("Not implemented yet");
 	}
-
+	
+	// Methods to implement LTS
+	
 	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat)
+	public int getSuccessor(int s, int i)
 	{
-		throw new RuntimeException("Not implemented yet");
+		return da.getEdgeDest(s, i); 
 	}
 }

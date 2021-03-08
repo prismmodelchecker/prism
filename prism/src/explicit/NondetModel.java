@@ -27,8 +27,8 @@
 package explicit;
 
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.PrimitiveIterator;
 import java.util.function.IntPredicate;
 
 import prism.PrismLog;
@@ -49,12 +49,26 @@ public interface NondetModel extends Model
 	/**
 	 * Get the maximum number of nondeterministic choices in any state.
 	 */
-	public int getMaxNumChoices();
+	default int getMaxNumChoices()
+	{
+		int maxNumChoices = 0;
+		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
+			maxNumChoices = Math.max(maxNumChoices, getNumChoices(state));
+		}
+		return maxNumChoices;
+	}
 
 	/**
 	 * Get the total number of nondeterministic choices over all states.
 	 */
-	public int getNumChoices();
+	default int getNumChoices()
+	{
+		int numChoices = 0;
+		for (int state = 0, numStates = getNumStates(); state < numStates; state++) {
+			numChoices += getNumChoices(state);
+		}
+		return numChoices;
+	}
 
 	/**
 	 * Get the action label (if any) for choice {@code i} of state {@code s}.
@@ -62,34 +76,55 @@ public interface NondetModel extends Model
 	public Object getAction(int s, int i);
 
 	/**
-	 * Do all choices in in each state have a unique action label?
+	 * Get the index of the (first) choice in state {@code s} with action label {@code action}.
+	 * Action labels (which are {@link Object}s) are tested for equality using {@link Object#equals()}.
+	 * Returns -1 if there is no matching action.
 	 */
-	public boolean areAllChoiceActionsUnique();
+	public default int getChoiceByAction(int s, Object action)
+	{
+		int numChoices = getNumChoices(s);
+		for (int i = 0; i < numChoices; i++) {
+			Object a = getAction(s, i);
+			if (a == null) {
+				if (action == null) {
+					return i;
+				}
+			} else if (a.equals(action)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Do all choices in in each state have a unique action label?
+	 * <br><br>
+	 * NB: "true" does not imply that all choices are labelled,
+	 * e.g., an a-labelled choice and an unlabelled one _are_ considered unique;
+	 * multiple unlabelled choices are _not_ considered unique.
+	 */
+	public default boolean areAllChoiceActionsUnique()
+	{
+		int numStates = getNumStates();
+		HashSet<Object> sActions = new HashSet<Object>();
+		for (int s = 0; s < numStates; s++) {
+			int n = getNumChoices(s);
+			if (n > 1) {
+				sActions.clear();
+				for (int i = 0; i < n; i++) {
+					if (!sActions.add(getAction(s, i))) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
 	
 	/**
 	 * Get the number of transitions from choice {@code i} of state {@code s}.
 	 */
 	public int getNumTransitions(int s, int i);
-
-	/**
-	 * Get the number of transitions leaving a set of states.
-	 * <br>
-	 * Default implementation: Iterate over the states s and choices i
-	 * and sum the result of getNumTransitions(s,i).
-	 * @param states The set of states, specified by a OfInt iterator
-	 * @return the number of transitions
-	 */
-	public default long getNumTransitions(PrimitiveIterator.OfInt states)
-	{
-		long count = 0;
-		while (states.hasNext()) {
-			int s = states.nextInt();
-			for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
-				count += getNumTransitions(s, choice);
-			}
-		}
-		return count;
-	}
 
 	/**
 	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set {@code set}.

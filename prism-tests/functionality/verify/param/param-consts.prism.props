@@ -1,0 +1,5 @@
+// RESULT: 1-p
+P=? [ F s=1 ];
+
+// RESULT: p
+P=? [ F s=2 ];

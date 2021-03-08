@@ -486,3 +486,23 @@ a.prism-cite { color:#006600; }
 	float:left;
 	clear:both;
 }
+
+.prism-tag {
+	color:white;
+	background-color:grey;
+	border-radius:2px;
+	padding:2px;
+	margin-left:4px;
+	font-size:75%;
+}
+
+div.prism-shell {
+  padding:5px 10px 5px 10px;
+  margin:10px 0 10px 0;
+  border:1px dotted #808080;
+  background-color:#F1F0ED;
+  overflow:auto;
+  font-family:monospace;
+  font-weight:bold;
+  font-size:90%;
+}

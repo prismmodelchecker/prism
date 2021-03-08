@@ -56,7 +56,6 @@ import prism.PrismSettingsListener;
 import userinterface.GUIClipboardEvent;
 import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
-import userinterface.OptionsPanel;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUILogEvent;
 
@@ -300,11 +299,6 @@ public class GUILog extends GUIPlugin implements MouseListener, PrismSettingsLis
 				popupMenu.show(e.getComponent(), e.getX(), e.getY());
 			}
 		}
-	}
-	
-	public OptionsPanel getOptions()
-	{
-		return null;
 	}
 	
 	public void notifySettings(PrismSettings settings)

@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.Predicate;
 
 import parser.State;
 import parser.ast.ExpressionBinaryOp;
@@ -42,10 +43,13 @@ import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
+import prism.Accuracy;
+import prism.AccuracyFactory;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismUtils;
+import prism.ResultTesting;
 import prism.StateVector;
 
 /**
@@ -61,7 +65,9 @@ public class StateValues implements StateVector
 	protected int[] valuesI;
 	protected double[] valuesD;
 	protected BitSet valuesB;
-
+	
+	// Accuracy info
+	public Accuracy accuracy = null;
 	// Model info
 	protected List<State> statesList;
 
@@ -173,6 +179,19 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Create a new (double-valued) state values vector from an existing array of doubles,
+	 * stored in a ModelCheckerResult object. The array is stored directly, not copied.
+	 * Accuracy information is also copied from the ModelCheckerResult object.
+	 * Also set associated model (whose state space size should match vector size).
+	 */
+	public static StateValues createFromDoubleArrayResult(ModelCheckerResult res, Model model)
+	{
+		StateValues sv = createFromDoubleArray(res.soln, model);
+		sv.setAccuracy(res.accuracy);
+		return sv;
+	}
+	
+	/**
 	 * Create a new (double-valued) state values vector from an existing array of doubles.
 	 * The array is stored directly, not copied.
 	 * Also set associated model (whose state space size should match vector size).
@@ -207,6 +226,7 @@ public class StateValues implements StateVector
 	 * where each entry is 1.0 if in the bitset, 0.0 otherwise.
 	 * Also set associated model (and this determines the vector size).
 	 * The bitset is not modified or stored.
+	 * The accuracy for the result is also set automatically.
 	 */
 	public static StateValues createFromBitSetAsDoubles(BitSet bitset, Model model)
 	{
@@ -215,9 +235,19 @@ public class StateValues implements StateVector
 		for (int i = 0; i < size; i++) {
 			array[i] = bitset.get(i) ? 1.0 : 0.0;
 		}
-		return createFromDoubleArray(array, model);
+		StateValues sv = createFromDoubleArray(array, model);
+		sv.setAccuracy(AccuracyFactory.doublesFromQualitative());
+		return sv;
 	}
 
+	/**
+	 * Set the accuracy.
+	 */
+	public void setAccuracy(Accuracy accuracy)
+	{
+		this.accuracy = accuracy;
+	}
+	
 	/**
 	 * Generate BitSet for states in the given interval
 	 * (interval specified as relational operator and bound)
@@ -264,22 +294,22 @@ public class StateValues implements StateVector
 			switch (relOp) {
 			case GEQ:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] >= bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x >= bound, i, "compare to " + bound));
 				}
 				break;
 			case GT:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] > bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x > bound, i, "compare to " + bound));
 				}
 				break;
 			case LEQ:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] <= bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x <= bound, i, "compare to " + bound));
 				}
 				break;
 			case LT:
 				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesD[i] < bound);
+					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x < bound, i, "compare to " + bound));
 				}
 				break;
 			default:
@@ -293,23 +323,71 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Test a predicate (over double values) against the {@code i}th vector element,
+	 * checking whether this can be done safely given the vector's accuracy (if known).
+	 * Return the (boolean) result, or throw an exception if the values is not accurate enough.
+	 * It is assumed that it suffices to check that the valuation of the predicate
+	 * is the same at the lower and upper accuracy ranges of the value.
+	 * @param pred Predicate to test
+	 * @param i Index of element to check
+	 * @param descr Description of operation for error message
+	 */
+	private boolean testDoublePredicateWithAccuracyCheck(Predicate<Double> pred, int i, String descr) throws PrismException
+	{
+		double value = valuesD[i];
+		if (accuracy != null) {
+			boolean resultLow = pred.test(accuracy.getResultLowerBound(value));
+			boolean resultHigh = pred.test(accuracy.getResultUpperBound(value));
+			if (resultLow != resultHigh) {
+				if (descr == null) {
+					descr = "test predicate";
+				}
+				throw new PrismException("Accuracy of result " + value  + " is not enough to " + descr);
+			}
+		}
+		return pred.test(value);
+	}
+	
+	/**
+	 * Generate BitSet for states whose value is close to 'value'
+	 * (if present, accuracy info used to determine closeness)
+	 * The type of 'value' is assumed to match that of the vector.
+	 */
+	public BitSet getBitSetFromCloseValue(Object value) throws PrismException
+	{
+		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
+		return getBitSetFromCloseValue(value, accuracy);
+	}
+
+	/**
 	 * Generate BitSet for states whose value is close to 'value'
 	 * (within either absolute or relative error 'epsilon')
 	 * The type of 'value' is assumed to match that of the vector.
 	 */
 	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs) throws PrismException
 	{
+		Accuracy accuracy = new Accuracy(Accuracy.AccuracyLevel.BOUNDED, epsilon, abs);
+		return getBitSetFromCloseValue(value, accuracy);
+	}
+
+	/**
+	 * Generate BitSet for states whose value is close to 'value'
+	 * (use the passed in level of accuracy to determine closeness)
+	 * The type of 'value' is assumed to match that of the vector.
+	 */
+	public BitSet getBitSetFromCloseValue(Object value, Accuracy accuracy) throws PrismException
+	{
 		BitSet sol = new BitSet();
 
 		if (type instanceof TypeInt) {
 			int valueI = ((Integer) value).intValue();
 			for (int i = 0; i < size; i++) {
-				sol.set(i, PrismUtils.doublesAreClose(valuesI[i], valueI, epsilon, abs));
+				sol.set(i, PrismUtils.measureSupNormAbs(valuesI[i], valueI) <= accuracy.getAbsoluteErrorBound(valuesI[i]));
 			}
 		} else if (type instanceof TypeDouble) {
 			double valueD = ((Double) value).doubleValue();
 			for (int i = 0; i < size; i++) {
-				sol.set(i, PrismUtils.doublesAreClose(valuesD[i], valueD, epsilon, abs));
+				sol.set(i, PrismUtils.measureSupNormAbs(valuesD[i], valueD) <= accuracy.getAbsoluteErrorBound(valuesD[i]));
 			}
 		} else {
 			throw new PrismException("Can't getBitSetFromCloseValue for a vector of type " + type);
@@ -318,7 +396,26 @@ public class StateValues implements StateVector
 		return sol;
 	}
 
+	/**
+	 * Get the accuracy.
+	 */
+	public Accuracy getAccuracy()
+	{
+		return accuracy;
+	}
+
 	// METHODS TO MODIFY VECTOR
+
+	public void setValue(int i, Object val) throws PrismLangException
+	{
+		if (type instanceof TypeBool) {
+			setBooleanValue(i, ((TypeBool) type).castValueTo(val));
+		} else if (type instanceof TypeInt) {
+			setIntValue(i, ((TypeInt) type).castValueTo(val));
+		} else if (type instanceof TypeDouble) {
+			setDoubleValue(i, ((TypeDouble) type).castValueTo(val).doubleValue());
+		}
+	}
 
 	public void setIntValue(int i, int val)
 	{
@@ -1701,7 +1798,7 @@ public class StateValues implements StateVector
 
 		// Check if all zero
 		if (printSparse && !printMatlab && count == 0) {
-			log.println("(all zero)");
+			log.println(type == TypeBool.getInstance() ? "(none)" : "(all zero)");
 			return;
 		}
 

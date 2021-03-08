@@ -1,0 +1,38 @@
+// Booleans
+
+// RESULT: true
+true;
+
+// RESULT: false
+!true;
+
+// Ints
+
+// RESULT: 7
+7;
+
+// RESULT: -7
+-7;
+
+// Doubles
+
+// RESULT: 3.14
+3.14;
+
+// RESULT: 1/2
+0.5;
+
+// RESULT: -1/2
+-0.5;
+
+// RESULT: Infinity
+1.0 / 0.0;
+
+// RESULT: +Infinity
+1.0 / 0.0;
+
+// RESULT: -Infinity
+-1.0 / 0.0;
+
+// RESULT: NaN
+(1.0 / 0.0) / (1.0 / 0.0);

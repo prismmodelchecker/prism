@@ -1,0 +1,19 @@
+#!/bin/bash
+
+prism pump.prism pump.props -prop 1 -const h0=2,h1=16,N=2 -gridresolution 40
+prism pump.prism pump.props -prop 1 -const h0=2,h1=16,N=16 -gridresolution 2
+
+prism pump.prism pump.props -prop 2 -const h0=2,h1=16,N=2 -gridresolution 40
+prism pump.prism pump.props -prop 2 -const h0=2,h1=16,N=16 -gridresolution 2
+
+prism pump.prism pump.props -prop 3 -const h0=2,h1=16,N=2,D=25 -gridresolution 40
+prism pump.prism pump.props -prop 3 -const h0=2,h1=16,N=16,D=25 -gridresolution 2
+
+prism pump.prism pump.props -prop 4 -const h0=2,h1=16,N=2,D=25 -gridresolution 40
+prism pump.prism pump.props -prop 4 -const h0=2,h1=16,N=16,D=25 -gridresolution 2
+
+# expected time (slow to converge)
+# prism pump.prism pump.props -prop 5 -const h0=2,h1=16,N=2 -gridresolution 40
+# prism pump.prism pump.props -prop 5 -const h0=2,h1=16,N=16 -gridresolution 2
+# prism pump.prism pump.props -prop 6 -const h0=2,h1=16,N=2 -gridresolution 40
+# prism pump.prism pump.props -prop 6 -const h0=2,h1=16,N=16 -gridresolution 2

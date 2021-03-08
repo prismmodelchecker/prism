@@ -1,0 +1,18 @@
+// Test of constants in parametric model checking
+// (specifically, when a parameter is used indirectly,
+// within the definition of another constant)
+
+dtmc
+
+const double p;
+const double q = 1 - p;
+
+module M
+
+	// local state
+	s : [0..7] init 0;
+	
+	[] s=0 -> q : (s'=1) + 1-q : (s'=2);
+	[] s>0 -> true;
+	
+endmodule

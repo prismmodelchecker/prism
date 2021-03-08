@@ -1,0 +1,76 @@
+pomdp
+
+// can see the state of the pump and its local variables and all clocks
+observables
+	h, p, l, m, guess, correct, x, y, t
+endobservables
+
+label "invariants" = (p=0=>true)&(p=1=>y<=1)&(p=2=>y<=0)&(l=0=>x<=0)&(l=1=>x<=Tout)&(l=2=>x<=0)&(l=3=>true);
+
+const int h0;
+const int h1;
+const int N;
+const int Tout = 10;
+
+const int D; // deadline
+module timer
+
+	// global time
+	t : [0..D+1];
+        
+    // time increases
+    [time] (t<D) -> (t'=min(t+1,D+1));
+    // loop when deadline has passed
+    [] (t>D) -> (t'=t);
+        
+endmodule
+
+
+module high
+
+	h : [0..1] init 0;
+	bit : [-1..1] init -1;
+	[] h=0 -> 1/2 : (h'=1)&(bit'=0) + 1/2 : (h'=1)&(bit'=1);
+	[time] true -> 1.0 : true;
+
+endmodule
+
+module pump
+
+	p : [0..2] init 0;
+	y : [0..2];
+
+	[mess_l] p=0&bit>=0 -> (p'=1) & (y'=0);
+	[] p=1&bit=0&y=1 -> 1/h0 : (p'=2) & (y'=0) + (1-1/h0) : (p'=1) & (y'=0);
+	[] p=1&bit=1&y=1 -> 1/h1 : (p'=2) & (y'=0) + (1-1/h1) : (p'=1) & (y'=0);
+	[mess_l] p>0 -> (p'=0) & (y'=0);
+	[ack_l] p=2 -> (p'=0);
+	[time] (p=0=>true)&(p=1=>y+1<=1)&(p=2=>y+1<=0) -> 1.0 : (y'=min(y+1, 2));
+
+endmodule
+
+module low
+
+	l : [0..3] init 0;
+	m : [0..N] init 1;
+	guess : [-1..1] init -1;
+	correct : [0..1] init 0;
+	x : [0..11];
+
+	[mess_l] l=0 -> (l'=1) & (x'=0);
+	[ack_l] l=1&m<N&x<=Tout -> (l'=0) & (m'=m+1) & (x'=0);
+	[ack_l] l=1&m=N&x<=Tout -> (l'=2) & (x'=0);
+	[nack_l] l=1&x=Tout -> (l'=0) & (x'=0);
+	[guess0] l=2&guess=-1&x=0 -> (guess'=0);
+	[guess1] l=2&guess=-1&x=0 -> (guess'=1);
+	[] l=2&guess>=0&guess=bit&x=0&t<=D -> (l'=3) & (correct'=1);
+	[] l=2&guess>=0&guess!=bit&x=0&t<=D -> (l'=3);
+	[time] (l=0=>x+1<=0)&(l=1=>x+1<=Tout)&(l=2=>x+1<=0)&(l=3=>true) -> 1.0 : (x'=min(x+1, 11));
+
+endmodule
+
+rewards "time" 
+
+	[time] true : 1;
+
+endrewards

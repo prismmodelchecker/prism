@@ -187,12 +187,6 @@ public class MDPDroppedChoicesCached extends MDPView
 	}
 
 	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		return model.areAllChoiceActionsUnique() ? true : super.areAllChoiceActionsUnique();
-	}
-
-	@Override
 	public Iterator<Integer> getSuccessorsIterator(final int state, final int choice)
 	{
 		final int originalChoice = mapChoiceToOriginalModel(state, choice);

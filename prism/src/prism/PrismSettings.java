@@ -72,6 +72,7 @@ public class PrismSettings implements Observer
 	
 	//PRISM
 	public static final	String PRISM_ENGINE							= "prism.engine";
+	public static final	String PRISM_HEURISTIC						= "prism.heuristic";
 	public static final	String PRISM_VERBOSE						= "prism.verbose";
 	public static final	String PRISM_FAIRNESS						= "prism.fairness";
 	public static final	String PRISM_PRECOMPUTATION					= "prism.precomputation";
@@ -94,6 +95,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_TERM_CRIT_PARAM				= "prism.termCritParam";//"prism.terminationEpsilon";
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
 	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
+	public static final	String PRISM_GRID_RESOLUTION				= "prism.gridResolution";
 	
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
@@ -233,6 +235,8 @@ public class PrismSettings implements Observer
 			// ENGINES/METHODS:
 			{ CHOICE_TYPE,		PRISM_ENGINE,							"Engine",								"2.1",			"Hybrid",																	"MTBDD,Sparse,Hybrid,Explicit",																		
 																			"Which engine (hybrid, sparse, MTBDD, explicit) should be used for model checking." },
+			{ CHOICE_TYPE,		PRISM_HEURISTIC,						"Heuristic mode",							"4.5",			"None",																		"None,Speed,Memory",																		
+																			"Which heuristic mode to use for picking engines/settings (none, speed, memory)." },
 			{ BOOLEAN_TYPE,		PRISM_EXACT_ENABLED,					"Do exact model checking",			"4.2.1",			new Boolean(false),															"",
 																			"Perform exact model checking." },
 																			
@@ -265,6 +269,8 @@ public class PrismSettings implements Observer
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
 			{ BOOLEAN_TYPE,		PRISM_EXPORT_ITERATIONS,				"Export iterations (debug/visualisation)",			"4.3.1",			false,														"",
 																			"Export solution vectors for iteration algorithms to iterations.html"},
+			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			new Integer(10),															"1,",																						
+																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1031,6 +1037,22 @@ public class PrismSettings implements Observer
 				throw new PrismException("No parameter specified for -" + sw + " switch");
 			}
 		}
+		// Heuristic modes
+		else if (sw.equals("heuristic")) {
+			if (i < args.length - 1) {
+				s = args[++i];
+				if (s.equals("none"))
+					set(PRISM_HEURISTIC, "None");
+				else if (s.equals("speed"))
+					set(PRISM_HEURISTIC, "Speed");
+				else if (s.equals("memory"))
+					set(PRISM_HEURISTIC, "Memory");
+				else
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: none, speed, memory)");
+			} else {
+				throw new PrismException("No parameter specified for -" + sw + " switch");
+			}
+		}
 
 		// NUMERICAL SOLUTION OPTIONS:
 		
@@ -1157,6 +1179,21 @@ public class PrismSettings implements Observer
 		// export iterations
 		else if (sw.equals("exportiterations")) {
 			set(PRISM_EXPORT_ITERATIONS, true);
+		}
+		// fixed grid resolution
+		else if (sw.equals("gridresolution")) {
+			if (i < args.length - 1) {
+				try {
+					j = Integer.parseInt(args[++i]);
+					if (j < 0)
+						throw new NumberFormatException("");
+					set(PRISM_GRID_RESOLUTION, j);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
 		}
 		
 		// MODEL CHECKING OPTIONS:
@@ -1766,6 +1803,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-exact ......................... Perform exact (arbitrary precision) model checking");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital, backwards) [default: games]");
 		mainLog.println("-transientmethod <name> ........ CTMC transient analysis methof (unif, fau) [default: unif]");
+		mainLog.println("-heuristic <mode> .............. Automatic choice of engines/settings (none, speed, memory) [default: none]");
 		mainLog.println();
 		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
 		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");
@@ -1794,6 +1832,7 @@ public class PrismSettings implements Observer
 		mainLog.println("-absolute (or -abs) ............ Use absolute error for detecting convergence");
 		mainLog.println("-epsilon <x> (or -e <x>) ....... Set value of epsilon (for convergence check) [default: 1e-6]");
 		mainLog.println("-maxiters <n> .................. Set max number of iterations [default: 10000]");
+		mainLog.println("-gridresolution <n> .............Set resolution for fixed grid approximation (POMDP) [default: 10]");
 		
 		mainLog.println();
 		mainLog.println("MODEL CHECKING OPTIONS:");

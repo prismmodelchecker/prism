@@ -16,7 +16,7 @@ fi
 if [ ! "$1" = "silent" ] ; then
     echo "Installing PRISM (directory=$PRISM_DIR)"
 fi
-TEMP_FILE=tmp
+TEMP_FILE="tmp$RANDOM"
 # Search for the scripts that should be changed
 # We exclude:
 #  - Windows .BAT files

@@ -62,11 +62,6 @@ public class GUIOptionsDialog extends javax.swing.JDialog
 		}
 	}
 	
-	public void addPanel(OptionsPanel p)
-	{
-		// defunct
-	}
-	
 	public void show()
 	{
 		super.show();

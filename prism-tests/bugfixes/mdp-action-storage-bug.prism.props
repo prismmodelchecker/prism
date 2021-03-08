@@ -1,0 +1,2 @@
+// RESULT: true
+P>=1 [ F s=1 ];

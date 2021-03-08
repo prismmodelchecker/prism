@@ -99,7 +99,7 @@ a.varlink { text-decoration:none; }
 <p>Typically, once a model has been constructed, it is analysed through model checking.
 Properties are specified as described in the "<a class='wikilink' href='../PropertySpecification/Main.html'>Property Specification</a>" section,
 and are usually kept in files with extensions <code>.props</code>, <code>.pctl</code> or <code>.csl</code>.
-There are properties files accompanying most of the sample PRISM models in the <code>examples</code> directory.
+There are properties files accompanying most of the sample PRISM models in the <code>prism-examples</code> directory.
 </p>
 <p class='vspace'><a name='gui' id='gui'></a>
 </p><h3>GUI</h3>
@@ -153,13 +153,23 @@ For example, to check only the fourth property in the file:
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ModelChecking?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>Alternatively, the contents of a properties file can be specified directly from the command-line, using the <code>-pf</code> switch:
+<p class='vspace'>You can also provide a comma-separated list of multiple properties to check,
+using neither numerical indices or property names:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -pf 'P&gt;=0.5 [ true U&lt;=5 (s=1 &amp; a=0) ]'</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm poll.csl -prop 4,5,safe</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ModelChecking?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Alternatively, the contents of a properties file can be specified directly from the command-line, using the <code>-pf</code> switch:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -pf 'P&gt;=0.5 [ true U&lt;=5 (s=1 &amp; a=0) ]'</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ModelChecking?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The switches <code>-pctl</code> and <code>-csl</code> are aliases for <code>-pf</code>.

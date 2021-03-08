@@ -191,6 +191,11 @@ public class Modules2MTBDD
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 		
+		// check model type is supported
+		if (!(modelType == ModelType.DTMC || modelType == ModelType.MDP || modelType == ModelType.CTMC)) {
+			throw new PrismException("Symbolic construction of " + modelType + "s not supported");
+		}
+		
 		// allocate dd variables
 		allocateDDVars();
 		sortDDVars();
@@ -1968,9 +1973,23 @@ public class Modules2MTBDD
 				if (synch == null) {
 					// restrict rewards to relevant states
 					item = JDD.Apply(JDD.TIMES, states, rewards);
-					// check for negative rewards
-					if ((d = JDD.FindMin(item)) < 0) {
-						s = "Reward structure item contains negative rewards (" + d + ").";
+					// check for infinite/NaN/negative rewards
+					double dmin = JDD.FindMin(item);
+					double dmax = JDD.FindMax(item);
+					if (!Double.isFinite(dmin)) {
+						s = "Reward structure item contains non-finite rewards (" + dmin + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (!Double.isFinite(dmax)) {
+						s = "Reward structure item contains non-finite rewards (" + dmax + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (dmin < 0) {
+						s = "Reward structure item contains negative rewards (" + dmin + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
@@ -2001,9 +2020,23 @@ public class Modules2MTBDD
 					item = JDD.Apply(JDD.TIMES, item, states);
 					// multiply by reward values
 					item = JDD.Apply(JDD.TIMES, item, rewards);
-					// check for negative rewards
-					if ((d = JDD.FindMin(item)) < 0) {
-						s = "Reward structure item contains negative rewards (" + d + ").";
+					// check for infinite/NaN/negative rewards
+					double dmin = JDD.FindMin(item);
+					double dmax = JDD.FindMax(item);
+					if (!Double.isFinite(dmin)) {
+						s = "Reward structure item contains non-finite rewards (" + dmin + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (!Double.isFinite(dmax)) {
+						s = "Reward structure item contains non-finite rewards (" + dmax + ").";
+						s += "\nNote that these may correspond to states which are unreachable.";
+						s += "\nIf this is the case, try strengthening the predicate.";
+						throw new PrismLangException(s, rs.getRewardStructItem(i));
+					}
+					if (dmin < 0) {
+						s = "Reward structure item contains negative rewards (" + dmin + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
@@ -2033,8 +2066,16 @@ public class Modules2MTBDD
 		else {
 			start = JDD.Constant(1);
 			for (i = 0; i < numVars; i++) {
-				tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], varList.getStart(i)-varList.getLow(i), 1);
-				start = JDD.And(start, tmp);
+				Object startObj = modulesFile.getVarDeclaration(i).getStartOrDefault().evaluate(constantValues);
+				try {
+					int startInt = varList.encodeToInt(i, startObj);
+					tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], startInt, 1);
+					start = JDD.And(start, tmp);
+				} catch (PrismLangException e) {
+					// attach initial value spec for better error reporting
+					e.setASTElement(modulesFile.getVarDeclaration(i).getStart());
+					throw e;
+				}
 			}
 		}
 	}

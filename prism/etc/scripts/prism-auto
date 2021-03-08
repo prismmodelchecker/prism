@@ -11,7 +11,7 @@
 
 # Run "prism-auto -h" for details of further options.
 
-import os,sys,re,subprocess,signal,tempfile,functools,logging,time,platform
+import os,sys,re,subprocess,signal,tempfile,functools,logging,time,platform,csv
 from pipes import quote
 from optparse import OptionParser
 from threading import Timer
@@ -132,7 +132,7 @@ def getModelsInDir(dir):
             args = []
             for item in line.split(' '):
                 if first:
-                    modelFile = os.path.join(dir, item)
+                    modelFile = item
                     first = 0
                 else:
                     args.append(item)
@@ -141,9 +141,91 @@ def getModelsInDir(dir):
     else:
         for file in sortedListDir(dir):
             if os.path.isfile(os.path.join(dir, file)) and isPrismModelFile(file):
-                modelFiles.append((os.path.join(dir, file), []))
+                modelFiles.append((file, []))
     #print "Model files in " + dir + ": " + ' '.join( map(lambda pair: pair[0], modelFiles ))
+    
+    # If requested, filter the list of models
+    if options.filterModels:
+        modelFiles = filterModels(modelFiles, options.filterModels, dir)
+        
+    # Finally, append the dir name to all the model files
+    modelFiles = map(lambda pair: (os.path.join(dir, pair[0]),pair[1]), modelFiles)
+    
     return modelFiles
+
+# Restrict a list of models to those satisfying a filter expressed as a string
+# Examples: "states>100 and states<10000" or "model_type=='DTMC'"
+# Model list is given as pairs of files and argument lists (see getModelsInDir() above)
+# Model data is read in from a file models.csv (or something else if specified
+# using options.modelsInfoFilename)
+
+def filterModels(modelFiles, filterString, dir):
+    modelFilesNew = []
+    # Filter is false if the model metadata cannot be found
+    if os.path.isfile(os.path.join(dir, options.modelsInfoFilename)):
+        with open(os.path.join(dir, options.modelsInfoFilename), newline='') as csvfile:
+            # Build a list of models matching the filter
+            modelFilesFiltered = []
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                # Evaluate the filter using eval()
+                # Only provide access to the model type and number of states for now
+                #filterVarsAvailable = ['model_type', 'states']
+                #filterVarsMissing = [key for key in filterVarsAvailable if key in filterString and not row[key]]
+                eval_model_type = row['model_type'] if row['model_type'] else None
+                eval_states = int(row['states']) if row['states'] else None
+                try:
+                    if eval(filterString, {"__builtins__": {}}, {'model_type': eval_model_type, 'states': eval_states}):
+                        model = row['model_file']
+                        if 'model_consts' in row and row['model_consts']:
+                            model += ' -const ' + row['model_consts']
+                        modelFilesFiltered.append(model)
+                # If there are any errors evaluating the exception, the filter is false
+                except (Exception):
+                    pass
+        # Restrict models list to ones in the list of filter matches
+        for modelFile in modelFiles:
+            if modelMatches(modelFile, modelFilesFiltered):
+                modelFilesNew.append(modelFile)
+    return modelFilesNew;
+
+# Check if a model is contained in a list of possible matches
+# The model is given as a pairs of files and argument lists
+# (e.g. ("model.pm", ["-const", "N=2", "-const", "K=3"]))
+# The possible matches are a list of single strings
+# (e.g. "model.pm -const K=3,N=2")
+# Constant values are extracted and sorted for a more intelligent match
+
+def modelMatches(modelFile, possibleMatches):
+    # Extract constant defns from modelFile and sort them
+    consts = getSortedConsts(modelFile[1])
+    # If there are no constants, just check for an exact match in possibleMatches
+    if len(consts) == 0:
+        return modelFile[0] in possibleMatches
+    # Otherwise compare to each model in possibleMatches after first sorting its constant defns
+    for possibleMatch in possibleMatches:
+        # Extract name (there will also be a " " since there are >0 constants)
+        possibleMatchModel = possibleMatch[:possibleMatch.index(" ")]
+        # Extract/sort constants from argument list
+        possibleMatchConsts = getSortedConsts(("".join(re.findall("-const [^ ]+", possibleMatch))).split(" "))
+        # Compare
+        if modelFile[0] == possibleMatchModel and consts == possibleMatchConsts:
+            return True
+    return False;
+
+# Extract and sort constant values form an argument list specified as a string list,
+# e.g. ["-const", "N=2", "-const", "K=3"] would return ["K=3", "N=2"]
+
+def getSortedConsts(args):
+    consts = []
+    num_args = len(args)
+    i = 0;
+    while i < num_args:
+        if args[i] == "-const" and i+1 < num_args:
+            consts.extend(args[i+1].split(','))
+        i = i+1
+    consts.sort()
+    return consts
 
 # Get a list of all files in the directory that satisfy the given predicate
 
@@ -367,6 +449,17 @@ def createLogFileName(args, dir=""):
     logFile = re.sub('^[\._]+', '', logFile)
     return logFile + ".log"
 
+# Create a valid name for a log (sub) directory based on a list of benchmark arguments
+
+def createLogDirName(args):
+    logDir = '.'.join(args)
+    logDir = re.sub('/', '_', logDir)
+    logDir = re.sub('[^a-zA-Z0-9=_, \.]', '', logDir)
+    logDir = re.sub('[ ]+', '.', logDir)
+    logDir = re.sub('[\.]+', '.', logDir)
+    logDir = re.sub('^[\._]+', '', logDir)
+    return logDir
+
 # Walk a directory and execute a callback on each file
 
 def walk(dir, meth):
@@ -476,8 +569,15 @@ def canonicaliseArgs(args):
 #==================================================================================================
 
 # Run PRISM with a given list of command-line args
+#
+# * args: list of command-line line arguments
+# * bmArgs: further list of command-line line arguments (benchmarking ones)
+# * dir: name of the directory (as a string)
 
-def runPrism(args, dir=""):
+def runPrism(args, bmArgs, dir=""):
+    # collate all arguments
+    args += bmArgs
+    
     # check if we can skip
     if options.skipDuplicates:
         canonicalArgs = canonicaliseArgs(args)
@@ -500,7 +600,10 @@ def runPrism(args, dir=""):
         if options.echoFull:
             prismArgs = ['echo', quote(' '.join(prismArgs)), ';'] + prismArgs
             if options.logDir:
-                logFile = os.path.relpath(os.path.join(options.logDir, createLogFileName(args, dir)))
+                logDir = options.logDir
+                if options.logSubdirs and bmArgs:
+                    logDir = os.path.join(logDir, createLogDirName(bmArgs))
+                logFile = os.path.relpath(os.path.join(logDir, createLogFileName(args, dir)))
                 logFile = quote(logFile)
                 if options.test:
                     prismArgs += ['|', 'tee', logFile]
@@ -513,7 +616,12 @@ def runPrism(args, dir=""):
     print(' '.join(prismArgs))
     sys.stdout.flush()
     if options.logDir:
-        logFile = os.path.join(options.logDir, createLogFileName(args, dir))
+        logDir = options.logDir
+        if options.logSubdirs and bmArgs:
+            logDir = os.path.join(logDir, createLogDirName(bmArgs))
+        if not os.path.exists(logDir):
+            os.makedirs(logDir)
+        logFile = os.path.join(logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
         prismArgs = prismArgs + ['-mainlog', logFile]
         exitCode = execute(prismArgs)
@@ -772,16 +880,25 @@ def benchmark(file, args, dir=""):
     modelFileArg = [file] if (file != "") else []
 
     # Loop through benchmark options, if required
+    argsLists = []
+    # May be specified in a file
     if options.bmFile:
         if not os.path.isfile(os.path.join(options.bmFile)):
             print("Cannot read arguments from non-existing file: " + os.path.join(options.bmFile))
             sys.exit(1)
-        argsLists = getArgsListsFromFile(options.bmFile)
+        argsLists.extend(getArgsListsFromFile(options.bmFile))
+    # And/or may be specified on the command line
+    if options.bmList:
+        for bmArgsString in options.bmList.split(','):
+            argsLists.append(bmArgsString.strip().split(' '))
+            
+    # Now loop through benchmark options
+    if len(argsLists) > 0:
         for bmArgs in argsLists:
-            runPrism(modelFileArg + args + bmArgs, dir)
-    # If none, just use existing args
+            runPrism(modelFileArg + args, bmArgs, dir)
+    # If none, just use existing args alone
     else:
-        runPrism(modelFileArg + args, dir)
+        runPrism(modelFileArg + args, [], dir)
 
     # Verify that exported files are correct (if required)
     if not options.echo and options.test and outFiles:
@@ -989,6 +1106,7 @@ signal.signal(signal.SIGINT, signal_handler)
 parser = OptionParser(usage="usage: %prog [options] args")
 parser.add_option("-l", "--log", dest="logDir", metavar="DIR", default="", help="Store PRISM output in logs in DIR")
 parser.add_option("-a", "--args", dest="bmFile", metavar="FILE", default="", help="Read argument lists for benchmarking from FILE")
+parser.add_option("--args-list", dest="bmList", metavar="X", default="", help="Use X as argument lists for benchmarking (comma-separated)")
 parser.add_option("-e", "--echo", action="store_true", dest="echo", default=False, help="Just print out tasks, don't execute")
 parser.add_option("-m", "--matching", action="store_true", dest="matching", default=False, help="Only use matching models/properties, not all files")
 parser.add_option("-b", "--build", action="store_true", dest="build", default=False, help="Just build models, don't model check properties")
@@ -1005,6 +1123,9 @@ parser.add_option("--no-renaming", action="store_true", dest="noRenaming", defau
 parser.add_option("--debug", action="store_true", dest="debug", default=False, help="Enable debug mode: display debugging info")
 parser.add_option("--echo-full", action="store_true", dest="echoFull", default=False, help="An expanded version of -e/--echo")
 parser.add_option("--models-filename", dest="modelsFilename", metavar="X", default="models", help="Read in list of models/parameters for a directory from file X, if present [default=models]")
+parser.add_option("--models-info", dest="modelsInfoFilename", metavar="X", default="models.csv", help="Read model details from CSV file X, if present [default=models.csv]")
+parser.add_option("--filter-models", dest="filterModels", metavar="N", default="", help="Filter benchmark models...")
+parser.add_option("--log-subdirs", action="store_true", dest="logSubdirs" ,default=False, help="Organise PRISM output logs in subdirectories per benchmark argument")
 parser.add_option("--no-export-tests", action="store_true", dest="noExportTests", default=False, help="Don't check exported files when in test mode")
 parser.add_option("--skip-export-runs", action="store_true", dest="skipExportRuns", default=False, help="Skip all runs having exports")
 parser.add_option("--skip-duplicate-runs", action="store_true", dest="skipDuplicates", default=False, help="Skip PRISM runs which have the same arguments as an earlier run (with some heuristics to detect equivalent arguments)")
@@ -1036,9 +1157,9 @@ if options.timeout:
     except ValueError:
         print('Illegal parameter value for timeout parameter')
         sys.exit(1)
-if options.logDir and not os.path.isdir(options.logDir):
-    print("Log directory \"" + options.logDir + "\" does not exist")
-    sys.exit(1)
+# if options.logDir and not os.path.isdir(options.logDir):
+#     print("Log directory \"" + options.logDir + "\" does not exist")
+#     sys.exit(1)
 if options.nailgun:
     if options.ngprism is None:
         # derive ngprism location from the --prog setting

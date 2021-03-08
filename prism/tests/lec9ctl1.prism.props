@@ -1,0 +1,16 @@
+// Simple LTS from Lec 9 of Computer-Aided Verification
+
+// RESULT: ?
+"ex": A[ X "a" ] & E[ X !"b"];
+// RESULT: true
+filter(forall, "ex" <=> (s=2));
+
+// RESULT: ?
+"ex_lhs": A[ X "a" ]
+// RESULT: true
+filter(forall, "ex_lhs" <=> (s=2));
+
+// RESULT: ?
+"ex_rhs": E[ X !"b"];
+// RESULT: true
+filter(forall, "ex_rhs" <=> (s=0|s=1|s=2));

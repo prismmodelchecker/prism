@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# basic model
+
+prism task_graph.prism task_graph.props -prop 1 -const sleep=0.25 -gridresolution 2
+prism task_graph.prism task_graph.props -prop 1 -const sleep=0.5 -gridresolution 2
+prism task_graph.prism task_graph.props -prop 1 -const sleep=0.75 -gridresolution 2
+
+prism task_graph.prism task_graph.props -prop 2 -const sleep=0.25 -gridresolution 2
+prism task_graph.prism task_graph.props -prop 2 -const sleep=0.5 -gridresolution 2
+prism task_graph.prism task_graph.props -prop 2 -const sleep=0.75 -gridresolution 2
+
+# random delay model
+
+prism task_graph_prob.prism task_graph.props -prop 1 -const sleep=0.25 -gridresolution 2
+prism task_graph_prob.prism task_graph.props -prop 1 -const sleep=0.5 -gridresolution 2
+prism task_graph_prob.prism task_graph.props -prop 1 -const sleep=0.75 -gridresolution 2
+
+prism task_graph_prob.prism task_graph.props -prop 2 -const sleep=0.25 -gridresolution 2
+prism task_graph_prob.prism task_graph.props -prop 2 -const sleep=0.5 -gridresolution 2
+prism task_graph_prob.prism task_graph.props -prop 2 -const sleep=0.75 -gridresolution 2

@@ -68,47 +68,26 @@ public class DeclarationInt extends DeclarationType
 		return high;
 	}
 	
-	/**
-	 * Return the default start value for a variable of this type.
-	 */
+	@Override
 	public Expression getDefaultStart()
 	{
 		return low;
 	}
 	
-	/* TODO:
-	@Override
-	public Expression getStart(ModulesFile parent)
-	{
-		if (parent != null && parent.getInitialStates() != null)
-			return null;
-
-		return start != null ? start : low;
-	}
-	*/
-	
 	// Methods required for ASTElement:
 	
-	/**
-	 * Visitor method.
-	 */
+	@Override
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
-	/**
-	 * Convert to string.
-	 */
 	@Override
 	public String toString()
 	{
 		return "[" + low + ".." + high + "]";
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
 	@Override
 	public ASTElement deepCopy()
 	{

@@ -62,11 +62,6 @@ public class GUIFileMenu extends GUIPlugin
         return menu;
     }
     
-    public OptionsPanel getOptions()
-    {
-        return null;
-    }
-    
     public String getTabText()
     {
         return "";

@@ -1,0 +1,5 @@
+// RESULT: 0.5
+Pmax=? [ F o=2 ];
+
+// RESULT: Error observable
+Pmax=? [ F o>=2&s=2 ];

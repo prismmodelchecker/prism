@@ -30,9 +30,12 @@ import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.PrimitiveIterator;
+import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,12 +97,11 @@ public class PrismUtils
 			return false;
 		}
 		// Compute/check error
-		d1 = Math.abs(d1);
-		d2 = Math.abs(d2);
-		// For two (near) zero values, return true, for just one, return false
-		if (d1 < epsilonDouble)
-			return (d2 < epsilonDouble);
-		return (Math.abs(d1 - d2) / d1 < epsilon);
+		if (d2 == 0) {
+			// If both are zero, error is 0; otherwise +inf
+			return d1 == 0;
+		}
+		return Math.abs((d1 - d2) / d1) < epsilon;
 	}
 
 	/**
@@ -171,14 +173,64 @@ public class PrismUtils
 	}
 
 	/**
+	 * See if two maps to doubles are all within epsilon of each other (relative or absolute error).
+	 */
+	public static <X> boolean doublesAreClose(HashMap<X,Double> map1, HashMap<X,Double> map2, double epsilon, boolean abs)
+	{
+		Set<Entry<X,Double>> entries = map1.entrySet();
+		for (Entry<X,Double> entry : entries) {
+			double d1 = (double) entry.getValue();
+			if (map2.get(entry.getKey()) != null) {
+				double d2 = (double) map2.get(entry.getKey());
+				if (abs) {
+					if (!PrismUtils.doublesAreCloseAbs(d1, d2, epsilon))
+						return false;
+				} else {
+					if (!PrismUtils.doublesAreCloseRel(d1, d2, epsilon))
+						return false;
+				}
+			} else {
+				// Only check over common elements
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Measure supremum norm, either absolute or relative,
+	 * return the maximum difference.
+	 */
+	public static <X> double measureSupNorm(HashMap<X,Double> map1, HashMap<X,Double> map2, boolean abs)
+	{
+		double value = 0;
+		Set<Entry<X,Double>> entries = map1.entrySet();
+		for (Entry<X,Double> entry : entries) {
+			double diff;
+			double d1 = entry.getValue();
+			if (map2.get(entry.getKey()) != null) {
+				double d2 = map2.get(entry.getKey());
+				if (abs) {
+					diff = measureSupNormAbs(d1, d2);
+				} else {
+					diff = measureSupNormRel(d1, d2);
+				}
+				if (diff > value) {
+					value = diff;
+				}
+			} else {
+				// Only check over common elements
+			}
+		}
+		return value;
+	}
+
+	/**
 	 * Measure supremum norm, either absolute or relative,
 	 * return the maximum difference.
 	 */
 	public static double measureSupNorm(double[] d1, double[] d2, boolean abs)
 	{
-		int n = d1.length;
-		assert( n == d2.length);
-
+		int n = Math.min(d1.length, d2.length);
 		double value = 0;
 		if (abs) {
 			for (int i=0; i < n; i++) {
@@ -223,9 +275,6 @@ public class PrismUtils
 	 */
 	public static double measureSupNormInterval(double[] lower, double[] upper, boolean abs, PrimitiveIterator.OfInt indizes)
 	{
-		int n = lower.length;
-		assert( n== upper.length);
-
 		double value = 0;
 		while (indizes.hasNext()) {
 			int i = indizes.nextInt();
@@ -242,9 +291,7 @@ public class PrismUtils
 	 */
 	public static double measureSupNormInterval(double[] lower, double[] upper, boolean abs)
 	{
-		int n = lower.length;
-		assert( n== upper.length);
-
+		int n = Math.min(lower.length, upper.length);
 		double value = 0;
 		for (int i=0; i < n; i++) {
 			double diff = measureSupNormInterval(lower[i], upper[i], abs);
@@ -289,7 +336,7 @@ public class PrismUtils
 	 */
 	public static boolean doublesAreEqual(double d1, double d2)
 	{
-		return doublesAreCloseAbs(d1, d2, epsilonDouble);
+		return doublesAreCloseRel(d1, d2, epsilonDouble);
 	}
 
 	/**
@@ -405,14 +452,32 @@ public class PrismUtils
 	}
 
 	/**
+	 * Normalise the entries of a vector in-place such that that they sum to 1.
+	 * If {@code sum = 0.0}, all entries are set to {@code NaN} (assuming all entries are non-negative)
+	 * @param vector the vector
+	 * @return the altered vector (returned for convenience; it's the same one)
+	 */
+	public static double[] normalise(double[] vector)
+	{
+		double sum = 0.0;
+		int n = vector.length;
+		for (int state = 0; state < n; state++) {
+			sum += vector[state];
+		}
+		for (int state = 0; state < n; state++) {
+			vector[state] /= sum;
+		}
+		return vector;
+	}
+
+	/**
 	 * Normalise the given entries in the vector in-place such that that they sum to 1,
-	 * I.e., for all indizes of entries, set<br>
-	 * {@code vector[s] = vector[s] / sum}, where<br>
-	 * {@code sum = sum_{s in entries} (vector[s])<br>
-	 * If {@code sum = 0.0}, all entries are set to {@code NaN}.
+	 * i.e., for all indices {@code s}, set {@code vector[s] = vector[s] / sum},
+	 * where {@code sum = sum_{s in entries} (vector[s]).<br>
+	 * If {@code sum = 0.0}, all entries are set to {@code NaN} (assuming all entries are non-negative)
 	 * @param vector the vector
 	 * @param entries Iterable over the entries (must not contain duplicates)
-	 * @return the altered vector
+	 * @return the altered vector (returned for convenience; it's the same one)
 	 */
 	public static double[] normalise(double[] vector, IterableInt entries)
 	{

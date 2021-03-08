@@ -184,7 +184,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	 */
 	public BigRational(String string)
 	{
-		if (string.equals("Infinity") || string.equals("Inf")) {
+		if (string.equals("Infinity") || string.equals("+Infinity") || string.equals("Inf") || string.equals("+Inf")) {
 			this.num = new BigInteger("1");
 			this.den = new BigInteger("0");
 			return;
@@ -424,10 +424,10 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Multiply this BigRational by {@code other}.
-	 * 
-	 * @param other long to divide by
-	 * @param cancel whether ensure result rational is comprime
+	 * Divide this BigRational by {@code other}.
+	 *
+	 * @param other BigRational to divide by
+	 * @param cancel whether ensure result rational is coprime
 	 * @return result of the division
 	 */
 	public BigRational divide(BigRational other, boolean cancel)
@@ -435,12 +435,25 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		if (other.isInf() || other.isMInf()) {
 			return NAN;
 		}
+
+		if (other.isZero()) {
+			if (this.isZero() || this.isNaN()) {
+				return BigRational.NAN;
+			} else {
+				if (this.signum() > 0) {
+					return BigRational.INF;
+				} else {
+					return BigRational.MINF;
+				}
+			}
+		}
+
 		BigRational inverseOther = new BigRational(other.den, other.num, cancel);
 		return multiply(inverseOther, cancel);
 	}
 
 	/**
-	 * Divides this BigRational with {@code other}.
+	 * Divide this BigRational by {@code other}.
 	 * Ensures result rational is coprime
 	 * 
 	 * @param other long to divide by
@@ -452,7 +465,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Divides this BigRational with {@code other}.
+	 * Divide this BigRational by {@code other}.
 	 * Ensures result rational is coprime
 	 * 
 	 * @param other long to divide by
@@ -464,9 +477,9 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	}
 
 	/**
-	 * Returns the signum function of this BigInteger.
+	 * Returns the signum function of this BigRational.
 	 * 
-	 * @return -1, 0 or 1 as the value of this BigInteger is negative, zero or positive.
+	 * @return -1, 0 or 1 as the value of this BigRational is negative, zero or positive.
 	 */
 	public int signum()
 	{

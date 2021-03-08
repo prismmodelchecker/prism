@@ -27,7 +27,6 @@
 
 package explicit;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -227,29 +226,10 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
-	public void exportToPrismExplicit(String baseFilename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(String filename) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void exportToPrismExplicitTra(File file) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void exportToPrismExplicitTra(PrismLog log)
 	{
 		throw new UnsupportedOperationException();
 	}
-
 
 	@Override
 	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
@@ -307,12 +287,6 @@ public class SubNondetModel implements NondetModel
 		int iOriginal = translateAction(s, i);
 
 		return model.getAction(sOriginal, iOriginal);
-	}
-
-	@Override
-	public boolean areAllChoiceActionsUnique()
-	{
-		throw new RuntimeException("Not implemented");
 	}
 
 	@Override

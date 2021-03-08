@@ -108,7 +108,7 @@ on the PRISM web site.
 </p>
 <p class='vspace'>In this section, we describe the PRISM language and present a number of small illustrative examples.
 A precise definition of the semantics of the language is available from the "<a class='urllink' href='http://www.prismmodelchecker.org/doc/'>Documentation</a>" section of the PRISM web site. One of the best ways to learn what can be done with the PRISM language is to look at some existing examples.
-A number of these are included with the tool distribution in the <code>examples</code> directory.
+A number of these are included with the tool distribution in the <code>prism-examples</code> directory.
 Many additional examples can be found on the "<a class='urllink' href='http://www.prismmodelchecker.org/casestudies/'>Case Studies</a>" section of the <a class='urllink' href='http://www.prismmodelchecker.org/'>PRISM website</a>.
 </p>
 <p class='vspace'>The fundamental components of the PRISM language are <em>modules</em> and <em>variables</em>.
@@ -539,12 +539,12 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 </p>
 <p class='vspace'>Expressions can make use of several built-in functions:
 </p>
-<div class='vspace'></div><ul><li><code>min(...)</code> and <code>max(...)</code>, which select the minimum and maximum value, respectively, of two or more numbers;
-</li><li><code>floor(x)</code> and <code>ceil(x)</code>, which round <code>x</code> down and up, respectively, to the nearest integer;
-</li><li><code>round(x)</code>, which rounds <code>x</code> to the nearest integer;
-</li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code>;
-</li><li><code>mod(i,n)</code> for integer modulo operations;
-</li><li><code>log(x,b)</code>, which computes the logarithm of <code>x</code> to base <code>b</code>.
+<div class='vspace'></div><ul><li><code>min(...)</code> and <code>max(...)</code>, which select the minimum and maximum value, respectively, of two or more numbers
+</li><li><code>floor(x)</code> and <code>ceil(x)</code>, which round <code>x</code> down and up, respectively, to the nearest integer
+</li><li><code>round(x)</code>, which rounds <code>x</code> to the nearest integer (note, in a tie-break, we always round <em>up</em>, e.g. <code>round(-1.5)</code> gives <code>-1</code> not <code>-2</code>)
+</li><li><code>pow(x,y)</code> which computes <code>x</code> to the power of <code>y</code>
+</li><li><code>mod(i,n)</code> for integer modulo operations
+</li><li><code>log(x,b)</code>, which computes the logarithm of <code>x</code> to base <code>b</code>
 </li></ul><p class='vspace'>Examples of their usage are:
 </p>
 <div class='vspace'></div>
@@ -735,7 +735,7 @@ secondly, they are written using quotation marks (<code>"..."</code>), as illust
 <h1>PTAs</h1>
 <p class='vspace'>So far in this section, we have mainly focused on three types of models: DTMCs, MDPs and CTMCs.
 PRISM also supports a fourth: <em>probabilistic timed automata</em> (PTAs), which extend MDPs with the ability to model real-time behaviour. This is done in the style of <em>timed automata</em> [<a class='wikilink' href='../Main/References.html#AD94'>AD94</a>], by adding real-valued <em>clocks</em> which increase with time and can be reset. For background material on PTAs, see for example [<a class='wikilink' href='../Main/References.html#NPS13'>NPS13</a>].
-You can also find several example PTA models included in the PRISM distribution. Look in the <code>examples/pta</code> directory.
+You can also find several example PTA models included in the PRISM distribution. Look in the <code>prism-examples/ptas</code> directory.
 </p>
 <p class='vspace'>Before describing how PTA features are incorporated into the PRISM modelling language, we give a simple example. Here is a small PTA:
 </p>

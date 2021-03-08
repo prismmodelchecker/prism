@@ -83,6 +83,7 @@ Development of the tool is currently led from Birmingham by Dave Parker. Other c
 We gratefully acknowledge contributions to the PRISM code-base from various sources,
 including (in approximately reverse chronological order):
 
+ * Xueyi Zou: Partially observable Markov decision processes (POMDPs)
  * Steffen Märcker: Fixes and improvements, especially in explicit engine
  * Chris Novakovic: Build infrastructure and explicit engine improvements
  * Ernst Moritz Hahn: Parametric model checking, fast adaptive uniformisation + various other features

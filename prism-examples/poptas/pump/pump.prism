@@ -1,0 +1,120 @@
+// POPTA model of NRL pump
+// dxp/gxn 28/08/14
+
+// high is trying to send either 0 or 1 to low through a number of messages
+// we assume high uses delays h0 and h1 to transmit either 0 or 1
+// also assume high always sends with this delay
+// so this is the average recorded by the pump
+// low sends repeated messages to try and figure out what high is transmitting
+// based on the time until it receives acks for the messages from the pump
+
+// model is a POPTA
+popta
+
+// can see the state of the pump and its local variables and all clocks
+observables
+	h, p, l, m, guess, correct, x, y
+endobservables
+
+// delays for high sending 0 and 1 (both need to be >1)
+const int h0;
+const int h1;
+
+// number of messages low can send before guessing
+const int N;
+
+// timeout for low (means a nack and low resends message)
+const int Tout = 10;
+
+// we do not need to model high getting messages and sending acks
+// as we assume the delay is fixed (depending on what it is trying to send to low)
+// and only the average time for high to respond influence the time the pump
+// delays before sending acks to low
+
+module high
+
+	h : [0..1] init 0; // local state
+	// 0 choose bit
+	// 1 done
+	
+	bit : [-1..1] init -1; // bit high is trying transmit
+
+	// randomly choose bit it is trying to send to low
+	[] h=0 -> 1/2 : (h'=1)&(bit'=0) + 1/2 : (h'=1)&(bit'=1);
+
+endmodule
+
+module pump
+	
+	p : [0..2] init 0; // local state
+	// 0 get message from low
+	// 1 delaying before ack
+	// 2 sending ack
+	
+	y : clock; // the pump's clock
+
+	invariant
+    	(p=0 => true) &
+    	(p=1 => y<=1) &
+        (p=2 => y<=0)
+    endinvariant
+	
+	// get message from low (need high to choose first)
+	[mess_l] p=0 & bit>=0 -> (p'=1) & (y'=0);
+	
+	// random delay before ack based on average from high
+	// this would be letting time pass PTA model
+	[] p=1 & bit=0 & y=1 -> 1/h0 : (p'=2) & (y'=0) + (1 - 1/h0) : (p'=1) & (y'=0); // av. response high equals h0	
+	[] p=1 & bit=1 & y=1 -> 1/h1 : (p'=2) & (y'=0) + (1 - 1/h1) : (p'=1) & (y'=0); // av. response high equals h1
+
+	// receives a new message from low
+	// this means low timed out (nack)
+	// so delete old message and start sending an ack for the new message
+	[mess_l] p>0 -> (p'=0) & (y'=0);
+	
+	// send ack (immediately)
+	[ack_l] p=2 -> (p'=0);
+	
+endmodule
+
+module low
+
+	l : [0..3] init 0; // local state of low
+	// 0 send message
+	// 1 waiting for ack
+	// 2 guess/check value
+	// 3 done
+	
+	m : [0..N] init 1; // messages low can send before guessing
+	guess : [-1..1] init -1; // guess low makes
+	correct : [0..1] init 0; // is it correct or not
+
+	x : clock; // low's clock
+
+	invariant
+    	(l=0 => x<=0) &
+    	(l=1 => x<=Tout) &
+        (l=2 => x<=0) &
+        (l=3 => true)
+    endinvariant
+
+	[mess_l] l=0 -> (l'=1) & (x'=0); // low immediately sends message and waits for an ack
+	[ack_l] l=1 & m<N & x<=Tout -> (l'=0) & (m'=m+1) & (x'=0); // ack (more to send) 
+	[ack_l] l=1 & m=N & x<=Tout -> (l'=2) & (x'=0); // ack (time to guess)
+	[nack_l] l=1 & x=Tout -> (l'=0) & (x'=0); // timeout (nack)
+		
+	// when finished sending immediately guess value high was trying to send
+	[guess0] l=2 & guess=-1 & x=0 -> (guess'=0);
+	[guess1] l=2 & guess=-1 & x=0 -> (guess'=1);
+	// and then immediately check if it is correct
+	[] l=2 & guess>=0 & guess=bit  & x=0 -> (l'=3) & (correct'=1);
+	[] l=2 & guess>=0 & guess!=bit & x=0 -> (l'=3);
+	
+endmodule
+
+// reward structures
+// time
+rewards "time"
+        true : 1;
+endrewards
+

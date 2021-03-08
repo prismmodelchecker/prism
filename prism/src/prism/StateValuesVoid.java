@@ -77,6 +77,12 @@ public class StateValuesVoid implements StateValues
 	}
 
 	@Override
+	public void setAccuracy(Accuracy accuracy)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
 	public StateValuesDV convertToStateValuesDV()
 	{
 		throw new UnsupportedOperationException();
@@ -238,6 +244,12 @@ public class StateValuesVoid implements StateValues
 		throw new UnsupportedOperationException();
 	}
 
+	@Override
+	public Accuracy getAccuracy()
+	{
+		throw new UnsupportedOperationException();
+	}
+	
 	@Override
 	public void print(PrismLog log, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices) throws PrismException
 	{

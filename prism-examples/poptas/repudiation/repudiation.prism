@@ -1,0 +1,131 @@
+// non-repudiation protocol (with malicious recipient) 
+// Markowitch & Roggeman [MR99]
+// POPTA model based on the PTA model in:
+// G. Norman, D. Parker and J. Sproston
+// Model checking for probabilistic timed automata
+// Formal Methods in System Design 43(2):164–190 (2013)
+// dxp/gxn 04/09/14
+
+popta
+
+// observable variables (N is hidden)
+observables
+        last, r, mess, ack, o, x, y
+endobservables
+
+// constants
+const K; // range N is chosen over
+const int ad = 1; // min time to send an ack
+const int AD = 4; // deadline (if ack not arrived then end protocol)
+
+module originator
+
+	// location of originator
+	o : [0..4];
+	// 0 - init
+	// 1 - send
+	// 2 - waiting
+	// 3 - finished
+	// 4 - error
+
+	N : [0..K]; // number of messages 
+	ack : [0..K]; // number of acks the originator has received
+
+	x : clock;
+
+	invariant
+		(o=0 => true) &
+		(o=1 => x<=0) &
+		(o=2 => x<=AD) &
+		(o=3 => true)
+	endinvariant
+
+	// init
+	//  get request (so set K)
+	[req] o=0 & K=1 ->  1/K : (o'=1) & (N'=1);
+	[req] o=0 & K=2 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2);
+	[req] o=0 & K=3 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2)
+				+ 1/K : (o'=1) & (N'=3);
+	
+	[req] o=0 & K=4 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2)
+				+ 1/K : (o'=1) & (N'=3)
+				+ 1/K : (o'=1) & (N'=4);
+	[req] o=0 & K=5 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2)
+				+ 1/K : (o'=1) & (N'=3)
+				+ 1/K : (o'=1) & (N'=4)
+				+ 1/K : (o'=1) & (N'=5);
+	[req] o=0 & K=6 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2)
+				+ 1/K : (o'=1) & (N'=3)
+				+ 1/K : (o'=1) & (N'=4)
+				+ 1/K : (o'=1) & (N'=5)
+				+ 1/K : (o'=1) & (N'=6);
+	[req] o=0 & K=7 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2)
+				+ 1/K : (o'=1) & (N'=3)
+				+ 1/K : (o'=1) & (N'=4)
+				+ 1/K : (o'=1) & (N'=5)
+				+ 1/K : (o'=1) & (N'=6)
+				+ 1/K : (o'=1) & (N'=7);
+	[req] o=0 & K=8 ->  1/K : (o'=1) & (N'=1)
+				+ 1/K : (o'=1) & (N'=2)
+				+ 1/K : (o'=1) & (N'=3)
+				+ 1/K : (o'=1) & (N'=4)
+				+ 1/K : (o'=1) & (N'=5)
+				+ 1/K : (o'=1) & (N'=6)
+				+ 1/K : (o'=1) & (N'=7)
+				+ 1/K : (o'=1) & (N'=8);
+	
+	// send
+	[message] o=1 & x<=0 -> (o'=2); // send first message immediately
+	
+	// waiting
+	// ack arrives
+	[ack] o=2 & ack<N-1 & x<=AD -> (o'=1) & (ack'=min(ack+1,K)) & (x'=0); // not last
+	[ack] o=2 & ack=N-1 & x<=AD -> (o'=3) & (ack'=min(ack+1,K)) & (x'=0); // last
+	// no ack arrives within time bound
+	[noack] o=2 & x>=AD -> (o'=3) & (x'=0); // ack not arrived within expected interval (stop) 
+		
+endmodule
+
+
+module malicious_recipient
+
+	r : [0..3];
+	// 0 initial state
+	// 1 receive messages
+	// 2 send acks
+	// 3 recipient stops (either protocol finished or malicious behaviour)
+		
+	mess : [0..K]; // number of mess the originator has received
+	last : [0..1]; // protocol is unfair
+
+	y : clock;
+
+	invariant
+		(r=0 => y<=0) &
+		(r=1 => true) &
+		(r=2 => true) &
+		(r=3 => y<=0) &
+		(r=4 => true)
+	endinvariant
+
+	[req] r=0 & y=0 -> (r'=1); // initiate protocol
+	[message] r=1 -> (r'=2) & (y'=0) & (mess'=min(mess+1,K)); // receive message
+	[ack] r=2 & y>=ad -> (r'=1) & (y'=0); // send ack
+	// decode (can only do this once as takes too long to start sending acks again)
+	[] r=2 -> (r'=3);
+
+	// decode yields message
+	[] r=3 & mess=N & ack<N -> (r'=4) & (last'=1); // unfair
+	[] r=3 & !(mess=N & ack<N) -> (r'=4); // fair
+
+endmodule
+
+// unfair state reached
+label "unfair" = last=1;
+

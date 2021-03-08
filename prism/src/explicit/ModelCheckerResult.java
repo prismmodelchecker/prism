@@ -26,6 +26,7 @@
 
 package explicit;
 
+import prism.Accuracy;
 import strat.Strategy;
 
 /**
@@ -36,6 +37,8 @@ public class ModelCheckerResult
 {
 	// Solution vector
 	public double[] soln = null;
+	// Accuracy info
+	public Accuracy accuracy = null;
 	// Solution vector from previous iteration
 	public double[] lastSoln = null;
 	// Iterations performed

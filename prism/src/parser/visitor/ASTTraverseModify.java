@@ -264,12 +264,22 @@ public class ASTTraverseModify implements ASTVisitor
 		int i, n;
 		n = e.getNumElements();
 		for (i = 0; i < n; i++) {
-			if (e.getExpression(i) != null) e.setExpression(i, (Expression)(e.getExpression(i).accept(this)));
+			if (e.getElement(i) != null) e.setElement(i, (UpdateElement)(e.getElement(i).accept(this)));
 		}
 		visitPost(e);
 		return e;
 	}
 	public void visitPost(Update e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(UpdateElement e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(UpdateElement e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getExpression() != null) e.setExpression((Expression)(e.getExpression().accept(this)));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(UpdateElement e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(RenamedModule e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(RenamedModule e) throws PrismLangException

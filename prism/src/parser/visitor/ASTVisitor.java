@@ -48,6 +48,7 @@ public interface ASTVisitor
 	public Object visit(Command e) throws PrismLangException;
 	public Object visit(Updates e) throws PrismLangException;
 	public Object visit(Update e) throws PrismLangException;
+	public Object visit(UpdateElement e) throws PrismLangException;
 	public Object visit(RenamedModule e) throws PrismLangException;
 	public Object visit(RewardStruct e) throws PrismLangException;
 	public Object visit(RewardStructItem e) throws PrismLangException;

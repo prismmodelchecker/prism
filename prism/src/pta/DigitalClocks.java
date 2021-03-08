@@ -108,7 +108,7 @@ public class DigitalClocks
 	/**
 	 * Main method - translate.
 	 */
-	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismLangException
+	public void translate(ModulesFile modulesFile, PropertiesFile propertiesFile, Expression propertyToCheck) throws PrismException
 	{
 		int i, n;
 		ASTElement ast;
@@ -172,7 +172,7 @@ public class DigitalClocks
 		prop = (Expression) propertyToCheck.deepCopy();
 
 		// Change the model type
-		mf.setModelType(ModelType.MDP);
+		mf.setModelTypeInFile(modulesFile.getModelType() == ModelType.PTA ? ModelType.MDP : ModelType.POMDP);
 
 		// Change all clock variable declarations to bounded integers
 		mf = (ModulesFile) mf.accept(new ASTTraverseModify()
@@ -367,6 +367,10 @@ public class DigitalClocks
 			timerModule.addCommand(timeCommand);
 			// Finally add module to model
 			mf.addModule(timerModule);
+			// For POPTAs, the variable needs to be observable
+			if (modulesFile.getModelType().partiallyObservable()) {
+				mf.addObservableVar(timerVarName);
+			}
 			
 			// Then modify the property
 			

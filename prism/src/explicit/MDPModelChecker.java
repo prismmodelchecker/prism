@@ -39,21 +39,31 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.Vector;
 
+import acceptance.AcceptanceOmega;
+import acceptance.AcceptanceReach;
+import acceptance.AcceptanceType;
+import automata.DA;
+import common.IntSet;
+import common.IterableBitSet;
 import common.IterableStateSet;
 import common.StopWatch;
-import common.IterableBitSet;
-import common.IntSet;
-
+import explicit.modelviews.EquivalenceRelationInteger;
+import explicit.modelviews.MDPDroppedAllChoices;
+import explicit.modelviews.MDPEquiv;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MCRewardsFromMDPRewards;
+import explicit.rewards.MDPRewards;
+import explicit.rewards.MDPRewardsSimple;
+import explicit.rewards.Rewards;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionReward;
-import parser.ast.RewardStruct;
 import parser.type.TypeInt;
+import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
-
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismDevNullLog;
@@ -63,22 +73,8 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
-import strat.MDStrategyArray;
 import strat.MDStrategy;
-import acceptance.AcceptanceOmega;
-import acceptance.AcceptanceReach;
-import acceptance.AcceptanceType;
-import automata.DA;
-
-
-import explicit.modelviews.EquivalenceRelationInteger;
-import explicit.modelviews.MDPDroppedAllChoices;
-import explicit.modelviews.MDPEquiv;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MCRewardsFromMDPRewards;
-import explicit.rewards.MDPRewards;
-import explicit.rewards.MDPRewardsSimple;
-import explicit.rewards.Rewards;
+import strat.MDStrategyArray;
 
 /**
  * Explicit-state model checker for Markov decision processes (MDPs).
@@ -385,7 +381,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachProbs((MDP) product.getProductModel(), acc, false);
-		probsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
+		probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
@@ -461,7 +457,7 @@ public class MDPModelChecker extends ProbModelChecker
 		mcProduct = new MDPModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachRewards((MDP)product.getProductModel(), productRewards, acc, minMax.isMin());
-		rewardsProduct = StateValues.createFromDoubleArray(res.soln, product.getProductModel());
+		rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -508,6 +504,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Return results
 		res = new ModelCheckerResult();
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.soln = soln2;
 		res.numIters = 1;
 		res.timeTaken = timer / 1000.0;
@@ -756,12 +753,14 @@ public class MDPModelChecker extends ProbModelChecker
 						res.soln[i] = res1.soln[maxQuotient.mapStateToRestrictedModel(i)];
 					}
 				}
+				res.accuracy = res1.accuracy;
 			} else {
 				res = computeReachProbsNumeric(mdp, mdpSolnMethod, no, yes, min, init, known, strat);
 			}
 		} else {
 			res = new ModelCheckerResult();
 			res.soln = Utils.bitsetToDoubleArray(yes, n);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
 
 		// Finished probabilistic reachability
@@ -1841,6 +1840,7 @@ public class MDPModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -1895,6 +1895,7 @@ public class MDPModelChecker extends ProbModelChecker
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 
@@ -2402,6 +2403,7 @@ public class MDPModelChecker extends ProbModelChecker
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.lastSoln = soln2;
+		res.accuracy = AccuracyFactory.boundedNumericalIterations();
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		res.timePre = 0.0;
@@ -2660,38 +2662,46 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 		}
 
-		ZeroRewardECQuotient quotient = null;
-		boolean doZeroMECCheckForMin = true;
-		if (min & doZeroMECCheckForMin) {
-			StopWatch zeroMECTimer = new StopWatch(mainLog);
-			zeroMECTimer.start("checking for zero-reward ECs");
-			mainLog.println("For Rmin, checking for zero-reward ECs...");
-			BitSet unknown = (BitSet) inf.clone();
-			unknown.flip(0, mdp.getNumStates());
-			unknown.andNot(target);
-			quotient = ZeroRewardECQuotient.getQuotient(this, mdp, unknown, mdpRewards);
-
-			if (quotient == null) {
-				zeroMECTimer.stop("no zero-reward ECs found, proceeding normally");
-			} else {
-				zeroMECTimer.stop("built quotient MDP with " + quotient.getNumberOfZeroRewardMECs() + " zero-reward MECs");
-				if (strat != null) {
-					throw new PrismException("Constructing a strategy for Rmin in the presence of zero-reward ECs is currently not supported");
+		// Compute rewards (if needed)
+		if (numTarget + numInf < n) {
+			
+			ZeroRewardECQuotient quotient = null;
+			boolean doZeroMECCheckForMin = true;
+			if (min & doZeroMECCheckForMin) {
+				StopWatch zeroMECTimer = new StopWatch(mainLog);
+				zeroMECTimer.start("checking for zero-reward ECs");
+				mainLog.println("For Rmin, checking for zero-reward ECs...");
+				BitSet unknown = (BitSet) inf.clone();
+				unknown.flip(0, mdp.getNumStates());
+				unknown.andNot(target);
+				quotient = ZeroRewardECQuotient.getQuotient(this, mdp, unknown, mdpRewards);
+	
+				if (quotient == null) {
+					zeroMECTimer.stop("no zero-reward ECs found, proceeding normally");
+				} else {
+					zeroMECTimer.stop("built quotient MDP with " + quotient.getNumberOfZeroRewardMECs() + " zero-reward MECs");
+					if (strat != null) {
+						throw new PrismException("Constructing a strategy for Rmin in the presence of zero-reward ECs is currently not supported");
+					}
 				}
 			}
-		}
-
-		if (quotient != null) {
-			BitSet newInfStates = (BitSet)inf.clone();
-			newInfStates.or(quotient.getNonRepresentativeStates());
-			int quotientModelStates = quotient.getModel().getNumStates() - newInfStates.cardinality();
-			mainLog.println("Computing Rmin in zero-reward EC quotient model (" + quotientModelStates + " relevant states)...");
-			res = computeReachRewardsNumeric(quotient.getModel(), quotient.getRewards(), mdpSolnMethod, target, newInfStates, min, init, known, strat);
-			quotient.mapResults(res.soln);
+	
+			if (quotient != null) {
+				BitSet newInfStates = (BitSet)inf.clone();
+				newInfStates.or(quotient.getNonRepresentativeStates());
+				int quotientModelStates = quotient.getModel().getNumStates() - newInfStates.cardinality();
+				mainLog.println("Computing Rmin in zero-reward EC quotient model (" + quotientModelStates + " relevant states)...");
+				res = computeReachRewardsNumeric(quotient.getModel(), quotient.getRewards(), mdpSolnMethod, target, newInfStates, min, init, known, strat);
+				quotient.mapResults(res.soln);
+			} else {
+				res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, target, inf, min, init, known, strat);
+			}
 		} else {
-			res = computeReachRewardsNumeric(mdp, mdpRewards, mdpSolnMethod, target, inf, min, init, known, strat);
+			res = new ModelCheckerResult();
+			res.soln = Utils.bitsetToDoubleArray(inf, n, Double.POSITIVE_INFINITY);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
 		}
-
+		
 		// Store strategy
 		if (genStrat) {
 			res.strat = new MDStrategyArray(mdp, strat);

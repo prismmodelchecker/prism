@@ -100,9 +100,8 @@ a.varlink { text-decoration:none; }
 The format in which this information is input to the tool is exactly the same as is currently output
 (see the section "<a class='wikilink' href='ExportingTheModel.html'>Exporting The Model</a>" and the appendix "<a class='wikilink' href='../Appendices/ExplicitModelFiles.html'>Explicit Model Files</a>").
 Presently, this functionality is only supported in the command-line version of the tool, using the <code>-importtrans</code> switch (and more convenient <code>-importmodel</code>; see below).
-At the moment, PRISM makes no attempt to discern the model type from the input file.
-By default it assumes that the model is an MDP.
-If this is not the case, the model type can be overwritten using the <code>-dtmc</code>, <code>-ctmc</code> and <code>-mdp</code> switches.
+PRISM makes some attempt to discern the model type from the format of the input files,
+but if this does not work, the model type can be overwritten using the <code>-dtmc</code>, <code>-ctmc</code> and <code>-mdp</code> switches.
 For example:
 </p>
 <div class='vspace'></div>

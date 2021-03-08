@@ -1,6 +1,67 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+
+Latest changes (up to 2cedf62a):
+
+* New model checking functionality
+  - support for POMDP/POPTA model checking
+  - support for LTS model checking
+  - reporting of model checking accuracy
+
+* Features/enhancements:
+  - bounded properties (e.g. P<p) raise error if results are too inaccurate
+  - improved model type auto-detection (MDP/PTA/LTS/POMDP/POPTA)
+  - new -dir switch to set current working dir in command line and GUI
+  - support HOA input (HOAF2DA) without a number-of-states header
+
+* Fixes
+  - fixed to compile on Java 14
+  - consistent treatment of negative/infinite/NaN rewards in symbolic/explicit engines
+  - disable tree of model info in GUI
+  
+* Development and code-level changes
+  - testing RESULT specifications can be intervals [a,b]
+  - prism-log-extract: new (meta)fields: prog_name, prog_version, prog
+  - ModelGenerator improvements: auto-generates VarList; stores module info
+  - explicit model refactoring: more default implementations in interfaces
+  - bugfixes & refactoring
+
+-----------------------------------------------------------------------------
+Version 4.6 (first released 21/4/2020)
+-----------------------------------------------------------------------------
+  
+* New model checking features/enhancements:
+  - digital clocks engine now supports time-bounded reachability
+  - explicit engine support for steady-state computation (and S, R[S] properties)
+  - improved support in MTBDD engine for very large (>2^63) state spaces
+  - the -heuristic switch triggers automatic selection of some engines/settings
+  - the -prop switch accepts multiple (comma-separated) property indices/names
+  - MTBDD engine support for non-sparse vector printing (printall filter)
+  - many minor bugfixes
+  
+* New import/export features:
+  - export of result values for all states of a model (-exportvector)
+  - basic auto-detection of model type for explicit file import
+  - simulation (path generation and statistical model checking) for explicit model imports
+  - explicit engine support for state reward import from files
+  - MTBDD engine support for export of transient/steady-state probabilities
+
+* Examples directory tidied up and now grouped by model type
+
+* Development changes and enhancements:
+  - extended/improved ModelGenerator interface, including methods to support simulation
+  - new RewardGenerator interface for specifying information about rewards for a model
+  - PRISM API improvements: properties can be parsed against the currently loaded model
+  - Makefile improvements: better configurability of directiories
+  - Makefile improvements: better handling of variables and sub-Makefiles, incl. CUDD
+  - new release_source Makefile target for building source releases
+
+* Benchmarking/testing changes and enhancements:
+  - new prism-log-extract script for processing PRISM log files
+  - prism-auto: new options/features (--log-subdirs, --filter-models, --args-list)
+
+-----------------------------------------------------------------------------
 Version 4.5 (first released 19/4/2019)
 -----------------------------------------------------------------------------
 

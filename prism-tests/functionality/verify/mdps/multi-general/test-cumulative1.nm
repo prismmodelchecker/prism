@@ -2,6 +2,8 @@
 // The model is in fact a MC
 // We also check -lp although it does not support the feature, but the testing ensures that an exception (and not a wrong result) is given.
 
+mdp
+
 module M
 
 x:[0..4] init 0;

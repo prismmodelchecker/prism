@@ -84,9 +84,9 @@ final class JasFunction extends Function {
 		if (isNaN()) {
 			return "NaN";
 		} else if (isInf()) {
-			return "Inf";
+			return "Infinity";
 		} else if (isMInf()) {
-			return "MInf";
+			return "-Infinity";
 		}
 		return jas.toString();
 	}
@@ -182,10 +182,16 @@ final class JasFunction extends Function {
 		if (this.isNaN() || other.isNaN()) {
 			return factory.getNaN();
 		}
+		if (other.isInf() || other.isMInf()) {
+			return factory.getNaN();
+		}
 		if (other.isZero()) {
-			if (this.isZero()) {
-				return factory.getNaN();
+			if (this.isConstant()) {
+				// evaluate constant to return either NaN, Inf or -Inf, using BigRational division
+				return factory.fromBigRational(this.asBigRational().divide(BigRational.ZERO));
 			} else {
+				// non-constant
+				// TODO: Fix, should be 'this / 0', but that can't be represented by JAS...
 				return factory.getInf();
 			}
 		}

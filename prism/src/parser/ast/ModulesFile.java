@@ -26,25 +26,35 @@
 
 package parser.ast;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Vector;
 
 import param.BigRational;
-import parser.*;
-import parser.visitor.*;
+import parser.State;
+import parser.Values;
+import parser.VarList;
+import parser.type.Type;
+import parser.visitor.ASTTraverse;
+import parser.visitor.ASTVisitor;
+import parser.visitor.ModulesFileSemanticCheck;
+import parser.visitor.ModulesFileSemanticCheckAfterConstants;
 import prism.ModelInfo;
+import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
-import prism.ModelType;
 import prism.PrismUtils;
 import prism.RewardGenerator;
-import prism.RewardGenerator.RewardLookup;
-import parser.type.*;
 
 // Class representing parsed model file
 
 public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerator
 {
-	// Model type (enum)
+	// Model type, as specified in the model file
+	private ModelType modelTypeInFile;
+	// Model type (actual, may differ)
 	private ModelType modelType;
 
 	// Model components
@@ -58,19 +68,20 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
 	private List<String> rewardStructNames; // Names of reward structures
 	private Expression initStates; // Initial states specification
+	private boolean hasObservables; // Observables info
+	private List<String> obsVars;
 
-	// Lists of all identifiers used
-	private Vector<String> formulaIdents;
-	private Vector<String> constantIdents;
-	private Vector<String> varIdents; // TODO: don't need?
+	// Lists of all identifiers used and where
+	private HashMap<String, ASTElement> identUsage;
 	// List of all module names
 	private String[] moduleNames;
 	// List of synchronising actions
 	private Vector<String> synchs;
-	// Lists of variable info (declaration, name, type)
+	// Lists of variable info (declaration, name, type, module index)
 	private Vector<Declaration> varDecls;
 	private Vector<String> varNames;
 	private Vector<Type> varTypes;
+	private Vector<Integer> varModules;
 
 	// Values set for undefined constants (null if none)
 	private Values undefinedConstantValues;
@@ -84,7 +95,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		formulaList = new FormulaList();
 		labelList = new LabelList();
 		constantList = new ConstantList();
-		modelType = ModelType.MDP; // default type
+		modelTypeInFile = modelType = null; // Unspecified
 		globals = new Vector<Declaration>();
 		modules = new Vector<Object>();
 		systemDefns = new ArrayList<SystemDefn>();
@@ -92,12 +103,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		rewardStructs = new ArrayList<RewardStruct>();
 		rewardStructNames = new ArrayList<String>();
 		initStates = null;
-		formulaIdents = new Vector<String>();
-		constantIdents = new Vector<String>();
-		varIdents = new Vector<String>();
+		hasObservables = false;
+		obsVars = new ArrayList<String>();
+		identUsage = new HashMap<>();
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
+		varModules = new Vector<Integer>();
 		undefinedConstantValues = null;
 		constantValues = null;
 	}
@@ -119,6 +131,22 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		constantList = cl;
 	}
 
+	/**
+	 * Set the model type that is specified in the model file.
+	 * Can be null, denoting that it is unspecified.
+	 */
+	public void setModelTypeInFile(ModelType t)
+	{
+		modelTypeInFile = t;
+		// As a default, set the actual type to be the same
+		modelType = modelTypeInFile;
+	}
+
+	/**
+	 * Set the actual model type,
+	 * which may differ from the type specified in the model file.
+	 * Note: if {@link #tidyUp()} is called, this may be overwritten.
+	 */
 	public void setModelType(ModelType t)
 	{
 		modelType = t;
@@ -232,6 +260,16 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		initStates = e;
 	}
 
+	public void setHasObservables(boolean hasObservables)
+	{
+		this.hasObservables = hasObservables;
+	}
+	
+	public void addObservableVar(String n)
+	{
+		obsVars.add(n);
+	}
+	
 	// Get methods
 
 	public FormulaList getFormulaList()
@@ -273,6 +311,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return constantList;
 	}
 
+	public ModelType getModelTypeInFile()
+	{
+		return modelTypeInFile;
+	}
+	
 	@Override
 	public ModelType getModelType()
 	{
@@ -508,6 +551,21 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 
 	/**
+	 * Does this model have an observables...endobservables block?
+	 * (i.e., is it a partially observable model?)
+	 */
+	public boolean hasObservables()
+	{
+		return hasObservables;
+	}
+	
+	@Override
+	public List<String> getObservableVars()
+	{
+		return obsVars;
+	}
+	
+	/**
 	 * Look up a property by name.
 	 * Returns null if not found.
 	 * Currently only exists for forwards compatibility.
@@ -518,12 +576,28 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 	
 	/**
-	 * Check if an identifier is used by this model
-	 * (as a formula, constant, or variable)
+	 * Check if an identifier is already used somewhere in the model
+	 * (as a formula, constant or variable)
+	 * and throw an exception if it is. Otherwise, add it to the list.
+	 * @param ident The name of the (new) identifier
+	 * @param e Where the identifier is declared in the model 
+	 */
+	private void checkAndAddIdentifier(String ident, ASTElement e) throws PrismLangException
+	{
+		ASTElement existing = identUsage.get(ident);
+		if (existing != null) {
+			throw new PrismLangException("Identifier \"" + ident + "\" is already used in the model", e);
+		}
+		identUsage.put(ident, e);
+	}
+	
+	/**
+	 * Check if an identifier is already used somewhere in the model
+	 * (as a formula, constant or variable)
 	 */
 	public boolean isIdentUsed(String ident)
 	{
-		return formulaIdents.contains(ident) || constantIdents.contains(ident) || varIdents.contains(ident);
+		return identUsage.containsKey(ident);
 	}
 
 	// get individual module name
@@ -615,6 +689,18 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return varTypes;
 	}
 
+	@Override
+	public DeclarationType getVarDeclarationType(int i)
+	{
+		return varDecls.get(i).getDeclType();
+	}
+
+	@Override
+	public int getVarModuleIndex(int i)
+	{
+		return varModules.get(i);
+	}
+
 	public boolean isGlobalVariable(String s)
 	{
 		int i, n;
@@ -627,6 +713,16 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return false;
 	}
 
+	public boolean isVarObservable(int i)
+	{
+		return obsVars.contains(varNames.get(i));
+	}
+	
+	public boolean isVarObservable(String s)
+	{
+		return obsVars.contains(s);
+	}
+	
 	@Override
 	public boolean containsUnboundedVariables()
 	{
@@ -640,20 +736,30 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return false;
 	}
 	
+	public boolean containsClockVariables()
+	{
+		int n = getNumVars();
+		for (int i = 0; i < n; i++) {
+			if (getVarDeclaration(i).getDeclType() instanceof DeclarationClock) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Method to "tidy up" after parsing (must be called)
 	 * (do some checks and extract some information)
 	 */
 	public void tidyUp() throws PrismLangException
 	{
-		// Clear lists that will generated by this method 
+		// Clear data that will be generated by this method 
 		// (in case it has already been called previously).
-		formulaIdents.clear();
-		constantIdents.clear();
-		varIdents.clear();
+		identUsage.clear();
 		varDecls.clear();
 		varNames.clear();
 		varTypes.clear();
+		varModules.clear();
 		
 		// Expansion of formulas and renaming
 
@@ -705,6 +811,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Then identify/check any references to action names
 		findAllActions(synchs);
 
+		// Determine actual model type
+		// (checks/processing below this point can assume that modelType
+		//  is non-null; methods before this point cannot)
+		finaliseModelType();
+		
+		// Check observables
+		checkObservables();
 		// Various semantic checks 
 		doSemanticChecks();
 		// Type checking
@@ -725,17 +838,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	private void checkFormulaIdents() throws PrismLangException
 	{
-		int i, n;
-		String s;
-
-		n = formulaList.size();
-		for (i = 0; i < n; i++) {
-			s = formulaList.getFormulaName(i);
-			if (isIdentUsed(s)) {
-				throw new PrismLangException("Duplicated identifier \"" + s + "\"", formulaList.getFormulaNameIdent(i));
-			} else {
-				formulaIdents.add(s);
-			}
+		int n = formulaList.size();
+		for (int i = 0; i < n; i++) {
+			String s = formulaList.getFormulaName(i);
+			checkAndAddIdentifier(s, formulaList.getFormulaNameIdent(i));
 		}
 	}
 
@@ -879,18 +985,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	private void checkConstantIdents() throws PrismLangException
 	{
-		int i, n;
-		String s;
-
-		n = constantList.size();
-		for (i = 0; i < n; i++) {
-			s = constantList.getConstantName(i);
-			if (isIdentUsed(s)) {
-				throw new PrismLangException("Duplicated identifier \"" + s + "\"", constantList
-						.getConstantNameIdent(i));
-			} else {
-				constantIdents.add(s);
-			}
+		int n = constantList.size();
+		for (int i = 0; i < n; i++) {
+			String s = constantList.getConstantName(i);
+			checkAndAddIdentifier(s, constantList.getConstantNameIdent(i));
 		}
 	}
 
@@ -898,42 +996,32 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	private void checkVarNames() throws PrismLangException
 	{
-		int i, j, n, m;
-		Module module;
-		String s;
-
 		// compile list of all var names
 		// and check as we go through
 
 		// globals
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			s = getGlobal(i).getName();
-			if (isIdentUsed(s)) {
-				throw new PrismLangException("Duplicated identifier \"" + s + "\"", getGlobal(i));
-			} else {
-				varIdents.add(s);
-				varDecls.add(getGlobal(i));
-				varNames.add(s);
-				varTypes.add(getGlobal(i).getType());
-			}
+		int n = getNumGlobals();
+		for (int i = 0; i < n; i++) {
+			String s = getGlobal(i).getName();
+			checkAndAddIdentifier(s, getGlobal(i));
+			varDecls.add(getGlobal(i));
+			varNames.add(s);
+			varTypes.add(getGlobal(i).getType());
+			varModules.add(-1);
 		}
 
 		// locals
-		n = modules.size();
-		for (i = 0; i < n; i++) {
-			module = getModule(i);
-			m = module.getNumDeclarations();
-			for (j = 0; j < m; j++) {
-				s = module.getDeclaration(j).getName();
-				if (isIdentUsed(s)) {
-					throw new PrismLangException("Duplicated identifier \"" + s + "\"", module.getDeclaration(j));
-				} else {
-					varIdents.add(s);
-					varDecls.add(module.getDeclaration(j));
-					varNames.add(s);
-					varTypes.add(module.getDeclaration(j).getType());
-				}
+		int numModules = modules.size();
+		for (int i = 0; i < numModules; i++) {
+			Module module = getModule(i);
+			int numLocals = module.getNumDeclarations();
+			for (int j = 0; j < numLocals; j++) {
+				String s = module.getDeclaration(j).getName();
+				checkAndAddIdentifier(s, module.getDeclaration(j));
+				varDecls.add(module.getDeclaration(j));
+				varNames.add(s);
+				varTypes.add(module.getDeclaration(j).getType());
+				varModules.add(i);
 			}
 		}
 
@@ -1008,6 +1096,19 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		if (firstCycle != -1) {
 			String s = "Cyclic dependency from references in system...endsystem definition \"" + getSystemDefnName(firstCycle) + "\"";
 			throw new PrismLangException(s, getSystemDefn(firstCycle));
+		}
+	}
+	
+	/**
+	 * Check "observables...endobservables" construct
+	 */
+	private void checkObservables() throws PrismLangException
+	{
+		if (getModelType().partiallyObservable() && !hasObservables) {
+			throw new PrismLangException(getModelType() + "s must specify observables");
+		}
+		if (hasObservables() && !getModelType().partiallyObservable()) {
+			throw new PrismLangException(getModelType() + "s cannot specify observables");
 		}
 	}
 	
@@ -1214,11 +1315,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		varDecls = new Vector<Declaration>();
 		varNames = new Vector<String>();
 		varTypes = new Vector<Type>();
+		varModules = new Vector<Integer>();
 		// Globals
 		for (Declaration decl : globals) {
 			varDecls.add(decl);
 			varNames.add(decl.getName());
 			varTypes.add(decl.getType());
+			varModules.add(-1);
 		}
 		// Locals
 		n = modules.size();
@@ -1227,6 +1330,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 				varDecls.add(decl);
 				varNames.add(decl.getName());
 				varTypes.add(decl.getType());
+				varModules.add(i);
 			}
 		}
 		// Find all instances of variables, replace identifiers with variables.
@@ -1239,11 +1343,72 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 * Assumes that values for constants have been provided for the model.
 	 * Also performs various syntactic checks on the variables.   
 	 */
-	public VarList createVarList() throws PrismLangException
+	public VarList createVarList() throws PrismException
 	{
 		return new VarList(this);
 	}
 
+	/**
+	 * Determine the actual model type
+	 */
+	private void finaliseModelType()
+	{
+		// First, fix a "base" model type
+		// If unspecified, auto-detect
+		if (modelTypeInFile == null) {
+			boolean isNonProb = isNonProbabilistic();
+			modelType = isNonProb ? ModelType.LTS : ModelType.MDP;
+		}
+		// Otherwise, it's just whatever was specified
+		else {
+			modelType = modelTypeInFile;
+		}
+		// Then, even if already specified, update the model type
+		// based on the existence of certain features
+		boolean isRealTime = containsClockVariables();
+		boolean isPartObs = hasObservables();
+		if (isRealTime) {
+			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
+				modelType = ModelType.PTA;
+			}
+		}
+		if (isPartObs) {
+			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
+				modelType = ModelType.POMDP;
+			} else if (modelType == ModelType.PTA) {
+				modelType = ModelType.POPTA;
+			}
+		}
+	}
+	
+	/**
+	 * Check whether this model is non-probabilistic,
+	 * i.e., whether none of the commands are probabilistic. 
+	 */
+	private boolean isNonProbabilistic()
+	{
+		try {
+			// Search through commands, checking for probabilities
+			accept(new ASTTraverse()
+			{
+				public Object visit(Updates e) throws PrismLangException
+				{
+					int n = e.getNumUpdates();
+					for (int i = 0; i < n; i++) {
+						if (e.getProbability(i) != null) {
+							throw new PrismLangException("Found one");
+						}
+					}
+					visitPost(e);
+					return null;
+				}
+			});
+		} catch (PrismLangException e) {
+			return false;
+		}
+		return true;
+	}
+	
 	// Methods required for ASTElement:
 
 	/**
@@ -1262,7 +1427,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		String s = "", tmp;
 		int i, n;
 
-		s += modelType.toString().toLowerCase() + "\n\n";
+		if (modelTypeInFile != null) {
+			s += modelTypeInFile.toString().toLowerCase() + "\n\n";
+		}
 
 		tmp = "" + formulaList;
 		if (tmp.length() > 0)
@@ -1278,6 +1445,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		if (tmp.length() > 0)
 			tmp += "\n";
 		s += tmp;
+
+		if (hasObservables()) {
+			s += "observables " + String.join(",", obsVars) + " endobservables\n\n";
+		}
 
 		n = getNumGlobals();
 		for (i = 0; i < n; i++) {
@@ -1323,6 +1494,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Copy ASTElement stuff
 		ret.setPosition(this);
 		// Copy type
+		ret.setModelTypeInFile(modelTypeInFile);
 		ret.setModelType(modelType);
 		// Deep copy main components
 		ret.setFormulaList((FormulaList) formulaList.deepCopy());
@@ -1346,10 +1518,11 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 		if (initStates != null)
 			ret.setInitialStates(initStates.deepCopy());
+		ret.hasObservables = hasObservables;
+		for (String ov : obsVars)
+			ret.addObservableVar(ov);
 		// Copy other (generated) info
-		ret.formulaIdents = (formulaIdents == null) ? null : (Vector<String>)formulaIdents.clone();
-		ret.constantIdents = (constantIdents == null) ? null : (Vector<String>)constantIdents.clone();
-		ret.varIdents = (varIdents == null) ? null : (Vector<String>)varIdents.clone();
+		ret.identUsage = (identUsage == null) ? null : (HashMap<String, ASTElement>) identUsage.clone();
 		ret.moduleNames = (moduleNames == null) ? null : moduleNames.clone();
 		ret.synchs = (synchs == null) ? null : (Vector<String>)synchs.clone();
 		if (varDecls != null) {
@@ -1359,6 +1532,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
 		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
+		ret.varModules = (varModules == null) ? null : (Vector<Integer>)varModules.clone();
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 		
 		return ret;

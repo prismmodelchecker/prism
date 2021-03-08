@@ -1,0 +1,268 @@
+#!/usr/bin/env python
+
+# The prism-log-extract script extracts and collates info from a
+# collection of PRISM log files.
+
+# The basic usage is "prism-log-extract <targets>" where <targets>
+# is one or more log files or directories containing log files.
+# The default behaviour is to extract all known fields from all logs
+# and then print the resulting table of values in CSV format.
+
+# Run "prism-log-extract --help" for details of further options.
+
+import os,sys,re,signal
+from optparse import OptionParser
+
+#==================================================================================================
+# Global variables
+#==================================================================================================
+
+# Details of all the fields that can be extracted from logs
+all_fields_details = [\
+    {'name': 'prog_name', 'descr': 'Name of program run', 'type': 'string'}, \
+    {'name': 'prog_version', 'descr': 'Version of program run', 'type': 'string', 'regexp': 'Version: ([^ \n]+)'}, \
+    {'name': 'log_dir', 'descr': 'Name of directory containing log file', 'type': 'string'}, \
+    {'name': 'log_file', 'descr': 'Name of log file', 'type': 'string'}, \
+    {'name': 'model_file', 'descr': 'Name of PRISM model file', 'type': 'file', 'regexp': 'Parsing model file "(.+)"...'}, \
+    {'name': 'model_consts', 'descr': 'Constants defined for model', 'type': 'string', 'regexp': 'Model constants: (.+)'}, \
+    {'name': 'model_type', 'descr': 'Model type', 'regexp': 'Type: *(.+)'}, \
+    {'name': 'states', 'descr': 'Number of states in model', 'regexp': 'States: *(.+) \((.+) initial\)'}, \
+    {'name': 'time_constr', 'descr': 'Time to construct the model', 'regexp': 'Time for model construction: *(.+) sec'}, \
+    {'name': 'prop_file', 'descr': 'Name of PRISM property file', 'type': 'file', 'regexp': 'Parsing properties file "(.+)"...'}, \
+    {'name': 'prop_consts', 'descr': 'Constants defined for property', 'type': 'string', 'regexp': 'Property constants: (.+)'}, \
+    {'name': 'iters_check', 'descr': 'Iterations for (numerica) model checking', 'regexp': 'took ([^ \n]+) iterations', 'match': 'last'}, \
+    {'name': 'time_check', 'descr': 'Time to perform mode checking', 'regexp': 'Time for model checking: *(.+) sec'}, \
+    {'name': 'result', 'descr': 'Result of mode checking', 'regexp': '^Result.*: ([^( \n]+)'}, \
+]
+
+# Names of all fields
+all_fields = list(map(lambda x: x['name'], all_fields_details))
+
+# Meta-fields
+meta_fields = {\
+    'all': all_fields, \
+    'prog': ['prog_name', 'prog_version'], \
+    'model': ['model_file', 'model_consts'], \
+    'prop': ['prop_file', 'prop_consts'], \
+    'benchmark' : ['model_file', 'model_consts', 'prop_file', 'prop_consts'], \
+}
+
+#==================================================================================================
+# Utility functions
+#==================================================================================================
+
+# Returns a sorted list of files / directories in dir
+def sorted_list_dir(dir):
+    list = os.listdir(dir);
+    list.sort()
+    return list
+
+#==================================================================================================
+# Functions
+#==================================================================================================
+
+# Takes a list of field names, including "meta-fields" (e.g. 'model'
+# is shorthand for 'model_file','model_consts') and expands the meta-fields
+def expand_meta_fields(fields):
+    fields_expanded = []
+    for field in fields:
+        fields_expanded.extend(meta_fields[field] if field in meta_fields else [field])
+    return fields_expanded
+
+# Get the details of a field
+def get_field_details(field):
+    return next(filter(lambda x: x['name'] == field, all_fields_details))
+
+# Extract info from a list of files/directories
+def grep_for_info(fileOrDirs, fields):
+    infos = []
+    for fileOrDir in fileOrDirs:
+        infos += grep_for_info_file_or_dir(fileOrDir, fields)
+    return infos
+
+# Extract info from a single file/directory (recurse unless asked not to)
+def grep_for_info_file_or_dir(fileOrDir, fields):
+    infos = []
+    if os.path.isdir(fileOrDir):
+        for file in [file for file in sorted_list_dir(fileOrDir) if not file in [".","..",".svn"]]:
+            if os.path.isdir(os.path.join(fileOrDir, file)):
+                if not options.nonRec:
+                    infos += grep_for_info_file_or_dir(os.path.join(fileOrDir, file), fields)
+            else:
+                infos += grep_for_info_file(os.path.join(fileOrDir, file), fields)
+    else:
+        infos += grep_for_info_file(fileOrDir, fields)
+    return infos
+
+# Extract info from a log file
+def grep_for_info_file(logFile, fields):
+    if options.extension and not logFile.endswith('.'+options.extension):
+        return []
+    info = {}
+    # Initialise all fields
+    for field in fields:
+        info[field] = ''
+    # For some fields, there is a specific way to define them
+    if 'log_dir' in fields:
+        info['log_dir'] = os.path.basename(os.path.dirname(logFile))
+    if 'log_file' in fields:
+        info['log_file'] = os.path.basename(logFile)
+    # For other fields, we parse the log
+    line_num = 1
+    for line in open(logFile, 'r').readlines():
+        # We assume the first line printed out is the tool name
+        if line_num == 1:
+            info['prog_name'] = line.strip()
+        # For most fields, a regexp is used to grep the log
+        for field in fields:
+            field_details = get_field_details(field)
+            if 'regexp' in field_details and (info[field] == '' or ('match' in field_details and field_details['match'] == 'last')):
+                regexp = field_details['regexp']
+                m = re.search(regexp, line)
+                if not m is None:
+                    info[field] = m.group(1)
+        line_num = line_num + 1
+    # Some field processing based on type
+    for field in info.keys():
+        field_details = get_field_details(field)
+        if 'type' in field_details and field_details['type'] == 'file':
+            info[field] = os.path.basename(info[field])
+        if 'type' in field_details and field_details['type'] in ['string', 'file']:
+            info[field] = '"' + info[field] + '"'
+    return [info]
+
+# Print info from a log, i.e. a list of fields, comma-separated
+def print_info(info, fields):
+    values = []
+    for field in fields:
+        values.append(info[field])
+    print(','.join(values))
+
+#==================================================================================================
+# Main program
+#==================================================================================================
+
+def printUsage():
+    print("Usage: prism-log-extract ...")
+
+def print_fields():
+    print('Fields:')
+    for field in all_fields_details:
+        print('*', field['name'], ':', field['descr'])
+    print('\nMeta-fields:')
+    for meta_field, defn in meta_fields.items():
+        print('*', meta_field, ':', '<all fields>' if meta_field=='all' else ','.join(defn))
+
+def signal_handler(signal, frame):
+    sys.exit(1)
+
+# Parse options
+signal.signal(signal.SIGINT, signal_handler)
+parser = OptionParser(usage="usage: %prog [options] args")
+parser.add_option("--show-fields", action="store_true", dest="showFields", default=False, help="Show all fields that can be extracted")
+parser.add_option("--fields", dest="fields", metavar="X", default="", help="Fields to extract from the log (comma-separated)")
+parser.add_option("--groupby", dest="groupby", metavar="X", default="", help="Group log entries by these fields")
+parser.add_option("--groupkey", dest="groupkey", metavar="X", default="", help="Key used for uniqueness of grouped log entries")
+parser.add_option("--non-recursive", action="store_true", dest="nonRec", default=False, help="Don't recurse into directories")
+parser.add_option("--extension", dest="extension", metavar="ext", default="", help="Process files with name .ext")
+(options, args) = parser.parse_args()
+
+if options.showFields:
+    print_fields()
+    sys.exit(0)
+
+if len(args) < 1:
+    parser.print_help()
+    sys.exit(1)
+
+# Determine fields to be extracted
+if options.fields:
+    fields = options.fields.split(',')
+    fields = expand_meta_fields(fields)
+    for field in fields:
+        if not field in all_fields:
+            print('Error: Unknown field "' + field + '" (valid fields are: ' + ', '.join(all_fields) + ')')
+            sys.exit(1)
+# Default to all fields if none specified
+else:
+    fields = []+all_fields
+# print('Extracting fields: ' + ','.join(fields))
+
+# Process grouping info
+group_by = None
+group_key = None
+if options.groupby:
+    group_by = options.groupby
+    group_by = expand_meta_fields([group_by])[0]
+    # Check group_by fields are valid
+    if not group_by in all_fields:
+        print('Error: Unknown "group by" field "' + group_by + '" (valid fields are: ' + ', '.join(all_fields) + ')')
+        sys.exit(1)
+    # Use default group_key if not provided
+    group_key = options.groupkey.split(',') if options.groupkey else ['benchmark']
+    group_key = expand_meta_fields(group_key)
+    # Check group_key fields are valid
+    for key in group_key:
+        if not key in all_fields:
+            print('Error: Unknown "group key" field "' + key + '" (valid fields are: ' + ', '.join(all_fields) + ')')
+            sys.exit(1)
+        if key in group_by:
+            print('Error: "group key" field "' + key + ' is already used in "group by"')
+            sys.exit(1)
+    # Add group by/key fields to overall list of fields to use
+    fields_new = []
+    fields_new.extend([group_by])
+    fields_new.extend(group_key)
+    fields_new.extend(x for x in fields if x not in fields_new)
+    fields = fields_new
+# print('Group: By: ' + ','.join([group_by]) + ', Key: ' + ','.join(group_key))
+   
+# Extract chosen fields from all files/dirs
+infos = grep_for_info(args, fields)
+
+# Group entries if requested
+if group_by:
+
+    # Get all values for group by/key
+    group_by_vals = set(map(lambda x: x[group_by], infos))
+    group_key_vals = sorted(set(map(lambda info: '.'.join([info[key] for key in group_key if key in info]), infos)))
+    
+    # Modify list of fields for header
+    # Key fields shown once at the start; others are repeated and prefixed with group
+    fields_new = []
+    fields_new += group_key
+    for group_val in group_by_vals:
+        group_val_trim = group_val.replace('"', '')
+        fields_new.extend([group_val_trim+':'+field for field in fields if field not in [group_by]+group_key])
+
+    # Iterate through each key/group value and find (at most 1) matching entry
+    infos_new = []
+    for group_key_val in group_key_vals:
+        info_new = {}
+        # Get first matching entry and use to fill group key fields
+        first_info_match = next(filter(lambda info: group_key_val == '.'.join([info[key] for key in group_key if key in info]), infos))
+        info_new.update({x: first_info_match[x] for x in group_key})
+        # For each group
+        for group_val in group_by_vals:
+            group_val_trim = group_val.replace('"', '')
+            info_matches = [info for info in infos if (group_val == info[group_by] and group_key_val == '.'.join([info[key] for key in group_key if key in info]))]
+            # >1 match: error
+            if len(info_matches) > 1:
+                print('Error: multiple entries matching ' + group_key_val + ' in group ' + group_val)
+                sys.exit(1)
+            # 1 match: store field values with names prefixed with group
+            if len(info_matches) > 0:
+                info = info_matches[0]
+                info_new.update({group_val_trim+':'+field : val for field, val in info.items() if field not in [group_by]+group_key})
+            # 0 matches: store empty field values with names prefixed with group
+            else:
+                info_new.update({group_val_trim+':'+field : "" for field in fields if field not in [group_by]+group_key})
+        infos_new.append(info_new)
+    
+    fields = fields_new
+    infos = infos_new
+
+# Print entries (header, then rows)
+print(','.join(fields))
+for info in infos:
+    print_info(info, fields)

@@ -230,6 +230,12 @@ Performance (time and space), however, may vary significantly and if you are usi
 
 <p class='vspace'>Note also that precise details regarding the memory usage of the current engine are displayed during model checking (from the GUI, check the "Log" tab). This can provide valuable feedback when experimenting with different engines.
 </p>
+<p class='vspace'>PRISM also has some basic support for automatically selecting the engine (and other settings) heuristically,
+based on the size and type of the model, and the property being checked.
+Use, for example, <code>-heuristic speed</code> from the command-line to choose options
+which target computation speed rather than saving memory.
+This is also available from the "Heuristic" option under the "PRISM" tab of the "Options" dialog in the GUI.
+</p>
 <div class='vspace'></div><h3>Approximate/statistical model checking</h3>
 <p>Although it is not treated as a separate "engine", like those above,
 PRISM also provides approximate/statistical model checking,

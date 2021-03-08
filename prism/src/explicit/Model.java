@@ -32,9 +32,13 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.IntPredicate;
 
+import common.IteratorTools;
 import explicit.graphviz.Decorator;
 import parser.State;
 import parser.Values;
@@ -139,13 +143,62 @@ public interface Model
 	 */
 	public Set<String> getLabels();
 
-	/** Returns true if a label with the given name is attached to this model */
+	/**
+	 * Returns true if a label with the given name is attached to this model
+	 */
 	public boolean hasLabel(String name);
 
 	/**
+	 * Get the mapping from labels that are (optionally) stored
+	 * to the sets of states that satisfy them.
+	 */
+	default Map<String, BitSet> getLabelToStatesMap()
+	{
+		// Default implementation creates a new map on demand
+		Map<String, BitSet> labels = new TreeMap<String, BitSet>();
+		for (String name : getLabels()) {
+			labels.put(name, getLabelStates(name));
+		}
+		return labels;
+	}
+	
+	/**
 	 * Get the total number of transitions in the model.
 	 */
-	public int getNumTransitions();
+	public default int getNumTransitions()
+	{
+		int numStates = getNumStates();
+		int numTransitions = 0;
+		for (int s = 0; s < numStates; s++) {
+			numTransitions += getNumTransitions(s);
+		}
+		return numTransitions;
+	}
+
+	/**
+	 * Get the number of transitions from state s.
+	 */
+	public default int getNumTransitions(int s)
+	{
+		return IteratorTools.count(getSuccessorsIterator(s));
+	}
+
+	/**
+	 * Get the number of transitions leaving a set of states.
+	 * <br>
+	 * Default implementation: Iterator over the states and sum the result of getNumTransitions(s).
+	 * @param states The set of states, specified by an OfInt iterator
+	 * @return the number of transitions
+	 */
+	public default long getNumTransitions(PrimitiveIterator.OfInt states)
+	{
+		long count = 0;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			count += getNumTransitions(s);
+		}
+		return count;
+	}
 
 	/**
 	 * Get an iterator over the successors of state s.
@@ -267,25 +320,42 @@ public interface Model
 	 */
 	public void checkForDeadlocks(BitSet except) throws PrismException;
 
+	// Export methods (explicit files)
+	
 	/**
 	 * Export to explicit format readable by PRISM (i.e. a .tra file, etc.).
 	 */
-	public void exportToPrismExplicit(String baseFilename) throws PrismException;
+	default void exportToPrismExplicit(String baseFilename) throws PrismException
+	{
+		// Default implementation - just output .tra file
+		// (some models might override this)
+		exportToPrismExplicitTra(baseFilename + ".tra");
+	}
 
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(String filename) throws PrismException;
+	default void exportToPrismExplicitTra(String filename) throws PrismException
+	{
+		try (PrismFileLog log = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(log);
+		}
+	}
 
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(File file) throws PrismException;
+	default void exportToPrismExplicitTra(File file) throws PrismException
+	{
+		exportToPrismExplicitTra(file.getPath());
+	}
 	
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
 	public void exportToPrismExplicitTra(PrismLog log);
+	
+	// Export methods (dot files)
 	
 	/**
 	 * Export to a dot file.
@@ -335,7 +405,8 @@ public interface Model
 	 * @param out PrismLog to export to
 	 * @param mark States to highlight (ignored if null)
 	 */
-	default void exportToDotFile(PrismLog out, BitSet mark) {
+	default void exportToDotFile(PrismLog out, BitSet mark)
+	{
 		if (mark == null) {
 			exportToDotFile(out);
 		}
