@@ -124,7 +124,7 @@ class PepaContext extends StyleContext implements ViewFactory
 class PepaView extends PlainView
 {
 	
-	static final userinterface.model.Style PLAIN_S = new userinterface.model.Style(Color.black, Font.PLAIN);
+	static final Style PLAIN_S = new Style(Color.black, Font.PLAIN);
 	private Matcher match;
 	private Pattern pattern;
 	private GUIMultiModelHandler handler;
@@ -136,107 +136,72 @@ class PepaView extends PlainView
 		pattern = Pattern.compile("%.*");
 	}
 	
-	protected int drawUnselectedText(Graphics g, int x, int y, int p0, int p1) throws BadLocationException
+	@Override
+	protected float drawUnselectedText(Graphics2D g, float x, float y, int p0, int p1) throws BadLocationException
 	{
 		int stLine = findStartOfLine(p0, getDocument());
 		int enLine = findEndOfLine(p1, getDocument());
-
-		if (g instanceof Graphics2D) {
-			Graphics2D g2d = (Graphics2D)g;
-			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		}
-        
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		try
 		{
 			g.setColor(Color.green);
 			Document doc = getDocument();
-			Segment segment = getLineBuffer();
-			
-			
-			//String s = doc.getText(p0, p1-p0);
 			String s = doc.getText(stLine, enLine-stLine);
-			userinterface.model.Style[] styles = highlight(s, (p0-stLine), (p1-p0));
-			int currStart = 0;
-			int currEnd = 0;
-			Color last = null;
+			Style[] styles = highlight(s, (p0-stLine), (p1-p0));
 			String fname = handler.getPepaEditorFontFast().getName();
 			int fsize = handler.getPepaEditorFontFast().getSize();
-			
-			for(int curr = 0; curr < styles.length; curr++)
-			{
-				
-				userinterface.model.Style c = styles[curr];
-				
+			for (int curr = 0; curr < styles.length; curr++) {
+				Style c = styles[curr];
 				g.setColor(c.c);
 				g.setFont(new Font(fname, c.style, fsize));
 				Segment segm = getLineBuffer();
 				doc.getText(p0+curr, 1, segm);
 				x = Utilities.drawTabbedText(segm, x, y, g, this, p0+curr);
-				
 			}
 			g.setColor(Color.black);
 			g.setFont(new Font(fname, Font.PLAIN, fsize));
 		}
-		catch(BadLocationException ex)
-		{
+		catch(BadLocationException ex) {
 			//System.out.println("ex = "+ex);
 			//ex.printStackTrace();
 		}
 		return x;
 	}
 	
-	protected int drawSelectedText(Graphics g, int x, int y, int p0, int p1) throws BadLocationException
+	@Override
+	protected float drawSelectedText(Graphics2D g, float x, float y,int p0, int p1) throws BadLocationException
 	{
 		int stLine = findStartOfLine(p0, getDocument());
 		int enLine = findEndOfLine(p1, getDocument());
-
-		if (g instanceof Graphics2D) {
-			Graphics2D g2d = (Graphics2D)g;
-			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		}
-        
-		try
-		{
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		try {
 			g.setColor(Color.green);
 			Document doc = getDocument();
-			Segment segment = getLineBuffer();
-			
-			
-			//String s = doc.getText(p0, p1-p0);
 			String s = doc.getText(stLine, enLine-stLine);
-			userinterface.model.Style[] styles = highlight(s, (p0-stLine), (p1-p0));
-			int currStart = 0;
-			int currEnd = 0;
-			Color last = null;
+			Style[] styles = highlight(s, (p0-stLine), (p1-p0));
 			String fname = handler.getPepaEditorFontFast().getName();
 			int fsize = handler.getPepaEditorFontFast().getSize();
-			
-			for(int curr = 0; curr < styles.length; curr++)
-			{
-				
-				userinterface.model.Style c = styles[curr];
-				
+			for (int curr = 0; curr < styles.length; curr++) {
+				Style c = styles[curr];
 				g.setColor(c.c);
 				g.setFont(new Font(fname, c.style, fsize));
 				Segment segm = getLineBuffer();
 				doc.getText(p0+curr, 1, segm);
 				x = Utilities.drawTabbedText(segm, x, y, g, this, p0+curr);
-				
 			}
 			g.setColor(Color.black);
 			g.setFont(new Font(fname, Font.PLAIN, fsize));
 		}
-		catch(BadLocationException ex)
-		{
+		catch(BadLocationException ex) {
 			//System.out.println("ex = "+ex);
 			//ex.printStackTrace();
 		}
 		return x;
 	}
 	
-	private synchronized userinterface.model.Style[] highlight(String s, int offset, int length)
+	private synchronized Style[] highlight(String s, int offset, int length)
 	{
-		userinterface.model.Style[] styles = new userinterface.model.Style[s.length()];
+		Style[] styles = new Style[s.length()];
 		for(int i = 0; i < styles.length; i++)
 			styles[i] = PLAIN_S;
 		
@@ -261,7 +226,7 @@ class PepaView extends PlainView
 		//System.out.println("styles.length = "+styles.length);
 		//System.out.println("ret.length = "+length);
 		//System.out.println("offset = "+offset);
-		userinterface.model.Style[]ret = new userinterface.model.Style[length];
+		Style[]ret = new Style[length];
 		for(int i = 0; i < ret.length; i++)
 		{
 			ret[i] = styles[i+offset];
