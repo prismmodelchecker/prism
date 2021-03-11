@@ -552,7 +552,7 @@ BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 
 # Build a (binary) distribution in the release directory
 
-release: JFLAGS += -source 1.8 -target 1.8
+release: JFLAGS += --release 9
 release: clean_all all binary release_check_version build_release clean_binary
 
 release_check_version:
