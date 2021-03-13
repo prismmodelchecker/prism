@@ -17,10 +17,12 @@ Latest changes (up to 2cedf62a):
 
 * Fixes
   - fixed to compile on Java 14
+  - fixed to compile on 64-bit Arm Linux/Mac
   - consistent treatment of negative/infinite/NaN rewards in symbolic/explicit engines
   - disable tree of model info in GUI
   
 * Development and code-level changes
+  - code base now allows/assumes Java 9
   - testing RESULT specifications can be intervals [a,b]
   - prism-log-extract: new (meta)fields: prog_name, prog_version, prog
   - ModelGenerator improvements: auto-generates VarList; stores module info
