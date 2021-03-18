@@ -115,7 +115,6 @@ public class POMDPModelChecker extends ProbModelChecker
 	{
 		ModelCheckerResult res = null;
 		long timer;
-		String stratFilename = null;
 
 		// Check we are only computing for a single state (and use initial state if unspecified)
 		if (statesOfInterest == null) {
@@ -129,13 +128,8 @@ public class POMDPModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting probabilistic reachability (" + (min ? "min" : "max") + ")...");
 
-		// If required, create/initialise strategy storage
-		if (genStrat || exportAdv) {
-			stratFilename = exportAdvFilename;//"policyGraph.txt";
-		}
-
 		// Compute rewards
-		res = computeReachProbsFixedGrid(pomdp, remain, target, min, statesOfInterest.nextSetBit(0), stratFilename);
+		res = computeReachProbsFixedGrid(pomdp, remain, target, min, statesOfInterest.nextSetBit(0));
 
 		// Finished probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
@@ -152,15 +146,13 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * while remaining in those in @{code remain},
 	 * using Lovejoy's fixed-resolution grid approach.
 	 * This only computes the probabiity from a single start state
-	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param pomdp The POMDP
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 * @param min Min or max rewards (true=min, false=max)
 	 * @param sInit State to compute for
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	protected ModelCheckerResult computeReachProbsFixedGrid(POMDP pomdp, BitSet remain, BitSet target, boolean min, int sInit, String stratFilename) throws PrismException
+	protected ModelCheckerResult computeReachProbsFixedGrid(POMDP pomdp, BitSet remain, BitSet target, boolean min, int sInit) throws PrismException
 	{
 		// Start fixed-resolution grid approximation
 		long timer = System.currentTimeMillis();
@@ -248,19 +240,27 @@ public class POMDPModelChecker extends ProbModelChecker
 		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, null, targetObs, unknownObs, backup);
 		MDP mdp = psm.mdp;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
-		// Export?
-		if (stratFilename != null) {
-			mdp.exportToPrismExplicitTra(stratFilename);
-			//mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
-			mdp.exportToDotFile(stratFilename + ".dot", Collections.singleton(new Decorator()
-			{
-				@Override
-				public Decoration decorateState(int state, Decoration d)
+		
+		// Export strategy if requested
+		// NB: proper storage of strategy for genStrat not yet supported,
+		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		if (genStrat || exportAdv) {
+			// Export in Dot format if filename extension is .dot
+			if (exportAdvFilename.endsWith(".dot")) {
+				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
 				{
-					d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
-					return d;
-				}
-			}));
+					@Override
+					public Decoration decorateState(int state, Decoration d)
+					{
+						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
+						return d;
+					}
+				}));
+			}
+			// Otherwise use .tra format
+			else {
+				mdp.exportToPrismExplicitTra(exportAdvFilename);
+			}
 		}
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
 		MDPModelChecker mcMDP = new MDPModelChecker(this);
@@ -317,7 +317,6 @@ public class POMDPModelChecker extends ProbModelChecker
 	{
 		ModelCheckerResult res = null;
 		long timer;
-		String stratFilename = null;
 		
 		// Check we are only computing for a single state (and use initial state if unspecified)
 		if (statesOfInterest == null) {
@@ -331,13 +330,8 @@ public class POMDPModelChecker extends ProbModelChecker
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
 
-		// If required, create/initialise strategy storage
-		if (genStrat || exportAdv) {
-			stratFilename = exportAdvFilename;
-		}
-
 		// Compute rewards
-		res = computeReachRewardsFixedGrid(pomdp, mdpRewards, target, min, statesOfInterest.nextSetBit(0), stratFilename);
+		res = computeReachRewardsFixedGrid(pomdp, mdpRewards, target, min, statesOfInterest.nextSetBit(0));
 
 		// Finished expected reachability
 		timer = System.currentTimeMillis() - timer;
@@ -351,16 +345,14 @@ public class POMDPModelChecker extends ProbModelChecker
 	/**
 	 * Compute expected reachability rewards using Lovejoy's fixed-resolution grid approach.
 	 * This only computes the expected reward from a single start state
-	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param pomdp The POMMDP
 	 * @param mdpRewards The rewards
 	 * @param target Target states
 	 * @param inf States for which reward is infinite
 	 * @param min Min or max rewards (true=min, false=max)
 	 * @param sInit State to compute for
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	protected ModelCheckerResult computeReachRewardsFixedGrid(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, int sInit, String stratFilename) throws PrismException
+	protected ModelCheckerResult computeReachRewardsFixedGrid(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, int sInit) throws PrismException
 	{
 		// Start fixed-resolution grid approximation
 		long timer = System.currentTimeMillis();
@@ -442,19 +434,27 @@ public class POMDPModelChecker extends ProbModelChecker
 		MDP mdp = psm.mdp;
 		MDPRewards mdpRewardsNew = psm.mdpRewards;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
-		// Export?
-		if (stratFilename != null) {
-			mdp.exportToPrismExplicitTra(stratFilename);
-			//mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
-			mdp.exportToDotFile(stratFilename + ".dot", Collections.singleton(new Decorator()
-			{
-				@Override
-				public Decoration decorateState(int state, Decoration d)
+		
+		// Export strategy if requested
+		// NB: proper storage of strategy for genStrat not yet supported,
+		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		if (genStrat || exportAdv) {
+			// Export in Dot format if filename extension is .dot
+			if (exportAdvFilename.endsWith(".dot")) {
+				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
 				{
-					d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
-					return d;
-				}
-			}));
+					@Override
+					public Decoration decorateState(int state, Decoration d)
+					{
+						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
+						return d;
+					}
+				}));
+			}
+			// Otherwise use .tra format
+			else {
+				mdp.exportToPrismExplicitTra(exportAdvFilename);
+			}
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
