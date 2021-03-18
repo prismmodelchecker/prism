@@ -28,21 +28,62 @@
 
 package userinterface.simulator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+
 import javax.swing.table.AbstractTableModel;
 
-import simulator.PathFullInfo;
-import userinterface.simulator.SimulationView.*;
-import userinterface.util.GUIGroupedTableModel;
-import parser.ast.*;
+import parser.ast.ModulesFile;
 import prism.ModelInfo;
+import simulator.PathFullInfo;
+import userinterface.simulator.SimulationView.ActionValue;
+import userinterface.simulator.SimulationView.RewardStructureColumn;
+import userinterface.simulator.SimulationView.RewardStructureValue;
+import userinterface.simulator.SimulationView.TimeValue;
+import userinterface.simulator.SimulationView.Variable;
+import userinterface.simulator.SimulationView.VariableValue;
+import userinterface.util.GUIGroupedTableModel;
 
 public class GUISimulatorPathTableModel extends AbstractTableModel implements GUIGroupedTableModel, Observer
 {
 	private static final long serialVersionUID = 1L;
 
+	enum PathTableModelGroupType {
+		STEP, TIME, VARIABLES, REWARDS
+	};
+	
+	enum GUISimulatorPathTableModelColumn {
+		ACTION, STEP, TIME_CUMUL, TIME, VARIABLE, REWARD
+	};
+	
+	class PathTableModelGroup {
+		public PathTableModelGroupType type;
+		public Object info;
+		public int lastCol;
+		public PathTableModelGroup(PathTableModelGroupType type, Object info, int lastCol)
+		{
+			this.type = type;
+			this.info = info;
+			this.lastCol = lastCol;
+		}
+	}
+	
+	class PathTableModelColumn {
+		public GUISimulatorPathTableModelColumn type;
+		public Object info;
+		public PathTableModelColumn(GUISimulatorPathTableModelColumn type, Object info)
+		{
+			this.type = type;
+			this.info = info;
+		}
+	}
+	
 	private GUISimulator simulator;
 	private SimulationView view;
+	private List<PathTableModelGroup> visibleGroups;
+	private List<PathTableModelColumn> visibleColumns;
 
 	private boolean pathActive;
 	private ModulesFile parsedModel;
@@ -59,7 +100,8 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 		this.simulator = simulator;
 		this.view = view;
 		this.view.addObserver(this);
-
+		visibleGroups = new ArrayList<>();
+		visibleColumns = new ArrayList<>();
 		rewardStructureValue = view.new RewardStructureValue(null, null);
 		variableValue = view.new VariableValue(null, null);
 	}
@@ -86,59 +128,24 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 
 	public boolean canShowTime()
 	{
-		return parsedModel.getModelType().continuousTime();
+		return modelInfo.getModelType().continuousTime();
 	}
 
+	@Override
 	public int getGroupCount()
 	{
 		if (!pathActive) {
 			return 0;
 		} else {
-			int groupCount = 0;
-
-			if (view.showActions() || view.showSteps()) {
-				groupCount++;
-			}
-
-			if (canShowTime() && (view.showTime() || view.showCumulativeTime())) {
-				groupCount++;
-			}
-
-			ArrayList<Variable> vars = view.getVisibleVariables();
-			Set<String> varNames = new HashSet<String>();
-
-			for (Variable variable : vars) {
-				varNames.add(variable.getName());
-			}
-
-			for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-				if (varNames.contains(parsedModel.getGlobal(g).getName())) {
-					groupCount++;
-					break;
-				}
-			}
-
-			for (int m = 0; m < parsedModel.getNumModules(); m++) {
-				parser.ast.Module module = parsedModel.getModule(m);
-				for (int v = 0; v < module.getNumDeclarations(); v++) {
-					if (varNames.contains(module.getDeclaration(v).getName())) {
-						groupCount++;
-						break;
-					}
-				}
-			}
-
-			if (view.getVisibleRewardColumns().size() > 0) {
-				groupCount++;
-			}
-
-			return groupCount;
+			return visibleGroups.size();
 		}
 	}
 
+	@Override
 	public void update(Observable o, Object arg)
 	{
 		if (o == view) {
+			setVisibleColumnsAndGroups();
 			fireTableStructureChanged();
 
 			//Sort out the minimum widths for each column
@@ -146,263 +153,71 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 		}
 	}
 
+	@Override
 	public String getGroupName(int groupIndex)
 	{
 		if (!pathActive) {
 			return "";
 		} else {
-			int groupCount = 0;
-
-			if (view.showActions() || view.showSteps()) {
-				if (groupCount == groupIndex) {
-					return "Step";
-				}
-
-				groupCount++;
+			switch (visibleGroups.get(groupIndex).type) {
+			case STEP:
+				return "Step";
+			case TIME:
+				return "Time";
+			case VARIABLES:
+				int module = (Integer) visibleGroups.get(groupIndex).info;
+				return module == -1 ? "Globals" : modelInfo.getModuleName(module);
+			case REWARDS:
+				return "Rewards";
+			default:
+				return "";
 			}
-
-			if (canShowTime() && (view.showTime() || view.showCumulativeTime())) {
-				if (groupCount == groupIndex) {
-					return "Time";
-				}
-
-				groupCount++;
-			}
-
-			if (view.getVisibleVariables().size() > 0) {
-				ArrayList<Variable> vars = view.getVisibleVariables();
-				Set<String> varNames = new HashSet<String>();
-
-				for (Variable variable : vars) {
-					varNames.add(variable.getName());
-				}
-
-				for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-					if (varNames.contains(parsedModel.getGlobal(g).getName())) {
-						if (groupCount == groupIndex) {
-							return "Globals";
-						}
-
-						groupCount++;
-						break;
-					}
-				}
-
-				for (int m = 0; m < parsedModel.getNumModules(); m++) {
-					parser.ast.Module module = parsedModel.getModule(m);
-					for (int v = 0; v < module.getNumDeclarations(); v++) {
-						if (varNames.contains(module.getDeclaration(v).getName())) {
-							if (groupCount == groupIndex) {
-								return "" + parsedModel.getModuleName(m) + "";
-							}
-
-							groupCount++;
-							break;
-						}
-					}
-				}
-			}
-
-			// Add state and transitions rewards for each reward structure.
-			if (view.getVisibleRewardColumns().size() > 0) {
-				if (groupCount == groupIndex) {
-					return "Rewards";
-				}
-
-				groupCount++;
-			}
-
-			return "Undefined Group";
 		}
 	}
 
+	@Override
 	public String getGroupToolTip(int groupIndex)
 	{
-		ArrayList<Variable> vars = view.getVisibleVariables();
-		Set<String> varNames = new HashSet<String>();
-
-		for (Variable variable : vars) {
-			varNames.add(variable.getName());
-		}
-
-		int groupCount = 0;
-
-		if (view.showActions() || view.showSteps()) {
-			if (groupCount == groupIndex) {
+		if (!pathActive) {
+			return "";
+		} else {
+			switch (visibleGroups.get(groupIndex).type) {
+			case STEP:
 				return null;
-			}
-
-			groupCount++;
-		}
-
-		if (canShowTime() && (view.showTime() || view.showCumulativeTime())) {
-			if (groupCount == groupIndex) {
+			case TIME:
 				return null;
-			}
-
-			groupCount++;
-		}
-
-		for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-			if (varNames.contains(parsedModel.getGlobal(g).getName())) {
-				if (groupCount == groupIndex) {
-					return "Global variables";
-				}
-
-				groupCount++;
-				break;
-			}
-		}
-
-		for (int m = 0; m < parsedModel.getNumModules(); m++) {
-			parser.ast.Module module = parsedModel.getModule(m);
-			for (int v = 0; v < module.getNumDeclarations(); v++) {
-				if (varNames.contains(module.getDeclaration(v).getName())) {
-					if (groupCount == groupIndex) {
-						return "Variables of module \"" + parsedModel.getModuleName(m) + "\"";
-					}
-
-					groupCount++;
-					break;
-				}
-			}
-		}
-
-		// Add state and transitions rewards for each reward structure.
-		if (view.getVisibleRewardColumns().size() > 0) {
-			if (groupCount == groupIndex) {
+			case VARIABLES:
+				int module = (Integer) visibleGroups.get(groupIndex).info;
+				return module == -1 ? "Global variables" : "Variables of module " + modelInfo.getModuleName(module);
+			case REWARDS:
 				return "State, transition and cumulative rewards";
+			default:
+				return "";
 			}
-
-			groupCount++;
 		}
-
-		return null;
 	}
 
+	@Override
 	public int getLastColumnOfGroup(int groupIndex)
 	{
-		int stepStart = 0;
-		int timeStart = stepStart + (view.showActions() ? 1 : 0) + (view.showSteps() ? 1 : 0);
-		int varStart = timeStart + (canShowTime() && view.showCumulativeTime() ? 1 : 0) + (canShowTime() && view.showTime() ? 1 : 0);
-		int rewardStart = varStart + view.getVisibleVariables().size();
-
-		int groupCount = 0;
-
-		if (view.showActions() || view.showSteps()) {
-			if (groupCount == groupIndex) {
-				if (view.showActions() && view.showSteps())
-					return stepStart + 1;
-				else
-					return stepStart;
-			}
-
-			groupCount++;
+		if (!pathActive) {
+			return 0;
+		} else {
+			return visibleGroups.get(groupIndex).lastCol;
 		}
-
-		if (canShowTime() && (view.showCumulativeTime() || view.showTime())) {
-			if (groupCount == groupIndex) {
-				if (view.showCumulativeTime() && view.showTime())
-					return timeStart + 1;
-				else
-					return timeStart;
-			}
-
-			groupCount++;
-		}
-
-		if (view.getVisibleVariables().size() > 0) {
-			int visVarCount = 0;
-
-			ArrayList<Variable> vars = view.getVisibleVariables();
-			Set<String> varNames = new HashSet<String>();
-
-			for (Variable variable : vars) {
-				varNames.add(variable.getName());
-			}
-
-			boolean atLeastOneGlobal = false;
-
-			for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-				boolean contained = varNames.contains(parsedModel.getGlobal(g).getName());
-
-				if (!atLeastOneGlobal && contained) {
-					atLeastOneGlobal = true;
-				}
-
-				if (contained)
-					visVarCount++;
-			}
-
-			if (atLeastOneGlobal && groupCount == groupIndex) {
-				return varStart + visVarCount - 1;
-			}
-
-			if (atLeastOneGlobal) {
-				groupCount++;
-			}
-
-			for (int m = 0; m < parsedModel.getNumModules(); m++) {
-				parser.ast.Module module = parsedModel.getModule(m);
-				boolean atLeastOne = false;
-
-				for (int v = 0; v < module.getNumDeclarations(); v++) {
-					boolean contained = varNames.contains(module.getDeclaration(v).getName());
-					if (!atLeastOne && contained) {
-						atLeastOne = true;
-					}
-
-					if (contained)
-						visVarCount++;
-				}
-
-				if (atLeastOne && groupCount == groupIndex) {
-					return varStart + visVarCount - 1;
-				}
-
-				if (atLeastOne) {
-					groupCount++;
-				}
-			}
-		}
-
-		// Add state and transitions rewards for each reward structure.
-		if (view.getVisibleRewardColumns().size() > 0) {
-			if (groupCount == groupIndex) {
-				return rewardStart + view.getVisibleRewardColumns().size() - 1;
-			}
-
-			groupCount++;
-		}
-
-		return 0;
 	}
 
-	/**
-	 * Returns the number of columns.
-	 * @see javax.swing.table.TableModel#getColumnCount()
-	 */
+	@Override
 	public int getColumnCount()
 	{
 		if (!pathActive) {
 			return 0;
 		} else {
-			int colCount = 0;
-
-			colCount += (view.showActions() ? 1 : 0);
-			colCount += (view.showSteps() ? 1 : 0);
-			colCount += (canShowTime() && view.showCumulativeTime() ? 1 : 0) + (canShowTime() && view.showTime() ? 1 : 0);
-			colCount += view.getVisibleVariables().size();
-			colCount += view.getVisibleRewardColumns().size();
-
-			return colCount;
+			return visibleColumns.size();
 		}
 	}
 
-	/**
-	 * Returns the number of rows.
-	 * @see javax.swing.table.TableModel#getRowCount()
-	 */
+	@Override
 	public int getRowCount()
 	{
 		// Return current path size if there is an active path.
@@ -426,153 +241,130 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 		return false;
 	}
 
+	@Override
 	public String getColumnName(int columnIndex)
 	{
 		if (pathActive) {
-			int actionStart = 0;
-			int stepStart = actionStart + (view.showActions() ? 1 : 0);
-			int cumulativeTimeStart = stepStart + (view.showSteps() ? 1 : 0);
-			int timeStart = cumulativeTimeStart + (canShowTime() && view.showCumulativeTime() ? 1 : 0);
-			int varStart = timeStart + (canShowTime() && view.showTime() ? 1 : 0);
-			int rewardStart = varStart + view.getVisibleVariables().size();
-
-			// The step column
-			if (actionStart <= columnIndex && columnIndex < stepStart) {
+			switch (visibleColumns.get(columnIndex).type) {
+			case ACTION:
 				return modelInfo.getActionStringDescription();
-			} else if (stepStart <= columnIndex && columnIndex < cumulativeTimeStart) {
+			case STEP:
 				return "#";
-			} else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
+			case TIME_CUMUL:
 				return "Time (+)";
-			} else if (timeStart <= columnIndex && columnIndex < varStart) {
+			case TIME:
 				return "Time";
-			}
-			// A variable column
-			else if (varStart <= columnIndex && columnIndex < rewardStart) {
-				return ((Variable) view.getVisibleVariables().get(columnIndex - varStart)).toString();
-			}
-
-			else if (rewardStart <= columnIndex) {
-				return ((RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart)).getColumnName();
+			case VARIABLE:
+				Variable var = (Variable) visibleColumns.get(columnIndex).info;
+				return var.toString();
+			case REWARD:
+				RewardStructureColumn rewardColumn = (RewardStructureColumn) visibleColumns.get(columnIndex).info;
+				return rewardColumn.getColumnName();
+			default:
+				return "";
 			}
 		}
-		return "Undefined Column";
+		return "";
 	}
 
+	@Override
 	public String getColumnToolTip(int columnIndex)
 	{
 		if (pathActive) {
-			int actionStart = 0;
-			int stepStart = actionStart + (view.showActions() ? 1 : 0);
-			int cumulativeTimeStart = stepStart + (view.showSteps() ? 1 : 0);
-			int timeStart = cumulativeTimeStart + (canShowTime() && view.showCumulativeTime() ? 1 : 0);
-			int varStart = timeStart + (canShowTime() && view.showTime() ? 1 : 0);
-			int rewardStart = varStart + view.getVisibleVariables().size();
-
-			// The step column
-			if (actionStart <= columnIndex && columnIndex < stepStart) {
+			switch (visibleColumns.get(columnIndex).type) {
+			case ACTION:
 				return "Module name or [action] label";
-			} else if (stepStart <= columnIndex && columnIndex < cumulativeTimeStart) {
+			case STEP:
 				return "Index of state in path";
-			} else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
+			case TIME_CUMUL:
 				return "Cumulative time";
-			} else if (timeStart <= columnIndex && columnIndex < varStart) {
+			case TIME:
 				return "Time spent in state";
-			}
-			// A variable column
-			else if (varStart <= columnIndex && columnIndex < rewardStart) {
-				return "Values of variable \"" + ((Variable) view.getVisibleVariables().get(columnIndex - varStart)).toString() + "\"";
-			}
-
-			else if (rewardStart <= columnIndex) {
-				RewardStructureColumn column = ((RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart));
-				String rewardName = column.getRewardStructure().getColumnName();
-
-				if (column.isStateReward())
+			case VARIABLE:
+				Variable var = (Variable) visibleColumns.get(columnIndex).info;
+				return "Value of variable \"" + var.toString() + "\"";
+			case REWARD:
+				RewardStructureColumn rewardColumn = (RewardStructureColumn) visibleColumns.get(columnIndex).info;
+				String rewardName = rewardColumn.getRewardStructure().getColumnName();
+				if (rewardColumn.isStateReward()) {
 					return "State reward of reward structure " + rewardName;
-				if (column.isTransitionReward())
+				}
+				if (rewardColumn.isTransitionReward()) {
 					return "Transition reward of reward structure " + rewardName;
-				if (column.isCumulativeReward())
+				}
+				if (rewardColumn.isCumulativeReward()) {
 					return "Cumulative reward of reward structure " + rewardName;
+				}
+			default:
+				return "";
 			}
 		}
-		return "Undefined Column";
+		return "";
 	}
 
+	@Override
 	public Object getValueAt(int rowIndex, int columnIndex)
 	{
 		if (pathActive) {
-			int actionStart = 0;
-			int stepStart = actionStart + (view.showActions() ? 1 : 0);
-			int cumulativeTimeStart = stepStart + (view.showSteps() ? 1 : 0);
-			int timeStart = cumulativeTimeStart + (canShowTime() && view.showCumulativeTime() ? 1 : 0);
-			int varStart = timeStart + (canShowTime() && view.showTime() ? 1 : 0);
-			int rewardStart = varStart + view.getVisibleVariables().size();
-
-			// The action column
-			if (actionStart <= columnIndex && columnIndex < stepStart) {
+			switch (visibleColumns.get(columnIndex).type) {
+			case ACTION:
+				// The action column
 				actionValue = view.new ActionValue(rowIndex == 0 ? "" : path.getActionString(rowIndex - 1));
 				actionValue.setActionValueUnknown(false);
 				return actionValue;
-			}
-			// The step column
-			else if (stepStart <= columnIndex && columnIndex < cumulativeTimeStart) {
+			case STEP:
+				// The step column
 				return "" + rowIndex;
-			}
-			// Cumulative time column
-			else if (cumulativeTimeStart <= columnIndex && columnIndex < timeStart) {
+			case TIME_CUMUL:
+				// Cumulative time column
 				timeValue = view.new TimeValue(path.getCumulativeTime(rowIndex), true);
 				timeValue.setTimeValueUnknown(rowIndex > path.size()); // Never unknown
 				return timeValue;
-			}
-			// Time column
-			else if (timeStart <= columnIndex && columnIndex < varStart) {
+			case TIME:
+				// Time column
 				timeValue = view.new TimeValue(path.getTime(rowIndex), false);
 				timeValue.setTimeValueUnknown(rowIndex >= path.size());
 				return timeValue;
-			}
-			// A variable column
-			else if (varStart <= columnIndex && columnIndex < rewardStart) {
-				Variable var = view.getVisibleVariables().get(columnIndex - varStart);
+			case VARIABLE:
+				// A variable column
+				Variable var = (Variable) visibleColumns.get(columnIndex).info;
 				Object result = path.getState(rowIndex).varValues[var.getIndex()];
 				variableValue.setVariable(var);
 				variableValue.setValue(result);
 				variableValue.setChanged(rowIndex == 0 || !path.getState(rowIndex - 1).varValues[var.getIndex()].equals(result));
 				return variableValue;
-			}
-			// A reward column
-			else if (rewardStart <= columnIndex) {
-				RewardStructureColumn rewardColumn = (RewardStructureColumn) view.getVisibleRewardColumns().get(columnIndex - rewardStart);
+			case REWARD:
+				// A reward column
+				RewardStructureColumn rewardColumn = (RewardStructureColumn) visibleColumns.get(columnIndex).info;
 				rewardStructureValue.setRewardStructureColumn(rewardColumn);
 				rewardStructureValue.setRewardValueUnknown(false);
 				// A state reward column
 				if (rewardColumn.isStateReward()) {
 					double value = path.getStateReward(rowIndex, rewardColumn.getRewardStructure().getIndex());
-					rewardStructureValue.setChanged(rowIndex == 0
-							|| value != path.getStateReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
-					rewardStructureValue.setRewardValue(new Double(value));
+					rewardStructureValue.setChanged(rowIndex == 0 || value != path.getStateReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
+					rewardStructureValue.setRewardValue(value);
 					rewardStructureValue.setRewardValueUnknown(rowIndex > path.size()); // Never unknown
 				}
 				// A transition reward column
 				else if (rewardColumn.isTransitionReward()) {
 					double value = path.getTransitionReward(rowIndex, rewardColumn.getRewardStructure().getIndex());
-					rewardStructureValue.setChanged(rowIndex == 0
-							|| value != path.getTransitionReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
-					rewardStructureValue.setRewardValue(new Double(value));
+					rewardStructureValue.setChanged(rowIndex == 0 || value != path.getTransitionReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex()));
+					rewardStructureValue.setRewardValue(value);
 					rewardStructureValue.setRewardValueUnknown(rowIndex >= path.size());
 				}
 				// A cumulative reward column
 				else {
 					double value = path.getCumulativeReward(rowIndex, rewardColumn.getRewardStructure().getIndex());
-					rewardStructureValue.setChanged(rowIndex == 0
-							|| value != (path.getCumulativeReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())));
-					rewardStructureValue.setRewardValue(new Double(value));
+					rewardStructureValue.setChanged(rowIndex == 0 || value != (path.getCumulativeReward(rowIndex - 1, rewardColumn.getRewardStructure().getIndex())));
+					rewardStructureValue.setRewardValue(value);
 					rewardStructureValue.setRewardValueUnknown(rowIndex > path.size()); // Never unknown
 				}
 				return rewardStructureValue;
+			default:
+				return "";
 			}
 		}
-
-		return "Undefined value";
+		return "";
 	}
 
 	/** 
@@ -582,6 +374,8 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	public void restartPathTable()
 	{
 		view.refreshToDefaultView(pathActive, parsedModel);
+		// NB: since we observe view, the above will trigger update(),
+		// which calls setVisibleColumns() etc.
 	}
 
 	/** 
@@ -589,9 +383,60 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 	 */
 	public void updatePathTable()
 	{
+		setVisibleColumnsAndGroups();
 		fireTableDataChanged();
 	}
 
+	/**
+	 * Set up the info about table columns/groups
+	 */
+	public void setVisibleColumnsAndGroups()
+	{
+		visibleColumns.clear();
+		visibleGroups.clear();
+		if (pathActive) {
+			// Step
+			if (view.showActions() || view.showSteps()) {
+				if (view.showActions()) {
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.ACTION, null));
+				}
+				if (view.showSteps()) {
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.STEP, null));
+				}
+				visibleGroups.add(new PathTableModelGroup(PathTableModelGroupType.STEP, null, visibleColumns.size() - 1));
+			}
+			// Time
+			if (canShowTime() && (view.showTime() || view.showCumulativeTime())) {
+				if (view.showCumulativeTime()) {
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.TIME_CUMUL, null));
+				}
+				if (view.showTime()) {
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.TIME, null));
+				}
+				visibleGroups.add(new PathTableModelGroup(PathTableModelGroupType.TIME, null, visibleColumns.size() - 1));
+			}
+			// Variables
+			if (view.getVisibleVariables().size() > 0) {
+				int numVars = view.getVisibleVariables().size();
+				for (int i = 0; i < numVars; i++) {
+					Variable v = view.getVisibleVariables().get(i);
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.VARIABLE, v));
+					// If module changes between vars (or this is last var), put these ones in a column group
+					if ((i == numVars - 1) || (v.getModuleIndex() != view.getVisibleVariables().get(i + 1).getModuleIndex())) {
+						visibleGroups.add(new PathTableModelGroup(PathTableModelGroupType.VARIABLES, v.getModuleIndex(), visibleColumns.size() - 1));
+					}
+				}
+			}
+			// Rewards
+			if (view.getVisibleRewardColumns().size() > 0) {
+				for (RewardStructureColumn rsc : view.getVisibleRewardColumns()) {
+					visibleColumns.add(new PathTableModelColumn(GUISimulatorPathTableModelColumn.REWARD, rsc));
+				}
+				visibleGroups.add(new PathTableModelGroup(PathTableModelGroupType.REWARDS, null, visibleColumns.size() - 1));
+			}
+		}
+	}
+	
 	public boolean isPathLooping()
 	{
 		return path.isLooping();

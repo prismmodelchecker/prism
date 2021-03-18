@@ -26,6 +26,8 @@
 
 package userinterface.simulator;
 
+import javax.swing.SwingUtilities;
+
 import prism.PrismException;
 import simulator.GenerateSimulationPath;
 import simulator.SimulatorEngine;
@@ -53,16 +55,22 @@ public class SimPathPlotThread extends GUIComputationThread
 
 	public void run()
 	{
-		try {
-			GenerateSimulationPath genPath = new GenerateSimulationPath(engine, prism.getMainLog());
-			genPath.generateAndPlotSimulationPath(initialState, simPathDetails, maxPathLength, graphModel);
-			if (genPath.getNumWarnings() > 0) {
-				for (String msg : genPath.getWarnings()) {
-					plug.warning(msg);
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				try {
+					GenerateSimulationPath genPath = new GenerateSimulationPath(engine, prism.getMainLog());
+					genPath.generateAndPlotSimulationPath(initialState, simPathDetails, maxPathLength, graphModel);
+					if (genPath.getNumWarnings() > 0) {
+						for (String msg : genPath.getWarnings()) {
+							plug.warning(msg);
+						}
+					}
+				} catch (PrismException e) {
+					error(e.getMessage());
 				}
 			}
-		} catch (PrismException e) {
-			error(e.getMessage());
-		}
+		});
 	}
 }

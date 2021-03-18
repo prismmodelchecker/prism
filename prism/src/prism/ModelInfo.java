@@ -32,6 +32,7 @@ import java.util.List;
 
 import parser.Values;
 import parser.VarList;
+import parser.ast.ASTElement;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.DeclarationType;
@@ -283,5 +284,65 @@ public interface ModelInfo
 	{
 		// Default implementation just extracts from getLabelNames() 
 		return getLabelNames().indexOf(name);
+	}
+	
+	/**
+	 * Check if an identifier is used in the model
+	 * (e.g., as a constant or variable)
+	 */
+	public default boolean isIdentUsed(String ident)
+	{
+		// Default implementation looks up any vars/consts
+		if (getVarIndex(ident) != -1) {
+			return true;
+		}
+		Values v = getConstantValues();
+		if (v != null & v.contains(ident)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if an identifier is already used in the model
+	 * (e.g., as a constant or variable) and throw an exception if it is.
+	 * @param ident The name of the identifier to check
+	 * @param decl Where the identifier is declared in the model (for the error message)
+	 * @param use Optionally, the identifier's usage (e.g. "constant")
+	 */
+	public default void checkIdent(String ident, ASTElement decl, String use) throws PrismLangException
+	{
+		// Default implementation via isIdentUsed
+		if (isIdentUsed(ident)) {
+			throw new PrismLangException("Identifier " + ident + " is already used in the model", decl);
+		}
+	}
+	
+	/**
+	 * Check if an identifier (in double quotes) is used in the model
+	 * (e.g., as a label)
+	 */
+	public default boolean isQuotedIdentUsed(String ident)
+	{
+		// Default implementation looks up any labels
+		if (getLabelIndex(ident) != -1) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Check if an identifier (in double quotes) is already used in the model
+	 * (e.g., as a label) and throw an exception if it is.
+	 * @param ident The name of the identifier to check
+	 * @param decl Where the identifier is declared in the model (for the error message)
+	 * @param use Optionally, the identifier's usage (e.g. "constant")
+	 */
+	public default void checkQuotedIdent(String ident, ASTElement decl, String use) throws PrismLangException
+	{
+		// Default implementation via isQuotedIdentUsed
+		if (isQuotedIdentUsed(ident)) {
+			throw new PrismLangException("Identifier \"" + ident + "\" is already used in the model", decl);
+		}
 	}
 }

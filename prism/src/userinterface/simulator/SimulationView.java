@@ -205,22 +205,15 @@ public class SimulationView extends Observable
 
 			// Make a set of all variable names.
 			TreeSet<String> allVarNames = new TreeSet<String>();
-
 			for (Variable var : visibleVariables)
 				allVarNames.add(var.getName());
 			for (Variable var : hiddenVariables)
 				allVarNames.add(var.getName());
-
+			
 			// Cannot use current view if a variable is not there.
-			for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-				if (!allVarNames.remove(parsedModel.getGlobal(g).getName()))
+			for (int i = 0; i < parsedModel.getNumVars(); i++) {
+				if (!allVarNames.remove(parsedModel.getVarName(i))) {
 					canUseCurrentView = false;
-			}
-			for (int m = 0; m < parsedModel.getNumModules(); m++) {
-				parser.ast.Module module = parsedModel.getModule(m);
-				for (int v = 0; v < module.getNumDeclarations(); v++) {
-					if (!allVarNames.remove(module.getDeclaration(v).getName()))
-						canUseCurrentView = false;
 				}
 			}
 
@@ -230,7 +223,6 @@ public class SimulationView extends Observable
 
 			// Make a list of all reward structures
 			ArrayList<RewardStructure> allrew = new ArrayList<RewardStructure>();
-
 			for (RewardStructure rew : rewards) {
 				allrew.add(rew);
 			}
@@ -238,10 +230,8 @@ public class SimulationView extends Observable
 			for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {
 				RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
 				String rewardName = rewardStruct.getName();
-
 				boolean hasStates = parsedModel.getRewardStruct(r).getNumStateItems() != 0;
 				boolean hasTrans = parsedModel.getRewardStruct(r).getNumTransItems() != 0;
-
 				boolean foundReward = false;
 
 				for (RewardStructure rew : rewards) {
@@ -258,30 +248,17 @@ public class SimulationView extends Observable
 
 			if (allrew.size() > 0)
 				canUseCurrentView = false;
-
 		}
 
 		if (!canUseCurrentView && pathActive) {
 			visibleVariables.clear();
 			hiddenVariables.clear();
 			visibleRewardColumns.clear();
-
 			rewards.clear();
-
 			{
-				int i = 0;
-				for (int g = 0; g < parsedModel.getNumGlobals(); g++) {
-					visibleVariables.add(new Variable(i, parsedModel.getGlobal(g).getName(), parsedModel.getGlobal(g).getType()));
-					i++;
+				for (int i = 0; i < parsedModel.getNumVars(); i++) {
+					visibleVariables.add(new Variable(i, parsedModel.getVarName(i), parsedModel.getVarType(i), parsedModel.getVarModuleIndex(i)));
 				}
-				for (int m = 0; m < parsedModel.getNumModules(); m++) {
-					parser.ast.Module module = parsedModel.getModule(m);
-					for (int v = 0; v < module.getNumDeclarations(); v++) {
-						visibleVariables.add(new Variable(i, module.getDeclaration(v).getName(), module.getDeclaration(v).getType()));
-						i++;
-					}
-				}
-
 				for (int r = 0; r < parsedModel.getNumRewardStructs(); r++) {
 					RewardStruct rewardStruct = parsedModel.getRewardStruct(r);
 					String rewardName = rewardStruct.getName();
@@ -318,12 +295,14 @@ public class SimulationView extends Observable
 		private int index;
 		private String name;
 		private Type type;
+		private int moduleIndex;
 
-		public Variable(int index, String name, Type type)
+		public Variable(int index, String name, Type type, int moduleIndex)
 		{
 			this.index = index;
 			this.name = name;
 			this.type = type;
+			this.moduleIndex = moduleIndex;
 		}
 
 		public int getIndex()
@@ -341,6 +320,11 @@ public class SimulationView extends Observable
 			return type;
 		}
 
+		public int getModuleIndex()
+		{
+			return moduleIndex;
+		}
+		
 		public String toString()
 		{
 			return name;
