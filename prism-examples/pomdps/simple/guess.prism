@@ -1,0 +1,23 @@
+// Simple POMDP guessing a hidden variable
+
+pomdp
+
+observables s endobservables
+
+module M
+
+	s : [0..2]; // state
+	h : [0..3]; // hidden var
+
+	// Assign hidden variable randomly
+	[toss] s=0 -> 0.1:(s'=1)&(h'=1) + 0.3:(s'=1)&(h'=2) + 0.6:(s'=1)&(h'=3);
+	// Guess the value of the hidden variable
+	[guess1] s=1 -> (s'=(h=1)?2:3);
+	[guess2] s=1 -> (s'=(h=2)?2:3);
+	[guess3] s=1 -> (s'=(h=3)?2:3);
+	// Done
+	[loop] s=2 -> true;
+
+endmodule
+
+label "correct" = s=2;
