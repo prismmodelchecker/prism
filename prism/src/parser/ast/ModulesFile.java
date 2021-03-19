@@ -1231,6 +1231,17 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			}
 			addObservable(name, obs, obs.getDefinition(), exprVar);
 		}
+		// For real-time models with partial observability (i.e. POPTAs), check that all clocks are observable
+		if (getModelType().partiallyObservable() && containsClockVariables()) {
+			int n = getNumVars();
+			for (int i = 0; i < n; i++) {
+				if (getVarDeclaration(i).getDeclType() instanceof DeclarationClock) {
+					if (!observableVars.contains(getVarName(i))) {
+						throw new PrismLangException("All clocks in " + modelType + "s must be observable" , getVarDeclaration(i));
+					}
+				}
+			}
+		}
 	}
 	
 	/**
