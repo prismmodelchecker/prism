@@ -5,7 +5,7 @@
 <head>
 
 <title>
-PRISM Manual | ThePRISMLanguage / PTAs 
+PRISM Manual | ThePRISMLanguage / Real-time Models 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -91,13 +91,17 @@ a.varlink { text-decoration:none; }
 <!--PageTitleFmt-->
   <div id="prism-man-title">
     <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
-</p><h1>PTAs</h1>
+</p><h1>Real-time Models</h1>
 
   </div>
 <!--PageText-->
 <div id='wikitext'>
-<p class='vspace'>So far in this section, we have mainly focused on three types of models: DTMCs, MDPs and CTMCs.
-PRISM also supports a fourth: <em>probabilistic timed automata</em> (PTAs), which extend MDPs with the ability to model real-time behaviour. This is done in the style of <em>timed automata</em> [<a class='wikilink' href='../Main/References.html#AD94'>AD94</a>], by adding real-valued <em>clocks</em> which increase with time and can be reset. For background material on PTAs, see for example [<a class='wikilink' href='../Main/References.html#NPS13'>NPS13</a>].
+<p class='vspace'>So far in this section, we have mainly focused on three types of models: DTMCs, MDPs and CTMCs,
+in which all the variables making up their state are finite.
+PRISM also supports <em>real-time</em> models, in particular,
+<em>probabilistic timed automata</em> (PTAs), which extend MDPs with the ability to model real-time behaviour.
+This is done in the style of <em>timed automata</em> [<a class='wikilink' href='../Main/References.html#AD94'>AD94</a>], by adding <em>clocks</em>,
+real-valued variables which increase with time and can be reset. For background material on PTAs, see for example [<a class='wikilink' href='../Main/References.html#NPS13'>NPS13</a>].
 You can also find several example PTA models included in the PRISM distribution. Look in the <code>prism-examples/ptas</code> directory.
 </p>
 <p class='vspace'>Before describing how PTA features are incorporated into the PRISM modelling language, we give a simple example. Here is a small PTA:
@@ -124,7 +128,7 @@ You can also find several example PTA models included in the PRISM distribution.
 <br/>
 <span class="prismkeyword">endmodule</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/PTAs?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Real-timeModels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For modelling PTAs in PRISM, there is a new datatype, <strong><code>clock</code></strong>, used for variables that are clocks. These must be local to a particular module, not global. Other types of PRISM variables can be defined in the usual way. In the example above, we use just a single integer variable <code>s</code> to represent the locations of the PTAs.
@@ -187,8 +191,9 @@ You can also find several example PTA models included in the PRISM distribution.
 </li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
 </li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
 </li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
-</li><li><a class='selflink' href='PTAs.html'>PTAs</a>
 </li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>
+</li><li><a class='selflink' href='Real-timeModels.html'>Real-time Models</a>
+</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='ProcessAlgebraOperators.html'>Process Algebra Operators</a>
 </li><li><a class='wikilink' href='PRISMModelFiles.html'>PRISM Model Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]

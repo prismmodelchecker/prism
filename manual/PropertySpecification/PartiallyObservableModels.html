@@ -5,7 +5,7 @@
 <head>
 
 <title>
-PRISM Manual | PropertySpecification / TheSOperator 
+PRISM Manual | PropertySpecification / PartiallyObservableModels 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -91,47 +91,48 @@ a.varlink { text-decoration:none; }
 <!--PageTitleFmt-->
   <div id="prism-man-title">
     <p><a class='wikilink' href='Main.html'>Property Specification</a> /
-</p><h1>The S Operator</h1>
+</p><h1>Partially Observable Models</h1>
 
   </div>
 <!--PageText-->
 <div id='wikitext'>
-<p>The <code><strong>S</strong></code> operator is used to reason about the <em>steady-state</em> behaviour of a model,
-i.e. its behaviour in the <em>long-run</em> or <em>equilibrium</em>.
-PRISM currently only provides support for DTMCs and CTMCs.
-The definition of steady-state (long-run) probabilities for finite DTMCS and CTMCs is well defined (see e.g. [<a class='wikilink' href='../Main/References.html#Ste94'>Ste94</a>]).
-Informally, the property:
+<p>For partially observable models (POMDPs and POPTAs),
+PRISM uses the same property language as the their
+fully observational equivalents (MDPs and PTAs).
+However, a more limited range of properties are available.
+For POMDPs, PRISM currently supports probabilistic reachability,
+probabilistic until, or expected reachability rewards properties, i.e.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">S</span> <span class="prismident">bound</span> [ <span class="prismident">prop</span> ] <br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Pmin</span>=? [ <span class="prismident">remain</span> <span class="prismkeyword">U</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Pmax</span>=? [ <span class="prismident">remain</span> <span class="prismkeyword">U</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Rmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Rmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/TheSOperator?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PartiallyObservableModels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>is true in a state <em>s</em> of a DTMC or CTMC if
-"starting from <em>s</em>, the steady-state (long-run) probability of being in a state which satisfies the (Boolean-valued) PRISM property <code>prop</code>, meets the bound <code>bound</code>".
-A typical example of this type of property would be:
+<p class='vspace'>or bounded variants with a probability/threshold instead
+of the <code>min=?</code> or <code>max=?</code>.
 </p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">S</span>&lt;<span class="prismnum">0.05</span> [ <span class="prismident">queue_size</span> / <span class="prismident">max_size</span> &gt; <span class="prismnum">0.75</span> ] <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/TheSOperator?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>which means: "the long-run probability of the queue being more than 75% full is less than 0.05".
+<p class='vspace'>For the verification methods currently implemented,
+there are a few additional restrictions.
+Firstly, the <code>target</code> (and <code>remain</code>) expression appearing
+in the property must be an observable.
+In other words, if any state of the POMDP satisfies the expression,
+then all other observationally equivalent states must also satisfy it.
+This is easily achieved by only using either observable variables
+or named observables in the expression, but that is not required.
+Secondly, probabilities and expected rewards are only computed from a single state.
 </p>
-<p class='vspace'>Like the <code><strong>P</strong></code> <a class='wikilink' href='ThePOperator.html'>operator</a>, the <code><strong>S</strong></code> operator can be used in a <em>quantitative</em> form, which returns the actual probability value, e.g.:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">S</span>=? [ <span class="prismident">queue_size</span> / <span class="prismident">max_size</span> &gt; <span class="prismnum">0.75</span> ] <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/TheSOperator?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>and can be further customised with the use of <a class='wikilink' href='Filters.html'>filters</a>.
+<p class='vspace'>POPTAs are currently verified using the "digital clocks" approach to
+translate them into a POMDP, so they inherit the same
+<a class='wikilink' href='Real-timeModels.html'>restrictions</a>
+(that strict or diagonal clock comparisons are not allowed).
+However for POPTAs, time-bounded probabilistic reachability is also supported.
 </p>
 </div>
 
@@ -157,11 +158,11 @@ A typical example of this type of property would be:
 </p><ul><li><a class='wikilink' href='Main.html'>Introduction</a>
 </li><li><a class='wikilink' href='IdentifyingASetOfStates.html'>Identifying A Set Of States</a>
 </li><li><a class='wikilink' href='ThePOperator.html'>The P Operator</a>
-</li><li><a class='selflink' href='TheSOperator.html'>The S Operator</a>
+</li><li><a class='wikilink' href='TheSOperator.html'>The S Operator</a>
 </li><li><a class='wikilink' href='Reward-basedProperties.html'>Reward-based Properties</a>
 </li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
 </li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
+</li><li><a class='selflink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='Non-probabilisticProperties.html'>Non-probabilistic Properties</a>
 </li><li><a class='wikilink' href='SyntaxAndSemantics.html'>Syntax And Semantics</a>
 </li><li><a class='wikilink' href='Filters.html'>Filters</a>

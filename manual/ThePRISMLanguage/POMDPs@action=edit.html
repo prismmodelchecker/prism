@@ -5,7 +5,7 @@
 <head>
 
 <title>
-PRISM Manual | ThePRISMLanguage / MultipleInitialStates 
+PRISM Manual | ThePRISMLanguage / POMDPs | Edit
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -45,29 +45,9 @@ PRISM Manual | ThePRISMLanguage / MultipleInitialStates
     .rfloat { float:right; margin-left:0.5em; }
 a.varlink { text-decoration:none; }
 
-.sourceblocklink {
-  text-align: right;
-  font-size: smaller;
-}
-.sourceblocktext {
-  padding: 0.5em;
-  border: 1px solid #808080;
-  color: #000000;
-  background-color: #f1f0ed;
-}
-.sourceblocktext div {
-  font-family: monospace;
-  font-size: small;
-  line-height: 1;
-  height: 1%;
-}
-.sourceblocktext div.head,
-.sourceblocktext div.foot {
-  font: italic medium serif;
-  padding: 0.5em;
-}
-
---></style>  <meta name='robots' content='index,follow' />
+--></style>  <meta name='robots' content='noindex,nofollow' />
+<script type='text/javascript'
+  src='http://www.prismmodelchecker.org/manual/pub/guiedit/guiedit.js'></script>
 
 
 <link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
@@ -91,47 +71,20 @@ a.varlink { text-decoration:none; }
 <!--PageTitleFmt-->
   <div id="prism-man-title">
     <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
-</p><h1>Multiple Initial States</h1>
+</p><h1>POMD Ps</h1>
 
   </div>
 <!--PageText-->
 <div id='wikitext'>
-<p>Typically, a <a class='wikilink' href='ModulesAndVariables.html'>variable</a> declaration
-specifies the initial value for that variable.
-The <em>initial state</em> for the model is then defined by the initial value for all variables.
-It is possible, however, to specify that a model has <em>multiple</em> initial states.
-This is done using the <code><strong>init</strong>...<strong>endinit</strong></code> construct,
-which can be placed anywhere in the file except within a module definition,
-and removing any initial values from variable declarations.
-Between the <code><strong>init</strong></code> and <code><strong>endinit</strong></code> keywords, there should be a
-predicate over all the variables of the model.
-Any state which satisfies this predicate is an initial state.
+<p><strong>Password required</strong>
 </p>
-<p class='vspace'>Consider again <a class='wikilink' href='Example1.html'>Example 1</a>.
-As it stands, there is a single initial state <code>(0,0)</code> (i.e.  <code>x=0</code> and <code>y=0</code>).
-If we remove the <code><strong>init</strong> 0</code> part of both variable declarations
-and add the following to the end of the file:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">init</span> <span class="prismident">x</span>=<span class="prismnum">0</span> <span class="prismkeyword">endinit</span> <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/MultipleInitialStates?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>there will be three initial states: <code>(0,0)</code>, <code>(0,1)</code> and <code>(0,2)</code>.
-Similarly, we could instead add:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">init</span> <span class="prismident">x</span>+<span class="prismident">y</span>=<span class="prismnum">1</span> <span class="prismkeyword">endinit</span> <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/MultipleInitialStates?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>in which case there would be two initial states: <code>(0,1)</code> and <code>(1,0)</code>.
-</p>
-</div>
+<form name='authform' action='POMDPs@action=edit.html' method='post'>
+<p>Password: <input type='password' name='authpw' class='inputbox' />
+<input type='submit' value='OK' class='inputbutton' />
+</p></form>
+<script language='javascript' type='text/javascript'><!--
+    try { document.authform.authid.focus(); }
+    catch(e) { document.authform.authpw.focus(); } //--></script></div>
 
 
 <!--PageFooterFmt-->
@@ -165,7 +118,7 @@ Similarly, we could instead add:
 </li><li><a class='wikilink' href='Expressions.html'>Expressions</a>
 </li><li><a class='wikilink' href='Synchronisation.html'>Synchronisation</a>
 </li><li><a class='wikilink' href='ModuleRenaming.html'>Module Renaming</a>
-</li><li><a class='selflink' href='MultipleInitialStates.html'>Multiple Initial States</a>
+</li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
 </li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
 </li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
 </li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>

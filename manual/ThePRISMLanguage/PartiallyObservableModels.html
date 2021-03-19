@@ -5,7 +5,7 @@
 <head>
 
 <title>
-PRISM Manual | ThePRISMLanguage / MultipleInitialStates 
+PRISM Manual | ThePRISMLanguage / PartiallyObservableModels 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -91,45 +91,65 @@ a.varlink { text-decoration:none; }
 <!--PageTitleFmt-->
   <div id="prism-man-title">
     <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
-</p><h1>Multiple Initial States</h1>
+</p><h1>Partially Observable Models</h1>
 
   </div>
 <!--PageText-->
 <div id='wikitext'>
-<p>Typically, a <a class='wikilink' href='ModulesAndVariables.html'>variable</a> declaration
-specifies the initial value for that variable.
-The <em>initial state</em> for the model is then defined by the initial value for all variables.
-It is possible, however, to specify that a model has <em>multiple</em> initial states.
-This is done using the <code><strong>init</strong>...<strong>endinit</strong></code> construct,
-which can be placed anywhere in the file except within a module definition,
-and removing any initial values from variable declarations.
-Between the <code><strong>init</strong></code> and <code><strong>endinit</strong></code> keywords, there should be a
-predicate over all the variables of the model.
-Any state which satisfies this predicate is an initial state.
+<p>PRISM supports analysis of <em>partially observable</em> probabilistic models,
+most notably partially observable Markov decision processes (POMDPs),
+but also partially observable probabilistic timed automata (POPTAs).
+POMDPs are a variant of MDPs in which the strategy/policy/adversary
+which resolves nondeterministic choices in the model is unable to
+see the precise state of the model, but instead just <em>observations</em> of it.
+For background material on POMDPs and POPTAs, see for example [<a class='wikilink' href='../Main/References.html#NPZ17'>NPZ17</a>].
+You can also find several example models included in the PRISM distribution.
+Look in the <code>prism-examples/pomdps</code> and <code>prism-examples/poptas</code> directories.
 </p>
-<p class='vspace'>Consider again <a class='wikilink' href='Example1.html'>Example 1</a>.
-As it stands, there is a single initial state <code>(0,0)</code> (i.e.  <code>x=0</code> and <code>y=0</code>).
-If we remove the <code><strong>init</strong> 0</code> part of both variable declarations
-and add the following to the end of the file:
+<p class='vspace'>PRISM currently supports state-based observations:
+this means that, upon entering a new POMDP state,
+the observation is determined by that state.
+In the same way that a model state comprises the values or one or more variables,
+an observation comprises one or more <em>observables</em>.
+There are several way to define these observables.
+The simplest is to specify a subset of the model's variables
+that are designated as being observable. The rest are unobservable.
+</p>
+<p class='vspace'>For example, in a POMDP with 3 variables, <code>s</code>, <code>l</code> and <code>h</code>, the following:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">init</span> <span class="prismident">x</span>=<span class="prismnum">0</span> <span class="prismkeyword">endinit</span> <br/>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">observables</span> <span class="prismident">s</span>, <span class="prismident">l</span> <span class="prismkeyword">endobservables</span> <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/MultipleInitialStates?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/PartiallyObservableModels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>there will be three initial states: <code>(0,0)</code>, <code>(0,1)</code> and <code>(0,2)</code>.
-Similarly, we could instead add:
+<p class='vspace'>specifies that <code>s</code> and <code>l</code> are observable and <code>h</code> is not.
+</p>
+<p class='vspace'>Alternatively, observables can be specified as arbitrary expressions over variables.
+For example, assuming the same variables <code>s</code>, <code>l</code> and <code>h</code>, this specification:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">init</span> <span class="prismident">x</span>+<span class="prismident">y</span>=<span class="prismnum">1</span> <span class="prismkeyword">endinit</span> <br/>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">observable</span> "<span class="prismident">s</span>" = <span class="prismident">s</span>;<br/>
+<span class="prismkeyword">observable</span> "<span class="prismident">pos</span>" = <span class="prismident">l</span>&gt;<span class="prismnum">0</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/MultipleInitialStates?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/PartiallyObservableModels?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>in which case there would be two initial states: <code>(0,1)</code> and <code>(1,0)</code>.
+<p class='vspace'>defines 2 observables. The first is, as above, the variable <code>s</code>.
+The second, named <code>"pos"</code>, determines if variable <code>l</code> is positive.
+Other than this, the values of <code>l</code> and <code>h</code> are unobservable.
+The named observables can then be used in properties
+in the same way that <a class='wikilink' href='FormulasAndLabels.html'>labels</a> can.
+</p>
+<p class='vspace'>The above two styles of definition can also be mixed
+to specify a combined set of observables.
+</p>
+<p class='vspace'>POPTAs (partially observable PTAs) combine the features of both PTAs and POMDPs.
+They are are currently analysed using the digital clocks engine,
+so inherit the <a class='wikilink' href='Real-timeModels.html'>restrictions for that engine</a>.
+Furthermore, for a POPTA, all clock variables must be observable.
 </p>
 </div>
 
@@ -165,12 +185,12 @@ Similarly, we could instead add:
 </li><li><a class='wikilink' href='Expressions.html'>Expressions</a>
 </li><li><a class='wikilink' href='Synchronisation.html'>Synchronisation</a>
 </li><li><a class='wikilink' href='ModuleRenaming.html'>Module Renaming</a>
-</li><li><a class='selflink' href='MultipleInitialStates.html'>Multiple Initial States</a>
+</li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
 </li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
 </li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
 </li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>
 </li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
+</li><li><a class='selflink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='ProcessAlgebraOperators.html'>Process Algebra Operators</a>
 </li><li><a class='wikilink' href='PRISMModelFiles.html'>PRISM Model Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
