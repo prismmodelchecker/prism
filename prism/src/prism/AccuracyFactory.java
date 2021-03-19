@@ -115,8 +115,16 @@ public class AccuracyFactory
 		double lo = loAcc == null ? loVal : loAcc.getResultLowerBound(loVal);
 		double hi = hiAcc == null ? hiVal : hiAcc.getResultLowerBound(hiVal);
 		// Compute new mid point value and error bound
-		double mid = (lo + hi) / 2.0;
-		double err = (hi - lo) / 2.0;
+		double mid, err;
+		if (Double.isFinite(lo) && Double.isFinite(hi)) {
+			mid = (lo + hi) / 2.0;
+			err = (hi - lo) / 2.0;
+		} else if (Double.isInfinite(lo) && Double.isInfinite(hi)) {
+			mid = lo == hi ? lo : 0.0;
+			err = lo == hi ? 0.0 : Double.POSITIVE_INFINITY;
+		} else {
+			mid = err = Double.NaN;
+		}
 		// Compute accuracy of new result value:
 		// "bounded" if lower/upper bounds were provided with bounded accuracy;
 		// "estimated bounded" if either bound was estimated or missing;
