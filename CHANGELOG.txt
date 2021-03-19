@@ -1,8 +1,8 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-
-Latest changes (up to 2cedf62a):
+Version 4.7 (first released 19/3/2021)
+-----------------------------------------------------------------------------
 
 * New model checking functionality
   - support for POMDP/POPTA model checking
