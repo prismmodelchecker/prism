@@ -28,6 +28,7 @@ package simulator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import parser.State;
@@ -702,7 +703,11 @@ public class SimulatorEngine extends PrismComponent
 	 * The resulting index of the property is returned: this is used for later queries about the property.
 	 * Any constants/formulas etc. appearing in the label must have been defined in the current model.
 	 * If there are additional constants (e.g. from a properties file),
-	 * then use the {@link #addProperty(Expression, PropertiesFile)} method. 
+	 * then use the {@link #addProperty(Expression, PropertiesFile)} method.
+	 * <br><br> 
+	 * Really, this should be called after path creation, but before initialisation;
+	 * however if possible the status of the  property will be updated to reflect an existing
+	 * path if this is not done (not possible for on-the-fly paths with steps already added).
 	 */
 	public int addProperty(Expression prop) throws PrismException
 	{
@@ -715,6 +720,10 @@ public class SimulatorEngine extends PrismComponent
 	 * Any constants/formulas etc. appearing in the property must have been defined in the current model
 	 * or be supplied in the (optional) passed in PropertiesFile.
 	 * In case of error, the property is not added an exception is thrown.
+	 * <br><br> 
+	 * Really, this should be called after path creation, but before initialisation;
+	 * however if possible the status of the  property will be updated to reflect an existing
+	 * path if this is not done (not possible for on-the-fly paths with steps already added).
 	 */
 	public int addProperty(Expression prop, PropertiesFile pf) throws PrismException
 	{
@@ -737,6 +746,22 @@ public class SimulatorEngine extends PrismComponent
 		// (do this right at the end so that lists only get updated if there are no errors)
 		properties.add(propNew);
 		propertySamplers.add(sampler);
+		// If the path has already been initialised (and it is possible to),
+		// update the samplers to reflect the existing path
+		if (path != null && path.numStates() > 0) {
+			// Non on-the-fly paths: recompute
+			if (!onTheFly) {
+				recomputeSamplers(Collections.singletonList(sampler));
+			}
+			// On-the-fly path but with just the initial state added
+			else if (path.numStates() == 1) {
+				sampler.update(path, modelGen);
+			}
+			// Too late
+			else {
+				throw new PrismException("Too late to add a property to an on-the-fly path");
+			}
+		}
 		return properties.size() - 1;
 	}
 
@@ -941,13 +966,26 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private void recomputeSamplers() throws PrismException
 	{
-		resetSamplers();
+		recomputeSamplers(propertySamplers);
+	}
+
+	/**
+	 * Recompute the state of some property samplers based on the whole current path.
+	 * (Not applicable for on-the-fly paths)
+	 */
+	private void recomputeSamplers(List<Sampler> samplers) throws PrismException
+	{
+		// Reset samplers
+		for (Sampler sampler : propertySamplers) {
+			sampler.reset();
+		}
 		// Get length (non-on-the-fly paths will never exceed length Integer.MAX_VALUE) 
 		long nLong = path.size();
-		if (nLong > Integer.MAX_VALUE)
+		if (nLong > Integer.MAX_VALUE) {
 			throw new PrismLangException("PathFull cannot deal with paths over length " + Integer.MAX_VALUE);
+		}
 		int n = (int) nLong;
-		// Loop
+		// Update samplers with prefixes of current path
 		PathFullPrefix prefix = new PathFullPrefix((PathFull) path, 0);
 		for (int i = 0; i <= n; i++) {
 			prefix.setPrefixLength(i);
