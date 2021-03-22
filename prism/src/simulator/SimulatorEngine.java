@@ -623,7 +623,7 @@ public class SimulatorEngine extends PrismComponent
 
 	/**
 	 * Construct a path through the currently loaded model to match a supplied path,
-	 * specified as a PathFullInfo object.
+	 * specified as a PathFullInfo object. createNewPath() should have already been called.
 	 * @param newPath Path to match
 	 */
 	public void loadPath(PathFullInfo newPath) throws PrismException
@@ -633,7 +633,6 @@ public class SimulatorEngine extends PrismComponent
 			throw new PrismException("PathFull cannot deal with paths over length " + Integer.MAX_VALUE);
 		int numSteps = (int) numStepsLong;
 		
-		createNewPath();
 		State nextState, state = newPath.getState(0);
 		initialisePath(state);
 		for (int i = 0; i < numSteps; i++) {
