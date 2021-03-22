@@ -46,6 +46,7 @@ public class PathOnTheFly extends Path
 
 	// Path info required to implement Path abstract class:
 	protected long size;
+	protected boolean init;
 	protected State previousState;
 	protected State currentState;
 	protected State currentObs;
@@ -96,6 +97,7 @@ public class PathOnTheFly extends Path
 	{
 		// Initialise all path info
 		size = 0;
+		init = false;
 		previousState.clear();
 		currentState.clear();
 		totalTime = 0.0;
@@ -114,6 +116,7 @@ public class PathOnTheFly extends Path
 	public void initialise(State initialState, State initialObs, double[] initialStateRewards)
 	{
 		clear();
+		init = true;
 		currentState.copy(initialState);
 		if (initialObs != null) {
 			currentObs.copy(initialObs);
@@ -171,6 +174,12 @@ public class PathOnTheFly extends Path
 	public long size()
 	{
 		return size;
+	}
+
+	@Override
+	public long numStates()
+	{
+		return init ? size + 1 : 0;
 	}
 
 	@Override

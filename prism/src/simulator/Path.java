@@ -67,6 +67,11 @@ public abstract class Path
 	public abstract long size();
 
 	/**
+	 * Get the number of states in the path (0 if not initialised; otherwise size() + 1).
+	 */
+	public abstract long numStates();
+
+	/**
 	 * Get the previous state, i.e. the penultimate state of the current path.
 	 */
 	public abstract State getPreviousState();
