@@ -653,6 +653,9 @@ public class SimulatorEngine extends PrismComponent
 						break;
 					}
 				}
+				if (found) {
+					break;
+				}
 			}
 			if (!found) {
 				throw new PrismException("Path loading failed at step " + (i + 1));
