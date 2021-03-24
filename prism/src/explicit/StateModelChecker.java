@@ -864,7 +864,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	protected StateValues checkExpressionLiteral(Model model, ExpressionLiteral expr) throws PrismException
 	{
-		return new StateValues(expr.getType(), expr.evaluate(), model);
+		return StateValues.createFromSingleValue(expr.getType(), expr.evaluate(), model);
 	}
 
 	/**
@@ -872,7 +872,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	protected StateValues checkExpressionConstant(Model model, ExpressionConstant expr) throws PrismException
 	{
-		return new StateValues(expr.getType(), expr.evaluate(constantValues), model);
+		return StateValues.createFromSingleValue(expr.getType(), expr.evaluate(constantValues), model);
 	}
 
 	/**
@@ -1075,7 +1075,7 @@ public class StateModelChecker extends PrismComponent
 			// Compute min
 			// Store as object/vector
 			resObj = vals.minOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1087,7 +1087,7 @@ public class StateModelChecker extends PrismComponent
 			// Compute max
 			// Store as object/vector
 			resObj = vals.maxOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1127,8 +1127,8 @@ public class StateModelChecker extends PrismComponent
 			// Compute count
 			int count = vals.countOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = new Integer(count);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resObj = count;
+			resVals =  StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = filterTrue ? "Count of satisfying states" : "Count of satisfying states also in filter";
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1137,7 +1137,7 @@ public class StateModelChecker extends PrismComponent
 			// Compute sum
 			// Store as object/vector
 			resObj = vals.sumOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Sum over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1146,7 +1146,7 @@ public class StateModelChecker extends PrismComponent
 			// Compute average
 			// Store as object/vector
 			resObj = vals.averageOverBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Average over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1154,7 +1154,7 @@ public class StateModelChecker extends PrismComponent
 		case FIRST:
 			// Find first value
 			resObj = vals.firstFromBitSet(bsFilter);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
 			if (filterInit) {
@@ -1182,8 +1182,8 @@ public class StateModelChecker extends PrismComponent
 			// Check "for all" over filter
 			b = vals.forallOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = new Boolean(b);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resObj = b;
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Property " + (b ? "" : "not ") + "satisfied in ";
 			mainLog.print("\nProperty satisfied in " + vals.countOverBitSet(bsFilter));
@@ -1210,8 +1210,8 @@ public class StateModelChecker extends PrismComponent
 			// Check "there exists" over filter
 			b = vals.existsOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = new Boolean(b);
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resObj = b;
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Property satisfied in ";
 			if (filterTrue) {
@@ -1226,7 +1226,7 @@ public class StateModelChecker extends PrismComponent
 			// Store as object/vector
 			resObj = vals.firstFromBitSet(bsFilter);
 			resAcc = vals.accuracy;
-			resVals = new StateValues(expr.getType(), resObj, model);
+			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
 			if (filterInit) {

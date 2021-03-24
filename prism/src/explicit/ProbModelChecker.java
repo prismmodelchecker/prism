@@ -1054,7 +1054,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Compute/return the rewards
 		// A trivial case: "C<=0" (prob is 1 in target states, 0 otherwise)
 		if (timeInt == 0 || timeDouble == 0) {
-			StateValues res = new StateValues(TypeDouble.getInstance(), model.getNumStates(), 0.0);
+			StateValues res = StateValues.createFromSingleValue(TypeDouble.getInstance(), 0.0, model);
 			res.setAccuracy(AccuracyFactory.doublesFromQualitative());
 			return res;
 		}
@@ -1252,10 +1252,7 @@ public class ProbModelChecker extends NonProbModelChecker
 
 		if (distFile != null) {
 			mainLog.println("\nImporting probability distribution from file \"" + distFile + "\"...");
-			// Build an empty vector 
-			dist = new StateValues(TypeDouble.getInstance(), model);
-			// Populate vector from file
-			dist.readFromFile(distFile);
+			dist = StateValues.createFromFile(TypeDouble.getInstance(), distFile, model);
 		}
 
 		return dist;
