@@ -165,6 +165,57 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Create a new state values vector for values of a specified type.
+	 * The value for all states is set to the default value for the type.
+	 * This is the preferred way to create a new blank StateValues object.
+	 * The passed in model determines the vector size (and states list).
+	 */
+	public static StateValues create(Type type, Model model) throws PrismException
+	{
+		return createFromSingleValue(type, type.defaultValue(), model);
+	}
+	
+	/**
+	 * Create a new state values vector from a single value.
+	 * The passed in model determines the vector size (and states list).
+	 */
+	public static StateValues createFromSingleValue(Type type, Object value, Model model) throws PrismException
+	{
+		int size = model.getNumStates();
+		// Create/initialise array of appropriate type
+		if (type instanceof TypeInt) {
+			int[] arrayI = new int[size];
+			Integer objI = ((TypeInt) type).castValueTo(value);
+			int initI = objI.intValue();
+			for (int i = 0; i < size; i++) {
+				arrayI[i] = initI;
+			}
+			return createFromIntegerArray(arrayI, model);
+		} else if (type instanceof TypeDouble) {
+			double[] arrayD = new double[size];
+			Double objD = ((TypeDouble) type).castValueTo(value).doubleValue();
+			double initD = objD.doubleValue();
+			for (int i = 0; i < size; i++) {
+				arrayD[i] = initD;
+			}
+			return createFromDoubleArray(arrayD, model);
+		} else if (type instanceof TypeBool) {
+			Boolean objB = ((TypeBool) type).castValueTo(value);
+			boolean initB = objB.booleanValue();
+			BitSet bs;
+			if (initB) {
+				bs = new BitSet(size);
+				bs.set(0, size);
+			} else {
+				bs = new BitSet();
+			}
+			return createFromBitSet(bs, model);
+		} else {
+			throw new PrismLangException("Cannot create a vector of type " + type);
+		}
+	}
+
+	/**
 	 * Create a new (int-valued) state values vector from an existing array of ints.
 	 * The array is stored directly, not copied.
 	 * Also set associated model (whose state space size should match vector size).
@@ -208,6 +259,20 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Create a new (double-valued) state values vector from an existing array of doubles.
+	 * The array is stored directly, not copied.
+	 */
+	public static StateValues createFromDoubleArray(double[] array, List<State> statesList)
+	{
+		StateValues sv = new StateValues();
+		sv.type = TypeDouble.getInstance();
+		sv.size = array.length;
+		sv.valuesD = array;
+		sv.statesList = statesList;
+		return sv;
+	}
+
+	/**
 	 * Create a new (Boolean-valued) state values vector from an existing BitSet.
 	 * The BitSet is stored directly, not copied.
 	 * Also set associated model (and this determines the vector size).
@@ -238,6 +303,16 @@ public class StateValues implements StateVector
 		}
 		StateValues sv = createFromDoubleArray(array, model);
 		sv.setAccuracy(AccuracyFactory.doublesFromQualitative());
+		return sv;
+	}
+	
+	/**
+	 * Create a new state values vector, reading in the values from a file.
+	 */
+	public static StateValues createFromFile(Type type, File file, Model model) throws PrismException
+	{
+		StateValues sv = new StateValues(type, model);
+		sv.readFromFile(file);
 		return sv;
 	}
 	
