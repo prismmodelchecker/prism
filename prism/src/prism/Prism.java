@@ -3681,10 +3681,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// FAU
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
+			if (fileIn != null) {
+				throw new PrismException("Fast adaptive uniformisation cannot read an initial distribution from a file");
+			}
 			ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(currentModulesFile, this);
 			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 			fau.setConstantValues(currentModulesFile.getConstantValues());
-			probsExpl = fau.doTransient(time, fileIn, currentModel);
+			probsExpl = fau.doTransient(time);
 		}
 		// Symbolic
 		else if (!getExplicit()) {
@@ -3787,11 +3790,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// FAU
 			if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
+				if (fileIn != null) {
+					throw new PrismException("Fast adaptive uniformisation cannot read an initial distribution from a file");
+				}
 				ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(currentModulesFile, this);
 				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 				fau.setConstantValues(currentModulesFile.getConstantValues());
 				if (i == 0) {
-					probsExpl = fau.doTransient(timeDouble, fileIn, currentModel);
+					probsExpl = fau.doTransient(timeDouble);
 					initTimeDouble = 0.0;
 				} else {
 					probsExpl = fau.doTransient(timeDouble - initTimeDouble, probsExpl);
