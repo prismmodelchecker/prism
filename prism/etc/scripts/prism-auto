@@ -1077,7 +1077,14 @@ def restartNailGunServer():
     print("Starting nailgun server...")
     sys.stdout.flush()
     os.system(options.prismExec + " -ng &")
-    time.sleep(0.5)
+    print("Checking nailgun server is running...")
+    exitCode = 1
+    tries = 0
+    maxTries = 5;
+    while exitCode != 0 and tries < maxTries:
+        time.sleep(0.5)
+        tries = tries + 1
+        exitCode = subprocess.Popen([options.ngprism, "-version"]).wait()
 
 #==================================================================================================
 # Main program
