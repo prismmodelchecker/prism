@@ -32,6 +32,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.List;
+import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
 import parser.State;
@@ -239,7 +240,7 @@ public class StateValues implements StateVector
 		sv.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		return sv;
 	}
-
+	
 	/**
 	 * Set the accuracy.
 	 */
@@ -396,6 +397,54 @@ public class StateValues implements StateVector
 		return sol;
 	}
 
+	/**
+	 * Create a new StateValues, copied from this one, but mapped to a new model.
+	 * @param newModel The new model
+	 * @param reverseStateMapping Mapping from indices of the new model to the old one
+	 */
+	public StateValues mapToNewModel(Model newModel, IntFunction<Integer> reverseStateMapping)
+	{
+		try {
+			StateValues sv = new StateValues(type, type.defaultValue(), newModel);
+			int numStates = newModel.getNumStates();
+			for (int i = 0; i < numStates; i++) {
+				final Integer j = reverseStateMapping.apply(i);
+				// If a state is missing from the mapping, it gets the default value for the type
+				if (j != null) {
+					if (j >= numStates) {
+						throw new IndexOutOfBoundsException("State index error when mapping between models");
+					}
+					sv.setValue(i, getValue(j));
+				}
+			}
+			sv.setAccuracy(getAccuracy());
+			return sv;
+		} catch (PrismLangException e) {
+			// Type is unchanged, so should never get here
+			return null;
+		}
+	}
+
+	/**
+	 * Create a new StateValues, copied from this one, but mapped to the original model
+	 * that was used to construct a product. This function assumes that the product model
+	 * has at most one initial state per state in the original model. The value of this
+	 * state is then projected to the corresponding state of the original model.
+	 * @param product The product object
+	 */
+	public StateValues projectToOriginalModel(final Product<?> product) throws PrismException
+	{
+		Model productModel = product.getProductModel();
+		Model originalModel = product.getOriginalModel();
+		StateValues sv = new StateValues(type, originalModel);
+		for (int productState : productModel.getInitialStates()) {
+			int modelState = product.getModelState(productState);
+			sv.setValue(modelState, getValue(productState));
+		}
+		sv.setAccuracy(getAccuracy());
+		return sv;
+	}
+	
 	/**
 	 * Get the accuracy.
 	 */

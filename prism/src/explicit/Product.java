@@ -29,11 +29,7 @@ package explicit;
 
 import java.util.BitSet;
 
-import parser.type.TypeBool;
-import parser.type.TypeDouble;
-import parser.type.TypeInt;
 import prism.PrismException;
-import prism.PrismNotSupportedException;
 
 /**
  * Base class for the results of a product operation between a model and
@@ -154,62 +150,6 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 	@Override
 	public StateValues projectToOriginalModel(final StateValues sv) throws PrismException
 	{
-		StateValues result = null;
-		if (sv.getType() instanceof TypeBool) {
-			assert(sv.getBitSet() != null) : "State values are undefined.";
-
-			final BitSet mapped = projectToOriginalModel(sv.getBitSet());
-			result = StateValues.createFromBitSet(mapped, originalModel);
-		}
-		else if (sv.getType() instanceof TypeDouble) {
-			assert(sv.getDoubleArray() != null) : "State values are undefined.";
-
-			final double[] mapped = projectToOriginalModel(sv.getDoubleArray());
-			result = StateValues.createFromDoubleArray(mapped, originalModel);
-		}
-		else if (sv.getType() instanceof TypeInt) {
-			assert(sv.getIntArray() != null) : "State values are undefined.";
-
-			final int[] mapped = projectToOriginalModel(sv.getIntArray());
-			result =  StateValues.createFromIntegerArray(mapped, originalModel);
-		} else {
-			throw new PrismNotSupportedException("Unsupported type of state values");
-		}
-		result.setAccuracy(sv.getAccuracy());
-		return result;
+		return sv.projectToOriginalModel(this);
 	}
-
-	public BitSet projectToOriginalModel(final BitSet values)
-	{
-		final BitSet result = new BitSet(originalModel.getNumStates());
-
-		for (int productState : productModel.getInitialStates()) {
-			int modelState = getModelState(productState);
-			result.set(modelState, values.get(productState));
-		}
-		return result;
-	}
-
-	public double[] projectToOriginalModel(final double[] values)
-	{
-		final double[] result = new double[originalModel.getNumStates()];
-
-		for (int productState : productModel.getInitialStates()) {
-			int modelState = getModelState(productState);
-			result[modelState] = values[productState];
-		}
-		return result;
-	}
-
-	public int[] projectToOriginalModel(final int[] values)
-	{
-		final int[] result = new int[originalModel.getNumStates()];
-
-		for (int productState : productModel.getInitialStates()) {
-			int modelState = getModelState(productState);
-			result[modelState] = values[productState];
-		}
-		return result;
-	}
-
 }
