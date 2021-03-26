@@ -141,6 +141,19 @@ public interface NondetModel extends Model
 	 */
 	public int getNumTransitions(int s, int i);
 
+	@Override
+	public default int getNumTransitions(int s)
+	{
+		// Re-implement this because the method in the superclass (Model)
+		// would not count successors duplicated across choices
+		int numTransitions = 0;
+		int n = getNumChoices(s);
+		for (int i = 0; i < n; i++) {
+			numTransitions += getNumTransitions(s, i);
+		}
+		return numTransitions;
+	}
+
 	/**
 	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set {@code set}.
 	 * @param s The state to check
