@@ -64,7 +64,7 @@ public class TypeDouble extends Type
 	@Override
 	public Object defaultValue()
 	{
-		return 0;
+		return 0.0;
 	}
 	
 	@Override
