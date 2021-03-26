@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,10 +27,16 @@
 package parser.ast;
 
 import param.BigRational;
-import parser.*;
+import parser.EvaluateContext;
+import parser.type.Type;
 import parser.type.TypeBool;
-import parser.visitor.*;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
+import parser.visitor.ASTVisitor;
+import prism.Accuracy;
+import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismUtils;
 
 public class ExpressionFilter extends Expression
 {
@@ -192,6 +198,246 @@ public class ExpressionFilter extends Expression
 	public boolean isParam()
 	{
 		return param;
+	}
+	
+	// Definitions of filter operators
+	
+	/**
+	 * Apply this filter instance to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the type of this filter's operand.
+	 */
+	public Object apply(Iterable<Object> values) throws PrismException
+	{
+		switch (opType) {
+		case MIN:
+			return applyMin(values, operand.getType());
+		case MAX:
+			return applyMax(values, operand.getType());
+		case COUNT:
+			return applyCount(values, operand.getType());
+		case SUM:
+			return applySum(values, operand.getType());
+		case AVG:
+			return applyAvg(values, operand.getType());
+		case RANGE:
+			return applyRange(values, operand.getType());
+		case FORALL:
+			return applyForAll(values, operand.getType());
+		case EXISTS:
+			return applyExists(values, operand.getType());
+		default:
+			throw new PrismException("No apply operator for filter \"" + opName + "\"");
+		}
+	}
+	
+	/**
+	 * Apply a min filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyMin(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int min = Integer.MAX_VALUE;
+			for (Object value : values) {
+				min = Math.min(min, (int) value);
+			}
+			return min;
+		} else if (type instanceof TypeDouble) {
+			double min = Double.POSITIVE_INFINITY;
+			for (Object value : values) {
+				min = Math.min(min, (double) value);
+			}
+			return min;
+		} else {
+			throw new PrismException("Can't apply min over elements of type " + type);
+		}
+	}
+
+	/**
+	 * Apply a max filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyMax(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int max = Integer.MIN_VALUE;
+			for (Object value : values) {
+				max = Math.max(max, (int) value);
+			}
+			return max;
+		} else if (type instanceof TypeDouble) {
+			double max = Double.NEGATIVE_INFINITY;
+			for (Object value : values) {
+				max = Math.max(max, (double) value);
+			}
+			return max;
+		} else {
+			throw new PrismException("Can't apply max over elements of type " + type);
+		}
+	}
+
+	/**
+	 * Apply a count filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyCount(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeBool) {
+			int count = 0;
+			for (Object value : values) {
+				if ((boolean) value) {
+					count++;
+				}
+			}
+			return count;
+		} else {
+			throw new PrismException("Can't apply count over elements of type " + type);
+		}
+	}
+	
+	/**
+	 * Apply a sum filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applySum(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int sum = 0;
+			for (Object value : values) {
+				sum += (int) value;
+			}
+			return sum;
+		} else if (type instanceof TypeDouble) {
+			double sum = 0.0;
+			for (Object value : values) {
+				sum += (double) value;
+			}
+			return sum;
+		} else {
+			throw new PrismException("Can't apply sum over elements of type " + type);
+		}
+	}
+	
+	/**
+	 * Apply an average filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyAvg(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int count = 0;
+			double sum = 0.0;
+			for (Object value : values) {
+				count++;
+				sum += (int) value;
+			}
+			return sum / count;
+		} else if (type instanceof TypeDouble) {
+			int count = 0;
+			double sum = 0.0;
+			for (Object value : values) {
+				count++;
+				sum += (double) value;
+			}
+			return sum / count;
+		} else {
+			throw new PrismException("Can't apply avg over elements of type " + type);
+		}
+	}
+	
+	/**
+	 * Apply a range filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyRange(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeInt) {
+			int min = Integer.MAX_VALUE;
+			int max = Integer.MIN_VALUE;
+			for (Object value : values) {
+				min = Math.min(min, (int) value);
+				max = Math.max(max, (int) value);
+			}
+			return new prism.Interval(min, max);
+		} else if (type instanceof TypeDouble) {
+			double min = Double.POSITIVE_INFINITY;
+			double max = Double.NEGATIVE_INFINITY;
+			for (Object value : values) {
+				min = Math.min(min, (double) value);
+				max = Math.max(max, (double) value);
+			}
+			return new prism.Interval(min, max);
+		} else {
+			throw new PrismException("Can't apply min over elements of type " + type);
+		}
+	}
+
+	/**
+	 * Apply a for all filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyForAll(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeBool) {
+			for (Object value : values) {
+				if (!((boolean) value)) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			throw new PrismException("Can't apply for all over elements of type " + type);
+		}
+	}
+	
+	/**
+	 * Apply an exists filter to the list of values provided.
+	 * The values should all be the same type of Object, which should
+	 * be the expected one for the provided type.
+	 */
+	public static Object applyExists(Iterable<Object> values, Type type) throws PrismException
+	{
+		if (type instanceof TypeBool) {
+			for (Object value : values) {
+				if ((boolean) value) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			throw new PrismException("Can't apply there exists over elements of type " + type);
+		}
+	}
+	
+	/**
+	 * Convenience method: check two values, {@code value} and {@code match}
+	 * for (approximate) equality. If the value is a double, stored imprecisely
+	 * (i.e., floating point), and the passed in accuracy is non-null, then this
+	 * returns true iff {@code match} falls within the range of possible values
+	 * for {@code value}, given it's accuracy. Otherwise, exactly equality is checked.
+	 * The type of Object for the values should be the expected one for the provided type.
+	 * @param value The value to check
+	 * @param match The value to check against {@code value}
+	 * @param type The type corresponding to both {@code value} and {@code match}
+	 * @param accuracy Optionally, the accuracy of {@code value}
+	 */
+	public static boolean isClose(Object value, Object match, Type type, Accuracy accuracy) throws PrismException
+	{
+		if (value instanceof Double && accuracy != null) {
+			double valueD = (double) value;
+			double matchD = (double) match;
+			return PrismUtils.measureSupNormAbs(valueD, matchD) <= accuracy.getAbsoluteErrorBound(valueD);
+		} else {
+			return value.equals(match);
+		}
 	}
 	
 	// Methods required for Expression:
