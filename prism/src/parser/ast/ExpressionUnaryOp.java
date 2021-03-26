@@ -118,23 +118,8 @@ public class ExpressionUnaryOp extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		switch (op) {
-		case NOT:
-			return !operand.evaluateBoolean(ec);
-		case MINUS:
-			if (type instanceof TypeInt) {
-				try {
-					return Math.negateExact(operand.evaluateInt(ec));
-				} catch (ArithmeticException e) {
-					throw new PrismLangException(e.getMessage(), this);
-				}
-			} else {
-				return -operand.evaluateDouble(ec);
-			}
-		case PARENTH:
-			return operand.evaluate(ec);
-		}
-		throw new PrismLangException("Unknown unary operator", this);
+		Object eval = operand.evaluate(ec);
+		return apply(eval);
 	}
 
 	@Override
@@ -151,6 +136,32 @@ public class ExpressionUnaryOp extends Expression
 		throw new PrismLangException("Unknown unary operator", this);
 	}
 
+	/**
+	 * Apply this unary operator instance to the argument provided
+	 */
+	public Object apply(Object eval) throws PrismLangException
+	{
+		switch (op) {
+		case NOT:
+			return !((Boolean) getType().castValueTo(eval));
+		case MINUS:
+			try {
+				if (getType() instanceof TypeInt) {
+					int i = (int) TypeInt.getInstance().castValueTo(eval);
+					return Math.negateExact(i);
+				} else {
+					double d = (double) TypeDouble.getInstance().castValueTo(eval);
+					return -d;
+				}
+			} catch (ArithmeticException e) {
+				throw new PrismLangException(e.getMessage(), this);
+			}
+		case PARENTH:
+			return eval;
+		}
+		throw new PrismLangException("Unknown unary operator", this);
+	}
+	
 	@Override
 	public boolean returnsSingleValue()
 	{
