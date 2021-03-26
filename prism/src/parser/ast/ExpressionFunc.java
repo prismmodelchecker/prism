@@ -174,25 +174,12 @@ public class ExpressionFunc extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		switch (code) {
-		case MIN:
-			return evaluateMin(ec);
-		case MAX:
-			return evaluateMax(ec);
-		case FLOOR:
-			return evaluateFloor(ec);
-		case CEIL:
-			return evaluateCeil(ec);
-		case ROUND:
-			return evaluateRound(ec);
-		case POW:
-			return evaluatePow(ec);
-		case MOD:
-			return evaluateMod(ec);
-		case LOG:
-			return evaluateLog(ec);
+		int n = getNumOperands();
+		Object[] eval = new Object[n];
+		for (int i = 0; i < n; i++) {
+			eval[i] = getOperand(i).evaluate(ec);
 		}
-		throw new PrismLangException("Unknown function \"" + name + "\"", this);
+		return apply(eval);
 	}
 
 	@Override
@@ -218,29 +205,111 @@ public class ExpressionFunc extends Expression
 		}
 		throw new PrismLangException("Unknown function \"" + name + "\"", this);
 	}
-
 	
-	private Object evaluateMin(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this function instance to the arguments provided
+	 */
+	public Object apply(Object[] eval) throws PrismLangException
 	{
-		int i, j, n, iMin;
-		double d, dMin;
-
-		if (type instanceof TypeInt) {
-			iMin = getOperand(0).evaluateInt(ec);
-			n = getNumOperands();
-			for (i = 1; i < n; i++) {
-				j = getOperand(i).evaluateInt(ec);
+		switch (code) {
+		case MIN:
+			return applyMin(eval);
+		case MAX:
+			return applyMax(eval);
+		case FLOOR:
+			return applyFloor(eval[0]);
+		case CEIL:
+			return applyCeil(eval[0]);
+		case ROUND:
+			return applyRound(eval[0]);
+		case POW:
+			return applyPow(eval[0], eval[1]);
+		case MOD:
+			return applyMod(eval[0], eval[1]);
+		case LOG:
+			return applyLog(eval[0], eval[1]);
+		}
+		throw new PrismLangException("Unknown function \"" + name + "\"", this);
+	}
+	
+	/**
+	 * Apply this (unary) function instance to the argument provided
+	 */
+	public Object applyUnary(Object eval) throws PrismLangException
+	{
+		switch (code) {
+		case FLOOR:
+			return applyFloor(eval);
+		case CEIL:
+			return applyCeil(eval);
+		case ROUND:
+			return applyRound(eval);
+		}
+		throw new PrismLangException("Unknown unary function \"" + name + "\"", this);
+	}
+	
+	/**
+	 * Apply this (binary, or n-ary) function instance to the argument provided
+	 */
+	public Object applyBinary(Object eval1, Object eval2) throws PrismLangException
+	{
+		switch (code) {
+		case MIN:
+			return applyMinBinary(eval1, eval2);
+		case MAX:
+			return applyMaxBinary(eval1, eval2);
+		case POW:
+			return applyPow(eval1, eval2);
+		case MOD:
+			return applyMod(eval1, eval2);
+		case LOG:
+			return applyLog(eval1, eval2);
+		}
+		throw new PrismLangException("Unknown binary function \"" + name + "\"", this);
+	}
+	
+	/**
+	 * Apply this (min) function instance to the arguments provided
+	 */
+	private Object applyMin(Object[] eval) throws PrismLangException
+	{
+		int n = eval.length;
+		// All arguments ints
+		if (getType() instanceof TypeInt) {
+			int iMin = (int) TypeInt.getInstance().castValueTo(eval[0]);
+			for (int i = 1; i < n; i++) {
+				int j = (int) TypeInt.getInstance().castValueTo(eval[i]);
 				iMin = (j < iMin) ? j : iMin;
 			}
 			return iMin;
-		} else {
-			dMin = getOperand(0).evaluateDouble(ec);
-			n = getNumOperands();
-			for (i = 1; i < n; i++) {
-				d = getOperand(i).evaluateDouble(ec);
+		}
+		// Arguments mix of ints and doubles - convert to doubles
+		else {
+			double dMin = (double) TypeDouble.getInstance().castValueTo(eval[0]);
+			for (int i = 1; i < n; i++) {
+				double d = (double) TypeDouble.getInstance().castValueTo(eval[i]);
 				dMin = (d < dMin) ? d : dMin;
 			}
 			return dMin;
+		}
+	}
+
+	/**
+	 * Apply this (min) function instance to the arguments provided
+	 */
+	private Object applyMinBinary(Object eval1, Object eval2) throws PrismLangException
+	{
+		// All arguments ints
+		if (getType() instanceof TypeInt) {
+			int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
+			int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
+			return Math.min(i1, i2);
+		}
+		// Arguments mix of ints and doubles - convert to doubles
+		else {
+			double d1 = (double) TypeDouble.getInstance().castValueTo(eval1);
+			double d2 = (double) TypeDouble.getInstance().castValueTo(eval2);
+			return Math.min(d1, d2);
 		}
 	}
 
@@ -255,27 +324,48 @@ public class ExpressionFunc extends Expression
 		return min;
 	}
 
-	private Object evaluateMax(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this (max) function instance to the arguments provided
+	 */
+	private Object applyMax(Object[] eval) throws PrismLangException
 	{
-		int i, j, n, iMax;
-		double d, dMax;
-
-		if (type instanceof TypeInt) {
-			iMax = getOperand(0).evaluateInt(ec);
-			n = getNumOperands();
-			for (i = 1; i < n; i++) {
-				j = getOperand(i).evaluateInt(ec);
+		int n = eval.length;
+		// All arguments ints
+		if (getType() instanceof TypeInt) {
+			int iMax = (int) TypeInt.getInstance().castValueTo(eval[0]);
+			for (int i = 1; i < n; i++) {
+				int j = (int) TypeInt.getInstance().castValueTo(eval[i]);
 				iMax = (j > iMax) ? j : iMax;
 			}
 			return iMax;
-		} else {
-			dMax = getOperand(0).evaluateDouble(ec);
-			n = getNumOperands();
-			for (i = 1; i < n; i++) {
-				d = getOperand(i).evaluateDouble(ec);
+		}
+		// Arguments mix of ints and doubles - convert to doubles
+		else {
+			double dMax = (double) TypeDouble.getInstance().castValueTo(eval[0]);
+			for (int i = 1; i < n; i++) {
+				double d = (double) TypeDouble.getInstance().castValueTo(eval[i]);
 				dMax = (d > dMax) ? d : dMax;
 			}
 			return dMax;
+		}
+	}
+
+	/**
+	 * Apply this (max) function instance to the arguments provided
+	 */
+	private Object applyMaxBinary(Object eval1, Object eval2) throws PrismLangException
+	{
+		// All arguments ints
+		if (getType() instanceof TypeInt) {
+			int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
+			int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
+			return Math.max(i1, i2);
+		}
+		// Arguments mix of ints and doubles - convert to doubles
+		else {
+			double d1 = (double) TypeDouble.getInstance().castValueTo(eval1);
+			double d2 = (double) TypeDouble.getInstance().castValueTo(eval2);
+			return Math.max(d1, d2);
 		}
 	}
 
@@ -290,10 +380,13 @@ public class ExpressionFunc extends Expression
 		return max;
 	}
 
-	public Integer evaluateFloor(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this (floor) function instance to the argument provided
+	 */
+	private Object applyFloor(Object eval) throws PrismLangException
 	{
 		try {
-			return evaluateFloor(getOperand(0).evaluateDouble(ec));
+			return evaluateFloor((double) TypeDouble.getInstance().castValueTo(eval));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -309,10 +402,18 @@ public class ExpressionFunc extends Expression
 		}
 	}
 
-	public Integer evaluateCeil(EvaluateContext ec) throws PrismLangException
+	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).floor();
+	}
+
+	/**
+	 * Apply this (ceil) function instance to the argument provided
+	 */
+	private Object applyCeil(Object eval) throws PrismLangException
 	{
 		try {
-			return evaluateCeil(getOperand(0).evaluateDouble(ec));
+			return evaluateCeil((double) TypeDouble.getInstance().castValueTo(eval));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -328,10 +429,18 @@ public class ExpressionFunc extends Expression
 		}
 	}
 
-	public Integer evaluateRound(EvaluateContext ec) throws PrismLangException
+	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
+	{
+		return getOperand(0).evaluateExact(ec).ceil();
+	}
+
+	/**
+	 * Apply this (round) function instance to the argument provided
+	 */
+	private Integer applyRound(Object eval) throws PrismLangException
 	{
 		try {
-			return evaluateRound(getOperand(0).evaluateDouble(ec));
+			return evaluateRound((double) TypeDouble.getInstance().castValueTo(eval));
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -347,28 +456,28 @@ public class ExpressionFunc extends Expression
 		}
 	}
 
-	public BigRational evaluateFloorExact(EvaluateContext ec) throws PrismLangException
-	{
-		return getOperand(0).evaluateExact(ec).floor();
-	}
-
-	public BigRational evaluateCeilExact(EvaluateContext ec) throws PrismLangException
-	{
-		return getOperand(0).evaluateExact(ec).ceil();
-	}
-
 	public BigRational evaluateRoundExact(EvaluateContext ec) throws PrismLangException
 	{
 		return getOperand(0).evaluateExact(ec).round();
 	}
 
-	public Object evaluatePow(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this (pow) function instance to the arguments provided
+	 */
+	private Object applyPow(Object eval1, Object eval2) throws PrismLangException
 	{
 		try {
-			if (type instanceof TypeInt) {
-				return evaluatePowInt(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec));
-			} else {
-				return evaluatePowDouble(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
+			// All arguments ints
+			if (getType() instanceof TypeInt) {
+				int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
+				int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
+				return evaluatePowInt(i1, i2);
+			}
+			// Arguments mix of ints and doubles - convert to doubles
+			else {
+				double d1 = (double) TypeDouble.getInstance().castValueTo(eval1);
+				double d2 = (double) TypeDouble.getInstance().castValueTo(eval2);
+				return evaluatePowDouble(d1, d2);
 			}
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
@@ -406,10 +515,15 @@ public class ExpressionFunc extends Expression
 		}
 	}
 
-	public Object evaluateMod(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this (mod) function instance to the arguments provided
+	 */
+	private Object applyMod(Object eval1, Object eval2) throws PrismLangException
 	{
 		try {
-			return evaluateMod(getOperand(0).evaluateInt(ec), getOperand(1).evaluateInt(ec));
+			int i1 = (int) TypeInt.getInstance().castValueTo(eval1);
+			int i2 = (int) TypeInt.getInstance().castValueTo(eval2);
+			return evaluateMod(i1, i2);
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
@@ -437,10 +551,15 @@ public class ExpressionFunc extends Expression
 		return new BigRational(a.getNum().mod(b.getNum()));
 	}
 
-	public Object evaluateLog(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this (log) function instance to the arguments provided
+	 */
+	private Object applyLog(Object eval1, Object eval2) throws PrismLangException
 	{
 		try {
-			return evaluateLog(getOperand(0).evaluateDouble(ec), getOperand(1).evaluateDouble(ec));
+			double d1 = (int) TypeDouble.getInstance().castValueTo(eval1);
+			double d2 = (int) TypeDouble.getInstance().castValueTo(eval2);
+			return evaluateLog(d1, d2);
 		} catch (PrismLangException e) {
 			e.setASTElement(this);
 			throw e;
