@@ -35,13 +35,25 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.Vector;
 
+import acceptance.AcceptanceReach;
+import acceptance.AcceptanceType;
+import automata.DA;
+import common.IntSet;
+import common.IterableBitSet;
 import common.IterableStateSet;
 import common.StopWatch;
+import explicit.modelviews.EquivalenceRelationInteger;
+import explicit.modelviews.MDPDroppedAllChoices;
+import explicit.modelviews.MDPEquiv;
+import explicit.rewards.MCRewards;
+import explicit.rewards.MCRewardsFromMDPRewards;
+import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
-import prism.Accuracy;
+import parser.type.TypeDouble;
 import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
@@ -53,20 +65,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
-import prism.Accuracy.AccuracyLevel;
 import strat.MDStrategyArray;
-import acceptance.AcceptanceReach;
-import acceptance.AcceptanceType;
-import automata.DA;
-import common.IntSet;
-import common.IterableBitSet;
-import explicit.modelviews.EquivalenceRelationInteger;
-import explicit.modelviews.MDPDroppedAllChoices;
-import explicit.modelviews.MDPEquiv;
-import explicit.rewards.MCRewards;
-import explicit.rewards.MCRewardsFromMDPRewards;
-import explicit.rewards.MDPRewards;
-import explicit.rewards.Rewards;
 
 /**
  * Explicit-state model checker for Markov decision processes (MDPs).
@@ -144,8 +143,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
-			probsProduct.timesConstant(-1.0);
-			probsProduct.plusConstant(1.0);
+			probsProduct.applyFunction(TypeDouble.getInstance(), v -> 1.0 - (double) v);
 		}
 
 		// Output vector over product, if required

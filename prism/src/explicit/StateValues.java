@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -30,16 +30,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.IntFunction;
-import java.util.function.Predicate;
 
 import parser.State;
-import parser.ast.ExpressionBinaryOp;
-import parser.ast.ExpressionFunc;
-import parser.ast.ExpressionUnaryOp;
-import parser.ast.RelOp;
+import parser.ast.ExpressionFilter;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeDouble;
@@ -49,30 +47,72 @@ import prism.AccuracyFactory;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismLog;
-import prism.PrismUtils;
 import prism.ResultTesting;
 import prism.StateVector;
 
 /**
- * Class for explicit-state storage of a state-indexed vector of values (int, double, boolean).
+ * Class for explicit-state storage of a state-indexed vector of values.
+ * <br><br>
+ * The values can be of any supported {@link Type}.
+ * They are stored as the corresponding {@link Object}
+ * as specified by the return type of {@link Type#castValueTo(Object)}.
  */
-public class StateValues implements StateVector
+public class StateValues implements StateVector, Iterable<Object>
 {
-	// Type (int, double or boolean)
-	protected Type type;
-	// Size
-	protected int size;
-	// Vector (only one used, depending on type)
-	protected int[] valuesI;
-	protected double[] valuesD;
-	protected BitSet valuesB;
+	// Vector info
 	
-	// Accuracy info
+	/** Type of value stored */
+	protected Type type;
+	/** Size of vector */
+	protected int size;
+	/** Computed accuracy of stored values (optional) */
 	public Accuracy accuracy = null;
+	
 	// Model info
+	
+	/** Corresponding list of State objects */
 	protected List<State> statesList;
 
-	// CONSTRUCTORS, etc.
+	// Vector storage (only one used, depending on type)
+	
+	/** Specialised storage for boolean values */
+	protected BitSet valuesB;
+	/** General purpose storage for other value types */
+	protected Object[] valuesO;
+	
+	// Functional interfaces
+	
+	@FunctionalInterface
+	public interface Predicate
+	{
+		public boolean test(Object v) throws PrismException;
+	}
+	
+	@FunctionalInterface
+	public interface UnaryFunction
+	{
+		public Object apply(Object v) throws PrismException;
+	}
+	
+	@FunctionalInterface
+	public interface BinaryFunction
+	{
+		public Object apply(Object v1, Object v2) throws PrismException;
+	}
+	
+	@FunctionalInterface
+	public interface TernaryFunction
+	{
+		public Object apply(Object v1, Object v2, Object v3) throws PrismException;
+	}
+	
+	@FunctionalInterface
+	public interface ValueDefinition
+	{
+		public Object apply(int i) throws PrismException;
+	}
+	
+	// Constructors
 
 	/**
 	 * Construct a new empty state values vector of unspecified type.
@@ -82,196 +122,206 @@ public class StateValues implements StateVector
 	{
 		type = null;
 		size = 0;
-		valuesI = null;
-		valuesD = null;
 		valuesB = null;
+		valuesO = null;
 	}
 
 	/**
-	 * Construct a new state values vector of the given type.
-	 * All values are initially set to zero/false.
-	 * Also set associated model (and this determines the vector size).
-	 * @param type Value type
-	 * @param model Associated model 
+	 * Construct a new state values vector for values of a specified type.
+	 * The values for states are provided as a mapping from integer index to Object.
+	 * The passed in model determines the vector size (and states list).
 	 */
-	public StateValues(Type type, Model model) throws PrismLangException
+	public StateValues(Type type, ValueDefinition values, Model model) throws PrismException
 	{
-		this(type, model.getNumStates());
-		statesList = model.getStatesList();
+		initialise(type, model);
+		setFromValueDefinition(values);
+	}
+	
+	/**
+	 * Construct a new state values vector with the same value in every state.
+	 * The passed in model determines the vector size (and states list).
+	 */
+	public StateValues(Type type, Object value, Model model) throws PrismException
+	{
+		initialise(type, model);
+		setToSingleValue(value);
 	}
 
 	/**
-	 * Construct a new state values vector of the given type and size.
-	 * All values are initially set to zero/false.
+	 * Construct a new state values vector for values of a specified type.
+	 * The value for all states is set to the default value for the type.
+	 * The passed in model determines the vector size (and states list).
 	 */
-	public StateValues(Type type, int size) throws PrismLangException
+	public StateValues(Type type, Model model) throws PrismException
 	{
-		this(type, size, type.defaultValue());
+		this(type, type.defaultValue(), model);
 	}
 
+	// Utility methods for initialisation/construction
+	
 	/**
-	 * Construct a new state values vector of the given type, initialising all values to {@code init}.
-	 * Also set associated model (and this determines the vector size).
-	 * Throws an exception of {@code init} is of the wrong type.
-	 * @param type Value type
-	 * @param init Initial value for all states (as an appropriate Object)
-	 * @param model Associated model 
+	 * Initialise the vector/model info (but not the value storage)
 	 */
-	public StateValues(Type type, Object init, Model model) throws PrismLangException
+	private void initialise(Type type, Model model)
 	{
-		this(type, model.getNumStates(), init);
-		statesList = model.getStatesList();
-	}
-
-	/**
-	 * Construct a new state values vector of the given type and size,
-	 * initialising all values to {@code init}.
-	 * Throws an exception of {@code init} is of the wrong type.
-	 * @param type Value type
-	 * @param size Vector size
-	 * @param init Initial value for all states (as an appropriate Object)
-	 */
-	public StateValues(Type type, int size, Object init) throws PrismLangException
-	{
-		super();
-		int i;
 		this.type = type;
-		this.size = size;
-		// Create/initialise array of appropriate type
-		if (type instanceof TypeInt) {
-			valuesI = new int[size];
-			Integer objI = ((TypeInt) type).castValueTo(init);
-			int initI = objI.intValue();
-			for (i = 0; i < size; i++)
-				valuesI[i] = initI;
-		} else if (type instanceof TypeDouble) {
-			valuesD = new double[size];
-			Double objD = ((TypeDouble) type).castValueTo(init).doubleValue();
-			double initD = objD.doubleValue();
-			for (i = 0; i < size; i++)
-				valuesD[i] = initD;
-		} else if (type instanceof TypeBool) {
-			Boolean objB = ((TypeBool) type).castValueTo(init);
-			boolean initB = objB.booleanValue();
-			if (initB) {
+		this.size = model.getNumStates();
+		this.statesList = model.getStatesList();
+		this.valuesB = null;
+		this.valuesO = null;
+	}
+
+	/**
+	 * Initialise the vector/model info (but not the value storage)
+	 */
+	private void initialise(Type type, List<State> statesList)
+	{
+		this.type = type;
+		this.size = statesList.size();
+		this.statesList = statesList;
+		this.valuesB = null;
+		this.valuesO = null;
+	}
+
+	/**
+	 * Initialise value storage based on a ValueDefinition
+	 */
+	private void setFromValueDefinition(ValueDefinition values) throws PrismException
+	{
+		// Assumed to be called straight after initialise
+		// (so size/type is known, but all storage is null)
+		initStorage(type);
+		for (int i = 0; i < size; i++) {
+			setValue(i, values.apply(i));
+		}
+	}
+
+	/**
+	 * Initialise value storage based on a single value
+	 */
+	private void setToSingleValue(Object value) throws PrismException
+	{
+		// Assumed to be called straight after initialise
+		// (so size is known, but all storage is null)
+		initStorage(type);
+		if (type instanceof TypeBool) {
+			if ((boolean) value) {
 				valuesB = new BitSet(size);
 				valuesB.set(0, size);
 			} else {
 				valuesB = new BitSet();
 			}
 		} else {
-			throw new PrismLangException("Cannot create a vector of type " + type);
+			for (int i = 0; i < size; i++) {
+				valuesO[i] = value;
+			}
 		}
-	}
-
-	/**
-	 * Create a new state values vector for values of a specified type.
-	 * The value for all states is set to the default value for the type.
-	 * This is the preferred way to create a new blank StateValues object.
-	 * The passed in model determines the vector size (and states list).
-	 */
-	public static StateValues create(Type type, Model model) throws PrismException
-	{
-		return createFromSingleValue(type, type.defaultValue(), model);
 	}
 	
 	/**
-	 * Create a new state values vector from a single value.
+	 * Create (or recreate) the storage for values of the specified type
+	 * Uses existing storage if possible (assumes no change in size)
+	 */
+	private void initStorage(Type typeNew)
+	{
+		if (typeNew instanceof TypeBool) {
+			if (valuesB == null) {
+				valuesB = new BitSet();
+			}
+		} else {
+			if (valuesO == null) {
+				valuesO = new Object[size];
+			}
+		}
+	}
+	
+	/**
+	 * Cleared un-needed value storage (if the type has changed)
+	 */
+	private void clearOldStorage()
+	{
+		if (type != null) {
+			if (type instanceof TypeBool) {
+				valuesO = null;
+			} else {
+				valuesB = null;
+			}
+		}
+	}
+	
+	// Static creation methods
+	
+	/**
+	 * Create a new state values vector for values of a specified type.
+	 * The values for states are provided as a mapping from integer index to Object.
+	 * The passed in model determines the vector size (and states list).
+	 */
+	public static StateValues create(Type type, ValueDefinition values, Model model) throws PrismException
+	{
+		StateValues sv = new StateValues();
+		sv.initialise(type, model);
+		sv.setFromValueDefinition(values);
+		return sv;
+	}
+	
+	/**
+	 * Create a new state values vector for values of a specified type,
+	 * where the value is the same for every state.
 	 * The passed in model determines the vector size (and states list).
 	 */
 	public static StateValues createFromSingleValue(Type type, Object value, Model model) throws PrismException
 	{
-		int size = model.getNumStates();
-		// Create/initialise array of appropriate type
-		if (type instanceof TypeInt) {
-			int[] arrayI = new int[size];
-			Integer objI = ((TypeInt) type).castValueTo(value);
-			int initI = objI.intValue();
-			for (int i = 0; i < size; i++) {
-				arrayI[i] = initI;
-			}
-			return createFromIntegerArray(arrayI, model);
-		} else if (type instanceof TypeDouble) {
-			double[] arrayD = new double[size];
-			Double objD = ((TypeDouble) type).castValueTo(value).doubleValue();
-			double initD = objD.doubleValue();
-			for (int i = 0; i < size; i++) {
-				arrayD[i] = initD;
-			}
-			return createFromDoubleArray(arrayD, model);
-		} else if (type instanceof TypeBool) {
-			Boolean objB = ((TypeBool) type).castValueTo(value);
-			boolean initB = objB.booleanValue();
-			BitSet bs;
-			if (initB) {
-				bs = new BitSet(size);
-				bs.set(0, size);
-			} else {
-				bs = new BitSet();
-			}
-			return createFromBitSet(bs, model);
-		} else {
-			throw new PrismLangException("Cannot create a vector of type " + type);
-		}
+		StateValues sv = new StateValues();
+		sv.initialise(type, model);
+		sv.setToSingleValue(value);
+		return sv;
 	}
 
 	/**
-	 * Create a new (int-valued) state values vector from an existing array of ints.
+	 * Create a new state values vector from an existing array of values.
 	 * The array is stored directly, not copied.
 	 * Also set associated model (whose state space size should match vector size).
 	 */
-	public static StateValues createFromIntegerArray(int[] array, Model model)
+	public static StateValues createFromObjectArray(Type type, Object[] array, Model model)
 	{
 		StateValues sv = new StateValues();
-		sv.type = TypeInt.getInstance();
-		sv.size = array.length;
-		sv.valuesI = array;
-		sv.statesList = model.getStatesList();
+		sv.initialise(type, model);
+		sv.valuesO = array;
+		return sv;
+	}
+
+	/**
+	 * Create a new (double-valued) state values vector from an existing array of doubles.
+	 * Also set associated model (whose state space size should match vector size).
+	 */
+	public static StateValues createFromDoubleArray(double[] array, Model model) throws PrismException
+	{
+		return create(TypeDouble.getInstance(), i -> array[i], model);
+	}
+
+	/**
+	 * Create a new (double-valued) state values vector from an existing array of doubles.
+	 */
+	public static StateValues createFromDoubleArray(double[] array, List<State> statesList) throws PrismException
+	{
+		StateValues sv = new StateValues();
+		sv.initialise(TypeDouble.getInstance(), statesList);
+		sv.setFromValueDefinition(i -> array[i]);
 		return sv;
 	}
 
 	/**
 	 * Create a new (double-valued) state values vector from an existing array of doubles,
-	 * stored in a ModelCheckerResult object. The array is stored directly, not copied.
-	 * Accuracy information is also copied from the ModelCheckerResult object.
+	 * stored in a ModelCheckerResult object. Accuracy information is also extracted.
 	 * Also set associated model (whose state space size should match vector size).
 	 */
-	public static StateValues createFromDoubleArrayResult(ModelCheckerResult res, Model model)
+	public static StateValues createFromDoubleArrayResult(ModelCheckerResult res, Model model) throws PrismException
 	{
 		StateValues sv = createFromDoubleArray(res.soln, model);
 		sv.setAccuracy(res.accuracy);
 		return sv;
 	}
 	
-	/**
-	 * Create a new (double-valued) state values vector from an existing array of doubles.
-	 * The array is stored directly, not copied.
-	 * Also set associated model (whose state space size should match vector size).
-	 */
-	public static StateValues createFromDoubleArray(double[] array, Model model)
-	{
-		StateValues sv = new StateValues();
-		sv.type = TypeDouble.getInstance();
-		sv.size = array.length;
-		sv.valuesD = array;
-		sv.statesList = model.getStatesList();
-		return sv;
-	}
-
-	/**
-	 * Create a new (double-valued) state values vector from an existing array of doubles.
-	 * The array is stored directly, not copied.
-	 */
-	public static StateValues createFromDoubleArray(double[] array, List<State> statesList)
-	{
-		StateValues sv = new StateValues();
-		sv.type = TypeDouble.getInstance();
-		sv.size = array.length;
-		sv.valuesD = array;
-		sv.statesList = statesList;
-		return sv;
-	}
-
 	/**
 	 * Create a new (Boolean-valued) state values vector from an existing BitSet.
 	 * The BitSet is stored directly, not copied.
@@ -280,10 +330,8 @@ public class StateValues implements StateVector
 	public static StateValues createFromBitSet(BitSet bs, Model model)
 	{
 		StateValues sv = new StateValues();
-		sv.type = TypeBool.getInstance();
-		sv.size = model.getNumStates();
+		sv.initialise(TypeBool.getInstance(), model);
 		sv.valuesB = bs;
-		sv.statesList = model.getStatesList();
 		return sv;
 	}
 
@@ -294,14 +342,9 @@ public class StateValues implements StateVector
 	 * The bitset is not modified or stored.
 	 * The accuracy for the result is also set automatically.
 	 */
-	public static StateValues createFromBitSetAsDoubles(BitSet bitset, Model model)
+	public static StateValues createFromBitSetAsDoubles(BitSet bitset, Model model) throws PrismException
 	{
-		int size = model.getNumStates();
-		double[] array = new double[size];
-		for (int i = 0; i < size; i++) {
-			array[i] = bitset.get(i) ? 1.0 : 0.0;
-		}
-		StateValues sv = createFromDoubleArray(array, model);
+		StateValues sv = create(TypeDouble.getInstance(), i -> bitset.get(i) ? 1.0 : 0.0, model);
 		sv.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		return sv;
 	}
@@ -311,193 +354,35 @@ public class StateValues implements StateVector
 	 */
 	public static StateValues createFromFile(Type type, File file, Model model) throws PrismException
 	{
-		StateValues sv = new StateValues(type, model);
+		StateValues sv = new StateValues();
+		sv.initialise(type, model);
 		sv.readFromFile(file);
 		return sv;
 	}
 	
-	/**
-	 * Set the accuracy.
-	 */
-	public void setAccuracy(Accuracy accuracy)
-	{
-		this.accuracy = accuracy;
-	}
+	// Other methods to create new vectors
 	
-	/**
-	 * Generate BitSet for states in the given interval
-	 * (interval specified as relational operator and bound)
-	 */
-	public BitSet getBitSetFromInterval(String relOpString, double bound) throws PrismException
-	{
-		return getBitSetFromInterval(RelOp.parseSymbol(relOpString), bound);
-	}
-
-	/**
-	 * Generate BitSet for states in the given interval
-	 * (interval specified as relational operator and bound)
-	 */
-	public BitSet getBitSetFromInterval(RelOp relOp, double bound) throws PrismException
-	{
-		BitSet sol = new BitSet();
-
-		if (type instanceof TypeInt) {
-			switch (relOp) {
-			case GEQ:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesI[i] >= bound);
-				}
-				break;
-			case GT:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesI[i] > bound);
-				}
-				break;
-			case LEQ:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesI[i] <= bound);
-				}
-				break;
-			case LT:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, valuesI[i] < bound);
-				}
-				break;
-			default:
-				throw new PrismException("Unsupported operator " + relOp + " for getBitSetFromInterval()");
-			}
-		} else if (type instanceof TypeDouble) {
-			switch (relOp) {
-			case GEQ:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x >= bound, i, "compare to " + bound));
-				}
-				break;
-			case GT:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x > bound, i, "compare to " + bound));
-				}
-				break;
-			case LEQ:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x <= bound, i, "compare to " + bound));
-				}
-				break;
-			case LT:
-				for (int i = 0; i < size; i++) {
-					sol.set(i, testDoublePredicateWithAccuracyCheck(x -> x < bound, i, "compare to " + bound));
-				}
-				break;
-			default:
-				throw new PrismException("Unsupported operator " + relOp + " for getBitSetFromInterval()");
-			}
-		} else {
-			throw new PrismException("Can't getBitSetFromInterval for a vector of type " + type);
-		}
-
-		return sol;
-	}
-
-	/**
-	 * Test a predicate (over double values) against the {@code i}th vector element,
-	 * checking whether this can be done safely given the vector's accuracy (if known).
-	 * Return the (boolean) result, or throw an exception if the values is not accurate enough.
-	 * It is assumed that it suffices to check that the valuation of the predicate
-	 * is the same at the lower and upper accuracy ranges of the value.
-	 * @param pred Predicate to test
-	 * @param i Index of element to check
-	 * @param descr Description of operation for error message
-	 */
-	private boolean testDoublePredicateWithAccuracyCheck(Predicate<Double> pred, int i, String descr) throws PrismException
-	{
-		double value = valuesD[i];
-		if (accuracy != null) {
-			boolean resultLow = pred.test(accuracy.getResultLowerBound(value));
-			boolean resultHigh = pred.test(accuracy.getResultUpperBound(value));
-			if (resultLow != resultHigh) {
-				if (descr == null) {
-					descr = "test predicate";
-				}
-				throw new PrismException("Accuracy of result " + value  + " is not enough to " + descr);
-			}
-		}
-		return pred.test(value);
-	}
-	
-	/**
-	 * Generate BitSet for states whose value is close to 'value'
-	 * (if present, accuracy info used to determine closeness)
-	 * The type of 'value' is assumed to match that of the vector.
-	 */
-	public BitSet getBitSetFromCloseValue(Object value) throws PrismException
-	{
-		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
-		return getBitSetFromCloseValue(value, accuracy);
-	}
-
-	/**
-	 * Generate BitSet for states whose value is close to 'value'
-	 * (within either absolute or relative error 'epsilon')
-	 * The type of 'value' is assumed to match that of the vector.
-	 */
-	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs) throws PrismException
-	{
-		Accuracy accuracy = new Accuracy(Accuracy.AccuracyLevel.BOUNDED, epsilon, abs);
-		return getBitSetFromCloseValue(value, accuracy);
-	}
-
-	/**
-	 * Generate BitSet for states whose value is close to 'value'
-	 * (use the passed in level of accuracy to determine closeness)
-	 * The type of 'value' is assumed to match that of the vector.
-	 */
-	public BitSet getBitSetFromCloseValue(Object value, Accuracy accuracy) throws PrismException
-	{
-		BitSet sol = new BitSet();
-
-		if (type instanceof TypeInt) {
-			int valueI = ((Integer) value).intValue();
-			for (int i = 0; i < size; i++) {
-				sol.set(i, PrismUtils.measureSupNormAbs(valuesI[i], valueI) <= accuracy.getAbsoluteErrorBound(valuesI[i]));
-			}
-		} else if (type instanceof TypeDouble) {
-			double valueD = ((Double) value).doubleValue();
-			for (int i = 0; i < size; i++) {
-				sol.set(i, PrismUtils.measureSupNormAbs(valuesD[i], valueD) <= accuracy.getAbsoluteErrorBound(valuesD[i]));
-			}
-		} else {
-			throw new PrismException("Can't getBitSetFromCloseValue for a vector of type " + type);
-		}
-
-		return sol;
-	}
-
 	/**
 	 * Create a new StateValues, copied from this one, but mapped to a new model.
 	 * @param newModel The new model
 	 * @param reverseStateMapping Mapping from indices of the new model to the old one
 	 */
-	public StateValues mapToNewModel(Model newModel, IntFunction<Integer> reverseStateMapping)
+	public StateValues mapToNewModel(Model newModel, IntFunction<Integer> reverseStateMapping) throws PrismException
 	{
-		try {
-			StateValues sv = new StateValues(type, type.defaultValue(), newModel);
-			int numStates = newModel.getNumStates();
-			for (int i = 0; i < numStates; i++) {
-				final Integer j = reverseStateMapping.apply(i);
-				// If a state is missing from the mapping, it gets the default value for the type
-				if (j != null) {
-					if (j >= numStates) {
-						throw new IndexOutOfBoundsException("State index error when mapping between models");
-					}
-					sv.setValue(i, getValue(j));
+		int numStates = newModel.getNumStates();
+		StateValues sv = create(type, i -> {
+			final Integer j = reverseStateMapping.apply(i);
+			if (j != null) {
+				if (j >= numStates) {
+					throw new IndexOutOfBoundsException("State index error when mapping between models");
 				}
+				return getValue(j);
+			} else {
+				return type.defaultValue();
 			}
-			sv.setAccuracy(getAccuracy());
-			return sv;
-		} catch (PrismLangException e) {
-			// Type is unchanged, so should never get here
-			return null;
-		}
+		}, newModel);
+		sv.setAccuracy(getAccuracy());
+		return sv;
 	}
 
 	/**
@@ -520,150 +405,177 @@ public class StateValues implements StateVector
 		return sv;
 	}
 	
+	// Other set methods
+	
 	/**
-	 * Get the accuracy.
+	 * Set the accuracy.
 	 */
-	public Accuracy getAccuracy()
+	public void setAccuracy(Accuracy accuracy)
 	{
-		return accuracy;
+		this.accuracy = accuracy;
 	}
-
-	// METHODS TO MODIFY VECTOR
-
-	public void setValue(int i, Object val) throws PrismLangException
+	
+	// Methods to modify vector values
+	
+	@Override
+	public void clear()
+	{
+		// Actually, just set pointers to null and wait for later garbage collection.
+		valuesB = null;
+		valuesO = null;
+	}
+	
+	/**
+	 * Set the value for state index {@code i} to {@code value}.
+	 * The type of Object passed in for {@code value} should be the
+	 * appropriate one for the type of this StateValues.
+	 */
+	public void setValue(int i, Object value) throws PrismLangException
 	{
 		if (type instanceof TypeBool) {
-			setBooleanValue(i, ((TypeBool) type).castValueTo(val));
-		} else if (type instanceof TypeInt) {
-			setIntValue(i, ((TypeInt) type).castValueTo(val));
-		} else if (type instanceof TypeDouble) {
-			setDoubleValue(i, ((TypeDouble) type).castValueTo(val).doubleValue());
-		}
-	}
-
-	public void setIntValue(int i, int val)
-	{
-		valuesI[i] = val;
-	}
-
-	public void setDoubleValue(int i, double val)
-	{
-		valuesD[i] = val;
-	}
-
-	public void setBooleanValue(int i, boolean val)
-	{
-		valuesB.set(i, val);
-	}
-
-	/**
-	 * Modify the vector by applying If-Then-Else, i.e. {@code svIf} ? {@code svThen} : {@code this}.
-	 */
-	public void applyITE(StateValues svIf, StateValues svThen) throws PrismException
-	{
-		if (!(svIf.type instanceof TypeBool)) {
-			throw new PrismException("Type error in ? operator");
-		}
-		if (type instanceof TypeInt) {
-			if (svThen.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] = svIf.valuesB.get(i) ? svThen.valuesI[i] : valuesI[i];
-				}
-			} else if (svThen.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = svIf.valuesB.get(i) ? svThen.valuesD[i] : valuesD[i];
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Type error in ? operator");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (svThen.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = svIf.valuesB.get(i) ? svThen.valuesI[i] : valuesD[i];
-				}
-			} else if (svThen.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = svIf.valuesB.get(i) ? svThen.valuesD[i] : valuesD[i];
-				}
-			} else {
-				throw new PrismException("Type error in ? operator");
-			}
-		} else if (type instanceof TypeBool) {
-			if (svThen.type instanceof TypeBool) {
-				for (int i = svIf.valuesB.nextSetBit(0); i >= 0; i = svIf.valuesB.nextSetBit(i + 1)) {
-					valuesB.set(i, svThen.valuesB.get(i));
-				}
-			} else {
-				throw new PrismException("Type error in ? operator");
-			}
+			valuesB.set(i, (boolean) value);
 		} else {
-			throw new PrismException("Type error in ? operator");
+			valuesO[i] = value;
 		}
 	}
 
 	/**
-	 * Modify the vector by applying binary operator {@code op} with second operand {@code sv},
-	 * where {@code op} refers to the codes in {@link ExpressionBinaryOp}.
+	 * Set the value for state index {@code i} to {@code value},
+	 * assuming that the type of the StateValues is going to become
+	 * {@code typeOverride}, even if it is not right now.
+	 * The type of Object passed in for {@code value} should be the
+	 * appropriate one for {@code typeOverride}.
+	 * For internal use.
 	 */
-	public void applyBinaryOp(int op, StateValues sv) throws PrismException
+	private void setValue(int i, Object value, Type typeOverride) throws PrismLangException
 	{
-		switch (op) {
-		case ExpressionBinaryOp.IMPLIES:
-			implies(sv);
-			break;
-		case ExpressionBinaryOp.IFF:
-			iff(sv);
-			break;
-		case ExpressionBinaryOp.OR:
-			or(sv);
-			break;
-		case ExpressionBinaryOp.AND:
-			and(sv);
-			break;
-		case ExpressionBinaryOp.EQ:
-			equals(sv);
-			break;
-		case ExpressionBinaryOp.NE:
-			notEquals(sv);
-			break;
-		case ExpressionBinaryOp.GT:
-			greaterThan(sv);
-			break;
-		case ExpressionBinaryOp.GE:
-			greaterThanEquals(sv);
-			break;
-		case ExpressionBinaryOp.LT:
-			lessThan(sv);
-			break;
-		case ExpressionBinaryOp.LE:
-			lessThanEquals(sv);
-			break;
-		case ExpressionBinaryOp.PLUS:
-			plus(sv);
-			break;
-		case ExpressionBinaryOp.MINUS:
-			minus(sv);
-			break;
-		case ExpressionBinaryOp.TIMES:
-			times(sv);
-			break;
-		case ExpressionBinaryOp.DIVIDE:
-			divide(sv);
-			break;
-		default:
-			throw new PrismException("Unknown binary operator");
+		if (typeOverride instanceof TypeBool) {
+			valuesB.set(i, (boolean) value);
+		} else {
+			valuesO[i] = value;
 		}
 	}
 
+	/**
+	 * Modify the vector by applying (pointwise) a predicate, i.e., each element
+	 * of the vector will become the result of applying the predicate to itself.
+	 * @param predicate Predicate definition
+	 */
+	public void applyPredicate(Predicate predicate) throws PrismException
+	{
+		initStorage(TypeBool.getInstance());
+		valuesB = getBitSetFromPredicate(predicate);
+		type = TypeBool.getInstance();
+		clearOldStorage();
+	}
+	
+	/**
+	 * Modify the vector by applying (pointwise) a unary function.
+	 * @param retType Function return type
+	 * @param func Function definition
+	 */
+	public void applyFunction(Type retType, UnaryFunction func) throws PrismException
+	{
+		initStorage(retType);
+		for (int i = 0; i < size; i++) {
+			setValue(i, func.apply(getValue(i)), retType);
+		}
+		type = retType;
+		clearOldStorage();
+	}
+
+	/**
+	 * Modify the vector by applying (pointwise) a binary function
+	 * to this and another vector.
+	 * @param retType Function return type
+	 * @param func Function definition
+	 * @param sv2 Vector 2
+	 */
+	public void applyFunction(Type retType, BinaryFunction func, StateValues sv2) throws PrismException
+	{
+		initStorage(retType);
+		for (int i = 0; i < size; i++) {
+			setValue(i, func.apply(getValue(i), sv2.getValue(i)), retType);
+		}
+		type = retType;
+		clearOldStorage();
+	}
+	
+	/**
+	 * Modify the vector by applying (pointwise) a ternary function
+	 * to this and two other vectors.
+	 * @param retType Function return type
+	 * @param func Function definition
+	 * @param sv2 Vector 2
+	 * @param sv3 Vector 3
+	 */
+	public void applyFunction(Type retType, TernaryFunction func, StateValues sv2, StateValues sv3) throws PrismException
+	{
+		initStorage(retType);
+		for (int i = 0; i < size; i++) {
+			setValue(i, func.apply(getValue(i), sv2.getValue(i), sv3.getValue(i)), retType);
+		}
+		type = retType;
+		clearOldStorage();
+	}
+	
+	/**
+	 * Set the elements of this vector by reading them in from a file.
+	 * The values in the file should match the existing type of this StateValues.
+	 */
+	public void readFromFile(File file) throws PrismException
+	{
+		int lineNum = 0, count = 0;
+		boolean hasIndices = false;
+		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+			String s = in.readLine();
+			lineNum++;
+			while (s != null) {
+				s = s.trim();
+				if (!("".equals(s))) {
+					// If entry is of form "i=x", use i as index not count
+					// (otherwise, assume line i contains value for state index i)
+					if (s.contains("=")) {
+						hasIndices = true;
+						String ss[] = s.split("=");
+						count = Integer.parseInt(ss[0]);
+						s = ss[1];
+					}
+					if (count + 1 > size) {
+						in.close();
+						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
+					}
+					if (type instanceof TypeInt) {
+						setValue(count, Integer.parseInt(s));
+					} else if (type instanceof TypeDouble) {
+						setValue(count, Double.parseDouble(s));
+					} else if (type instanceof TypeBool) {
+						setValue(count, Boolean.parseBoolean(s));
+					}
+					count++;
+				}
+				s = in.readLine();
+				lineNum++;
+			}
+			// Check size
+			if (!hasIndices && count < size) {
+				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
+			}
+		} catch (IOException e) {
+			throw new PrismException("File I/O error reading from \"" + file + "\"");
+		} catch (NumberFormatException e) {
+			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
+		}
+	}
+
+	// Methods to modify vector values storing Boolean values
+	
 	/**
 	 * Modify the vector by applying 'implies' with operand {@code sv}.
 	 */
 	public void implies(StateValues sv) throws PrismException
 	{
-		if (!(type instanceof TypeBool) || !(sv.type instanceof TypeBool)) {
+		if (!(type instanceof TypeBool) || !(sv.getType() instanceof TypeBool)) {
 			throw new PrismException("Operator => can only be applied to Boolean vectors");
 		}
 		valuesB.flip(0, size);
@@ -675,7 +587,7 @@ public class StateValues implements StateVector
 	 */
 	public void iff(StateValues sv) throws PrismException
 	{
-		if (!(type instanceof TypeBool) || !(sv.type instanceof TypeBool)) {
+		if (!(type instanceof TypeBool) || !(sv.getType() instanceof TypeBool)) {
 			throw new PrismException("Operator <=> can only be applied to Boolean vectors");
 		}
 		valuesB.xor(sv.valuesB);
@@ -687,7 +599,7 @@ public class StateValues implements StateVector
 	 */
 	public void or(StateValues sv) throws PrismException
 	{
-		if (!(type instanceof TypeBool) || !(sv.type instanceof TypeBool)) {
+		if (!(type instanceof TypeBool) || !(sv.getType() instanceof TypeBool)) {
 			throw new PrismException("Operator | can only be applied to Boolean vectors");
 		}
 		valuesB.or(sv.valuesB);
@@ -698,7 +610,7 @@ public class StateValues implements StateVector
 	 */
 	public void and(StateValues sv) throws PrismException
 	{
-		if (!(type instanceof TypeBool) || !(sv.type instanceof TypeBool)) {
+		if (!(type instanceof TypeBool) || !(sv.getType() instanceof TypeBool)) {
 			throw new PrismException("Operator & can only be applied to Boolean vectors");
 		}
 		valuesB.and(sv.valuesB);
@@ -717,483 +629,6 @@ public class StateValues implements StateVector
 	}
 	
 	/**
-	 * Modify the vector by applying 'equals' with operand {@code sv}.
-	 */
-	public void equals(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] == sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] == sv.valuesD[i]);
-				}
-			}
-		} else if (type instanceof TypeDouble) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] == sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] == sv.valuesD[i]);
-				}
-			}
-		} else if (type instanceof TypeBool) {
-			if (sv.type instanceof TypeBool) {
-				valuesB.xor(sv.valuesB);
-				valuesB.flip(0, size);
-			}
-		}
-		type = TypeBool.getInstance();
-		valuesI = null;
-		valuesD = null;
-	}
-
-	/**
-	 * Modify the vector by applying 'not-equals' with operand {@code sv}.
-	 */
-	public void notEquals(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] != sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] != sv.valuesD[i]);
-				}
-			}
-		} else if (type instanceof TypeDouble) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] != sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] != sv.valuesD[i]);
-				}
-			}
-		} else if (type instanceof TypeBool) {
-			if (sv.type instanceof TypeBool) {
-				valuesB.xor(sv.valuesB);
-			}
-		}
-		type = TypeBool.getInstance();
-		valuesI = null;
-		valuesD = null;
-	}
-
-	/**
-	 * Modify the vector by applying '>' with operand {@code sv}.
-	 */
-	public void greaterThan(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] > sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] > sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator > cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] > sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] > sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator > cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator > cannot be applied to Boolean vectors");
-		}
-		type = TypeBool.getInstance();
-		valuesI = null;
-		valuesD = null;
-	}
-
-	/**
-	 * Modify the vector by applying '>=' with operand {@code sv}.
-	 */
-	public void greaterThanEquals(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] >= sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] >= sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator >= cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] >= sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] >= sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator >= cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator >= cannot be applied to Boolean vectors");
-		}
-		type = TypeBool.getInstance();
-		valuesI = null;
-		valuesD = null;
-	}
-
-	/**
-	 * Modify the vector by applying '<' with operand {@code sv}.
-	 */
-	public void lessThan(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] < sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] < sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator < cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] < sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] < sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator < cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator < cannot be applied to Boolean vectors");
-		}
-		type = TypeBool.getInstance();
-		valuesI = null;
-		valuesD = null;
-	}
-
-	/**
-	 * Modify the vector by applying '<=' with operand {@code sv}.
-	 */
-	public void lessThanEquals(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] <= sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesI[i] <= sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator <= cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			valuesB = new BitSet();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] <= sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesB.set(i, valuesD[i] <= sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Operator <= cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator <= cannot be applied to Boolean vectors");
-		}
-		type = TypeBool.getInstance();
-		valuesI = null;
-		valuesD = null;
-	}
-
-	/**
-	 * Modify the vector by applying 'plus' with operand {@code sv}.
-	 */
-	public void plus(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] += sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = valuesI[i] + sv.valuesD[i];
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Operator + cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] += sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] += sv.valuesD[i];
-				}
-			} else {
-				throw new PrismException("Operator + cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator + cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'plus' with a constant.
-	 */
-	public void plusConstant(int val) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			for (int i = 0; i < size; i++) {
-				valuesI[i] += val;
-			}
-		} else if (type instanceof TypeDouble) {
-			for (int i = 0; i < size; i++) {
-				valuesD[i] += val;
-			}
-		} else {
-			throw new PrismException("Operator + cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'plus' with a constant.
-	 */
-	public void plusConstant(double val) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			// Change type
-			valuesD = new double[size];
-			type = TypeDouble.getInstance();
-			for (int i = 0; i < size; i++) {
-				valuesD[i] = valuesI[i] + val;
-			}
-			valuesI = null;
-		} else if (type instanceof TypeDouble) {
-			for (int i = 0; i < size; i++) {
-				valuesD[i] += val;
-			}
-		} else {
-			throw new PrismException("Operator + cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'minus' with operand {@code sv}.
-	 */
-	public void minus(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] -= sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = valuesI[i] - sv.valuesD[i];
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Operator - cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] -= sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] -= sv.valuesD[i];
-				}
-			} else {
-				throw new PrismException("Operator - cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator - cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'times' with operand {@code sv}.
-	 */
-	public void times(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] *= sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = valuesI[i] * sv.valuesD[i];
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Operator * cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] *= sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] *= sv.valuesD[i];
-				}
-			} else {
-				throw new PrismException("Operator * cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator * cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'times' with a constant.
-	 */
-	public void timesConstant(int val) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			for (int i = 0; i < size; i++) {
-				valuesI[i] *= val;
-			}
-		} else if (type instanceof TypeDouble) {
-			for (int i = 0; i < size; i++) {
-				valuesD[i] *= val;
-			}
-		} else {
-			throw new PrismException("Operator + cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'times' with a constant.
-	 */
-	public void timesConstant(double val) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			// Change type
-			valuesD = new double[size];
-			type = TypeDouble.getInstance();
-			for (int i = 0; i < size; i++) {
-				valuesD[i] = valuesI[i] * val;
-			}
-			valuesI = null;
-		} else if (type instanceof TypeDouble) {
-			for (int i = 0; i < size; i++) {
-				valuesD[i] *= val;
-			}
-		} else {
-			throw new PrismException("Operator + cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'divide' with operand {@code sv}.
-	 */
-	public void divide(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesD = new double[size];
-			type = TypeDouble.getInstance();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ((double) valuesI[i]) / sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = valuesI[i] / sv.valuesD[i];
-				}
-			} else {
-				throw new PrismException("Operator / cannot be applied to Boolean vectors");
-			}
-			valuesI = null;
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] /= sv.valuesI[i];
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] /= sv.valuesD[i];
-				}
-			} else {
-				throw new PrismException("Operator / cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Operator / cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying unary operator {@code op},
-	 * where {@code op} refers to the codes in {@link ExpressionUnaryOp}.
-	 */
-	public void applyUnaryOp(int op) throws PrismException
-	{
-		switch (op) {
-		case ExpressionUnaryOp.NOT:
-			not();
-			break;
-		case ExpressionUnaryOp.MINUS:
-			minus();
-			break;
-		default:
-			throw new PrismException("Unknown binary operator");
-		}
-	}
-
-	/**
 	 * Modify the vector by applying 'not'
 	 */
 	public void not() throws PrismException
@@ -1204,463 +639,39 @@ public class StateValues implements StateVector
 		valuesB.flip(0, size);
 	}
 
-	/**
-	 * Modify the vector by applying (unary) 'minus'.
-	 */
-	public void minus() throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			for (int i = 0; i < size; i++) {
-				valuesI[i] = -valuesI[i];
-			}
-		} else if (type instanceof TypeDouble) {
-			for (int i = 0; i < size; i++) {
-				valuesD[i] = -valuesD[i];
-			}
-		} else {
-			throw new PrismException("Operator - cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying (unary) function {@code op},
-	 * where {@code op} refers to the codes in {@link parser.ast.ExpressionFunc}.
-	 */
-	public void applyFunctionUnary(int op) throws PrismException
-	{
-		switch (op) {
-		case ExpressionFunc.FLOOR:
-			floor();
-			break;
-		case ExpressionFunc.CEIL:
-			ceil();
-			break;
-		case ExpressionFunc.ROUND:
-			round();
-			break;
-		default:
-			throw new PrismException("Unknown unary function");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'floor'.
-	 */
-	public void floor() throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			// Nothing to do
-		} else if (type instanceof TypeDouble) {
-			valuesI = new int[size];
-			type = TypeInt.getInstance();
-			for (int i = 0; i < size; i++) {
-				valuesI[i] = ExpressionFunc.evaluateFloor(valuesD[i]);
-			}
-			valuesD = null;
-		} else {
-			throw new PrismException("Function floor cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'ceil'.
-	 */
-	public void ceil() throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			// Nothing to do
-		} else if (type instanceof TypeDouble) {
-			valuesI = new int[size];
-			type = TypeInt.getInstance();
-			for (int i = 0; i < size; i++) {
-				valuesI[i] = ExpressionFunc.evaluateCeil(valuesD[i]);
-			}
-			valuesD = null;
-		} else {
-			throw new PrismException("Function ceil cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'round'.
-	 */
-	public void round() throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			// Nothing to do
-		} else if (type instanceof TypeDouble) {
-			valuesI = new int[size];
-			type = TypeInt.getInstance();
-			for (int i = 0; i < size; i++) {
-				valuesI[i] = ExpressionFunc.evaluateRound(valuesD[i]);
-			}
-			valuesD = null;
-		} else {
-			throw new PrismException("Function round cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying (binary or N-ary) function {@code op} with second operand {@code sv},
-	 * where {@code op} refers to the codes in {@link parser.ast.ExpressionFunc}.
-	 */
-	public void applyFunctionBinary(int op, StateValues sv) throws PrismException
-	{
-		switch (op) {
-		case ExpressionFunc.POW:
-			pow(sv);
-			break;
-		case ExpressionFunc.MOD:
-			mod(sv);
-			break;
-		case ExpressionFunc.LOG:
-			log(sv);
-			break;
-		case ExpressionFunc.MIN:
-			min(sv);
-			break;
-		case ExpressionFunc.MAX:
-			max(sv);
-			break;
-		default:
-			throw new PrismException("Unknown binary function");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'pow' with second operand {@code sv}.
-	 */
-	public void pow(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] = ExpressionFunc.evaluatePowInt(valuesI[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluatePowDouble(valuesI[i], sv.valuesD[i]);
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Function pow() cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluatePowDouble(valuesD[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluatePowDouble(valuesD[i], sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Function pow() cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Function pow() cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'mod' with second operand {@code sv}.
-	 */
-	public void mod(StateValues sv) throws PrismException
-	{
-		if (!(type instanceof TypeInt && sv.type instanceof TypeInt)) {
-			throw new PrismException("Function mod() can only be applied to integer vectors");
-		}
-		for (int i = 0; i < size; i++) {
-			valuesI[i] = ExpressionFunc.evaluateMod(valuesI[i], sv.valuesI[i]);
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'log' with operand {@code sv}.
-	 */
-	public void log(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			valuesD = new double[size];
-			type = TypeDouble.getInstance();
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluateLog(valuesI[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluateLog(valuesI[i], sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Function log() cannot be applied to Boolean vectors");
-			}
-			valuesI = null;
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluateLog(valuesD[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = ExpressionFunc.evaluateLog(valuesD[i], sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Function log() cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Function log() cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'min' with operand {@code sv}.
-	 */
-	public void min(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] = Math.min(valuesI[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = Math.min(valuesI[i], sv.valuesD[i]);
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Function min() cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = Math.min(valuesD[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = Math.min(valuesD[i], sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Function min() cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Function min() cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Modify the vector by applying 'max' with operand {@code sv}.
-	 */
-	public void max(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesI[i] = Math.max(valuesI[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				valuesD = new double[size];
-				type = TypeDouble.getInstance();
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = Math.max(valuesI[i], sv.valuesD[i]);
-				}
-				valuesI = null;
-			} else {
-				throw new PrismException("Function max() cannot be applied to Boolean vectors");
-			}
-		} else if (type instanceof TypeDouble) {
-			if (sv.type instanceof TypeInt) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = Math.max(valuesD[i], sv.valuesI[i]);
-				}
-			} else if (sv.type instanceof TypeDouble) {
-				for (int i = 0; i < size; i++) {
-					valuesD[i] = Math.max(valuesD[i], sv.valuesD[i]);
-				}
-			} else {
-				throw new PrismException("Function max() cannot be applied to Boolean vectors");
-			}
-		} else {
-			throw new PrismException("Function max() cannot be applied to Boolean vectors");
-		}
-	}
-
-	/**
-	 * Compute dot (inner) product of this and another vector {@code sv}.
-	 */
-	public double dotProduct(StateValues sv) throws PrismException
-	{
-		if (type instanceof TypeDouble) {
-			double dotProduct = 0;
-			for (int i = 0; i < size; i++) {
-				dotProduct += valuesD[i] * sv.valuesD[i];
-			}
-			return dotProduct;
-		} else {
-			throw new PrismException("Dot product can only be applied to double vectors");
-		}
-	}
+	// Accessors
 	
 	/**
-	 * Set the elements of this vector by reading them in from a file.
+	 * Get the type of the values stored
 	 */
-	public void readFromFile(File file) throws PrismException
+	public Type getType()
 	{
-		BufferedReader in;
-		String s;
-		int lineNum = 0, count = 0;
-		boolean hasIndices = false;
-
-		try {
-			// Open file for reading
-			in = new BufferedReader(new FileReader(file));
-			// Read remaining lines
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				s = s.trim();
-				if (!("".equals(s))) {
-					// If entry is of form "i=x", use i as index not count
-					// (otherwise, assume line i contains value for state index i)
-					if (s.contains("=")) {
-						hasIndices = true;
-						String ss[] = s.split("=");
-						count = Integer.parseInt(ss[0]);
-						s = ss[1];
-					}
-					if (count + 1 > size) {
-						in.close();
-						throw new PrismException("Too many values in file \"" + file + "\" (more than " + size + ")");
-					}
-					if (type instanceof TypeInt) {
-						int i = Integer.parseInt(s);
-						setIntValue(count, i);
-					} else if (type instanceof TypeDouble) {
-						double d = Double.parseDouble(s);
-						setDoubleValue(count, d);
-					} else if (type instanceof TypeBool) {
-						boolean b = Boolean.parseBoolean(s);
-						setBooleanValue(count, b);
-					}
-					count++;
-				}
-				s = in.readLine();
-				lineNum++;
-			}
-			// Close file
-			in.close();
-			// Check size
-			if (!hasIndices && count < size)
-				throw new PrismException("Too few values in file \"" + file + "\" (" + count + ", not " + size + ")");
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + file + "\"");
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
-		}
+		return type;
 	}
-
-	// ...
-
-	@Override
-	public void clear()
-	{
-		// Actually, just set pointers to null and wait for later garbage collection.
-		valuesI = null;
-		valuesD = null;
-		valuesB = null;
-	}
-
-	// METHODS TO ACCESS VECTOR DATA
-
+	
 	@Override
 	public int getSize()
 	{
 		return size;
 	}
 
+	/**
+	 * Get the accuracy.
+	 */
+	public Accuracy getAccuracy()
+	{
+		return accuracy;
+	}
+
 	@Override
 	public Object getValue(int i)
 	{
-		if (type instanceof TypeInt) {
-			return valuesI[i];
-		} else if (type instanceof TypeDouble) {
-			return valuesD[i];
-		} else if (type instanceof TypeBool) {
-			return valuesB.get(i);
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * Is the ith element of the vector non-zero (or non-false)?
-	 */
-	public boolean isNonZero(int i)
-	{
-		if (type instanceof TypeInt) {
-			return valuesI[i] != 0;
-		} else if (type instanceof TypeDouble) {
-			return valuesD[i] != 0.0;
-		} else if (type instanceof TypeBool) {
-			return valuesB.get(i);
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * For integer-valued vectors, get the int array storing the data.
-	 */
-	public int[] getIntArray()
-	{
-		return valuesI;
-	}
-
-	/**
-	 * For double-valued vectors, get the double array storing the data.
-	 */
-	public double[] getDoubleArray()
-	{
-		return valuesD;
-	}
-
-	/**
-	 * For Boolean-valued vectors, get the BitSet storing the data.
-	 */
-	public BitSet getBitSet()
-	{
-		return valuesB;
-	}
-
-	/**
-	 * Get the number of states for which the value is non-zero/non-false.
-	 */
-	public int getNNZ()
-	{
-		int count = 0;
 		if (type instanceof TypeBool) {
-			count = valuesB.cardinality();
+			return valuesB.get(i);
 		} else {
-			for (int i = 0; i < size; i++) {
-				if (isNonZero(i))
-					count++;
-			}
+			return valuesO[i];
 		}
-		return count;
 	}
-
-	/**
-	 * Get (as a string) the number of states for which the value is non-zero/non-false.
-	 */
-	public String getNNZString()
-	{
-		return "" + getNNZ();
-	}
-
-	// Filter operations
 
 	/**
 	 * Get the value of first vector element that is in the (BitSet) filter.
@@ -1670,168 +681,129 @@ public class StateValues implements StateVector
 		return getValue(filter.nextSetBit(0));
 	}
 
-	/**
-	 * Get the minimum value of those that are in the (BitSet) filter.
-	 */
-	public Object minOverBitSet(BitSet filter) throws PrismException
+	@Override
+	public Iterator<Object> iterator()
 	{
-		if (type instanceof TypeInt) {
-			int minI = Integer.MAX_VALUE;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesI[i] < minI)
-					minI = valuesI[i];
+		return new Iterator<Object>()
+		{
+			int i = 0;
+			
+			@Override
+			public Object next()
+			{
+				return getValue(i++);
 			}
-			return new Integer(minI);
-		} else if (type instanceof TypeDouble) {
-			double minD = Double.POSITIVE_INFINITY;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesD[i] < minD)
-					minD = valuesD[i];
+			
+			@Override
+			public boolean hasNext()
+			{
+				return i < size;
 			}
-			return new Double(minD);
-		}
-		throw new PrismException("Can't take min over a vector of type " + type);
+		};
+	}
+	
+	/**
+	 * Return a filtered view of this vector, only including
+	 * the values for states whose index is set in {@code filter}.
+	 */
+	public Iterable<Object> filtered(BitSet filter)
+	{
+		return new Iterable<Object>()
+		{
+			@Override
+			public Iterator<Object> iterator()
+			{
+				return new Iterator<Object>()
+				{
+					int i = filter.nextSetBit(0);
+					
+					@Override
+					public Object next()
+					{
+						Object o = getValue(i);
+						i = filter.nextSetBit(i + 1);
+						return o;
+					}
+					
+					@Override
+					public boolean hasNext()
+					{
+						return i >= 0;
+					}
+				};
+			}
+		};
+	}
+	
+	/**
+	 * For Boolean-valued vectors, get the BitSet storing the data.
+	 */
+	public BitSet getBitSet()
+	{
+		return valuesB;
 	}
 
 	/**
-	 * Get the maximum value of those that are in the (BitSet) filter.
+	 * For double-valued vectors, get a double array storing the data.
 	 */
-	public Object maxOverBitSet(BitSet filter) throws PrismException
+	public double[] getDoubleArray()
 	{
-		if (type instanceof TypeInt) {
-			int maxI = Integer.MIN_VALUE;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesI[i] > maxI)
-					maxI = valuesI[i];
-			}
-			return new Integer(maxI);
-		} else if (type instanceof TypeDouble) {
-			double maxD = Double.NEGATIVE_INFINITY;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesD[i] > maxD)
-					maxD = valuesD[i];
-			}
-			return new Double(maxD);
+		double[] valuesD = new double[size];
+		for (int i = 0; i < size; i++) {
+			valuesD[i] = (double) valuesO[i];
 		}
-		throw new PrismException("Can't take max over a vector of type " + type);
+		return valuesD;
 	}
 
 	/**
-	 * Get the maximum finite value of those that are in the (BitSet) filter.
-	 * I.e., this behaves as maxOverBitSet, but filters out POSITIVE_INFINITY.
+	 * Get a BitSet representing the states which satisfy a predicate.
 	 */
-	public Object maxFiniteOverBitSet(BitSet filter) throws PrismException
+	public BitSet getBitSetFromPredicate(Predicate predicate) throws PrismException
 	{
-		if (type instanceof TypeInt) {
-			// for Integers, MAX_VALUE might arise normally or represent +INF,
-			// so we don't filter
-			int maxI = Integer.MIN_VALUE;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesI[i] > maxI)
-					maxI = valuesI[i];
-			}
-			return new Integer(maxI);
-		} else if (type instanceof TypeDouble) {
-			double maxD = Double.NEGATIVE_INFINITY;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				double d = valuesD[i];
-				if (Double.isFinite(d) && valuesD[i] > maxD)
-					maxD = d;
-			}
-			return new Double(maxD);
+		BitSet bs = new BitSet();
+		for (int i = 0; i < size; i++) {
+			bs.set(i, predicate.test(getValue(i)));
 		}
-		throw new PrismException("Can't take max over a vector of type " + type);
+		return bs;
+	}
+	
+	/**
+	 * Get a BitSet for the states whose value is (approximately) equal to {@code value}.
+	 * For double values, equality is only checked approximately, either using the stored
+	 * accuracy for the vector, if present, or a default accuracy level otherwise.
+	 * For other types, values must be identical.
+	 * The type of {@code value} is assumed to match that of the vector.
+	 */
+	public BitSet getBitSetFromCloseValue(Object value) throws PrismException
+	{
+		Accuracy accuracy = ResultTesting.getTestingAccuracy(getAccuracy());
+		return getBitSetFromCloseValue(value, accuracy);
 	}
 
 	/**
-	 * Check if value is true for all states in the (BitSet) filter.
+	 * Get a BitSet for the states whose value is (approximately) equal to {@code value}.
+	 * For double values, equality is only checked approximately, either using the specified
+	 * accuracy (within either absolute or relative error {@code epsilon}).
+	 * The type of {@code value} is assumed to match that of the vector.
 	 */
-	public boolean forallOverBitSet(BitSet filter) throws PrismException
+	public BitSet getBitSetFromCloseValue(Object value, double epsilon, boolean abs) throws PrismException
 	{
-		if (type instanceof TypeBool) {
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (!valuesB.get(i))
-					return false;
-			}
-			return true;
-		}
-		throw new PrismException("Can't take for-all over a vector of type " + type);
+		Accuracy accuracy = new Accuracy(Accuracy.AccuracyLevel.BOUNDED, epsilon, abs);
+		return getBitSetFromCloseValue(value, accuracy);
 	}
 
 	/**
-	 * Check if there exists a true value for some state in the (BitSet) filter.
+	 * Get a BitSet for the states whose value is (approximately) equal to {@code value}.
+	 * For double values, equality is only checked approximately, either using the accuracy.
+	 * For other types, values must be identical.
+	 * The type of {@code value} is assumed to match that of the vector.
 	 */
-	public boolean existsOverBitSet(BitSet filter) throws PrismException
+	public BitSet getBitSetFromCloseValue(Object value, Accuracy accMatch) throws PrismException
 	{
-		if (type instanceof TypeBool) {
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesB.get(i))
-					return true;
-			}
-			return false;
-		}
-		throw new PrismException("Can't take there-exists over a vector of type " + type);
+		return getBitSetFromPredicate(v -> ExpressionFilter.isClose(v, value, getType(), accMatch));
 	}
 
-	/**
-	 * Count the number of states with value true from those in the (BitSet) filter.
-	 */
-	public int countOverBitSet(BitSet filter) throws PrismException
-	{
-		if (type instanceof TypeBool) {
-			int count = 0;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				if (valuesB.get(i))
-					count++;
-			}
-			return new Integer(count);
-		}
-		throw new PrismException("Can't take count over a vector of type " + type);
-	}
-
-	/**
-	 * Get the sum of values for states that are in the (BitSet) filter.
-	 */
-	public Object sumOverBitSet(BitSet filter) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			int sumI = 0;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				sumI += valuesI[i];
-			}
-			return new Integer(sumI);
-		} else if (type instanceof TypeDouble) {
-			double sumD = 0.0;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				sumD += valuesD[i];
-			}
-			return new Double(sumD);
-		}
-		throw new PrismException("Can't take sum over a vector of type " + type);
-	}
-
-	/**
-	 * Get the average of values for states that are in the (BitSet) filter.
-	 */
-	public double averageOverBitSet(BitSet filter) throws PrismException
-	{
-		if (type instanceof TypeInt) {
-			int sumI = 0;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				sumI += valuesI[i];
-			}
-			return ((double) sumI) / filter.cardinality();
-		} else if (type instanceof TypeDouble) {
-			double sumD = 0.0;
-			for (int i = filter.nextSetBit(0); i >= 0; i = filter.nextSetBit(i + 1)) {
-				sumD += valuesD[i];
-			}
-			return sumD / filter.cardinality();
-		}
-		throw new PrismException("Can't take average over a vector of type " + type);
-	}
-
-	// PRINTING STUFF
+	// Printing methods
 
 	/**
 	 * Print vector to a log/file (non-zero/non-false entries only).
@@ -1933,7 +905,7 @@ public class StateValues implements StateVector
 
 	private boolean printLine(PrismLog log, int n, boolean printSparse, boolean printMatlab, boolean printStates, boolean printIndices)
 	{
-		if (!printSparse || isNonZero(n)) {
+		if (!printSparse || isValueNonZero(getValue(n))) {
 			if (printMatlab) {
 				if (printSparse) {
 					log.println("v(" + (n + 1) + ")=" + getValue(n) + ";");
@@ -1966,6 +938,23 @@ public class StateValues implements StateVector
 	}
 
 	/**
+	 * Is the given vector value non-zero/non-false? (for sparse printing)
+	 */
+	private boolean isValueNonZero(Object value)
+	{
+		if (value instanceof Integer) {
+			return ((int) value) != 0;
+		} else if (value instanceof Double) {
+			return ((double) value) != 0.0;
+		} else if (value instanceof Boolean) {
+			return (boolean) value;
+		}
+		return true;
+	}
+
+	// Standard methods
+	
+	/**
 	 * Make a (deep) copy of this vector
 	 */
 	public StateValues deepCopy() throws PrismException
@@ -1973,21 +962,24 @@ public class StateValues implements StateVector
 		StateValues sv = new StateValues();
 		sv.type = type;
 		sv.size = size;
-		if (valuesI != null) {
-			sv.valuesI = Utils.cloneIntArray(valuesI);
-		}
-		if (valuesD != null) {
-			sv.valuesD = Utils.cloneDoubleArray(valuesD);
-		}
+		sv.accuracy = accuracy;
+		sv.statesList = statesList;
 		if (valuesB != null) {
 			sv.valuesB = (BitSet) valuesB.clone();
 		}
-		sv.statesList = statesList;
+		if (valuesO != null) {
+			sv.valuesO = valuesO.clone();
+		}
 		return sv;
 	}
 
-	/** Returns the type of this StateValues object. */
-	public Type getType() {
-		return type;
+	@Override
+	public String toString()
+	{
+		if (type instanceof TypeBool) {
+			return valuesB.toString();
+		} else {
+			return Arrays.toString(valuesO);
+		}
 	}
 }
