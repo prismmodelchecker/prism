@@ -48,6 +48,7 @@ import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import parser.ast.Expression;
+import parser.type.TypeDouble;
 import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
@@ -113,8 +114,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
-			probsProduct.timesConstant(-1.0);
-			probsProduct.plusConstant(1.0);
+			probsProduct.applyFunction(TypeDouble.getInstance(), v -> 1.0 - (double) v);
 		}
 
 		// Output vector over product, if required
