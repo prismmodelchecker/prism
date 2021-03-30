@@ -42,6 +42,9 @@ import java.util.Vector;
 
 import parser.State;
 import parser.Values;
+import parser.VarList;
+import parser.ast.Declaration;
+import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
@@ -73,6 +76,7 @@ import prism.ModelType;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
@@ -1609,6 +1613,29 @@ public class StateModelChecker extends PrismComponent
 			if (!first && exportType != Prism.EXPORT_MATLAB) {
 				out.println();
 			}
+		}
+	}
+	
+	/**
+	 * Do any exports after a model-automaton product construction, if requested
+	 */
+	public void doProductExports(Product<? extends Model> product) throws PrismException
+	{
+		if (getExportProductTrans()) {
+			mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
+			product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename());
+		}
+		if (getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
+			VarList newVarList = (VarList) modulesFile.createVarList().clone();
+			String daVar = "_da";
+			while (newVarList.getIndex(daVar) != -1) {
+				daVar = "_" + daVar;
+			}
+			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
+			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
+			out.close();
 		}
 	}
 }

@@ -321,19 +321,7 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public LTLProduct<DTMC> constructProductMC(ProbModelChecker mc, DTMC model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
-		// Convert LTL formula to automaton
-		Vector<BitSet> labelBS = new Vector<BitSet>();
-		DA<BitSet,? extends AcceptanceOmega> da;
-		da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
-
-		// Build product of model and automaton
-		mainLog.println("\nConstructing MC-"+da.getAutomataType()+" product...");
-		StopWatch timer = new StopWatch(getLog());
-		timer.start("product construction");
-		LTLProduct<DTMC> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		timer.stop("product has " + product.getProductModel().infoString());
-
-		return product;
+		return constructDAProductForLTLFormula(mc, model, expr, statesOfInterest, allowedAcceptance);
 	}
 
 	/**
@@ -350,19 +338,7 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public LTLProduct<MDP> constructProductMDP(ProbModelChecker mc, MDP model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
-		// Convert LTL formula to automaton
-		Vector<BitSet> labelBS = new Vector<BitSet>();
-		DA<BitSet,? extends AcceptanceOmega> da;
-		da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
-
-		// Build product of model and automaton
-		mainLog.println("\nConstructing MDP-"+da.getAutomataType()+" product...");
-		StopWatch timer = new StopWatch(getLog());
-		timer.start("product construction");
-		LTLProduct<MDP> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		timer.stop("product has " + product.getProductModel().infoString());
-
-		return product;
+		return constructDAProductForLTLFormula(mc, model, expr, statesOfInterest, allowedAcceptance);
 	}
 
 	/**
@@ -379,22 +355,13 @@ public class LTLModelChecker extends PrismComponent
 	 */
 	public LTLProduct<STPG> constructProductSTPG(ProbModelChecker mc, STPG model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
-		// Convert LTL formula to automaton
-		Vector<BitSet> labelBS = new Vector<BitSet>();
-		DA<BitSet,? extends AcceptanceOmega> da;
-		da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
-
-		// Build product of model and automaton
-		mainLog.println("\nConstructing STPG-"+da.getAutomataType()+" product...");
-		LTLProduct<STPG> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
-
-		return product;
+		return constructDAProductForLTLFormula(mc, model, expr, statesOfInterest, allowedAcceptance);
 	}
 	
 	/**
-	 * Generate a deterministic automaton for the given LTL formula
-	 * and construct the product of this automaton with a model.
+	 * Generate a deterministic automaton (DA) for the given LTL formula, having first extracted maximal state formulas
+	 * and model checked them with the passed in model and model checker (see {@link #constructDAForLTLFormula}.
+	 * Then construct the product of this automaton with the model.
 	 *
 	 * @param mc a ProbModelChecker, used for checking maximal state formulas
 	 * @param model the model
@@ -404,17 +371,48 @@ public class LTLModelChecker extends PrismComponent
 	 * @return the product with the DA
 	 * @throws PrismException
 	 */
-	public <M extends Model> LTLProduct<M> constructProductModel(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
+	public <M extends Model> LTLProduct<M> constructDAProductForLTLFormula(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest, AcceptanceType... allowedAcceptance) throws PrismException
 	{
 		// Convert LTL formula to automaton
 		Vector<BitSet> labelBS = new Vector<BitSet>();
-		DA<BitSet,? extends AcceptanceOmega> da;
-		da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
+		DA<BitSet,? extends AcceptanceOmega> da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
 
 		// Build product of model and automaton
-		mainLog.println("\nConstructing " + model.getModelType() + "-" + da.getAutomataType() + " product...");
+		mainLog.println("Constructing " + model.getModelType() + "-" + da.getAutomataType() + " product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
 		LTLProduct<M> product = constructProductModel(da, model, labelBS, statesOfInterest);
-		mainLog.print("\n" + product.getProductModel().infoStringTable());
+		timer.stop("product has " + product.getProductModel().infoString());
+
+		return product;
+	}
+	
+	/**
+	 * Generate a deterministic finite automaton (DFA) for the given syntactically co-safe LTL formula,
+	 * for use in reward computations for co-safe LTL, having first extracted maximal state formulas
+	 * and model checked them with the passed in model and model checker (see {@link #constructDFAForCosafetyRewardLTL}.
+	 * Then construct the product of this automaton with the model.
+	 *
+	 * @param mc a ProbModelChecker, used for checking maximal state formulas
+	 * @param model the model
+	 * @param expr a path expression
+	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
+	 * @return the product with the DA
+	 * @throws PrismException
+	 */
+	public <M extends Model> LTLProduct<M> constructDFAProductForCosafetyReward(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		// Convert LTL formula to DFA, with the special
+		// handling needed for cosafety reward translation
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		DA<BitSet, AcceptanceReach> da = constructDFAForCosafetyRewardLTL(mc, model, expr, labelBS);
+
+		// Build product of model and automaton
+		mainLog.println("Constructing " + model.getModelType() + "-" + da.getAutomataType() + " product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
+		LTLProduct<M> product = constructProductModel(da, model, labelBS, statesOfInterest);
+		timer.stop("product has " + product.getProductModel().infoString());
 
 		return product;
 	}
