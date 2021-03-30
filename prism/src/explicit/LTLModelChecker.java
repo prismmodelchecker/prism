@@ -260,6 +260,43 @@ public class LTLModelChecker extends PrismComponent
 	}
 
 	/**
+	 * Constructs a deterministic finite automaton (DFA) for the given syntactically co-safe LTL formula.
+	 * <br>
+	 * First, extracted maximal state formulas are model checked with the passed in model checker.
+	 * The maximal state formulas are assigned labels (L0, L1, etc.) which become the atomic
+	 * propositions in the resulting DA. BitSets giving the states which satisfy each label
+	 * are put into the vector {@code labelBS}, which should be empty when this function is called.
+	 * <br>
+	 * This is for use when computing the probability of satisfaction;
+	 * use {@link #constructDFAForCosafetyRewardLTL()} for expected rewards.
+	 * @param mc the underlying model checker (for recursively handling maximal state formulas)
+	 * @param model the model
+	 * @param expr the co-safe LTL formula
+	 * @param labelBS empty vector to be filled with BitSets for subformulas
+	 * @return a DA with AcceptanceReach acceptance condition
+	 */
+	public DA<BitSet, AcceptanceReach> constructDFAForCosafetyProbLTL(StateModelChecker mc, Model model, Expression expr, Vector<BitSet> labelBS) throws PrismException
+	{
+		// Model check maximal state formulas
+		Expression ltl = checkMaximalStateFormulas(mc, model, expr.deepCopy(), labelBS);
+
+		// Convert and put in positive normal form (negation only in front of APs)
+		SimpleLTL sltl = ltl.convertForJltl2ba();
+		sltl = sltl.toBasicOperators();
+		sltl = sltl.pushNegation();
+
+		// Convert LTL formula to deterministic automaton, with Reach acceptance
+		LTL2WDBA ltl2wdba = new LTL2WDBA(this);
+		mainLog.println("\nBuilding deterministic finite automaton via LTL2WDBA construction (for " + sltl + ")...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("constructing DFA");
+		DA<BitSet, AcceptanceReach> dfa = ltl2wdba.cosafeltl2dfa(sltl);
+		timer.stop("DFA has " + dfa.size() + " states");
+
+		return dfa;
+	}
+
+	/**
 	 * Constructs a deterministic finite automaton (DFA) for the given syntactically co-safe
 	 * LTL formula, for use in reward computations for co-safe LTL.
 	 * <br>
@@ -376,6 +413,35 @@ public class LTLModelChecker extends PrismComponent
 		// Convert LTL formula to automaton
 		Vector<BitSet> labelBS = new Vector<BitSet>();
 		DA<BitSet,? extends AcceptanceOmega> da = constructDAForLTLFormula(mc, model, expr, labelBS, allowedAcceptance);
+
+		// Build product of model and automaton
+		mainLog.println("Constructing " + model.getModelType() + "-" + da.getAutomataType() + " product...");
+		StopWatch timer = new StopWatch(getLog());
+		timer.start("product construction");
+		LTLProduct<M> product = constructProductModel(da, model, labelBS, statesOfInterest);
+		timer.stop("product has " + product.getProductModel().infoString());
+
+		return product;
+	}
+	
+	/**
+	 * Generate a deterministic finite automaton (DFA) for the given syntactically co-safe LTL formula,
+	 * for use in probability computations for co-safe LTL, having first extracted maximal state formulas
+	 * and model checked them with the passed in model and model checker (see {@link #constructDFAForCosafetyProbLTL}.
+	 * Then construct the product of this automaton with the model.
+	 *
+	 * @param mc a ProbModelChecker, used for checking maximal state formulas
+	 * @param model the model
+	 * @param expr a path expression
+	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
+	 * @return the product with the DA
+	 * @throws PrismException
+	 */
+	public <M extends Model> LTLProduct<M> constructDFAProductForCosafetyProbLTL(ProbModelChecker mc, M model, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		// Convert LTL formula to DFA
+		Vector<BitSet> labelBS = new Vector<BitSet>();
+		DA<BitSet, AcceptanceReach> da = constructDFAForCosafetyProbLTL(mc, model, expr, labelBS);
 
 		// Build product of model and automaton
 		mainLog.println("Constructing " + model.getModelType() + "-" + da.getAutomataType() + " product...");
