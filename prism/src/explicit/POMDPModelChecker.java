@@ -41,7 +41,9 @@ import java.util.function.Function;
 import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MDPRewards;
+import explicit.rewards.Rewards;
 import explicit.rewards.StateRewardsSimple;
+import explicit.rewards.WeightedSumMDPRewards;
 import prism.Accuracy;
 import prism.AccuracyFactory;
 import prism.Pair;
@@ -507,6 +509,229 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = soln;
+		res.accuracy = resultAcc;
+		res.numIters = iters;
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Compute weighted multi-objective expected reachability rewards,
+	 * i.e. compute the min/max weighted multi-objective reward accumulated to reach a state in {@code target}.
+	 * @param pomdp The POMDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param min Min or max rewards (true=min, false=max)
+	 */
+	public ModelCheckerResult computeMultiReachRewards(POMDP pomdp, List<Double> weights, List<MDPRewards> mdpRewardsList, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
+	{
+		ModelCheckerResult res = null;
+		long timer;
+		
+		// Check we are only computing for a single state (and use initial state if unspecified)
+		if (statesOfInterest == null) {
+			statesOfInterest = new BitSet();
+			statesOfInterest.set(pomdp.getFirstInitialState());
+		} else if (statesOfInterest.cardinality() > 1) {
+			throw new PrismNotSupportedException("POMDPs can only be solved from a single start state");
+		}
+		
+		// Start expected reachability
+		timer = System.currentTimeMillis();
+		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
+
+		// Compute rewards
+		res = computeMultiReachRewardsFixedGrid(pomdp, weights, mdpRewardsList, target, min, statesOfInterest.nextSetBit(0));
+
+		// Finished expected reachability
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Expected reachability took " + timer / 1000.0 + " seconds.");
+
+		// Update time taken
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Compute weighted multi-objective expected reachability rewards using Lovejoy's fixed-resolution grid approach.
+	 * This only computes the weighted multi-objective expected reward from a single start state
+	 * @param pomdp The POMMDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param min Min or max rewards (true=min, false=max)
+	 * @param sInit State to compute for
+	 */
+	protected ModelCheckerResult computeMultiReachRewardsFixedGrid(POMDP pomdp, List<Double> weights, List<MDPRewards> mdpRewardsList, BitSet target, boolean min, int sInit) throws PrismException
+	{
+		// Start fixed-resolution grid approximation
+		long timer = System.currentTimeMillis();
+		mainLog.println("Starting fixed-resolution grid approximation (" + (min ? "min" : "max") + ")...");
+
+		// Find out the observations for the target states
+		BitSet targetObs = getObservationsMatchingStates(pomdp, target);;
+		if (targetObs == null) {
+			throw new PrismException("Target for expected reachability is not observable");
+		}
+		
+		// Find _some_ of the states with infinite reward
+		// (those from which *every* MDP strategy has prob<1 of reaching the target,
+		// and therefore so does every POMDP strategy)
+		MDPModelChecker mcProb1 = new MDPModelChecker(this);
+		BitSet inf = mcProb1.prob1(pomdp, null, target, false, null);
+		inf.flip(0, pomdp.getNumStates());
+		// Find observations for which all states are known to have inf reward
+		BitSet infObs = getObservationsCoveredByStates(pomdp, inf);
+		mainLog.println("target obs=" + targetObs.cardinality() + ", inf obs=" + infObs.cardinality());
+		
+		// Determine set of observations actually need to perform computation for
+		BitSet unknownObs = new BitSet();
+		unknownObs.set(0, pomdp.getNumObservations());
+		unknownObs.andNot(targetObs);
+		unknownObs.andNot(infObs);
+		
+		// Build a combined reward structure
+		int numRewards = weights.size();
+		WeightedSumMDPRewards mdpRewardsWeighted = new WeightedSumMDPRewards();
+		for (int i = 0; i < numRewards; i++) {
+			mdpRewardsWeighted.addRewards(weights.get(i), mdpRewardsList.get(i));
+		}
+		
+		// Initialise the grid points (just for unknown beliefs)
+		List<Belief> gridPoints = initialiseGridPoints(pomdp, unknownObs);
+		mainLog.println("Grid statistics: resolution=" + gridResolution + ", points=" + gridPoints.size());
+		// Construct grid belief "MDP"
+		mainLog.println("Building belief space approximation...");
+		List<BeliefMDPState> beliefMDP = buildBeliefMDP(pomdp, mdpRewardsWeighted, gridPoints);
+		
+		// Initialise hashmaps for storing values for the unknown belief states
+		HashMap<Belief, Double> vhash = new HashMap<>();
+		HashMap<Belief, Double> vhash_backUp = new HashMap<>();
+		for (Belief belief : gridPoints) {
+			vhash.put(belief, 0.0);
+			vhash_backUp.put(belief, 0.0);
+		}
+		// Define value function for the full set of belief states
+		Function<Belief, Double> values = belief -> approximateReachReward(belief, vhash_backUp, targetObs, infObs);
+		// Define value backup function
+		BeliefMDPBackUp backup = (belief, beliefState) -> approximateReachRewardBackup(belief, beliefState, values, min);
+		
+		// Start iterations
+		mainLog.println("Solving belief space approximation...");
+		long timer2 = System.currentTimeMillis();
+		int iters = 0;
+		boolean done = false;
+		while (!done && iters < maxIters) {
+			// Iterate over all (unknown) grid points
+			int unK = gridPoints.size();
+			for (int b = 0; b < unK; b++) {
+				Belief belief = gridPoints.get(b);
+				Pair<Double, Integer> valChoice = backup.apply(belief, beliefMDP.get(b));
+				vhash.put(belief, valChoice.first);
+			}
+			// Check termination
+			done = PrismUtils.doublesAreClose(vhash, vhash_backUp, termCritParam, termCrit == TermCrit.RELATIVE);
+			// back up	
+			Set<Map.Entry<Belief, Double>> entries = vhash.entrySet();
+			for (Map.Entry<Belief, Double> entry : entries) {
+				vhash_backUp.put(entry.getKey(), entry.getValue());
+			}
+			iters++;
+		}
+		// Non-convergence is an error (usually)
+		if (!done && errorOnNonConverge) {
+			String msg = "Iterative method did not converge within " + iters + " iterations.";
+			msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
+			throw new PrismException(msg);
+		}
+		timer2 = System.currentTimeMillis() - timer2;
+		mainLog.print("Belief space value iteration (" + (min ? "min" : "max") + ")");
+		mainLog.println(" took " + iters + " iterations and " + timer2 / 1000.0 + " seconds.");
+
+		// Extract (approximate) solution value for the initial belief
+		// Also get (approximate) accuracy of result from value iteration
+		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
+		double outerBound = values.apply(initialBelief);
+		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
+		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
+		// Print result
+		mainLog.println("Outer bound: " + outerBound + " (" + outerBoundAcc.toString(outerBound) + ")");
+		
+		// Build DTMC to get inner bound (and strategy)
+		mainLog.println("\nBuilding strategy-induced model...");
+		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, mdpRewardsWeighted, targetObs, unknownObs, backup);
+		MDP mdp = psm.mdp;
+		MDPRewards mdpRewardsWeightedNew = liftRewardsToStrategyModel(pomdp, mdpRewardsWeighted, psm);
+		List<MDPRewards> mdpRewardsListNew = new ArrayList<>();
+		for (MDPRewards mdpRewards : mdpRewardsList) {
+			mdpRewardsListNew.add(liftRewardsToStrategyModel(pomdp, mdpRewards, psm));
+		}
+		mainLog.print("Strategy-induced model: " + mdp.infoString());
+		
+		// Export strategy if requested
+		// NB: proper storage of strategy for genStrat not yet supported,
+		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		if (genStrat || exportAdv) {
+			// Export in Dot format if filename extension is .dot
+			if (exportAdvFilename.endsWith(".dot")) {
+				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
+				{
+					@Override
+					public Decoration decorateState(int state, Decoration d)
+					{
+						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
+						return d;
+					}
+				}));
+			}
+			// Otherwise use .tra format
+			else {
+				mdp.exportToPrismExplicitTra(exportAdvFilename);
+			}
+		}
+
+		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
+		MDPModelChecker mcMDP = new MDPModelChecker(this);
+		mcMDP.setExportAdv(false);
+		mcMDP.setGenStrat(false);
+		// Solve MDP to get inner bound
+		List<Double> point = new ArrayList<>();
+		ModelCheckerResult mcRes = mcMDP.computeReachRewards(mdp, mdpRewardsWeightedNew, mdp.getLabelStates("target"), true);
+		for (MDPRewards mdpRewards : mdpRewardsListNew) {
+			ModelCheckerResult mcResTmp = mcMDP.computeReachRewards(mdp, mdpRewards, mdp.getLabelStates("target"), true);
+			mainLog.println(mcResTmp.soln);
+			point.add(mcResTmp.soln[0]);
+		}
+		double innerBound = mcRes.soln[0];
+		Accuracy innerBoundAcc = mcRes.accuracy;
+		// Print result
+		String innerBoundStr = "" + innerBound;
+		if (innerBoundAcc != null) {
+			innerBoundStr += " (" + innerBoundAcc.toString(innerBound) + ")";
+		}
+		mainLog.println("Inner bound: " + innerBoundStr);
+
+		// Finished fixed-resolution grid approximation
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("\nFixed-resolution grid approximation (" + (min ? "min" : "max") + ")");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+
+		// Extract and store result
+		Pair<Double,Accuracy> resultValAndAcc;
+		if (min) {
+			resultValAndAcc = AccuracyFactory.valueAndAccuracyFromInterval(outerBound, outerBoundAcc, innerBound, innerBoundAcc);
+		} else {
+			resultValAndAcc = AccuracyFactory.valueAndAccuracyFromInterval(innerBound, innerBoundAcc, outerBound, outerBoundAcc);
+		}
+		double resultVal = resultValAndAcc.first;
+		Accuracy resultAcc = resultValAndAcc.second;
+		mainLog.println("Result bounds: [" + resultAcc.getResultLowerBound(resultVal) + "," + resultAcc.getResultUpperBound(resultVal) + "]");
+		Object solnObj[] = new Object[pomdp.getNumStates()];
+		solnObj[sInit] = point; //resultVal;
+
+		// Return results
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.solnObj = solnObj;
 		res.accuracy = resultAcc;
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;

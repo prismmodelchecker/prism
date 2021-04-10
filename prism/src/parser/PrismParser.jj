@@ -1406,7 +1406,59 @@ Expression ExpressionUnaryMinus(boolean prop, boolean pathprop) :
 	{ return ret; }
 }
 
-// Basic expression (top of operator precedence ordering)
+// (Property) expression: ATL strategy operators <<>> and [[]]
+
+Expression ExpressionStrategy(boolean prop, boolean pathprop) :
+{
+	ExpressionStrategy ret;
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	(
+	// <<...>> or [[...]]
+	(( begin = <DLT> { ret = new ExpressionStrategy(true); } ExpressionStrategyCoalition(ret) <DGT> )
+	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } ExpressionStrategyCoalition(ret) <DRBRACKET> ))
+	// Child expression - allow any expression here (parenthesised if necessary) at parse time;
+	// we will check for allowable combinations of expressions later
+	( expr = ExpressionBasic(prop, pathprop) )
+	{ ret.addOperand(expr); }
+	)
+	{
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
+}
+
+// Coalition (player list) for a strategy (<<>> or [[]]) operator
+
+void ExpressionStrategyCoalition(ExpressionStrategy exprStrat) :
+{
+	List<String> coalition = new ArrayList<String>();
+	String s;
+}
+{
+	( <TIMES> ) { exprStrat.setCoalitionAllPlayers();}
+	|
+	( s = ExpressionStrategyCoalitionPlayer() { coalition.add(s); }
+	( <COMMA> s = ExpressionStrategyCoalitionPlayer()  { coalition.add(s); } )* )?
+	{ exprStrat.setCoalition(coalition); }
+}
+
+// Single player in a coalition for a strategy (<<>> or [[]]) operator
+
+String ExpressionStrategyCoalitionPlayer() :
+{
+	String s;
+}
+{
+	( <REG_INT> | <REG_IDENT> ) { s = getToken(0).image; }
+	{ return s; }
+}
+
+// Basic expression/property (top of operator precedence ordering)
 
 Expression ExpressionBasic(boolean prop, boolean pathprop) :
 {
@@ -1555,10 +1607,6 @@ Expression ExpressionParenth(boolean prop, boolean pathprop) :
 	begin = <LPARENTH> expr = Expression(prop, pathprop) <RPARENTH>
 	{ ret = new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr); ret.setPosition(begin, getToken(0)); return ret;}
 }
-
-//-----------------------------------------------------------------------------------
-// Property stuff
-//-----------------------------------------------------------------------------------
 
 // (Property) expression: probabilistic operator P
 
@@ -1804,60 +1852,6 @@ Expression ExpressionForAll(boolean prop, boolean pathprop) :
 		ret.setPosition(begin, getToken(0));
 		return ret;
 	}
-}
-
-// (Property) expression: ATL strategy operators <<>> and [[]]
-
-Expression ExpressionStrategy(boolean prop, boolean pathprop) :
-{
-	ExpressionStrategy ret;
-	Expression expr;
-	Token begin = null;
-}
-{
-	// This production is only allowed in expressions if the "prop" parameter is true
-	{ if (!prop) throw generateParseException(); }
-	(
-	// <<...>> or [[...]]
-	(( begin = <DLT> { ret = new ExpressionStrategy(true); } ExpressionStrategyCoalition(ret) <DGT> )
-	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } ExpressionStrategyCoalition(ret) <DRBRACKET> ))
-	// Child expression
-	(
-	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop) )
-	{ ret.setSingleOperand(expr); }
-	| expr = ExpressionParenth(prop, pathprop)
-	{ ret.addOperand(expr); }
-	))
-	{
-		ret.setPosition(begin, getToken(0));
-		return ret;
-	}
-}
-
-// Coalition (player list) for a strategy (<<>> or [[]]) operator
-
-void ExpressionStrategyCoalition(ExpressionStrategy exprStrat) :
-{
-	List<String> coalition = new ArrayList<String>();
-	String s;
-}
-{
-	( <TIMES> ) { exprStrat.setCoalitionAllPlayers();}
-	|
-	( s = ExpressionStrategyCoalitionPlayer() { coalition.add(s); }
-	( <COMMA> s = ExpressionStrategyCoalitionPlayer()  { coalition.add(s); } )* )?
-	{ exprStrat.setCoalition(coalition); }
-}
-
-// Single player in a coalition for a strategy (<<>> or [[]]) operator
-
-String ExpressionStrategyCoalitionPlayer() :
-{
-	String s;
-}
-{
-	( <REG_INT> | <REG_IDENT> ) { s = getToken(0).image; }
-	{ return s; }
 }
 
 // (Property) expression: label (including "init")

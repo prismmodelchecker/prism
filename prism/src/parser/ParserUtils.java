@@ -62,6 +62,19 @@ public class ParserUtils
 	 * Also remove any parentheses.
 	 * @param expr Expression to split.
 	 * @param op Code of operator to split on (from ExpressionBinaryOp).
+	 */
+	public static List<Expression> splitOnBinaryOp(Expression expr, int op)
+	{
+		ArrayList<Expression> list = new ArrayList<Expression>();
+		splitOnBinaryOp(expr, op, list);
+		return list;
+	}
+	
+	/**
+	 * Split an expression into a list of its component expressions, based on a binary operator.
+	 * Also remove any parentheses.
+	 * @param expr Expression to split.
+	 * @param op Code of operator to split on (from ExpressionBinaryOp).
 	 * @param list Expression list in which to append resulting expressions.
 	 */
 	public static void splitOnBinaryOp(Expression expr, int op, List<Expression> list)

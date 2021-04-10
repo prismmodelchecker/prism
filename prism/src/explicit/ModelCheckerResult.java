@@ -37,6 +37,8 @@ public class ModelCheckerResult
 {
 	// Solution vector
 	public double[] soln = null;
+	// Solution vector (Objects)
+	public Object[] solnObj = null;
 	// Accuracy info
 	public Accuracy accuracy = null;
 	// Solution vector from previous iteration

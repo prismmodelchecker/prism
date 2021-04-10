@@ -27,6 +27,7 @@
 package explicit;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -35,8 +36,10 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import explicit.rewards.STPGRewards;
+import parser.ParserUtils;
 import parser.ast.Coalition;
 import parser.ast.Expression;
+import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.ExpressionSS;
@@ -53,6 +56,7 @@ import prism.OpRelOpBound;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
@@ -539,7 +543,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected StateValues checkExpressionStrategy(Model model, ExpressionStrategy expr, BitSet statesOfInterest) throws PrismException
 	{
 		// Only support <<>>/[[]] for MDPs right now
-		if (!(this instanceof MDPModelChecker))
+		if (!(this instanceof MDPModelChecker || this instanceof POMDPModelChecker))
 			throw new PrismNotSupportedException("The " + expr.getOperatorString() + " operator is only supported for MDPs currently");
 
 		// Will we be quantifying universally or existentially over strategies/adversaries?
@@ -571,12 +575,90 @@ public class ProbModelChecker extends NonProbModelChecker
 		else if (exprSub instanceof ExpressionReward) {
 			return checkExpressionReward(model, (ExpressionReward) exprSub, forAll, coalition, statesOfInterest);
 		}
-		// Anything else is an error 
+		// Anything else is treated as multi-objective 
 		else {
-			throw new PrismException("Unexpected operators in " + expr.getOperatorString() + " operator");
+			return checkExpressionMultiObj(model, exprSub, statesOfInterest);
 		}
 	}
 
+	/**
+	 * Model check a multi-objective property and return the values for the statesOfInterest.
+	 * * @param statesOfInterest the states of interest, see checkExpression()
+	 */
+	protected StateValues checkExpressionMultiObj(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
+	{
+		// Assume in form of weighted sum an extract accordingly
+		List<Double> weights = new ArrayList<>();
+		List<ExpressionReward> objs = new ArrayList<>();
+		List<Expression> summands = ParserUtils.splitOnBinaryOp(expr, ExpressionBinaryOp.PLUS);
+		for (Expression summand : summands) {
+			if (summand instanceof ExpressionBinaryOp && ((ExpressionBinaryOp) summand).getOperator() == ExpressionBinaryOp.TIMES) {
+				Expression weight = ((ExpressionBinaryOp) summand).getOperand1();
+				if (!weight.isConstant()) {
+					throw new PrismLangException("Non-constant weight in multi-objective property", weight);
+				}
+				if (TypeDouble.getInstance().canAssign(weight.getType())) {
+					weights.add(weight.evaluateDouble(constantValues));
+				} else {
+					throw new PrismLangException("Weights in multi-objective properties should be doubles", weight);
+				}
+				Expression obj = ((ExpressionBinaryOp) summand).getOperand2();
+				if (obj instanceof ExpressionReward) {
+					if (((ExpressionReward) obj).getReward() != null) {
+						throw new PrismLangException("Weighted multi-objective properties can only contain numerical reward properties", obj);
+					}
+					objs.add((ExpressionReward) obj);
+				} else {
+					throw new PrismLangException("Weighted multi-objective properties can only contain reward properties", obj);
+				}
+			} else {
+				throw new PrismLangException("Multi-objective property is not a weighted sum ", expr);
+			}
+		}
+		return checkExpressionWeightedMultiObj(model, weights, objs, statesOfInterest);
+	}
+	
+	/**
+	 * Model check a weighted sum multi-objective property and return the values for the statesOfInterest.
+	 * * @param statesOfInterest the states of interest, see checkExpression()
+	 */
+	protected StateValues checkExpressionWeightedMultiObj(Model model, List<Double> weights, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException
+	{
+		// Build rewards
+		// And recompute weights, negating if needed 
+		mainLog.println("Building reward structure...");
+		int numRewards = weights.size();
+		List<Double> weightsNew = new ArrayList<>();
+		List<MDPRewards> mdpRewardsList = new ArrayList<>();
+		for (int i = 0; i < numRewards; i++) {
+			int r = objs.get(i).getRewardStructIndexByIndexObject(rewardGen, constantValues);
+			mdpRewardsList.add((MDPRewards) constructRewards(model, r));
+			if (objs.get(i).getRelopBoundInfo(constantValues).getMinMax(model.getModelType(), false).isMin()) {
+				weightsNew.add(-1.0 * weights.get(i));
+			} else {
+				weightsNew.add(weights.get(i));
+			}
+		}
+		
+		// Model check the target
+		// TODO: Check all targets are the same for all R props
+		ExpressionTemporal exprTemp = (ExpressionTemporal) objs.get(0).getExpression();
+		BitSet target = checkExpression(model, exprTemp.getOperand2(), null).getBitSet();
+		
+		// Compute/return the rewards
+		ModelCheckerResult res = null;
+		switch (model.getModelType()) {
+		case POMDP:
+			res = ((POMDPModelChecker) this).computeMultiReachRewards((POMDP) model, weightsNew, mdpRewardsList, target, false, statesOfInterest);
+			break;
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + exprTemp.getOperatorSymbol() + " reward operator for " + model.getModelType()
+					+ "s");
+		}
+		result.setStrategy(res.strat);
+		return StateValues.createFromObjectArray(TypeDouble.getInstance(), res.solnObj, model);
+	}
+	
 	/**
 	 * Model check a P operator expression and return the values for the statesOfInterest.
  	 * @param statesOfInterest the states of interest, see checkExpression()
