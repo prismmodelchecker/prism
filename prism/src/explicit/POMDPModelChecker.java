@@ -84,13 +84,13 @@ public class POMDPModelChecker extends ProbModelChecker
 	/**
 	 * A model constructed to represent a fragment of a belief MDP induced by a strategy:
 	 * (1) the model (represented as an MDP for ease of storing actions labels)
-	 * (2) optionally, a reward structure
+	 * (2) the indices of the choices made by the strategy in states of the original POMDP
 	 * (3) a list of the beliefs corresponding to each state of the model
 	 */
 	class POMDPStrategyModel
 	{
 		public MDP mdp;
-		public MDPRewards mdpRewards;
+		public List<Integer> strat;
 		public List<Belief> beliefs;
 	}
 	
@@ -446,7 +446,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		mainLog.println("\nBuilding strategy-induced model...");
 		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, mdpRewards, targetObs, unknownObs, backup);
 		MDP mdp = psm.mdp;
-		MDPRewards mdpRewardsNew = psm.mdpRewards;
+		MDPRewards mdpRewardsNew = liftRewardsToStrategyModel(pomdp, mdpRewards, psm);
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
 		
 		// Export strategy if requested
@@ -765,12 +765,12 @@ public class POMDPModelChecker extends ProbModelChecker
 	 */
 	protected POMDPStrategyModel buildStrategyModel(POMDP pomdp, int sInit, MDPRewards mdpRewards, BitSet targetObs, BitSet unknownObs, BeliefMDPBackUp backup) throws PrismException
 	{
-		// Initialise model/state/rewards storage
+		// Initialise model/strat/state storage
 		MDPSimple mdp = new MDPSimple();
+		List<Integer> strat = new ArrayList<>();
 		IndexedSet<Belief> exploredBeliefs = new IndexedSet<>(true);
 		LinkedList<Belief> toBeExploredBeliefs = new LinkedList<>();
 		BitSet mdpTarget = new BitSet();
-		StateRewardsSimple stateRewards = new StateRewardsSimple();
 		// Add initial state
 		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
 		exploredBeliefs.add(initialBelief);
@@ -807,16 +807,13 @@ public class POMDPModelChecker extends ProbModelChecker
 					int dest = exploredBeliefs.getIndexOfLastAdd();
 					distr.add(dest, nextBeliefProb);
 				}
-				// Add transition distribution, with choice _index_ encoded as action
+				// Add transition distribution, with optimal choice action attached
 				mdp.addActionLabelledChoice(src, distr, pomdp.getActionForObservation(belief.so, chosenActionIndex));
-				// Store reward too, if needed
-				if (mdpRewards != null) {
-					stateRewards.setStateReward(src, pomdp.getRewardAfterChoice(belief, chosenActionIndex, mdpRewards));
-				} else {
-					stateRewards.setStateReward(src, 0.0);
-				}
+				// Also remember the optimal choice index for later use
+				strat.add(chosenActionIndex);
 			} else {
-				stateRewards.setStateReward(src, 0.0);
+				// No transition so store dummy choice index
+				strat.add(-1);
 			}
 		}
 		// Add deadlocks to unexplored (known-value) states
@@ -826,10 +823,29 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Return
 		POMDPStrategyModel psm = new POMDPStrategyModel();
 		psm.mdp = mdp;
-		psm.mdpRewards = stateRewards;
+		psm.strat = strat;
 		psm.beliefs = new ArrayList<>();
 		psm.beliefs.addAll(exploredBeliefs.toArrayList());
 		return psm;
+	}
+	
+	/**
+	 * Construct a reward structure for the model representing the fragment of the belief MDP
+	 * that is induced by an optimal strategy, from a reward structure for the original POMDP.
+	 */
+	MDPRewards liftRewardsToStrategyModel(POMDP pomdp, MDPRewards mdpRewards, POMDPStrategyModel psm)
+	{
+		// Markov chain so just store as state rewards
+		StateRewardsSimple stateRewards = new StateRewardsSimple();
+		int numStates = psm.mdp.getNumStates();
+		for (int s = 0; s < numStates; s++) {
+			Belief belief = psm.beliefs.get(s);
+			int ch = psm.strat.get(s);
+			// Zero reward if no transitions; otherwise compute from belief
+			double rew = ch == -1 ? 0.0 : pomdp.getRewardAfterChoice(belief, ch, mdpRewards);
+			stateRewards.setStateReward(s, rew);
+		}
+		return stateRewards;
 	}
 	
 	protected ArrayList<ArrayList<Integer>> assignGPrime(int startIndex, int min, int max, int length)
