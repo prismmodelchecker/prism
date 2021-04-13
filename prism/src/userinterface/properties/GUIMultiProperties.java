@@ -658,7 +658,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		// plotResults: enabled if exactly one experiment is selected and its type is int/double
 		if (experiments.getSelectedRowCount() == 1) {
 			GUIExperiment exp = experiments.getExperiment(experiments.getSelectedRow());
-			Type type = exp.getPropertyType();
+			Type type = exp.getExpressionType();
 			plotResults.setEnabled(type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval);
 		} else {
 			plotResults.setEnabled(false);
@@ -1199,7 +1199,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			return;
 		exp = experiments.getExperiment(experiments.getSelectedRow());
 		// check its type
-		type = exp.getPropertyType();
+		type = exp.getExpressionType();
 		if (!(type instanceof TypeInt || type instanceof TypeDouble || type instanceof TypeInterval)) {
 			message("Can only plot results if the property is of type int or double");
 			return;
