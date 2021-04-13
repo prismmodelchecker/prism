@@ -28,17 +28,13 @@ package prism;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import javax.swing.SwingUtilities;
 
 import common.StackTraceHelper;
 import parser.Values;
@@ -61,7 +57,6 @@ import simulator.method.CIiterations;
 import simulator.method.CIwidth;
 import simulator.method.SPRTMethod;
 import simulator.method.SimulationMethod;
-import userinterface.util.GUIComputationEvent;
 
 // prism - command line version
 
@@ -92,7 +87,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportmecs = false;
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
-	private String exportResultsFormat = "plain";
+	private ResultsExportFormat exportFormat = ResultsExportFormat.PLAIN;
 	private boolean exportvector = false;
 	private boolean exportPlainDeprecated = false;
 	private boolean exportModelNoBasename = false;
@@ -514,40 +509,26 @@ public class PrismCL implements PrismModelListener
 
 		// export results (if required)
 		if (exportresults) {
-			ResultsExporter exporter = new ResultsExporter(exportResultsFormat, "string");
 			mainLog.print("\nExporting results " + (exportresultsmatrix ? "in matrix form " : ""));
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
-//			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
-//			if (!tmpLog.ready()) {
-//				tmpLog.close();
-//				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
-//			}
-			File file = new File(exportResultsFilename);
-			try(PrintWriter out = new PrintWriter(new FileWriter(file))) {
-				for (i = 0; i < numPropertiesToCheck; i++) {
-					if (i > 0)
-						out.println();
-					if (numPropertiesToCheck > 1) {
-						if (!exportresultsmatrix) {
-							exporter.setProperty(propertiesToCheck.get(i));
-						} else {
-							if (exporter.getFormat() == ResultsExportFormat.CSV) {
-								out.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\"\"") + "\"\n");
-							} else {
-								out.print(propertiesToCheck.get(i) + ":\n");
-							}
-						}
-					}
-					if (!exportresultsmatrix) {
-						out.println(results[i].export(exporter).getExportString());
-					} else {
-						String sep = exporter.getFormat() == ResultsExportFormat.PLAIN ? "\t" : ", ";
-						out.println(results[i].toStringMatrix(sep));
-					}
+
+			try {
+				PrintWriter out;
+				if (exportResultsFilename.equals("stdout")) {
+					out = new PrintWriter(System.out);
+					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportresultsmatrix);
+					// Do not close System.out !
+				} else {
+					out = new PrintWriter(exportResultsFilename);
+					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportresultsmatrix);
+					out.close();
 				}
-				out.flush();
-			} catch (Exception saveError) {
-				errorAndExit("Could not export results: " + saveError.getMessage());
+				if (out.checkError()) {
+					// PrintWriter hides exceptions in print methods and close()
+					errorAndExit("Could not export results: unknown IO exception");
+				}
+			} catch (FileNotFoundException e) {
+				errorAndExit("Could not export results: " + e.getMessage());
 			}
 		}
 		// close down
@@ -1389,15 +1370,15 @@ public class PrismCL implements PrismModelListener
 						}
 						exportResultsFilename = halves[0];
 						String ss[] = halves[1].split(",");
-						exportResultsFormat = "plain";
+						exportFormat = ResultsExportFormat.PLAIN;
 						for (j = 0; j < ss.length; j++) {
 							if (ss[j].equals("")) {
 							} else if (ss[j].equals("csv"))
-								exportResultsFormat = "csv";
+								exportFormat = ResultsExportFormat.CSV;
 							else if (ss[j].equals("matrix"))
 								exportresultsmatrix = true;
 							else if (ss[j].equals("comment"))
-								exportResultsFormat = "comment";
+								exportFormat = ResultsExportFormat.COMMENT;
 							else
 								errorAndExit("Unknown option \"" + ss[j] + "\" for -" + sw + " switch");
 						}

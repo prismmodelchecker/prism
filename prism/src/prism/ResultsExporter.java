@@ -26,6 +26,7 @@
 
 package prism;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 import parser.Values;
@@ -38,6 +39,7 @@ public class ResultsExporter
 {
 	// Formats for export
 	public enum ResultsExportFormat {
+		
 		PLAIN, CSV, COMMENT;
 		public String fullName()
 		{
@@ -106,6 +108,42 @@ public class ResultsExporter
 	private ResultsExportDestination destination = ResultsExportDestination.STRING;
 
 	private String exportString = "";
+
+	/**
+	 * Print multiple results to a text-output stream.
+	 * Results and properties are associated by their list indices.
+	 *  
+	 * @param properties list of properties associated with the results
+	 * @param results list of results to print
+	 * @param out target text-output stream
+	 * @param format export format
+	 * @param exportMatrix export as matrix
+	 */
+	public static void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out, ResultsExportFormat format, boolean exportMatrix)
+	{
+		ResultsExportDestination destination = ResultsExportDestination.STRING;
+		ResultsExporter exporter = new ResultsExporter(format, destination);
+		int n = results.size();
+		for (int i = 0; i < n; i++) {
+			if (i > 0)
+				out.println();
+			if (n > 1) {
+				exporter.setProperty(properties.get(i));
+				if (exportMatrix) {
+					// Print property manually as we do not use the exporter for matrix format 
+					out.print(exporter.printPropertyHeader());
+				} 
+			}
+			if (exportMatrix) {
+				// Select separator manually as we do not use the exporter for matrix format
+				String sep = exporter.getFormat() == ResultsExportFormat.PLAIN ? "\t" : ", ";
+				out.println(results.get(i).toStringMatrix(sep));
+			} else {
+				out.println(results.get(i).export(exporter).getExportString());
+			}
+		}
+		out.flush();
+	}
 
 	// Methods to create and set up a ResultsExporter  
 	
@@ -210,21 +248,7 @@ public class ResultsExporter
 		// Reset output string
 		exportString = "";
 		// Prepend property, if present
-		if (property != null) {
-			switch (format) {
-			case PLAIN:
-				exportString += property.toString() + ":\n";
-				break;
-			case CSV:
-				exportString += "\"" + property.toString().replaceAll("\"", "\"\"") + "\"\n";
-				break;
-			case COMMENT:
-				// None - it's printed at the the end in this case
-				break;
-			default:
-				break;
-			}
-		}
+		exportString += printPropertyHeader();
 		// Print header, if needed
 		if (printHeader && rangingConstants != null) {
 			String namesString = "";
@@ -235,6 +259,24 @@ public class ResultsExporter
 				namesString += rangingConstants.get(i).getName();
 			}
 			exportString += namesString + (namesString.length() > 0 ? equals : "") + "Result\n";
+		}
+	}
+
+	public String printPropertyHeader()
+	{
+		if (property == null) {
+			return "";
+		}
+		switch (format) {
+		case PLAIN:
+			return property.toString() + ":\n";
+		case CSV:
+			// Quote property string as it may contain commas (,) and escape double quotes (").
+			return "\"" + property.toString().replaceAll("\"", "\"\"") + "\"\n";
+		case COMMENT:
+			// None - it's printed at the the end in this case
+		default:
+			return "";
 		}
 	}
 
