@@ -81,7 +81,8 @@ public class ExportResultsThread extends Thread
 					out.println();
 				if (n > 1) {
 					if (sep.equals(", "))
-						out.print("\"" + exps[i].getPropertyString() + ":\"\n");
+						// Quote property string as it may contain commas (,) and escape double quotes (").
+						out.print("\"" + exps[i].getPropertyString().replaceAll("\"", "\"\"") + ":\"\n");
 					else
 						out.print(exps[i].getPropertyString() + ":\n");
 				}
