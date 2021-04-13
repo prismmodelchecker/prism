@@ -37,7 +37,6 @@ public class ExportResultsThread extends Thread
 	private GUIMultiProperties parent;
 	private GUIExperiment exps[];
 	private File file;
-	private Exception saveError;
 	private boolean exportMatrix; // export in matrix form?
 	private String sep; // string separating items
 	
@@ -94,7 +93,7 @@ public class ExportResultsThread extends Thread
 			}
 			out.flush();
 		}
-		catch (Exception e) {
+		catch (Exception saveError) {
 			SwingUtilities.invokeLater(new Runnable()
 			{
 				public void run()
