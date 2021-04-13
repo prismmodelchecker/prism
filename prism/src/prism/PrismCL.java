@@ -514,6 +514,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
 			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
 			if (!tmpLog.ready()) {
+				tmpLog.close();
 				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
 			}
 			for (i = 0; i < numPropertiesToCheck; i++) {
