@@ -36,38 +36,29 @@ public class ExportResultsThread extends Thread
 {
 	private GUIMultiProperties parent;
 	private GUIExperiment exps[];
-	private File f;
+	private File file;
 	private Exception saveError;
 	private boolean exportMatrix; // export in matrix form?
 	private String sep; // string separating items
 	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File f)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File file)
 	{
-		this.parent = parent;
-		this.exps = new GUIExperiment[1];
-		this.exps[0] = exp;
-		this.f = f;
-		this.exportMatrix = false;
-		this.sep = " ";
+		this(parent, new GUIExperiment[] {exp}, file );
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file)
 	{
-		this.parent = parent;
-		this.exps = exps;
-		this.f = f;
-		this.exportMatrix = false;
-		this.sep = " ";
+		this(parent, exps, file, false, " ");
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f, boolean exportMatrix, String sep)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file, boolean exportMatrix, String sep)
 	{
 		this.parent = parent;
 		this.exps = exps;
-		this.f = f;
+		this.file = file;
 		this.exportMatrix = exportMatrix;
 		this.sep = sep;
 	}
@@ -84,11 +75,9 @@ public class ExportResultsThread extends Thread
 			}
 		});
 		
-		try(PrintWriter out = new PrintWriter(new FileWriter(f))) {
-			int i, n;
-			
-			n = exps.length;
-			for (i = 0; i < n; i++) {
+		try(PrintWriter out = new PrintWriter(new FileWriter(file))) {
+			int n = exps.length;
+			for (int i = 0; i < n; i++) {
 				if (i > 0)
 					out.println();
 				if (n > 1) {
