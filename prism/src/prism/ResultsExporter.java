@@ -127,6 +127,11 @@ public class ResultsExporter
 		setDestinationByName(destinationName);
 	}
 
+	public ResultsExportFormat getFormat()
+	{
+		return format;
+	}
+
 	public void setFormat(ResultsExportFormat format)
 	{
 		this.format = format;

@@ -28,6 +28,7 @@ package prism;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -37,6 +38,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.SwingUtilities;
+
 import common.StackTraceHelper;
 import parser.Values;
 import parser.ast.Expression;
@@ -45,6 +48,7 @@ import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import prism.Prism.StrategyExportType;
+import prism.ResultsExporter.ResultsExportFormat;
 import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
@@ -57,6 +61,7 @@ import simulator.method.CIiterations;
 import simulator.method.CIwidth;
 import simulator.method.SPRTMethod;
 import simulator.method.SimulationMethod;
+import userinterface.util.GUIComputationEvent;
 
 // prism - command line version
 
@@ -512,35 +517,39 @@ public class PrismCL implements PrismModelListener
 			ResultsExporter exporter = new ResultsExporter(exportResultsFormat, "string");
 			mainLog.print("\nExporting results " + (exportresultsmatrix ? "in matrix form " : ""));
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
-			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
-			if (!tmpLog.ready()) {
-				tmpLog.close();
-				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
-			}
-			for (i = 0; i < numPropertiesToCheck; i++) {
-				if (i > 0)
-					tmpLog.println();
-				if (numPropertiesToCheck > 1) {
-					if (!exportresultsmatrix) {
-						exporter.setProperty(propertiesToCheck.get(i));
-					} else {
-						if (exportResultsFormat.equalsIgnoreCase("csv")) {
-							tmpLog.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\"\"") + "\"\n");
+//			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
+//			if (!tmpLog.ready()) {
+//				tmpLog.close();
+//				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
+//			}
+			File file = new File(exportResultsFilename);
+			try(PrintWriter out = new PrintWriter(new FileWriter(file))) {
+				for (i = 0; i < numPropertiesToCheck; i++) {
+					if (i > 0)
+						out.println();
+					if (numPropertiesToCheck > 1) {
+						if (!exportresultsmatrix) {
+							exporter.setProperty(propertiesToCheck.get(i));
 						} else {
-							tmpLog.print(propertiesToCheck.get(i) + ":\n");
+							if (exporter.getFormat() == ResultsExportFormat.CSV) {
+								out.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\"\"") + "\"\n");
+							} else {
+								out.print(propertiesToCheck.get(i) + ":\n");
+							}
 						}
 					}
+					if (!exportresultsmatrix) {
+						out.println(results[i].export(exporter).getExportString());
+					} else {
+						String sep = exporter.getFormat() == ResultsExportFormat.PLAIN ? "\t" : ", ";
+						out.println(results[i].toStringMatrix(sep));
+					}
 				}
-				if (!exportresultsmatrix) {
-					tmpLog.println(results[i].export(exporter).getExportString());
-				} else {
-					String sep = exportResultsFormat.equals("plain") ? "\t" : ", ";
-					tmpLog.println(results[i].toStringMatrix(sep));
-				}
+				out.flush();
+			} catch (Exception saveError) {
+				errorAndExit("Could not export results: " + saveError.getMessage());
 			}
-			tmpLog.close();
 		}
-
 		// close down
 		closeDown();
 	}
