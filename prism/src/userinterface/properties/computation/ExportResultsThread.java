@@ -82,9 +82,9 @@ public class ExportResultsThread extends Thread
 				if (n > 1) {
 					if (sep.equals(", "))
 						// Quote property string as it may contain commas (,) and escape double quotes (").
-						out.print("\"" + exps[i].getExpressionString().replaceAll("\"", "\"\"") + ":\"\n");
+						out.print("\"" + exps[i].getProperty().toString().replaceAll("\"", "\"\"") + ":\"\n");
 					else
-						out.print(exps[i].getExpressionString() + ":\n");
+						out.print(exps[i].getProperty().toString() + ":\n");
 				}
 				if (!exportMatrix) {
 					out.println(exps[i].getResults().toString(false, sep, sep));
