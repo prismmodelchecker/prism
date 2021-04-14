@@ -87,14 +87,16 @@ public class ExportResultsThread extends Thread
 		List<ResultsCollection> results = Arrays.stream(exps).map(GUIExperiment::getResults).collect(Collectors.toList());
 
 		String error = null;
-		try(PrintWriter out = new PrintWriter(file)) {
+		try {
+			file.createNewFile(); // create file if not already present
+			PrintWriter out = new PrintWriter(file);
 			ResultsExporter.printResults(results, properties, out, exportFormat, exportMatrix);
 			out.close();
 			if (out.checkError()) {
 				// PrintWriter hides exceptions in print methods and close()
 				error = "Could not export results: unknown IO exception";
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			error = "Could not export results: " + e.getMessage();
 		}
 		if (error != null) {
