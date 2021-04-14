@@ -54,21 +54,6 @@ public class ResultsExporter
 				return this.toString();
 			}
 		}
-
-		public static ResultsExportFormat parse(String formatName)
-		{
-			switch (formatName) {
-			case "plain":
-				return ResultsExportFormat.PLAIN;
-			case "csv":
-				return ResultsExportFormat.CSV;
-			case "comment":
-				return ResultsExportFormat.COMMENT;
-			default:
-				// Default to plain if unknown format
-				return ResultsExportFormat.PLAIN;
-			}
-		}
 	};
 
 	// Possible destinations for export
@@ -81,16 +66,6 @@ public class ResultsExporter
 				return "string";
 			default:
 				return this.toString();
-			}
-		}
-		public static ResultsExportDestination parse(String formatName)
-		{
-			switch (formatName) {
-			case "string":
-				return ResultsExportDestination.STRING;
-			default:
-				// Default to string if unknown format
-				return ResultsExportDestination.STRING;
 			}
 		}
 	};
@@ -159,12 +134,6 @@ public class ResultsExporter
 		setDestination(destination);
 	}
 
-	public ResultsExporter(String formatName, String destinationName)
-	{
-		setFormatByName(formatName);
-		setDestinationByName(destinationName);
-	}
-
 	public ResultsExportFormat getFormat()
 	{
 		return format;
@@ -191,28 +160,10 @@ public class ResultsExporter
 		}
 	}
 
-	public void setFormatByName(String formatName)
-	{
-		setFormat(ResultsExportFormat.parse(formatName));
-	}
-
 	public void setDestination(ResultsExportDestination destination)
 	{
 		this.destination = destination;
 	}
-	
-	public void setDestinationByName(String destinationName)
-	{
-		setDestination(ResultsExportDestination.parse(destinationName));
-	}
-
-	/*public void setCustomFormat(boolean printHeader, boolean printNames, String separator, String equals)
-	{
-		this.printHeader = printHeader;
-		this.printNames = printNames;
-		this.separator = separator;
-		this.equals = equals;
-	}*/
 
 	public void setRangingConstants(final List<DefinedConstant> rangingConstants)
 	{
@@ -288,7 +239,7 @@ public class ResultsExporter
 		switch (format) {
 		case PLAIN:
 		case CSV:
-			String valuesString = values.toString(printNames, separator); 
+			String valuesString = values.toString(printNames, separator);
 			exportString += valuesString + (valuesString.length() > 0 ? equals : "") + result + "\n";
 			break;
 		case COMMENT:
