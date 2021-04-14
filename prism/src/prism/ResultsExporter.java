@@ -236,22 +236,25 @@ public class ResultsExporter
 
 	public String printPropertyHeader()
 	{
-		if (property == null) {
-			return "";
+		if (property != null) {
+			switch (format) {
+			case LIST_PLAIN:
+			case MATRIX_PLAIN:
+				return property.toString() + ":\n";
+			case LIST_CSV:
+			case MATRIX_CSV:
+				return quoteCsvData(property.toString()) + "\n";
+			default:
+				// None - it's printed at the the end for comment format
+			}
 		}
-		switch (format) {
-		case LIST_PLAIN:
-		case MATRIX_PLAIN:
-			return property.toString() + ":\n";
-		case LIST_CSV:
-		case MATRIX_CSV:
-			// Quote property string as it may contain commas (,) and escape double quotes (").
-			return "\"" + property.toString().replaceAll("\"", "\"\"") + "\"\n";
-		case COMMENT:
-			// None - it's printed at the the end in this case
-		default:
-			return "";
-		}
+		return "";
+	}
+
+	protected String quoteCsvData(String data)
+	{
+		// Quote property string as it may contain commas (,) and escape double quotes (").
+		return "\"" +data.replaceAll("\"", "\"\"") + "\"";
 	}
 
 	/**
