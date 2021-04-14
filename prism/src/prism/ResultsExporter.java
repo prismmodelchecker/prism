@@ -3,6 +3,7 @@
 //	Copyright (c) 2015-
 //	Authors:
 //	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Steffen Märcker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -33,186 +34,108 @@ import parser.Values;
 import parser.ast.Property;
 
 /**
- * Class to export the results of model checking in various formats.
+ * Class to export the results of model checking in various shapes and formats.
  */
-public class ResultsExporter
+public abstract class ResultsExporter
 {
-	// Formats for export
-	public enum ResultsExportFormat {
-		
-		PLAIN, CSV, COMMENT;
-		public String fullName()
-		{
-			switch (this) {
-			case PLAIN:
-				return "plain text";
-			case CSV:
-				return "CSV";
-			case COMMENT:
-				return "comment";
-			default:
-				return this.toString();
+	/**
+	 * Legal combinations of export shapes and formats.
+	 * A shape defines how the data is arranged, e.g., as list or matrix.
+	 * Most shapes can be written to an output in different formats, e.g., as plain text or CSV.
+	 * Some shapes have an implicit format, e.g., comments.
+	 */
+	public enum ResultsExportShape
+	{
+		LIST_PLAIN ("list (plain text)", false, false) {
+			public ResultsExporter getExporter() {
+				return new ResultsExporterList(ExportFormat.PLAIN);
 			}
+		},
+		LIST_CSV("list (CSV)", false, true) {
+			public ResultsExporter getExporter() {
+				return new ResultsExporterList(ExportFormat.CSV);
+			}
+		},
+		MATRIX_PLAIN("matrix (plain text)", true, false) {
+			public ResultsExporter getExporter() {
+				return new ResultsExporterMatrix(ExportFormat.PLAIN);
+			}
+		},
+		MATRIX_CSV("matrix (CSV)", true, true) {
+			public ResultsExporter getExporter() {
+				return new ResultsExporterMatrix(ExportFormat.CSV);
+			}
+		},
+		COMMENT("comment", false, false) {
+			public ResultsExporter getExporter() {
+				return new ResultsExporterComment();
+			}
+		};
+
+		public final String fullName;
+		public final boolean isMatrix;
+		public final boolean isCSV;
+
+		ResultsExportShape(String fullName, boolean isMatrix, boolean isCSV)
+		{
+			this.fullName = fullName;
+			this.isMatrix = isMatrix;
+			this.isCSV = isCSV;
 		}
 
-		public static ResultsExportFormat parse(String formatName)
-		{
-			switch (formatName) {
-			case "plain":
-				return ResultsExportFormat.PLAIN;
-			case "csv":
-				return ResultsExportFormat.CSV;
-			case "comment":
-				return ResultsExportFormat.COMMENT;
-			default:
-				// Default to plain if unknown format
-				return ResultsExportFormat.PLAIN;
-			}
-		}
-	};
-
-	// Possible destinations for export
-	public enum ResultsExportDestination {
-		STRING;
-		public String fullName()
-		{
-			switch (this) {
-			case STRING:
-				return "string";
-			default:
-				return this.toString();
-			}
-		}
-		public static ResultsExportDestination parse(String formatName)
-		{
-			switch (formatName) {
-			case "string":
-				return ResultsExportDestination.STRING;
-			default:
-				// Default to string if unknown format
-				return ResultsExportDestination.STRING;
-			}
-		}
-	};
-
-	private List<DefinedConstant> rangingConstants;
-	private Values nonRangingConstantValues;
-	private Property property;
-	private ResultsExportFormat format = ResultsExportFormat.PLAIN;
-
-	private boolean printHeader;
-	private boolean printNames;
-	private String separator;
-	private String equals;
-
-	private ResultsExportDestination destination = ResultsExportDestination.STRING;
-
-	private String exportString = "";
+		public abstract ResultsExporter getExporter();
+	}
 
 	/**
-	 * Print multiple results to a text-output stream.
-	 * Results and properties are associated by their list indices.
-	 *  
-	 * @param properties list of properties associated with the results
-	 * @param results list of results to print
-	 * @param out target text-output stream
-	 * @param format export format
-	 * @param exportMatrix export as matrix
+	 * An export format defines how data is written to an output.
 	 */
-	public static void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out, ResultsExportFormat format, boolean exportMatrix)
-	{
-		ResultsExportDestination destination = ResultsExportDestination.STRING;
-		ResultsExporter exporter = new ResultsExporter(format, destination);
-		int n = results.size();
-		for (int i = 0; i < n; i++) {
-			if (i > 0)
-				out.println();
-			if (n > 1) {
-				exporter.setProperty(properties.get(i));
-				if (exportMatrix) {
-					// Print property manually as we do not use the exporter for matrix format 
-					out.print(exporter.printPropertyHeader());
-				} 
+	public enum ExportFormat {
+		PLAIN("\t")
+		{
+			public String quote(String s)
+			{
+				// Nothing to quote
+				return s;
 			}
-			if (exportMatrix) {
-				// Select separator manually as we do not use the exporter for matrix format
-				String sep = exporter.getFormat() == ResultsExportFormat.PLAIN ? "\t" : ", ";
-				out.println(results.get(i).toStringMatrix(sep));
-			} else {
-				out.println(results.get(i).export(exporter).getExportString());
+
+			public String printHeader(String s)
+			{
+				return s + ":";
 			}
+		},
+		CSV(", ")
+		{
+			public String quote(String s)
+			{
+				// Quote and escape double quotes (").
+				return "\"" + s.replaceAll("\"", "\"\"") + "\"";
+			}
+
+			public String printHeader(String s)
+			{
+				return quote(s);
+			}
+		};
+	
+		public final String separator;
+	
+		ExportFormat(String separator)
+		{
+			this.separator = separator;
 		}
-		out.flush();
+	
+		public abstract String quote(String s);
+
+		public abstract String printHeader(String s);
 	}
+
+	protected List<DefinedConstant> rangingConstants;
+	protected Values nonRangingConstantValues;
+	protected PrintWriter target;
+	protected Property property;
+	protected boolean printProperty;
 
 	// Methods to create and set up a ResultsExporter  
-	
-	public ResultsExporter()
-	{
-		setFormat(ResultsExportFormat.PLAIN);
-		setDestination(ResultsExportDestination.STRING);
-	}
-
-	public ResultsExporter(ResultsExportFormat format, ResultsExportDestination destination)
-	{
-		setFormat(format);
-		setDestination(destination);
-	}
-
-	public ResultsExporter(String formatName, String destinationName)
-	{
-		setFormatByName(formatName);
-		setDestinationByName(destinationName);
-	}
-
-	public ResultsExportFormat getFormat()
-	{
-		return format;
-	}
-
-	public void setFormat(ResultsExportFormat format)
-	{
-		this.format = format;
-		switch (format) {
-		case PLAIN:
-			printHeader = true;
-			printNames = false;
-			separator = "\t";
-			equals = "\t";
-			break;
-		case CSV:
-			printHeader = true;
-			printNames = false;
-			separator = ", ";
-			equals = ", ";
-			break;
-		default:
-			break;
-		}
-	}
-
-	public void setFormatByName(String formatName)
-	{
-		setFormat(ResultsExportFormat.parse(formatName));
-	}
-
-	public void setDestination(ResultsExportDestination destination)
-	{
-		this.destination = destination;
-	}
-	
-	public void setDestinationByName(String destinationName)
-	{
-		setDestination(ResultsExportDestination.parse(destinationName));
-	}
-
-	/*public void setCustomFormat(boolean printHeader, boolean printNames, String separator, String equals)
-	{
-		this.printHeader = printHeader;
-		this.printNames = printNames;
-		this.separator = separator;
-		this.equals = equals;
-	}*/
 
 	public void setRangingConstants(final List<DefinedConstant> rangingConstants)
 	{
@@ -224,97 +147,201 @@ public class ResultsExporter
 		this.nonRangingConstantValues = nonRangingConstantValues;
 	}
 
-	public void setProperty(final Property property)
+	/**
+	 * Print multiple results to a text-output stream.
+	 * Results and properties are associated by their list indices.
+	 *  
+	 * @param results list of results to print
+	 * @param properties list of properties associated with the results
+	 * @param out target text-output stream
+	 */
+	public void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out)
 	{
-		this.property = property;
+		int n = results.size();
+		// print property before results
+		printProperty = n > 1;
+		for (int i = 0; i < n; i++) {
+			property = properties.get(i);
+			if (i > 0) {
+				printCollectionSeparator(out);
+			}
+			exportResultsCollection(results.get(i), out);
+		}
+		out.flush();
 	}
 
 	/**
-	 * Get the exported results as a string (if the destination was specified to be a string).
+	 * Print a separator between subsequent results collections
+	 * @param out
 	 */
-	public String getExportString()
+	protected void printCollectionSeparator(PrintWriter out)
 	{
-		return exportString;
+		// print separator
+		out.println();
 	}
 
+	protected abstract void printPropertyHeading();
+
 	// Main interface for the actual export:
+
+	public void exportResultsCollection(ResultsCollection collection, PrintWriter out)
+	{
+		target = out;
+		collection.export(this);
+		target = null;
+	}
+
 	// methods to be called by the class that has the results
-	
+
 	/**
 	 * Start the export process.
 	 */
 	public void start()
 	{
-		// Reset output string
-		exportString = "";
-		// Prepend property, if present
-		exportString += printPropertyHeader();
-		// Print header, if needed
-		if (printHeader && rangingConstants != null) {
-			String namesString = "";
-			for (int i = 0; i < rangingConstants.size(); i++) {
-				if (i > 0) {
-					namesString += separator;
-				}
-				namesString += rangingConstants.get(i).getName();
-			}
-			exportString += namesString + (namesString.length() > 0 ? equals : "") + "Result\n";
-		}
-	}
-
-	public String printPropertyHeader()
-	{
-		if (property == null) {
-			return "";
-		}
-		switch (format) {
-		case PLAIN:
-			return property.toString() + ":\n";
-		case CSV:
-			// Quote property string as it may contain commas (,) and escape double quotes (").
-			return "\"" + property.toString().replaceAll("\"", "\"\"") + "\"\n";
-		case COMMENT:
-			// None - it's printed at the the end in this case
-		default:
-			return "";
+		// Prepend property, if requested
+		if (printProperty) {
+			printPropertyHeading();
 		}
 	}
 
 	/**
 	 * Export a single result.
 	 */
-	public void exportResult(final Values values, final Object result)
-	{
-		switch (format) {
-		case PLAIN:
-		case CSV:
-			String valuesString = values.toString(printNames, separator); 
-			exportString += valuesString + (valuesString.length() > 0 ? equals : "") + result + "\n";
-			break;
-		case COMMENT:
-			Values mergedValues = new Values(nonRangingConstantValues, values);
-			exportString += "// RESULT";
-			if (mergedValues.getNumValues() > 0) {
-				exportString += " (" + mergedValues.toString(true, ",") + ")";
-			}
-			exportString += ": " + result + "\n";
-		}
-	}
-	
+	public abstract void exportResult(final Values values, final Object result);
+
 	/**
 	 * Finish the export process.
 	 */
 	public void end()
 	{
-		// For "comment" format, print the property at the end, if present 
-		if (property != null && format == ResultsExportFormat.COMMENT) {
-			exportString +=  property.toString() + "\n";
+		// None
+	}
+
+
+	/**
+	 * An exporter that arranges the results in a list.
+	 */
+	public static class ResultsExporterList extends ResultsExporter
+	{
+		ExportFormat style;
+
+		public ResultsExporterList(ExportFormat style)
+		{
+			this.style = style;
 		}
-		// If writing to a string, strip off last \n before returning 
-		if (destination == ResultsExportDestination.STRING) {
-			if (exportString.charAt(exportString.length() - 1) == '\n') {
-				exportString = exportString.substring(0, exportString.length() - 1);
+
+		@Override
+		protected void printPropertyHeading()
+		{
+			if (property != null) {
+				target.println(style.printHeader(property.toString()));
 			}
+		}
+
+		@Override
+		public void start()
+		{
+			super.start();
+			// Print table header, if needed
+			if (rangingConstants != null) {
+				for (int i = 0; i < rangingConstants.size(); i++) {
+					if (i > 0) {
+						target.print(style.separator);
+					}
+					target.print(rangingConstants.get(i).getName());
+				}
+				if (rangingConstants.size() > 0) {
+					target.print(style.separator);
+				}
+				target.println("Result");
+			}
+		}
+
+		@Override
+		public void exportResult(final Values values, final Object result)
+		{
+			target.print(values.toString(false, style.separator));
+			if (values.getNumValues() > 0) {
+				target.print(style.separator);
+			}
+			target.println(result);
+		}
+	}
+
+
+
+	/**
+	 * An exporter that arranges the results in a matrix.
+	 */
+	public static class ResultsExporterMatrix extends ResultsExporter
+	{
+		ExportFormat style;
+
+		public ResultsExporterMatrix(ExportFormat style)
+		{
+			this.style = style;
+		}
+
+		@Override
+		protected void printPropertyHeading()
+		{
+			if (property != null) {
+				target.println(style.printHeader(property.toString()));
+			}
+			
+		}
+
+		@Override
+		public void exportResultsCollection(ResultsCollection collection, PrintWriter out)
+		{
+			this.target = out;
+			start();
+			target.println(collection.toStringMatrix(style.separator));
+			end();
+		}
+
+		@Override
+		public void exportResult(final Values values, final Object result)
+		{
+			// Dummy method, we rely on legacy code for matrix export
+		}
+	}
+
+
+
+	/**
+	 * An exporter that arranges the results in a comment.
+	 */
+	public static class ResultsExporterComment extends ResultsExporter
+	{
+		@Override
+		protected void printPropertyHeading()
+		{
+			// None - property is printed at the the end for comment shape
+		}
+
+		@Override
+		public void exportResult(final Values values, final Object result)
+		{
+			Values mergedValues = new Values(nonRangingConstantValues, values);
+			target.print("// RESULT");
+			if (mergedValues.getNumValues() > 0) {
+				target.print(" (");
+				target.print(mergedValues.toString(true, ","));
+				target.print(")");
+			}
+			target.print(": ");
+			target.println(result);
+		}
+
+		@Override
+		public void end()
+		{
+			// For "comment" shape, print the property at the end, if requested
+			if (printProperty) {
+				target.println(property.toString());
+			}
+			super.end();
 		}
 	}
 }
