@@ -262,7 +262,6 @@ public class ResultsCollection
 	 */
 	public String toString(boolean pv, String sep, String eq, boolean header)
 	{
-		int i;
 		String s = "";
 
 		// if there are no variables, override eq separator
@@ -270,10 +269,10 @@ public class ResultsCollection
 			eq = "";
 		// create header
 		if (header) {
-			for (i = 0; i < rangingConstants.size(); i++) {
+			for (int i = 0; i < rangingConstants.size(); i++) {
 				if (i > 0)
 					s += sep;
-				s += rangingConstants.elementAt(i).getName();
+				s += rangingConstants.get(i).getName();
 			}
 			s += eq + "Result\n";
 		}

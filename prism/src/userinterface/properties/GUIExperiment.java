@@ -61,7 +61,9 @@ public class GUIExperiment
 	private Values definedPFConstants;
 	private Result res;
 
-	/** Creates a new instance of GUIExperiment */
+	/** Creates a new instance of GUIExperiment
+	 * @param prop  contains exactly 1 property
+	 */
 	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, boolean useSimulation)
 	{
 		this.table = table;
@@ -100,16 +102,21 @@ public class GUIExperiment
 		return cons.getPFDefinedConstantsString();
 	}
 
-	public String getPropertyString()
+	public Property getProperty()
 	{
+		// prop  contains exactly 1 property
 		int i = prop.getNumProperties() - 1;
-		return prop.getProperty(i).toString();
+		return prop.getPropertyObject(i);
 	}
 
-	public Type getPropertyType()
+	public String getExpressionString()
 	{
-		int i = prop.getNumProperties() - 1;
-		return prop.getProperty(i).getType();
+		return getProperty().getExpression().toString();
+	}
+
+	public Type getExpressionType()
+	{
+		return getProperty().getExpression().getType();
 	}
 
 	public ResultsCollection getResults()

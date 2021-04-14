@@ -82,7 +82,7 @@ public class GUIResultsTable extends javax.swing.JDialog
 			}
 		});
 		
-		JLabel topLabel = new JLabel("Results of \'" + exp.getPropertyString() + "\' for \'" + exp.getDefinedConstantsString() + "\'"); 
+		JLabel topLabel = new JLabel("Results of \'" + exp.getExpressionString() + "\' for \'" + exp.getDefinedConstantsString() + "\'"); 
 				
 		JPanel tmpPanel = new JPanel();
 		tmpPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

@@ -137,7 +137,7 @@ public class GUIGraphPicker extends javax.swing.JDialog
 				String seriesName = (seriesValues.size() > 1) ? values.toString() : seriesNameField.getText();
 				// For properties that return an interval, we add a pair of series
 				// (the pair is stored as a linked list)
-				if (experiment.getPropertyType() instanceof TypeInterval) {
+				if (experiment.getExpressionType() instanceof TypeInterval) {
 					Graph.SeriesKey key = graphModel.addSeries(seriesName + " (min)");
 					key.next = graphModel.addSeries(seriesName + " (max)");
 					seriesKeys.add(key);

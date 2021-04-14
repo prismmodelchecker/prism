@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +44,7 @@ import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import prism.Prism.StrategyExportType;
+import prism.ResultsExporter.ResultsExportFormat;
 import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
@@ -87,7 +87,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportmecs = false;
 	private boolean exportresults = false;
 	private boolean exportresultsmatrix = false;
-	private String exportResultsFormat = "plain";
+	private ResultsExportFormat exportFormat = ResultsExportFormat.PLAIN;
 	private boolean exportvector = false;
 	private boolean exportPlainDeprecated = false;
 	private boolean exportModelNoBasename = false;
@@ -509,37 +509,28 @@ public class PrismCL implements PrismModelListener
 
 		// export results (if required)
 		if (exportresults) {
-			ResultsExporter exporter = new ResultsExporter(exportResultsFormat, "string");
 			mainLog.print("\nExporting results " + (exportresultsmatrix ? "in matrix form " : ""));
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
-			PrismFileLog tmpLog = new PrismFileLog(exportResultsFilename);
-			if (!tmpLog.ready()) {
-				errorAndExit("Couldn't open file \"" + exportResultsFilename + "\" for output");
-			}
-			for (i = 0; i < numPropertiesToCheck; i++) {
-				if (i > 0)
-					tmpLog.println();
-				if (numPropertiesToCheck > 1) {
-					if (!exportresultsmatrix) {
-						exporter.setProperty(propertiesToCheck.get(i));
-					} else {
-						if (exportResultsFormat.equalsIgnoreCase("csv")) {
-							tmpLog.print( "\"" + propertiesToCheck.get(i).toString().replaceAll("\"", "\"\"") + "\"\n");
-						} else {
-							tmpLog.print(propertiesToCheck.get(i) + ":\n");
-						}
-					}
-				}
-				if (!exportresultsmatrix) {
-					tmpLog.println(results[i].export(exporter).getExportString());
-				} else {
-					String sep = exportResultsFormat.equals("plain") ? "\t" : ", ";
-					tmpLog.println(results[i].toStringMatrix(sep));
-				}
-			}
-			tmpLog.close();
-		}
 
+			try {
+				PrintWriter out;
+				if (exportResultsFilename.equals("stdout")) {
+					out = new PrintWriter(System.out);
+					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportresultsmatrix);
+					// Do not close System.out !
+				} else {
+					out = new PrintWriter(exportResultsFilename);
+					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportresultsmatrix);
+					out.close();
+				}
+				if (out.checkError()) {
+					// PrintWriter hides exceptions in print methods and close()
+					errorAndExit("Could not export results: unknown IO exception");
+				}
+			} catch (FileNotFoundException e) {
+				errorAndExit("Could not export results: " + e.getMessage());
+			}
+		}
 		// close down
 		closeDown();
 	}
@@ -1379,15 +1370,15 @@ public class PrismCL implements PrismModelListener
 						}
 						exportResultsFilename = halves[0];
 						String ss[] = halves[1].split(",");
-						exportResultsFormat = "plain";
+						exportFormat = ResultsExportFormat.PLAIN;
 						for (j = 0; j < ss.length; j++) {
 							if (ss[j].equals("")) {
 							} else if (ss[j].equals("csv"))
-								exportResultsFormat = "csv";
+								exportFormat = ResultsExportFormat.CSV;
 							else if (ss[j].equals("matrix"))
 								exportresultsmatrix = true;
 							else if (ss[j].equals("comment"))
-								exportResultsFormat = "comment";
+								exportFormat = ResultsExportFormat.COMMENT;
 							else
 								errorAndExit("Unknown option \"" + ss[j] + "\" for -" + sw + " switch");
 						}
