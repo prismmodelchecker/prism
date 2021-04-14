@@ -37,9 +37,14 @@ import parser.ast.Property;
  */
 public class ResultsExporter
 {
+	public enum ResultsExportShape
+	{
+		LIST, MATRIX;
+	}
+
 	// Formats for export
-	public enum ResultsExportFormat {
-		
+	public enum ResultsExportFormat
+	{
 		PLAIN, CSV, COMMENT;
 		public String fullName()
 		{
@@ -73,14 +78,14 @@ public class ResultsExporter
 	private List<DefinedConstant> rangingConstants;
 	private Values nonRangingConstantValues;
 	private Property property;
-	private ResultsExportFormat format = ResultsExportFormat.PLAIN;
+	private ResultsExportFormat format;
+	private ResultsExportShape shape;
+	private ResultsExportDestination destination = ResultsExportDestination.STRING;
 
 	private boolean printHeader;
 	private boolean printNames;
 	private String separator;
 	private String equals;
-
-	private ResultsExportDestination destination = ResultsExportDestination.STRING;
 
 	private String exportString = "";
 
@@ -92,27 +97,25 @@ public class ResultsExporter
 	 * @param results list of results to print
 	 * @param out target text-output stream
 	 * @param format export format
-	 * @param exportMatrix export as matrix
+	 * @param shape export type
 	 */
-	public static void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out, ResultsExportFormat format, boolean exportMatrix)
+	public static void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out, ResultsExportFormat format, ResultsExportShape shape)
 	{
-		ResultsExportDestination destination = ResultsExportDestination.STRING;
-		ResultsExporter exporter = new ResultsExporter(format, destination);
+		ResultsExporter exporter = new ResultsExporter(format);
 		int n = results.size();
 		for (int i = 0; i < n; i++) {
 			if (i > 0)
 				out.println();
 			if (n > 1) {
 				exporter.setProperty(properties.get(i));
-				if (exportMatrix) {
+				if (shape == ResultsExportShape.MATRIX) {
 					// Print property manually as we do not use the exporter for matrix format 
 					out.print(exporter.printPropertyHeader());
 				} 
 			}
-			if (exportMatrix) {
+			if (shape == ResultsExportShape.MATRIX) {
 				// Select separator manually as we do not use the exporter for matrix format
-				String sep = exporter.getFormat() == ResultsExportFormat.PLAIN ? "\t" : ", ";
-				out.println(results.get(i).toStringMatrix(sep));
+				out.println(results.get(i).toStringMatrix(exporter.getSeparator()));
 			} else {
 				out.println(results.get(i).export(exporter).getExportString());
 			}
@@ -124,13 +127,23 @@ public class ResultsExporter
 	
 	public ResultsExporter()
 	{
-		setFormat(ResultsExportFormat.PLAIN);
-		setDestination(ResultsExportDestination.STRING);
+		this(ResultsExportFormat.PLAIN);
 	}
 
-	public ResultsExporter(ResultsExportFormat format, ResultsExportDestination destination)
+	public ResultsExporter(ResultsExportFormat format)
+	{
+		this(format, ResultsExportShape.LIST, ResultsExportDestination.STRING);
+	}
+
+	public ResultsExporter(ResultsExportFormat format, ResultsExportShape shape)
+	{
+		this(format, shape, ResultsExportDestination.STRING);
+	}
+
+	public ResultsExporter(ResultsExportFormat format, ResultsExportShape shape, ResultsExportDestination destination)
 	{
 		setFormat(format);
+		setShape(shape);
 		setDestination(destination);
 	}
 
@@ -160,6 +173,11 @@ public class ResultsExporter
 		}
 	}
 
+	public void setShape(ResultsExportShape shape)
+	{
+		this.shape = shape;
+	}
+
 	public void setDestination(ResultsExportDestination destination)
 	{
 		this.destination = destination;
@@ -180,6 +198,11 @@ public class ResultsExporter
 		this.property = property;
 	}
 
+	public String getSeparator()
+	{
+		return separator;
+	}
+
 	/**
 	 * Get the exported results as a string (if the destination was specified to be a string).
 	 */
@@ -196,6 +219,8 @@ public class ResultsExporter
 	 */
 	public void start()
 	{
+		assert shape != ResultsExportShape.MATRIX;
+
 		// Reset output string
 		exportString = "";
 		// Prepend property, if present
@@ -236,6 +261,8 @@ public class ResultsExporter
 	 */
 	public void exportResult(final Values values, final Object result)
 	{
+		assert shape != ResultsExportShape.MATRIX;
+
 		switch (format) {
 		case PLAIN:
 		case CSV:
@@ -257,6 +284,8 @@ public class ResultsExporter
 	 */
 	public void end()
 	{
+		assert shape != ResultsExportShape.MATRIX;
+
 		// For "comment" format, print the property at the end, if present 
 		if (property != null && format == ResultsExportFormat.COMMENT) {
 			exportString +=  property.toString() + "\n";

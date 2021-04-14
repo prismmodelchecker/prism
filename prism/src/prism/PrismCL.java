@@ -45,6 +45,7 @@ import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import prism.Prism.StrategyExportType;
 import prism.ResultsExporter.ResultsExportFormat;
+import prism.ResultsExporter.ResultsExportShape;
 import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
@@ -512,15 +513,16 @@ public class PrismCL implements PrismModelListener
 			mainLog.print("\nExporting results " + (exportresultsmatrix ? "in matrix form " : ""));
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
 
+			ResultsExportShape exportShape = exportresultsmatrix ? ResultsExportShape.MATRIX : ResultsExportShape.LIST;
 			try {
 				PrintWriter out;
 				if (exportResultsFilename.equals("stdout")) {
 					out = new PrintWriter(System.out);
-					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportresultsmatrix);
+					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportShape);
 					// Do not close System.out !
 				} else {
 					out = new PrintWriter(exportResultsFilename);
-					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportresultsmatrix);
+					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat, exportShape);
 					out.close();
 				}
 				if (out.checkError()) {
