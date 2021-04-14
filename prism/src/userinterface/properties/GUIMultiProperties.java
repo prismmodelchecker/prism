@@ -98,7 +98,6 @@ import prism.PrismException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
 import prism.ResultsExporter.ResultsExportFormat;
-import prism.ResultsExporter.ResultsExportShape;
 import prism.TileList;
 import prism.UndefinedConstants;
 import userinterface.GUIClipboardEvent;
@@ -1216,7 +1215,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		new GUIGraphPicker(getGUI(), this, exp, graphHandler, true);
 	}
 
-	public void a_exportResults(ResultsExportFormat exportFormat, ResultsExportShape exportShape)
+	public void a_exportResults(ResultsExportFormat exportFormat)
 	{
 		GUIExperiment exps[];
 		int i, n, inds[];
@@ -1230,9 +1229,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		for (i = 0; i < n; i++)
 			exps[i] = experiments.getExperiment(inds[i]);
 		// get filename to save
-		if (showSaveFileDialog(exportFormat == ResultsExportFormat.CSV ? csvFilter : textFilter) == JFileChooser.APPROVE_OPTION) {
+		if (showSaveFileDialog(exportFormat == ResultsExportFormat.LIST_CSV || exportFormat == ResultsExportFormat.MATRIX_CSV ? csvFilter : textFilter) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
-			Thread t = new ExportResultsThread(this, exps, file, exportFormat, exportShape);
+			Thread t = new ExportResultsThread(this, exps, file, exportFormat);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		}
@@ -2126,7 +2125,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults(ResultsExportFormat.PLAIN, ResultsExportShape.LIST);
+				a_exportResults(ResultsExportFormat.LIST_PLAIN);
 			}
 		};
 		exportResultsListText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a text file");
@@ -2138,7 +2137,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults(ResultsExportFormat.CSV,  ResultsExportShape.LIST);
+				a_exportResults(ResultsExportFormat.LIST_CSV);
 			}
 		};
 		exportResultsListCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a CSV file");
@@ -2150,7 +2149,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults(ResultsExportFormat.PLAIN,  ResultsExportShape.MATRIX);
+				a_exportResults(ResultsExportFormat.MATRIX_PLAIN);
 			}
 		};
 		exportResultsMatrixText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
@@ -2162,7 +2161,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportResults(ResultsExportFormat.CSV,  ResultsExportShape.MATRIX);
+				a_exportResults(ResultsExportFormat.MATRIX_CSV);
 			}
 		};
 		exportResultsMatrixCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");

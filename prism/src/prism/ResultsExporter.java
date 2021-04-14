@@ -37,32 +37,36 @@ import parser.ast.Property;
  */
 public class ResultsExporter
 {
-	public enum ResultsExportShape
-	{
-		LIST, MATRIX;
-	}
-
-	// Formats for export
 	public enum ResultsExportFormat
 	{
-		PLAIN, CSV, COMMENT;
+		LIST_PLAIN ("plain text", false),
+		LIST_CSV("CSV", false),
+		MATRIX_PLAIN("plain text", true),
+		MATRIX_CSV("CSV", true),
+		COMMENT("comment", false);
+
+		private final String fullName;
+		private final boolean isMatrix;
+
+		ResultsExportFormat(String fullName, boolean isMatrix)
+		{
+			this.fullName = fullName;
+			this.isMatrix = isMatrix;
+		}
+
+		public  boolean isMatrix() {
+			return isMatrix;
+		}
+
 		public String fullName()
 		{
-			switch (this) {
-			case PLAIN:
-				return "plain text";
-			case CSV:
-				return "CSV";
-			case COMMENT:
-				return "comment";
-			default:
-				return this.toString();
-			}
+			return fullName;
 		}
-	};
+	}
 
 	// Possible destinations for export
-	public enum ResultsExportDestination {
+	public enum ResultsExportDestination
+	{
 		STRING;
 		public String fullName()
 		{
@@ -79,7 +83,6 @@ public class ResultsExporter
 	private Values nonRangingConstantValues;
 	private Property property;
 	private ResultsExportFormat format;
-	private ResultsExportShape shape;
 	private ResultsExportDestination destination = ResultsExportDestination.STRING;
 
 	private boolean printHeader;
@@ -99,7 +102,7 @@ public class ResultsExporter
 	 * @param format export format
 	 * @param shape export type
 	 */
-	public static void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out, ResultsExportFormat format, ResultsExportShape shape)
+	public static void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out, ResultsExportFormat format)
 	{
 		ResultsExporter exporter = new ResultsExporter(format);
 		int n = results.size();
@@ -108,12 +111,12 @@ public class ResultsExporter
 				out.println();
 			if (n > 1) {
 				exporter.setProperty(properties.get(i));
-				if (shape == ResultsExportShape.MATRIX) {
+				if (format.isMatrix()) {
 					// Print property manually as we do not use the exporter for matrix format 
 					out.print(exporter.printPropertyHeader());
 				} 
 			}
-			if (shape == ResultsExportShape.MATRIX) {
+			if (format.isMatrix()) {
 				// Select separator manually as we do not use the exporter for matrix format
 				out.println(results.get(i).toStringMatrix(exporter.getSeparator()));
 			} else {
@@ -127,23 +130,17 @@ public class ResultsExporter
 	
 	public ResultsExporter()
 	{
-		this(ResultsExportFormat.PLAIN);
+		this(ResultsExportFormat.LIST_PLAIN);
 	}
 
 	public ResultsExporter(ResultsExportFormat format)
 	{
-		this(format, ResultsExportShape.LIST, ResultsExportDestination.STRING);
+		this(format, ResultsExportDestination.STRING);
 	}
 
-	public ResultsExporter(ResultsExportFormat format, ResultsExportShape shape)
-	{
-		this(format, shape, ResultsExportDestination.STRING);
-	}
-
-	public ResultsExporter(ResultsExportFormat format, ResultsExportShape shape, ResultsExportDestination destination)
+	public ResultsExporter(ResultsExportFormat format, ResultsExportDestination destination)
 	{
 		setFormat(format);
-		setShape(shape);
 		setDestination(destination);
 	}
 
@@ -156,13 +153,15 @@ public class ResultsExporter
 	{
 		this.format = format;
 		switch (format) {
-		case PLAIN:
+		case LIST_PLAIN:
+		case MATRIX_PLAIN:
 			printHeader = true;
 			printNames = false;
 			separator = "\t";
 			equals = "\t";
 			break;
-		case CSV:
+		case LIST_CSV:
+		case MATRIX_CSV:
 			printHeader = true;
 			printNames = false;
 			separator = ", ";
@@ -171,11 +170,6 @@ public class ResultsExporter
 		default:
 			break;
 		}
-	}
-
-	public void setShape(ResultsExportShape shape)
-	{
-		this.shape = shape;
 	}
 
 	public void setDestination(ResultsExportDestination destination)
@@ -219,7 +213,9 @@ public class ResultsExporter
 	 */
 	public void start()
 	{
-		assert shape != ResultsExportShape.MATRIX;
+		if (format.isMatrix()) {
+			throw new IllegalArgumentException("Unsupported export format " + format);
+		};
 
 		// Reset output string
 		exportString = "";
@@ -244,9 +240,11 @@ public class ResultsExporter
 			return "";
 		}
 		switch (format) {
-		case PLAIN:
+		case LIST_PLAIN:
+		case MATRIX_PLAIN:
 			return property.toString() + ":\n";
-		case CSV:
+		case LIST_CSV:
+		case MATRIX_CSV:
 			// Quote property string as it may contain commas (,) and escape double quotes (").
 			return "\"" + property.toString().replaceAll("\"", "\"\"") + "\"\n";
 		case COMMENT:
@@ -261,11 +259,9 @@ public class ResultsExporter
 	 */
 	public void exportResult(final Values values, final Object result)
 	{
-		assert shape != ResultsExportShape.MATRIX;
-
 		switch (format) {
-		case PLAIN:
-		case CSV:
+		case LIST_PLAIN:
+		case LIST_CSV:
 			String valuesString = values.toString(printNames, separator);
 			exportString += valuesString + (valuesString.length() > 0 ? equals : "") + result + "\n";
 			break;
@@ -276,15 +272,17 @@ public class ResultsExporter
 				exportString += " (" + mergedValues.toString(true, ",") + ")";
 			}
 			exportString += ": " + result + "\n";
+		default:
+			throw new IllegalArgumentException("Unsupported export format " + format);
 		}
 	}
-	
+
 	/**
 	 * Finish the export process.
 	 */
 	public void end()
 	{
-		assert shape != ResultsExportShape.MATRIX;
+		assert !format.isMatrix();
 
 		// For "comment" format, print the property at the end, if present 
 		if (property != null && format == ResultsExportFormat.COMMENT) {
