@@ -1882,7 +1882,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		};
 		newProps.putValue(Action.LONG_DESCRIPTION, "Clears the current properties list, and the current active properties list.");
 		//newProps.putValue(Action.SHORT_DESCRIPTION, "New properties list");
-		newProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		newProps.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_N);
 		newProps.putValue(Action.NAME, "New properties list");
 		newProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallNew.png"));
 		newProps.putValue(Action.ACCELERATOR_KEY,
@@ -1897,7 +1897,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		};
 		openProps.putValue(Action.LONG_DESCRIPTION, "Opens a properties list, checking that it is valid according to the current parsed model");
 		//openProps.putValue(Action.SHORT_DESCRIPTION, "Open properties list");
-		openProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
+		openProps.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_O);
 		openProps.putValue(Action.NAME, "Open properties list...");
 		openProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOpen.png"));
 		openProps.putValue(Action.ACCELERATOR_KEY,
@@ -1913,7 +1913,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		saveProps.putValue(Action.LONG_DESCRIPTION,
 				"Saves all properties to the current active properties list, if non exists the user is prompted with a dialog.");
 		// saveProps.putValue(Action.SHORT_DESCRIPTION, "Save properties list");
-		saveProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+		saveProps.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_S);
 		saveProps.putValue(Action.NAME, "Save properties list");
 		saveProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSave.png"));
 		saveProps.putValue(Action.ACCELERATOR_KEY,
@@ -1928,7 +1928,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		};
 		savePropsAs.putValue(Action.LONG_DESCRIPTION, "Saves all properties to a new file selected by the user from a dialog.");
 		//savePropsAs.putValue(Action.SHORT_DESCRIPTION, "Save properties list As...");
-		savePropsAs.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_A));
+		savePropsAs.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
 		savePropsAs.putValue(Action.NAME, "Save properties list as...");
 		savePropsAs.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSaveAs.png"));
 
@@ -1942,7 +1942,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		insertProps.putValue(Action.LONG_DESCRIPTION,
 				"Inserts properties from user selected file into the properties list.  The active property file remains the same however.");
 		//insertProps.putValue(Action.SHORT_DESCRIPTION, "Insert properties list");
-		insertProps.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
+		insertProps.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_I);
 		insertProps.putValue(Action.NAME, "Insert properties list...");
 		insertProps.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallAdd.png"));
 
@@ -1954,7 +1954,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		simulate.putValue(Action.LONG_DESCRIPTION, "Calls the PRISM simulator to approximately model check the selected properties against the parsed model.");
-		simulate.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+		simulate.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_S);
 		simulate.putValue(Action.NAME, "Simulate");
 		simulate.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSimulate.png"));
 		simulate.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
@@ -1967,7 +1967,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		details.putValue(Action.LONG_DESCRIPTION, "Shows the details for the currently selected properties in a dialog box.");
-		details.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		details.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		details.putValue(Action.NAME, "Show details");
 		details.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDetails.png"));
 
@@ -1983,7 +1983,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 						Action.LONG_DESCRIPTION,
 						"Model checks the selected properties against the model that is built.  If there is no built model, the parsed model is automatically built.  If the parsed model has changed since the last build, the user is prompted as to whether they wish to re-build the model.  If the model text has been modified since the last build, the user is asked whether they want to re-parse and re-build.");
 		//verifySelected.putValue(Action.SHORT_DESCRIPTION, "Verify Selected Properties");
-		verifySelected.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_V));
+		verifySelected.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_V);
 		verifySelected.putValue(Action.NAME, "Verify");
 		verifySelected.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallTick.png"));
 		verifySelected.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0));
@@ -1996,7 +1996,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		newProperty.putValue(Action.LONG_DESCRIPTION, "Brings up a dialog to add a new property to the list.");
-		newProperty.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		newProperty.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		newProperty.putValue(Action.NAME, "Add");
 		newProperty.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallAdd.png"));
 
@@ -2008,7 +2008,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		editProperty.putValue(Action.LONG_DESCRIPTION, "Brings up a dialog to edit a selected property.");
-		editProperty.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
+		editProperty.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_E);
 		editProperty.putValue(Action.NAME, "Edit");
 		editProperty.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallEdit.png"));
 
@@ -2020,7 +2020,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		newConstant.putValue(Action.LONG_DESCRIPTION, "Adds a new constant to the constants list");
-		newConstant.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		newConstant.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		newConstant.putValue(Action.NAME, "Add constant");
 		newConstant.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallAdd.png"));
 
@@ -2032,7 +2032,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		removeConstant.putValue(Action.LONG_DESCRIPTION, "Deletes selected constants");
-		removeConstant.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		removeConstant.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		removeConstant.putValue(Action.NAME, "Delete constant");
 		removeConstant.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 
@@ -2044,7 +2044,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		newLabel.putValue(Action.LONG_DESCRIPTION, "Adds a new Label to the Labels list");
-		newLabel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		newLabel.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		newLabel.putValue(Action.NAME, "Add label");
 		newLabel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallAdd.png"));
 
@@ -2056,7 +2056,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		removeLabel.putValue(Action.LONG_DESCRIPTION, "Deletes selected Labels");
-		removeLabel.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		removeLabel.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		removeLabel.putValue(Action.NAME, "Delete label");
 		removeLabel.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 
@@ -2068,7 +2068,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		newExperiment.putValue(Action.LONG_DESCRIPTION, "Creates a new experiment");
-		newExperiment.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		newExperiment.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_N);
 		newExperiment.putValue(Action.NAME, "New experiment");
 		newExperiment.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExperiment.png"));
 		newExperiment.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0));
@@ -2081,7 +2081,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		deleteExperiment.putValue(Action.LONG_DESCRIPTION, "Deletes the selected experiment");
-		deleteExperiment.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		deleteExperiment.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
 		deleteExperiment.putValue(Action.NAME, "Delete experiment");
 		deleteExperiment.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 
@@ -2093,7 +2093,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		viewResults.putValue(Action.LONG_DESCRIPTION, "View the results of this experiment");
-		viewResults.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_V));
+		viewResults.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_V);
 		viewResults.putValue(Action.NAME, "View results");
 		viewResults.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallView.png"));
 
@@ -2105,7 +2105,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		plotResults.putValue(Action.LONG_DESCRIPTION, "Plot the results of this experiment in a graph series");
-		plotResults.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		plotResults.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_P);
 		plotResults.putValue(Action.NAME, "Plot results");
 		plotResults.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
@@ -2117,7 +2117,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		parametric.putValue(Action.LONG_DESCRIPTION, "Perform parametric model checking");
-		parametric.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		parametric.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_P);
 		parametric.putValue(Action.NAME, "Parametric");
 		parametric.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
@@ -2129,7 +2129,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		exportResultsListText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a text file");
-		exportResultsListText.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_L));
+		exportResultsListText.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
 		exportResultsListText.putValue(Action.NAME, "List (text)");
 		exportResultsListText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
@@ -2141,7 +2141,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		exportResultsListCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a CSV file");
-		exportResultsListCSV.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_L));
+		exportResultsListCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
 		exportResultsListCSV.putValue(Action.NAME, "List (CSV)");
 		exportResultsListCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
@@ -2153,7 +2153,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		exportResultsMatrixText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
-		exportResultsMatrixText.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportResultsMatrixText.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportResultsMatrixText.putValue(Action.NAME, "Matrix (text)");
 		exportResultsMatrixText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
@@ -2165,7 +2165,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		exportResultsMatrixCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
-		exportResultsMatrixCSV.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportResultsMatrixCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportResultsMatrixCSV.putValue(Action.NAME, "Matrix (CSV)");
 		exportResultsMatrixCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
@@ -2177,7 +2177,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a plain text file");
-		exportLabelsPlain.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportLabelsPlain.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_P);
 		exportLabelsPlain.putValue(Action.NAME, "Plain text file");
 		exportLabelsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
@@ -2189,7 +2189,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		};
 		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a Matlab file");
-		exportLabelsMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportLabelsMatlab.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportLabelsMatlab.putValue(Action.NAME, "Matlab file");
 		exportLabelsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		
