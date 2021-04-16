@@ -183,15 +183,20 @@ public abstract class ResultsExporter
 		printProperty = n > 1;
 		for (int i = 0; i < n; i++) {
 			property = properties.get(i);
-			if (i > 0)
-				// print collection separator
-				out.println();
+			if (i > 0) {
+				printCollectionSeparator(out);
+			}
 			exportResultsCollection(results.get(i));
 			out.println(exportString);
 		}
 		out.flush();
 	}
 
+	protected void printCollectionSeparator(PrintWriter out)
+	{
+		// print separator
+		out.println();
+	}
 
 	// Main interface for the actual export:
 
