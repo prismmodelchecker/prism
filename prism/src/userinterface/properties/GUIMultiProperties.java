@@ -166,7 +166,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
 			removeLabel, newExperiment, deleteExperiment, stopExperiment, parametric, viewResults, plotResults, exportResultsListText, exportResultsListCSV,
-			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsComment, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
+			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsDataFrameCSV, exportResultsComment, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -669,6 +669,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsListCSV.setEnabled(experiments.getSelectedRowCount() > 0);
 		exportResultsMatrixText.setEnabled(experiments.getSelectedRowCount() > 0);
 		exportResultsMatrixCSV.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsDataFrameCSV.setEnabled(experiments.getSelectedRowCount() > 0);
 		exportResultsComment.setEnabled(experiments.getSelectedRowCount() > 0);
 	}
 
@@ -1868,6 +1869,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsMenu.add(exportResultsListCSV);
 		exportResultsMenu.add(exportResultsMatrixText);
 		exportResultsMenu.add(exportResultsMatrixCSV);
+		exportResultsMenu.add(exportResultsDataFrameCSV);
 		exportResultsMenu.add(exportResultsComment);
 		experimentPopup.add(exportResultsMenu);
 	}
@@ -2170,6 +2172,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsMatrixCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportResultsMatrixCSV.putValue(Action.NAME, "Matrix (CSV)");
 		exportResultsMatrixCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
+
+		exportResultsDataFrameCSV = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportResults(ResultsExportShape.DATA_FRAME);
+			}
+		};
+		exportResultsDataFrameCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment as data frame to a CSV file");
+		exportResultsDataFrameCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_F);
+		exportResultsDataFrameCSV.putValue(Action.NAME, "Data Frame (CSV)");
+		exportResultsDataFrameCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDataFrame.png"));
 
 		exportResultsComment = new AbstractAction()
 		{
