@@ -508,8 +508,8 @@ public class PrismCL implements PrismModelListener
 
 		// export results (if required)
 		if (exportresults) {
-			mainLog.print("\nExporting results " + (exportShape.isMatrix ? "in matrix form " : ""));
-			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
+			mainLog.print("\nExporting results as " + exportShape.fullName);
+			mainLog.println(exportResultsFilename.equals("stdout") ? " below:\n" : " to file \"" + exportResultsFilename + "\"...");
 
 			try {
 				PrintWriter out;
