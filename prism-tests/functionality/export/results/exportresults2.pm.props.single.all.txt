@@ -8,4 +8,4 @@ Result
 
 R=? [ F "done"&d>=x ]:
 Result
-1.0
+1

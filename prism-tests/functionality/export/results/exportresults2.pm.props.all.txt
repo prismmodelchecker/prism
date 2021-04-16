@@ -10,6 +10,6 @@ Result
 
 R=? [ F "done"&d>=x ]:
 x	Result
-1	1.0
+1	1
 2	Infinity
 3	Infinity

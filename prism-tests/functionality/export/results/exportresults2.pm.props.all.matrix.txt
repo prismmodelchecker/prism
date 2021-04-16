@@ -9,4 +9,4 @@ P=? [ F<=5 s=7&d>3 ]:
 R=? [ F "done"&d>=x ]:
 x:
 1	2	3
-1.0	Infinity	Infinity
+1	Infinity	Infinity

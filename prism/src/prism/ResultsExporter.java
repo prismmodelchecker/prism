@@ -263,7 +263,7 @@ public abstract class ResultsExporter
 		public void exportResult(final Values values, final Object result)
 		{
 			String valuesString = values.toString(false, style.separator);
-			exportString += valuesString + (valuesString.length() > 0 ? style.separator : "") + result + "\n";
+			exportString += valuesString + (valuesString.length() > 0 ? style.separator : "") +  Values.valToString(result) + "\n";
 		}
 	}
 
@@ -314,7 +314,7 @@ public abstract class ResultsExporter
 			if (mergedValues.getNumValues() > 0) {
 				exportString += " (" + mergedValues.toString(true, ",") + ")";
 			}
-			exportString += ": " + result + "\n";
+			exportString += ": " + Values.valToString(result) + "\n";
 		}
 
 		@Override
