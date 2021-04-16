@@ -491,7 +491,7 @@ public class Values implements Cloneable //implements Comparable
 	/**
 	 * Format a value (as an Object) as a string.
 	 */
-	private String valToString(Object o)
+	public static String valToString(Object o)
 	{
 		String s;
 		

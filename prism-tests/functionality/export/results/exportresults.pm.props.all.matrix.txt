@@ -34,10 +34,10 @@ AA=1, BB\x:
 R=? [ F "done"&d>=x ]:
 AA=0, BB\x:
 	1	2	3
-1	1.0	Infinity	Infinity
-2	1.0	Infinity	Infinity
+1	1	Infinity	Infinity
+2	1	Infinity	Infinity
 
 AA=1, BB\x:
 	1	2	3
-1	1.0	Infinity	Infinity
-2	1.0	Infinity	Infinity
+1	1	Infinity	Infinity
+2	1	Infinity	Infinity

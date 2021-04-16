@@ -659,7 +659,7 @@ public class ResultsCollection
 
 		public String toStringMatrixRec(String sep, String head)
 		{
-			return val.toString();
+			return Values.valToString(val);
 		}
 
 		public String toStringRec(boolean pv, String sep, String eq, String head)

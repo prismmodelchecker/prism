@@ -264,7 +264,7 @@ public abstract class ResultsExporter
 			if (values.getNumValues() > 0) {
 				target.print(style.separator);
 			}
-			target.println(result);
+			target.println(Values.valToString(result));
 		}
 	}
 
@@ -331,7 +331,7 @@ public abstract class ResultsExporter
 				target.print(")");
 			}
 			target.print(": ");
-			target.println(result);
+			target.println(Values.valToString(result));
 		}
 
 		@Override

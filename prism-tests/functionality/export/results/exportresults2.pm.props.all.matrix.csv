@@ -9,4 +9,4 @@ true, true, false
 "R=? [ F ""done""&d>=x ]"
 "x"
 1, 2, 3
-1.0, Infinity, Infinity
+1, Infinity, Infinity

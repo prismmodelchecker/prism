@@ -4,5 +4,5 @@ P>0.55 [ F s=7&d>x ]
 // RESULT: 0.46875
 P=? [ F<=5 s=7&d>3 ]
 
-// RESULT (x=1): 1.0
+// RESULT (x=1): 1
 R=? [ F "done"&d>=x ]
