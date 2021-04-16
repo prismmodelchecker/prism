@@ -40,22 +40,22 @@ public abstract class ResultsExporter
 {
 	public enum ResultsExportFormat
 	{
-		LIST_PLAIN ("plain text", false) {
+		LIST_PLAIN ("list (plain text)", false) {
 			public ResultsExporter getExporter() {
 				return new ResultsExporterList(ExportStyle.PLAIN);
 			}
 		},
-		LIST_CSV("CSV", false) {
+		LIST_CSV("list (CSV)", false) {
 			public ResultsExporter getExporter() {
 				return new ResultsExporterList(ExportStyle.CSV);
 			}
 		},
-		MATRIX_PLAIN("plain text", true) {
+		MATRIX_PLAIN("matrix (plain text)", true) {
 			public ResultsExporter getExporter() {
 				return new ResultsExporterMatrix(ExportStyle.PLAIN);
 			}
 		},
-		MATRIX_CSV("CSV", true) {
+		MATRIX_CSV("matrix (CSV)", true) {
 			public ResultsExporter getExporter() {
 				return new ResultsExporterMatrix(ExportStyle.CSV);
 			}
@@ -129,9 +129,9 @@ public abstract class ResultsExporter
 
 	protected List<DefinedConstant> rangingConstants;
 	protected Values nonRangingConstantValues;
-	protected String exportString = "";
+	protected PrintWriter target;
 	protected Property property;
-	boolean printProperty;
+	protected boolean printProperty;
 
 	// Methods to create and set up a ResultsExporter  
 
@@ -146,22 +146,12 @@ public abstract class ResultsExporter
 	}
 
 	/**
-	 * Get the exported results as a string (if the destination was specified to be a string).
-	 */
-	public String getExportString()
-	{
-		return exportString;
-	}
-
-	/**
 	 * Print multiple results to a text-output stream.
 	 * Results and properties are associated by their list indices.
 	 *  
-	 * @param properties list of properties associated with the results
 	 * @param results list of results to print
+	 * @param properties list of properties associated with the results
 	 * @param out target text-output stream
-	 * @param format export format
-	 * @param shape export type
 	 */
 	public void printResults(List<ResultsCollection> results, List<Property> properties, PrintWriter out)
 	{
@@ -173,23 +163,30 @@ public abstract class ResultsExporter
 			if (i > 0) {
 				printCollectionSeparator(out);
 			}
-			exportResultsCollection(results.get(i));
-			out.println(exportString);
+			exportResultsCollection(results.get(i), out);
 		}
 		out.flush();
 	}
 
+	/**
+	 * Print a separator between subsequent results collections
+	 * @param out
+	 */
 	protected void printCollectionSeparator(PrintWriter out)
 	{
 		// print separator
 		out.println();
 	}
 
+	protected abstract void printPropertyHeading();
+
 	// Main interface for the actual export:
 
-	public void exportResultsCollection(ResultsCollection collection)
+	public void exportResultsCollection(ResultsCollection collection, PrintWriter out)
 	{
+		target = out;
 		collection.export(this);
+		target = null;
 	}
 
 	// methods to be called by the class that has the results
@@ -199,15 +196,11 @@ public abstract class ResultsExporter
 	 */
 	public void start()
 	{
-		// Reset output string
-		exportString = "";
 		// Prepend property, if requested
 		if (printProperty) {
-			exportString += printPropertyHeader();
+			printPropertyHeading();
 		}
 	}
-
-	public abstract String printPropertyHeader();
 
 	/**
 	 * Export a single result.
@@ -219,10 +212,7 @@ public abstract class ResultsExporter
 	 */
 	public void end()
 	{
-		// strip off last \n before returning 
-		if (exportString.charAt(exportString.length() - 1) == '\n') {
-			exportString = exportString.substring(0, exportString.length() - 1);
-		}
+		// None
 	}
 
 
@@ -237,9 +227,11 @@ public abstract class ResultsExporter
 		}
 
 		@Override
-		public String printPropertyHeader()
+		protected void printPropertyHeading()
 		{
-			return property == null ? "" : style.printHeader(property.toString()) + "\n";
+			if (property != null) {
+				target.println(style.printHeader(property.toString()));
+			}
 		}
 
 		@Override
@@ -248,22 +240,27 @@ public abstract class ResultsExporter
 			super.start();
 			// Print table header, if needed
 			if (rangingConstants != null) {
-				String namesString = "";
 				for (int i = 0; i < rangingConstants.size(); i++) {
 					if (i > 0) {
-						namesString += style.separator;
+						target.print(style.separator);
 					}
-					namesString += rangingConstants.get(i).getName();
+					target.print(rangingConstants.get(i).getName());
 				}
-				exportString += namesString + (namesString.length() > 0 ? style.separator : "") + "Result\n";
+				if (rangingConstants.size() > 0) {
+					target.print(style.separator);
+				}
+				target.println("Result");
 			}
 		}
 
 		@Override
 		public void exportResult(final Values values, final Object result)
 		{
-			String valuesString = values.toString(false, style.separator);
-			exportString += valuesString + (valuesString.length() > 0 ? style.separator : "") +  Values.valToString(result) + "\n";
+			target.print(values.toString(false, style.separator));
+			if (values.getNumValues() > 0) {
+				target.print(style.separator);
+			}
+			target.println(Values.valToString(result));
 		}
 	}
 
@@ -277,44 +274,50 @@ public abstract class ResultsExporter
 		}
 
 		@Override
-		public void exportResultsCollection(ResultsCollection collection)
+		protected void printPropertyHeading()
 		{
-			start();
-			exportString += collection.toStringMatrix(style.separator);
-			end();
+			if (property != null) {
+				target.println(style.printHeader(property.toString()));
+			}
+			
 		}
 
 		@Override
-		public String printPropertyHeader()
+		public void exportResultsCollection(ResultsCollection collection, PrintWriter out)
 		{
-			return property == null ? "" : style.printHeader(property.toString()) + "\n";
+			this.target = out;
+			start();
+			target.println(collection.toStringMatrix(style.separator));
+			end();
 		}
 
 		@Override
 		public void exportResult(final Values values, final Object result)
 		{
-			// dummy method, we rely on legacy code for matrix export
+			// Dummy method, we rely on legacy code for matrix export
 		}
 	}
 
 	public static class ResultsExporterComment extends ResultsExporter
 	{
 		@Override
-		public String printPropertyHeader()
+		protected void printPropertyHeading()
 		{
-			// None - it's printed at the the end for comment format
-			return "";
+			// None - property is printed at the the end for comment format
 		}
 
 		@Override
 		public void exportResult(final Values values, final Object result)
 		{
 			Values mergedValues = new Values(nonRangingConstantValues, values);
-			exportString += "// RESULT";
+			target.print("// RESULT");
 			if (mergedValues.getNumValues() > 0) {
-				exportString += " (" + mergedValues.toString(true, ",") + ")";
+				target.print(" (");
+				target.print(mergedValues.toString(true, ","));
+				target.print(")");
 			}
-			exportString += ": " + Values.valToString(result) + "\n";
+			target.print(": ");
+			target.println( Values.valToString(result));
 		}
 
 		@Override
@@ -322,7 +325,7 @@ public abstract class ResultsExporter
 		{
 			// For "comment" format, print the property at the end, if requested
 			if (printProperty) {
-				exportString +=  property.toString() + "\n";
+				target.println(property.toString());
 			}
 			super.end();
 		}
