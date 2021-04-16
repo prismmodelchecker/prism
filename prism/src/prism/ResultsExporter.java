@@ -95,12 +95,23 @@ public abstract class ResultsExporter
 				// Nothing to quote
 				return s;
 			}
-		}, CSV(", ")
+
+			public String printHeader(String s)
+			{
+				return s + ":";
+			}
+		},
+		CSV(", ")
 		{
 			public String quote(String s)
 			{
 				// Quote and escape double quotes (").
 				return "\"" + s.replaceAll("\"", "\"\"") + "\"";
+			}
+
+			public String printHeader(String s)
+			{
+				return quote(s);
 			}
 		};
 	
@@ -112,6 +123,8 @@ public abstract class ResultsExporter
 		}
 	
 		public abstract String quote(String s);
+
+		public abstract String printHeader(String s);
 	}
 
 	protected List<DefinedConstant> rangingConstants;
@@ -226,14 +239,7 @@ public abstract class ResultsExporter
 		@Override
 		public String printPropertyHeader()
 		{
-			if (property == null) {
-				return "";
-			}
-			if (style == ExportStyle.PLAIN) {
-				return style.quote(property.toString()) + ":\n";
-			} else {
-				return style.quote(property.toString()) + "\n";
-			}
+			return property == null ? "" : style.printHeader(property.toString()) + "\n";
 		}
 
 		@Override
@@ -281,14 +287,7 @@ public abstract class ResultsExporter
 		@Override
 		public String printPropertyHeader()
 		{
-			if (property == null) {
-				return "";
-			}
-			if (style == ExportStyle.PLAIN) {
-				return style.quote(property.toString()) + ":\n";
-			} else {
-				return style.quote(property.toString()) + "\n";
-			}
+			return property == null ? "" : style.printHeader(property.toString()) + "\n";
 		}
 
 		@Override
