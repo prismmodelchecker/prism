@@ -166,7 +166,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
 			removeLabel, newExperiment, deleteExperiment, stopExperiment, parametric, viewResults, plotResults, exportResultsListText, exportResultsListCSV,
-			exportResultsMatrixText, exportResultsMatrixCSV, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
+			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsComment, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -669,6 +669,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsListCSV.setEnabled(experiments.getSelectedRowCount() > 0);
 		exportResultsMatrixText.setEnabled(experiments.getSelectedRowCount() > 0);
 		exportResultsMatrixCSV.setEnabled(experiments.getSelectedRowCount() > 0);
+		exportResultsComment.setEnabled(experiments.getSelectedRowCount() > 0);
 	}
 
 	public int doModificationCheck()
@@ -1867,6 +1868,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsMenu.add(exportResultsListCSV);
 		exportResultsMenu.add(exportResultsMatrixText);
 		exportResultsMenu.add(exportResultsMatrixCSV);
+		exportResultsMenu.add(exportResultsComment);
 		experimentPopup.add(exportResultsMenu);
 	}
 
@@ -2168,6 +2170,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsMatrixCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportResultsMatrixCSV.putValue(Action.NAME, "Matrix (CSV)");
 		exportResultsMatrixCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
+
+		exportResultsComment = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportResults(ResultsExportFormat.COMMENT);
+			}
+		};
+		exportResultsComment.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment as comment in a properties file");
+		exportResultsComment.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_C);
+		exportResultsComment.putValue(Action.NAME, "Comment");
+		exportResultsComment.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallComment.png"));
 
 		exportLabelsPlain = new AbstractAction()
 		{
