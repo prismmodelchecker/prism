@@ -1385,6 +1385,8 @@ public class PrismCL implements PrismModelListener
 								default:
 									// switch does not apply
 								}
+							else if (ss[j].equals("dataframe"))
+								exportShape = ResultsExportShape.DATA_FRAME;
 							else if (ss[j].equals("comment"))
 								exportShape = ResultsExportShape.COMMENT;
 							else
@@ -2528,6 +2530,7 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
 			mainLog.println(" * csv - Export results as comma-separated values");
 			mainLog.println(" * matrix - Export results as one or more 2D matrices (e.g. for surface plots)");
+			mainLog.println(" * dataframe - Export results as dataframe in comma-separated values)");
 			mainLog.println(" * comment - Export results in comment format for regression testing)");
 		}
 		// -exportmodel
