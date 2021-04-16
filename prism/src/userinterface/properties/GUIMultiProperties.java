@@ -2128,10 +2128,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				a_exportResults(ResultsExportFormat.LIST_PLAIN);
 			}
 		};
-		exportResultsListText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a text file");
+		exportResultsListText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment as list to a plain text file");
 		exportResultsListText.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
-		exportResultsListText.putValue(Action.NAME, "List (text)");
-		exportResultsListText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+		exportResultsListText.putValue(Action.NAME, "List (plain text)");
+		exportResultsListText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallList.png"));
 
 		exportResultsListCSV = new AbstractAction()
 		{
@@ -2140,10 +2140,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				a_exportResults(ResultsExportFormat.LIST_CSV);
 			}
 		};
-		exportResultsListCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a CSV file");
+		exportResultsListCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment as list to a CSV file");
 		exportResultsListCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
 		exportResultsListCSV.putValue(Action.NAME, "List (CSV)");
-		exportResultsListCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
+		exportResultsListCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallList.png"));
 
 		exportResultsMatrixText = new AbstractAction()
 		{
@@ -2152,10 +2152,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				a_exportResults(ResultsExportFormat.MATRIX_PLAIN);
 			}
 		};
-		exportResultsMatrixText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
+		exportResultsMatrixText.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment as matrix to a plain text file");
 		exportResultsMatrixText.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
-		exportResultsMatrixText.putValue(Action.NAME, "Matrix (text)");
-		exportResultsMatrixText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+		exportResultsMatrixText.putValue(Action.NAME, "Matrix (plain text)");
+		exportResultsMatrixText.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
 
 		exportResultsMatrixCSV = new AbstractAction()
 		{
@@ -2164,7 +2164,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				a_exportResults(ResultsExportFormat.MATRIX_CSV);
 			}
 		};
-		exportResultsMatrixCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment to a file in matrix form");
+		exportResultsMatrixCSV.putValue(Action.LONG_DESCRIPTION, "Export the results of this experiment as matrix to a CSV file");
 		exportResultsMatrixCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportResultsMatrixCSV.putValue(Action.NAME, "Matrix (CSV)");
 		exportResultsMatrixCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
