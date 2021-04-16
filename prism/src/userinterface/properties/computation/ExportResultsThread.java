@@ -88,7 +88,7 @@ public class ExportResultsThread extends Thread
 		try {
 			file.createNewFile(); // create file if not already present
 			PrintWriter out = new PrintWriter(file);
-			ResultsExporter.printResults(results, properties, out, exportFormat);
+			exportFormat.getExporter().printResults(results, properties, out);
 			out.close();
 			if (out.checkError()) {
 				// PrintWriter hides exceptions in print methods and close()

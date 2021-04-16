@@ -515,11 +515,11 @@ public class PrismCL implements PrismModelListener
 				PrintWriter out;
 				if (exportResultsFilename.equals("stdout")) {
 					out = new PrintWriter(System.out);
-					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat);
+					exportFormat.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
 					// Do not close System.out !
 				} else {
 					out = new PrintWriter(exportResultsFilename);
-					ResultsExporter.printResults(Arrays.asList(results), propertiesToCheck, out, exportFormat);
+					exportFormat.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
 					out.close();
 				}
 				if (out.checkError()) {
