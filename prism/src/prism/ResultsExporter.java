@@ -34,60 +34,62 @@ import parser.Values;
 import parser.ast.Property;
 
 /**
- * Class to export the results of model checking in various formats.
+ * Class to export the results of model checking in various shapes and formats.
  */
 public abstract class ResultsExporter
 {
-	public enum ResultsExportFormat
+	/**
+	 * Legal combinations of export shapes and formats.
+	 * A shape defines how the data is arranged, e.g., as list or matrix.
+	 * Most shapes can be written to an output in different formats, e.g., as plain text or CSV.
+	 * Some shapes have an implicit format, e.g., comments.
+	 */
+	public enum ResultsExportShape
 	{
-		LIST_PLAIN ("list (plain text)", false) {
+		LIST_PLAIN ("list (plain text)", false, false) {
 			public ResultsExporter getExporter() {
-				return new ResultsExporterList(ExportStyle.PLAIN);
+				return new ResultsExporterList(ExportFormat.PLAIN);
 			}
 		},
-		LIST_CSV("list (CSV)", false) {
+		LIST_CSV("list (CSV)", false, true) {
 			public ResultsExporter getExporter() {
-				return new ResultsExporterList(ExportStyle.CSV);
+				return new ResultsExporterList(ExportFormat.CSV);
 			}
 		},
-		MATRIX_PLAIN("matrix (plain text)", true) {
+		MATRIX_PLAIN("matrix (plain text)", true, false) {
 			public ResultsExporter getExporter() {
-				return new ResultsExporterMatrix(ExportStyle.PLAIN);
+				return new ResultsExporterMatrix(ExportFormat.PLAIN);
 			}
 		},
-		MATRIX_CSV("matrix (CSV)", true) {
+		MATRIX_CSV("matrix (CSV)", true, true) {
 			public ResultsExporter getExporter() {
-				return new ResultsExporterMatrix(ExportStyle.CSV);
+				return new ResultsExporterMatrix(ExportFormat.CSV);
 			}
 		},
-		COMMENT("comment", false) {
+		COMMENT("comment", false, false) {
 			public ResultsExporter getExporter() {
 				return new ResultsExporterComment();
 			}
 		};
 
-		private final String fullName;
-		private final boolean isMatrix;
+		public final String fullName;
+		public final boolean isMatrix;
+		public final boolean isCSV;
 
-		ResultsExportFormat(String fullName, boolean isMatrix)
+		ResultsExportShape(String fullName, boolean isMatrix, boolean isCSV)
 		{
 			this.fullName = fullName;
 			this.isMatrix = isMatrix;
-		}
-
-		public  boolean isMatrix() {
-			return isMatrix;
-		}
-
-		public String fullName()
-		{
-			return fullName;
+			this.isCSV = isCSV;
 		}
 
 		public abstract ResultsExporter getExporter();
 	}
 
-	public enum ExportStyle {
+	/**
+	 * An export format defines how data is written to an output.
+	 */
+	public enum ExportFormat {
 		PLAIN("\t")
 		{
 			public String quote(String s)
@@ -117,7 +119,7 @@ public abstract class ResultsExporter
 	
 		public final String separator;
 	
-		ExportStyle(String separator)
+		ExportFormat(String separator)
 		{
 			this.separator = separator;
 		}
@@ -216,21 +218,23 @@ public abstract class ResultsExporter
 	}
 
 
-
+	/**
+	 * An exporter that arranges the results in a list.
+	 */
 	public static class ResultsExporterList extends ResultsExporter
 	{
-		ExportStyle style;
+		ExportFormat format;
 
-		public ResultsExporterList(ExportStyle style)
+		public ResultsExporterList(ExportFormat format)
 		{
-			this.style = style;
+			this.format = format;
 		}
 
 		@Override
 		protected void printPropertyHeading()
 		{
 			if (property != null) {
-				target.println(style.printHeader(property.toString()));
+				target.println(format.printHeader(property.toString()));
 			}
 		}
 
@@ -242,12 +246,12 @@ public abstract class ResultsExporter
 			if (rangingConstants != null) {
 				for (int i = 0; i < rangingConstants.size(); i++) {
 					if (i > 0) {
-						target.print(style.separator);
+						target.print(format.separator);
 					}
 					target.print(rangingConstants.get(i).getName());
 				}
 				if (rangingConstants.size() > 0) {
-					target.print(style.separator);
+					target.print(format.separator);
 				}
 				target.println("Result");
 			}
@@ -256,19 +260,24 @@ public abstract class ResultsExporter
 		@Override
 		public void exportResult(final Values values, final Object result)
 		{
-			target.print(values.toString(false, style.separator));
+			target.print(values.toString(false, format.separator));
 			if (values.getNumValues() > 0) {
-				target.print(style.separator);
+				target.print(format.separator);
 			}
 			target.println(Values.valToString(result));
 		}
 	}
 
+
+
+	/**
+	 * An exporter that arranges the results in a matrix.
+	 */
 	public static class ResultsExporterMatrix extends ResultsExporter
 	{
-		ExportStyle style;
+		ExportFormat style;
 
-		public ResultsExporterMatrix(ExportStyle style)
+		public ResultsExporterMatrix(ExportFormat style)
 		{
 			this.style = style;
 		}
@@ -298,12 +307,17 @@ public abstract class ResultsExporter
 		}
 	}
 
+
+
+	/**
+	 * An exporter that arranges the results in a comment.
+	 */
 	public static class ResultsExporterComment extends ResultsExporter
 	{
 		@Override
 		protected void printPropertyHeading()
 		{
-			// None - property is printed at the the end for comment format
+			// None - property is printed at the the end for comment shape
 		}
 
 		@Override
@@ -323,7 +337,7 @@ public abstract class ResultsExporter
 		@Override
 		public void end()
 		{
-			// For "comment" format, print the property at the end, if requested
+			// For "comment" shape, print the property at the end, if requested
 			if (printProperty) {
 				target.println(property.toString());
 			}

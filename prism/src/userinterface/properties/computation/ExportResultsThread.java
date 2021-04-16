@@ -37,8 +37,7 @@ import javax.swing.*;
 
 import parser.ast.Property;
 import prism.ResultsCollection;
-import prism.ResultsExporter;
-import prism.ResultsExporter.ResultsExportFormat;
+import prism.ResultsExporter.ResultsExportShape;
 import userinterface.util.*;
 
 public class ExportResultsThread extends Thread
@@ -46,7 +45,7 @@ public class ExportResultsThread extends Thread
 	private GUIMultiProperties parent;
 	private GUIExperiment exps[];
 	private File file;
-	private ResultsExportFormat exportFormat;
+	private ResultsExportShape exportShape;
 
 	/** Creates a new instance of ExportResultsThread */
 	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File file)
@@ -57,16 +56,16 @@ public class ExportResultsThread extends Thread
 	/** Creates a new instance of ExportResultsThread */
 	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file)
 	{
-		this(parent, exps, file, ResultsExportFormat.LIST_PLAIN);
+		this(parent, exps, file, ResultsExportShape.LIST_PLAIN);
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file, ResultsExportFormat exportFormat)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file, ResultsExportShape exportShape)
 	{
 		this.parent = parent;
 		this.exps = exps;
 		this.file = file;
-		this.exportFormat = exportFormat;
+		this.exportShape = exportShape;
 	}
 	
 	public void run()
@@ -88,7 +87,7 @@ public class ExportResultsThread extends Thread
 		try {
 			file.createNewFile(); // create file if not already present
 			PrintWriter out = new PrintWriter(file);
-			exportFormat.getExporter().printResults(results, properties, out);
+			exportShape.getExporter().printResults(results, properties, out);
 			out.close();
 			if (out.checkError()) {
 				// PrintWriter hides exceptions in print methods and close()

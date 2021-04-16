@@ -44,7 +44,7 @@ import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import prism.Prism.StrategyExportType;
-import prism.ResultsExporter.ResultsExportFormat;
+import prism.ResultsExporter.ResultsExportShape;
 import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
@@ -86,7 +86,7 @@ public class PrismCL implements PrismModelListener
 	private boolean exportbsccs = false;
 	private boolean exportmecs = false;
 	private boolean exportresults = false;
-	private ResultsExportFormat exportFormat = ResultsExportFormat.LIST_PLAIN;
+	private ResultsExportShape exportShape = ResultsExportShape.LIST_PLAIN;
 	private boolean exportvector = false;
 	private boolean exportPlainDeprecated = false;
 	private boolean exportModelNoBasename = false;
@@ -508,18 +508,18 @@ public class PrismCL implements PrismModelListener
 
 		// export results (if required)
 		if (exportresults) {
-			mainLog.print("\nExporting results " + (exportFormat.isMatrix() ? "in matrix form " : ""));
+			mainLog.print("\nExporting results " + (exportShape.isMatrix ? "in matrix form " : ""));
 			mainLog.println(exportResultsFilename.equals("stdout") ? "below:\n" : "to file \"" + exportResultsFilename + "\"...");
 
 			try {
 				PrintWriter out;
 				if (exportResultsFilename.equals("stdout")) {
 					out = new PrintWriter(System.out);
-					exportFormat.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
+					exportShape.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
 					// Do not close System.out !
 				} else {
 					out = new PrintWriter(exportResultsFilename);
-					exportFormat.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
+					exportShape.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
 					out.close();
 				}
 				if (out.checkError()) {
@@ -1369,24 +1369,24 @@ public class PrismCL implements PrismModelListener
 						}
 						exportResultsFilename = halves[0];
 						String ss[] = halves[1].split(",");
-						exportFormat = ResultsExportFormat.LIST_PLAIN;
+						exportShape = ResultsExportShape.LIST_PLAIN;
 						for (j = 0; j < ss.length; j++) {
 							if (ss[j].equals("")) {
 							} else if (ss[j].equals("csv"))
-								exportFormat = exportFormat.isMatrix() ? ResultsExportFormat.MATRIX_CSV : ResultsExportFormat.LIST_CSV;
+								exportShape = exportShape.isMatrix ? ResultsExportShape.MATRIX_CSV : ResultsExportShape.LIST_CSV;
 							else if (ss[j].equals("matrix"))
-								switch (exportFormat) {
+								switch (exportShape) {
 								case LIST_PLAIN:
-									exportFormat = ResultsExportFormat.MATRIX_PLAIN;
+									exportShape = ResultsExportShape.MATRIX_PLAIN;
 									break;
 								case LIST_CSV:
-									exportFormat = ResultsExportFormat.MATRIX_CSV;
+									exportShape = ResultsExportShape.MATRIX_CSV;
 									break;
 								default:
 									// switch does not apply
 								}
 							else if (ss[j].equals("comment"))
-								exportFormat = ResultsExportFormat.COMMENT;
+								exportShape = ResultsExportShape.COMMENT;
 							else
 								errorAndExit("Unknown option \"" + ss[j] + "\" for -" + sw + " switch");
 						}
