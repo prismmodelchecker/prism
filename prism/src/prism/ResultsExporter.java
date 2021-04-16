@@ -114,22 +114,6 @@ public abstract class ResultsExporter
 		public abstract String quote(String s);
 	}
 
-	// Possible destinations for export
-	public enum ResultsExportDestination
-	{
-		STRING;
-		public String fullName()
-		{
-			switch (this) {
-			case STRING:
-				return "string";
-			default:
-				return this.toString();
-			}
-		}
-	};
-
-	protected ResultsExportDestination destination;
 	protected List<DefinedConstant> rangingConstants;
 	protected Values nonRangingConstantValues;
 	protected String exportString = "";
@@ -137,16 +121,6 @@ public abstract class ResultsExporter
 	boolean printProperty;
 
 	// Methods to create and set up a ResultsExporter  
-
-	public ResultsExporter()
-	{
-		this(ResultsExportDestination.STRING);
-	}
-
-	public ResultsExporter(ResultsExportDestination destination)
-	{
-		this.destination = destination;
-	}
 
 	public void setRangingConstants(final List<DefinedConstant> rangingConstants)
 	{
@@ -232,11 +206,9 @@ public abstract class ResultsExporter
 	 */
 	public void end()
 	{
-		// If writing to a string, strip off last \n before returning 
-		if (destination == ResultsExportDestination.STRING) {
-			if (exportString.charAt(exportString.length() - 1) == '\n') {
-				exportString = exportString.substring(0, exportString.length() - 1);
-			}
+		// strip off last \n before returning 
+		if (exportString.charAt(exportString.length() - 1) == '\n') {
+			exportString = exportString.substring(0, exportString.length() - 1);
 		}
 	}
 
