@@ -103,7 +103,7 @@ public abstract class ResultsExporter
 				return s + ":";
 			}
 		},
-		CSV(", ")
+		CSV(",")
 		{
 			public String quote(String s)
 			{
