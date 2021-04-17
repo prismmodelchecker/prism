@@ -587,7 +587,7 @@ public class ResultsCollection
 			// Print constants/indices for matrix
 			// NB: need to enclose in quotes for CSV
 			if (rangingConstants.size() == 1 || rangingConstants.size() - level == 2) {
-				if (sep.equals(", "))
+				if (sep.equals(","))
 					res += "\"";
 				if (rangingConstants.size() > 2)
 					res += head+", ";
@@ -595,9 +595,9 @@ public class ResultsCollection
 					res += constant.getName();
 				else
 					res += constant.getName() + "\\" + kids[0].constant.getName();
-				if (!sep.equals(", "))
+				if (!sep.equals(","))
 					res += ":";
-				if (sep.equals(", "))
+				if (sep.equals(","))
 					res += "\"";
 				res += "\n";
 			}
