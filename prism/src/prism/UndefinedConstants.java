@@ -213,12 +213,14 @@ public class UndefinedConstants
 		mfConsts = new ArrayList<DefinedConstant>(mfNumConsts);
 		for (i = 0; i < mfNumConsts; i++) {
 			s = (String) mfv.elementAt(i);
-			mfConsts.add(new DefinedConstant(s, modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s))));
+			Type type = modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s));
+			mfConsts.add(new DefinedConstant.Undefined(s, type));
 		}
 		pfConsts = new ArrayList<DefinedConstant>(pfNumConsts);
 		for (i = 0; i < pfNumConsts; i++) {
 			s = (String) pfv.elementAt(i);
-			pfConsts.add(new DefinedConstant(s, propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s))));
+			Type type = propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s));
+			pfConsts.add(new DefinedConstant.Undefined(s, type));
 		}
 		// initialise storage just created
 		clearAllDefinitions();
@@ -331,12 +333,12 @@ public class UndefinedConstants
 
 		// constants from model file
 		for (i = 0; i < mfNumConsts; i++) {
-			mfConsts.get(i).clear();
+			mfConsts.set(i, mfConsts.get(i).clear());
 			;
 		}
 		// constants from properties file
 		for (i = 0; i < pfNumConsts; i++) {
-			pfConsts.get(i).clear();
+			pfConsts.set(i, pfConsts.get(i).clear());
 		}
 	}
 
@@ -510,13 +512,13 @@ public class UndefinedConstants
 		if (index != -1) {
 			// const is in modules file
 			overwrite = (mfConsts.get(index).isDefined());
-			mfConsts.get(index).define(sl, sh, ss, exact);
+			mfConsts.set(index, mfConsts.get(index).define(sl, sh, ss, exact));
 		} else {
 			index = getPFConstIndex(name);
 			if (index != -1) {
 				// const is in properties file
 				overwrite = (pfConsts.get(index).isDefined());
-				pfConsts.get(index).define(sl, sh, ss, exact);
+				pfConsts.set(index, pfConsts.get(index).define(sl, sh, ss, exact));
 			} else {
 				// If we are required to use all supplied const values, check for this
 				// (by default we don't care about un-needed or non-existent const values)
