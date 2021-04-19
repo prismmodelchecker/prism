@@ -43,15 +43,15 @@ public class DefinedConstant
 	public static final double DOUBLE_PRECISION_CORRECTION = 0.001;
 	
 	/* Basic info about constant. */
-	private String name;
-	private Type type;
+	protected String name;
+	protected Type type;
 	/* Definition for constant. */
-	private Object low;
-	private Object high;
-	private Object step;
-	private int numSteps;
+	protected Object low;
+	protected Object high;
+	protected Object step;
+	protected int numSteps;
 	/* Storage for a (temporary) value of the constant. */
-	private Object value;
+	protected Object value;
 
 	/** Creates a new instance of DefinedConstant
 	(which is initially undefined, bar a name and type). */
@@ -159,9 +159,9 @@ public class DefinedConstant
 		// store 'actual' value for high
 		ih = ihNew;
 		// store Object versions
-		low = new Integer(il);
-		high = new Integer(ih);
-		step = new Integer(is);
+		low = Integer.valueOf(il);
+		high = Integer.valueOf(ih);
+		step = Integer.valueOf(is);
 	}
 	
 	public void defineDouble(String sl, String sh, String ss) throws PrismException
@@ -226,9 +226,9 @@ public class DefinedConstant
 		// store 'actual' value for high
 		dh = dhNew;
 		// store Object versions
-		low = new Double(dl);
-		high = new Double(dh);
-		step = new Double(ds);
+		low = Double.valueOf(dl);
+		high = Double.valueOf(dh);
+		step = Double.valueOf(ds);
 	}
 
 	public void defineBigRational(String sl, String sh, String ss) throws PrismException
@@ -301,8 +301,8 @@ public class DefinedConstant
 	public void defineBoolean(String sl, String sh, String ss) throws PrismException
 	{
 		// parse value (low)
-		if (sl.equals("true")) low = new Boolean(true);
-		else if (sl.equals("false")) low = new Boolean(false);
+		if (sl.equals("true")) low = Boolean.valueOf(true);
+		else if (sl.equals("false")) low = Boolean.valueOf(false);
 		else throw new PrismException("Value " + sl + " for constant " + name + " is not a valid Boolean");
 		// no high or step allowed for booleans
 		if (sh != null) throw new PrismException("Cannot define ranges for Boolean constants");
@@ -323,20 +323,18 @@ public class DefinedConstant
 	
 	public boolean incr()
 	{
-		int i;
-		int il, ih, is, iv;
+		int ih, is, iv;
 		double dl, dh, ds, dv;
 		boolean overflow = false;
 		
 		// int
 		if (type instanceof TypeInt) {
-			il = ((Integer)low).intValue();
 			ih = ((Integer)high).intValue();
 			is = ((Integer)step).intValue();
 			iv = ((Integer)value).intValue();
 			// if possible, increment
 			if (iv+is<=ih) {
-				value = new Integer(iv+is);
+				value = Integer.valueOf(iv+is);
 			}
 			// otherwise, reset to low value, note overflow
 			else {
@@ -372,7 +370,7 @@ public class DefinedConstant
 				int index = getValueIndex(value) + 1;
 				dv = dl + index * ds;
 				if (dv <= dh + DOUBLE_PRECISION_CORRECTION * ds) {
-					value = new Double(dv);
+					value = Double.valueOf(dv);
 				}
 				// otherwise, reset to low value, note overflow
 				else {
@@ -415,7 +413,7 @@ public class DefinedConstant
 			is = ((Integer)step).intValue();
 			iv = il;
 			for (i = 0; i < j; i++) iv += is;
-			return new Integer(iv);
+			return Integer.valueOf(iv);
 		}
 		// double
 		else if (type instanceof TypeDouble) {
@@ -432,13 +430,13 @@ public class DefinedConstant
 				dv = dl;
 				//for (i = 0; i < j; i++) dv += ds;
 				dv = dl + j * ds;
-				return new Double(dv);
+				return Double.valueOf(dv);
 			}
 		} 
 		// boolean (case should be redundant)
 		else if (type instanceof TypeBool) { 
-			if (j == 0) return new Boolean(false);
-			else if (j == 1) return new Boolean(true);
+			if (j == 0) return Boolean.valueOf(false);
+			if (j == 1) return Boolean.valueOf(true);
 		}
 		
 		// should never get here
@@ -551,4 +549,191 @@ public class DefinedConstant
 		}
 	}
 
+
+
+	public static class DefinedBigRational extends DefinedConstant
+	{
+		public DefinedBigRational(String n)
+		{
+			super(n, TypeDouble.getInstance());
+		}
+
+		@Override
+		public boolean incr()
+		{
+			BigRational rl = (BigRational) low;
+			BigRational rh = (BigRational) high;
+			BigRational rs = (BigRational) step;
+			BigRational rv = (BigRational) value;
+			// if possible, increment
+			int index = getValueIndex(value) + 1;
+			rv = rl.add(rs.multiply(index));
+			if (rv.lessThanEquals(rh)) {
+				value = rv;
+				return false;
+			}
+			// otherwise, reset to low value, note overflow
+			value = low;
+			return true;
+		}
+
+		@Override
+		public BigRational getValue(int j)
+		{
+			BigRational rl = (BigRational)low;
+			BigRational rs = (BigRational)low;
+			BigRational rv;
+			// rv = rl + j*rs
+			rv = rl.add(rs.multiply(j));
+			return rv;
+		}
+
+		@Override
+		public int getValueIndex(Object v)
+		{
+			BigRational rl = (BigRational) low;
+			BigRational rs = (BigRational) step;
+			BigRational rv = (BigRational) value;
+			BigRational index = (rv.subtract(rl)).divide(rs);
+			try {
+				return index.toInt();
+			} catch (PrismLangException e) {
+				throw new IllegalArgumentException("Can not compute value index, out of range: " + e);
+			}
+		}
+	}
+
+
+	public static class DefinedBoolean extends DefinedConstant
+	{
+		public DefinedBoolean(String n)
+		{
+			super(n, TypeBool.getInstance());
+		}
+
+		@Override
+		public boolean incr()
+		{
+			// booleans can't be incremented
+			value = low;
+			return true;
+		}
+
+		@Override
+		public Boolean getValue(int j)
+		{
+			// Fail if j is neither 0 nor 1
+			switch (j) {
+			case 0:
+				return false;
+			case 1:
+				return true;
+			default:
+				return null;
+			}
+		}
+
+		@Override
+		public int getValueIndex(Object v)
+		{
+			// Fail if Object is not a Boolean
+			return (Boolean) v ? 1 : 0;
+		}
+	}
+
+
+
+	public static class DefinedDouble extends DefinedConstant
+	{
+		public DefinedDouble(String n)
+		{
+			super(n, TypeDouble.getInstance());
+		}
+
+		@Override
+		public boolean incr()
+		{
+			// double arithmetic
+			double dl = ((Double)low).doubleValue();
+			double dh = ((Double)high).doubleValue();
+			double ds = ((Double)step).doubleValue();
+			double dv = ((Double)value).doubleValue();
+			// if possible, increment
+			int index = getValueIndex(value) + 1;
+			dv = dl + index * ds;
+			if (dv <= dh + DOUBLE_PRECISION_CORRECTION * ds) {
+				value = Double.valueOf(dv);
+				return false;
+			}
+			// otherwise, reset to low value, note overflow
+			value = low;
+			return true;
+		}
+
+		@Override
+		public Double getValue(int j)
+		{
+			double dl = ((Double)low).doubleValue();
+			double ds = ((Double)step).doubleValue();
+			//for (i = 0; i < j; i++) dv += ds;
+			double dv = dl + j * ds;
+			return Double.valueOf(dv);
+		}
+
+		@Override
+		public int getValueIndex(Object v)
+		{
+			double dl  = ((Double)low).doubleValue();
+			double ds = ((Double)step).doubleValue();
+			double dv = ((Double)v).doubleValue();
+			return (int)Math.round((dv-dl)/ds);
+		}
+	}
+
+
+
+	public static class DefinedInt extends DefinedConstant
+	{
+		public DefinedInt(String n)
+		{
+			super(n, TypeInt.getInstance());
+		}
+
+		@Override
+		public boolean incr()
+		{
+			int ih = ((Integer)high).intValue();
+			int is = ((Integer)step).intValue();
+			int iv = ((Integer)value).intValue();
+			// if possible, increment
+			if (iv + is <= ih) {
+				value = Integer.valueOf(iv + is);
+				return false;
+			}
+			// otherwise, reset to low value, note overflow
+			value = low;
+			return true;
+		}
+
+		@Override
+		public Integer getValue(int j)
+		{
+			int il = ((Integer)low).intValue();
+			int is = ((Integer)step).intValue();
+			int iv = il;
+			for (int i = 0; i < j; i++) {
+				iv += is;
+			}
+			return Integer.valueOf(iv);
+		}
+
+		@Override
+		public int getValueIndex(Object v)
+		{
+			int il = ((Integer)low).intValue();
+			int is = ((Integer)step).intValue();
+			int iv = ((Integer)v).intValue();
+			return (iv-il)/is;
+		}
+	}
 }
