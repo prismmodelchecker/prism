@@ -1,0 +1,51 @@
+pomdp
+
+observables v, h endobservables
+
+module vehicle
+
+	// vehicle location
+	v : [0..2] init 0;
+	
+	[c0] v=0 -> (v'=1);
+	[c1] v=0 -> (v'=2);
+	[c0] v=1 -> (v'=3);
+	[c0] v=2 -> (v'=3);
+
+endmodule
+
+module driver
+
+	// human trust level
+	u : [0..1] init 1;
+	// human takeover decision: 1=human, 2=robot
+	h : [0..2] init 0;
+
+	// update of trust level & takeover decision
+	// depends on current values + vehicle location
+	[c0] u=0 -> 0.5:(u'=0)&(h'=1) + 0.3:(u'=1)&(h'=1) + 0.2:(u'=1)&(h'=2);
+	[c0] u=1 & v!=2 -> 0.1:(u'=0)&(h'=1) + 0.6:(u'=1)&(h'=2) + 0.3:(u'=0)&(h'=2);
+	[c0] u=1 & v=2 -> 0.3:(u'=0)&(h'=1) + 0.5:(u'=1)&(h'=2) + 0.2:(u'=0)&(h'=2);
+	// same as above, but for action c1	
+	[c1] u=0 -> 0.5:(u'=0)&(h'=1) + 0.3:(u'=1)&(h'=1) + 0.2:(u'=1)&(h'=2);
+	[c1] u=1 & v!=2 -> 0.1:(u'=0)&(h'=1) + 0.6:(u'=1)&(h'=2) + 0.3:(u'=0)&(h'=2);
+	[c1] u=1 & v=2 -> 0.3:(u'=0)&(h'=1) + 0.5:(u'=1)&(h'=2) + 0.2:(u'=0)&(h'=2);
+
+endmodule
+
+label "end" = v=3;
+
+rewards "takeovers"
+	h=1 : 1;
+endrewards
+
+rewards "time"
+	[c0] v=0 : 2;
+	[c1] v=0 : 3;
+	[c0] v=1 : 4;
+	[c0] v=2 : 2;
+endrewards
+
+rewards "risk"
+	[c0] v=2 : 2;
+endrewards
