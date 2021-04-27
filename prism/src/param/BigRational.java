@@ -132,21 +132,29 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			}
 		}
 		if (cancel) {
-			if (num.equals(BigInteger.ZERO)) {
-				if (!den.equals(BigInteger.ZERO)) {
-					// not NaN (= 0/0), so this is a real zero:
-					// normalise by setting denominator to 1
-					num = BigInteger.ZERO;
-					den = BigInteger.ONE;
-				}
-			} else {
-				BigInteger gcd = num.gcd(den);
-				num = num.divide(gcd);
-				den = den.divide(gcd);
-				if (den.signum() == -1) {
-					num = num.negate();
-					den = den.negate();
-				}
+			canceled(num, den);
+		} else {
+			this.num = num;
+			this.den = den;
+		}
+	}
+
+	protected void canceled(BigInteger num, BigInteger den)
+	{
+		if (num.equals(BigInteger.ZERO)) {
+			if (!den.equals(BigInteger.ZERO)) {
+				// not NaN (= 0/0), so this is a real zero:
+				// normalise by setting denominator to 1
+				num = BigInteger.ZERO;
+				den = BigInteger.ONE;
+			}
+		} else {
+			BigInteger gcd = num.gcd(den);
+			num = num.divide(gcd);
+			den = den.divide(gcd);
+			if (den.signum() == -1) {
+				num = num.negate();
+				den = den.negate();
 			}
 		}
 		this.num = num;
@@ -173,6 +181,34 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	public BigRational(long num)
 	{
 		this(num, 1);
+	}
+
+	/**
+	 * Creates a new BigRational by converting {@code value} to a fraction.
+	 * The algorithm uses iterated multiplication with 2 to determine the exponent of the argument.
+	 * 
+	 * @param num value of new rational as an integer value
+	 */
+	public  BigRational(double value)
+	{
+		if (java.lang.Double.isNaN(value))
+			this.num = BigInteger.ZERO;
+			this.den = BigInteger.ZERO;
+		if (value == java.lang.Double.POSITIVE_INFINITY) {
+			this.num = BigInteger.ONE;
+			this.den = BigInteger.ZERO;
+		}
+		if (value == java.lang.Double.NEGATIVE_INFINITY) {
+			this.num = BigInteger.ONE.negate();
+			this.den = BigInteger.ZERO;
+		}
+		int exp = 0;
+		while ((long) value != value) {
+			value *= 2;
+			exp += 1;
+		}
+		this.num = BigInteger.valueOf((long) value);
+		this.den = BigInteger.valueOf(2).pow(exp);
 	}
 
 	/**
@@ -275,9 +311,7 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			boolean v = (Boolean)value;
 			return v ? BigRational.ONE : BigRational.ZERO;
 		} else if (value instanceof Double) {
-			// TODO: ? might be imprecise, perhaps there
-			// is a way to get the full precision?
-			return new BigRational(((Double)value).toString());
+			return new BigRational((Double)value);
 		} else if (value instanceof String) {
 			return new BigRational((String)value);
 		}
@@ -305,20 +339,6 @@ public final class BigRational extends Number implements Comparable<BigRational>
 	public BigRational cancel()
 	{
 		return new BigRational(this.num, this.den, true);
-	}
-
-	/**
-	 * Creates a new BigRational with value {@code num} / {@code den}.
-	 * Makes sure that {@code num} and {@code den} are coprime.
-	 * To be used  
-	 * 
-	 * @param num numerator of new BigRational
-	 * @param den denominator of new BigRational
-	 * @return BigRational with value {@code num} / {@code den}
-	 */
-	private static BigRational cancel(BigInteger num, BigInteger den)
-	{
-		return new BigRational(num, den);
 	}
 
 	// operations
