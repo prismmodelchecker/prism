@@ -78,7 +78,16 @@ public class GUIExperimentTable extends JTable
 		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, useSimulation); 
 		return expModel.addExperiment(ge);
 	}
-	
+
+	/**
+	 * Import the results of an experiment into the table.
+	 */
+	public int importExperiment(Property property, ResultsCollection results)
+	{
+		GUIExperiment ge = new GUIExperimentImported(this, guiProps, property, results); 
+		return expModel.addExperiment(ge);
+	}
+
 	public void removeExperiment(int i)
 	{
 		expModel.removeExperiment(i);

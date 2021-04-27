@@ -123,6 +123,32 @@ public class UndefinedConstants
 		initialise();
 	}
 
+	/**
+	 * Reconstruct information about undefined constants from a ResultCollection.
+	 * This information is necessarily incomplete.
+	 * Hence, consider the information a mockup and do not use the instance to run an experiment.
+	 * The provided property does not need to correspond to the data.
+	 * It has only a decorative function. 
+	 * @param property a property to associate with the results
+	 * @param results the ResultsCollection from which the undefined constants are extracted
+	 */
+	@SuppressWarnings("rawtypes")
+	public UndefinedConstants(Property property, ResultsCollection results)
+	{
+		setModulesFile(null);
+		setPropertiesFile(null);
+		setProperties(List.of(property));
+		// consider all constants pf constants as we do not know the model file
+		Vector<DefinedConstant> constants = results.getRangingConstants();
+		mfNumConsts = 0;
+		pfNumConsts = constants.size();
+		// create storage for info about constant definitions
+		mfConsts = new ArrayList<DefinedConstant>(mfNumConsts);
+		pfConsts = new ArrayList<DefinedConstant>(pfNumConsts);
+		// we can add constants safely as they are immutable except for the temporary value
+		pfConsts.addAll(constants);
+	}
+
 	// Setters
 
 	public void setModulesFile(ModulesFile modulesFile)

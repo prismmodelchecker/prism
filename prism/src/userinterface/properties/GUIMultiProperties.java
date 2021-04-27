@@ -112,6 +112,7 @@ import userinterface.model.GUIModelEvent;
 import userinterface.model.GUIMultiModelHandler;
 import userinterface.model.computation.ExportBuiltModelThread;
 import userinterface.properties.computation.ExportResultsThread;
+import userinterface.properties.computation.ImportResultsThread;
 import userinterface.properties.computation.LoadPropertiesThread;
 import userinterface.properties.computation.ModelCheckThread;
 import userinterface.properties.computation.SimulateModelCheckThread;
@@ -166,7 +167,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
 			removeLabel, newExperiment, deleteExperiment, stopExperiment, parametric, viewResults, plotResults, exportResultsListText, exportResultsListCSV,
-			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsDataFrameCSV, exportResultsComment, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
+			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsDataFrameCSV, exportResultsComment, importResultsDataFrameCSV, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -1219,21 +1220,30 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	public void a_exportResults(ResultsExportShape exportShape)
 	{
-		GUIExperiment exps[];
-		int i, n, inds[];
-
 		// get selected experiments
-		n = experiments.getSelectedRowCount();
-		if (n < 1)
+		int n = experiments.getSelectedRowCount();
+		if (n < 1) {
 			return;
-		exps = new GUIExperiment[n];
-		inds = experiments.getSelectedRows();
-		for (i = 0; i < n; i++)
+		}
+		GUIExperiment[] exps = new GUIExperiment[n];
+		int[] inds = experiments.getSelectedRows();
+		for (int i = 0; i < n; i++)
 			exps[i] = experiments.getExperiment(inds[i]);
 		// get filename to save
 		if (showSaveFileDialog(exportShape.isCSV ? csvFilter : textFilter) == JFileChooser.APPROVE_OPTION) {
 			File file = getChooserFile();
 			Thread t = new ExportResultsThread(this, exps, file, exportShape);
+			t.setPriority(Thread.NORM_PRIORITY);
+			t.start();
+		}
+	}
+
+	public void a_importResults(ResultsExportShape exportShape)
+	{
+		// get selected experiments
+		if (showOpenFileDialog(csvFilter) == JFileChooser.APPROVE_OPTION) {
+			File file = getChooserFile();
+			Thread t = new ImportResultsThread(this, experiments, file);
 			t.setPriority(Thread.NORM_PRIORITY);
 			t.start();
 		}
@@ -1872,6 +1882,11 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsMenu.add(exportResultsDataFrameCSV);
 		exportResultsMenu.add(exportResultsComment);
 		experimentPopup.add(exportResultsMenu);
+		JMenu importResultsMenu = new JMenu("Import results");
+		importResultsMenu.setMnemonic('I');
+		importResultsMenu.setIcon(GUIPrism.getIconFromImage("smallAdd.png"));
+		importResultsMenu.add(importResultsDataFrameCSV);
+		experimentPopup.add(importResultsMenu);
 	}
 
 	private void setupActions()
@@ -2196,6 +2211,18 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportResultsComment.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_C);
 		exportResultsComment.putValue(Action.NAME, "Comment");
 		exportResultsComment.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallComment.png"));
+
+		importResultsDataFrameCSV = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_importResults(ResultsExportShape.DATA_FRAME);
+			}
+		};
+		importResultsDataFrameCSV.putValue(Action.LONG_DESCRIPTION, "Import results of an experiment from a data frame in a CSV file");
+		importResultsDataFrameCSV.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_F);
+		importResultsDataFrameCSV.putValue(Action.NAME, "Data Frame (CSV)");
+		importResultsDataFrameCSV.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDataFrame.png"));
 
 		exportLabelsPlain = new AbstractAction()
 		{
