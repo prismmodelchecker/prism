@@ -484,7 +484,7 @@ public abstract class DefinedConstant<T>
 	{
 		public DefinedBoolean(String name, boolean low)
 		{
-			super(name, TypeBool.getInstance(), low, null, null, 1);
+			super(name, TypeBool.getInstance(), low, null, null, 2);
 		}
 
 		@Override
