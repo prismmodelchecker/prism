@@ -65,17 +65,19 @@ public class ResultsCollection
 
 	public ResultsCollection(UndefinedConstants uCons, String resultName)
 	{
-		resultListeners = new Vector<ResultListener>();
-		rangingConstants = new Vector<DefinedConstant>();
-		Vector<DefinedConstant> tmpRangingConstants = uCons.getRangingConstants();
-		for (int i = 0; i < tmpRangingConstants.size(); i++) {
-			rangingConstants.add(tmpRangingConstants.get(i));
-		}
-		numMFRangingConstants = uCons.getNumModelRangingConstants(); 
-		numPFRangingConstants = uCons.getNumPropertyRangingConstants();
-		nonRangingConstantValues = uCons.getNonRangingConstantValues();
+		this(uCons.getRangingConstants(), uCons.getNumModelRangingConstants(), uCons.getNumPropertyRangingConstants(), uCons.getNonRangingConstantValues(), resultName);
+	}
 
-		this.root = (rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
+	@SuppressWarnings("unchecked")
+	public ResultsCollection(Vector<DefinedConstant> rangingConstants, int numMFRangingConstants, int numPFRangingConstants, Values nonRangingConstants, String resultName)
+	{
+		this.resultListeners = new Vector<ResultListener>();
+		this.rangingConstants = (Vector<DefinedConstant>) rangingConstants.clone();
+		this.numMFRangingConstants = numMFRangingConstants; 
+		this.numPFRangingConstants = numPFRangingConstants;
+		this.nonRangingConstantValues = Objects.requireNonNull(nonRangingConstants);
+
+		this.root = (this.rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
 		this.resultName = (resultName == null) ? "Result" : resultName;
 	}
 
