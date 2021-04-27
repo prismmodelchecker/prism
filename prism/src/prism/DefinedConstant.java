@@ -27,7 +27,11 @@
 
 package prism;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import param.BigRational;
 import parser.type.*;
@@ -615,6 +619,110 @@ public abstract class DefinedConstant<T>
 			int is = ((Integer)step).intValue();
 			int iv = ((Integer)v).intValue();
 			return (iv-il)/is;
+		}
+	}
+
+
+
+	/**
+	 * Class for a constant that is defined over a set of possible values, the domain.
+	 * 
+	 * @param <T> the Java type of the values in the domain
+	 */
+	public static class DefinedDomain<T extends Number> extends DefinedConstant<T>
+	{
+		private final T[] domain;
+
+		/**
+		 * Define a constant from a collection of possible values.
+		 * 
+		 * @param <T> the Java type of the values in the domain
+		 * @param name the name of the constant
+		 * @param type the Prism type of the values
+		 * @param values the values of the domain
+		 * @param a an empty array as blueprint to store the domain in an array of the correct type
+		 * @return The constant defined over the given domain
+		 */
+		public static <T extends Number> DefinedDomain<T> fromValues(String name, Type type, Collection<T> values, T[] a)
+		{
+			if (values.size() < 1) {
+				throw new IllegalArgumentException("expected at least one element in domain");
+			}
+			if (!(values instanceof Set)) {
+				values =  new HashSet<T>(values);
+			}
+			T[] domain = values.toArray(a);
+			Arrays.sort(domain);
+			return new DefinedDomain<>(name, type, domain);
+		}
+
+		/**
+		 * Define a constant over a set of possible values, the domain.
+		 * 
+		 * @param name the name of the constant
+		 * @param type the Prism type of the values
+		 * @param domain the domain of distinct values
+		 */
+		protected DefinedDomain(String name, Type type, T[] domain)
+		{
+			super(name, type, domain[0], domain[domain.length-1], null, domain.length);
+			this.domain = domain;
+			checkType();
+		}
+
+		/**
+		 * Check that the Java type and the Prism type match.
+		 * 
+		 * @throws IllegalArgumentException If the types do not match
+		 */
+		protected void checkType()
+		{
+			Class<?> sampleClass = domain[0].getClass();
+			if (sampleClass == Integer.class && ! (type instanceof TypeInt)) {
+				throw new IllegalArgumentException("expected TypeInt but got" + type);
+			} else if (sampleClass == Double.class && ! (type instanceof TypeDouble)) {
+				throw new IllegalArgumentException("expected TypeDouble but got" + type);
+			} else if (sampleClass == BigRational.class && ! (type instanceof TypeDouble)) {
+				throw new IllegalArgumentException("expected TypeDouble but got" + type);
+			}
+		}
+
+		@Override
+		public boolean incr()
+		{
+			int i = getValueIndex(value);
+			if (i == numSteps - 1) {
+				return true;
+			}
+			value = domain[i+1];
+			return false;
+		}
+
+		@Override
+		public T getValue(int j)
+		{
+			return domain[j];
+		}
+
+		@Override
+		public void setValue(T value)
+		{
+			if (getValueIndex(value) < 0) {
+				throw new IllegalArgumentException("expected value from domain");
+			}
+			super.setValue((T) value);
+		}
+
+		@Override
+		public int getValueIndex(T v)
+		{
+			return Arrays.binarySearch(domain, v);
+		}
+
+		@Override
+		public String toString()
+		{
+			return name + "=" + Arrays.toString(domain);
 		}
 	}
 }

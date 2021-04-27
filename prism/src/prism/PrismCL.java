@@ -26,8 +26,10 @@
 
 package prism;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.UnknownHostException;
@@ -35,8 +37,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 
 import common.StackTraceHelper;
+import csv.CsvFormatException;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionReward;
@@ -45,6 +49,7 @@ import parser.ast.PropertiesFile;
 import parser.ast.Property;
 import prism.Prism.StrategyExportType;
 import prism.ResultsExporter.ResultsExportShape;
+import prism.ResultsImporter.RawResultsCollection;
 import simulator.GenerateSimulationPath;
 import simulator.method.ACIconfidence;
 import simulator.method.ACIiterations;
@@ -70,6 +75,7 @@ public class PrismCL implements PrismModelListener
 	private boolean importlabels = false;
 	private boolean importstaterewards = false;
 	private boolean importinitdist = false;
+	private boolean importresults = false;
 	private boolean steadystate = false;
 	private boolean dotransient = false;
 	private boolean exporttrans = false;
@@ -128,6 +134,7 @@ public class PrismCL implements PrismModelListener
 	private String importLabelsFilename = null;
 	private String importStateRewardsFilename = null;
 	private String importInitDistFilename = null;
+	private String importResultsFilename = null;
 	private String importModelWarning = null;
 	private String propertiesFilename = null;
 	private String exportTransFilename = null;
@@ -253,6 +260,16 @@ public class PrismCL implements PrismModelListener
 
 		// Initialise
 		initialise(args);
+
+		// Import (and optionally re-export) results
+		if (importresults) {
+			importResults();
+			if (exportresults) {
+				exportResults();
+			}
+			closeDown();
+			return;
+		}
 
 		// Parse/load model/properties
 		doParsing();
@@ -508,30 +525,65 @@ public class PrismCL implements PrismModelListener
 
 		// export results (if required)
 		if (exportresults) {
-			mainLog.print("\nExporting results as " + exportShape.fullName);
-			mainLog.println(exportResultsFilename.equals("stdout") ? " below:\n" : " to file \"" + exportResultsFilename + "\"...");
-
-			try {
-				PrintWriter out;
-				if (exportResultsFilename.equals("stdout")) {
-					out = new PrintWriter(System.out);
-					exportShape.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
-					// Do not close System.out !
-				} else {
-					out = new PrintWriter(exportResultsFilename);
-					exportShape.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
-					out.close();
-				}
-				if (out.checkError()) {
-					// PrintWriter hides exceptions in print methods and close()
-					errorAndExit("Could not export results: unknown IO exception");
-				}
-			} catch (FileNotFoundException e) {
-				errorAndExit("Could not export results: " + e.getMessage());
-			}
+			exportResults();
 		}
 		// close down
 		closeDown();
+	}
+
+	/**
+	 * Import results from a data frame in a CSV file.
+	 */
+	protected void importResults()
+	{
+		mainLog.print("\nImporting results from dataframe in " + importResultsFilename + "\"...");
+		try {
+			propertiesToCheck = new ArrayList<Property>();
+			List<ResultsCollection> importedResults = new ArrayList<ResultsCollection>();
+			FileReader reader = new FileReader(new File(importResultsFilename));
+			ResultsImporter importer = new ResultsImporter(new BufferedReader(reader));
+			for (Entry<Property, RawResultsCollection> result : importer) {
+				propertiesToCheck.add(result.getKey());
+				importedResults.add(result.getValue().toResultsCollection());
+			}
+			results = importedResults.toArray(new ResultsCollection[0]);
+		} catch (FileNotFoundException e) {
+			errorAndExit("Could not import results: " + e.getMessage());
+		} catch (IOException e) {
+			errorAndExit("Could not read results file: " + e.getMessage());
+		} catch (CsvFormatException e) {
+			errorAndExit("Malformatted CSV results file: " + e.getMessage());
+		} catch (PrismLangException e) {
+			errorAndExit("Syntax error in results file: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Export results to a file according to the export options.
+	 */
+	protected void exportResults()
+	{
+		mainLog.print("\nExporting results as " + exportShape.fullName);
+		mainLog.println(exportResultsFilename.equals("stdout") ? " below:\n" : " to file \"" + exportResultsFilename + "\"...");
+
+		try {
+			PrintWriter out;
+			if (exportResultsFilename.equals("stdout")) {
+				out = new PrintWriter(System.out);
+				exportShape.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
+				// Do not close System.out !
+			} else {
+				out = new PrintWriter(exportResultsFilename);
+				exportShape.getExporter().printResults(Arrays.asList(results), propertiesToCheck, out);
+				out.close();
+			}
+			if (out.checkError()) {
+				// PrintWriter hides exceptions in print methods and close()
+				errorAndExit("Could not export results: unknown IO exception");
+			}
+		} catch (FileNotFoundException e) {
+			errorAndExit("Could not export results: " + e.getMessage());
+		}
 	}
 
 	/**
@@ -1334,6 +1386,16 @@ public class PrismCL implements PrismModelListener
 					if (i < args.length - 1) {
 						importinitdist = true;
 						importInitDistFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// import results
+				else if (sw.equals("importresults")) {
+					if (i < args.length - 1) {
+						importresults = true;
+						modelFilename = "no-model-file.prism";
+						importResultsFilename = args[++i];
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -2437,6 +2499,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-dtmc .......................... Force imported/built model to be a DTMC");
 		mainLog.println("-ctmc .......................... Force imported/built model to be a CTMC");
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
+		mainLog.println("-importresults <file> .......... Import results from a data frame stored in CSV file");
 		mainLog.println();
 		mainLog.println("EXPORT OPTIONS:");
 		mainLog.println("-exportresults <file[:options]>  Export the results of model checking to a file");
@@ -2522,6 +2585,11 @@ public class PrismCL implements PrismModelListener
 			mainLog.println("Use extension .all to import all, e.g.:");
 			mainLog.println("\n -importmodel in.all\n");
 		}
+		// -importresults
+		else if (sw.equals("importresults")) {
+			mainLog.println("Switch: -importresults <file>\n");
+			mainLog.println("Import results from a data frame stored as comma-separated values in <file>.");
+		}			
 		// -exportresults
 		else if (sw.equals("exportresults")) {
 			mainLog.println("Switch: -exportresults <file[:options]>\n");
