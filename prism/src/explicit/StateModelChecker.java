@@ -691,11 +691,11 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Apply operation
-		res3.applyFunction(expr.getType(), (v1, v2, v3) -> expr.apply(v1, v2, v3), res2, res3);
-		res1.clear();
+		res1.applyFunction(expr.getType(), (v1, v2, v3) -> expr.apply(v1, v2, v3), res2, res3);
 		res2.clear();
+		res3.clear();
 
-		return res3;
+		return res1;
 	}
 
 	/**
