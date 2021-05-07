@@ -1,0 +1,28 @@
+name: make-tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        java: [9, 11, 15]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+    - run: cd prism
+    - name: make tests
+      working-directory: ./prism
+      run: |
+        make
+        make tests
