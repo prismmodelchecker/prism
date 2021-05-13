@@ -1,0 +1,1 @@
+-importmodel irobot.all -exportmodel irobot.sta,tra,lab -ex

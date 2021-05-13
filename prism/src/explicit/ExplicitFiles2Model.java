@@ -109,6 +109,16 @@ public class ExplicitFiles2Model extends PrismComponent
 			mdp.buildFromPrismExplicit(transFile.getAbsolutePath());
 			model = mdp;
 			break;
+		case IDTMC:
+			IDTMCSimple<?> idtmc = new IDTMCSimple<>();
+			idtmc.buildFromPrismExplicit(transFile.getAbsolutePath());
+			model = idtmc;
+			break;
+		case IMDP:
+			IMDPSimple<?> imdp = new IMDPSimple<>();
+			imdp.buildFromPrismExplicit(transFile.getAbsolutePath());
+			model = imdp;
+			break;
 		case CTMDP:
 		case LTS:
 		case PTA:

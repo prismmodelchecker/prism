@@ -346,6 +346,7 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 	private ModelType autodetectModelType(File transFile)
 	{
 		String s, ss[];
+		boolean nondet;
 
 		// Open file for reading, automatic close when done
 		try (BufferedReader in = new BufferedReader(new FileReader(transFile))) {
@@ -355,15 +356,16 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 				return null;
 			}
 			ss = s.trim().split(" ");
-			// 3 parts - should be an MDP
+			// 3 numbers should indicate a nondeterministic model, e.g., MDP
+			// 2 numbers should indicate a probabilistic model, e.g., DTMC
+			// Anything else, give up
 			if (ss.length == 3) {
-				return ModelType.MDP;
-			}
-			// Not 2 parts: error; give up
-			else if (ss.length != 2) {
+				nondet = true;
+			} else if (ss.length == 2) {
+				nondet = false;
+			} else {
 				return null;
 			}
-			// Now choose between DTMC and CTMC
 			// Read up to max remaining lines
 			int lines = 0;
 			int max = 5;
@@ -372,14 +374,27 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 				lines++;
 				ss = s.trim().split(" ");
 				// Look at probability/rate
-				double d = Double.parseDouble(ss[2]);
+				// (give up if line is in unexpected format)
+				String probOrRate;
+				if (nondet && ss.length >= 4) {
+					probOrRate = ss[3];
+				} else if (!nondet && ss.length >= 3) {
+					probOrRate = ss[2];
+				} else {
+					return null;
+				}
+				// Interval: guess IMDP/IDTMC
+				if (probOrRate.matches("\\[.+,.+\\]")) {
+					return nondet ? ModelType.IMDP : ModelType.IDTMC;
+				}
+				double d = Double.parseDouble(probOrRate);
 				// Looks like a rate: guess CTMC
 				if (d > 1) {
 					return ModelType.CTMC;
 				}
-				// All non-rates so far: guess DTMC
+				// All non-rates so far: guess MDP/DTMC
 				if (lines == max) {
-					return ModelType.DTMC;
+					return nondet ? ModelType.MDP : ModelType.DTMC;
 				}
 				// Read next line
 				s = in.readLine();
