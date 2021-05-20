@@ -54,6 +54,12 @@ import explicit.rewards.WeightedSumMDPRewards;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
+import gurobi.GRB;
+import gurobi.GRBEnv;
+import gurobi.GRBException;
+import gurobi.GRBLinExpr;
+import gurobi.GRBModel;
+import gurobi.GRBVar;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 import parser.ast.Expression;
@@ -78,6 +84,10 @@ import strat.MDStrategyArray;
  */
 public class MDPModelChecker extends ProbModelChecker
 {
+	enum LPSolver { LPSOLVE, GUROBI };
+	
+	protected LPSolver lpSolver = LPSolver.GUROBI;
+	
 	/**
 	 * Create a new MDPModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -1263,6 +1273,49 @@ public class MDPModelChecker extends ProbModelChecker
 		unknown.andNot(yes);
 		unknown.andNot(no);
 		
+		switch (lpSolver) {
+		case LPSOLVE:
+			soln = solveReachProbsLPWithLPSolve(mdp, no, yes, unknown, min, strat);
+			break;
+		case GUROBI:
+			soln = solveReachProbsLPWithGurobi(mdp, no, yes, unknown, min, strat);
+			break;
+		}
+		
+		// We do an extra iteration of VI (using GS since we have just one solution vector)
+		// If strategy generation was requested (strat != null), this takes care of it
+		// (NB: that only works reliably for min - max needs more work - but this is disallowed earlier)
+		// It also has the side-effect of sometimes fixing small round-off errors from LP
+		mdp.mvMultGSMinMax(soln, min, unknown, false, true, strat);
+		
+		// Finished solution
+		timer = System.currentTimeMillis() - timer;
+		mainLog.print("Linear programming");
+		mainLog.println(" took " + timer / 1000.0 + " seconds.");
+		
+		// Return results
+		// (Note we don't add the strategy - the one passed in is already there
+		// and might have some existing choices stored for other states).
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = soln;
+		res.accuracy = new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
+		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Solve the linear program for reachability probabilities with LPSolve.
+	 * @param mdp: The MDP
+	 * @param no: Probability 0 states
+	 * @param yes: Probability 1 states
+	 * @param maybe: Maybe states
+	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	protected double[] solveReachProbsLPWithLPSolve(MDP mdp, BitSet no, BitSet yes, BitSet unknown, boolean min, int strat[]) throws PrismException
+	{
+		double soln[] = null;
+		int n = mdp.getNumStates();
 		try {
 			// Initialise LP solver
 			LpSolve solver = LpSolve.makeLp(0, n);
@@ -1327,29 +1380,98 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 			// Clean up
 			solver.deleteLp();
+			// Return solution
+			return soln;
 		} catch (LpSolveException e) {
 			throw new PrismException("Error solving LP: " +e.getMessage());
 		}
-		
-		// We do an extra iteration of VI (using GS since we have just one solution vector)
-		// If strategy generation was requested (strat != null), this takes care of it
-		// (NB: that only works reliably for min - max needs more work - but this is disallowed earlier)
-		// It also has the side-effect of sometimes fixing small round-off errors from LP
-		mdp.mvMultGSMinMax(soln, min, unknown, false, true, strat);
-		
-		// Finished solution
-		timer = System.currentTimeMillis() - timer;
-		mainLog.print("Linear programming");
-		mainLog.println(" took " + timer / 1000.0 + " seconds.");
-		
-		// Return results
-		// (Note we don't add the strategy - the one passed in is already there
-		// and might have some existing choices stored for other states).
-		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = soln;
-		res.accuracy = new Accuracy(AccuracyLevel.EXACT_FLOATING_POINT);
-		res.timeTaken = timer / 1000.0;
-		return res;
+	}
+
+	/**
+	 * Solve the linear program for reachability probabilities with Gurobi.
+	 * @param mdp: The MDP
+	 * @param no: Probability 0 states
+	 * @param yes: Probability 1 states
+	 * @param maybe: Maybe states
+	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	protected double[] solveReachProbsLPWithGurobi(MDP mdp, BitSet no, BitSet yes, BitSet unknown, boolean min, int strat[]) throws PrismException
+	{
+		double soln[] = null;
+		int n = mdp.getNumStates();
+		try {
+			// Initialise LP solver
+			GRBEnv env = new GRBEnv("gurobi.log");
+			env.set(GRB.IntParam.OutputFlag, 0);
+			GRBModel model = new GRBModel(env);
+			// Set up LP variables + objective function
+			GRBVar xVars[] = new GRBVar[n];
+			for (int s = 0; s < n; s++) {
+				xVars[s] = model.addVar(0.0, 1.0, unknown.get(s) ? 1.0 : 0.0, GRB.CONTINUOUS, "x" + s);
+			}
+			model.set(GRB.IntAttr.ModelSense, min ? -1 : 1);
+			// Set up arrays for passing LP to solver
+			double row[] = new double[n + 1];
+			int colno[] = new int[n + 1];
+			// Add constraints
+			int counter = 0;
+			for (int s = 0; s < n; s++) {
+				if (yes.get(s)) {
+					GRBLinExpr expr = new GRBLinExpr();
+					expr.addTerm(1.0, xVars[s]);
+					model.addConstr(expr, GRB.EQUAL, 1.0, "c" + counter++);
+				} else if (no.get(s)) {
+					GRBLinExpr expr = new GRBLinExpr();
+					expr.addTerm(1.0, xVars[s]);
+					model.addConstr(expr, GRB.EQUAL, 0.0, "c" + counter++);
+				} else {
+					int numChoices = mdp.getNumChoices(s);
+					for (int i = 0; i < numChoices; i++) {
+						int count = 0;
+						row[count] = 1.0;
+						colno[count] = s + 1;
+						count++;
+						Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
+						while (iter.hasNext()) {
+							Map.Entry<Integer, Double> e = iter.next();
+							int t = e.getKey();
+							double p = e.getValue();
+							if (t == s) {
+								row[0] -= p;
+							} else {
+								row[count] = -p;
+								colno[count] = t + 1;
+								count++;
+							}
+						}
+						GRBLinExpr expr = new GRBLinExpr();
+						for (int j = 0; j < count; j++) {
+							expr.addTerm(row[j], xVars[colno[j] - 1]);
+						}
+						model.addConstr(expr, min ? GRB.LESS_EQUAL : GRB.GREATER_EQUAL, 0.0, "c" + counter++);
+					}
+				}
+			}
+			// Solve LP
+			//model.write("gurobi.lp");
+			model.optimize();
+			if (model.get(GRB.IntAttr.Status) == GRB.Status.OPTIMAL) {
+				soln = new double[n];
+				for (int s = 0; s < n; s++) {
+					soln[s] = xVars[s].get(GRB.DoubleAttr.X);
+				}
+			} else {
+				throw new PrismException("Error solving LP" + (model.get(GRB.IntAttr.Status) == GRB.Status.INFEASIBLE ? " (infeasible)" : ""));
+			}
+			// Clean up
+			model.dispose();
+			env.dispose();
+			// Return solution
+			return soln;
+		} catch (GRBException e) {
+			throw new PrismException("Error solving LP: " +e.getMessage());
+		}
 	}
 
 	/**
