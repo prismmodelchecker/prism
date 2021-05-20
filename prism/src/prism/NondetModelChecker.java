@@ -212,7 +212,11 @@ public class NondetModelChecker extends NonProbModelChecker
 			coalition = null;
 		}
 
-		// Process operand(s)
+		// Multi-strategies not supported
+		if ("multi".equals(expr.getModifier())) {
+			throw new PrismNotSupportedException("Multi-strategy synthesis not supported by this engine");
+		}
+			
 		List<Expression> exprs = expr.getOperands();
 		// Pass onto relevant method:
 		// Single P operator

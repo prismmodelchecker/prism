@@ -46,6 +46,9 @@ public class ExpressionStrategy extends Expression
 	/** Coalition info (for game models) */
 	protected Coalition coalition = new Coalition(); 
 	
+	/** Optional "modifier" to specify variants */
+	protected String modifier = null;
+	
 	/** Child expression(s) */
 	protected List<Expression> operands = new ArrayList<Expression>();
 	
@@ -85,6 +88,14 @@ public class ExpressionStrategy extends Expression
 	public void setCoalition(List<String> coalition)
 	{
 		this.coalition.setPlayers(coalition);
+	}
+
+	/**
+	 * Set the (optional) "modifier" for this operator.
+	 */
+	public void setModifier(String modifier)
+	{
+		this.modifier = modifier;
 	}
 
 	public void setSingleOperand(Expression expression)
@@ -139,6 +150,22 @@ public class ExpressionStrategy extends Expression
 		return singleOperand;
 	}
 	
+	/**
+	 * Get the (optional) "modifier" for this operator.
+	 */
+	public String getModifier()
+	{
+		return modifier;
+	}
+
+	/**
+	 * Get a string representing the modifier as a suffix for the operator.
+	 */
+	public String getModifierString()
+	{
+		return modifier == null ? "" : "{" + modifier + "}";
+	}
+
 	public int getNumOperands()
 	{
 		return operands.size();
@@ -224,6 +251,7 @@ public class ExpressionStrategy extends Expression
 		s += (thereExists ? "<<" : "[[");
 		s += coalition;
 		s += (thereExists ? ">> " : "]] ");
+		s += getModifierString();
 		if (singleOperand) {
 			s += operands.get(0);
 		} else {
@@ -247,6 +275,7 @@ public class ExpressionStrategy extends Expression
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((coalition == null) ? 0 : coalition.hashCode());
+		result = prime * result + ((modifier == null) ? 0 : modifier.hashCode());
 		result = prime * result + ((operands == null) ? 0 : operands.hashCode());
 		result = prime * result + (singleOperand ? 1231 : 1237);
 		result = prime * result + (thereExists ? 1231 : 1237);
@@ -267,6 +296,11 @@ public class ExpressionStrategy extends Expression
 			if (other.coalition != null)
 				return false;
 		} else if (!coalition.equals(other.coalition))
+			return false;
+		if (modifier == null) {
+			if (other.modifier != null)
+				return false;
+		} else if (!modifier.equals(other.modifier))
 			return false;
 		if (operands == null) {
 			if (other.operands != null)

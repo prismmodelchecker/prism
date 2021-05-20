@@ -1807,6 +1807,7 @@ Expression ExpressionForAll(boolean prop, boolean pathprop) :
 Expression ExpressionStrategy(boolean prop, boolean pathprop) :
 {
 	ExpressionStrategy ret;
+	ExpressionIdent modifier = null;
 	Expression expr;
 	Token begin = null;
 }
@@ -1817,6 +1818,8 @@ Expression ExpressionStrategy(boolean prop, boolean pathprop) :
 	// <<...>> or [[...]]
 	(( begin = <DLT> { ret = new ExpressionStrategy(true); } ExpressionStrategyCoalition(ret) <DGT> )
 	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } ExpressionStrategyCoalition(ret) <DRBRACKET> ))
+	// Optional modifier
+	( <LBRACE> modifier = IdentifierExpression() <RBRACE> )?
 	// Then either a single P or R operator
 	(
 	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop) )
@@ -1830,6 +1833,7 @@ Expression ExpressionStrategy(boolean prop, boolean pathprop) :
 	<RPARENTH>
 	)))
 	{
+		ret.setModifier(modifier == null ? null : modifier.getName());
 		ret.setPosition(begin, getToken(0));
 		return ret;
 	}

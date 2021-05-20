@@ -811,6 +811,96 @@ public class MDPModelChecker extends ProbModelChecker
 	}
 
 	/**
+	 * Zero total rewards precomputation algorithm, i.e., determine the states of an MDP
+	 * from which the min/max expected total cumulative rewards is zero. 
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 * @param min Min or max rewards (true=min, false=max)
+	 */
+	public BitSet rewTot0(MDPGeneric<?> mdp, MDPRewards mdpRewards, boolean min)
+	{
+		int n, iters;
+		BitSet v, soln;
+		boolean v_done;
+		long timer;
+
+		// Start precomputation
+		timer = System.currentTimeMillis();
+		if (!silentPrecomputations)
+			mainLog.println("Starting RewTot0 (" + (min ? "min" : "max") + ")...");
+
+		// Initialise vectors
+		n = mdp.getNumStates();
+		v = new BitSet(n);
+		soln = new BitSet(n);
+
+		// Fixed point loop
+		iters = 0;
+		v_done = false;
+		// Least fixed point - start from 0
+		v.clear();
+		soln.clear();
+		while (!v_done) {
+			iters++;
+			rewTot0step(mdp, mdpRewards, v, min, soln);
+			// Check termination (inner)
+			v_done = soln.equals(v);
+			// v = soln
+			v.clear();
+			v.or(soln);
+		}
+
+		// Negate
+		v.flip(0, n);
+
+		// Finished precomputation
+		timer = System.currentTimeMillis() - timer;
+		if (!silentPrecomputations) {
+			mainLog.print("RewTot0 (" + (min ? "min" : "max") + ")");
+			mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+		}
+
+		return v;
+	}
+
+	/**
+	 * Perform a single step of zero total rewards precomputation algorithm,
+	 * i.e., set bit i of {@code result} iff, there is a positive (state or transition)
+	 * reward or, for some/all choices, there is a transition to a state in {@code u}.
+	 * @param mdp The MDP
+	 * @param mdpRewards The rewards
+	 * @param u Set of states {@code u}
+	 * @param forall For-all or there-exists (true=for-all, false=there-exists)
+	 * @param result Store results here
+	 */
+	private void rewTot0step(final MDPGeneric<?> mdp, final MDPRewards mdpRewards, final BitSet u, final boolean forall, BitSet result)
+	{
+		int n = mdp.getNumStates();
+		for (int s = 0; s < n; s++) {
+			if (mdpRewards.getStateReward(s) > 0) {
+				result.set(s);
+				continue;
+			}
+			boolean b1 = forall; // there exists or for all
+			for (int choice = 0, numChoices = mdp.getNumChoices(s); choice < numChoices; choice++) {
+				boolean b2 = mdpRewards.getTransitionReward(s, choice) > 0 || mdp.someSuccessorsInSet(s, choice, u);
+				if (forall) {
+					if (!b2) {
+						b1 = false;
+						break;
+					}
+				} else {
+					if (b2) {
+						b1 = true;
+						break;
+					}
+				}
+			}
+			result.set(s, b1);
+		}
+	}
+	
+	/**
 	 * Compute reachability probabilities using value iteration.
 	 * Optionally, store optimal (memoryless) strategy info. 
 	 * @param mdp The MDP
@@ -3232,6 +3322,171 @@ public class MDPModelChecker extends ProbModelChecker
 		return mdp.mvMultRewMinMaxSingleChoices(state, lastSoln, mdpRewards, min, val);
 	}
 
+	/**
+	 * Compute a multi-strategy for...
+	 * @param mdp: The MDP
+	 * @param mdpRewards The rewards
+	 * @param target Target states
+	 * @param inf States for which reward is infinite
+	 * @param min: Min or max probabilities (true=min, false=max)
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 */
+	public ModelCheckerResult computeMultiStrategy(MDP mdp, MDPRewards mdpRewards, double bound) throws PrismException
+	{
+		boolean min = true;
+		double soln[] = null;
+		
+		// Start solution
+		long timer = System.currentTimeMillis();
+		mainLog.println("Starting linear programming (" + (min ? "min" : "max") + ")...");
+		
+		// Store MDP info
+		int n = mdp.getNumStates();
+		int sInit = mdp.getFirstInitialState();
+		// Find states where max expected total reward is 0 
+		BitSet maxRew0 = rewTot0(mdp, mdpRewards, false);
+		
+		try {
+			// Initialise MILP solver
+			GRBEnv env = new GRBEnv("gurobi.log");
+			env.set(GRB.IntParam.OutputFlag, 0);
+			GRBModel model = new GRBModel(env);
+			// Set up MILP variables (real)
+			GRBVar xVars[] = new GRBVar[n];
+			for (int s = 0; s < n; s++) {
+				xVars[s] = model.addVar(0.0, maxRew0.get(s) ? 0.0 : GRB.INFINITY, 0.0, GRB.CONTINUOUS, "x" + s);
+			}
+			// Set up MILP variables (binary)
+			GRBVar yaVars[][] = new GRBVar[n][];
+			for (int s = 0; s < n; s++) {
+				int nc = mdp.getNumChoices(s);
+				yaVars[s] = new GRBVar[nc];
+				for (int j = 0; j < nc; j++) {
+					yaVars[s][j] = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, "y" + s + "_" + j + mdp.getAction(s, j));
+				}
+			}
+			
+			double scale = 100.0;
+			
+			// Set up objective function
+			GRBLinExpr exprObj = new GRBLinExpr();
+			exprObj.addTerm(-1.0, xVars[sInit]);
+			//double rhs = 0.0;
+			for (int s = 0; s < n; s++) {
+				int nc = mdp.getNumChoices(s);
+				for (int j = 0; j < nc; j++) {
+					double phi_s_j = 1.0 * scale;
+					exprObj.addTerm(-phi_s_j, yaVars[s][j]);
+					//rhs -= phi_s_j;
+				}
+			}
+			model.setObjective(exprObj, GRB.MINIMIZE);
+			
+			// Set up arrays for passing MILP to solver
+			double row[] = new double[n + 1];
+			int colno[] = new int[n + 1];
+			// Add constraints
+			int counter = 0;
+			double b = bound;
+			GRBLinExpr expr = new GRBLinExpr();
+			expr.addTerm(1.0, xVars[sInit]);
+			model.addConstr(expr, GRB.GREATER_EQUAL, b, "c" + counter++);
+			for (int s = 0; s < n; s++) {
+				expr = new GRBLinExpr();
+				int nc = mdp.getNumChoices(s);
+				for (int j = 0; j < nc; j++) {
+					expr.addTerm(1.0, yaVars[s][j]);
+				}
+				model.addConstr(expr, GRB.GREATER_EQUAL, 1.0, "c" + counter++);
+			}
+			for (int s = 0; s < n; s++) {
+				int numChoices = mdp.getNumChoices(s);
+				for (int i = 0; i < numChoices; i++) {
+					int count = 0;
+					row[count] = 1.0;
+					colno[count] = s + 1;
+					count++;
+					Iterator<Map.Entry<Integer, Double>> iter = mdp.getTransitionsIterator(s, i);
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Double> e = iter.next();
+						int t = e.getKey();
+						double p = e.getValue();
+						if (t == s) {
+							row[0] -= p;
+						} else {
+							row[count] = -p;
+							colno[count] = t + 1;
+							count++;
+						}
+					}
+					// TODO state rewards?
+					double r = mdpRewards.getTransitionReward(s, i);
+					expr = new GRBLinExpr();
+					for (int j = 0; j < count; j++) {
+						expr.addTerm(row[j], xVars[colno[j] - 1]);
+					}
+					expr.addTerm(scale, yaVars[s][i]);
+					model.addConstr(expr, GRB.LESS_EQUAL, r + scale, "c" + counter++);
+				}
+			}
+			// Solve MILP
+			//model.write("gurobi.lp");
+			model.optimize();
+			if (model.get(GRB.IntAttr.Status) == GRB.Status.INFEASIBLE) {
+//				model.computeIIS();
+//				System.out.println("\nThe following constraint(s) " + "cannot be satisfied:");
+//				for (GRBConstr c : model.getConstrs()) {
+//					if (c.get(GRB.IntAttr.IISConstr) == 1) {
+//						System.out.println(c.get(GRB.StringAttr.ConstrName));
+//					}
+//				}
+				throw new PrismException("Error solving LP: " + "infeasible");
+			}
+			if (model.get(GRB.IntAttr.Status) == GRB.Status.UNBOUNDED) {
+				throw new PrismException("Error solving LP: " + "unbounded");
+			}
+			if (model.get(GRB.IntAttr.Status) != GRB.Status.OPTIMAL) {
+				throw new PrismException("Error solving LP: " + "non-optimal " + model.get(GRB.IntAttr.Status));
+			}
+			soln = new double[n];
+			for (int s = 0; s < n; s++) {
+				System.out.println(xVars[s].get(GRB.StringAttr.VarName) + " = "+xVars[s].get(GRB.DoubleAttr.X));
+				soln[s] = xVars[s].get(GRB.DoubleAttr.X);
+			}
+			for (int s = 0; s < n; s++) {
+				int numChoices = mdp.getNumChoices(s);
+				for (int i = 0; i < numChoices; i++) {
+					System.out.println(yaVars[s][i].get(GRB.StringAttr.VarName) + " = " + yaVars[s][i].get(GRB.DoubleAttr.X));
+				}
+			}
+			// Print multi-strategy
+			for (int s = 0; s < n; s++) {
+				mainLog.print(s + ":");
+				int numChoices = mdp.getNumChoices(s);
+				for (int i = 0; i < numChoices; i++) {
+					if (yaVars[s][i].get(GRB.DoubleAttr.X) > 0) {
+						mainLog.print(" " + mdp.getAction(s, i));
+					}
+				}
+				mainLog.println();
+			}
+			
+			// Clean up
+			model.dispose();
+			env.dispose();
+		} catch (GRBException e) {
+			throw new PrismException("Error solving LP: " +e.getMessage());
+		}
+		
+		
+		// Return results
+		ModelCheckerResult res = new ModelCheckerResult();
+//		res.accuracy = AccuracyFactory.boundedNumericalIterations();
+		res.soln = soln;
+//		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+	
 	/**
 	 * Restrict a (memoryless) strategy for an MDP, stored as an integer array of choice indices,
 	 * to the states of the MDP that are reachable under that strategy.  
