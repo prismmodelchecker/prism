@@ -54,6 +54,7 @@ import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismFileLog;
+import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
@@ -592,7 +593,9 @@ public class DTMCModelChecker extends ProbModelChecker
 			List<BitSet> labels = Arrays.asList(bsInit, target);
 			List<String> labelNames = Arrays.asList("init", "target");
 			mainLog.println("\nExporting target states info to file \"" + getExportTargetFilename() + "\"...");
-			exportLabels(dtmc, labels, labelNames, Prism.EXPORT_PLAIN, new PrismFileLog(getExportTargetFilename()));
+			PrismLog out = new PrismFileLog(getExportTargetFilename());
+			exportLabels(dtmc, labels, labelNames, Prism.EXPORT_PLAIN, out);
+			out.close();
 		}
 
 		if (precomp && (prob0 || prob1) && preRel) {
