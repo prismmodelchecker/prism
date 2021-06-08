@@ -1,0 +1,7 @@
+// Maximum probability of guessing the value correctly
+// (should be 1 for N>=3)
+Pmax=? [ F "correct" ];
+
+// Minimum expected number of guesses before guessing the value correctly
+// (will be infinite for N<3)
+R{"guesses"}min=? [ F "correct" ];

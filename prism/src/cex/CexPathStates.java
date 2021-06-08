@@ -80,6 +80,12 @@ public class CexPathStates implements PathFullInfo
 	}
 	
 	@Override
+	public State getObservation(int step)
+	{
+		return null;
+	}
+	
+	@Override
 	public double getStateReward(int step, int rsi)
 	{
 		return 0.0;

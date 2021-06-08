@@ -93,18 +93,14 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 		if (path.size() == 0) {
 			// Initially, zero time has elapsed so to satisfy the until,
 			// we need a lower time bound of 0 and the RHS to be satisfied 
-			if (lb == 0.0) {
-				if (right.evaluateBoolean(path.getCurrentState())) {
-					valueKnown = true;
-					value = true;
-				}
+			if (lb == 0.0 && right.evaluateBoolean(path.getCurrentState())) {
+				valueKnown = true;
+				value = true;
 			}
 			// If LHS of the until violated, will never be true
-			else {
-				if (!left.evaluateBoolean(path.getCurrentState())) {
-					valueKnown = true;
-					value = false;
-				}
+			else if (!left.evaluateBoolean(path.getCurrentState())) {
+				valueKnown = true;
+				value = false;
 			}
 		}
 		// Second and subsequent path states:

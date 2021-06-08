@@ -433,14 +433,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// Create a new path in the simulator and add labels/properties
 			getPrism().loadModelIntoSimulator();
 			engine.createNewPath();
+			setPathActive(true);
+			repopulateFormulae(pf);
 			engine.initialisePath(initialState == null ? null : new parser.State(initialState, parsedModel));
 			// Update model/path/tables/lists
-			setPathActive(true);
 			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
 			pathTable.getSelectionModel().setSelectionInterval(0, 0);
 			updateTableModel.restartUpdatesTable();
-			repopulateFormulae(pf);
 			// Update display
 			repaintLists();
 			updatePathInfoAll(uCon);
@@ -735,15 +735,16 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			// Load new path into the simulator
 			getPrism().loadModelIntoSimulator();
+			engine.createNewPath();
+			setPathActive(true);
+			repopulateFormulae(pf);
 			engine.loadPath(pathNew);
 			// Update model/path/tables/lists
-			setPathActive(true);
 			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
 			int last = pathTable.getRowCount() - 1;
 			pathTable.getSelectionModel().setSelectionInterval(last, last);
 			updateTableModel.restartUpdatesTable();
-			repopulateFormulae(pf);
 			// Update display
 			repaintLists();
 			updatePathInfoAll(null);

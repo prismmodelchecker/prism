@@ -42,10 +42,12 @@ public class TypeDouble extends Type
 	{		
 	}	
 	
-	public boolean equals(Object o)
+	public static TypeDouble getInstance()
 	{
-		return (o instanceof TypeDouble);
+		return singleton;
 	}
+	
+	// Methods required for Type:
 	
 	@Override
 	public String getTypeString()
@@ -54,14 +56,15 @@ public class TypeDouble extends Type
 	}
 	
 	@Override
-	public Object defaultValue()
+	public boolean isPrimitive()
 	{
-		return new Double(0.0);
+		return true;
 	}
 	
-	public static TypeDouble getInstance()
+	@Override
+	public Object defaultValue()
 	{
-		return singleton;
+		return 0.0;
 	}
 	
 	@Override
@@ -78,7 +81,7 @@ public class TypeDouble extends Type
 		if (value instanceof BigRational)
 			return (BigRational) value;
 		if (value instanceof Integer)
-			return new Double(((Integer) value).intValue());
+			return ((Integer) value).doubleValue();
 		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}
@@ -89,4 +92,11 @@ public class TypeDouble extends Type
 		return value.doubleValue();
 	}
 
+	// Standard methods:
+	
+	public boolean equals(Object o)
+	{
+		return (o instanceof TypeDouble);
+	}
+	
 }

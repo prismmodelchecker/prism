@@ -1,0 +1,20 @@
+// RESULT: 1.0
+Pmax=? [ F t=1 ];
+
+// RESULT: 0.1
+Pmin=? [ F t=1 ];
+
+// RESULT: 0.3
+filter(state, Pmin=? [ F t=1 ], s=2&t=0);
+
+// RESULT: 0.3
+Pmax=? [ s<=2 U t=1 ];
+
+// RESULT: 3.0
+Rmax=? [ F t>0 ];
+
+// RESULT: 2.0
+filter(state, Rmax=? [ F t>0 ], s=2&t=0);
+
+// RESULT: 1.0
+Rmin=? [ F t>0 ];

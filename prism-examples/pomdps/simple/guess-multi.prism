@@ -1,0 +1,37 @@
+// Simple POMDP guessing a hidden variable (multiple attempts)
+
+pomdp
+
+// Number of guesses allowed (N=1,2,3,4)
+const int N;
+
+observables s, g endobservables
+
+module M
+
+	s : [0..2]; // state
+	h : [0..3]; // hidden var
+	g : [0..N] init N; // num guesses left
+
+	// Assign hidden variable randomly
+	[toss] s=0 -> 0.1:(s'=1)&(h'=1) + 0.3:(s'=1)&(h'=2) + 0.6:(s'=1)&(h'=3);
+	// Guess the value of the hidden variable
+	[guess1] s=1&g>0 -> (s'=(h=1)?2:s) & (g'=g-1);
+	[guess2] s=1&g>0 -> (s'=(h=2)?2:s) & (g'=g-1);
+	[guess3] s=1&g>0 -> (s'=(h=3)?2:s) & (g'=g-1);
+	// No more guesses left
+	[timeup] s=1&g=0 -> (s'=3);
+	// Done
+	[loop] s=2 -> true;
+
+endmodule
+
+label "correct" = s=2;
+
+// Number of guesses made
+rewards "guesses"
+	[guess1] true : 1;
+	[guess2] true : 1;
+	[guess3] true : 1;
+endrewards
+

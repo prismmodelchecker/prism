@@ -39,6 +39,7 @@ import java.util.TreeMap;
 import java.util.function.IntPredicate;
 
 import common.IteratorTools;
+import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
 import parser.State;
 import parser.Values;
@@ -423,7 +424,11 @@ public interface Model
 	{
 		ArrayList<explicit.graphviz.Decorator> decorators = new ArrayList<explicit.graphviz.Decorator>();
 		if (showStates) {
-			decorators.add(new explicit.graphviz.ShowStatesDecorator(getStatesList()));
+			if (getModelType().partiallyObservable()) {
+				decorators.add(new explicit.graphviz.ShowStatesDecorator(getStatesList(), ((PartiallyObservableModel) this)::getObservationAsState));
+			} else {
+				decorators.add(new explicit.graphviz.ShowStatesDecorator(getStatesList()));
+			}
 		}
 		if (mark != null) {
 			decorators.add(new explicit.graphviz.MarkStateSetDecorator(mark));

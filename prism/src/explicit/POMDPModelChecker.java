@@ -28,7 +28,6 @@
 package explicit;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,16 +35,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MDPRewards;
-import explicit.rewards.MDPRewardsSimple;
+import explicit.rewards.StateRewardsSimple;
 import prism.Accuracy;
 import prism.AccuracyFactory;
 import prism.Pair;
-import prism.Accuracy.AccuracyLevel;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -56,6 +55,45 @@ import prism.PrismUtils;
  */
 public class POMDPModelChecker extends ProbModelChecker
 {
+	// Some local data structures for convenience
+	
+	/**
+	 * Info for a single state of a belief MDP:
+	 * (1) a list (over choices in the state) of distributions over beliefs, stored as hashmap;
+	 * (2) optionally, a list (over choices in the state) of rewards
+	 */
+	class BeliefMDPState
+	{
+		public List<HashMap<Belief, Double>> trans;
+		public List<Double> rewards;
+		public BeliefMDPState()
+		{
+			trans = new ArrayList<>();
+			rewards = new ArrayList<>();
+		}
+	}
+	
+	/**
+	 * Value backup function for belief state value iteration:
+	 * mapping from a state and its definition (reward + transitions)
+	 * to a pair of the optimal value + choice index. 
+	 */
+	@FunctionalInterface
+	interface BeliefMDPBackUp extends BiFunction<Belief, BeliefMDPState, Pair<Double, Integer>> {}
+	
+	/**
+	 * A model constructed to represent a fragment of a belief MDP induced by a strategy:
+	 * (1) the model (represented as an MDP for ease of storing actions labels)
+	 * (2) optionally, a reward structure
+	 * (3) a list of the beliefs corresponding to each state of the model
+	 */
+	class POMDPStrategyModel
+	{
+		public MDP mdp;
+		public MDPRewards mdpRewards;
+		public List<Belief> beliefs;
+	}
+	
 	/**
 	 * Create a new POMDPModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -73,28 +111,25 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max probabilities (true=min, false=max)
 	 */
-	public ModelCheckerResult computeReachProbs(POMDP pomdp, BitSet target, boolean min) throws PrismException
+	public ModelCheckerResult computeReachProbs(POMDP pomdp, BitSet remain, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		long timer;
-		String stratFilename = null;
 
-		// Check for multiple initial states 
-		if (pomdp.getNumInitialStates() > 1) {
-			throw new PrismNotSupportedException("POMDP model checking does not yet support multiple initial states");
+		// Check we are only computing for a single state (and use initial state if unspecified)
+		if (statesOfInterest == null) {
+			statesOfInterest = new BitSet();
+			statesOfInterest.set(pomdp.getFirstInitialState());
+		} else if (statesOfInterest.cardinality() > 1) {
+			throw new PrismNotSupportedException("POMDPs can only be solved from a single start state");
 		}
 		
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting probabilistic reachability (" + (min ? "min" : "max") + ")...");
 
-		// If required, create/initialise strategy storage
-		if (genStrat || exportAdv) {
-			stratFilename = exportAdvFilename;//"policyGraph.txt";
-		}
-
 		// Compute rewards
-		res = computeReachProbsFixedGrid(pomdp, target, min, stratFilename);
+		res = computeReachProbsFixedGrid(pomdp, remain, target, min, statesOfInterest.nextSetBit(0));
 
 		// Finished probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
@@ -106,79 +141,73 @@ public class POMDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Compute expected reachability rewards using Lovejoy's fixed-resolution grid approach.
-	 * Optionally, store optimal (memoryless) strategy info. 
-	 * @param pomdp The POMMDP
-	 * @param mdpRewards The rewards
+	 * Compute reachability/until probabilities,
+	 * i.e. compute the min/max probability of reaching a state in {@code target},
+	 * while remaining in those in @{code remain},
+	 * using Lovejoy's fixed-resolution grid approach.
+	 * This only computes the probabiity from a single start state
+	 * @param pomdp The POMDP
+	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
-	 * @param inf States for which reward is infinite
 	 * @param min Min or max rewards (true=min, false=max)
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param sInit State to compute for
 	 */
-	protected ModelCheckerResult computeReachProbsFixedGrid(POMDP pomdp, BitSet target, boolean min, String stratFilename) throws PrismException
+	protected ModelCheckerResult computeReachProbsFixedGrid(POMDP pomdp, BitSet remain, BitSet target, boolean min, int sInit) throws PrismException
 	{
 		// Start fixed-resolution grid approximation
 		long timer = System.currentTimeMillis();
 		mainLog.println("Starting fixed-resolution grid approximation (" + (min ? "min" : "max") + ")...");
 
-		// Find out the observations for the target states
-		LinkedList<Integer> targetObservs = getAndCheckTargetObservations(pomdp, target);
+		// Find out the observations for the target/remain states
+		BitSet targetObs = getObservationsMatchingStates(pomdp, target);;
+		if (targetObs == null) {
+			throw new PrismException("Target for reachability is not observable");
+		}
+		BitSet remainObs = (remain == null) ? null : getObservationsMatchingStates(pomdp, remain);
+		if (remain != null && remainObs == null) {
+			throw new PrismException("Left-hand side of until is not observable");
+		}
+		mainLog.println("target obs=" + targetObs.cardinality() + ", remain obs=" + remainObs.cardinality());
 		
-		// Initialise the grid points
-		ArrayList<Belief> gridPoints = new ArrayList<>();//the set of grid points (discretized believes)
-		ArrayList<Belief> unknownGridPoints = new ArrayList<>();//the set of unknown grid points (discretized believes)
-		initialiseGridPoints(pomdp, targetObservs, gridPoints, unknownGridPoints);
-		int unK = unknownGridPoints.size();
-		mainLog.print("Grid statistics: resolution=" + gridResolution);
-		mainLog.println(", points=" + gridPoints.size() + ", unknown points=" + unK);
-		
-		// Construct grid belief "MDP" (over all unknown grid points_)
-		mainLog.println("Building belief space approximation...");
-		List<List<HashMap<Integer, Double>>> observationProbs = new ArrayList<>();//memoization for reuse
-		List<List<HashMap<Integer, Belief>>> nextBelieves = new ArrayList<>();//memoization for reuse
-		buildBeliefMDP(pomdp, unknownGridPoints, observationProbs, nextBelieves);
-		
-		// HashMap for storing real time values for the discretized grid belief states
-		HashMap<Belief, Double> vhash = new HashMap<>();
-		HashMap<Belief, Double> vhash_backUp = new HashMap<>();
-		for (Belief g : gridPoints) {
-			if (unknownGridPoints.contains(g)) {
-				vhash.put(g, 0.0);
-				vhash_backUp.put(g, 0.0);
-			} else {
-				vhash.put(g, 1.0);
-				vhash_backUp.put(g, 1.0);
-			}
+		// Determine set of observations actually need to perform computation for
+		BitSet unknownObs = new BitSet();
+		unknownObs.set(0, pomdp.getNumObservations());
+		unknownObs.andNot(targetObs);
+		if (remainObs != null) {
+			unknownObs.and(remainObs);
 		}
 
+		// Initialise the grid points (just for unknown beliefs)
+		List<Belief> gridPoints = initialiseGridPoints(pomdp, unknownObs);
+		mainLog.println("Grid statistics: resolution=" + gridResolution + ", points=" + gridPoints.size());
+		// Construct grid belief "MDP"
+		mainLog.println("Building belief space approximation...");
+		List<BeliefMDPState> beliefMDP = buildBeliefMDP(pomdp, null, gridPoints);
+		
+		// Initialise hashmaps for storing values for the unknown belief states
+		HashMap<Belief, Double> vhash = new HashMap<>();
+		HashMap<Belief, Double> vhash_backUp = new HashMap<>();
+		for (Belief belief : gridPoints) {
+			vhash.put(belief, 0.0);
+			vhash_backUp.put(belief, 0.0);
+		}
+		// Define value function for the full set of belief states
+		Function<Belief, Double> values = belief -> approximateReachProb(belief, vhash_backUp, targetObs, unknownObs);
+		// Define value backup function
+		BeliefMDPBackUp backup = (belief, beliefState) -> approximateReachProbBackup(belief, beliefState, values, min);
+		
 		// Start iterations
 		mainLog.println("Solving belief space approximation...");
 		long timer2 = System.currentTimeMillis();
-		double value, chosenValue;
 		int iters = 0;
 		boolean done = false;
 		while (!done && iters < maxIters) {
 			// Iterate over all (unknown) grid points
-			for (int i = 0; i < unK; i++) {
-				Belief b = unknownGridPoints.get(i);
-				int numChoices = pomdp.getNumChoicesForObservation(b.so);
-
-				chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-				for (int a = 0; a < numChoices; a++) {
-					value = 0;
-					for (Map.Entry<Integer, Double> entry : observationProbs.get(i).get(a).entrySet()) {
-						int o = entry.getKey();
-						double observationProb = entry.getValue();
-						Belief nextBelief = nextBelieves.get(i).get(a).get(o);
-						// find discretized grid points to approximate the nextBelief
-						value += observationProb * interpolateOverGrid(o, nextBelief, vhash_backUp);
-					}
-					if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6)) {
-						chosenValue = value;
-					}
-				}
-				//update V(b) to the chosenValue
-				vhash.put(b, chosenValue);
+			int unK = gridPoints.size();
+			for (int b = 0; b < unK; b++) {
+				Belief belief = gridPoints.get(b);
+				Pair<Double, Integer> valChoice = backup.apply(belief, beliefMDP.get(b));
+				vhash.put(belief, valChoice.first);
 			}
 			// Check termination
 			done = PrismUtils.doublesAreClose(vhash, vhash_backUp, termCritParam, termCrit == TermCrit.RELATIVE);
@@ -199,10 +228,10 @@ public class POMDPModelChecker extends ProbModelChecker
 		mainLog.print("Belief space value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer2 / 1000.0 + " seconds.");
 		
-		// Find discretized grid points to approximate the initialBelief
+		// Extract (approximate) solution value for the initial belief
 		// Also get (approximate) accuracy of result from value iteration
-		Belief initialBelief = pomdp.getInitialBelief();
-		double outerBound = interpolateOverGrid(initialBelief.so, initialBelief, vhash_backUp);
+		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
+		double outerBound = values.apply(initialBelief);
 		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
 		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
 		// Print result
@@ -210,28 +239,37 @@ public class POMDPModelChecker extends ProbModelChecker
 		
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
-		List<Belief> listBeliefs = new ArrayList<>();
-		MDPSimple mdp = buildStrategyModel(pomdp, null, vhash, vhash_backUp, target, min, listBeliefs);
+		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, null, targetObs, unknownObs, backup);
+		MDP mdp = psm.mdp;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
-		// Export?
-		if (stratFilename != null) {
-			mdp.exportToPrismExplicitTra(stratFilename);
-			//mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
-			mdp.exportToDotFile(stratFilename + ".dot", Collections.singleton(new Decorator()
-			{
-				@Override
-				public Decoration decorateState(int state, Decoration d)
+		
+		// Export strategy if requested
+		// NB: proper storage of strategy for genStrat not yet supported,
+		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		if (genStrat || exportAdv) {
+			// Export in Dot format if filename extension is .dot
+			if (exportAdvFilename.endsWith(".dot")) {
+				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
 				{
-					d.labelAddBelow(listBeliefs.get(state).toString(pomdp));
-					return d;
-				}
-			}));
+					@Override
+					public Decoration decorateState(int state, Decoration d)
+					{
+						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
+						return d;
+					}
+				}));
+			}
+			// Otherwise use .tra format
+			else {
+				mdp.exportToPrismExplicitTra(exportAdvFilename);
+			}
 		}
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
 		MDPModelChecker mcMDP = new MDPModelChecker(this);
 		mcMDP.setExportAdv(false);
 		mcMDP.setGenStrat(false);
 		// Solve MDP to get inner bound
+		// (just reachability: can ignore "remain" since violating states are absent)
 		ModelCheckerResult mcRes = mcMDP.computeReachProbs(mdp, mdp.getLabelStates("target"), true);
 		double innerBound = mcRes.soln[0];
 		Accuracy innerBoundAcc = mcRes.accuracy;
@@ -258,9 +296,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		Accuracy resultAcc = resultValAndAcc.second;
 		mainLog.println("Result bounds: [" + resultAcc.getResultLowerBound(resultVal) + "," + resultAcc.getResultUpperBound(resultVal) + "]");
 		double soln[] = new double[pomdp.getNumStates()];
-		for (int initialState : pomdp.getInitialStates()) {
-			soln[initialState] = resultVal;
-		}
+		soln[sInit] = resultVal;
 
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
@@ -272,35 +308,32 @@ public class POMDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Compute expected reachability rewards.
+	 * Compute expected reachability rewards,
 	 * i.e. compute the min/max reward accumulated to reach a state in {@code target}.
 	 * @param pomdp The POMDP
 	 * @param mdpRewards The rewards
 	 * @param target Target states
 	 * @param min Min or max rewards (true=min, false=max)
 	 */
-	public ModelCheckerResult computeReachRewards(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min) throws PrismException
+	public ModelCheckerResult computeReachRewards(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
 	{
 		ModelCheckerResult res = null;
 		long timer;
-		String stratFilename = null;
 		
-		// Check for multiple initial states 
-		if (pomdp.getNumInitialStates() > 1) {
-			throw new PrismNotSupportedException("POMDP model checking does not yet support multiple initial states");
+		// Check we are only computing for a single state (and use initial state if unspecified)
+		if (statesOfInterest == null) {
+			statesOfInterest = new BitSet();
+			statesOfInterest.set(pomdp.getFirstInitialState());
+		} else if (statesOfInterest.cardinality() > 1) {
+			throw new PrismNotSupportedException("POMDPs can only be solved from a single start state");
 		}
 		
 		// Start expected reachability
 		timer = System.currentTimeMillis();
 		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
 
-		// If required, create/initialise strategy storage
-		if (genStrat || exportAdv) {
-			stratFilename = exportAdvFilename;
-		}
-
 		// Compute rewards
-		res = computeReachRewardsFixedGrid(pomdp, mdpRewards, target, min, stratFilename);
+		res = computeReachRewardsFixedGrid(pomdp, mdpRewards, target, min, statesOfInterest.nextSetBit(0));
 
 		// Finished expected reachability
 		timer = System.currentTimeMillis() - timer;
@@ -313,83 +346,73 @@ public class POMDPModelChecker extends ProbModelChecker
 
 	/**
 	 * Compute expected reachability rewards using Lovejoy's fixed-resolution grid approach.
-	 * Optionally, store optimal (memoryless) strategy info. 
+	 * This only computes the expected reward from a single start state
 	 * @param pomdp The POMMDP
 	 * @param mdpRewards The rewards
 	 * @param target Target states
 	 * @param inf States for which reward is infinite
 	 * @param min Min or max rewards (true=min, false=max)
-	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
+	 * @param sInit State to compute for
 	 */
-	protected ModelCheckerResult computeReachRewardsFixedGrid(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, String stratFilename) throws PrismException
+	protected ModelCheckerResult computeReachRewardsFixedGrid(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, int sInit) throws PrismException
 	{
 		// Start fixed-resolution grid approximation
 		long timer = System.currentTimeMillis();
 		mainLog.println("Starting fixed-resolution grid approximation (" + (min ? "min" : "max") + ")...");
 
 		// Find out the observations for the target states
-		LinkedList<Integer> targetObservs = getAndCheckTargetObservations(pomdp, target);
-
-		// Initialise the grid points
-		ArrayList<Belief> gridPoints = new ArrayList<>();//the set of grid points (discretized believes)
-		ArrayList<Belief> unknownGridPoints = new ArrayList<>();//the set of unknown grid points (discretized believes)
-		initialiseGridPoints(pomdp, targetObservs, gridPoints, unknownGridPoints);
-		int unK = unknownGridPoints.size();
-		mainLog.print("Grid statistics: resolution=" + gridResolution);
-		mainLog.println(", points=" + gridPoints.size() + ", unknown points=" + unK);
-		
-		// Construct grid belief "MDP" (over all unknown grid points_)
-		mainLog.println("Building belief space approximation...");
-		List<List<HashMap<Integer, Double>>> observationProbs = new ArrayList<>();// memoization for reuse
-		List<List<HashMap<Integer, Belief>>> nextBelieves = new ArrayList<>();// memoization for reuse
-		buildBeliefMDP(pomdp, unknownGridPoints, observationProbs, nextBelieves);
-		// Rewards
-		List<List<Double>> rewards = new ArrayList<>(); // memoization for reuse
-		for (int i = 0; i < unK; i++) {
-			Belief b = unknownGridPoints.get(i);
-			int numChoices = pomdp.getNumChoicesForObservation(b.so);
-			List<Double> action_reward = new ArrayList<>();// for memoization
-			for (int a = 0; a < numChoices; a++) {
-				action_reward.add(pomdp.getCostAfterAction(b, a, mdpRewards)); // c(a,b)
-			}
-			rewards.add(action_reward);
+		BitSet targetObs = getObservationsMatchingStates(pomdp, target);;
+		if (targetObs == null) {
+			throw new PrismException("Target for expected reachability is not observable");
 		}
 		
-		// HashMap for storing real time values for the discretized grid belief states
+		// Find _some_ of the states with infinite reward
+		// (those from which *every* MDP strategy has prob<1 of reaching the target,
+		// and therefore so does every POMDP strategy)
+		MDPModelChecker mcProb1 = new MDPModelChecker(this);
+		BitSet inf = mcProb1.prob1(pomdp, null, target, false, null);
+		inf.flip(0, pomdp.getNumStates());
+		// Find observations for which all states are known to have inf reward
+		BitSet infObs = getObservationsCoveredByStates(pomdp, inf);
+		mainLog.println("target obs=" + targetObs.cardinality() + ", inf obs=" + infObs.cardinality());
+		
+		// Determine set of observations actually need to perform computation for
+		BitSet unknownObs = new BitSet();
+		unknownObs.set(0, pomdp.getNumObservations());
+		unknownObs.andNot(targetObs);
+		unknownObs.andNot(infObs);
+
+		// Initialise the grid points (just for unknown beliefs)
+		List<Belief> gridPoints = initialiseGridPoints(pomdp, unknownObs);
+		mainLog.println("Grid statistics: resolution=" + gridResolution + ", points=" + gridPoints.size());
+		// Construct grid belief "MDP"
+		mainLog.println("Building belief space approximation...");
+		List<BeliefMDPState> beliefMDP = buildBeliefMDP(pomdp, mdpRewards, gridPoints);
+		
+		// Initialise hashmaps for storing values for the unknown belief states
 		HashMap<Belief, Double> vhash = new HashMap<>();
 		HashMap<Belief, Double> vhash_backUp = new HashMap<>();
-		for (Belief g : gridPoints) {
-			vhash.put(g, 0.0);
-			vhash_backUp.put(g, 0.0);
+		for (Belief belief : gridPoints) {
+			vhash.put(belief, 0.0);
+			vhash_backUp.put(belief, 0.0);
 		}
+		// Define value function for the full set of belief states
+		Function<Belief, Double> values = belief -> approximateReachReward(belief, vhash_backUp, targetObs, infObs);
+		// Define value backup function
+		BeliefMDPBackUp backup = (belief, beliefState) -> approximateReachRewardBackup(belief, beliefState, values, min);
 		
 		// Start iterations
 		mainLog.println("Solving belief space approximation...");
 		long timer2 = System.currentTimeMillis();
-		double value, chosenValue;
 		int iters = 0;
 		boolean done = false;
 		while (!done && iters < maxIters) {
 			// Iterate over all (unknown) grid points
-			for (int i = 0; i < unK; i++) {
-				Belief b = unknownGridPoints.get(i);
-				int numChoices = pomdp.getNumChoicesForObservation(b.so);
-				chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-				for (int a = 0; a < numChoices; a++) {
-					value = rewards.get(i).get(a);
-					for (Map.Entry<Integer, Double> entry : observationProbs.get(i).get(a).entrySet()) {
-						int o = entry.getKey();
-						double observationProb = entry.getValue();
-						Belief nextBelief = nextBelieves.get(i).get(a).get(o);
-						// find discretized grid points to approximate the nextBelief
-						value += observationProb * interpolateOverGrid(o, nextBelief, vhash_backUp);
-					}
-					if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6)) {
-						chosenValue = value;
-					}
-				}
-				//update V(b) to the chosenValue
-				vhash.put(b, chosenValue);
+			int unK = gridPoints.size();
+			for (int b = 0; b < unK; b++) {
+				Belief belief = gridPoints.get(b);
+				Pair<Double, Integer> valChoice = backup.apply(belief, beliefMDP.get(b));
+				vhash.put(belief, valChoice.first);
 			}
 			// Check termination
 			done = PrismUtils.doublesAreClose(vhash, vhash_backUp, termCritParam, termCrit == TermCrit.RELATIVE);
@@ -410,10 +433,10 @@ public class POMDPModelChecker extends ProbModelChecker
 		mainLog.print("Belief space value iteration (" + (min ? "min" : "max") + ")");
 		mainLog.println(" took " + iters + " iterations and " + timer2 / 1000.0 + " seconds.");
 
-		// Find discretized grid points to approximate the initialBelief
+		// Extract (approximate) solution value for the initial belief
 		// Also get (approximate) accuracy of result from value iteration
-		Belief initialBelief = pomdp.getInitialBelief();
-		double outerBound = interpolateOverGrid(initialBelief.so, initialBelief, vhash_backUp);
+		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
+		double outerBound = values.apply(initialBelief);
 		double outerBoundMaxDiff = PrismUtils.measureSupNorm(vhash, vhash_backUp, termCrit == TermCrit.RELATIVE);
 		Accuracy outerBoundAcc = AccuracyFactory.valueIteration(termCritParam, outerBoundMaxDiff, termCrit == TermCrit.RELATIVE);
 		// Print result
@@ -421,32 +444,31 @@ public class POMDPModelChecker extends ProbModelChecker
 		
 		// Build DTMC to get inner bound (and strategy)
 		mainLog.println("\nBuilding strategy-induced model...");
-		List<Belief> listBeliefs = new ArrayList<>();
-		MDPSimple mdp = buildStrategyModel(pomdp, mdpRewards, vhash, vhash_backUp, target, min, listBeliefs);
+		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, mdpRewards, targetObs, unknownObs, backup);
+		MDP mdp = psm.mdp;
+		MDPRewards mdpRewardsNew = psm.mdpRewards;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
-		// Build rewards too
-		MDPRewardsSimple mdpRewardsNew = new MDPRewardsSimple(mdp.getNumStates());
-		int numStates = mdp.getNumStates();
-		for (int ii = 0; ii < numStates; ii++) {
-			if (mdp.getNumChoices(ii) > 0) {
-				int action = ((Integer) mdp.getAction(ii, 0));
-				double rew = pomdp.getCostAfterAction(listBeliefs.get(ii), action, mdpRewards);
-				mdpRewardsNew.addToStateReward(ii, rew);
-			}
-		}
-		// Export?
-		if (stratFilename != null) {
-			mdp.exportToPrismExplicitTra(stratFilename);
-			//mdp.exportToDotFile(stratFilename + ".dot", mdp.getLabelStates("target"));
-			mdp.exportToDotFile(stratFilename + ".dot", Collections.singleton(new Decorator()
-			{
-				@Override
-				public Decoration decorateState(int state, Decoration d)
+		
+		// Export strategy if requested
+		// NB: proper storage of strategy for genStrat not yet supported,
+		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		if (genStrat || exportAdv) {
+			// Export in Dot format if filename extension is .dot
+			if (exportAdvFilename.endsWith(".dot")) {
+				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
 				{
-					d.labelAddBelow(listBeliefs.get(state).toString(pomdp));
-					return d;
-				}
-			}));
+					@Override
+					public Decoration decorateState(int state, Decoration d)
+					{
+						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
+						return d;
+					}
+				}));
+			}
+			// Otherwise use .tra format
+			else {
+				mdp.exportToPrismExplicitTra(exportAdvFilename);
+			}
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
@@ -480,9 +502,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		Accuracy resultAcc = resultValAndAcc.second;
 		mainLog.println("Result bounds: [" + resultAcc.getResultLowerBound(resultVal) + "," + resultAcc.getResultUpperBound(resultVal) + "]");
 		double soln[] = new double[pomdp.getNumStates()];
-		for (int initialState : pomdp.getInitialStates()) {
-			soln[initialState] = resultVal;
-		}
+		soln[sInit] = resultVal;
 
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
@@ -494,42 +514,72 @@ public class POMDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Get a list of target observations from a set of target states
-	 * (both are represented by their indices).
-	 * Also check that the set of target states corresponds to a set
-	 * of observations, and throw an exception if not.
+	 * Get a list of observations from a set of states
+	 * (both are represented by BitSets over their indices).
+	 * The states should correspond exactly to a set of observations,
+	 * i.e., if a state corresponding to an observation is in the set,
+	 * then all other states corresponding to it should also be.
+	 * Returns null if not.
 	 */
-	protected LinkedList<Integer> getAndCheckTargetObservations(POMDP pomdp, BitSet target) throws PrismException
+	protected BitSet getObservationsMatchingStates(POMDP pomdp, BitSet set)
 	{
-		// Find observations corresponding to each state in the target
-		TreeSet<Integer> targetObservsSet = new TreeSet<>();
-		for (int s = target.nextSetBit(0); s >= 0; s = target.nextSetBit(s + 1)) {
-			targetObservsSet.add(pomdp.getObservation(s));
+		// Find observations corresponding to each state in the set
+		BitSet setObs = new BitSet();
+		for (int s = set.nextSetBit(0); s >= 0; s = set.nextSetBit(s + 1)) {
+			setObs.set(pomdp.getObservation(s));
 		}
-		LinkedList<Integer> targetObservs = new LinkedList<>(targetObservsSet);
-		// Rereate the set of target states from the target observations
-		// and make sure it matches
-		BitSet target2 = new BitSet();
+		// Recreate the set of states from the observations and make sure it matches
+		BitSet set2 = new BitSet();
 		int numStates = pomdp.getNumStates();
 		for (int s = 0; s < numStates; s++) {
-			if (targetObservs.contains(pomdp.getObservation(s))) {
-				target2.set(s);
+			if (setObs.get(pomdp.getObservation(s))) {
+				set2.set(s);
 			}
 		}
-		if (!target.equals(target2)) {
-			throw new PrismException("Target is not observable");
+		if (!set.equals(set2)) {
+			return null;
 		}
-		return targetObservs;
+		return setObs;
 	}
 	
-	protected void initialiseGridPoints(POMDP pomdp, LinkedList<Integer> targetObservs, ArrayList<Belief> gridPoints, ArrayList<Belief> unknownGridPoints)
+	/**
+	 * Get a list of observations from a set of states
+	 * (both are represented by BitSets over their indices).
+	 * Observations are included only if all their corresponding states
+	 * are included in the passed in set.
+	 */
+	protected BitSet getObservationsCoveredByStates(POMDP pomdp, BitSet set) throws PrismException
 	{
+		// Find observations corresponding to each state in the set
+		BitSet setObs = new BitSet();
+		for (int s = set.nextSetBit(0); s >= 0; s = set.nextSetBit(s + 1)) {
+			setObs.set(pomdp.getObservation(s));
+		}
+		// Find observations for which not all states are in the set
+		// and remove them from the observation set to be returned
+		int numStates = pomdp.getNumStates();
+		for (int o = setObs.nextSetBit(0); o >= 0; o = set.nextSetBit(o + 1)) {
+			for (int s = 0; s < numStates; s++) {
+				if (pomdp.getObservation(s) == o && !set.get(s)) {
+					setObs.set(o, false);
+					break;
+				}
+			}
+		}
+		return setObs;
+	}
+	
+	/**
+	 * Construct a list of beliefs for a grid-based approximation of the belief space.
+	 * Only beliefs with observable values from {@code unknownObs) are added.
+	 */
+	protected List<Belief> initialiseGridPoints(POMDP pomdp, BitSet unknownObs)
+	{
+		List<Belief> gridPoints = new ArrayList<>();
 		ArrayList<ArrayList<Double>> assignment;
-		boolean isTargetObserv;
-		int numObservations = pomdp.getNumObservations();
 		int numUnobservations = pomdp.getNumUnobservations();
 		int numStates = pomdp.getNumStates();
-		for (int so = 0; so < numObservations; so++) {
+		for (int so = unknownObs.nextSetBit(0); so >= 0; so = unknownObs.nextSetBit(so + 1)) {
 			ArrayList<Integer> unobservsForObserv = new ArrayList<>();
 			for (int s = 0; s < numStates; s++) {
 				if (so == pomdp.getObservation(s)) {
@@ -537,12 +587,6 @@ public class POMDPModelChecker extends ProbModelChecker
 				}
 			}
 			assignment = fullAssignment(unobservsForObserv.size(), gridResolution);
-
-			isTargetObserv = targetObservs.isEmpty() ? false : ((Integer) targetObservs.peekFirst() == so);
-			if (isTargetObserv) {
-				targetObservs.removeFirst();
-			}
-
 			for (ArrayList<Double> inner : assignment) {
 				double[] bu = new double[numUnobservations];
 				int k = 0;
@@ -550,90 +594,242 @@ public class POMDPModelChecker extends ProbModelChecker
 					bu[unobservForObserv] = inner.get(k);
 					k++;
 				}
-
-				Belief g = new Belief(so, bu);
-				gridPoints.add(g);
-				if (!isTargetObserv) {
-					unknownGridPoints.add(g);
-				}
+				gridPoints.add(new Belief(so, bu));
 			}
 		}
+		return gridPoints;
 	}
 	
-	protected void buildBeliefMDP(POMDP pomdp, ArrayList<Belief> unknownGridPoints, List<List<HashMap<Integer, Double>>> observationProbs, List<List<HashMap<Integer, Belief>>> nextBelieves)
+	/**
+	 * Construct (part of) a belief MDP, just for the set of passed in belief states.
+	 * If provided, also construct a list of rewards for each state.
+	 * It is stored as a list (over source beliefs) of BeliefMDPState objects.
+	 */
+	protected List<BeliefMDPState> buildBeliefMDP(POMDP pomdp, MDPRewards mdpRewards, List<Belief> beliefs)
 	{
-		int unK = unknownGridPoints.size();
-		for (int i = 0; i < unK; i++) {
-			Belief b = unknownGridPoints.get(i);
-			double[] beliefInDist = b.toDistributionOverStates(pomdp);
-			//mainLog.println("Belief " + i + ": " + b);
-			//mainLog.print("Belief dist:");
-			//mainLog.println(beliefInDist);
-			List<HashMap<Integer, Double>> action_observation_probs = new ArrayList<>();// for memoization
-			List<HashMap<Integer, Belief>> action_observation_Believes = new ArrayList<>();// for memoization
-			int numChoices = pomdp.getNumChoicesForObservation(b.so);
-			for (int a = 0; a < numChoices; a++) {
-				//mainLog.println(i+"/"+unK+", "+a+"/"+numChoices);
-				HashMap<Integer, Double> observation_probs = new HashMap<>();// for memoization
-				HashMap<Integer, Belief> observation_believes = new HashMap<>();// for memoization
-				((POMDPSimple) pomdp).computeObservationProbsAfterAction(beliefInDist, a, observation_probs);
-				for (Map.Entry<Integer, Double> entry : observation_probs.entrySet()) {
-					int o = entry.getKey();
-					//mainLog.println(i+"/"+unK+", "+a+"/"+numChoices+", "+o+"/"+numObservations);
-					Belief nextBelief = pomdp.getBeliefAfterActionAndObservation(b, a, o);
-					//mainLog.print(i + "/" + unK + ", " + a + "/" + numChoices + ", " + o + "/" + numObservations);
-					//mainLog.println(" - " + entry.getValue() + ":" + nextBelief);
-					observation_believes.put(o, nextBelief);
-				}
-				action_observation_probs.add(observation_probs);
-				action_observation_Believes.add(observation_believes);
+		List<BeliefMDPState> beliefMDP = new ArrayList<>();
+		for (Belief belief: beliefs) {
+			beliefMDP.add(buildBeliefMDPState(pomdp, mdpRewards, belief));
+		}
+		return beliefMDP;
+	}
+	
+	/**
+	 * Construct a single single state (belief) of a belief MDP, stored as a
+	 * list (over choices) of distributions over target beliefs.
+	 * If provided, also construct a list of rewards for the state.
+	 * It is stored as a BeliefMDPState object.
+	 */
+	protected BeliefMDPState buildBeliefMDPState(POMDP pomdp, MDPRewards mdpRewards, Belief belief)
+	{
+		double[] beliefInDist = belief.toDistributionOverStates(pomdp);
+		BeliefMDPState beliefMDPState = new BeliefMDPState();
+		// And for each choice
+		int numChoices = pomdp.getNumChoicesForObservation(belief.so);
+		for (int i = 0; i < numChoices; i++) {
+			// Get successor observations and their probs
+			HashMap<Integer, Double> obsProbs = pomdp.computeObservationProbsAfterAction(beliefInDist, i);
+			HashMap<Belief, Double> beliefDist = new HashMap<>();
+			// Find the belief for each observation
+			for (Map.Entry<Integer, Double> entry : obsProbs.entrySet()) {
+				int o = entry.getKey();
+				Belief nextBelief = pomdp.getBeliefAfterChoiceAndObservation(belief, i, o);
+				beliefDist.put(nextBelief, entry.getValue());
 			}
-			observationProbs.add(action_observation_probs);
-			nextBelieves.add(action_observation_Believes);
+			beliefMDPState.trans.add(beliefDist);
+			// Store reward too, if required
+			if (mdpRewards != null) {
+				beliefMDPState.rewards.add(pomdp.getRewardAfterChoice(belief, i, mdpRewards));
+			}
+		}
+		return beliefMDPState;
+	}
+	
+	/**
+	 * Perform a single backup step of (approximate) value iteration for probabilistic reachability
+	 */
+	protected Pair<Double, Integer> approximateReachProbBackup(Belief belief, BeliefMDPState beliefMDPState, Function<Belief, Double> values, boolean min)
+	{
+		int numChoices = beliefMDPState.trans.size();
+		double chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+		int chosenActionIndex = -1;
+		for (int i = 0; i < numChoices; i++) {
+			double value = 0;
+			for (Map.Entry<Belief, Double> entry : beliefMDPState.trans.get(i).entrySet()) {
+				double nextBeliefProb = entry.getValue();
+				Belief nextBelief = entry.getKey();
+				value += nextBeliefProb * values.apply(nextBelief);
+			}
+			if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6)) {
+				chosenValue = value;
+				chosenActionIndex = i;
+			} else if (Math.abs(value - chosenValue) < 1.0e-6) {
+				chosenActionIndex = i;
+			}
+		}
+		return new Pair<Double, Integer>(chosenValue, chosenActionIndex);
+	}
+	
+	/**
+	 * Perform a single backup step of (approximate) value iteration for reward reachability
+	 */
+	protected Pair<Double, Integer> approximateReachRewardBackup(Belief belief, BeliefMDPState beliefMDPState, Function<Belief, Double> values, boolean min)
+	{
+		int numChoices = beliefMDPState.trans.size();
+		double chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
+		int chosenActionIndex = 0;
+		for (int i = 0; i < numChoices; i++) {
+			double value = beliefMDPState.rewards.get(i);
+			for (Map.Entry<Belief, Double> entry : beliefMDPState.trans.get(i).entrySet()) {
+				double nextBeliefProb = entry.getValue();
+				Belief nextBelief = entry.getKey();
+				value += nextBeliefProb * values.apply(nextBelief);
+			}
+			if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6)) {
+				chosenValue = value;
+				chosenActionIndex = i;
+			} else if (Math.abs(value - chosenValue) < 1.0e-6) {
+				chosenActionIndex = i;
+			}
+		}
+		return new Pair<Double, Integer>(chosenValue, chosenActionIndex);
+	}
+	
+	/**
+	 * Compute the grid-based approximate value for a belief for probabilistic reachability
+	 */
+	protected double approximateReachProb(Belief belief, HashMap<Belief, Double> gridValues, BitSet targetObs, BitSet unknownObs)
+	{
+		// 1 for target states
+		if (targetObs.get(belief.so)) {
+			return 1.0;
+		}
+		// 0 for other non-unknown states
+		else if (!unknownObs.get(belief.so)) {
+			return 0.0;
+		}
+		// Otherwise approximate vie interpolation over grid points
+		else {
+			return interpolateOverGrid(belief, gridValues);
 		}
 	}
 	
-	protected double interpolateOverGrid(int o, Belief belief, HashMap<Belief, Double> vhash)
+	/**
+	 * Compute the grid-based approximate value for a belief for reward reachability
+	 */
+	protected double approximateReachReward(Belief belief, HashMap<Belief, Double> gridValues, BitSet targetObs, BitSet infObs)
+	{
+		// 0 for target states
+		if (targetObs.get(belief.so)) {
+			return 0.0;
+		}
+		// +Inf for states in "inf"
+		else if (infObs.get(belief.so)) {
+			return Double.POSITIVE_INFINITY;
+		}
+		// Otherwise approximate vie interpolation over grid points
+		else {
+			return interpolateOverGrid(belief, gridValues);
+		}
+	}
+	
+	/**
+	 * Approximate the value for a belief {@code belief} by interpolating over values {@code gridValues}
+	 * for a representative set of beliefs whose convex hull is the full belief space.
+	 */
+	protected double interpolateOverGrid(Belief belief, HashMap<Belief, Double> gridValues)
 	{
 		ArrayList<double[]> subSimplex = new ArrayList<>();
 		double[] lambdas = new double[belief.bu.length];
 		getSubSimplexAndLambdas(belief.bu, subSimplex, lambdas, gridResolution);
-		//calculate the approximate value for the belief
 		double val = 0;
 		for (int j = 0; j < lambdas.length; j++) {
 			if (lambdas[j] >= 1e-6) {
-				val += lambdas[j] * vhash.get(new Belief(o, subSimplex.get(j)));
+				val += lambdas[j] * gridValues.get(new Belief(belief.so, subSimplex.get(j)));
 			}
 		}
 		return val;
 	}
 	
-	protected MDPSimple buildStrategyModel(POMDP pomdp, MDPRewards mdpRewards, HashMap<Belief, Double> vhash, HashMap<Belief, Double> vhash_backUp, BitSet target, boolean min, List<Belief> listBeliefs)
+	/**
+	 * Build a (Markov chain) model representing the fragment of the belief MDP induced by an optimal strategy.
+	 * The model is stored as an MDP to allow easier attachment of optional actions.
+	 * @param pomdp
+	 * @param sInit
+	 * @param mdpRewards
+	 * @param vhash
+	 * @param vhash_backUp
+	 * @param target
+	 * @param min
+	 * @param listBeliefs
+	 */
+	protected POMDPStrategyModel buildStrategyModel(POMDP pomdp, int sInit, MDPRewards mdpRewards, BitSet targetObs, BitSet unknownObs, BeliefMDPBackUp backup) throws PrismException
 	{
-		
-		// extract optimal policy and store it in file named stratFilename
-		Belief initialBelief = pomdp.getInitialBelief();
+		// Initialise model/state/rewards storage
 		MDPSimple mdp = new MDPSimple();
+		IndexedSet<Belief> exploredBeliefs = new IndexedSet<>(true);
+		LinkedList<Belief> toBeExploredBeliefs = new LinkedList<>();
 		BitSet mdpTarget = new BitSet();
-		IndexedSet<Belief> exploredBelieves = new IndexedSet<>(true);
-		LinkedList<Belief> toBeExploredBelives = new LinkedList<>();
-		exploredBelieves.add(initialBelief);
-		toBeExploredBelives.offer(initialBelief);
+		StateRewardsSimple stateRewards = new StateRewardsSimple();
+		// Add initial state
+		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
+		exploredBeliefs.add(initialBelief);
+		toBeExploredBeliefs.offer(initialBelief);
 		mdp.addState();
 		mdp.addInitialState(0);
+		
+		// Explore model
 		int src = -1;
-		while (!toBeExploredBelives.isEmpty()) {
-			Belief b = toBeExploredBelives.pollFirst();
+		while (!toBeExploredBeliefs.isEmpty()) {
+			Belief belief = toBeExploredBeliefs.pollFirst();
 			src++;
-			if (isTargetBelief(b.toDistributionOverStates(pomdp), target)) {
+			// Remember if this is a target state
+			if (targetObs.get(belief.so)) {
 				mdpTarget.set(src);
 			}
-			extractBestActions(src, b, vhash, pomdp, mdpRewards, min, exploredBelieves, toBeExploredBelives, target, mdp);
+			// Only explore "unknown" states
+			if (unknownObs.get(belief.so)) {
+				// Build the belief MDP for this belief state and solve
+				BeliefMDPState beliefMDPState = buildBeliefMDPState(pomdp, mdpRewards, belief);
+				Pair<Double, Integer> valChoice = backup.apply(belief, beliefMDPState);
+				int chosenActionIndex = valChoice.second;
+				// Build a distribution over successor belief states and add to MDP
+				Distribution distr = new Distribution();
+				for (Map.Entry<Belief, Double> entry : beliefMDPState.trans.get(chosenActionIndex).entrySet()) {
+					double nextBeliefProb = entry.getValue();
+					Belief nextBelief = entry.getKey();
+					// Add each successor belief to the MDP and the "to explore" set if new
+					if (exploredBeliefs.add(nextBelief)) {
+						toBeExploredBeliefs.add(nextBelief);
+						mdp.addState();
+					}
+					// Get index of state in state set
+					int dest = exploredBeliefs.getIndexOfLastAdd();
+					distr.add(dest, nextBeliefProb);
+				}
+				// Add transition distribution, with choice _index_ encoded as action
+				mdp.addActionLabelledChoice(src, distr, pomdp.getActionForObservation(belief.so, chosenActionIndex));
+				// Store reward too, if needed
+				if (mdpRewards != null) {
+					stateRewards.setStateReward(src, pomdp.getRewardAfterChoice(belief, chosenActionIndex, mdpRewards));
+				} else {
+					stateRewards.setStateReward(src, 0.0);
+				}
+			} else {
+				stateRewards.setStateReward(src, 0.0);
+			}
 		}
-		
+		// Add deadlocks to unexplored (known-value) states
+		mdp.findDeadlocks(true);
+		// Attach a label marking target states
 		mdp.addLabel("target", mdpTarget);
-		listBeliefs.addAll(exploredBelieves.toArrayList());
-		return mdp;
+		// Return
+		POMDPStrategyModel psm = new POMDPStrategyModel();
+		psm.mdp = mdp;
+		psm.mdpRewards = stateRewards;
+		psm.beliefs = new ArrayList<>();
+		psm.beliefs.addAll(exploredBeliefs.toArrayList());
+		return psm;
 	}
 	
 	protected ArrayList<ArrayList<Integer>> assignGPrime(int startIndex, int min, int max, int length)
@@ -813,93 +1009,6 @@ public class POMDPModelChecker extends ProbModelChecker
 		return true;
 	}
 
-	/**
-	 * Find the best action for this belief state, add the belief state to the list
-	 * of ones examined so far, and store the strategy info. We store this as an MDP.
-	 * @param belief Belief state to examine
-	 * @param vhash
-	 * @param pomdp
-	 * @param mdpRewards
-	 * @param min
-	 * @param beliefList
-	 */
-	protected void extractBestActions(int src, Belief belief, HashMap<Belief, Double> vhash, POMDP pomdp, MDPRewards mdpRewards, boolean min,
-			IndexedSet<Belief> exploredBelieves, LinkedList<Belief> toBeExploredBelives, BitSet target, MDPSimple mdp)
-	{
-		if (isTargetBelief(belief.toDistributionOverStates(pomdp), target)) {
-			// Add self-loop
-			/*Distribution distr = new Distribution();
-			distr.set(src, 1);
-			mdp.addActionLabelledChoice(src, distr, null);*/
-			return;
-		}
-			
-		double[] beliefInDist = belief.toDistributionOverStates(pomdp);
-		double chosenValue = min ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-		int chosenActionIndex = -1;
-		ArrayList<Integer> bestActions = new ArrayList<>();
-		List<Double> action_reward = new ArrayList<>();
-		List<HashMap<Integer, Double>> action_observation_probs = new ArrayList<>();
-		List<HashMap<Integer, Belief>> action_observation_Believes = new ArrayList<>();
-		//evaluate each action in b
-		int numChoices = pomdp.getNumChoicesForObservation(belief.so);
-		for (int a = 0; a < numChoices; a++) {
-			double value = 0;
-			if (mdpRewards != null) {
-				value = pomdp.getCostAfterAction(belief, a, mdpRewards); // c(a,b)	
-			}
-			// Build/store successor observations, probabilities and resulting beliefs
-			HashMap<Integer, Double> observation_probs = new HashMap<>();
-			HashMap<Integer, Belief> observation_believes = new HashMap<>();
-			((POMDPSimple) pomdp).computeObservationProbsAfterAction(beliefInDist, a, observation_probs);
-			for (Map.Entry<Integer, Double> entry : observation_probs.entrySet()) {
-				int o = entry.getKey();
-				Belief nextBelief = pomdp.getBeliefAfterActionAndObservation(belief, a, o);
-				observation_believes.put(o, nextBelief);
-				double observationProb = observation_probs.get(o);
-				value += observationProb * interpolateOverGrid(o, nextBelief, vhash);
-			}
-			// Store the list of observations, probabilities and resulting beliefs for this action
-			action_observation_probs.add(observation_probs);
-			action_observation_Believes.add(observation_believes);
-
-			//select action that minimizes/maximizes Q(a,b), i.e. value
-			if ((min && chosenValue - value > 1.0e-6) || (!min && value - chosenValue > 1.0e-6))//value<bestValue
-			{
-				chosenValue = value;
-				chosenActionIndex = a;
-				bestActions.clear();
-				bestActions.add(chosenActionIndex);
-			} else if (Math.abs(value - chosenValue) < 1.0e-6)//value==chosenValue
-			{
-				//random tie broker
-				chosenActionIndex = Math.random() < 0.5 ? a : chosenActionIndex;
-				bestActions.clear();
-				bestActions.add(a);
-			}
-		}
-
-		Distribution distr = new Distribution();
-		for (Integer a : bestActions) {
-			for (Map.Entry<Integer, Double> entry : action_observation_probs.get(a).entrySet()) {
-				int o = entry.getKey();
-				double observationProb = entry.getValue();
-				Belief nextBelief = action_observation_Believes.get(a).get(o);
-				if (exploredBelieves.add(nextBelief)) {
-					// If so, add to the explore list
-					toBeExploredBelives.add(nextBelief);
-					// And to model
-					mdp.addState();
-				}
-				// Get index of state in state set
-				int dest = exploredBelieves.getIndexOfLastAdd();
-				distr.add(dest, observationProb);
-			}
-		}
-		// Add transition distribution, with choice _index_ encoded as action
-		mdp.addActionLabelledChoice(src, distr, bestActions.get(0));
-	}
-	
 	public static boolean isTargetBelief(double[] belief, BitSet target)
 	{
 		 double prob=0;
@@ -945,7 +1054,7 @@ public class POMDPModelChecker extends ProbModelChecker
 					mc.setPrecomp(false);
 			}
 			pomdp = new POMDPSimple(mdp);
-			res = mc.computeReachRewards(pomdp, null, target, min);
+			res = mc.computeReachRewards(pomdp, null, target, min, null);
 			System.out.println(res.soln[init.nextSetBit(0)]);
 		} catch (PrismException e) {
 			System.out.println(e);

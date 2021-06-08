@@ -644,7 +644,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		if (useSimplePathAlgo) {
 			return checkProbPathFormulaSimple(model, expr, minMax, statesOfInterest);
 		} else {
-			return checkProbPathFormulaLTL(model, expr, false, minMax, statesOfInterest);
+			// Some model checkers will behave differently for cosafe vs full LTL
+			if (Expression.isCoSafeLTLSyntactic(expr, true)) {
+				return checkProbPathFormulaCosafeLTL(model, expr, false, minMax, statesOfInterest);
+			} else {
+				return checkProbPathFormulaLTL(model, expr, false, minMax, statesOfInterest);
+			}
 		}
 	}
 
@@ -852,7 +857,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((MDPModelChecker) this).computeUntilProbs((MDP) model, remain, target, minMax.isMin());
 			break;
 		case POMDP:
-			res = ((POMDPModelChecker) this).computeReachProbs((POMDP) model, target, minMax.isMin());
+			res = ((POMDPModelChecker) this).computeReachProbs((POMDP) model, remain, target, minMax.isMin(), statesOfInterest);
 			break;
 		case STPG:
 			res = ((STPGModelChecker) this).computeUntilProbs((STPG) model, remain, target, minMax.isMin1(), minMax.isMin2());
@@ -871,6 +876,15 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		// To be overridden by subclasses
 		throw new PrismNotSupportedException("Computation not implemented yet");
+	}
+
+	/**
+	 * Compute probabilities for a co-safe LTL path formula
+	 */
+	protected StateValues checkProbPathFormulaCosafeLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	{
+		// Just treat as an arbitrary LTL formula by default
+		return checkProbPathFormulaLTL(model, expr, qual, minMax, statesOfInterest);
 	}
 
 	/**
@@ -1155,7 +1169,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			res = ((MDPModelChecker) this).computeReachRewards((MDP) model, (MDPRewards) modelRewards, target, minMax.isMin());
 			break;
 		case POMDP:
-			res = ((POMDPModelChecker) this).computeReachRewards((POMDP) model, (MDPRewards) modelRewards, target, minMax.isMin());
+			res = ((POMDPModelChecker) this).computeReachRewards((POMDP) model, (MDPRewards) modelRewards, target, minMax.isMin(), statesOfInterest);
 			break;
 		case STPG:
 			res = ((STPGModelChecker) this).computeReachRewards((STPG) model, (STPGRewards) modelRewards, target, minMax.isMin1(), minMax.isMin2());

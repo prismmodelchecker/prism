@@ -458,6 +458,7 @@ TOKEN :
 |	< MODULE:			"module" >
 |	< X:				"X" >
 |	< NONDETERMINISTIC:	"nondeterministic" >
+|	< OBSERVABLE:		"observable" >
 |	< OBSERVABLES:		"observables" >
 //|	< OF:				"of" >
 |	< PMAX:				"Pmax" >
@@ -543,6 +544,8 @@ ModulesFile ModulesFile() throws PrismLangException :
 	RenamedModule rm = null;
 	RewardStruct rs = null;
 	Expression init = null;
+	ObservableVars obsVars = null;
+	Observable obs = null;
 	int initCount = 0;
 	Expression initDupe = null;
 	ModulesFile mf = new ModulesFile();
@@ -565,7 +568,8 @@ ModulesFile ModulesFile() throws PrismLangException :
 	// Initial states ("init...endinit" construct)
 	init = Init() { mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init; } |
 	// Observables
-	Observables(mf) |
+	obsVars = ObservableVars() { mf.addObservableVarList(obsVars); } |
+	obs = Observable() {mf.addObservableDefinition(obs); } |
 	// System definition ("system...endsystem" construct)
 	SystemEndsystem(mf)
 	)* <EOF>
@@ -946,17 +950,35 @@ Expression Init() :
 	<INIT> expr = Expression(false, false) <ENDINIT> { return expr; }
 }
 
-// Observable variables
+// Observable variables list (for partially observable models)
 
-void Observables(ModulesFile mf) :
+ObservableVars ObservableVars() :
 {
-	String name = null;
+	Token begin = null;
+	ObservableVars obsVars = null;
+	Expression exprVar = null;
 }
 {
-	(<OBSERVABLES> { mf.setHasObservables(true); }
-	( name = Identifier() { mf.addObservableVar(name); }
-	( <COMMA> name = Identifier() { mf.addObservableVar(name); } )* )?
-	<ENDOBSERVABLES>)
+	{ begin = getToken(1); }
+	<OBSERVABLES> { obsVars = new ObservableVars(); }
+	exprVar = IdentifierExpression() { obsVars.addVar(exprVar); }
+	( <COMMA> exprVar = IdentifierExpression() { obsVars.addVar(exprVar); } )*
+	<ENDOBSERVABLES>
+	{ obsVars.setPosition(begin, getToken(0)); return obsVars; }	
+}
+
+// Individual observable (for partially observable models)
+
+Observable Observable() :
+{
+	Token begin = null;
+	String name = null;
+	Expression defn = null;
+}
+{
+	{ begin = getToken(1); }
+	( <OBSERVABLE> <DQUOTE> name = Identifier() <DQUOTE> <EQ> defn = Expression(false, false) <SEMICOLON> )
+	{ Observable obs = new Observable(name, defn); obs.setPosition(begin, getToken(0)); return obs; }
 }
 
 // System definition ("system...endsystem" construct)

@@ -392,6 +392,15 @@ public abstract class ASTElement
 	}
 
 	/**
+	 * Find all references to observables (by name), replace the ExpressionLabels with ExpressionObs objects.
+	 */
+	public ASTElement findAllObsRefs(List<String> observableNames, List<Type> observableTypes) throws PrismLangException
+	{
+		FindAllObsRefs visitor = new FindAllObsRefs(observableNames, observableTypes);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
 	 * Expand property references and labels, return result.
 	 * Property expansion is done recursively.
 	 * Special labels "deadlock", "init" and any not in label list are left.

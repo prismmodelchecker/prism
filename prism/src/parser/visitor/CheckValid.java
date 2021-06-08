@@ -53,14 +53,14 @@ public class CheckValid extends ASTTraverse
 				throw new PrismLangException("Steady-state reward properties cannot be used for MDPs");
 			}
 		}
-		else if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
+		else if (modelType.realTime()) {
 			if (e.getOperator() == ExpressionTemporal.R_C || e.getOperator() == ExpressionTemporal.R_I || e.getOperator() == ExpressionTemporal.R_S) {
 				throw new PrismLangException("Only reachability (F) reward properties can be used for " + modelType + "s");
 			}
 		}
-		// PTA only support upper time bounds
+		// Real-time models only support upper time bounds
 		if (e.getLowerBound() != null) {
-			if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
+			if (modelType.realTime()) {
 				throw new PrismLangException("Only upper time bounds are allowed on the " + e.getOperatorSymbol()
 						+ " operator for " + modelType + "s");
 			}
@@ -68,15 +68,7 @@ public class CheckValid extends ASTTraverse
 		// Apart from CTMCs, we only support integer time bounds
 		if ((e.getUpperBound() != null && !(e.getUpperBound().getType() instanceof TypeInt)) ||
 		    (e.getLowerBound() != null && !(e.getLowerBound().getType() instanceof TypeInt))) {
-			if (modelType == ModelType.DTMC) {
-				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
-						+ " operator must be integers for DTMCs");
-			}
-			if (modelType == ModelType.MDP) {
-				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
-						+ " operator must be integers for MDPs");
-			}
-			if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
+			if (modelType != ModelType.CTMC) {
 				throw new PrismLangException("Time bounds on the " + e.getOperatorSymbol()
 						+ " operator must be integers for " + modelType + "s");
 			}
@@ -104,10 +96,7 @@ public class CheckValid extends ASTTraverse
 	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
 		// S operator only works for some models
-		if (modelType == ModelType.MDP) {
-			throw new PrismLangException("The S operator cannot be used for MDPs");
-		}
-		if (modelType == ModelType.PTA || modelType == ModelType.POPTA) {
+		if (modelType == ModelType.MDP || modelType.realTime()) {
 			throw new PrismLangException("The S operator cannot be used for " + modelType + "s");
 		}
 		/*if (modelType.nondeterministic() && e.getRelOp() == RelOp.EQ)

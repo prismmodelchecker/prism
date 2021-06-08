@@ -42,6 +42,9 @@ import java.util.Vector;
 
 import parser.State;
 import parser.Values;
+import parser.VarList;
+import parser.ast.Declaration;
+import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
@@ -53,6 +56,7 @@ import parser.ast.ExpressionITE;
 import parser.ast.ExpressionIdent;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
+import parser.ast.ExpressionObs;
 import parser.ast.ExpressionProp;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ExpressionVar;
@@ -72,6 +76,7 @@ import prism.ModelType;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
@@ -638,6 +643,10 @@ public class StateModelChecker extends PrismComponent
 		else if (expr instanceof ExpressionVar) {
 			res = checkExpressionVar(model, (ExpressionVar) expr, statesOfInterest);
 		}
+		// Observables
+		else if (expr instanceof ExpressionObs) {
+			res = checkExpressionObs(model, (ExpressionObs) expr, statesOfInterest);
+		}
 		// Labels
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr, statesOfInterest);
@@ -893,6 +902,24 @@ public class StateModelChecker extends PrismComponent
 		return res;
 	}
 
+	/**
+	 * Model check an observable reference.
+	 * @param statesOfInterest the states of interest, see checkExpression()
+	 */
+	protected StateValues checkExpressionObs(Model model, ExpressionObs expr, BitSet statesOfInterest) throws PrismException
+	{
+		PartiallyObservableModel poModel = (PartiallyObservableModel) model;
+		int iObservable = modelInfo.getObservableIndex(expr.getName());
+		int numStates = model.getNumStates();
+		StateValues res = new StateValues(expr.getType(), model);
+		for (int i = 0; i < numStates; i++) {
+			State observation = poModel.getObservationAsState(i);
+			Object val = observation.varValues[iObservable];
+			res.setValue(i, val);
+		}
+		return res;
+	}
+	
 	/**
 	 * Model check a label.
 	 * @param statesOfInterest the states of interest, see checkExpression()
@@ -1586,6 +1613,29 @@ public class StateModelChecker extends PrismComponent
 			if (!first && exportType != Prism.EXPORT_MATLAB) {
 				out.println();
 			}
+		}
+	}
+	
+	/**
+	 * Do any exports after a model-automaton product construction, if requested
+	 */
+	public void doProductExports(Product<? extends Model> product) throws PrismException
+	{
+		if (getExportProductTrans()) {
+			mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
+			product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename());
+		}
+		if (getExportProductStates()) {
+			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
+			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
+			VarList newVarList = (VarList) modulesFile.createVarList().clone();
+			String daVar = "_da";
+			while (newVarList.getIndex(daVar) != -1) {
+				daVar = "_" + daVar;
+			}
+			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
+			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
+			out.close();
 		}
 	}
 }

@@ -3,6 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Xueyi Zou <xz972@york.ac.uk> (University of York)
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -28,8 +29,7 @@ package explicit;
 
 import java.util.List;
 
-import parser.Observation;
-import parser.Unobservation;
+import parser.State;
 
 /**
  * Interface for classes that provide (read-only) access to an explicit-state model with partial observability.
@@ -41,12 +41,12 @@ public interface PartiallyObservableModel extends Model
 	/**
 	 * Get access to a list of observations (optionally stored).
 	 */
-	public List<Observation> getObservationsList();
+	public List<State> getObservationsList();
 
 	/**
 	 * Get access to a list of unobservations (optionally stored).
 	 */
-	public List<Unobservation> getUnobservationsList();
+	public List<State> getUnobservationsList();
 
 	/**
 	 * Get the total number of observations over all states.
@@ -70,9 +70,41 @@ public interface PartiallyObservableModel extends Model
 	public int getObservation(int s);
 
 	/**
+	 * Get the observation of state {@code s} as a {@code State}.
+	 * Equivalent to calling {@link #getObservation(int)}
+	 * and then looking up via {@link #getObservationsList()}.
+	 * Returns null if the observation is unavailable.
+	 */
+	public default State getObservationAsState(int s)
+	{
+		int o = getObservation(s);
+		List<State> obsList = getObservationsList();
+		if (obsList != null && obsList.size() > o) {
+			return obsList.get(o);
+		}
+		return null;
+	}
+
+	/**
 	 * Get the unobservation of state {@code s}.
 	 */
 	public int getUnobservation(int s);
+
+	/**
+	 * Get the unobservation of state {@code s} as a {@code State}.
+	 * Equivalent to calling {@link #getUnbservation(int)}
+	 * and then looking up via {@link #getUnobservationsList()}.
+	 * Returns null if the unobservation is unavailable.
+	 */
+	public default State getUnobservationAsState(int s)
+	{
+		int u = getUnobservation(s);
+		List<State> unobsList = getUnobservationsList();
+		if (unobsList != null && unobsList.size() > u) {
+			return unobsList.get(u);
+		}
+		return null;
+	}
 
 	/**
 	 * Get the probability of observing observation {@code o} in state {@code s}.

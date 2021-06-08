@@ -110,7 +110,15 @@ public class IdentUsage
 			String qu = quoted ? "\"" : "";
 			identStr += " " + qu + ident + qu;
 			String existingUse = identUses.get(ident);
-			existingUse = (existingUse == null) ? "" : " for a " + existingUse;
+			if (existingUse == null) {
+				existingUse = "";
+			} else {
+				if (existingUse.length() > 0 && "aeiou".contains("" + existingUse.charAt(0))) {
+					existingUse = " for an " + existingUse;
+				} else {
+					existingUse = " for a " + existingUse;
+				}
+			}
 			String existingLoc = identLocs.get(ident);
 			existingLoc = (existingLoc == null) ? "" : " in " + existingLoc;
 			throw new PrismLangException(identStr + " is already used" + existingUse + existingLoc, decl);

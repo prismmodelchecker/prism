@@ -330,6 +330,9 @@ public class PropertiesFile extends ASTElement
 		// Find all instances of variables (i.e. locate idents which are variables).
 		findAllVars(modelInfo.getVarNames(), modelInfo.getVarTypes());
 
+		// Find all references to observables (i.e. locate "labels" which are observables).
+		findAllObsRefs(modelInfo.getObservableNames(), modelInfo.getObservableTypes());
+		
 		// Find all instances of property refs
 		findAllPropRefs(null, this);
 		// Check property references for cyclic dependencies

@@ -27,6 +27,7 @@
 package explicit.graphviz;
 
 import java.util.List;
+import java.util.function.Function;
 
 import parser.State;
 
@@ -38,6 +39,9 @@ public class ShowStatesDecorator implements Decorator
 	/** The state list, i.e., the variable valuation information for each state index */
 	private List<State> stateList;
 
+	/** Optionally, an observation map, i.e., the observable valuation information for each state index */
+	private Function<Integer, State> obsList;
+
 	/**
 	 * Constructor.
 	 * @param stateList the variable valuation information for each state index
@@ -47,10 +51,27 @@ public class ShowStatesDecorator implements Decorator
 		this.stateList = stateList;
 	}
 
+	/**
+	 * Constructor.
+	 * @param stateList the variable valuation information for each state index
+	 * @param obsList optionally, the observable valuation information for each state index
+	 */
+	public ShowStatesDecorator(List<State> stateList, Function<Integer, State> obsList)
+	{
+		this.stateList = stateList;
+		this.obsList = obsList;
+	}
+
 	/** Decorate state label by appending the variable information */
 	public Decoration decorateState(int state, Decoration d)
 	{
 		d.labelAddBelow(stateList.get(state).toString());
+		if (obsList != null) {
+			State o = obsList.apply(state);
+			if (o != null) {
+				d.labelAddBelow(o.toString());
+			}
+		}
 		return d;
 	}
 }

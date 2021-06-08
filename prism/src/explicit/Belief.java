@@ -30,7 +30,7 @@ package explicit;
 import java.util.Arrays;
 import java.util.List;
 
-import parser.Unobservation;
+import parser.State;
 import prism.PrismUtils;
 
 /**
@@ -51,8 +51,8 @@ public class Belief implements Comparable<Belief>
 
 	/**
 	 * Constructor
-	 * @param Observable part (index of observation)
-	 * @param Distribution over unobservable part (probability for each unobservation) 
+	 * @param so Observable part (index of observation)
+	 * @param bu Distribution over unobservable part (probability for each unobservation)
 	 */
 	public Belief(int so, double[] bu)
 	{
@@ -60,6 +60,37 @@ public class Belief implements Comparable<Belief>
 		this.bu = bu;
 	}
 
+	/**
+	 * Constructor
+	 * @param dist Distribution over states of a model (probability for each state)
+	 * @param model The (partially observable) model
+	 * If {@code dist} is a not a valid distribution, the resulting belief will be invalid too.
+	 */
+	protected Belief(double[] dist, PartiallyObservableModel model)
+	{
+		so = -1;
+		bu = new double[model.getNumUnobservations()];
+		for (int s = 0; s < dist.length; s++) {
+			if (dist[s] != 0) {
+				so = model.getObservation(s);
+				bu[model.getUnobservation(s)] += dist[s];
+			}
+		}
+	}
+	
+	/**
+	 * Construct a point distribution over a single model stete
+	 * @param s A model state
+	 * @param model The (partially observable) model
+	 */
+	public static Belief pointDistribution(int s, PartiallyObservableModel model)
+	{
+		int so = model.getObservation(s);
+		double[] bu = new double[model.getNumUnobservations()];
+		bu[model.getUnobservation(s)] = 1.0;
+		return new Belief(so, bu);
+	}
+	
 	/**
 	 * Convert to a probability distribution over all model states
 	 * (represented as an array of probabilities). 
@@ -144,7 +175,7 @@ public class Belief implements Comparable<Belief>
 	 */
 	public String toString(PartiallyObservableModel poModel)
 	{
-		List<Unobservation> unobs = poModel.getUnobservationsList();
+		List<State> unobs = poModel.getUnobservationsList();
 		String s = poModel.getObservationsList().get(so).toString();
 		boolean first = true;
 		for (int i = 0; i < bu.length; i++) {

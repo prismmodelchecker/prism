@@ -5,7 +5,7 @@
 <head>
 
 <title>
-PRISM Manual | PropertySpecification / PTAProperties 
+PRISM Manual | PropertySpecification / Real-timeModels 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -91,12 +91,12 @@ a.varlink { text-decoration:none; }
 <!--PageTitleFmt-->
   <div id="prism-man-title">
     <p><a class='wikilink' href='Main.html'>Property Specification</a> /
-</p><h1>PTA Properties</h1>
+</p><h1>Real-time Models</h1>
 
   </div>
 <!--PageText-->
 <div id='wikitext'>
-<p>The classes of property that can be checked for PTAs are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. We describe these restrictions here. The situation is also dependent on which of the PTA model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html#pta'>engines</a> is being used.
+<p>The classes of property that can be checked for real-time models (PTAs and POPTAs) are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. We describe these restrictions here. The situation is also dependent on which of the PTA model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html#pta'>engines</a> is being used.
 </p>
 <p class='vspace'>For the "<strong>stochastic games</strong>" engine, we essentially only allow unbounded or time-bounded probabilistic reachability properties, i.e. properties of the form:
 </p>
@@ -107,7 +107,7 @@ a.varlink { text-decoration:none; }
 <span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">target</span> ]<br/>
 <span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">target</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PTAProperties?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Real-timeModels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>target</code> is a Boolean-valued expression that does not include references to any clock variables and <code>T</code> is an integer-valued expression. The <code><strong>P</strong></code> operator cannot be nested and the <code><strong>S</strong></code> and <code><strong>R</strong></code> operators are not supported.
@@ -121,7 +121,7 @@ e.g. until (<code><strong>U</strong></code>) properties are allowed, as are cloc
 <div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="prism"><span class="prismnum">1</span> - <span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PTAProperties?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Real-timeModels?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This engine, like the "stochastic games" engine, does not allowed nested properties. Also, references to clocks must, like in the modelling language, not use strict comparisons
@@ -135,7 +135,7 @@ it is possible to check reachability reward properties of the form:
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Rmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
 <span class="prismkeyword">Rmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PTAProperties?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/Real-timeModels?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Reward structures specified in the model, though, must not depend on clock variables.
@@ -169,11 +169,12 @@ Formally, the class of PTAs with this kind of reward structure is sometime calle
 </li><li><a class='wikilink' href='ThePOperator.html'>The P Operator</a>
 </li><li><a class='wikilink' href='TheSOperator.html'>The S Operator</a>
 </li><li><a class='wikilink' href='Reward-basedProperties.html'>Reward-based Properties</a>
+</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
+</li><li><a class='selflink' href='Real-timeModels.html'>Real-time Models</a>
+</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='Non-probabilisticProperties.html'>Non-probabilistic Properties</a>
 </li><li><a class='wikilink' href='SyntaxAndSemantics.html'>Syntax And Semantics</a>
 </li><li><a class='wikilink' href='Filters.html'>Filters</a>
-</li><li><a class='selflink' href='PTAProperties.html'>PTA Properties</a>
-</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
 </li><li><a class='wikilink' href='PropertiesFiles.html'>Properties Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
 </p>

@@ -27,6 +27,7 @@
 
 package prism;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -225,13 +226,77 @@ public interface ModelInfo
 	}
 	
 	/**
-	 * Get a list of the names of variables that have been declared to be observable
+	 * Is the {@code i}th variable declared as observable?
 	 * (for partially observable models)
+	 * Technically, the only info needed to verify partially observable
+	 * models is {@link #getObservableNames()} and {@link #getObservableTypes()}
+	 * but in practice this is needed too to construct belief states efficiently.
+	 */
+	public default boolean isVarObservable(int i)
+	{
+		// Assume false (inefficient but safe)
+		return false;
+	}
+	
+	/**
+	 * Get the number of variables declared as observable
+	 * (for partially observable models)
+	 * (derived from {@link #isVarObservable(int)} by default)
+	 */
+	public default int getNumObservableVars()
+	{
+		int count = 0;
+		int numVars = getNumVars();
+		for (int i = 0; i < numVars; i++) {
+			if (isVarObservable(i)) {
+				count++;
+			}
+		}
+		return count;
+	}
+	
+	/**
+	 * Get the number of variables _not_ declared as observable
+	 * (for partially observable models)
+	 * (derived from {@link #isVarObservable(int)} by default)
+	 */
+	public default int getNumUnobservableVars()
+	{
+		return getNumVars() - getNumObservableVars();
+	}
+	
+	/**
+	 * Get the names of the variables declared as observable
+	 * (for partially observable models)
+	 * (derived from {@link #isVarObservable(int)} by default)
 	 */
 	public default List<String> getObservableVars()
 	{
-		// Default implementation assumes no observable variables 
-		return Collections.emptyList();
+		List<String> list = new ArrayList<>();
+		int numVars = getNumVars();
+		for (int i = 0; i < numVars; i++) {
+			if (isVarObservable(i)) {
+				list.add(getVarName(i));
+			}
+		}
+		return list;
+	}
+	
+	/**
+	 * Get the names of the variables _not_ declared as observable
+	 * (for partially observable models)
+	 * (derived from {@link #isVarObservable(int)} by default)
+	 */
+	public default List<String> getUnobservableVars()
+	{
+		List<String> list = new ArrayList<>();
+		int numVars = getNumVars();
+		for (int i = 0; i < numVars; i++) {
+			if (!isVarObservable(i)) {
+				list.add(getVarName(i));
+			}
+		}
+		return list;
 	}
 	
 	/**
@@ -284,6 +349,73 @@ public interface ModelInfo
 	{
 		// Default implementation just extracts from getLabelNames() 
 		return getLabelNames().indexOf(name);
+	}
+	
+	/**
+	 * Get the number of observables defined for the model
+	 * (for partially observable models only)
+	 */
+	public default int getNumObservables()
+	{
+		// Default implementation just extracts from getObservableNames()
+		return getObservableNames().size();
+	}
+	
+	/**
+	 * Get the names of all the observables in the model
+	 * (for partially observable models only)
+	 */
+	public default List<String> getObservableNames()
+	{
+		// No observables by default
+		return Collections.emptyList();
+	}
+	
+	/**
+	 * Get the name of the {@code i}th observable of the model
+	 * (for partially observable models only)
+	 * {@code i} should always be between 0 and getNumObservables() - 1.
+	 */
+	public default String getObservableName(int i) throws PrismException
+	{
+		// Default implementation just extracts from getObservableNames()
+		try {
+			return getObservableNames().get(i);
+		} catch (IndexOutOfBoundsException e) {
+			throw new PrismException("Observable number " + i + " not defined");
+		}
+	}
+	
+	/**
+	 * Get the index of the observable with name {@code name}
+	 * (for partially observable models only)
+	 * Indexed from 0. Returns -1 if observable of that name does not exist.
+	 */
+	public default int getObservableIndex(String name)
+	{
+		// Default implementation just extracts from getObservableNames()
+		return getObservableNames().indexOf(name);
+	}
+	
+	/**
+	 * Get the types of all the observables in the model.
+	 * (for partially observable models only)
+	 */
+	public default List<Type> getObservableTypes()
+	{
+		// No observables by default
+		return Collections.emptyList();
+	}
+
+	/**
+	 * Get the type of the {@code i}th observable in the model.
+	 * (for partially observable models only)
+	 * {@code i} should always be between 0 and getNumObservables() - 1.
+	 */
+	public default Type getObservableType(int i)
+	{
+		// Default implementation just extracts from getObservableTypes()
+		return getObservableTypes().get(i);
 	}
 	
 	/**

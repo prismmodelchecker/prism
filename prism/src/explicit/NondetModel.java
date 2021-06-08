@@ -26,9 +26,11 @@
 
 package explicit;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.IntPredicate;
 
 import prism.PrismLog;
@@ -74,6 +76,19 @@ public interface NondetModel extends Model
 	 * Get the action label (if any) for choice {@code i} of state {@code s}.
 	 */
 	public Object getAction(int s, int i);
+
+	/**
+	 * Get a list of the actions labelling the choices of state {@code s}.
+	 */
+	public default List<Object> getAvailableActions(int s)
+	{
+		List<Object> actions = new ArrayList<>();
+		int numChoices = getNumChoices(s);
+		for (int i = 0; i < numChoices; i++) {
+			actions.add(getAction(s, i));
+		}
+		return actions;
+	}
 
 	/**
 	 * Get the index of the (first) choice in state {@code s} with action label {@code action}.
@@ -125,6 +140,19 @@ public interface NondetModel extends Model
 	 * Get the number of transitions from choice {@code i} of state {@code s}.
 	 */
 	public int getNumTransitions(int s, int i);
+
+	@Override
+	public default int getNumTransitions(int s)
+	{
+		// Re-implement this because the method in the superclass (Model)
+		// would not count successors duplicated across choices
+		int numTransitions = 0;
+		int n = getNumChoices(s);
+		for (int i = 0; i < n; i++) {
+			numTransitions += getNumTransitions(s, i);
+		}
+		return numTransitions;
+	}
 
 	/**
 	 * Check if all the successor states from choice {@code i} of state {@code s} are in the set {@code set}.

@@ -28,10 +28,6 @@
 
 package explicit;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,7 +44,6 @@ import parser.type.TypeDouble;
 import parser.Values;
 import parser.State;
 import prism.*;
-import prism.Model;
 
 /*
  * TODO
@@ -594,66 +589,6 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 	public StateValues doTransient(double time) throws PrismException
 	{
 		return doTransient(time, (StateValues) null);
-	}
-
-	/**
-	 * Compute transient probability distribution (forwards).
-	 * Optionally, use the passed in file initDistFile to give the initial probability distribution (time 0).
-	 * If null, start from initial state (or uniform distribution over multiple initial states).
-	 * @param t Time point
-	 * @param initDistFile File containing initial distribution
-	 * @param currentModel 
-	 */
-	public StateValues doTransient(double t, File initDistFile, Model model)
-			throws PrismException
-	{
-		StateValues initDist = null;
-		if (initDistFile != null) {
-			int numValues = countNumStates(initDistFile);
-			initDist = new StateValues(TypeDouble.getInstance(), numValues);
-			initDist.readFromFile(initDistFile);
-		}
-		return doTransient(t, initDist);
-	}
-
-	/**
-	 * Counts number of states in a file.
-	 * We need this function because the functions to read values into
-	 * StateValues object expect that these objects have been initialised with
-	 * the right number of states.
-	 * 
-	 * @param file file to count states of
-	 * @return number of states in file
-	 * @throws PrismException thrown in case of I/O errors
-	 */
-	private int countNumStates(File file) throws PrismException {
-		BufferedReader in;
-		String s;
-		int lineNum = 0, count = 0;
-
-		try {
-			// open file for reading
-			in = new BufferedReader(new FileReader(file));
-			// read remaining lines
-			s = in.readLine();
-			lineNum++;
-			while (s != null) {
-				s = s.trim();
-				if (!("".equals(s))) {
-					count++;
-				}
-				s = in.readLine();
-				lineNum++;
-			}
-			// close file
-			in.close();
-		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + file + "\"");
-		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of file \"" + file + "\"");
-		}
-
-		return count;
 	}
 
 	/**

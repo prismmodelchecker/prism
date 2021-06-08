@@ -66,6 +66,14 @@ public class ASTTraverseModify implements ASTVisitor
 			if (e.getRewardStruct(i) != null) e.setRewardStruct(i, (RewardStruct)(e.getRewardStruct(i).accept(this)));
 		}
 		if (e.getInitialStates() != null) e.setInitialStates((Expression)(e.getInitialStates().accept(this)));
+		n = e.getNumObservableVarLists();
+		for (i = 0; i < n; i++) {
+			if (e.getObservableVarList(i) != null) e.setObservableVarList(i, (ObservableVars) e.getObservableVarList(i).accept(this));
+		}
+		n = e.getNumObservableDefinitions();
+		for (i = 0; i < n; i++) {
+			if (e.getObservableDefinition(i) != null) e.setObservableDefinition(i, (Observable) e.getObservableDefinition(i).accept(this));
+		}
 		visitPost(e);
 		return e;
 	}
@@ -314,6 +322,29 @@ public class ASTTraverseModify implements ASTVisitor
 		return e;
 	}
 	public void visitPost(RewardStructItem e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(ObservableVars e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(ObservableVars e) throws PrismLangException
+	{
+		visitPre(e);
+		int i, n = e.getNumVars();
+		for (i = 0; i < n; i++) {
+			if (e.getVar(i) != null) e.setVar(i, (Expression)(e.getVar(i).accept(this)));
+		}
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(ObservableVars e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(Observable e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(Observable e) throws PrismLangException
+	{
+		visitPre(e);
+		if (e.getDefinition() != null) e.setDefinition((Expression)(e.getDefinition().accept(this)));
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(Observable e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(SystemInterleaved e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(SystemInterleaved e) throws PrismLangException
@@ -586,6 +617,15 @@ public class ASTTraverseModify implements ASTVisitor
 		return e;
 	}
 	public void visitPost(ExpressionLabel e) throws PrismLangException { defaultVisitPost(e); }
+	// -----------------------------------------------------------------------------------
+	public void visitPre(ExpressionObs e) throws PrismLangException { defaultVisitPre(e); }
+	public Object visit(ExpressionObs e) throws PrismLangException
+	{
+		visitPre(e);
+		visitPost(e);
+		return e;
+	}
+	public void visitPost(ExpressionObs e) throws PrismLangException { defaultVisitPost(e); }
 	// -----------------------------------------------------------------------------------
 	public void visitPre(ExpressionProp e) throws PrismLangException { defaultVisitPre(e); }
 	public Object visit(ExpressionProp e) throws PrismLangException
