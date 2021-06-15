@@ -5,7 +5,7 @@ observables v, h endobservables
 module vehicle
 
 	// vehicle location
-	v : [0..2] init 0;
+	v : [0..3] init 0;
 	
 	[c0] v=0 -> (v'=1);
 	[c1] v=0 -> (v'=2);
