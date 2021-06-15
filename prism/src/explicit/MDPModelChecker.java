@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -49,6 +50,7 @@ import explicit.rewards.MCRewards;
 import explicit.rewards.MCRewardsFromMDPRewards;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
+import explicit.rewards.WeightedSumMDPRewards;
 import parser.VarList;
 import parser.ast.Declaration;
 import parser.ast.DeclarationIntUnbounded;
@@ -2638,6 +2640,200 @@ public class MDPModelChecker extends ProbModelChecker
 		res.soln = soln;
 		res.numIters = totalIters;
 		res.timeTaken = timer / 1000.0;
+		return res;
+	}
+
+	/**
+	 * Compute weighted multi-objective expected reachability rewards,
+	 * i.e. compute the min/max weighted multi-objective reward accumulated to reach a state in {@code target}.
+	 * @param mdp The MDP
+	 * @param mdpRewardsList The rewards
+	 * @param target Target states
+	 * @param min Min or max rewards (true=min, false=max)
+	 */
+	public ModelCheckerResult computeMultiReachRewards(MDP mdp, List<Double> weights, List<MDPRewards> mdpRewardsList, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
+	{
+		ModelCheckerResult res = null;
+
+		// Start expected reachability
+		long timer = System.currentTimeMillis();
+		mainLog.println("\nStarting weighted multi-objective expected reachability (" + (min ? "min" : "max") + ")...");
+
+		// Check for deadlocks in non-target state (because breaks e.g. prob1)
+		mdp.checkForDeadlocks(target);
+
+		// Build a combined reward structure
+		int numRewards = weights.size();
+		WeightedSumMDPRewards mdpRewardsWeighted = new WeightedSumMDPRewards();
+		for (int r = 0; r < numRewards; r++) {
+			mdpRewardsWeighted.addRewards(weights.get(r), mdpRewardsList.get(r));
+		}
+
+		// Store num states
+		int n = mdp.getNumStates();
+
+		// Create/initialise strategy storage (always needed)
+		// Set choices to -1, denoting unknown
+		// (except for target states, which are -2, denoting arbitrary)
+		int strat[] = new int[n];
+		for (int i = 0; i < n; i++) {
+			strat[i] = target.get(i) ? -2 : -1;
+		}
+
+		// Precomputation (not optional)
+		long timerProb1 = System.currentTimeMillis();
+		BitSet inf = prob1(mdp, null, target, !min, strat);
+		inf.flip(0, n);
+		timerProb1 = System.currentTimeMillis() - timerProb1;
+
+		// Print results of precomputation
+		int numTarget = target.cardinality();
+		int numInf = inf.cardinality();
+		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
+
+		// Generate strategy for "inf" states.
+		if (min) {
+			// If min reward is infinite, all choices give infinity
+			// So the choice can be arbitrary, denoted by -2; 
+			for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
+				strat[i] = -2;
+			}
+		} else {
+			// If max reward is infinite, there is at least one choice giving infinity.
+			// So we pick, for all "inf" states, the first choice for which some transitions stays in "inf".
+			for (int i = inf.nextSetBit(0); i >= 0; i = inf.nextSetBit(i + 1)) {
+				int numChoices = mdp.getNumChoices(i);
+				for (int k = 0; k < numChoices; k++) {
+					if (mdp.someSuccessorsInSet(i, k, inf)) {
+						strat[i] = k;
+						continue;
+					}
+				}
+			}
+		}
+
+		// Compute rewards (if needed)
+		if (numTarget + numInf < n) {
+			mainLog.println("Warning: not checking for for zero-reward ECs...");
+
+			// Start value iteration
+			timer = System.currentTimeMillis();
+			String description = (min ? "min" : "max");
+			mainLog.println("Starting value iteration (" + description + ")...");
+
+			// Create/initialise solution vector(s)
+			double soln[] = new double[n];
+			double psoln[][] = new double[numRewards][];
+			for (int r = 0; r < numRewards; r++) {
+				psoln[r] = new double[n];
+			}
+			for (int i = 0; i < n; i++) {
+				soln[i] = target.get(i) ? 0.0 : inf.get(i) ? Double.POSITIVE_INFINITY : 0.0;
+				for (int r = 0; r < numRewards; r++) {
+					psoln[r][i] = soln[i];
+				}
+			}
+			double soln2[] = new double[n];
+			double psoln2[][] = new double[numRewards][];
+			for (int r = 0; r < numRewards; r++) {
+				psoln2[r] = new double[n];
+			}
+
+			// Determine set of states actually need to compute values for
+			BitSet unknown = new BitSet();
+			unknown.set(0, n);
+			unknown.andNot(target);
+			unknown.andNot(inf);
+			IntSet unknownStates = IntSet.asIntSet(unknown);
+
+			// Start iterations
+			int iters = 0;
+			boolean done = false;
+			while (!done && iters < maxIters) {
+				iters++;
+				// Matrix-vector multiply and min/max ops
+				PrimitiveIterator.OfInt states = unknownStates.iterator();
+				while (states.hasNext()) {
+					final int i = states.nextInt();
+					strat[i] = -1;
+					soln2[i] = mdp.mvMultRewMinMaxSingle(i, soln, mdpRewardsWeighted, min, strat);
+				}
+				for (int r = 0; r < numRewards; r++) {
+					for (int i = 0; i < n; i++) {
+						psoln2[r][i] = mdp.mvMultRewSingle(i, strat[i], psoln[r], mdpRewardsList.get(r));
+					}
+				}
+				// Check termination
+				done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.RELATIVE);
+				for (int r = 0; r < numRewards; r++) {
+					done = done && PrismUtils.doublesAreClose(psoln[r], psoln2[r], termCritParam, termCrit == TermCrit.RELATIVE);
+				}
+				// Swap vectors for next iter
+				double tmpsoln[] = soln;
+				soln = soln2;
+				soln2 = tmpsoln;
+				double[][] ptmpsoln;
+				ptmpsoln = psoln;
+				psoln = psoln2;
+				psoln2 = ptmpsoln;
+			}
+
+			// Finished value iteration
+			timer = System.currentTimeMillis() - timer;
+			if (verbosity >= 1) {
+				mainLog.print("Value iteration (" + (min ? "min" : "max") + ")");
+				mainLog.println(" took " + iters + " iterations and " + timer / 1000.0 + " seconds.");
+			}
+
+			// Non-convergence is an error (usually)
+			if (!done && errorOnNonConverge) {
+				String msg = "Iterative method did not converge within " + iters + " iterations.";
+				msg += "\nConsider using a different numerical method or increasing the maximum number of iterations";
+				throw new PrismException(msg);
+			}
+
+			// Store results
+			res = new ModelCheckerResult();
+			Object solnObj[] = new Object[mdp.getNumStates()];
+			for (int i = 0; i < n; i++) {
+				List<Double> point = new ArrayList<>();
+				for (int r = 0; r < numRewards; r++) {
+					point.add(psoln[r][i]);
+				}
+				solnObj[i] = point;
+			}
+			res.solnObj = solnObj;
+
+		} else {
+			res = new ModelCheckerResult();
+			res.soln = Utils.bitsetToDoubleArray(inf, n, Double.POSITIVE_INFINITY);
+			res.accuracy = AccuracyFactory.doublesFromQualitative();
+		}
+
+		// Store strategy
+		if (genStrat) {
+			res.strat = new MDStrategyArray(mdp, strat);
+		}
+		// Export adversary
+		if (exportAdv) {
+			// Prune strategy, if needed
+			if (getRestrictStratToReach()) {
+				restrictStrategyToReachableStates(mdp, strat);
+			}
+			// Export
+			PrismLog out = new PrismFileLog(exportAdvFilename);
+			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+			out.close();
+		}
+
+		// Finished expected reachability
+		timer = System.currentTimeMillis() - timer;
+		mainLog.println("Weighted multi-objective expected reachability took " + timer / 1000.0 + " seconds.");
+
+		// Update time taken
+		res.timeTaken = timer / 1000.0;
+		res.timePre = timerProb1 / 1000.0;
+
 		return res;
 	}
 
