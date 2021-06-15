@@ -29,6 +29,7 @@ package explicit;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.List;
 
 import explicit.rewards.ConstructRewards;
@@ -560,24 +561,19 @@ public class ProbModelChecker extends NonProbModelChecker
 			coalition = null;
 		}
 
-		// For now, just support a single expression (which may encode a Boolean combination of objectives)
-		List<Expression> exprs = expr.getOperands();
-		if (exprs.size() > 1) {
-			throw new PrismException("Cannot currently check strategy operators wth lists of expressions");
-		}
-		Expression exprSub = exprs.get(0);
 		// Pass onto relevant method:
+		List<Expression> exprs = expr.getOperands();
 		// P operator
-		if (exprSub instanceof ExpressionProb) {
-			return checkExpressionProb(model, (ExpressionProb) exprSub, forAll, coalition, statesOfInterest);
+		if (exprs.size() == 1 && exprs.get(0) instanceof ExpressionProb) {
+			return checkExpressionProb(model, (ExpressionProb) exprs.get(0), forAll, coalition, statesOfInterest);
 		}
 		// R operator
-		else if (exprSub instanceof ExpressionReward) {
-			return checkExpressionReward(model, (ExpressionReward) exprSub, forAll, coalition, statesOfInterest);
+		else if (exprs.size() == 1 && exprs.get(0) instanceof ExpressionReward) {
+			return checkExpressionReward(model, (ExpressionReward) exprs.get(0), forAll, coalition, statesOfInterest);
 		}
 		// Anything else is treated as multi-objective 
 		else {
-			return checkExpressionMultiObj(model, exprSub, statesOfInterest);
+			return checkExpressionMultiObj(model, exprs, statesOfInterest);
 		}
 	}
 
@@ -585,37 +581,56 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * Model check a multi-objective property and return the values for the statesOfInterest.
 	 * * @param statesOfInterest the states of interest, see checkExpression()
 	 */
-	protected StateValues checkExpressionMultiObj(Model model, Expression expr, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkExpressionMultiObj(Model model, List<Expression> exprs, BitSet statesOfInterest) throws PrismException
 	{
-		// Assume in form of weighted sum an extract accordingly
-		List<Double> weights = new ArrayList<>();
-		List<ExpressionReward> objs = new ArrayList<>();
-		List<Expression> summands = ParserUtils.splitOnBinaryOp(expr, ExpressionBinaryOp.PLUS);
-		for (Expression summand : summands) {
-			if (summand instanceof ExpressionBinaryOp && ((ExpressionBinaryOp) summand).getOperator() == ExpressionBinaryOp.TIMES) {
-				Expression weight = ((ExpressionBinaryOp) summand).getOperand1();
-				if (!weight.isConstant()) {
-					throw new PrismLangException("Non-constant weight in multi-objective property", weight);
-				}
-				if (TypeDouble.getInstance().canAssign(weight.getType())) {
-					weights.add(weight.evaluateDouble(constantValues));
+		// Weighted sum
+		if (exprs.size() == 1 && exprs.get(0) instanceof ExpressionBinaryOp && ((ExpressionBinaryOp) exprs.get(0)).getOperator() == ExpressionBinaryOp.PLUS) {
+			Expression expr = exprs.get(0);
+			List<Double> weights = new ArrayList<>();
+			List<ExpressionReward> objs = new ArrayList<>();
+			List<Expression> summands = ParserUtils.splitOnBinaryOp(expr, ExpressionBinaryOp.PLUS);
+			for (Expression summand : summands) {
+				if (summand instanceof ExpressionBinaryOp && ((ExpressionBinaryOp) summand).getOperator() == ExpressionBinaryOp.TIMES) {
+					Expression weight = ((ExpressionBinaryOp) summand).getOperand1();
+					if (!weight.isConstant()) {
+						throw new PrismLangException("Non-constant weight in multi-objective property", weight);
+					}
+					if (TypeDouble.getInstance().canAssign(weight.getType())) {
+						weights.add(weight.evaluateDouble(constantValues));
+					} else {
+						throw new PrismLangException("Weights in multi-objective properties should be doubles", weight);
+					}
+					Expression obj = ((ExpressionBinaryOp) summand).getOperand2();
+					if (obj instanceof ExpressionReward) {
+						if (((ExpressionReward) obj).getReward() != null) {
+							throw new PrismLangException("Weighted multi-objective properties can only contain numerical reward properties", obj);
+						}
+						objs.add((ExpressionReward) obj);
+					} else {
+						throw new PrismLangException("Weighted multi-objective properties can only contain reward properties", obj);
+					}
 				} else {
-					throw new PrismLangException("Weights in multi-objective properties should be doubles", weight);
+					throw new PrismLangException("Multi-objective property is not a weighted sum ", expr);
 				}
-				Expression obj = ((ExpressionBinaryOp) summand).getOperand2();
+			}
+			return checkExpressionWeightedMultiObj(model, weights, objs, statesOfInterest);
+		}
+		// Otherwise, assume Pareto
+		else {
+			List<ExpressionReward> objs = new ArrayList<>();
+			for (Expression obj : exprs) {
 				if (obj instanceof ExpressionReward) {
 					if (((ExpressionReward) obj).getReward() != null) {
-						throw new PrismLangException("Weighted multi-objective properties can only contain numerical reward properties", obj);
+						throw new PrismLangException("Pareto multi-objective properties can only contain numerical reward properties", obj);
 					}
 					objs.add((ExpressionReward) obj);
 				} else {
 					throw new PrismLangException("Weighted multi-objective properties can only contain reward properties", obj);
 				}
-			} else {
-				throw new PrismLangException("Multi-objective property is not a weighted sum ", expr);
+
 			}
+			return checkExpressionParetoMultiObj(model, objs, statesOfInterest);
 		}
-		return checkExpressionWeightedMultiObj(model, weights, objs, statesOfInterest);
 	}
 	
 	/**
@@ -626,7 +641,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	{
 		// Build rewards
 		// And recompute weights, negating if needed 
-		mainLog.println("Building reward structure...");
+		//mainLog.println("Building reward structure...");
 		int numRewards = weights.size();
 		List<Double> weightsNew = new ArrayList<>();
 		List<MDPRewards> mdpRewardsList = new ArrayList<>();
@@ -648,6 +663,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		// Compute/return the rewards
 		ModelCheckerResult res = null;
 		switch (model.getModelType()) {
+		case MDP:
+			res = ((MDPModelChecker) this).computeMultiReachRewards((MDP) model, weightsNew, mdpRewardsList, target, false, statesOfInterest);
+			break;
 		case POMDP:
 			res = ((POMDPModelChecker) this).computeMultiReachRewards((POMDP) model, weightsNew, mdpRewardsList, target, false, statesOfInterest);
 			break;
@@ -657,6 +675,35 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		result.setStrategy(res.strat);
 		return StateValues.createFromObjectArray(TypeDouble.getInstance(), res.solnObj, model);
+	}
+	
+	/**
+	 * Model check a Pareto sum multi-objective property and return the values for the statesOfInterest.
+	 * * @param statesOfInterest the states of interest, see checkExpression()
+	 */
+	protected StateValues checkExpressionParetoMultiObj(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException
+	{
+		if (objs.size() != 2) {
+			throw new PrismException("Only 2 objectives allowed for now");
+		}
+		
+		HashSet<List<Double>> paretoCurve = new HashSet<>();
+		int numPoints = 10;
+		for (int i = 0; i <= numPoints; i++) {
+			double w1 = ((double) i) / numPoints;
+			double w2 = 1.0 - w1;
+			List<Double> weights = new ArrayList<>();
+			weights.add(w1);
+			weights.add(w2);
+			StateValues sv = checkExpressionWeightedMultiObj(model, weights, objs, statesOfInterest);
+			List<Double> point = (List<Double>) sv.getValue(model.getFirstInitialState());
+			paretoCurve.add(point);
+			mainLog.println(w1 + ":" + w2 + " = " + point);
+		}
+		mainLog.println("\nPareto curve: " + paretoCurve);
+		
+		// Dummy return value
+		return StateValues.createFromSingleValue(TypeDouble.getInstance(), 0.0, model);
 	}
 	
 	/**
