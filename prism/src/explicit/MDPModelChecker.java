@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
+import java.util.Vector;
 
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceReach;
