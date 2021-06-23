@@ -1,0 +1,6 @@
+multi(R{"p1_use"}min=? [ C ], R{"p2_use"}min=? [ C ]);
+
+<<*>> (w1 * R{"p1_use"}min=? [ F "end" ] + w2 * R{"p2_use"}min=? [ F "end" ]);
+
+<<*>> (R{"p1_use"}min=? [ F "end" ], R{"p2_use"}min=? [ F "end" ]);
+

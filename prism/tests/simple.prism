@@ -1,0 +1,58 @@
+mdp
+
+module  simple_map
+
+	// define grid
+	s:[0..7] init 0;  // state 0 to 4
+
+	// move
+	[a] (s=0) -> 0.9:(s'=7)+0.1:true;
+	[b] (s=0) -> 0.9:(s'=1)+0.1:true;
+	[c] (s=1) -> 0.9:(s'=2)+0.1:true;
+	[d] (s=1) -> 0.9:(s'=3)+0.1:true;
+
+	[e] (s=2) -> 0.9:(s'=4)+0.1:true;
+	[f] (s=3) -> 0.9:(s'=6)+0.1:true;
+	[g] (s=4) -> 0.9:(s'=5)+0.1:true;
+	[h] (s=4) -> 0.9:(s'=6)+0.1:true;
+	[i] (s=5) -> 0.9:(s'=7)+0.1:true;
+	[j] (s=6) -> 0.9:(s'=7)+0.1:true;
+
+	// stop when reaching the destination
+	[stop] (s=7) -> true;
+
+endmodule
+
+
+// label start and destination states
+label "end" = (s=7);
+
+// count total steps
+rewards  "dist"
+ 	[a] true: 6;
+	[b] true: 2;
+	[c] true: 1;
+	[d] true: 2;
+	[e] true: 2;
+	[f] true: 5;
+	[g] true: 1;
+	[h] true: 2;
+	[i] true: 2;
+	[j] true: 3;
+	[stop] true: 0;
+endrewards
+
+// count total risky steps
+rewards  "risk"
+ 	[a] true: 5;
+	[b] true: 0;
+	[c] true: 0;
+	[d] true: 0;
+	[e] true: 1;
+	[f] true: 0;
+	[g] true: 0;
+	[h] true: 1;
+	[i] true: 1;
+	[j] true: 0;
+	[stop] true: 0;
+endrewards

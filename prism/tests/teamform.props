@@ -1,0 +1,5 @@
+multi(R{"task1_completed"}max=? [ C ], R{"task2_completed"}max=? [ C ]);
+
+<<*>> (w1 * R{"task1_completed"}max=? [ F "end" ] + w2 * R{"task2_completed"}max=? [ F "end" ]);
+
+<<*>> (R{"task1_completed"}max=? [ F "end" ], R{"task2_completed"}max=? [ F "end" ]);

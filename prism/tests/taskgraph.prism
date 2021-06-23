@@ -1,0 +1,55 @@
+mdp
+
+const int K;
+
+label "end" = (task3=3);
+
+module scheduler
+
+	task1 : [0..3] init 0; 
+	task2 : [0..3] init 0; 
+	task3 : [0..3] init 0; 
+
+	[p1_add] task1=0 -> (task1'=1);
+	[p2_add] task1=0 -> (task1'=2);
+	[p1_add] task2=0 -> (task2'=1);
+	[p2_add] task2=0 -> (task2'=2);
+	[p1_add] task3=0&task1=3&task2=3 -> (task3'=1);
+	[p2_add] task3=0&task1=3&task2=3  -> (task3'=2);
+
+	[p1_done] task1=1 -> (task1'=3);
+	[p1_done] task2=1 -> (task2'=3);
+	[p1_done] task3=1 -> (task3'=3);
+	[p2_done] task1=2 -> (task1'=3);
+	[p2_done] task2=2 -> (task2'=3);
+	[p2_done] task3=2 -> (task3'=3);
+
+	[] task3=3 -> true;
+
+endmodule
+
+module P1
+
+	p1 : [0..2] init 0; 
+	x1 : [0..K] init 0; 
+
+	[p1_add] (p1=0) -> (p1'=1);
+	[time1] (p1=1) & (x1<K) -> 0.2: (p1'=1) & (x1'=x1+1) + 0.8: (p1'=2) & (x1'=x1+1); 
+	[time1] (p1=1) & (x1=K) -> 0.5: (p1'=1) + 0.5: (p1'=2); 
+	[p1_done] (p1=2) -> (p1'=0);
+
+endmodule
+
+module P2=P1 [p1=p2, x1=x2, p1_add=p2_add, p1_done=p2_done, time1=time2] endmodule
+
+rewards "p1_use" 
+
+	[time1] true: 10;
+
+endrewards
+
+rewards "p2_use" 
+
+	[time2] true: 10;
+
+endrewards

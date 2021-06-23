@@ -1,0 +1,6 @@
+multi(R{"time"}min=? [ C ], R{"risk"}min=? [ C ]);
+
+<<*>> (w1 * R{"time"}min=? [ F "end" ] + w2 * R{"risk"}min=? [ F "end" ]);
+
+<<*>> (R{"time"}min=? [ F "end" ], R{"risk"}min=? [ F "end" ]);
+

@@ -1,0 +1,97 @@
+mdp
+
+// model parameter
+const int K; // 
+
+
+// OPERATOR MODEL
+const double accu_load1 = 0.9; // accuracy at the low workload level (real numbers between 0 and 1)
+const double accu_load2 = 0.8; // accuracy at the high workload level (real numbers between 0 and 1)
+const double fd = 0.7; // accuracy discount due to fatigue (real numbers between 0 and 1)
+module operator
+
+	k:[0..K*100] init 0; // fatigue level measured by completetd tasks
+	t:[0..2] init 0; // workload level
+	s:[0..2] init 0; // status of image processing, 0: init, 1: good, 2: bad
+
+	// image processing, the workload may increase due to other unknown tasks
+	[image] t=0 & s=0 -> 0.5:(t'=1) & (s'=0) + 0.5:(t'=2) & (s'=0);
+	// workload level low
+	// not fatigue
+	[] t=1 & s=0 & k<K*100 -> accu_load1:(s'=1)&(k'=k+1) + (1-accu_load1):(s'=2)&(k'=k+1);
+	// fatigue
+	[] t=1 & s=0 & k=K*100 -> accu_load1*fd:(s'=1) + (1-accu_load1*fd):(s'=2);
+	// workload level high
+	// not fatigue
+	[] t=2 & s=0 & k<K*100 -> accu_load2:(s'=1)&(k'=k+1) + (1-accu_load2):(s'=2)&(k'=k+1);
+	// fatigue
+	[] t=2 & s=0 & k=K*100 -> accu_load2*fd:(s'=1) + (1-accu_load2*fd):(s'=2);
+
+	// image analysis is bad, UAV need to wait at the waypoint and take another image
+	[wait] s=2 -> (t'=0) & (s'=0);
+
+	// if image analysis is good, UAV can leave the waypoint
+	[leave] s=1 -> (t'=0) & (s'=0);
+
+
+endmodule
+
+
+// UAV MODEL
+// based on the simple grid map
+module UAV
+
+	w:[0..7] init 0; // waypoint
+        send: bool init true;
+	in: bool init true;
+
+	// at any waypoint:
+	// send image to human operator for analysis
+	[image] w!=7 & send -> (send'=false);
+
+	// wait at the waypoint and send another image
+	[wait] w!=7 & !send -> (send'=true);
+
+	// fly out of the waypoint via one of eight angle points
+	[leave] w!=7 -> (in'=false);
+
+
+	// UAV flying choices (based on the small grid map in the running example)
+	[a] w=0 & !in -> (w'=7);
+	[b] w=0 & !in -> (w'=1) & (in'=true) & (send'=true);
+	[c] w=1 & !in -> (w'=2) & (in'=true) & (send'=true);
+	[d] w=1 & !in -> (w'=3) & (in'=true) & (send'=true);
+	[e] w=2 & !in -> (w'=4) & (in'=true) & (send'=true);
+	[f] w=3 & !in -> (w'=6) & (in'=true) & (send'=true);
+	[g] w=4 & !in -> (w'=5) & (in'=true) & (send'=true);
+	[h] w=4 & !in -> (w'=6) & (in'=true) & (send'=true);
+	[i] w=5 & !in -> (w'=7);
+	[j] w=6 & !in -> (w'=7);
+	
+	// mission completed
+	[] w=7 -> true;
+
+endmodule
+
+label "end" = (w=7);
+
+rewards "time" 
+	[wait] true: 1;
+ 	[a] true: 6;
+	[b] true: 2;
+	[c] true: 1;
+	[d] true: 2;
+	[e] true: 2;
+	[f] true: 5;
+	[g] true: 1;
+	[h] true: 2;
+	[i] true: 2;
+	[j] true: 3;
+endrewards
+
+rewards "risk" 
+ 	[a] true: 5;
+	[e] true: 1;
+	[h] true: 1;
+	[i] true: 1;
+endrewards
