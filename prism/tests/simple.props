@@ -1,3 +1,5 @@
+const double w1;
+const double w2 = 1.0 - w1;
 multi(R{"dist"}min=? [ C ], R{"risk"}min=? [ C ]);
 
 <<*>> (w1 * R{"dist"}min=? [ F "end" ] + w2 * R{"risk"}min=? [ F "end" ]);
