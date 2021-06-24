@@ -2757,9 +2757,7 @@ public class MDPModelChecker extends ProbModelChecker
 					final int i = states.nextInt();
 					strat[i] = -1;
 					soln2[i] = mdp.mvMultRewMinMaxSingle(i, soln, mdpRewardsWeighted, min, strat);
-				}
-				for (int r = 0; r < numRewards; r++) {
-					for (int i = 0; i < n; i++) {
+					for (int r = 0; r < numRewards; r++) {
 						psoln2[r][i] = mdp.mvMultRewSingle(i, strat[i], psoln[r], mdpRewardsList.get(r));
 					}
 				}
