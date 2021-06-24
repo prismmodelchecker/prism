@@ -1,3 +1,5 @@
+const double w1;
+const double w2 = 1.0 - w1;
 multi(R{"p1_use"}min=? [ C ], R{"p2_use"}min=? [ C ]);
 
 <<*>> (w1 * R{"p1_use"}min=? [ F "end" ] + w2 * R{"p2_use"}min=? [ F "end" ]);
