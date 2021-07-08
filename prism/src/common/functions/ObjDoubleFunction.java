@@ -3,7 +3,6 @@
 //	Copyright (c) 2016-
 //	Authors:
 //	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
-//	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,24 +24,28 @@
 //	
 //==============================================================================
 
-package common.functions.primitive;
+package common.functions;
+
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
- * Functional interface for a predicate (int, int) -> boolean.
+ * Functional interface for a binary function (T, double) -> R.
  */
 @FunctionalInterface
-public interface PairPredicateInt
+public interface ObjDoubleFunction<T, R>
 {
 	/**
-	 * Evaluates this predicate on the given arguments.
+	 * Applies this function to the given arguments.
 	 */
-	boolean test(int i, int j);
+	R apply(T t, double d);
 
 	/**
-	 * Returns a predicate that represents the logical negation of this predicate.
+	 * Returns a composed function that first applies this function to
+	 * its input, and then applies the {@code after} function to the result.
 	 */
-	default PairPredicateInt negate()
-	{
-		return (i, j) -> !test(i, j);
+	default <V> ObjDoubleFunction<T, V> andThen(Function<? super R, ? extends V> after) {
+		Objects.requireNonNull(after);
+		return (T t, double d) -> after.apply(apply(t, d));
 	}
 }
