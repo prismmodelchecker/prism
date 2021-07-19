@@ -1,0 +1,21 @@
+const double w1;
+const double w2 = 1.0 - w1;
+
+R{"takeovers"}min=? [ F "end" ];
+
+R{"takeovers"}max=? [ F "end" ];
+
+R{"time"}min=? [ F "end" ];
+
+R{"time"}max=? [ F "end" ];
+
+R{"risk"}min=? [ F "end" ];
+
+R{"risk"}max=? [ F "end" ];
+
+<<*>> (w1 * R{"risk"}min=? [ F "end" ] + w2 * R{"time"}min=? [ F "end" ]);
+
+<<*>> (R{"risk"}min=? [ F "end" ], R{"time"}min=? [ F "end" ]);
+<<*>> (R{"distance"}min=? [ F "end" ], R{"time"}min=? [ F "end" ]);
+<<*>> (R{"takeovers"}min=? [ F "end" ], R{"time"}min=? [ F "end" ]);
+<<*>> (R{"takeovers"}min=? [ F "end" ], R{"risk"}min=? [ F "end" ]);

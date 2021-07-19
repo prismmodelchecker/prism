@@ -1,0 +1,10 @@
+const double wd;
+const double wr;
+const double w;
+<<*>> (R{"distance"}min=? [ F "end" ], R{"risk"}min=? [ F "end" ], R{"pickup"}max=? [ F "end" ]);
+<<*>> (R{"distance"}max=? [ F "end" ], R{"risk"}max=? [ F "end" ], R{"pickup"}max=? [ F "end" ]);
+<<*>> (R{"distance"}max=? [ F "end" ], R{"risk"}max=? [ F "end" ], R{"pickup"}min=? [ F "end" ]);
+<<*>> (wd * R{"distance"}min=? [ F "end" ] + wr * R{"risk"}min=? [ F "end" ]);
+R{"risk"}min=? [ F "end" ];
+R{"pickup"}max=? [ F "end" ];
+<<*>> (R{"distance"}min=? [ F "end" ], R{"risk"}min=? [ F "end" ]);

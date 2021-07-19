@@ -16,3 +16,5 @@ R{"risk"}max=? [ F "end" ];
 <<*>> (w1 * R{"risk"}min=? [ F "end" ] + w2 * R{"time"}min=? [ F "end" ]);
 
 <<*>> (R{"risk"}min=? [ F "end" ], R{"time"}min=? [ F "end" ]);
+
+<<*>> (R{"risk"}min=? [ F "end" ], R{"time"}min=? [ F "end" ], R{"takeovers"}min=? [ F "end" ] );

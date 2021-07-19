@@ -5,4 +5,4 @@ multi(R{"dist"}min=? [ C ], R{"risk"}min=? [ C ]);
 <<*>> (w1 * R{"dist"}min=? [ F "end" ] + w2 * R{"risk"}min=? [ F "end" ]);
 
 <<*>> (R{"dist"}min=? [ F "end" ], R{"risk"}min=? [ F "end" ]);
-
+<<*>> (R{"dist"}min=? [ F "end" ], R{"risk"}min=? [ F "end" ],R{"third"}min=? [ F "end" ] );

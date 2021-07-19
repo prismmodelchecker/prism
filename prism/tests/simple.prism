@@ -56,3 +56,17 @@ rewards  "risk"
 	[j] true: 0;
 	[stop] true: 0;
 endrewards
+
+rewards  "third"
+ 	[a] true: 5;
+	[b] true: 0;
+	[c] true: 0;
+	[d] true: 0;
+	[e] true: 1;
+	[f] true: 0;
+	[g] true: 0;
+	[h] true: 1;
+	[i] true: 1;
+	[j] true: 0;
+	[stop] true: 0;
+endrewards

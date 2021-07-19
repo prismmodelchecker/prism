@@ -1,0 +1,504 @@
+PRISM
+=====
+
+Version: 4.7.dev
+Date: Sat Jul 03 11:57:28 EDT 2021
+Hostname: d-172-25-45-114.dhcp.virginia.edu
+Memory limits: cudd=1g, java(heap)=1g
+Command line: prism tests/teamform_4.prism tests/teamform.props -prop 3 -ex
+
+Parsing model file "tests/teamform_4.prism"...
+
+Type:        MDP
+Modules:     controller sensor1 sensor2 sensor3 sensor4 
+Variables:   status t1_r1 t1_r2 t1_r3 t2_r1 t2_r2 t2_r3 turn1 turn2 turn3 turn4 state1 m1_t1 m1_t2 state2 m2_t1 m2_t2 state3 m3_t1 m3_t2 state4 m4_t1 m4_t2 
+
+Parsing properties file "tests/teamform.props"...
+
+3 properties:
+(1) multi(R{"task1_completed"}max=? [ C ], R{"task2_completed"}max=? [ C ])
+(2) <<*>> (w1*R{"task1_completed"}max=? [ F "end" ]+w2*R{"task2_completed"}max=? [ F "end" ])
+(3) <<*>> (R{"task1_completed"}max=? [ F "end" ], R{"task2_completed"}max=? [ F "end" ])
+
+---------------------------------------------------------------------
+
+Model checking: <<*>> (R{"task1_completed"}max=? [ F "end" ], R{"task2_completed"}max=? [ F "end" ])
+
+Building model...
+
+Computing reachable states... 101345 states
+Reachable states exploration and model construction done in 2.776 secs.
+Sorting reachable states list...
+
+Time for model construction: 3.271 seconds.
+
+Type:        MDP
+States:      101345 (1 initial)
+Transitions: 122464
+Choices:     121289
+Max/avg:     3/1.20
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.275 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.788 seconds.
+Weighted multi-objective expected reachability took 1.625327853285E9 seconds.
+0.0:1.0 = [5.221088435374145, 9.999999999999988]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.094 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 1.134 seconds.
+Weighted multi-objective expected reachability took 1.625327854488E9 seconds.
+0.1:0.9 = [6.428571428571425, 9.999999999999988]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.035 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.334 seconds.
+Weighted multi-objective expected reachability took 1.625327855759E9 seconds.
+0.2:0.8 = [6.428571428571425, 9.999999999999988]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.038 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.291 seconds.
+Weighted multi-objective expected reachability took 1.625327856215E9 seconds.
+0.3:0.7 = [6.428571428571425, 9.999999999999988]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.029 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.262 seconds.
+Weighted multi-objective expected reachability took 1.625327856614E9 seconds.
+0.4:0.6 = [6.428571428571425, 9.999999999999988]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.032 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.362 seconds.
+Weighted multi-objective expected reachability took 1.625327856974E9 seconds.
+0.5:0.5 = [9.14965986394557, 7.278911564625844]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.035 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.336 seconds.
+Weighted multi-objective expected reachability took 1.625327857449E9 seconds.
+0.6:0.4 = [9.999999999999988, 6.428571428571425]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.031 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.263 seconds.
+Weighted multi-objective expected reachability took 1.625327857882E9 seconds.
+0.7:0.30000000000000004 = [9.999999999999988, 6.428571428571425]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.041 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.26 seconds.
+Weighted multi-objective expected reachability took 1.625327858261E9 seconds.
+0.8:0.19999999999999996 = [9.999999999999988, 6.428571428571425]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.055 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.336 seconds.
+Weighted multi-objective expected reachability took 1.625327858643E9 seconds.
+0.9:0.09999999999999998 = [9.999999999999988, 6.428571428571425]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.035 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.284 seconds.
+Weighted multi-objective expected reachability took 1.625327859105E9 seconds.
+1.0:0.0 = [9.999999999999988, 4.438775510204078]
+
+Pareto curve: [[9.999999999999988, 4.438775510204078], [9.14965986394557, 7.278911564625844], [5.221088435374145, 9.999999999999988], [6.428571428571425, 9.999999999999988], [9.999999999999988, 6.428571428571425]]
+****************************************************
+Initialize Q (weight, priority)[[1.0, 0.0, 9999.0], [0.0, 1.0, 9999.0]]
+----
++++++++++++
+Current Q (weight, priority) Before Pop[[1.0, 0.0, 9999.0], [0.0, 1.0, 9999.0]]
+Current paritial CCS Before Pop[]
+Current paritial CCS weights Before Pop[]
++++++++++++
+Pop weight with top priority: [0.0, 1.0, 1.0]
+Current Q (weight, priority)  After pop[[1.0, 0.0, 9999.0]]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.028 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.238 seconds.
+Weighted multi-objective expected reachability took 1.62532785949E9 seconds.
+Value vector: [5.221088435374145, 9.999999999999988]
+w_pop[0.0, 1.0]
+u[5.221088435374145, 9.999999999999988]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988]]
+TO.........herehere.delete obsolete
+add value vector from exterme weights
+1
++++++++++++
+Current Q (weight, priority) Before Pop[[1.0, 0.0, 9999.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988]]
+Current paritial CCS weights Before Pop[[0.0, 1.0]]
++++++++++++
+Pop weight with top priority: [1.0, 0.0, 0.0]
+Current Q (weight, priority)  After pop[]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.029 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.239 seconds.
+Weighted multi-objective expected reachability took 1.625327859828E9 seconds.
+Value vector: [9.999999999999988, 4.438775510204078]
+w_pop[1.0, 0.0]
+u[9.999999999999988, 4.438775510204078]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078]]
+TO.........herehere.delete obsolete
+Compute new corner weights
+one instace of combinations
+[[5.221088435374145, 9.999999999999988]]
+allsubsets: total number of combinations[[[5.221088435374145, 9.999999999999988]]]1
+A:[[5.221088435374145, 9.999999999999988, -1.0], [9.999999999999988, 4.438775510204078, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:7.682476051645137
+pivot:0.1345937948248796
+pivot:0.1345937948248796
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.537828947368421], [0.0, 1.0, 0.0, 0.4621710526315788], [0.0, 0.0, 1.0, 7.429763023630495]]
+w_new[0.537828947368421, 0.4621710526315788]
++++++++++++
+Current Q (weight, priority) Before Pop[[0.537828947368421, 0.4621710526315788, 1.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988], [9.999999999999988, 4.438775510204078]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0]]
++++++++++++
+Pop weight with top priority: [0.537828947368421, 0.4621710526315788, 0.462171052631579]
+Current Q (weight, priority)  After pop[]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.049 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.281 seconds.
+Weighted multi-objective expected reachability took 1.625327860227E9 seconds.
+Value vector: [9.999999999999988, 6.428571428571425]
+w_pop[0.537828947368421, 0.4621710526315788]
+u[9.999999999999988, 6.428571428571425]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078], [0.537828947368421, 0.4621710526315788], [9.999999999999988, 6.428571428571425]]
+TO.........herehere.delete obsolete
+Compute new corner weights
+one instace of combinations
+[[5.221088435374145, 9.999999999999988]]
+one instace of combinations
+[[9.999999999999988, 4.438775510204078]]
+allsubsets: total number of combinations[[[5.221088435374145, 9.999999999999988]], [[9.999999999999988, 4.438775510204078]]]2
+A:[[5.221088435374145, 9.999999999999988, -1.0], [9.999999999999988, 6.428571428571425, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:6.643586005830892
+pivot:0.12569025415980997
+pivot:0.12569025415980997
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.4276985743380854], [0.0, 1.0, 0.0, 0.5723014256619147], [0.0, 0.0, 1.0, 7.956066336921726]]
+w_new[0.4276985743380854, 0.5723014256619147]
+A:[[9.999999999999988, 4.438775510204078, -1.0], [9.999999999999988, 6.428571428571425, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:1.9897959183673475
+pivot:0.10000000000000013
+pivot:0.10000000000000013
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 9.999999999999988]]
+weigths already checked
++++++++++++
+Current Q (weight, priority) Before Pop[[0.4276985743380854, 0.5723014256619147, 1.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988], [9.999999999999988, 4.438775510204078], [9.999999999999988, 6.428571428571425]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0], [0.537828947368421, 0.4621710526315788]]
++++++++++++
+Pop weight with top priority: [0.4276985743380854, 0.5723014256619147, 0.5723014256619146]
+Current Q (weight, priority)  After pop[]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.029 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.258 seconds.
+Weighted multi-objective expected reachability took 1.625327860602E9 seconds.
+Value vector: [6.428571428571425, 9.999999999999988]
+w_pop[0.4276985743380854, 0.5723014256619147]
+u[6.428571428571425, 9.999999999999988]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078], [0.537828947368421, 0.4621710526315788], [9.999999999999988, 6.428571428571425], [0.4276985743380854, 0.5723014256619147], [6.428571428571425, 9.999999999999988]]
+TO.........herehere.delete obsolete
+Compute new corner weights
+one instace of combinations
+[[5.221088435374145, 9.999999999999988]]
+one instace of combinations
+[[9.999999999999988, 4.438775510204078]]
+one instace of combinations
+[[9.999999999999988, 6.428571428571425]]
+allsubsets: total number of combinations[[[5.221088435374145, 9.999999999999988]], [[9.999999999999988, 4.438775510204078]], [[9.999999999999988, 6.428571428571425]]]3
+A:[[5.221088435374145, 9.999999999999988, -1.0], [6.428571428571425, 9.999999999999988, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:6.428571428571425
+pivot:1.87830687830688
+pivot:0.10000000000000014
+pivot:0.10000000000000014
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 8.881784197001252E-16], [0.0, 1.0, 0.0, 0.9999999999999993], [0.0, 0.0, 1.0, 9.999999999999986]]
+weigths already checked
+A:[[9.999999999999988, 4.438775510204078, -1.0], [6.428571428571425, 9.999999999999988, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:7.146501457725936
+pivot:0.12779194288628265
+pivot:0.12779194288628265
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.6089385474860338], [0.0, 1.0, 0.0, 0.3910614525139662], [0.0, 0.0, 1.0, 7.825219473264157]]
+w_new[0.6089385474860338, 0.3910614525139662]
+A:[[9.999999999999988, 6.428571428571425, -1.0], [6.428571428571425, 9.999999999999988, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:5.867346938775497
+pivot:0.12173913043478274
+pivot:0.12173913043478274
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.4999999999999999], [0.0, 1.0, 0.0, 0.4999999999999999], [0.0, 0.0, 1.0, 8.214285714285705]]
+w_new[0.4999999999999999, 0.4999999999999999]
++++++++++++
+Current Q (weight, priority) Before Pop[[0.6089385474860338, 0.3910614525139662, 1.0], [0.4999999999999999, 0.4999999999999999, 1.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988], [9.999999999999988, 4.438775510204078], [9.999999999999988, 6.428571428571425], [6.428571428571425, 9.999999999999988]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0], [0.537828947368421, 0.4621710526315788], [0.4276985743380854, 0.5723014256619147]]
++++++++++++
+Pop weight with top priority: [0.4999999999999999, 0.4999999999999999, 0.5000000000000001]
+Current Q (weight, priority)  After pop[[0.6089385474860338, 0.3910614525139662, 1.0]]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.028 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.224 seconds.
+Weighted multi-objective expected reachability took 1.625327860954E9 seconds.
+Value vector: [9.14965986394557, 7.278911564625844]
+w_pop[0.4999999999999999, 0.4999999999999999]
+u[9.14965986394557, 7.278911564625844]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078], [0.537828947368421, 0.4621710526315788], [9.999999999999988, 6.428571428571425], [0.4276985743380854, 0.5723014256619147], [6.428571428571425, 9.999999999999988], [0.4999999999999999, 0.4999999999999999], [9.14965986394557, 7.278911564625844]]
+TO.........herehere.delete obsolete
+Compute new corner weights
+one instace of combinations
+[[5.221088435374145, 9.999999999999988]]
+one instace of combinations
+[[9.999999999999988, 4.438775510204078]]
+one instace of combinations
+[[9.999999999999988, 6.428571428571425]]
+one instace of combinations
+[[6.428571428571425, 9.999999999999988]]
+allsubsets: total number of combinations[[[5.221088435374145, 9.999999999999988]], [[9.999999999999988, 4.438775510204078]], [[9.999999999999988, 6.428571428571425]], [[6.428571428571425, 9.999999999999988]]]4
+A:[[5.221088435374145, 9.999999999999988, -1.0], [9.14965986394557, 7.278911564625844, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.14965986394557
+pivot:5.846420352527621
+pivot:0.12430953565326483
+pivot:0.12430953565326483
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.4092071611253193], [0.0, 1.0, 0.0, 0.5907928388746806], [0.0, 0.0, 1.0, 8.044435165370487]]
+w_new[0.4092071611253193, 0.5907928388746806]
+A:[[9.999999999999988, 4.438775510204078, -1.0], [9.14965986394557, 7.278911564625844, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:3.2175829515479615
+pivot:0.11469715765061222
+pivot:0.11469715765061222
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.7695852534562222], [0.0, 1.0, 0.0, 0.23041474654377772], [0.0, 0.0, 1.0, 8.718611868710612]]
+w_new[0.7695852534562222, 0.23041474654377772]
+A:[[9.999999999999988, 6.428571428571425, -1.0], [9.14965986394557, 7.278911564625844, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.999999999999988
+pivot:1.3969873663751153
+pivot:0.12173913043478268
+pivot:0.12173913043478268
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.5000000000000009], [0.0, 1.0, 0.0, 0.4999999999999992], [0.0, 0.0, 1.0, 8.21428571428571]]
+weigths already checked
+A:[[6.428571428571425, 9.999999999999988, -1.0], [9.14965986394557, 7.278911564625844, -1.0], [1.0, 1.0, 0.0]]
+b:[0.0, 0.0, 1.0]
+pivot:9.14965986394557
+pivot:4.88582049920339
+pivot:0.12173913043478271
+pivot:0.12173913043478271
+pivot:1.0
+pivot:1.0
+solved Ab:[[1.0, 0.0, 0.0, 0.5], [0.0, 1.0, 0.0, 0.5000000000000001], [0.0, 0.0, 1.0, 8.214285714285708]]
+weigths already checked
++++++++++++
+Current Q (weight, priority) Before Pop[[0.6089385474860338, 0.3910614525139662, 1.0], [0.4092071611253193, 0.5907928388746806, 1.0], [0.7695852534562222, 0.23041474654377772, 1.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988], [9.999999999999988, 4.438775510204078], [9.999999999999988, 6.428571428571425], [6.428571428571425, 9.999999999999988], [9.14965986394557, 7.278911564625844]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0], [0.537828947368421, 0.4621710526315788], [0.4276985743380854, 0.5723014256619147], [0.4999999999999999, 0.4999999999999999]]
++++++++++++
+Pop weight with top priority: [0.7695852534562222, 0.23041474654377772, 0.2304147465437778]
+Current Q (weight, priority)  After pop[[0.6089385474860338, 0.3910614525139662, 1.0], [0.4092071611253193, 0.5907928388746806, 1.0]]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.032 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.212 seconds.
+Weighted multi-objective expected reachability took 1.625327861277E9 seconds.
+Value vector: [9.999999999999988, 6.428571428571425]
+w_pop[0.7695852534562222, 0.23041474654377772]
+u[9.999999999999988, 6.428571428571425]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078], [0.537828947368421, 0.4621710526315788], [9.999999999999988, 6.428571428571425], [0.4276985743380854, 0.5723014256619147], [6.428571428571425, 9.999999999999988], [0.4999999999999999, 0.4999999999999999], [9.14965986394557, 7.278911564625844], [0.7695852534562222, 0.23041474654377772], [9.999999999999988, 6.428571428571425]]
+Vector already in the partial CCS
++++++++++++
+Current Q (weight, priority) Before Pop[[0.6089385474860338, 0.3910614525139662, 1.0], [0.4092071611253193, 0.5907928388746806, 1.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988], [9.999999999999988, 4.438775510204078], [9.999999999999988, 6.428571428571425], [6.428571428571425, 9.999999999999988], [9.14965986394557, 7.278911564625844]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0], [0.537828947368421, 0.4621710526315788], [0.4276985743380854, 0.5723014256619147], [0.4999999999999999, 0.4999999999999999]]
++++++++++++
+Pop weight with top priority: [0.4092071611253193, 0.5907928388746806, 0.5907928388746807]
+Current Q (weight, priority)  After pop[[0.6089385474860338, 0.3910614525139662, 1.0]]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.028 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.208 seconds.
+Weighted multi-objective expected reachability took 1.625327861581E9 seconds.
+Value vector: [6.428571428571425, 9.999999999999988]
+w_pop[0.4092071611253193, 0.5907928388746806]
+u[6.428571428571425, 9.999999999999988]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078], [0.537828947368421, 0.4621710526315788], [9.999999999999988, 6.428571428571425], [0.4276985743380854, 0.5723014256619147], [6.428571428571425, 9.999999999999988], [0.4999999999999999, 0.4999999999999999], [9.14965986394557, 7.278911564625844], [0.7695852534562222, 0.23041474654377772], [9.999999999999988, 6.428571428571425], [0.4092071611253193, 0.5907928388746806], [6.428571428571425, 9.999999999999988]]
+Vector already in the partial CCS
++++++++++++
+Current Q (weight, priority) Before Pop[[0.6089385474860338, 0.3910614525139662, 1.0]]
+Current paritial CCS Before Pop[[5.221088435374145, 9.999999999999988], [9.999999999999988, 4.438775510204078], [9.999999999999988, 6.428571428571425], [6.428571428571425, 9.999999999999988], [9.14965986394557, 7.278911564625844]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0], [0.537828947368421, 0.4621710526315788], [0.4276985743380854, 0.5723014256619147], [0.4999999999999999, 0.4999999999999999]]
++++++++++++
+Pop weight with top priority: [0.6089385474860338, 0.3910614525139662, 0.3910614525139662]
+Current Q (weight, priority)  After pop[]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 14 iterations and 0.029 seconds.
+target=21120, inf=0, rest=80225
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 15 iterations and 0.205 seconds.
+Weighted multi-objective expected reachability took 1.625327861888E9 seconds.
+Value vector: [9.999999999999988, 6.428571428571425]
+w_pop[0.6089385474860338, 0.3910614525139662]
+u[9.999999999999988, 6.428571428571425]
+w_v_checked[[0.0, 1.0], [5.221088435374145, 9.999999999999988], [1.0, 0.0], [9.999999999999988, 4.438775510204078], [0.537828947368421, 0.4621710526315788], [9.999999999999988, 6.428571428571425], [0.4276985743380854, 0.5723014256619147], [6.428571428571425, 9.999999999999988], [0.4999999999999999, 0.4999999999999999], [9.14965986394557, 7.278911564625844], [0.7695852534562222, 0.23041474654377772], [9.999999999999988, 6.428571428571425], [0.4092071611253193, 0.5907928388746806], [6.428571428571425, 9.999999999999988], [0.6089385474860338, 0.3910614525139662], [9.999999999999988, 6.428571428571425]]
+Vector already in the partial CCS
+ALl weights checked:
+weight: [0.0, 1.0]; vector: [5.221088435374145, 9.999999999999988]
+weight: [1.0, 0.0]; vector: [9.999999999999988, 4.438775510204078]
+weight: [0.537828947368421, 0.4621710526315788]; vector: [9.999999999999988, 6.428571428571425]
+weight: [0.4276985743380854, 0.5723014256619147]; vector: [6.428571428571425, 9.999999999999988]
+weight: [0.4999999999999999, 0.4999999999999999]; vector: [9.14965986394557, 7.278911564625844]
+weight: [0.7695852534562222, 0.23041474654377772]; vector: [9.999999999999988, 6.428571428571425]
+weight: [0.4092071611253193, 0.5907928388746806]; vector: [6.428571428571425, 9.999999999999988]
+weight: [0.6089385474860338, 0.3910614525139662]; vector: [9.999999999999988, 6.428571428571425]
+*********************ParetoCurve by optimal linear solution*******************************
+weight: [0.0, 1.0]; vector: [5.221088435374145, 9.999999999999988]
+weight: [1.0, 0.0]; vector: [9.999999999999988, 4.438775510204078]
+weight: [0.537828947368421, 0.4621710526315788]; vector: [9.999999999999988, 6.428571428571425]
+weight: [0.4276985743380854, 0.5723014256619147]; vector: [6.428571428571425, 9.999999999999988]
+weight: [0.4999999999999999, 0.4999999999999999]; vector: [9.14965986394557, 7.278911564625844]
+#weights: 5
+[0.0, 1.0]
+[1.0, 0.0]
+[0.537828947368421, 0.4621710526315788]
+[0.4276985743380854, 0.5723014256619147]
+[0.4999999999999999, 0.4999999999999999]
+#Parecto Curve points: 5
+
+[5.221088435374145, 9.999999999999988]
+[9.999999999999988, 4.438775510204078]
+[9.999999999999988, 6.428571428571425]
+[6.428571428571425, 9.999999999999988]
+[9.14965986394557, 7.278911564625844]
+*********************ParetoCurve by iterating [w1 w2]*******************************
+
+Pareto curve: 5
+[[9.999999999999988, 4.438775510204078], [9.14965986394557, 7.278911564625844], [5.221088435374145, 9.999999999999988], [6.428571428571425, 9.999999999999988], [9.999999999999988, 6.428571428571425]]
+
+Pareto curve (compact)
+
+[9.999999999999988, 4.438775510204078]
+
+[9.14965986394557, 7.278911564625844]
+
+[5.221088435374145, 9.999999999999988]
+
+[6.428571428571425, 9.999999999999988]
+
+[9.999999999999988, 6.428571428571425]
+
+
+Value in the initial state: 0.0
+
+Time for model checking: 9.615 seconds.
+
+Result: 0.0
+

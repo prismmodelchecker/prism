@@ -1,0 +1,51 @@
+mdp
+module robot
+	//:[0..7] init;
+	s:[0..7] init 0; // waypoint
+
+	[south] s=0 -> 0.1:(s'=0) +0.9:(s'=7);
+	[east] s=0 -> 0.1:(s'=0) +0.9:(s'=1);
+	[south] s=1 -> 0.1:(s'=1) +0.9:(s'=2);
+	[east] s=1 -> 0.1:(s'=1) +0.9:(s'=3);
+	[south] s=2 -> 0.1:(s'=2) +0.9:(s'=4);
+	[southwest] s=3 -> 0.1:(s'=3) +0.9:(s'=6);
+	[west] s=4 -> 0.1:(s'=4) +0.9:(s'=5);
+	[southeast] s=4 -> 0.1:(s'=4) +0.9:(s'=6);
+	[south] s=5 -> 0.1:(s'=5) +0.9:(s'=7);
+	[southwest] s=6 -> 0.1:(s'=6) +0.9:(s'=7);
+endmodule
+
+label "end" = (s=7);
+
+rewards "distance"
+	[south] s=0 : 0.9*6;
+	[east] s=0 : 0.9*2;
+	[south] s=1 : 0.9*1;
+	[east] s=1 : 0.9*2;
+	[south] s=2 : 0.9*2;
+	[southwest] s=3 : 0.9*5;
+	[west] s=4 : 0.9*1;
+	[southeast] s=4 : 0.9*2;
+	[south] s=5 : 0.9*2;
+	[southwest] s=6 : 0.9*3;
+endrewards
+
+
+
+
+rewards "risk" 
+	[south] s=0 :0.9*5.5;
+	[east] s=0 :0;
+	[south] s=1 :0;
+	[east] s=1 : 0;
+	[south] s=2 : 0.9*1;
+	[southwest] s=3 : 0;
+	[west] s=4 : 0;
+	[southeast] s=4 : 0.9*1;
+	[south] s=5 : 0.9*1;
+	[southwest] s=6 : 0;
+endrewards
+
+rewards "pickup"
+	[southeast] (s=4) : 10;
+endrewards

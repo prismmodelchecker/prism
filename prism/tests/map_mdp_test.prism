@@ -1,0 +1,1062 @@
+mdp
+ //discount=1;
+const double r01=631;
+const double r02=518;
+const double r03=384;
+const double r14=1142;
+const double r15=780;
+const double r24=1173;
+const double r26=944;
+const double r35=1040;
+const double r36=1291;
+const double r47=703;
+const double r48=690;
+const double r57=1342;
+const double r59=1018;
+const double r68=902;
+const double r69=693;
+const double r710=555;
+const double r810=390;
+const double r910=1401;
+//observables v, h endobservables
+module vehicle
+	// vehicle location
+     v: [0..12] init 12;
+	// v=12 initial dummy variable
+    [c0] v=12 -> (v'=0);
+	// v=0
+	[c0] v=0 -> (v'=1);
+	[c1] v=0 -> (v'=2);
+	[c2] v=0 -> (v'=3);
+	// v=1
+	[c1] v=1 -> (v'=4);
+	[c2] v=1 -> (v'=5);
+	// v=2
+	[c0] v=2 -> (v'=4);
+	[c2] v=2 -> (v'=6);
+	// v=3
+	[c0] v=3 -> (v'=5);
+	[c1] v=3 -> (v'=6);
+	// v=4
+	[c1] v=4 -> (v'=7);
+	[c2] v=4 -> (v'=8);
+	// v=5
+	[c0] v=5 -> (v'=7);
+	[c2] v=5 -> (v'=9);
+	// v=6
+	[c0] v=6 -> (v'=8);
+	[c1] v=6 -> (v'=9);
+	// v=7
+	[c1] v=7 -> (v'=10);
+	// v=8
+	[c1] v=8 -> (v'=10);
+	// v=9
+	[c1] v=9 -> (v'=10);
+	// v=10
+	[c0] v=10 -> (v'=11);
+	[c1] v=10 -> (v'=11);
+	[c2] v=10 -> (v'=11);
+	// v=11
+	[c0] v=11 -> (v'=11);
+	[c1] v=11 -> (v'=11);
+	[c2] v=11 -> (v'=11);
+endmodule
+module driver
+	// human takeover decision: 1=human, 2=robot
+	h : [0..2] init 0;
+	u : [0..7] init 0;
+
+    [c0] v=12 -> 0.5:(h'=0)+0.5:(h'=1);
+	// v=0
+	[c0] v=0 -> 0.5:(h'=0)+0.5:(h'=1);
+	[c1] v=0 -> 0.1:(h'=0)+0.9:(h'=1);
+	[c2] v=0 -> 0.2:(h'=0)+0.8:(h'=1);
+	// v=1
+	[c1] v=1 -> 0.3:(h'=0)+0.7:(h'=1);
+	[c2] v=1 -> 0.4:(h'=0)+0.6:(h'=1);
+	// v=2
+	[c0] v=2 -> 0.5:(h'=0)+0.5:(h'=1);
+	[c2] v=2 -> 0.5:(h'=0)+0.5:(h'=1);
+	// v=3
+	[c0] v=3 -> 0.45:(h'=0)+0.55:(h'=1);
+	[c1] v=3 -> 0.59:(h'=0)+0.41:(h'=1);
+	// v=4
+	[c1] v=4 -> 0.75:(h'=0)+0.25:(h'=1);
+	[c2] v=4 -> 0.35:(h'=0)+0.65:(h'=1);
+	// v=5
+	[c0] v=5 -> 0.625:(h'=0)+0.375:(h'=1);
+	[c2] v=5 -> 0.875:(h'=0)+0.125:(h'=1);
+	// v=6
+	[c0] v=6 -> 0.05:(h'=0)+0.95:(h'=1);
+	[c1] v=6 -> 0.15:(h'=0)+0.85:(h'=1);
+	// v=7
+	[c1] v=7 -> 0.75:(h'=0)+0.25:(h'=1);
+	// v=8
+	[c1] v=8 -> 0.85:(h'=0)+0.15:(h'=1);
+	// v=9
+	[c1] v=9 -> 0.35:(h'=0)+0.65:(h'=1);
+	// v=10
+	[c0] v=10 -> 0.15:(h'=0)+0.85:(h'=1);
+	[c1] v=10 -> 0.95:(h'=0)+0.05:(h'=1);
+	[c2] v=10 -> 0.5:(h'=0)+0.5:(h'=1);
+	// v=11
+	[c0] v=11 -> (h'=0);
+	[c1] v=11 -> (h'=0);
+	[c2] v=11 -> (h'=0);
+
+
+    [c0] v=12 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.3:(u'=7);
+	// v=0
+	[c0] v=0 -> 0.3:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c1] v=0 -> 0.1:(u'=0)+0.3:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c2] v=0 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.3:(u'=7);
+	// v=1
+	[c1] v=1 -> 0.1:(u'=0)+0.2:(u'=1)+0.2:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c2] v=1 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.3:(u'=7);
+	// v=2
+	[c0] v=2 -> 0.05:(u'=0)+0.15:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.2:(u'=6)+0.2:(u'=7);
+	[c2] v=2 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.3:(u'=7);
+	// v=3
+	[c0] v=3 -> 0.1:(u'=0)+0.1:(u'=1)+0.2:(u'=2)+0.2:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c1] v=3 -> 0.1:(u'=0)+0.15:(u'=1)+0.15:(u'=2)+0.15:(u'=3)+0.15:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	// v=4
+	[c1] v=4 -> 0.1:(u'=0)+0.3:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.05:(u'=5)+0.15:(u'=6)+0.1:(u'=7);
+	[c2] v=4 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.3:(u'=7);
+	// v=5
+	[c0] v=5 -> 0.1:(u'=0)+0.1:(u'=1)+0.3:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c2] v=5 -> 0.1:(u'=0)+0.2:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.2:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	// v=6
+	[c0] v=6 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.3:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c1] v=6 -> 0.15:(u'=0)+0.15:(u'=1)+0.1:(u'=2)+0.15:(u'=3)+0.1:(u'=4)+0.15:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	// v=7
+	[c1] v=7 -> 0.15:(u'=0)+0.1:(u'=1)+0.05:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.05:(u'=6)+0.35:(u'=7);
+	// v=8
+	[c1] v=8 -> 0.2:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.2:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	// v=9
+	[c1] v=9 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.05:(u'=5)+0.1:(u'=6)+0.35:(u'=7);
+	// v=10
+	[c0] v=10 -> 0.18:(u'=0)+0.12:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.14:(u'=5)+0.16:(u'=6)+0.1:(u'=7);
+	[c1] v=10 -> 0.1:(u'=0)+0.13:(u'=1)+0.17:(u'=2)+0.1:(u'=3)+0.14:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.16:(u'=7);
+	[c2] v=10 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.3:(u'=7);
+	// v=11
+	[c0] v=11 -> 0.1:(u'=0)+0.1:(u'=1)+0.1:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.26:(u'=5)+0.14:(u'=6)+0.1:(u'=7);
+	[c1] v=11 -> 0.12:(u'=0)+0.14:(u'=1)+0.24:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.1:(u'=7);
+	[c2] v=11 -> 0.1:(u'=0)+0.16:(u'=1)+0.14:(u'=2)+0.1:(u'=3)+0.1:(u'=4)+0.1:(u'=5)+0.1:(u'=6)+0.2:(u'=7);
+
+endmodule
+
+label "end" = v=11;
+/////////////////////////max_performance_TrustBased
+rewards "max_performance_TrustBased"
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.029142
+[c0]  v=0& u=0: 0.058283;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.015113
+[c1]  v=0& u=0: 0.04534;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.55007
+[c2]  v=0& u=0: 0.55007;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.18436
+[c0]  v=0& u=1: 0.36872;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.066851
+[c1]  v=0& u=1: 0.20055;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.64672
+[c2]  v=0& u=1: 0.64672;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.55581
+[c0]  v=0& u=2: 1.1116;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.24866
+[c1]  v=0& u=2: 0.74598;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.80033
+[c2]  v=0& u=2: 0.80033;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.81663
+[c0]  v=0& u=3: 1.6333;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.54674
+[c1]  v=0& u=3: 1.6402;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.89878
+[c2]  v=0& u=3: 0.89878;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.91257
+[c0]  v=0& u=4: 1.8251;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.75758
+[c1]  v=0& u=4: 2.2728;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.93104
+[c2]  v=0& u=4: 0.93104;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.94679
+[c0]  v=0& u=5: 1.8936;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.85463
+[c1]  v=0& u=5: 2.5639;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.93997
+[c2]  v=0& u=5: 0.93997;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.96079
+[c0]  v=0& u=6: 1.9216;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.89683
+[c1]  v=0& u=6: 2.6905;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.94245
+[c2]  v=0& u=6: 0.94245;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.015113
+[c1]  v=1& u=0: 0.04534;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=0: 5;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.066851
+[c1]  v=1& u=1: 0.20055;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=1: 5;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.24866
+[c1]  v=1& u=2: 0.74598;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=2: 5;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.54674
+[c1]  v=1& u=3: 1.6402;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=3: 5;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.75758
+[c1]  v=1& u=4: 2.2728;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=4: 5;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.85463
+[c1]  v=1& u=5: 2.5639;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=5: 5;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.89683
+[c1]  v=1& u=6: 2.6905;
+//EmptyRoad from: location1; direction: c2; to: location5 EmptyRoad
+[c2]  v=1& u=6: 5;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=0: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.55007
+[c2]  v=2& u=0: 0.55007;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=1: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.64672
+[c2]  v=2& u=1: 0.64672;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=2: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.80033
+[c2]  v=2& u=2: 0.80033;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=3: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.89878
+[c2]  v=2& u=3: 0.89878;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=4: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.93104
+[c2]  v=2& u=4: 0.93104;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=5: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.93997
+[c2]  v=2& u=5: 0.93997;
+//EmptyRoad from: location2; direction: c0; to: location4 EmptyRoad
+[c0]  v=2& u=6: 5;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.94245
+[c2]  v=2& u=6: 0.94245;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.029142
+[c0]  v=3& u=0: 0.058283;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=0: 5;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.18436
+[c0]  v=3& u=1: 0.36872;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=1: 5;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.55581
+[c0]  v=3& u=2: 1.1116;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=2: 5;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.81663
+[c0]  v=3& u=3: 1.6333;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=3: 5;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.91257
+[c0]  v=3& u=4: 1.8251;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=4: 5;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.94679
+[c0]  v=3& u=5: 1.8936;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=5: 5;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.96079
+[c0]  v=3& u=6: 1.9216;
+//EmptyRoad from: location3; direction: c1; to: location6 EmptyRoad
+[c1]  v=3& u=6: 5;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.029142
+[c1]  v=4& u=0: 0.058283;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.55007
+[c2]  v=4& u=0: 0.55007;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.18436
+[c1]  v=4& u=1: 0.36872;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.64672
+[c2]  v=4& u=1: 0.64672;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.55581
+[c1]  v=4& u=2: 1.1116;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.80033
+[c2]  v=4& u=2: 0.80033;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.81663
+[c1]  v=4& u=3: 1.6333;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.89878
+[c2]  v=4& u=3: 0.89878;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.91257
+[c1]  v=4& u=4: 1.8251;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.93104
+[c2]  v=4& u=4: 0.93104;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.94679
+[c1]  v=4& u=5: 1.8936;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.93997
+[c2]  v=4& u=5: 0.93997;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.96079
+[c1]  v=4& u=6: 1.9216;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.94245
+[c2]  v=4& u=6: 0.94245;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.015113
+[c0]  v=5& u=0: 0.04534;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.55007
+[c2]  v=5& u=0: 0.55007;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.066851
+[c0]  v=5& u=1: 0.20055;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.64672
+[c2]  v=5& u=1: 0.64672;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.24866
+[c0]  v=5& u=2: 0.74598;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.80033
+[c2]  v=5& u=2: 0.80033;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.54674
+[c0]  v=5& u=3: 1.6402;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.89878
+[c2]  v=5& u=3: 0.89878;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.75758
+[c0]  v=5& u=4: 2.2728;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.93104
+[c2]  v=5& u=4: 0.93104;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.85463
+[c0]  v=5& u=5: 2.5639;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.93997
+[c2]  v=5& u=5: 0.93997;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.89683
+[c0]  v=5& u=6: 2.6905;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.94245
+[c2]  v=5& u=6: 0.94245;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.015113
+[c0]  v=6& u=0: 0.04534;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.029142
+[c1]  v=6& u=0: 0.058283;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.066851
+[c0]  v=6& u=1: 0.20055;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.18436
+[c1]  v=6& u=1: 0.36872;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.24866
+[c0]  v=6& u=2: 0.74598;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.55581
+[c1]  v=6& u=2: 1.1116;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.54674
+[c0]  v=6& u=3: 1.6402;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.81663
+[c1]  v=6& u=3: 1.6333;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.75758
+[c0]  v=6& u=4: 2.2728;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.91257
+[c1]  v=6& u=4: 1.8251;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.85463
+[c0]  v=6& u=5: 2.5639;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.94679
+[c1]  v=6& u=5: 1.8936;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.89683
+[c0]  v=6& u=6: 2.6905;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.96079
+[c1]  v=6& u=6: 1.9216;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.55007
+[c1]  v=7& u=0: 0.55007;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.64672
+[c1]  v=7& u=1: 0.64672;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.80033
+[c1]  v=7& u=2: 0.80033;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.89878
+[c1]  v=7& u=3: 0.89878;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.93104
+[c1]  v=7& u=4: 0.93104;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.93997
+[c1]  v=7& u=5: 0.93997;
+//from: location7; direction: c1; to: location10; Incident: Truck(1); StayPut Prob:0.94245
+[c1]  v=7& u=6: 0.94245;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.029142
+[c1]  v=8& u=0: 0.058283;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.18436
+[c1]  v=8& u=1: 0.36872;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.55581
+[c1]  v=8& u=2: 1.1116;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.81663
+[c1]  v=8& u=3: 1.6333;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.91257
+[c1]  v=8& u=4: 1.8251;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.94679
+[c1]  v=8& u=5: 1.8936;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2); StayPut Prob:0.96079
+[c1]  v=8& u=6: 1.9216;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.015113
+[c1]  v=9& u=0: 0.04534;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.066851
+[c1]  v=9& u=1: 0.20055;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.24866
+[c1]  v=9& u=2: 0.74598;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.54674
+[c1]  v=9& u=3: 1.6402;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.75758
+[c1]  v=9& u=4: 2.2728;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.85463
+[c1]  v=9& u=5: 2.5639;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3); StayPut Prob:0.89683
+[c1]  v=9& u=6: 2.6905;
+endrewards
+//////////////////////////max_performance_TrustBased
+//////////////////////////max_FinalTrust
+rewards "max_FinalTrust"
+v=10 & u=0 :1;
+v=10 & u=1 :2;
+v=10 & u=2 :3;
+v=10 & u=3 :4;
+v=10 & u=4 :5;
+v=10 & u=5 :6;
+v=10 & u=6 :7;
+endrewards
+//////////////////////////max_FinalTrust
+//////////////////////////max_averageTrust
+rewards "max_averageTrust"
+v=0 & u=0 : (0+1)/5;
+v=0 & u=1 : (1+1)/5;
+v=0 & u=2 : (2+1)/5;
+v=0 & u=3 : (3+1)/5;
+v=0 & u=4 : (4+1)/5;
+v=0 & u=5 : (5+1)/5;
+v=0 & u=6 : (6+1)/5;
+v=1 & u=0 : (0+1)/5;
+v=1 & u=1 : (1+1)/5;
+v=1 & u=2 : (2+1)/5;
+v=1 & u=3 : (3+1)/5;
+v=1 & u=4 : (4+1)/5;
+v=1 & u=5 : (5+1)/5;
+v=1 & u=6 : (6+1)/5;
+v=2 & u=0 : (0+1)/5;
+v=2 & u=1 : (1+1)/5;
+v=2 & u=2 : (2+1)/5;
+v=2 & u=3 : (3+1)/5;
+v=2 & u=4 : (4+1)/5;
+v=2 & u=5 : (5+1)/5;
+v=2 & u=6 : (6+1)/5;
+v=3 & u=0 : (0+1)/5;
+v=3 & u=1 : (1+1)/5;
+v=3 & u=2 : (2+1)/5;
+v=3 & u=3 : (3+1)/5;
+v=3 & u=4 : (4+1)/5;
+v=3 & u=5 : (5+1)/5;
+v=3 & u=6 : (6+1)/5;
+v=4 & u=0 : (0+1)/5;
+v=4 & u=1 : (1+1)/5;
+v=4 & u=2 : (2+1)/5;
+v=4 & u=3 : (3+1)/5;
+v=4 & u=4 : (4+1)/5;
+v=4 & u=5 : (5+1)/5;
+v=4 & u=6 : (6+1)/5;
+v=5 & u=0 : (0+1)/5;
+v=5 & u=1 : (1+1)/5;
+v=5 & u=2 : (2+1)/5;
+v=5 & u=3 : (3+1)/5;
+v=5 & u=4 : (4+1)/5;
+v=5 & u=5 : (5+1)/5;
+v=5 & u=6 : (6+1)/5;
+v=6 & u=0 : (0+1)/5;
+v=6 & u=1 : (1+1)/5;
+v=6 & u=2 : (2+1)/5;
+v=6 & u=3 : (3+1)/5;
+v=6 & u=4 : (4+1)/5;
+v=6 & u=5 : (5+1)/5;
+v=6 & u=6 : (6+1)/5;
+v=7 & u=0 : (0+1)/5;
+v=7 & u=1 : (1+1)/5;
+v=7 & u=2 : (2+1)/5;
+v=7 & u=3 : (3+1)/5;
+v=7 & u=4 : (4+1)/5;
+v=7 & u=5 : (5+1)/5;
+v=7 & u=6 : (6+1)/5;
+v=8 & u=0 : (0+1)/5;
+v=8 & u=1 : (1+1)/5;
+v=8 & u=2 : (2+1)/5;
+v=8 & u=3 : (3+1)/5;
+v=8 & u=4 : (4+1)/5;
+v=8 & u=5 : (5+1)/5;
+v=8 & u=6 : (6+1)/5;
+v=9 & u=0 : (0+1)/5;
+v=9 & u=1 : (1+1)/5;
+v=9 & u=2 : (2+1)/5;
+v=9 & u=3 : (3+1)/5;
+v=9 & u=4 : (4+1)/5;
+v=9 & u=5 : (5+1)/5;
+v=9 & u=6 : (6+1)/5;
+v=10 & u=0 : (0+1)/5;
+v=10 & u=1 : (1+1)/5;
+v=10 & u=2 : (2+1)/5;
+v=10 & u=3 : (3+1)/5;
+v=10 & u=4 : (4+1)/5;
+v=10 & u=5 : (5+1)/5;
+v=10 & u=6 : (6+1)/5;
+endrewards
+//////////////////////////max_averageTrust
+//////////////////////////min_takeoverTimes_V2
+rewards "min_takeoverTimes_V2"
+v=1 & h=1 :1;
+v=2 & h=1 :1;
+v=3 & h=1 :1;
+v=4 & h=1 :1;
+v=5 & h=1 :1;
+v=6 & h=1 :1;
+v=7 & h=1 :1;
+v=8 & h=1 :1;
+v=9 & h=1 :1;
+v=10 & h=1 :1;
+endrewards
+//////////////////////////min_takeoverTimes_V2
+//////////////////////////min_distance_decimal
+rewards "min_distance_decimal"
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2);
+[c0]  v=0: 0.686;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3);
+[c1]  v=0: 0.434;
+//from: location0; direction: c2; to: location3; Incident: Truck(1);
+[c2]  v=0: 0.637;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3);
+[c1]  v=1: 0.759;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad
+[c2]  v=1: 0.775;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad
+[c0]  v=2: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1);
+[c2]  v=2: 0.862;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2);
+[c0]  v=3: 0.795;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad
+[c1]  v=3: 0.908;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2);
+[c1]  v=4: 0.675;
+//from: location4; direction: c2; to: location8; Incident: Truck(1);
+[c2]  v=4: 0.873;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3);
+[c0]  v=5: 1.147;
+//from: location5; direction: c2; to: location9; Incident: Truck(1);
+[c2]  v=5: 1.319;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3);
+[c0]  v=6: 1.07;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2);
+[c1]  v=6: 1.085;
+//from: location7; direction: c1; to: location10; Incident: Truck(1);
+[c1]  v=7: 0.604;
+//from: location8; direction: c1; to: location10; Incident: Obstacle(2);
+[c1]  v=8: 0.339;
+//from: location9; direction: c1; to: location10; Incident: Pedestrian(3);
+[c1]  v=9: 0.633;
+endrewards
+//////////////////////////min_distance_decimal
+//////////////////////////min_energy_decimal_ManualAuto
+rewards "min_energy_decimal_ManualAuto"
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=0 : 0.686*0.029142+0.8575*0.97086;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=0 : 0.434*0.015113+0.5425*0.98489;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=0 : 0.637*0.55007+0.79625*0.44993;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=1 : 0.686*0.18436+0.8575*0.81564;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=1 : 0.434*0.066851+0.5425*0.93315;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=1 : 0.637*0.64672+0.79625*0.35328;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=2 : 0.686*0.55581+0.8575*0.44419;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=2 : 0.434*0.24866+0.5425*0.75134;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=2 : 0.637*0.80033+0.79625*0.19967;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=3 : 0.686*0.81663+0.8575*0.18337;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=3 : 0.434*0.54674+0.5425*0.45326;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=3 : 0.637*0.89878+0.79625*0.10122;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=4 : 0.686*0.91257+0.8575*0.087435;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=4 : 0.434*0.75758+0.5425*0.24242;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=4 : 0.637*0.93104+0.79625*0.068964;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=5 : 0.686*0.94679+0.8575*0.053206;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=5 : 0.434*0.85463+0.5425*0.14537;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=5 : 0.637*0.93997+0.79625*0.060027;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:0.686; Energy Consumption if takeover:0.8575
+[c0]  v=0 & u=6 : 0.686*0.96079+0.8575*0.039207;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:0.434; Energy Consumption if takeover:0.5425
+[c1]  v=0 & u=6 : 0.434*0.89683+0.5425*0.10317;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:0.637; Energy Consumption if takeover:0.79625
+[c2]  v=0 & u=6 : 0.637*0.94245+0.79625*0.057549;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=0 : 0.759*0.015113+0.94875*0.98489;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=0: 0.775;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=1 : 0.759*0.066851+0.94875*0.93315;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=1: 0.775;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=2 : 0.759*0.24866+0.94875*0.75134;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=2: 0.775;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=3 : 0.759*0.54674+0.94875*0.45326;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=3: 0.775;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=4 : 0.759*0.75758+0.94875*0.24242;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=4: 0.775;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=5 : 0.759*0.85463+0.94875*0.14537;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=5: 0.775;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:0.759; Energy Consumption if takeover:0.94875
+[c1]  v=1 & u=6 : 0.759*0.89683+0.94875*0.10317;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption:0.775
+[c2]  v=1 & u=6: 0.775;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=0: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=0 : 0.862*0.55007+1.0775*0.44993;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=1: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=1 : 0.862*0.64672+1.0775*0.35328;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=2: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=2 : 0.862*0.80033+1.0775*0.19967;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=3: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=3 : 0.862*0.89878+1.0775*0.10122;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=4: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=4 : 0.862*0.93104+1.0775*0.068964;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=5: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=5 : 0.862*0.93997+1.0775*0.060027;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption:0.944
+[c0]  v=2 & u=6: 0.944;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:0.862; Energy Consumption if takeover:1.0775
+[c2]  v=2 & u=6 : 0.862*0.94245+1.0775*0.057549;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=0 : 0.795*0.029142+0.99375*0.97086;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=0: 0.908;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=1 : 0.795*0.18436+0.99375*0.81564;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=1: 0.908;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=2 : 0.795*0.55581+0.99375*0.44419;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=2: 0.908;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=3 : 0.795*0.81663+0.99375*0.18337;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=3: 0.908;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=4 : 0.795*0.91257+0.99375*0.087435;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=4: 0.908;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=5 : 0.795*0.94679+0.99375*0.053206;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=5: 0.908;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:0.795; Energy Consumption if takeover:0.99375
+[c0]  v=3 & u=6 : 0.795*0.96079+0.99375*0.039207;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption:0.908
+[c1]  v=3 & u=6: 0.908;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=0 : 0.675*0.029142+0.84375*0.97086;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=0 : 0.873*0.55007+1.0913*0.44993;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=1 : 0.675*0.18436+0.84375*0.81564;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=1 : 0.873*0.64672+1.0913*0.35328;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=2 : 0.675*0.55581+0.84375*0.44419;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=2 : 0.873*0.80033+1.0913*0.19967;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=3 : 0.675*0.81663+0.84375*0.18337;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=3 : 0.873*0.89878+1.0913*0.10122;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=4 : 0.675*0.91257+0.84375*0.087435;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=4 : 0.873*0.93104+1.0913*0.068964;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=5 : 0.675*0.94679+0.84375*0.053206;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=5 : 0.873*0.93997+1.0913*0.060027;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:0.675; Energy Consumption if takeover:0.84375
+[c1]  v=4 & u=6 : 0.675*0.96079+0.84375*0.039207;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:0.873; Energy Consumption if takeover:1.0913
+[c2]  v=4 & u=6 : 0.873*0.94245+1.0913*0.057549;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=0 : 1.147*0.015113+1.4338*0.98489;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=0 : 1.319*0.55007+1.6487*0.44993;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=1 : 1.147*0.066851+1.4338*0.93315;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=1 : 1.319*0.64672+1.6487*0.35328;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=2 : 1.147*0.24866+1.4338*0.75134;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=2 : 1.319*0.80033+1.6487*0.19967;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=3 : 1.147*0.54674+1.4338*0.45326;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=3 : 1.319*0.89878+1.6487*0.10122;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=4 : 1.147*0.75758+1.4338*0.24242;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=4 : 1.319*0.93104+1.6487*0.068964;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=5 : 1.147*0.85463+1.4338*0.14537;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=5 : 1.319*0.93997+1.6487*0.060027;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1.147; Energy Consumption if takeover:1.4338
+[c0]  v=5 & u=6 : 1.147*0.89683+1.4338*0.10317;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:1.319; Energy Consumption if takeover:1.6487
+[c2]  v=5 & u=6 : 1.319*0.94245+1.6487*0.057549;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=0 : 1.07*0.015113+1.3375*0.98489;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=0 : 1.085*0.029142+1.3562*0.97086;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=1 : 1.07*0.066851+1.3375*0.93315;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=1 : 1.085*0.18436+1.3562*0.81564;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=2 : 1.07*0.24866+1.3375*0.75134;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=2 : 1.085*0.55581+1.3562*0.44419;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=3 : 1.07*0.54674+1.3375*0.45326;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=3 : 1.085*0.81663+1.3562*0.18337;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=4 : 1.07*0.75758+1.3375*0.24242;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=4 : 1.085*0.91257+1.3562*0.087435;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=5 : 1.07*0.85463+1.3375*0.14537;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=5 : 1.085*0.94679+1.3562*0.053206;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1.07; Energy Consumption if takeover:1.3375
+[c0]  v=6 & u=6 : 1.07*0.89683+1.3375*0.10317;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:1.085; Energy Consumption if takeover:1.3562
+[c1]  v=6 & u=6 : 1.085*0.96079+1.3562*0.039207;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=0 : 0.604*0.55007+0.755*0.44993;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=1 : 0.604*0.64672+0.755*0.35328;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=2 : 0.604*0.80033+0.755*0.19967;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=3 : 0.604*0.89878+0.755*0.10122;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=4 : 0.604*0.93104+0.755*0.068964;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=5 : 0.604*0.93997+0.755*0.060027;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:0.604; Energy Consumption if takeover:0.755
+[c1]  v=7 & u=6 : 0.604*0.94245+0.755*0.057549;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=0 : 0.339*0.029142+0.42375*0.97086;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=1 : 0.339*0.18436+0.42375*0.81564;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=2 : 0.339*0.55581+0.42375*0.44419;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=3 : 0.339*0.81663+0.42375*0.18337;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=4 : 0.339*0.91257+0.42375*0.087435;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=5 : 0.339*0.94679+0.42375*0.053206;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:0.339; Energy Consumption if takeover:0.42375
+[c1]  v=8 & u=6 : 0.339*0.96079+0.42375*0.039207;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=0 : 0.633*0.015113+0.79125*0.98489;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=1 : 0.633*0.066851+0.79125*0.93315;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=2 : 0.633*0.24866+0.79125*0.75134;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=3 : 0.633*0.54674+0.79125*0.45326;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=4 : 0.633*0.75758+0.79125*0.24242;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=5 : 0.633*0.85463+0.79125*0.14537;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:0.633; Energy Consumption if takeover:0.79125
+[c1]  v=9 & u=6 : 0.633*0.89683+0.79125*0.10317;
+endrewards
+//////////////////////////min_energy_decimal_ManualAuto
+//////////////////////////min_energyEfficiency_decimal_ManualAuto
+rewards "min_energyEfficiency_decimal_ManualAuto"
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=0 : 1*0.029142/4+1.25*0.97086/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=0 : 1*0.015113/4+1.25*0.98489/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=0 : 1*0.55007/4+1.25*0.44993/4;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=1 : 1*0.18436/4+1.25*0.81564/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=1 : 1*0.066851/4+1.25*0.93315/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=1 : 1*0.64672/4+1.25*0.35328/4;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=2 : 1*0.55581/4+1.25*0.44419/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=2 : 1*0.24866/4+1.25*0.75134/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=2 : 1*0.80033/4+1.25*0.19967/4;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=3 : 1*0.81663/4+1.25*0.18337/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=3 : 1*0.54674/4+1.25*0.45326/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=3 : 1*0.89878/4+1.25*0.10122/4;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=4 : 1*0.91257/4+1.25*0.087435/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=4 : 1*0.75758/4+1.25*0.24242/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=4 : 1*0.93104/4+1.25*0.068964/4;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=5 : 1*0.94679/4+1.25*0.053206/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=5 : 1*0.85463/4+1.25*0.14537/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=5 : 1*0.93997/4+1.25*0.060027/4;
+//from: location0; direction: c0; to: location1; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=0 & u=6 : 1*0.96079/4+1.25*0.039207/4;
+//from: location0; direction: c1; to: location2; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=0 & u=6 : 1*0.89683/4+1.25*0.10317/4;
+//from: location0; direction: c2; to: location3; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=0 & u=6 : 1*0.94245/4+1.25*0.057549/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=0 : 1*0.015113/4+1.25*0.98489/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=0: 1/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=1 : 1*0.066851/4+1.25*0.93315/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=1: 1/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=2 : 1*0.24866/4+1.25*0.75134/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=2: 1/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=3 : 1*0.54674/4+1.25*0.45326/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=3: 1/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=4 : 1*0.75758/4+1.25*0.24242/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=4: 1/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=5 : 1*0.85463/4+1.25*0.14537/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=5: 1/4;
+//from: location1; direction: c1; to: location4; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=1 & u=6 : 1*0.89683/4+1.25*0.10317/4;
+//EmptyRoad from: location5; direction: c2; to: location5 EmptyRoad; Energy Consumption Efficiency:0.25
+[c2]  v=1 & u=6: 1/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=0: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=0 : 1*0.55007/4+1.25*0.44993/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=1: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=1 : 1*0.64672/4+1.25*0.35328/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=2: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=2 : 1*0.80033/4+1.25*0.19967/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=3: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=3 : 1*0.89878/4+1.25*0.10122/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=4: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=4 : 1*0.93104/4+1.25*0.068964/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=5: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=5 : 1*0.93997/4+1.25*0.060027/4;
+//EmptyRoad from: location4; direction: c0; to: location4 EmptyRoad; Energy Consumption Efficiency:0.25
+[c0]  v=2 & u=6: 1/4;
+//from: location2; direction: c2; to: location6; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=2 & u=6 : 1*0.94245/4+1.25*0.057549/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=0 : 1*0.029142/4+1.25*0.97086/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=0: 1/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=1 : 1*0.18436/4+1.25*0.81564/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=1: 1/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=2 : 1*0.55581/4+1.25*0.44419/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=2: 1/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=3 : 1*0.81663/4+1.25*0.18337/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=3: 1/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=4 : 1*0.91257/4+1.25*0.087435/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=4: 1/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=5 : 1*0.94679/4+1.25*0.053206/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=5: 1/4;
+//from: location3; direction: c0; to: location5; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=3 & u=6 : 1*0.96079/4+1.25*0.039207/4;
+//EmptyRoad from: location6; direction: c1; to: location6 EmptyRoad; Energy Consumption Efficiency:0.25
+[c1]  v=3 & u=6: 1/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=0 : 1*0.029142/4+1.25*0.97086/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=0 : 1*0.55007/4+1.25*0.44993/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=1 : 1*0.18436/4+1.25*0.81564/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=1 : 1*0.64672/4+1.25*0.35328/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=2 : 1*0.55581/4+1.25*0.44419/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=2 : 1*0.80033/4+1.25*0.19967/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=3 : 1*0.81663/4+1.25*0.18337/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=3 : 1*0.89878/4+1.25*0.10122/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=4 : 1*0.91257/4+1.25*0.087435/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=4 : 1*0.93104/4+1.25*0.068964/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=5 : 1*0.94679/4+1.25*0.053206/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=5 : 1*0.93997/4+1.25*0.060027/4;
+//from: location4; direction: c1; to: location7; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=4 & u=6 : 1*0.96079/4+1.25*0.039207/4;
+//from: location4; direction: c2; to: location8; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=4 & u=6 : 1*0.94245/4+1.25*0.057549/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=0 : 1*0.015113/4+1.25*0.98489/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=0 : 1*0.55007/4+1.25*0.44993/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=1 : 1*0.066851/4+1.25*0.93315/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=1 : 1*0.64672/4+1.25*0.35328/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=2 : 1*0.24866/4+1.25*0.75134/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=2 : 1*0.80033/4+1.25*0.19967/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=3 : 1*0.54674/4+1.25*0.45326/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=3 : 1*0.89878/4+1.25*0.10122/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=4 : 1*0.75758/4+1.25*0.24242/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=4 : 1*0.93104/4+1.25*0.068964/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=5 : 1*0.85463/4+1.25*0.14537/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=5 : 1*0.93997/4+1.25*0.060027/4;
+//from: location5; direction: c0; to: location7; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=5 & u=6 : 1*0.89683/4+1.25*0.10317/4;
+//from: location5; direction: c2; to: location9; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c2]  v=5 & u=6 : 1*0.94245/4+1.25*0.057549/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=0 : 1*0.015113/4+1.25*0.98489/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=0 : 1*0.029142/4+1.25*0.97086/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=1 : 1*0.066851/4+1.25*0.93315/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=1 : 1*0.18436/4+1.25*0.81564/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=2 : 1*0.24866/4+1.25*0.75134/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=2 : 1*0.55581/4+1.25*0.44419/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=3 : 1*0.54674/4+1.25*0.45326/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=3 : 1*0.81663/4+1.25*0.18337/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=4 : 1*0.75758/4+1.25*0.24242/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=4 : 1*0.91257/4+1.25*0.087435/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=5 : 1*0.85463/4+1.25*0.14537/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=5 : 1*0.94679/4+1.25*0.053206/4;
+//from: location6; direction: c0; to: location8; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c0]  v=6 & u=6 : 1*0.89683/4+1.25*0.10317/4;
+//from: location6; direction: c1; to: location9; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=6 & u=6 : 1*0.96079/4+1.25*0.039207/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.55007Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=0 : 1*0.55007/4+1.25*0.44993/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.64672Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=1 : 1*0.64672/4+1.25*0.35328/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.80033Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=2 : 1*0.80033/4+1.25*0.19967/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.89878Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=3 : 1*0.89878/4+1.25*0.10122/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.93104Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=4 : 1*0.93104/4+1.25*0.068964/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.93997Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=5 : 1*0.93997/4+1.25*0.060027/4;
+//from: location7; direction: c1; to: location0; Incident: Truck(1); StayPut Prob:0.94245Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=7 & u=6 : 1*0.94245/4+1.25*0.057549/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.029142Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=0 : 1*0.029142/4+1.25*0.97086/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.18436Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=1 : 1*0.18436/4+1.25*0.81564/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.55581Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=2 : 1*0.55581/4+1.25*0.44419/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.81663Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=3 : 1*0.81663/4+1.25*0.18337/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.91257Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=4 : 1*0.91257/4+1.25*0.087435/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.94679Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=5 : 1*0.94679/4+1.25*0.053206/4;
+//from: location8; direction: c1; to: location0; Incident: Obstacle(2); StayPut Prob:0.96079Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=8 & u=6 : 1*0.96079/4+1.25*0.039207/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.015113Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=0 : 1*0.015113/4+1.25*0.98489/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.066851Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=1 : 1*0.066851/4+1.25*0.93315/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.24866Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=2 : 1*0.24866/4+1.25*0.75134/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.54674Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=3 : 1*0.54674/4+1.25*0.45326/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.75758Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=4 : 1*0.75758/4+1.25*0.24242/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.85463Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=5 : 1*0.85463/4+1.25*0.14537/4;
+//from: location9; direction: c1; to: location0; Incident: Pedestrian(3); StayPut Prob:0.89683Energy Consumption if stayPut:1; Energy Consumption Efficiency if takeover:1.25
+[c1]  v=9 & u=6 : 1*0.89683/4+1.25*0.10317/4;
+endrewards
+//////////////////////////min_energyEfficiency_decimal_ManualAuto

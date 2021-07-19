@@ -1,0 +1,368 @@
+PRISM
+=====
+
+Version: 4.7.dev
+Date: Mon Jul 19 18:22:05 EDT 2021
+Hostname: d-172-25-45-137.dhcp.virginia.edu
+Memory limits: cudd=1g, java(heap)=1g
+Command line: prism tests/teamform_3.prism tests/teamform.props -prop 3 -ex
+
+Parsing model file "tests/teamform_3.prism"...
+
+Type:        MDP
+Modules:     controller sensor1 sensor2 sensor3 
+Variables:   status t1_r1 t1_r2 t1_r3 t2_r1 t2_r2 t2_r3 turn1 turn2 turn3 state1 m1_t1 m1_t2 state2 m2_t1 m2_t2 state3 m3_t1 m3_t2 
+
+Parsing properties file "tests/teamform.props"...
+
+3 properties:
+(1) multi(R{"task1_completed"}max=? [ C ], R{"task2_completed"}max=? [ C ])
+(2) <<*>> (w1*R{"task1_completed"}max=? [ F "end" ]+w2*R{"task2_completed"}max=? [ F "end" ])
+(3) <<*>> (R{"task1_completed"}max=? [ F "end" ], R{"task2_completed"}max=? [ F "end" ])
+
+---------------------------------------------------------------------
+
+Model checking: <<*>> (R{"task1_completed"}max=? [ F "end" ], R{"task2_completed"}max=? [ F "end" ])
+
+Building model...
+
+Computing reachable states... 12475 states
+Reachable states exploration and model construction done in 0.379 secs.
+Sorting reachable states list...
+
+Time for model construction: 0.47 seconds.
+
+Type:        MDP
+States:      12475 (1 initial)
+Transitions: 15228
+Choices:     14935
+Max/avg:     3/1.20
+Initialize Q (weight, priority)[[1.0, 0.0, Infinity], [0.0, 1.0, Infinity]]
+initial corner_to_value
+[1.0, 0.0] -> [-Infinity, -Infinity]
+[0.0, 1.0] -> [-Infinity, -Infinity]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.034 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.152 seconds.
+Weighted multi-objective expected reachability took 1.626733327024E9 seconds.
+0.0:1.0 = [2.448979591836734, 9.99999999999999]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.027 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.061 seconds.
+Weighted multi-objective expected reachability took 1.626733327243E9 seconds.
+0.1:0.9 = [2.448979591836734, 9.99999999999999]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.012 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.085 seconds.
+Weighted multi-objective expected reachability took 1.626733327349E9 seconds.
+0.2:0.8 = [2.448979591836734, 9.99999999999999]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.018 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.073 seconds.
+Weighted multi-objective expected reachability took 1.626733327474E9 seconds.
+0.3:0.7 = [2.448979591836734, 9.99999999999999]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.014 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.063 seconds.
+Weighted multi-objective expected reachability took 1.626733327582E9 seconds.
+0.4:0.6 = [2.448979591836734, 9.99999999999999]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.011 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.048 seconds.
+Weighted multi-objective expected reachability took 1.626733327672E9 seconds.
+0.5:0.5 = [8.571428571428564, 3.877551020408161]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.01 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.051 seconds.
+Weighted multi-objective expected reachability took 1.626733327751E9 seconds.
+0.6:0.4 = [9.99999999999999, 2.448979591836734]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.009 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.05 seconds.
+Weighted multi-objective expected reachability took 1.626733327825E9 seconds.
+0.7:0.30000000000000004 = [9.99999999999999, 2.448979591836734]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.007 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.033 seconds.
+Weighted multi-objective expected reachability took 1.626733327894E9 seconds.
+0.8:0.19999999999999996 = [9.99999999999999, 2.448979591836734]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.004 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.064 seconds.
+Weighted multi-objective expected reachability took 1.62673332794E9 seconds.
+0.9:0.09999999999999998 = [9.99999999999999, 2.448979591836734]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.003 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.027 seconds.
+Weighted multi-objective expected reachability took 1.626733328015E9 seconds.
+1.0:0.0 = [9.99999999999999, 2.448979591836734]
+
+Pareto curve: [[9.99999999999999, 2.448979591836734], [8.571428571428564, 3.877551020408161], [2.448979591836734, 9.99999999999999]]
+****************************************************
++++++++++++
+Current Q (weight, priority) Before Pop[[1.0, 0.0, Infinity], [0.0, 1.0, Infinity]]
+Current paritial CCS Before Pop[]
+Current paritial CCS weights Before Pop[]
+corner_to_value
+2
+[[1.0, 0.0], [0.0, 1.0]]
+[1.0, 0.0]
+1
+[1.0, 0.0] -> [-Infinity, -Infinity]
+[0.0, 1.0]
+1
+[0.0, 1.0] -> [-Infinity, -Infinity]
+value_to_corner
++++++++++++
+Pop weight with top priority: [0.0, 1.0]
+Current Q (weight, priority)  After pop[[1.0, 0.0, Infinity]]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.004 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.031 seconds.
+Weighted multi-objective expected reachability took 1.62673332806E9 seconds.
+Value vector: [2.448979591836734, 9.99999999999999]
+w_pop: [0.0, 1.0]
+u: [2.448979591836734, 9.99999999999999]
+w_pop*u: 9.99999999999999
+w_v_checked[[0.0, 1.0], [2.448979591836734, 9.99999999999999]]
+add value vector from 1st exterme weights
+1
++++++++++++
+Current Q (weight, priority) Before Pop[[1.0, 0.0, Infinity]]
+Current paritial CCS Before Pop[[2.448979591836734, 9.99999999999999]]
+Current paritial CCS weights Before Pop[[0.0, 1.0]]
+corner_to_value
+2
+[[1.0, 0.0], [0.0, 1.0]]
+[1.0, 0.0]
+2
+[1.0, 0.0] -> [-Infinity, -Infinity]
+[1.0, 0.0] -> [2.448979591836734, 9.99999999999999]
+[0.0, 1.0]
+1
+[0.0, 1.0] -> [-Infinity, -Infinity]
+value_to_corner
+[2.448979591836734, 9.99999999999999] -> [1.0, 0.0]
++++++++++++
+Pop weight with top priority: [1.0, 0.0]
+Current Q (weight, priority)  After pop[]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.003 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.028 seconds.
+Weighted multi-objective expected reachability took 1.626733328107E9 seconds.
+Value vector: [9.99999999999999, 2.448979591836734]
+w_pop: [1.0, 0.0]
+u: [9.99999999999999, 2.448979591836734]
+w_pop*u: 9.99999999999999
+w_v_checked[[0.0, 1.0], [2.448979591836734, 9.99999999999999], [1.0, 0.0], [9.99999999999999, 2.448979591836734]]
+elsess
++++++++++corner_to_value
+[1.0, 0.0] -> [-Infinity, -Infinity]
+[1.0, 0.0] -> [2.448979591836734, 9.99999999999999]
+[0.0, 1.0] -> [-Infinity, -Infinity]
++++++++++value_to_corner
+[2.448979591836734, 9.99999999999999] -> [1.0, 0.0]
+obsolete_list: [1.0, 0.0]
+
+found_value[-Infinity, -Infinity]
+true
+u[9.99999999999999, 2.448979591836734]
+true
+found_value[2.448979591836734, 9.99999999999999]
+true
+u[9.99999999999999, 2.448979591836734]
+true
+old_value_vectors: [2.448979591836734, 9.99999999999999]
+
+old_value_vectors: [1.0]
+
+old_value_vectors size2
+one instace of combinations
+[[2.448979591836734, 9.99999999999999]]
+one instace of combinations
+[[1.0]]
+allsubsets: total number of combinations[[[2.448979591836734, 9.99999999999999]], [[1.0]]]2
+
+A:[[2.448979591836734, 9.99999999999999, -1.0], [9.99999999999999, 2.448979591836734, -1.0], [1.0, 1.0, 0.0]]
+
+b:[0.0, 0.0, 1.0]
+Ab0:[[2.448979591836734, 9.99999999999999, -1.0, 0.0], [9.99999999999999, 2.448979591836734, -1.0, 0.0], [1.0, 1.0, 0.0, 1.0]]
+k:0
+Ab2:[[9.99999999999999, 2.448979591836734, -1.0, 0.0], [2.448979591836734, 9.99999999999999, -1.0, 0.0], [1.0, 1.0, 0.0, 1.0]]
+Ab3:[[1.0, 0.24489795918367366, -0.1000000000000001, 0.0], [2.448979591836734, 9.99999999999999, -1.0, 0.0], [1.0, 1.0, 0.0, 1.0]]
+Ab0:[[1.0, 0.24489795918367366, -0.1000000000000001, 0.0], [0.0, 9.400249895876707, -0.7551020408163264, 0.0], [0.0, 0.7551020408163264, 0.1000000000000001, 1.0]]
+k:1
+Ab2:[[1.0, 0.24489795918367366, -0.1000000000000001, 0.0], [0.0, 9.400249895876707, -0.7551020408163264, 0.0], [0.0, 0.7551020408163264, 0.1000000000000001, 1.0]]
+Ab3:[[1.0, 0.24489795918367366, -0.1000000000000001, 0.0], [0.0, 1.0, -0.0803278688524591, 0.0], [0.0, 0.7551020408163264, 0.1000000000000001, 1.0]]
+solved Ab:[[1.0, 0.0, 0.0, 0.49999999999999994], [0.0, 1.0, 0.0, 0.5], [0.0, 0.0, 1.0, 6.224489795918361]]
+generateing new weights by[9.99999999999999, 2.448979591836734]
+1Number of New weights generated by :[9.99999999999999, 2.448979591836734]
+w_new[0.49999999999999994, 0.5]
+w_new (sum to 1)[0.5, 0.5]
+computing priority = 2
+
+A:[[0.0, 1.0], [1.0, 0.0]]
+
+b:[9.99999999999999, 9.99999999999999]
+Ab0:[[0.0, 1.0, 9.99999999999999], [1.0, 0.0, 9.99999999999999]]
+k:0
+Ab2:[[1.0, 0.0, 9.99999999999999], [0.0, 1.0, 9.99999999999999]]
+Ab3:[[1.0, 0.0, 9.99999999999999], [0.0, 1.0, 9.99999999999999]]
+solved Ab:[[1.0, 0.0, 9.99999999999999], [0.0, 1.0, 9.99999999999999]]
+computing priority = 0.3775510204081632
+
+A:[[9.99999999999999, -1.0], [1.0, 0.0]]
+
+b:[0.0, 1.0]
+Ab0:[[9.99999999999999, -1.0, 0.0], [1.0, 0.0, 1.0]]
+k:0
+Ab2:[[9.99999999999999, -1.0, 0.0], [1.0, 0.0, 1.0]]
+Ab3:[[1.0, -0.1000000000000001, 0.0], [1.0, 0.0, 1.0]]
+solved Ab:[[1.0, 0.0, 1.0], [0.0, 1.0, 9.99999999999999]]
+Extreme... continue
++++++++++++
+Current Q (weight, priority) Before Pop[[0.5, 0.5, 0.3775510204081632]]
+Current paritial CCS Before Pop[[2.448979591836734, 9.99999999999999], [9.99999999999999, 2.448979591836734]]
+Current paritial CCS weights Before Pop[[0.0, 1.0], [1.0, 0.0]]
+corner_to_value
+3
+[[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]]
+[1.0, 0.0]
+2
+[1.0, 0.0] -> [-Infinity, -Infinity]
+[1.0, 0.0] -> [2.448979591836734, 9.99999999999999]
+[0.0, 1.0]
+1
+[0.0, 1.0] -> [-Infinity, -Infinity]
+[0.5, 0.5]
+1
+[0.5, 0.5] -> [9.99999999999999, 2.448979591836734]
+value_to_corner
+[9.99999999999999, 2.448979591836734] -> [0.5, 0.5]
+[2.448979591836734, 9.99999999999999] -> [1.0, 0.0]
++++++++++++
+Pop weight with top priority: [0.5, 0.5]
+Current Q (weight, priority)  After pop[]
+
+Starting weighted multi-objective expected reachability (max)...
+Starting Prob1 (min)...
+Prob1 (min) took 11 iterations and 0.005 seconds.
+target=2754, inf=0, rest=9721
+Warning: not checking for for zero-reward ECs...
+Starting value iteration (max)...
+Value iteration (max) took 12 iterations and 0.086 seconds.
+Weighted multi-objective expected reachability took 1.626733328174E9 seconds.
+Value vector: [8.571428571428564, 3.877551020408161]
+w_pop: [0.5, 0.5]
+u: [8.571428571428564, 3.877551020408161]
+w_pop*u: 6.2244897959183625
+w_v_checked[[0.0, 1.0], [2.448979591836734, 9.99999999999999], [1.0, 0.0], [9.99999999999999, 2.448979591836734], [0.5, 0.5], [8.571428571428564, 3.877551020408161]]
+elsess
+ALl weights checked:3
+weight: [0.0, 1.0]; vector: [2.448979591836734, 9.99999999999999]
+weight: [1.0, 0.0]; vector: [9.99999999999999, 2.448979591836734]
+weight: [0.5, 0.5]; vector: [8.571428571428564, 3.877551020408161]
+*********************ParetoCurve by optimal linear solution*******************************
+weight: [0.0, 1.0]; vector: [2.448979591836734, 9.99999999999999]
+weight: [1.0, 0.0]; vector: [9.99999999999999, 2.448979591836734]
+weight: [0.5, 0.5]; vector: [8.571428571428564, 3.877551020408161]
+#weights: 3
+[0.0, 1.0]
+[1.0, 0.0]
+[0.5, 0.5]
+#Parecto Curve points: 3
+
+[2.448979591836734, 9.99999999999999]
+[9.99999999999999, 2.448979591836734]
+[8.571428571428564, 3.877551020408161]
+*********************ParetoCurve by iterating [w1 w2] Random Sampling*******************************
+
+Pareto curve: 3
+[[9.99999999999999, 2.448979591836734], [8.571428571428564, 3.877551020408161], [2.448979591836734, 9.99999999999999]]
+
+Pareto curve (compact)3
+Weights and vectors checked by random sampling start: 
+weight: [0.0, 1.0]; vector: [2.448979591836734, 9.99999999999999]
+weight: [0.1, 0.9]; vector: [2.448979591836734, 9.99999999999999]
+weight: [0.2, 0.8]; vector: [2.448979591836734, 9.99999999999999]
+weight: [0.3, 0.7]; vector: [2.448979591836734, 9.99999999999999]
+weight: [0.4, 0.6]; vector: [2.448979591836734, 9.99999999999999]
+weight: [0.5, 0.5]; vector: [8.571428571428564, 3.877551020408161]
+weight: [0.6, 0.4]; vector: [9.99999999999999, 2.448979591836734]
+weight: [0.7, 0.30000000000000004]; vector: [9.99999999999999, 2.448979591836734]
+weight: [0.8, 0.19999999999999996]; vector: [9.99999999999999, 2.448979591836734]
+weight: [0.9, 0.09999999999999998]; vector: [9.99999999999999, 2.448979591836734]
+weight: [1.0, 0.0]; vector: [9.99999999999999, 2.448979591836734]
+Weights and vectors checked by random sampling end: 
+
+Value in the initial state: 0.0
+
+Time for model checking: 1.388 seconds.
+
+Result: 0.0
+
