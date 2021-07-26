@@ -53,7 +53,6 @@ import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import acceptance.AcceptanceOmega;
 import acceptance.AcceptanceRabin;
-import acceptance.AcceptanceReach;
 import acceptance.AcceptanceType;
 
 /**
@@ -224,7 +223,6 @@ public class LTL2DA extends PrismComponent
 
 			getLog().print("LTL formula (in " + syntax + " syntax):  ");
 			getLog().println(ltlOutput);
-			getLog().println();
 
 			arguments.add(ltl_file.getAbsolutePath());
 			arguments.add(da_file.getAbsolutePath());
