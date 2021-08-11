@@ -26,9 +26,16 @@
 
 package simulator;
 
-import parser.*;
-import prism.*;
+import parser.State;
+import parser.VarList;
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismLangException;
 
+/**
+ * Representation of a single (nondeterministic) choice in a PRISM model,
+ * i.e, a list of transitions, each specified by updates to variables.
+ */
 public interface Choice
 {
 	/**

@@ -26,14 +26,22 @@
 
 package simulator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import parser.*;
-import parser.ast.*;
+import parser.State;
+import parser.VarList;
+import parser.ast.Command;
+import parser.ast.Update;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 
+/**
+ * A mutable implementation of {@link simulator.Choice},
+ * i.e, a representation of a single (nondeterministic) choice in a PRISM model,
+ * in the form of a list of transitions, each specified by updates to variables.
+ */
 public class ChoiceListFlexi implements Choice
 {
 	// Module/action info, encoded as an integer.
