@@ -35,30 +35,30 @@ package parser;
  */
 public class EvaluateContextState extends EvaluateContext
 {
-	private Values constantValues;
+	/**
+	 * Variable values for state
+	 */
 	private Object[] varValues;
 
 	public EvaluateContextState(State state)
 	{
-		this.constantValues = null;
-		this.varValues = state.varValues;
+		setState(state);
 	}
 
 	public EvaluateContextState(Values constantValues, State state)
 	{
-		this.constantValues = constantValues;
-		this.varValues = state.varValues;
+		setConstantValues(constantValues);
+		setState(state);
 	}
 
-	@Override
-	public Object getConstantValue(String name)
+	/**
+	 * Set the state variable values. The array of state values is extracted and stored, not copied.
+	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
+	 */
+	public EvaluateContext setState(State state)
 	{
-		if (constantValues == null)
-			return null;
-		int i = constantValues.getIndexOf(name);
-		if (i == -1)
-			return null;
-		return constantValues.getValue(i);
+		this.varValues = state.varValues;
+		return this;
 	}
 
 	@Override

@@ -34,33 +34,20 @@ package parser;
  */
 public class EvaluateContextSubstate extends EvaluateContext
 {
-	private Values constantValues;
 	private Object[] varValues;
 	private int[] varMap;
 
 	public EvaluateContextSubstate(State substate, int[] varMap)
 	{
-		this.constantValues = null;
 		this.varValues = substate.varValues;
 		this.varMap = varMap;
 	}
 
 	public EvaluateContextSubstate(Values constantValues, State substate, int[] varMap)
 	{
-		this.constantValues = constantValues;
+		setConstantValues(constantValues);
 		this.varValues = substate.varValues;
 		this.varMap = varMap;
-	}
-
-	@Override
-	public Object getConstantValue(String name)
-	{
-		if (constantValues == null)
-			return null;
-		int i = constantValues.getIndexOf(name);
-		if (i == -1)
-			return null;
-		return constantValues.getValue(i);
 	}
 
 	@Override

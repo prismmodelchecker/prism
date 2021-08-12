@@ -32,22 +32,9 @@ package parser;
  */
 public class EvaluateContextConstants extends EvaluateContext
 {
-	private Values constantValues;
-
 	public EvaluateContextConstants(Values constantValues)
 	{
-		this.constantValues = constantValues;
-	}
-
-	@Override
-	public Object getConstantValue(String name)
-	{
-		if (constantValues == null)
-			return null;
-		int i = constantValues.getIndexOf(name);
-		if (i == -1)
-			return null;
-		return constantValues.getValue(i);
+		setConstantValues(constantValues);
 	}
 
 	@Override

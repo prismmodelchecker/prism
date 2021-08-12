@@ -33,24 +33,12 @@ package parser;
  */
 public class EvaluateContextValues extends EvaluateContext
 {
-	private Values constantValues;
 	private Values varValues;
 
 	public EvaluateContextValues(Values constantValues, Values varValues)
 	{
-		this.constantValues = constantValues;
+		setConstantValues(constantValues);
 		this.varValues = varValues;
-	}
-
-	@Override
-	public Object getConstantValue(String name)
-	{
-		if (constantValues == null)
-			return null;
-		int i = constantValues.getIndexOf(name);
-		if (i == -1)
-			return null;
-		return constantValues.getValue(i);
 	}
 
 	@Override

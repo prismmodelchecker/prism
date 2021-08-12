@@ -34,9 +34,34 @@ package parser;
 public abstract class EvaluateContext
 {
 	/**
+	 * Constant values (optional)
+	 */
+	protected Values constantValues = null;
+	
+	/**
+	 * Set the constant values. The Values object is stored, not copied.
+	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
+	 */
+	public EvaluateContext setConstantValues(Values constantValues)
+	{
+		this.constantValues = constantValues;
+		return this;
+	}
+
+	/**
 	 * Return the value for a constant (by name); null if unknown.
 	 */
-	public abstract Object getConstantValue(String name);
+	public Object getConstantValue(String name)
+	{
+		if (constantValues == null) {
+			return null;
+		}
+		int i = constantValues.getIndexOf(name);
+		if (i == -1) {
+			return null;
+		}
+		return constantValues.getValue(i);
+	}
 
 	/**
 	 * Return the value for a variable (by name or index); null if unknown.
