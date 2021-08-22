@@ -63,6 +63,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
+import explicit.AlphaVector;
 
 /**
  * Super class for explicit-state probabilistic model checkers.
@@ -845,16 +846,25 @@ public class ProbModelChecker extends NonProbModelChecker
     	}
     	return result;
     }
-    public double  valueMOPOMDP (ArrayList<Double> b, ArrayList<ArrayList<Double>> A, ArrayList<Double> w){
+    public double innerProduct(double [] A, ArrayList<Double> B){
+    	//compute innerproduct of vector A, B
     	double result=0.0;
-    	if(A.get(0).size()!=b.size()){
-    		mainLog.println("vectors should have same size with matrix");
+    	if(A.length!=B.size()){
+    		mainLog.println("vectors should have same size");
     	}
     	else{
-    		for (int i=0; i<w.size(); i++){
-    			result += ((double) w.get(i)) * (innerProduct(b, (ArrayList<Double>)A.get(i)));
+    		for (int i=0; i<B.size();i++){
+    			result += (A[i] )* ((double) B.get(i));
     		}
     	}
+    	return result;
+    }
+    public double  valueMOPOMDP (Belief b, POMDP pomdp , ArrayList<AlphaVector> A, ArrayList<Double> w){
+    			
+    		double result = 0.0;
+    		for (int i=0; i<w.size(); i++){
+    			result += ((double) w.get(i)) * ( A.get(i).getDotProduct(b.toDistributionOverStates(pomdp))) ;
+    		}
     	return result;
     }
     public ArrayList<Double> adjustWeight(ArrayList<Double> weights, List<ExpressionReward> objs, Model model)throws PrismException
@@ -900,8 +910,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 		return w_pop;
     }
-    public void initialQueue(List<ExpressionReward> objs, ArrayList<ArrayList<Double>> priority_queue, HashMap corner_to_value, Model model)throws PrismException
+    public ArrayList<ArrayList<Double>> initialQueue(List<ExpressionReward> objs,  HashMap corner_to_value, Model model)throws PrismException
     {
+    	ArrayList<ArrayList<Double>> priority_queue = new ArrayList<ArrayList<Double>> ();
     	// create initial value vector for the exterme corner point
     	ArrayList<Double> initial_value_vector_weight = new ArrayList<Double>();
     	for (int i=0; i<objs.size();i++){
@@ -919,7 +930,7 @@ public class ProbModelChecker extends NonProbModelChecker
     	initial_value_vector_sets.add(initial_value_vector);
     	//add extreme points in the queue
 		for (int i =0; i<objs.size(); i++) {
-			ArrayList w = new ArrayList<Double>();
+			ArrayList<Double> w = new ArrayList<Double>();
 			for (int j =0; j<objs.size(); j++) {
 				w.add(0.0);
 			}
@@ -937,15 +948,140 @@ public class ProbModelChecker extends NonProbModelChecker
 				mainLog.println(key+" -> "+ Arrays.toString(((ArrayList<Double>) tp.get(i) ).toArray()));
 			}
 		}
+		return priority_queue;
     }
 
 	/**
 	 * Model check a Pareto sum multi-objective property and return the values for the statesOfInterest.
 	 * * @param statesOfInterest the states of interest, see checkExpression()
 	 */
-	protected StateValues checkExpressionParetoMultiObj(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException
-	{	
-		double threshold = 0.00001;
+    protected StateValues checkExpressionParetoMultiObjPOMDP(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException{
+		mainLog.println(objs.size()+">>>");
+    	HashSet<List<Double>> paretoCurve = new HashSet<>();
+		ArrayList<ArrayList<Double>> partial_CCS = new ArrayList<ArrayList<Double>>();
+		ArrayList<ArrayList<Double>> partial_CCS_weights = new ArrayList<ArrayList<Double>>();
+
+		//Line 2
+		ArrayList<ArrayList<Double>> w_v_checked = new ArrayList<ArrayList<Double>>();
+		ArrayList<ArrayList<Double>> vector_checked = new ArrayList<ArrayList<Double>>();
+		ArrayList<ArrayList<Double>> weights_checked = new ArrayList<ArrayList<Double>>();
+		
+		HashMap <ArrayList<Double>, ArrayList<ArrayList<Double> >> corner_to_value = new HashMap < ArrayList<Double>, ArrayList<ArrayList<Double>>> ();
+		HashMap <ArrayList<Double>, ArrayList<ArrayList<Double> >> value_to_corner = new HashMap < ArrayList<Double>, ArrayList<ArrayList<Double>>> ();
+		int numUnobs = ((POMDP) model).getNumUnobservations();
+		int numStates = model.getNumStates();
+		
+		//Line 3 
+		ArrayList<ArrayList<Double>> priority_queue = new ArrayList<ArrayList<Double>>();
+		//Line 4
+		priority_queue= initialQueue(objs, corner_to_value, model);
+		
+		//line 5
+		ArrayList<ArrayList<AlphaVector>> A_all = new ArrayList<ArrayList<AlphaVector>> (); //A set of alpha matrix
+		ArrayList<Object> allActions = ((POMDPModelChecker) this).getAllActions((POMDP) model);
+		for (int a=0; a<allActions.size();a++) { 
+			ArrayList<AlphaVector> am = new ArrayList<AlphaVector> (); //alphaMatrix
+			for (int i=0; i<objs.size();i++) {
+				double Rmin = 0.1;
+				double[] entries = new double[numStates];
+				for (int j=0; j<numStates;j++) {
+					entries[j] = Rmin; 
+				}
+				AlphaVector av = new AlphaVector(entries);
+				av.setAction(a);
+				am.add(av);
+			}
+			A_all.add(am);
+		}
+		//check
+		for (int a=0; a<A_all.size();a++){
+			ArrayList<AlphaVector> amtp= A_all.get(a);
+			mainLog.println("action"+a);
+			for (int i=0; i<amtp.size(); i++) {
+				mainLog.println("object"+i);
+				AlphaVector avtp = amtp.get(i);
+					mainLog.println(avtp);
+			}
+		}
+		/*
+		ArrayList<ArrayList<AlphaVector>> A_tp = ((POMDPModelChecker) this).copyAlphaMatrixSet(A_all);;
+		ArrayList<AlphaVector> amtpd = A_tp.get(0);
+		amtpd.remove(0);
+		AlphaVector atp = amtpd.get(0);
+		double [] t  = new double [2];
+		t[0]=999;
+		atp = new AlphaVector(t);
+		atp.setAction(0);
+		mainLog.println("DDsadasdasddasdDDDDD");
+
+		mainLog.print(atp);
+		mainLog.println("A_allDDDDDDDDDD");
+		for (int a=0; a<A_all.size();a++){
+			ArrayList<AlphaVector> amtp= A_all.get(a);
+			mainLog.println("action"+a);
+			for (int i=0; i<amtp.size(); i++) {
+				mainLog.println("object"+i);
+				AlphaVector avtp = amtp.get(i);
+					mainLog.println(avtp);
+			}
+		}
+		mainLog.println("A_tpDDDDDDDDDD");
+		for (int a=0; a<A_all.size();a++){
+			ArrayList<AlphaVector> amtp= A_tp.get(a);
+			mainLog.println("action"+a);
+			for (int i=0; i<amtp.size(); i++) {
+				mainLog.println("object"+i);
+				AlphaVector avtp = amtp.get(i);
+					mainLog.println(avtp);
+			}
+		}		
+		*/
+		//line 6
+		ExpressionTemporal exprTemp = (ExpressionTemporal) objs.get(0).getExpression();
+		BitSet target = checkExpression(model, exprTemp.getOperand2(), null).getBitSet();
+		ArrayList<Belief> belief_set = ((POMDPModelChecker) this).randomExploreBeliefs((POMDP) model, target, statesOfInterest);
+
+		while(priority_queue.size()>0){
+
+			mainLog.println("Current Q (weight, priority) Before Pop"+Arrays.toString(priority_queue.toArray()));
+			ArrayList<Double> w_pop = deQueue(priority_queue);
+			mainLog.println("deque...");
+			mainLog.println("Current Q (weight, priority) After Pop"+Arrays.toString(priority_queue.toArray()));
+			
+			//Line 9  Select the best A from A_all for each b \belong belief, give w
+			ArrayList<ArrayList<AlphaVector>> Ar =  new ArrayList<ArrayList<AlphaVector>> ();
+			for (int i=0; i<belief_set.size();i++){
+				Belief belief_candidate =  belief_set.get(i);
+				double value_candidate = -99999;
+				int value_candidate_index =0;
+				for (int j=0; j<A_all.size();j++){
+					ArrayList<AlphaVector> A_candidate =  A_all.get(j);
+					mainLog.println("belief..."+belief_set.size()+"A_candidate..."+A_candidate.size()+"*"+A_candidate.get(0).size()+"w_pop..."+w_pop.size());
+					double value = valueMOPOMDP(belief_candidate, (POMDP) model, A_candidate, adjustWeight(w_pop,objs,model) );
+					if (value>value_candidate){
+						value_candidate = value;
+						value_candidate_index = j;
+					}
+					mainLog.println("Adjust min max value..."+value);
+				}
+				Ar.add(((POMDPModelChecker) this).copyAlphaMatrix(A_all.get(value_candidate_index)));
+				mainLog.println("belief:..."+belief_candidate);
+				mainLog.println("best matrix:..."+ Arrays.toString((A_all.get(value_candidate_index)).toArray()));
+			}
+			
+			//line 10 
+			double eta = 1E-5;
+			ArrayList<ArrayList<AlphaVector>> Aw = ((POMDPModelChecker) this).solveScalarizedPOMDP(Ar, belief_set, w_pop, eta);
+			// Aw <- solveScalarizedPOMDP(Ar, B, w, Eta)
+		}
+		
+    	// Dummy return value
+		return StateValues.createFromSingleValue(TypeDouble.getInstance(), 0.0, model);
+    }
+    
+    protected StateValues checkExpressionParetoMultiObjMDP(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException{
+		// Dummy return value
+    	double threshold = 0.00001;
 		HashSet<List<Double>> paretoCurve = new HashSet<>();
 		ArrayList<ArrayList<Double>> partial_CCS = new ArrayList<ArrayList<Double>>();
 		ArrayList<ArrayList<Double>> partial_CCS_weights = new ArrayList<ArrayList<Double>>();
@@ -955,95 +1091,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		ArrayList<ArrayList<Double>> priority_queue = new ArrayList<ArrayList<Double>>();
 		HashMap <ArrayList<Double>, ArrayList<ArrayList<Double> >> corner_to_value = new HashMap < ArrayList<Double>, ArrayList<ArrayList<Double>>> ();
 		HashMap <ArrayList<Double>, ArrayList<ArrayList<Double> >> value_to_corner = new HashMap < ArrayList<Double>, ArrayList<ArrayList<Double>>> ();
-		initialQueue(objs, priority_queue, corner_to_value, model);
+		priority_queue =  initialQueue(objs,  corner_to_value, model);
 
-
-
-
-		/*
-		switch (model.getModelType()){
-			case POMDP:		
-				mainLog.println("POMDP...");
-				int numUnobs = ((POMDP) model).getNumUnobservations();
-				int numStates = model.getNumStates();
-
-				mainLog.println("TODO how to Initialize A_all");
-				
-				ArrayList<Double> alpha_vector = new ArrayList();
-				for(int i=0; i<numUnobs; i++){
-					alpha_vector.add(1.1);
-				}
-				ArrayList<ArrayList<Double>> alpha_matrix =  new ArrayList<ArrayList<Double>> ();
-				for (int i=0; i<objs.size();i++){
-					alpha_matrix.add((ArrayList<Double>) alpha_vector.clone());
-				}
-
-				ArrayList<ArrayList<ArrayList<Double>>> A_all = new ArrayList<ArrayList<ArrayList<Double>>>(); 
-				A_all.add((ArrayList<ArrayList<Double>>) alpha_matrix);
-
-
-				ArrayList<Double> belief = new ArrayList<Double>();
-
-				mainLog.println("TODO how to Initialize belief");
-
-
-				ArrayList<ArrayList<Double>> belief_set = new ArrayList<ArrayList<Double>> ();
-				int n_beliefs = 10;
-				for (int j =0; j<n_beliefs; j++){
-					double sum =0;
-					belief =  new ArrayList<Double>();
-					for (int i=0; i<numUnobs; i++){
-						belief.add((Double) Math.random());
-						sum += (Double) belief.get(i) ;
-					}
-					for (int i=0; i<numUnobs; i++){
-						belief.set(i,(Double) belief.get(i)/sum);
-					}
-					belief_set.add((ArrayList<Double>) belief.clone());
-				}
-				mainLog.println("belief set:" + Arrays.toString(belief_set.toArray()));
-				
-				while(priority_queue.size()>0){
-
-					mainLog.println("Current Q (weight, priority) Before Pop"+Arrays.toString(priority_queue.toArray()));
-					ArrayList<Double> w_pop = deQueue(priority_queue);
-					mainLog.println("deque...");
-					mainLog.println("Current Q (weight, priority) After Pop"+Arrays.toString(priority_queue.toArray()));
-					
-					// Select the best A from A_all for each b \belong belief, give w
-					ArrayList<ArrayList<ArrayList<Double>>> Ar =  new ArrayList<ArrayList<ArrayList<Double>>> ();
-					for (int i=0; i<belief_set.size();i++){
-						ArrayList<Double> belief_candidate = (ArrayList<Double>) belief_set.get(i);
-						double value_candidate = -99999;
-						int value_candidate_index =0;
-						for (int j=0; j<A_all.size();j++){
-							ArrayList<ArrayList<Double>> A_candidate = (ArrayList<ArrayList<Double>>) A_all.get(j).clone();
-							mainLog.println("belief..."+belief.size()+"A_candidate..."+A_candidate.size()+"*"+A_candidate.get(0).size()+"w_pop..."+w_pop.size());
-							double value = valueMOPOMDP(belief_candidate,A_candidate, adjustWeight(w_pop,objs,model) );
-							if (value>value_candidate){
-								value_candidate = value;
-								value_candidate_index = j;
-							}
-							mainLog.println("Adjust min max value..."+value);
-						}
-						Ar.add((ArrayList<ArrayList<Double>>) A_all.get(value_candidate_index).clone());
-						mainLog.println("belief:..."+ Arrays.toString(belief_candidate.toArray()));
-						mainLog.println("best matrix:..."+ Arrays.toString((A_all.get(value_candidate_index)).toArray()));
-					}
-
-					// Aw <- solveScalarizedPOMDP(Ar, B, w, Eta)
-
-				}
-				break;
-			case MDP:
-				mainLog.println("MDP...");
-				break;
-			default:
-				throw new PrismNotSupportedException("Explicit engine does not yet handle ");
-		}
-		*/
-
-		
+		// Random sampling:
 		ArrayList<ArrayList<Double>> w_v_checked_rs = new ArrayList<ArrayList<Double>>();
 		double rs =1;
 		if (rs>0){
@@ -1053,7 +1103,6 @@ public class ProbModelChecker extends NonProbModelChecker
 					for (int j=0; j<11; j++){
 						double w2= ((double) j )*0.1;
 						if (w1+w2<=1){
-							//mainLog.println("\niiiiiiiii: " + i+"jjjjjjjjj: "+j);
 							double w3= 1-w1-w2;
 							ArrayList<Double> weights = new ArrayList<>();
 							weights.add(w1);
@@ -1098,7 +1147,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				mainLog.println("\nPareto curve: " + paretoCurve);
 			}
 		}
-
+	 	
 		mainLog.println("****************************************************");
 
 
@@ -1203,8 +1252,6 @@ public class ProbModelChecker extends NonProbModelChecker
 					mainLog.println(partial_CCS.size());
 				}
 				else {
-
-					
 
 					mainLog.println("elsess");
 					double original_value = innerProduct(adjustWeight(w_pop,objs, model), u);
@@ -1483,8 +1530,6 @@ public class ProbModelChecker extends NonProbModelChecker
 							}
 							
 
-
-
 							if (priority > threshold){
 								w_new.add(priority);
 								priority_queue.add((ArrayList<Double>) w_new.clone());
@@ -1513,7 +1558,6 @@ public class ProbModelChecker extends NonProbModelChecker
 				partial_CCS.add((ArrayList<Double>) u.clone());
 				partial_CCS_weights.add((ArrayList<Double>) w_pop.clone());
 				}
-
 
 				///////////////////////////////////////////////////////
 				/*mainLog.println("TO.........herehere.delete obsolete");
@@ -1779,6 +1823,19 @@ public class ProbModelChecker extends NonProbModelChecker
 		//mainLog.println(values_rs);
 		// Dummy return value
 		return StateValues.createFromSingleValue(TypeDouble.getInstance(), 0.0, model);
+    }
+	protected StateValues checkExpressionParetoMultiObj(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException
+	{	
+		switch (model.getModelType()) {
+		case POMDP:
+			 return checkExpressionParetoMultiObjPOMDP(model, objs, statesOfInterest);
+		case MDP:
+			return checkExpressionParetoMultiObjMDP(model, objs, statesOfInterest);
+		default:
+			throw new PrismNotSupportedException("Explicit engine does not yet handle ");
+		}
+		
+		
 	}
 	
 	/**

@@ -324,6 +324,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 	
+	
 	/**Perseus
 	 * Compute expected reachability rewards,
 	 * i.e. compute the min/max reward accumulated to reach a state in {@code target}.
@@ -332,45 +333,36 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max rewards (true=min, false=max)
 	 */
-	public ArrayList<AlphaVector> backupStage(POMDP pomdp, ArrayList<AlphaVector> immediateRewards, ArrayList<AlphaVector> V, ArrayList<Belief> B) {
+	public ArrayList<AlphaVector> backupStage(POMDP pomdp, ArrayList<AlphaVector> immediateRewards, ArrayList<AlphaVector> V, ArrayList<Belief> B, BitSet unknowObs) {
+		
 		int nStates = pomdp.getNumStates();
 		int nObservations = pomdp.getNumObservations();
-		ArrayList<Object> allActions = new ArrayList<Object>();
-		
-		for (int s=0; s<nStates;s++) {
-			List<Object> availabeActions = pomdp.getAvailableActions(s);
-			for (Object a: availabeActions) {
-				if (!allActions.contains(a))
-					allActions.add(a);
-			}
-		}
+		ArrayList<Object> allActions =getAllActions(pomdp);
 		int nActions = allActions.size();
-
+		
 		ArrayList<AlphaVector> Vnext = new ArrayList<AlphaVector>();
 		List<Belief> Btilde = new ArrayList<Belief>();
 		Btilde.addAll(B);
-		
 		double [][][] tm = new double [nActions][nStates] [nStates] ;
 		
-	
 		AlphaVector[][][] gkao = new AlphaVector[V.size()][nActions][nObservations];
 		for(int k=0; k<V.size(); k++) {
 			for(int a=0; a<nActions; a++) {
+				//if(V.get(k).getAction()!=a)
+					//continue;
 				for(int o=0; o<nObservations; o++) {
 					double[] entries = new double[nStates];
-					
 					for(int s=0; s<nStates; s++) {
 						double val = 0.0;
-						
-						for(int sPrime=0; sPrime<nStates; sPrime++) {
-							double value =V.get(k).getEntry(sPrime);
-							double obsP = 0.0;// (a, sPrime, o);
-							obsP = pomdp.getObservationProb(sPrime, o);
-							
-							double tranP=0.0;
-							Object action = allActions.get(a);
-							List<Object> availableActions= pomdp.getAvailableActions(s);
-							if (availableActions.contains(action)) {
+						Object action = allActions.get(a);
+						List<Object> availableActions= pomdp.getAvailableActions(s);
+	
+						if (availableActions.contains(action)) {
+							for(int sPrime=0; sPrime<nStates; sPrime++) {
+								double value = V.get(k).getEntry(sPrime);
+								double obsP = 0.0;// (a, sPrime, o);
+								obsP = pomdp.getObservationProb(sPrime, o);
+								double tranP=0.0;
 								int choice = pomdp.getChoiceByAction(s, action);
 								Iterator<Entry<Integer, Double>> iter = pomdp.getTransitionsIterator(s,choice);
 								while (iter.hasNext()) {
@@ -379,144 +371,205 @@ public class POMDPModelChecker extends ProbModelChecker
 										tranP = trans.getValue();	 
 									}
 								}
+								val += obsP * tranP * value ;
 							}
-
-							val += obsP * tranP * value ;
-							}
-						
-						entries[s] = val;
+						}
+						else {
+								//if (unknowObs.get(pomdp.getObservation(s))) {
+								//	val =-9999;
+									val*=1;
+								//}
+						}
 	
+						entries[s] = val;
 					}
-					
 					AlphaVector av = new AlphaVector(entries);
 					av.setAction(a);
 					gkao[k][a][o] = av;
+					//mainLog.print("");//mainLog.print(k+" "+a+" "+o+" "+" gkao Action = "+ av.getAction());
+					mainLog.print("");//mainLog.println( "   value = "+ Arrays.toString(av.getEntries()));
 				}
 			}
 		}
 		
-
 		Random rnd = new Random();
-
 		int count =0;
+		mainLog.print("");//mainLog.println("Bsize="+Btilde.size());
 		// run the backup stage
 		while(Btilde.size() > 0) {
 			// sample a belief point uniformly at random
 			int beliefIndex = rnd.nextInt(Btilde.size());
-			
 			Belief b = Btilde.get(beliefIndex);
 			//Btilde.remove(Btilde.indexOf(b));
-
 			count++;
-
+	
 			// compute backup(b)
-			AlphaVector alpha = backup(pomdp, immediateRewards, gkao, b);
+			mainLog.print("");//mainLog.println("*************ready to back up for"+b );
+			mainLog.print("");//mainLog.println("b dis ="+ Arrays.toString(b.toDistributionOverStates(pomdp)));
+	
 			
+			AlphaVector alpha = backup(pomdp, immediateRewards, gkao, b, V);
+			if (alpha==null) {
+				Btilde.remove(beliefIndex);
+				continue;
+			}
+			mainLog.print("");//mainLog.println("alpha a="+alpha.getAction());
+			
+			ArrayList<Integer> possibleObservationsForBeliefAction = getPossibleObservationsForBeliefAction(b, allActions.get(alpha.getAction()), pomdp);
+			for (int p=0; p<possibleObservationsForBeliefAction.size() ;p++)
+				mainLog.print("");//mainLog.print("o="+possibleObservationsForBeliefAction.get(p)+" ");
+			
+			mainLog.print("");//mainLog.println("alpha v="+Arrays.toString(alpha.getEntries()));
 			
 			// check if we need to add alpha
-			double oldValue = AlphaVector.getValue(b.toDistributionOverStates(pomdp), V);
-			double newValue = alpha.getDotProduct(b.toDistributionOverStates(pomdp));
+			double oldValue = (getPossibleValue(b,V,pomdp));
+			mainLog.print("");//mainLog.println("oldValue="+oldValue);
+			//double oldValue = AlphaVector.getValue(b.toDistributionOverStates(pomdp), V));
 			
-
-			if(newValue > oldValue) {
+			double newValue =  (alpha.getDotProduct(b.toDistributionOverStates(pomdp)));
+			mainLog.print("");//mainLog.println("newValueValue="+newValue);
+			if(oldValue!=newValue)
+				mainLog.print("");//mainLog.println("different="+(oldValue-newValue));
+	
+			double diff = Math.abs(oldValue-newValue);
+			if(diff >0) {
 				assert alpha.getAction() >= 0 && alpha.getAction() < pomdp.getMaxNumChoices() : "invalid action: "+alpha.getAction();
 				if (!Vnext.contains(alpha)) {
 					Vnext.add(alpha);
+					mainLog.print("");//mainLog.println("1 Adding vector action ="+alpha.getAction());
+					mainLog.print("");//mainLog.println("1 Adding vector action ="+Arrays.toString(alpha.getEntries()));
 				}
-				
 				ArrayList<Belief> newB = new ArrayList<Belief> ();
+				Btilde.remove(beliefIndex);
+	
 				for (int r =0; r<Btilde.size();r++) {
 					Belief br = Btilde.get(r);
-					if (alpha.getDotProduct(br.toDistributionOverStates(pomdp))<AlphaVector.getValue(br.toDistributionOverStates(pomdp),V) ) {
+					double VValue = Math.abs(getPossibleValue(br,V,pomdp));
+					if (!getPossibleActionsForBelief(br,pomdp).contains(allActions.get(alpha.getAction()))) {
+						mainLog.print("");//mainLog.println("belief does not have this action"+br);
 						newB.add(br);
 					}
-
+					else {
+						double alphaValue = Math.abs(alpha.getDotProduct(br.toDistributionOverStates(pomdp)));
+						//ol= AlphaVector.getValue(br.toDistributionOverStates(pomdp),V);
+						if (alphaValue < VValue ) {
+							newB.add(br);
+							mainLog.print("");//mainLog.println("keep"+br);
+							mainLog.print("");//mainLog.println("VValue = "+VValue+" alphaValue = "+alphaValue);
+						}
+						else {
+							mainLog.print("");//mainLog.println("remove"+br);
+							mainLog.print("");//mainLog.println("VValue = "+VValue+" alphaValue = "+alphaValue);
+						}
+					}
 				}
 				Btilde = newB;
-	
-				
+				mainLog.print("");//mainLog.println("prune Bsize="+newB.size()+"Vsize="+Vnext.size());
 			}
 			else {
-				int bestVectorIndex = AlphaVector.getBestVectorIndex(b.toDistributionOverStates(pomdp), V);
-				assert V.get(bestVectorIndex).getAction() >= 0 && V.get(bestVectorIndex).getAction() < pomdp.getMaxNumChoices() : "invalid action: "+V.get(bestVectorIndex).getAction();
-				
-				if (!Vnext.contains(V.get(bestVectorIndex))) {
-					Vnext.add(V.get(bestVectorIndex));
+				//int bestVectorIndex = AlphaVector.getBestVectorIndex(b.toDistributionOverStates(pomdp), V);
+				//AlphaVector alphaBest= V.get(bestVectorIndex);
+				AlphaVector alphaBest = getBestPossibleAlpha(b, V,pomdp);
+				//assert V.get(bestVectorIndex).getAction() >= 0 && V.get(bestVectorIndex).getAction() < pomdp.getMaxNumChoices() : "invalid action: "+V.get(bestVectorIndex).getAction();
+				mainLog.print("");//mainLog.println("Best alpha action="+alphaBest.getAction()+Arrays.toString(alphaBest.getEntries()));
+	
+				if (!Vnext.contains(alphaBest)) {
+					Vnext.add(alphaBest);
+					mainLog.print("");//mainLog.println("2 Adding vector action ="+alphaBest.getAction());
+					mainLog.print("");//mainLog.println("2 Adding vector action ="+Arrays.toString(alphaBest.getEntries()));
 				}
 				//Btilde.remove(Btilde.indexOf(b));
 				Btilde.remove(beliefIndex);
-
 			}
-			// compute new Btilde containing non-improved belief points
-			/*ArrayList<Belief> newBtilde = new ArrayList<Belief>();	
-			for(Belief bp : B) {
-				
-				double oV = AlphaVector.getValue(b.toDistributionOverStates(pomdp), V);
-				double nV = AlphaVector.getValue(b.toDistributionOverStates(pomdp), Vnext);
-				if(nV < oV) {
-					newBtilde.add(bp);
-				}
-			}	
-			*/	
-			//Btilde = newBtilde ;
-
-		}
-		/*
-		for (int p=0;p<Vnext.size();p++) {
-			int a1 = Vnext.get(p).getAction();
-			double [] v1 = Vnext.get(p).getEntries();
 			
-			for (int j=0; j<Vnext.size();j++) {
-				int a2 = Vnext.get(j).getAction();
-				double [] v2 = Vnext.get(j).getEntries();
-				if(p!=j & a1==a2) {
-					int dom =1;
-					for (int q=0; q<v1.length; q++) {
-						if (v1[q]< v2[q]) {
-							dom =0;
-						}
-					}
+			
+			// compute new Btilde containing non-improved belief points
+			ArrayList<Belief> n = new ArrayList<Belief>();	
+			for(Belief bp : B) {
+				//double oV = AlphaVector.getValue(bp.toDistributionOverStates(pomdp), V);
+				//double nV = AlphaVector.getValue(bp.toDistributionOverStates(pomdp), Vnext);
+				//if(nV < oV) 					newBtilde.add(bp);				
+			}	
+		
 
-					if (dom==1) {
-						mainLog.println("v1 is always greate than v2");
-						mainLog.println(p+"  ->"+j);
-
-						mainLog.println(Arrays.toString(v1));
-						mainLog.println(Arrays.toString(v2));
-						//mainLog.println(Arrays.toString(v1-v2));
-					}
-				}
-			}
+			mainLog.print("");//mainLog.println("Btilde"+Btilde.size());
 		}
-*/
 		return Vnext;
 	}
-	
-	public AlphaVector backup(POMDP pomdp, List<AlphaVector> immediateRewards, AlphaVector[][][] gkao, Belief b) {
+
+	public AlphaVector backup(POMDP pomdp, List<AlphaVector> immediateRewards, AlphaVector[][][] gkao, Belief b, ArrayList<AlphaVector> V) {
 		int nStates = pomdp.getNumStates();
 		int nActions = pomdp.getMaxNumChoices();
 		int nObservations = pomdp.getNumObservations();
 		List<AlphaVector> ga = new ArrayList<AlphaVector>();
+		
+		ArrayList<Object> allActions = getAllActions(pomdp);
+		
+		ArrayList<Object> possibelActionsForBelief = getPossibleActionsForBelief(b,pomdp);
+		
+		if (b.so==0) {
+			mainLog.print("");//mainLog.print(b.so);
+		}
 		for(int a=0; a<nActions; a++) {
+			if (!possibelActionsForBelief.contains(allActions.get(a))) {
+				continue;
+			}
+			mainLog.print("");//mainLog.println("\ncomputing for action ="+allActions.get(a));
+			ArrayList<Integer> possibleObservationsForBeliefAction = getPossibleObservationsForBeliefAction(b, allActions.get(a), pomdp);
+						
 			List<AlphaVector> oVectors = new ArrayList<AlphaVector>();
+			
 			for(int o=0; o<nObservations; o++) {
+				if (!possibleObservationsForBeliefAction.contains(o)) {
+					continue;
+				}
 				double maxVal = Double.NEGATIVE_INFINITY;
 				AlphaVector maxVector = null;
+
+				// Belief bao = ;
+
+				int choice = possibelActionsForBelief.indexOf(allActions.get(a));
+				Belief updatedBelief= pomdp.getBeliefAfterChoiceAndObservation(b,choice, o);
+				mainLog.print("");//mainLog.println("updatedBelief="+updatedBelief);
+				ArrayList<Object> futureActions = getPossibleActionsForBelief(updatedBelief,pomdp);
 				
 				int K = gkao.length;
 				for(int k=0; k<K; k++) {
+					if (!futureActions.contains(allActions.get(V.get(k).getAction()))) {
+						mainLog.print("");//mainLog.println("Updated belief do not have future action"+V.get(k).getAction());
+						continue;
+					}
+					if( gkao[k][a][o]==null|| gkao[k][a][o].getAction()!=a) { 
+						continue;
+					}
 					double product = gkao[k][a][o].getDotProduct(b.toDistributionOverStates(pomdp));
-					if(product > maxVal) {
+					if(product > maxVal ) {
 						maxVal = product;
 						maxVector = gkao[k][a][o];
 					}
+					mainLog.print("");//mainLog.println("kao="+k+a+o+"->"+product);
+					mainLog.print("");//mainLog.println("maxVal"+k+a+o+"->"+maxVal);
 				}
+
 				assert maxVector != null;
+				if (maxVector==null) 
+					continue;
 				oVectors.add(maxVector);
+				mainLog.print("");//mainLog.println("Action "+a+" Final maxVal->"+maxVal);
+				mainLog.print("");//mainLog.println("Action "+a+" Final maxVector action ->"+maxVector.getAction());
+				mainLog.print("");//mainLog.println("Action "+a+" Final maxVect value->"+Arrays.toString(maxVector.getEntries()));
+
 			}
+			
+			if(oVectors.size()==0) {
+				continue;
+			}
+			
 			assert oVectors.size() > 0;
 			// take sum of the vectors
+			
 			AlphaVector sumVector = oVectors.get(0);
+			
 			for(int j=1; j<oVectors.size(); j++) {
 				sumVector = AlphaVector.sumVectors(sumVector, oVectors.get(j));
 			}
@@ -544,14 +597,177 @@ public class POMDPModelChecker extends ProbModelChecker
 		assert vFinal != null;
 		return vFinal;
 	}
+	public ArrayList<Integer> getPossibleObservationsForBeliefAction(Belief b, Object a, POMDP pomdp) {
+		ArrayList<Integer> possibleObservationsForBeliefAction = new ArrayList<Integer> ();
+		
+		for (int s =0; s<pomdp.getNumStates();s++) {
+			if (b.toDistributionOverStates(pomdp)[s]>0) {
+				int choice = pomdp.getChoiceByAction(s, a);
+				for (int sPrime =0; sPrime<pomdp.getNumStates();sPrime++) {
+					double tranP =0.0;
+					Iterator<Entry<Integer, Double>> iter = pomdp.getTransitionsIterator(s,choice);
+					while (iter.hasNext()) {
+						Map.Entry<Integer, Double> trans = iter.next();
+						if (trans.getKey()==sPrime) {
+							tranP = trans.getValue();	 
+						}
+					}
+					if (tranP>0) {
+						if(!possibleObservationsForBeliefAction.contains(pomdp.getObservation(sPrime)))
+							possibleObservationsForBeliefAction.add(pomdp.getObservation(sPrime));
+					}					
+				}
+			}
+		}
+		return possibleObservationsForBeliefAction;
+	}
+	public ArrayList<Object> getPossibleActionsForBelief(Belief b, POMDP pomdp) {
+		ArrayList <Object> availableActionsForBelief = new ArrayList<Object> ();
+		for (int s =0; s<pomdp.getNumStates();s++) {
+			if ((b.toDistributionOverStates(pomdp)[s])>0){
+				List <Object> availableActionsForState = pomdp.getAvailableActions(s);
+				for (Object a: availableActionsForState) {
+					if (!availableActionsForBelief.contains(a)) {
+						availableActionsForBelief.add(a);
+					}
+				}
+			}
+		}
+		return availableActionsForBelief;
+		
+	}
+	public ArrayList<Object> getAllActions(POMDP pomdp){
+		ArrayList <Object> allActions = new ArrayList<Object> ();
+		for (int s =0; s<pomdp.getNumStates();s++) {
+			List <Object> availableActionsForState = pomdp.getAvailableActions(s);
+
+			for (Object a: availableActionsForState) {
+				if (!allActions.contains(a) & a!= null) {
+					allActions.add(a);
+				}
+			}
+		}
+		return allActions;
+	}
 	
-	public ModelCheckerResult computeReachRewardsPerseus(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
-	{ 
-		ModelCheckerResult res = null;
-		long timer;
+	public double getPossibleValue(Belief b, List<AlphaVector> V, POMDP pomdp) {
+			boolean min = false; 
+			double val = min? Double.POSITIVE_INFINITY: Double.NEGATIVE_INFINITY;
+			//double val = min? 777777: -77777777;
+			ArrayList <Object> allActions = getAllActions(pomdp);
+			ArrayList <Object> availableActionsForBelief = getPossibleActionsForBelief (b, pomdp);
+			for (int v=0; v<V.size(); v++) {
+				Object action = allActions.get(V.get(v).getAction());
+				if (availableActionsForBelief.contains(action)) {
+					AlphaVector alpha = V.get(v);
+					double product =  alpha.getDotProduct(b.toDistributionOverStates(pomdp));
+					//product = Math.abs(product);
+					if (min && product <val) {
+						val=product;
+					}
+					if (!min && product>val) {
+						val = product;
+						mainLog.print("");//mainLog.println("get Possible valueproduct ="+product+" action "+action+ " Values="+Arrays.toString(alpha.getEntries()));
+
+					}
+				}
+			}
+			return val;
+	}
+	public double getPossibleValue(Belief b, ArrayList<AlphaVector> V, POMDP pomdp) {
+		boolean min = false; 
+		//double val = min? Double.POSITIVE_INFINITY: Double.NEGATIVE_INFINITY;
+		double val = min? 777777: -77777777;
+		ArrayList <Object> allActions = getAllActions(pomdp);
+		ArrayList <Object> availableActionsForBelief = getPossibleActionsForBelief (b, pomdp);
+		for (int v=0; v<V.size(); v++) {
+			Object action = allActions.get(V.get(v).getAction());
+			if (availableActionsForBelief.contains(action)) {
+				AlphaVector alpha = V.get(v);
+				double product =  alpha.getDotProduct(b.toDistributionOverStates(pomdp));
+				//product = Math.abs(product);
+				if (min && product <val) {
+					val=product;
+				}
+				if (!min && product>val) {
+					val = product;
+					mainLog.print("");//mainLog.println("get Possible value product ="+product+" action "+action+ " Values="+Arrays.toString(alpha.getEntries()));
+				}
+			}
+		}
+		return val;
+}
 	
-		mainLog.println("get number of getNumObservations"+pomdp.getNumObservations());
-		mainLog.println("get number of getNumUnobservations"+pomdp.getNumUnobservations());
+	public  boolean lexGreater(AlphaVector v1, AlphaVector v2) {
+		assert v1.size() == v2.size();
+		for(int i=0; i<v1.size(); i++) {
+			double v1Entry = v1.getEntry(i);
+			double v2Entry = v2.getEntry(i);
+			
+			v1Entry = Math.abs(v1Entry);
+			v2Entry = Math.abs(v2Entry);
+			if(v1Entry != v2Entry) {
+				if(v1Entry > v2Entry) {
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+	
+	
+	public AlphaVector getBestPossibleAlpha(Belief b, List<AlphaVector> V, POMDP pomdp) {
+		boolean min = false; 
+		double val = min? Double.POSITIVE_INFINITY: Double.NEGATIVE_INFINITY;
+		AlphaVector bestAlpha= null;
+		ArrayList <Object> allActions = getAllActions(pomdp);
+		ArrayList <Object> availableActionsForBelief = getPossibleActionsForBelief (b, pomdp);
+		for (int v=0; v<V.size(); v++) {
+			Object action = allActions.get(V.get(v).getAction());
+			if (availableActionsForBelief.contains(action)) {
+				AlphaVector alpha = V.get(v);
+				double product =  alpha.getDotProduct(b.toDistributionOverStates(pomdp));
+				mainLog.print("");//mainLog.println("best alpha cand product="+product);
+				mainLog.print("");//mainLog.println("best alpha cand getAction="+alpha.getAction());
+				mainLog.print("");//mainLog.println("best alpha cand getEntries="+Arrays.toString(alpha.getEntries()));
+				if (min && product <val) {
+					val=product;
+					bestAlpha= alpha;
+				}
+				
+				if (!min ) {
+					if(product>val) {
+						val = product;
+						bestAlpha= alpha;
+					}
+					else if  (product == val && lexGreater(alpha, bestAlpha)) {
+						val = product;
+						bestAlpha= alpha;
+					}
+				}
+			}
+		}
+		return bestAlpha;
+	}
+	
+	public boolean checkConverven (ArrayList<AlphaVector>V, ArrayList<AlphaVector> Vnext, ArrayList<Belief>B, double ValueFunctionTolerance) {
+		boolean done = true;
+		for (int i=0; i<Vnext.size(); i++) {
+			if (!V.contains(Vnext.get(i))) {
+				done = false;
+			}
+		}
+		return done;
+	}
+	
+	public ArrayList<Belief> randomExploreBeliefs(POMDP pomdp, BitSet target,  BitSet statesOfInterest) throws PrismException
+	{
+		// ArrayList<Belief> B  = randomExploreBeliefs(pomdp)
+		//doing		ArrayList<BeliefPoint> B = getBeliefPoints(pomdp);
+		BitSet targetObs = getObservationsMatchingStates(pomdp, target);
 		
 		// Check we are only computing for a single state (and use initial state if unspecified)
 		if (statesOfInterest == null) {
@@ -559,35 +775,147 @@ public class POMDPModelChecker extends ProbModelChecker
 			statesOfInterest.set(pomdp.getFirstInitialState());
 		} else if (statesOfInterest.cardinality() > 1) {
 			throw new PrismNotSupportedException("POMDPs can only be solved from a single start state");
-		}		
-		// Start expected reachability
-		timer = System.currentTimeMillis();
-		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
-		mainLog.println("=== RUN POMDP SOLVER ===");
-		mainLog.println("Algorithm: Perseus (point-based value iteration)");
-		mainLog.println("Belief sampling started...");
-
-		// Compute rewards
+		}	
 		
-		int nStates = pomdp.getNumStates();
-		ArrayList<Object> allActions = new ArrayList<Object>();
-		
-		for (int s=0; s<nStates;s++) {
-			List<Object> availabeActions = pomdp.getAvailableActions(s);
-			for (Object a: availabeActions) {
-				if (!allActions.contains(a))
-					allActions.add(a);
-			}
+		if (targetObs == null) {
+			throw new PrismException("Target for expected reachability is not observable");
 		}
-		int nActions = allActions.size();
-
-
-		mainLog.println("NumeStates/nActions"+nStates+nActions);
-
-//doing		ArrayList<BeliefPoint> B = getBeliefPoints(pomdp);
+		// Find _some_ of the states with infinite reward
+		// (those from which *every* MDP strategy has prob<1 of reaching the target,
+		// and therefore so does every POMDP strategy)
+		MDPModelChecker mcProb1 = new MDPModelChecker(this);
+		BitSet inf = mcProb1.prob1(pomdp, null, target, false, null);
+		inf.flip(0, pomdp.getNumStates());
+		// Find observations for which all states are known to have inf reward
+		BitSet infObs = getObservationsCoveredByStates(pomdp, inf);
+		//mainLog.println("target obs=" + targetObs.cardinality() + ", inf obs=" + infObs.cardinality());
+		
+		// Determine set of observations actually need to perform computation for
+		// eg. if obs=1 & unknownObs(obs)=true -> obs=1 needs computation
+		// eg. if obs=2 & unknownObs(obs)=false -> obs=1 does not need computation
+		BitSet unknownObs = new BitSet();
+		unknownObs.set(0, pomdp.getNumObservations());
+		unknownObs.andNot(targetObs);
+		unknownObs.andNot(infObs);
+		
 		ArrayList<Belief> B = new ArrayList<Belief>();
 		ArrayList<Belief>Bset = new ArrayList<Belief>();
+		B.add(pomdp.getInitialBelief());
+		int BeliefSamplingSteps=100;
+		int BeliefSamplingRuns=200;
+		Belief b = pomdp.getInitialBelief();
+		for(int run=0; run<BeliefSamplingRuns; run++) {
+			for(int step=0; step<BeliefSamplingSteps; step++) {
+				double [] b_dis = b.toDistributionOverStates(pomdp);
+				if (!Bset.contains(b)) {
+					for(int o=0; o<pomdp.getNumObservations(); o++) {
+						HashSet<Integer> availableChoices = new HashSet<Integer> ();
+						//find the available choices
+						for (int i=0; i<b_dis.length; i++) {
+							if (b_dis[i]>0) {
+								List<Object> availbleActions = pomdp.getAvailableActions(i);
+								for (Object availbleAction : availbleActions)
+									availableChoices.add(pomdp.getChoiceByAction(i, availbleAction));
+							}
+						}
+						//iterate all choices
+						//add all possible updated choices 
+						for(int a: availableChoices) {
+							double probs= pomdp.getObservationProbAfterChoice(b, a, o);
+							if (probs>0) {
+								Belief bao = pomdp.getBeliefAfterChoiceAndObservation(b, a, o);
+								if (!B.contains(bao) & unknownObs.get(bao.so)){
+									B.add(bao);
+								}
+							}
+						}
+					}
+				}
+				Random rnd = new Random();
+				Bset.add(b);
+				//randomly choose a successor Belief to continue;
+				b = B.get(rnd.nextInt(B.size()));
+			}
+		}
+		// add corner beliefs
+		for(int s=0; s<pomdp.getNumStates(); s++) {
+			double[] beliefEntries = new double[pomdp.getNumStates()];
+			beliefEntries[s] = 1.0;
+			Belief corner = new Belief(beliefEntries, pomdp);
+			if (!B.contains(corner)& unknownObs.get(corner.so)) {
+				B.add(corner);
+			}
+		}
+		return B;
+	}
+	
+	public ModelCheckerResult computeReachRewardsPerseus(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
+	{ 
+		BitSet targetObs = getObservationsMatchingStates(pomdp, target);
 		
+		// Check we are only computing for a single state (and use initial state if unspecified)
+		if (statesOfInterest == null) {
+			statesOfInterest = new BitSet();
+			statesOfInterest.set(pomdp.getFirstInitialState());
+		} else if (statesOfInterest.cardinality() > 1) {
+			throw new PrismNotSupportedException("POMDPs can only be solved from a single start state");
+		}	
+		
+		if (targetObs == null) {
+			throw new PrismException("Target for expected reachability is not observable");
+		}
+		// Find _some_ of the states with infinite reward
+		// (those from which *every* MDP strategy has prob<1 of reaching the target,
+		// and therefore so does every POMDP strategy)
+		MDPModelChecker mcProb1 = new MDPModelChecker(this);
+		BitSet inf = mcProb1.prob1(pomdp, null, target, false, null);
+		inf.flip(0, pomdp.getNumStates());
+		// Find observations for which all states are known to have inf reward
+		BitSet infObs = getObservationsCoveredByStates(pomdp, inf);
+		//mainLog.println("target obs=" + targetObs.cardinality() + ", inf obs=" + infObs.cardinality());
+		
+		// Determine set of observations actually need to perform computation for
+		// eg. if obs=1 & unknownObs(obs)=true -> obs=1 needs computation
+		// eg. if obs=2 & unknownObs(obs)=false -> obs=1 does not need computation
+		BitSet unknownObs = new BitSet();
+		unknownObs.set(0, pomdp.getNumObservations());
+		unknownObs.andNot(targetObs);
+		unknownObs.andNot(infObs);
+		
+		
+		int nStates = pomdp.getNumStates();
+		mainLog.print("");//mainLog.println(pomdp.getMaxNumChoices());
+		ArrayList<Object> allActions = getAllActions(pomdp);
+		for (int p =0; p<allActions.size();p++)
+			mainLog.print("");//mainLog.println("Action ="+allActions.get(p));
+		int nActions = allActions.size();
+		// Find out the observations for the target states
+		/*for (int so=unknownObs.nextSetBit(0); so>=0; so = unknownObs.nextSetBit(so+1)) 
+			mainLog.print("");//mainLog.println("so"+so);
+		for (int s=0; s<pomdp.getNumObservations(); s++)
+			mainLog.print("");//mainLog.println("obs"+s+unknownObs.get(s));
+		*/
+		ModelCheckerResult res = null;
+		long timer;
+		
+		mainLog.print("");//mainLog.println("get number of getNumObservations"+pomdp.getNumObservations());
+		mainLog.print("");//mainLog.println("get number of getNumUnobservations"+pomdp.getNumUnobservations());
+		
+	
+		// Start expected reachability
+		timer = System.currentTimeMillis();
+		mainLog.print("");//mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
+		mainLog.print("");//mainLog.println("=== RUN POMDP SOLVER ===");
+		mainLog.print("");//mainLog.println("Algorithm: Perseus (point-based value iteration)");
+		mainLog.print("");//mainLog.println("Belief sampling started...");
+		// Compute rewards
+		mainLog.print("");//mainLog.println("NumeStates/nActions"+nStates+nActions);
+
+		 ArrayList<Belief> B  = randomExploreBeliefs(pomdp, target, statesOfInterest);
+		 
+//doing		ArrayList<BeliefPoint> B = getBeliefPoints(pomdp);
+		/*
+		 ArrayList<Belief>Bset = new ArrayList<Belief>();
 		
 		B.add(pomdp.getInitialBelief());
 		int BeliefSamplingSteps=100;
@@ -608,15 +936,13 @@ public class POMDPModelChecker extends ProbModelChecker
 									availableChoices.add(pomdp.getChoiceByAction(i, availbleAction));
 							}
 						}
-						
 						//iterate all choices
 						//add all possible updated choices 
 						for(int a: availableChoices) {
 							double probs= pomdp.getObservationProbAfterChoice(b, a, o);
 							if (probs>0) {
 								Belief bao = pomdp.getBeliefAfterChoiceAndObservation(b, a, o);
-								double [] bao_dis = bao.toDistributionOverStates(pomdp);;
-								if (!B.contains(bao)){
+								if (!B.contains(bao) & unknownObs.get(bao.so)){
 									B.add(bao);
 								}
 								
@@ -635,18 +961,22 @@ public class POMDPModelChecker extends ProbModelChecker
 			double[] beliefEntries = new double[pomdp.getNumStates()];
 			beliefEntries[s] = 1.0;
 			Belief corner = new Belief(beliefEntries, pomdp);
-			if (!B.contains(corner)) {
+			if (!B.contains(corner)& unknownObs.get(corner.so)) {
 				B.add(corner);
 			}
 		}
-		mainLog.println("Perseus Number of beliefs: "+B.size());
-		mainLog.println("Defining immediate rewards ");
+		mainLog.print("");//mainLog.println("Perseus Number of beliefs: "+B.size());
+		*/
+		mainLog.print("");//mainLog.println("Defining immediate rewards ");
 						
 		// create initial vector set and vectors defining immediate rewards
 		ArrayList<AlphaVector> V = new ArrayList<AlphaVector>();
 		ArrayList<AlphaVector> immediateRewards = new ArrayList<AlphaVector>();
 		
 
+		double minMax = min? -1: 1; //negate reward for min problems
+		
+		
 		for(int a=0; a<nActions; a++) {
 			double[] entries = new double[nStates];
 			for(int s=0; s<nStates; s++) {
@@ -654,65 +984,131 @@ public class POMDPModelChecker extends ProbModelChecker
 				Object action = allActions.get(a);
 			
 				entries[s] = 0;
-				
+
 				if (pomdp.getAvailableActions(s).contains(action)) {							
 					int choice =  pomdp.getChoiceByAction(s, action);
-					entries[s] = mdpRewards.getTransitionReward(s, choice) + mdpRewards.getStateReward(s);
+					mainLog.print("");//mainLog.println("state="+s+"action="+action+"tranReward"+mdpRewards.getTransitionReward(s, choice)+"stagereward="+mdpRewards.getStateReward(s) );
+					entries[s] +=  minMax*(mdpRewards.getTransitionReward(s, choice)+mdpRewards.getStateReward(s)) ;
 				}
-				
+				//else {
+				//	if (unknownObs.get(pomdp.getObservation(s)))
+				//		entries[s]=-99999;
+				//}
+			}
+			AlphaVector av = new AlphaVector(entries);
+			av.setAction(a);
+			immediateRewards.add(av);
+		}
+		for (int v=0; v<immediateRewards.size();v++) {
+			mainLog.print("");//mainLog.print(v+" immediate Action = "+ immediateRewards.get(v).getAction());
+			mainLog.print("");//mainLog.println( "  value = "+ Arrays.toString(immediateRewards.get(v).getEntries()));
+		}
+		for(int a=0; a<nActions; a++) {
+			double[] entries = new double[nStates];
+			for(int s=0; s<nStates; s++) {
+				//entries[s] = pomdp.getReward(s, a); original
+				Object action = allActions.get(a);
+			
+				entries[s] = 0;
 
+				if (pomdp.getAvailableActions(s).contains(action)) {							
+					int choice =  pomdp.getChoiceByAction(s, action);
+					entries[s] += minMax*( mdpRewards.getTransitionReward(s, choice)+mdpRewards.getStateReward(s) );
+				}
+				//else {
+				//	if (unknownObs.get(pomdp.getObservation(s)))
+				//		entries[s]=-99999;
+				//}
+				
 			}
 			AlphaVector av = new AlphaVector(entries);
 			av.setAction(a);
 			V.add(av);
-			immediateRewards.add(av);
 		}
-
+		
+		for (int v=0; v<V.size();v++) {
+			mainLog.print("");//mainLog.print(v+" V Action = "+ V.get(v).getAction());
+			mainLog.print("");//mainLog.println( "   value = "+ Arrays.toString(V.get(v).getEntries()));
+		}
+		
 		int stage = 1;
 
 		System.out.println("Stage 1: "+V.size()+" vectors");
-
-
 		//
 		//OutputFileWriter.dumpValueFunction(pomdp, V, sp.getOutputDir()+"/"+pomdp.getInstanceName()+".alpha"+stage, sp.dumpActionLabels());
 		
 		// run the backup stages
 		long startTime = System.currentTimeMillis();
-		
+		double ValueFunctionTolerance = 1E-06;
+
 		
 		while(true) {
+			mainLog.print("");//mainLog.println("$$$"+stage);
+			for (int i =0; i<V.size();i++) {
+				AlphaVector a = V.get(i);
+				mainLog.print("");//mainLog.print(stage+" "+ a.getAction());
+				for (Belief br : B) {
+					if (getPossibleActionsForBelief(br, pomdp).contains(allActions.get(a.getAction()))) {
+						
+						double v = a.getDotProduct(br.toDistributionOverStates(pomdp));
+						mainLog.print("");//mainLog.print(" "+v);
+					}
+					else {
+						mainLog.print("");//mainLog.print(" NaN");
+					}
+				}
+				mainLog.print("");//mainLog.println(" ");
+			}
+			mainLog.print("");//mainLog.println("$$$"+stage);
+
 			stage++;
 			//todo
 
-			 ArrayList<AlphaVector> Vnext = backupStage(pomdp, immediateRewards, V, B);
+			 ArrayList<AlphaVector> Vnext = backupStage(pomdp, immediateRewards, V, B, unknownObs);
+			 
+			 if (checkConverven (V, Vnext, B, ValueFunctionTolerance)) {
+				 //mainLog.print("");//mainLog.println("Done");
+				 break;
+			 }
+				 
+			 
 			double valueDifference = Double.NEGATIVE_INFINITY;
 			
+			ArrayList <Double> V_value = new ArrayList<Double> ();
+			ArrayList <Double> VN_value = new ArrayList<Double> ();
 			for(Belief bel : B) {
-				double [] belief = bel.toDistributionOverStates(pomdp);
+				//double [] belief = bel.toDistributionOverStates(pomdp);
 				//todo
-				double diff = AlphaVector.getValue(belief, Vnext) - AlphaVector.getValue(belief, V);
+				//double diff = AlphaVector.getValue(belief, Vnext) - AlphaVector.getValue(belief, V);
+				V_value.add(getPossibleValue(bel, V,pomdp));
+				VN_value.add(getPossibleValue(bel, V,pomdp));
+				mainLog.print("");//mainLog.println(bel.toDistributionOverStates(pomdp));
+				//mainLog.print("");//mainLog.println("V"+getPossibleValue(bel, V,pomdp));
+				//mainLog.print("");//mainLog.println("Vnext"+getPossibleValue(bel, Vnext,pomdp));
+				double diff = Math.abs(getPossibleValue(bel, Vnext,pomdp) - getPossibleValue(bel, V,pomdp));
 				if(diff > valueDifference) valueDifference = diff;
 			}
 			
+
 			double elapsed = (System.currentTimeMillis() - startTime) * 0.001;
-			mainLog.println("Stage "+stage+": "+Vnext.size()+" vectors, diff "+valueDifference+", time elapsed "+elapsed+" sec");
-
-			
 			V = Vnext;
-
+			mainLog.print("");//mainLog.println("Stage "+stage+": "+Vnext.size()+" vectors, diff "+valueDifference+", time elapsed "+elapsed+" sec");
+			for (int v=0; v<V.size();v++) {
+				mainLog.print("");//mainLog.print(v+" V Action = "+ V.get(v).getAction());
+				mainLog.print("");//mainLog.println( "   value = "+ Arrays.toString(V.get(v).getEntries()));
+			}
 			//OutputFileWriter.dumpValueFunction(pomdp, V, sp.getOutputDir()+"/"+pomdp.getInstanceName()+".alpha"+stage, sp.dumpActionLabels());
 			
 			double elapsedTime = (System.currentTimeMillis() - startTime) * 0.001;
 			
-			double ValueFunctionTolerance = 1E-06;
 			double TimeLimit =1000.0;
-			if(valueDifference < ValueFunctionTolerance || elapsedTime > TimeLimit) {
-				break;
-			}
+			//if(valueDifference < ValueFunctionTolerance || elapsedTime > TimeLimit) {
+			//	break;
+			//}
 		}
 		
 		long totalSolveTime = (System.currentTimeMillis() - startTime);
-		double expectedValue = AlphaVector.getValue(pomdp.getInitialBelief().toDistributionOverStates(pomdp), V);
+		double expectedValue = Math.abs(getPossibleValue(pomdp.getInitialBelief(),V,pomdp));
 		
 		//String outputFileAlpha = sp.getOutputDir()+"/"+pomdp.getInstanceName()+".alpha";
 		//OutputFileWriter.dumpValueFunction(pomdp, V, outputFileAlpha, sp.dumpActionLabels());
@@ -720,8 +1116,8 @@ public class POMDPModelChecker extends ProbModelChecker
 		
 		// Finished expected reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.println("*********Value" +expectedValue );
-		mainLog.println("Expected reachability took " + timer / 1000.0 + " seconds.");
+		mainLog.print("");//mainLog.println("*********Value" +expectedValue );
+		mainLog.print("");//mainLog.println("Expected reachability took " + timer / 1000.0 + " seconds.");
 
 		//res = computeReachRewardsFixedGrid(pomdp, mdpRewards, target, min, statesOfInterest.nextSetBit(0));
 
@@ -744,11 +1140,65 @@ public class POMDPModelChecker extends ProbModelChecker
 	 * @param target Target states
 	 * @param min Min or max rewards (true=min, false=max)
 	 */
+	
+	public ArrayList<AlphaVector> copyAlphaMatrix(ArrayList<AlphaVector> A){
+		ArrayList<AlphaVector> B = new ArrayList<AlphaVector>();
+			for (int obj=0; obj<A.size();obj++) {
+				AlphaVector alpha = A.get(obj);
+				AlphaVector alpha_copy = alpha;
+				B.add(alpha_copy);
+			}
+		return B;
+	}
+	
+	public ArrayList<ArrayList<AlphaVector>> copyAlphaMatrixSet(ArrayList<ArrayList<AlphaVector>> A){
+		ArrayList<ArrayList<AlphaVector>> B = new ArrayList<ArrayList<AlphaVector>>();
+		for (int i =0; i<A.size(); i++) {
+			ArrayList<AlphaVector> alphaMatrix = A.get(i);
+			ArrayList<AlphaVector> alphaMatrix_copy = new ArrayList<AlphaVector> ();
+			for (int obj=0; obj<alphaMatrix.size();obj++) {
+				AlphaVector alpha = alphaMatrix.get(obj);
+				AlphaVector alpha_copy = alpha;
+				alphaMatrix_copy.add(alpha_copy);
+			}
+			B.add(alphaMatrix_copy);
+		}
+		return B;
+	}
+	public ArrayList<ArrayList<AlphaVector>> solveScalarizedPOMDP(ArrayList<ArrayList<AlphaVector>> A, ArrayList<Belief> B, ArrayList<Double> w, double eta){
+		mainLog.println("calling solve scalarized POMDP");
+		ArrayList<ArrayList<AlphaVector>> Aprime =  copyAlphaMatrixSet (A); // L1
+		
+		//L2
+		for (int i=0; i<A.size(); i++) {
+			ArrayList<AlphaVector> alphaMatrix = A.get(i);
+			for (int obj=0; obj<alphaMatrix.size();obj++) {
+				AlphaVector av = alphaMatrix.get(obj);
+				double [] entries = new double [av.getEntries().length];
+				for (int j=0; j<entries.length;j++) {
+					entries[j] = Double.NEGATIVE_INFINITY;
+				}
+				av.setEntries(entries);
+			}
+		}
+		
+		while(true) {
+			double
+			if () {
+				break;
+			}
+		}
+		
+		
+		
+		return Aw;
+	}
+	
 	public ModelCheckerResult computeReachRewards(POMDP pomdp, MDPRewards mdpRewards, BitSet target, boolean min, BitSet statesOfInterest) throws PrismException
 	{
-		mainLog.println("TESSsSSSSSsssSSSSST");
+		mainLog.print("");//mainLog.println("TESSsSSSSSsssSSSSST");
 		computeReachRewardsPerseus( pomdp,  mdpRewards,  target,  min,  statesOfInterest);
-		mainLog.println("TESSsSSSSSsssSSSSST");
+		mainLog.print("");//mainLog.println("TESSsSSSSSsssSSSSST");
 		
 		
 		ModelCheckerResult res = null;
@@ -765,14 +1215,14 @@ public class POMDPModelChecker extends ProbModelChecker
 		
 		// Start expected reachability
 		timer = System.currentTimeMillis();
-		mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
+		mainLog.print("");//mainLog.println("\nStarting expected reachability (" + (min ? "min" : "max") + ")...");
 
 		// Compute rewards
 		res = computeReachRewardsFixedGrid(pomdp, mdpRewards, target, min, statesOfInterest.nextSetBit(0));
 
 		// Finished expected reachability
 		timer = System.currentTimeMillis() - timer;
-		mainLog.println("Expected reachability took " + timer / 1000.0 + " seconds.");
+		mainLog.print("");//mainLog.println("Expected reachability took " + timer / 1000.0 + " seconds.");
 
 		// Update time taken
 		res.timeTaken = timer / 1000.0;
