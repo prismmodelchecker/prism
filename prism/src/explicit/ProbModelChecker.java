@@ -64,7 +64,7 @@ import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
 import explicit.AlphaVector;
-
+import explicit.AlphaMatrix;
 /**
  * Super class for explicit-state probabilistic model checkers.
  */
@@ -859,14 +859,7 @@ public class ProbModelChecker extends NonProbModelChecker
     	}
     	return result;
     }
-    public double  valueMOPOMDP (Belief b, POMDP pomdp , ArrayList<AlphaVector> A, ArrayList<Double> w){
-    			
-    		double result = 0.0;
-    		for (int i=0; i<w.size(); i++){
-    			result += ((double) w.get(i)) * ( A.get(i).getDotProduct(b.toDistributionOverStates(pomdp))) ;
-    		}
-    	return result;
-    }
+
     public ArrayList<Double> adjustWeight(ArrayList<Double> weights, List<ExpressionReward> objs, Model model)throws PrismException
     {
     	// this function is to convert weigths for 'min' to 'max'
@@ -955,8 +948,57 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * Model check a Pareto sum multi-objective property and return the values for the statesOfInterest.
 	 * * @param statesOfInterest the states of interest, see checkExpression()
 	 */
-    protected StateValues checkExpressionParetoMultiObjPOMDP(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException{
-		mainLog.println(objs.size()+">>>");
+    protected StateValues checkExpressionParetoMultiObjPOMDP(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException
+    {
+    	double threshold = 0.00001;
+    	POMDP pomdp = (POMDP) model;
+		ExpressionTemporal exprTemp = (ExpressionTemporal) objs.get(0).getExpression();
+		BitSet target = checkExpression(model, exprTemp.getOperand2(), null).getBitSet();
+		BitSet targetObs = ((POMDPModelChecker) this).getObservationsMatchingStates(pomdp, target);
+		// Check we are only computing for a single state (and use initial state if unspecified)
+		if (statesOfInterest == null) {
+			statesOfInterest = new BitSet();
+			statesOfInterest.set(pomdp.getFirstInitialState());
+		} else if (statesOfInterest.cardinality() > 1) {
+			throw new PrismNotSupportedException("POMDPs can only be solved from a single start state");
+		}	
+		if (targetObs == null) {
+			throw new PrismException("Target for expected reachability is not observable");
+		}
+		// Find _some_ of the states with infinite reward
+		// (those from which *every* MDP strategy has prob<1 of reaching the target,
+		// and therefore so does every POMDP strategy)
+		MDPModelChecker mcProb1 = new MDPModelChecker(this);
+		BitSet inf = mcProb1.prob1(pomdp, null, target, false, null);
+		inf.flip(0, pomdp.getNumStates());
+		// Find observations for which all states are known to have inf reward
+		BitSet infObs = ((POMDPModelChecker) this).getObservationsCoveredByStates(pomdp, inf);
+		//mainLog.println("target obs=" + targetObs.cardinality() + ", inf obs=" + infObs.cardinality());
+		// Determine set of observations actually need to perform computation for
+		// eg. if obs=1 & unknownObs(obs)=true -> obs=1 needs computation
+		// eg. if obs=2 & unknownObs(obs)=false -> obs=1 does not need computation
+		BitSet unknownObs = new BitSet();
+		unknownObs.set(0, pomdp.getNumObservations());
+		unknownObs.andNot(targetObs);
+		unknownObs.andNot(infObs);
+		
+		int nStates = pomdp.getNumStates();
+		int numUnobs = pomdp.getNumUnobservations();
+		ArrayList<Object> allActions = ((POMDPModelChecker) this).getAllActions(pomdp);
+		int nActions = allActions.size();
+		
+    	// Build rewards
+		// And recompute weights, negating if needed 
+		//mainLog.println("Building reward structure...");
+		int numRewards = objs.size();
+		List<MDPRewards> mdpRewardsList = new ArrayList<>();
+		for (int i = 0; i < numRewards; i++) {
+			int r = objs.get(i).getRewardStructIndexByIndexObject(rewardGen, constantValues);
+			mdpRewardsList.add((MDPRewards) constructRewards(model, r));
+		}
+
+
+		
     	HashSet<List<Double>> paretoCurve = new HashSet<>();
 		ArrayList<ArrayList<Double>> partial_CCS = new ArrayList<ArrayList<Double>>();
 		ArrayList<ArrayList<Double>> partial_CCS_weights = new ArrayList<ArrayList<Double>>();
@@ -968,8 +1010,6 @@ public class ProbModelChecker extends NonProbModelChecker
 		
 		HashMap <ArrayList<Double>, ArrayList<ArrayList<Double> >> corner_to_value = new HashMap < ArrayList<Double>, ArrayList<ArrayList<Double>>> ();
 		HashMap <ArrayList<Double>, ArrayList<ArrayList<Double> >> value_to_corner = new HashMap < ArrayList<Double>, ArrayList<ArrayList<Double>>> ();
-		int numUnobs = ((POMDP) model).getNumUnobservations();
-		int numStates = model.getNumStates();
 		
 		//Line 3 
 		ArrayList<ArrayList<Double>> priority_queue = new ArrayList<ArrayList<Double>>();
@@ -977,104 +1017,464 @@ public class ProbModelChecker extends NonProbModelChecker
 		priority_queue= initialQueue(objs, corner_to_value, model);
 		
 		//line 5
-		ArrayList<ArrayList<AlphaVector>> A_all = new ArrayList<ArrayList<AlphaVector>> (); //A set of alpha matrix
-		ArrayList<Object> allActions = ((POMDPModelChecker) this).getAllActions((POMDP) model);
-		for (int a=0; a<allActions.size();a++) { 
-			ArrayList<AlphaVector> am = new ArrayList<AlphaVector> (); //alphaMatrix
-			for (int i=0; i<objs.size();i++) {
-				double Rmin = 0.1;
-				double[] entries = new double[numStates];
-				for (int j=0; j<numStates;j++) {
-					entries[j] = Rmin; 
+		ArrayList<AlphaMatrix> A_all = new ArrayList<AlphaMatrix> ();
+		ArrayList<AlphaMatrix> immediateRewards = new ArrayList<AlphaMatrix>();
+		ArrayList<AlphaMatrix> V= new ArrayList<AlphaMatrix>();
+		for (int a =0; a<nActions; a++) {
+			double [][]matrix = new double [nStates][numRewards];
+			Object action = allActions.get(a);
+			for (int s=0; s<nStates; s++) {
+				for (int obj=0; obj<numRewards; obj++) {
+					if (pomdp.getAvailableActions(s).contains(action)) {
+						int choice = pomdp.getChoiceByAction(s, action);
+						matrix [s][obj] =  mdpRewardsList.get(obj).getTransitionReward(s,choice) + mdpRewardsList.get(obj).getStateReward(s);
+					}
 				}
-				AlphaVector av = new AlphaVector(entries);
-				av.setAction(a);
-				am.add(av);
 			}
+			AlphaMatrix am = new AlphaMatrix(matrix);
+			am.setAction(a);
+			immediateRewards.add(am);
+			V.add(am);
 			A_all.add(am);
 		}
-		//check
-		for (int a=0; a<A_all.size();a++){
-			ArrayList<AlphaVector> amtp= A_all.get(a);
-			mainLog.println("action"+a);
-			for (int i=0; i<amtp.size(); i++) {
-				mainLog.println("object"+i);
-				AlphaVector avtp = amtp.get(i);
-					mainLog.println(avtp);
+		immediateRewards =((POMDPModelChecker ) this).copyAlphaMatrixSet(immediateRewards);
+		A_all =((POMDPModelChecker ) this).copyAlphaMatrixSet(A_all);
+		/*for (int a=0; a<allActions.size();a++) { 
+			double [][] matrix = new double [nStates][objs.size()];
+			double Rmin =0.1;
+			for (int i=0; i<nStates; i++) {
+				for (int j=0; j<objs.size(); j++) {
+					matrix[i][j] = Rmin;
+				}
 			}
+			AlphaMatrix am = new AlphaMatrix(matrix); //alphaMatrix
+			am.setAction(a);
+			A_all.add(am);
 		}
-		/*
-		ArrayList<ArrayList<AlphaVector>> A_tp = ((POMDPModelChecker) this).copyAlphaMatrixSet(A_all);;
-		ArrayList<AlphaVector> amtpd = A_tp.get(0);
-		amtpd.remove(0);
-		AlphaVector atp = amtpd.get(0);
-		double [] t  = new double [2];
-		t[0]=999;
-		atp = new AlphaVector(t);
-		atp.setAction(0);
-		mainLog.println("DDsadasdasddasdDDDDD");
-
-		mainLog.print(atp);
-		mainLog.println("A_allDDDDDDDDDD");
-		for (int a=0; a<A_all.size();a++){
-			ArrayList<AlphaVector> amtp= A_all.get(a);
-			mainLog.println("action"+a);
-			for (int i=0; i<amtp.size(); i++) {
-				mainLog.println("object"+i);
-				AlphaVector avtp = amtp.get(i);
-					mainLog.println(avtp);
-			}
-		}
-		mainLog.println("A_tpDDDDDDDDDD");
-		for (int a=0; a<A_all.size();a++){
-			ArrayList<AlphaVector> amtp= A_tp.get(a);
-			mainLog.println("action"+a);
-			for (int i=0; i<amtp.size(); i++) {
-				mainLog.println("object"+i);
-				AlphaVector avtp = amtp.get(i);
-					mainLog.println(avtp);
-			}
-		}		
 		*/
-		//line 6
-		ExpressionTemporal exprTemp = (ExpressionTemporal) objs.get(0).getExpression();
-		BitSet target = checkExpression(model, exprTemp.getOperand2(), null).getBitSet();
+		//check
+		mainLog.println("immediate reward");
+		for (int i=0; i<immediateRewards.size(); i++){
+			AlphaMatrix am= immediateRewards.get(i);
+			mainLog.println(am);
+		}
 		ArrayList<Belief> belief_set = ((POMDPModelChecker) this).randomExploreBeliefs((POMDP) model, target, statesOfInterest);
-
+		mainLog.println("Belie set size= "+belief_set.size());
 		while(priority_queue.size()>0){
 
 			mainLog.println("Current Q (weight, priority) Before Pop"+Arrays.toString(priority_queue.toArray()));
 			ArrayList<Double> w_pop = deQueue(priority_queue);
-			mainLog.println("deque...");
+			double[] w_pop_array = new double [w_pop.size()];
+			for (int w=0; w<w_pop.size(); w++) {
+				w_pop_array[w] = (double) w_pop.get(w);
+			}
+			
 			mainLog.println("Current Q (weight, priority) After Pop"+Arrays.toString(priority_queue.toArray()));
 			
 			//Line 9  Select the best A from A_all for each b \belong belief, give w
-			ArrayList<ArrayList<AlphaVector>> Ar =  new ArrayList<ArrayList<AlphaVector>> ();
+			ArrayList<AlphaMatrix> Ar =  new ArrayList<AlphaMatrix> ();
 			for (int i=0; i<belief_set.size();i++){
 				Belief belief_candidate =  belief_set.get(i);
-				double value_candidate = -99999;
-				int value_candidate_index =0;
-				for (int j=0; j<A_all.size();j++){
-					ArrayList<AlphaVector> A_candidate =  A_all.get(j);
-					mainLog.println("belief..."+belief_set.size()+"A_candidate..."+A_candidate.size()+"*"+A_candidate.get(0).size()+"w_pop..."+w_pop.size());
-					double value = valueMOPOMDP(belief_candidate, (POMDP) model, A_candidate, adjustWeight(w_pop,objs,model) );
-					if (value>value_candidate){
-						value_candidate = value;
-						value_candidate_index = j;
-					}
-					mainLog.println("Adjust min max value..."+value);
+				int maxValueIndex = AlphaMatrix.getMaxValueIndex(belief_candidate, A_all, w_pop_array, pomdp);
+				AlphaMatrix A_candidate = A_all.get(maxValueIndex);
+				if(!Ar.contains(A_candidate)) {
+				Ar.add(A_candidate);
 				}
-				Ar.add(((POMDPModelChecker) this).copyAlphaMatrix(A_all.get(value_candidate_index)));
-				mainLog.println("belief:..."+belief_candidate);
-				mainLog.println("best matrix:..."+ Arrays.toString((A_all.get(value_candidate_index)).toArray()));
 			}
-			
+			mainLog.println("Ar size= "+Ar.size());
+
 			//line 10 
 			double eta = 1E-5;
-			ArrayList<ArrayList<AlphaVector>> Aw = ((POMDPModelChecker) this).solveScalarizedPOMDP(Ar, belief_set, w_pop, eta);
-			// Aw <- solveScalarizedPOMDP(Ar, B, w, Eta)
+
+			ArrayList<AlphaMatrix> Aw = ((POMDPModelChecker) this).solveScalarizedPOMDP(Ar, belief_set, w_pop_array, eta, pomdp, immediateRewards, V);
+
+			//Line 11
+			Belief b0=pomdp.getInitialBelief();
+			int bestAlphaMatrixIndex = AlphaMatrix.getMaxValueIndex(b0, Aw, w_pop_array, pomdp);
+			AlphaMatrix bestAlphaMatrix = Aw.get(bestAlphaMatrixIndex);
+			mainLog.println("Best matrix="+bestAlphaMatrix);
+			double [][] matrix = bestAlphaMatrix.getMatrix();
+			double [] belief0 = b0.toDistributionOverStates(pomdp);
+			ArrayList<Double> Vb0 = new ArrayList<Double> ();
+			for (int j=0; j<objs.size(); j++) {
+				double value = 0;
+				for (int i=0; i<belief0.length; i++) {
+					value += belief0[i] * matrix[i][j];
+				}
+				Vb0.add(value);
+				mainLog.println("value"+value);
+			}
+			
+			//Line 12 update A_all
+			for (int i=0; i<Aw.size(); i++) {
+				A_all.add(Aw.get(i));
+			}
+			int countNewWeights = 0; //number of weights generated by u
+
+			//Line 13 TO CHecker
+			ArrayList<Double> u = Vb0;
+			w_v_checked.add((ArrayList<Double>) w_pop.clone());
+			weights_checked.add((ArrayList<Double>) w_pop.clone());
+			w_v_checked.add((ArrayList<Double>) u.clone());
+			vector_checked.add((ArrayList<Double>) u.clone());
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			if (!containsWithError(partial_CCS,u, 1E-5)) {
+				if (partial_CCS.size()==0) {// when to compute
+					for (int i_queue=0; i_queue<priority_queue.size();i_queue++){
+						ArrayList<Double> weight_tp = (ArrayList<Double>) priority_queue.get(i_queue).clone();
+						weight_tp.remove(weight_tp.size()-1);
+						ArrayList<ArrayList<Double>> current_value_set = (ArrayList<ArrayList<Double>>) corner_to_value.get(weight_tp).clone();
+						current_value_set.add(u);
+						corner_to_value.put(weight_tp, current_value_set );
+
+						ArrayList<ArrayList<Double>> weight_tp_set =  new ArrayList<ArrayList<Double>> ();
+						if(value_to_corner.containsKey(u))
+							weight_tp_set = (ArrayList<ArrayList<Double>>) value_to_corner.get(u).clone();
+						weight_tp_set.add(weight_tp);
+						value_to_corner.put(u,weight_tp_set);
+					}
+					mainLog.println("add value vector from 1st exterme weights");
+					partial_CCS.add((ArrayList<Double>) u.clone());
+					partial_CCS_weights.add((ArrayList<Double>) w_pop.clone());
+					mainLog.println(partial_CCS.size());
+				}
+				else {
+					mainLog.println("elsess");
+					double original_value = innerProduct(adjustWeight(w_pop,objs, model), u);
+					double other_prod = innerProduct(adjustWeight(w_pop,objs,model), corner_to_value.get(w_pop).get(corner_to_value.get(w_pop).size()-1));
+					if ((original_value - other_prod)>1E-08){
+
+						//remove from value dict
+						ArrayList<ArrayList<Double>> existing_value_vectors = corner_to_value.get(w_pop);
+						ArrayList<ArrayList<Double>> existing_weights = new ArrayList<ArrayList<Double>> () ;
+						for (int i_evv=0; i_evv<existing_value_vectors.size(); i_evv++){
+							ArrayList<Double> existing_value_vector = existing_value_vectors.get(i_evv);
+							if (value_to_corner.containsKey(existing_value_vector)){
+								existing_weights = value_to_corner.get(existing_value_vector);
+								for (int j_ew=0; j_ew<existing_weights.size();j_ew++){
+									ArrayList<Double> existing_weigth = existing_weights.get(j_ew);
+									if ( containsWithError(existing_weights, w_pop, threshold) && (!(w_pop.contains(1.0)))){
+										int tp_index = existing_weights.indexOf(w_pop);
+										value_to_corner.get(existing_value_vector).remove(tp_index);
+									}
+								}
+							}
+						}
+
+						//check obsolete 
+						ArrayList<ArrayList<Double>> weight_list = new ArrayList<ArrayList<Double>> ();
+						weight_list.add(w_pop);
+						ArrayList<ArrayList<Double>> obsolete_list = new ArrayList<ArrayList<Double>> ();
+						while (weight_list.size()>0){
+							ArrayList<Double> weight = weight_list.get(weight_list.size()-1);
+							weight_list.remove(weight_list.size()-1);
+							if (corner_to_value.containsKey(weight)){
+								existing_value_vectors = (ArrayList<ArrayList<Double>>) corner_to_value.get(weight).clone();
+								ArrayList<Double> existing_value_vector = existing_value_vectors.get(existing_value_vectors.size()-1);
+								double scalarized_value = innerProduct(existing_value_vector, adjustWeight(weight,objs,model));
+								if (original_value>scalarized_value){
+									for (int i_evv=0; i_evv<existing_value_vectors.size(); i_evv++){
+										existing_value_vector = existing_value_vectors.get(i_evv);
+										if (value_to_corner.containsKey(existing_value_vector)){
+
+											mainLog.println("+++++++++corner_to_value");
+											for (Object  key:corner_to_value.keySet()){
+												ArrayList<ArrayList<Double>> tp = (ArrayList<ArrayList<Double>>) corner_to_value.get(key);
+												for (int i=0; i< tp.size(); i++){
+													mainLog.println(key+" -> "+ Arrays.toString(((ArrayList<Double>) tp.get(i) ).toArray()));
+												}
+											}
+											mainLog.println("+++++++++value_to_corner");
+											for (Object  key:value_to_corner.keySet()){
+												ArrayList<ArrayList<Double>> tp = (ArrayList<ArrayList<Double>>) value_to_corner.get(key);
+												for (int i=0; i< tp.size(); i++){
+													mainLog.println(key+" -> "+ Arrays.toString(((ArrayList<Double>) tp.get(i) ).toArray()));
+												}
+											}
+											ArrayList<ArrayList<Double>> current_weights = value_to_corner.get(existing_value_vector);
+											for (int j_cw=0; j_cw<current_weights.size(); j_cw++){
+												ArrayList<Double> current_weight = current_weights.get(j_cw);
+												if ((!current_weights.equals(weight)) && (obsolete_list.contains(current_weight))){
+													weight_list.add((ArrayList<Double>) current_weight.clone());
+												}
+											}											
+										}
+									}
+									obsolete_list.add((ArrayList<Double>) weight.clone());
+								}
+							}
+						}
+
+						for (int iprint=0; iprint<obsolete_list.size();iprint++){
+							mainLog.println("obsolete_list: "+Arrays.toString(obsolete_list.get(iprint).toArray())+"\n");
+						}
+
+						///compute new corner
+						ArrayList<ArrayList<Double>> boundaries=new ArrayList<ArrayList<Double>>();
+						for (int i_obs=0; i_obs<obsolete_list.size();i_obs++){
+							ArrayList<Double> obsolete_weight = obsolete_list.get(i_obs);
+							for (int j_obs=0; j_obs<obsolete_weight.size();j_obs++){
+								ArrayList<Double> boundary = new ArrayList<Double> ();
+								boundary.add((double) j_obs);
+								if (((double) obsolete_weight.get(j_obs)==0) && (!boundaries.contains(boundary)))
+									boundaries.add(boundary);
+							}
+						}
+
+						ArrayList<ArrayList<Double>> old_value_vectors = new ArrayList<ArrayList<Double>>  ();
+
+						for (int i_obs=0; i_obs<obsolete_list.size();i_obs++){
+							ArrayList<Double> found_weight = obsolete_list.get(i_obs);
+							ArrayList<ArrayList<Double>> found_values = corner_to_value.get(found_weight);
+							for (int j_fv=0; j_fv<found_values.size(); j_fv++){
+								ArrayList<Double> found_value = found_values.get(j_fv);
+								mainLog.println("found_value"+Arrays.toString(found_value.toArray()));
+								mainLog.println(!old_value_vectors.contains(found_value));
+								mainLog.println("u"+Arrays.toString(u.toArray()));
+								mainLog.println(!found_value.equals(u));
+								if((!old_value_vectors.contains(found_value))&&(!found_value.equals(u))) {
+									old_value_vectors.add((ArrayList<Double>) found_value.clone());
+								}
+							}
+						}
+
+						// /*
+						old_value_vectors = new ArrayList<ArrayList<Double>>  ();
+
+						for (int i_obs=0; i_obs<obsolete_list.size();i_obs++){
+							double bestValue = innerProduct(adjustWeight((ArrayList<Double>) obsolete_list.get(i_obs), objs, model), partial_CCS.get(0));
+							for (int j_partialCSS=0; j_partialCSS < partial_CCS.size(); j_partialCSS++){
+								if (innerProduct(adjustWeight((ArrayList<Double>) obsolete_list.get(i_obs), objs, model), partial_CCS.get(j_partialCSS))>bestValue){
+									bestValue = innerProduct(adjustWeight((ArrayList<Double>) obsolete_list.get(i_obs), objs, model), partial_CCS.get(j_partialCSS));
+								}
+							}
+							for (int j_partialCSS=0; j_partialCSS < partial_CCS.size(); j_partialCSS++){
+								if (Math.abs(innerProduct(adjustWeight((ArrayList<Double>) obsolete_list.get(i_obs), objs, model), partial_CCS.get(j_partialCSS))-bestValue)<1E-06){
+									if (old_value_vectors.size()<objs.size()){ //if Vs(w) contians fewer than dvalue vecotrs
+										old_value_vectors.add((ArrayList<Double>) partial_CCS.get(j_partialCSS).clone());
+									}
+								}
+							}
+						}
+
+
+						for (int i_b=0; i_b<boundaries.size();i_b++){
+							old_value_vectors.add((ArrayList<Double>) boundaries.get(i_b).clone());
+						}
+
+						for (int iprint=0; iprint<old_value_vectors.size();iprint++){
+							mainLog.println("old_value_vectors: "+Arrays.toString(old_value_vectors.get(iprint).toArray())+"\n");
+						}
+
+						//compute new points
+						//Add to queue
+						ArrayList<ArrayList<Double>> subset = new ArrayList<ArrayList<Double>>(); //one kind of combination
+
+						ArrayList<Double> tpp= new ArrayList<Double>();
+						tpp.add(1.0);
+						tpp.add(1.0);
+						for (int i_ojs=0; i_ojs<objs.size()-1;i_ojs++){
+							subset.add(tpp);
+						}
+
+						ArrayList<ArrayList<ArrayList<Double>>> subsets = new ArrayList<ArrayList<ArrayList<Double>>>(); //all combination
+						
+						mainLog.println("old_value_vectors size"+old_value_vectors.size());
+						combinations2(old_value_vectors, objs.size()-1, 0, subset, subsets);
+
+						mainLog.println("allsubsets: total number of combinations"+Arrays.toString(subsets.toArray())+subsets.size());
+						
+						for(int i_subset=0; i_subset<subsets.size();i_subset++){
+							ArrayList<ArrayList<Double>> hCCS = new ArrayList<ArrayList<Double>>(); //optimistic hypothetical CCS
+							ArrayList<ArrayList<Double>> A = new ArrayList<ArrayList<Double>>();
+							ArrayList<Double> augumented_vector = new ArrayList<Double>();
+							ArrayList<Double> bound_from_w_obsolete = new ArrayList<Double>();
+							ArrayList<ArrayList<Double>> oneCombination =(ArrayList<ArrayList<Double>> ) subsets.get(i_subset).clone();
+							for (int j=0; j<oneCombination.size(); j++){
+								augumented_vector = (ArrayList<Double>) oneCombination.get(j).clone();
+								if (augumented_vector.size()==objs.size()){
+									hCCS.add((ArrayList<Double>) augumented_vector.clone());
+									augumented_vector.add(-1.0);
+									A.add(augumented_vector);
+								}
+								else{
+									bound_from_w_obsolete.add((double) augumented_vector.get(0));
+								}
+							}
+							hCCS.add((ArrayList<Double>) u.clone());
+							augumented_vector = (ArrayList<Double>) u.clone();
+							augumented_vector.add(-1.0);
+							A.add((ArrayList<Double>) augumented_vector.clone());
+
+							//simplex constraint
+							ArrayList<Double> bound = new ArrayList<Double>();
+							for (int i=0; i<objs.size();i++) {
+								bound.add(1.0);
+							}
+							bound.add(0.0);
+							A.add(bound);
+
+
+							// remove column that has bound. (E.g. for weight [0.5,0.5,0], the boundary index is 2, then remove column 2 from A)
+							
+							for (int i_bf=0; i_bf<bound_from_w_obsolete.size();i_bf++){
+								double removeIndex = (double) bound_from_w_obsolete.get(i_bf);
+								int remove = (int) removeIndex;
+								for (int i_A=0; i_A<A.size(); i_A++){
+									A.get(i_A).remove(remove);
+								}
+							}
+							
+							ArrayList<Double> b = new ArrayList<Double>();
+							for (int i=0; i<A.size()-1; i++) {
+								b.add(0.0);
+							}
+							b.add(1.0);
+
+							ArrayList w_new = new ArrayList<Double>();
+							w_new = linSolver(A,b);
+							w_new.remove(w_new.size()-1);
+
+							for (int i_bf=0; i_bf<bound_from_w_obsolete.size();i_bf++){
+								double insertIndex = (double) bound_from_w_obsolete.get(i_bf);
+								int insert = (int) insertIndex;
+								w_new.add(insert,0.0);
+							}
+							
+
+							Boolean allPositive = true;
+							for (int iw=0; iw<w_new.size();iw++){
+								if ((double) w_new.get(iw)<0){
+									allPositive = false;
+								}
+							}
+							if (!allPositive){
+								mainLog.println("Negative... continue");
+								continue;
+							}
+
+							if (w_new.contains(1.0)){
+								mainLog.println("Extreme... continue");
+								continue;
+							}
+							if (w_new.contains(Double.NaN)){
+								mainLog.println("NaN... continue");
+								continue;
+							}
+							mainLog.println("generateing new weights by"+Arrays.toString(u.toArray()));
+							
+							countNewWeights++;
+							mainLog.println(countNewWeights+"Number of New weights generated by :"+Arrays.toString(u.toArray()));
+							mainLog.println("w_new"+Arrays.toString(w_new.toArray()));
+							if (countNewWeights>objs.size())
+								mainLog.println("More new weights than expected");
+
+							//////// this is for rounding
+							
+							double weigth_sum = 0.0;
+							for (int iw=0;iw<w_new.size()-1;iw++){
+								w_new.set(iw, (double) Math.round((double)w_new.get(iw) * 1000000)/1000000);
+								weigth_sum += (double) w_new.get(iw);
+							}
+							w_new.set(w_new.size()-1, (double) 1-weigth_sum);
+							mainLog.println("w_new (sum to 1)"+Arrays.toString(w_new.toArray()));
+							
+
+							//update value_to_corner & corner_to_value
+							ArrayList<ArrayList<Double>> default_value_vecotrs = new  ArrayList<ArrayList<Double>>();
+							default_value_vecotrs.add((ArrayList<Double>) u.clone());
+							corner_to_value.put((ArrayList<Double>) w_new.clone(), default_value_vecotrs);
+
+							ArrayList<ArrayList<Double>> new_weights = new  ArrayList<ArrayList<Double>>();
+							new_weights.add((ArrayList<Double>) w_new.clone());
+							value_to_corner.put(u,new_weights);
+
+
+							// Add to priority queue
+							double priority=1.0;
+
+							mainLog.println("computing priority = "+hCCS.size());
+
+							//priority = maxValueLP(w_new,partial_CCS,W)
+							if (hCCS.size()==objs.size()){	
+								ArrayList<ArrayList<Double>> A_tp = new ArrayList<ArrayList<Double>> ();
+								ArrayList<Double> b_tp = new ArrayList<Double> ();
+
+								for (int i_hCCS=0; i_hCCS<hCCS.size(); i_hCCS++){
+									ArrayList<Double> value_tp = (ArrayList<Double>) hCCS.get(i_hCCS);
+									//ArrayList<Double> weight_tp = (ArrayList<Double>) value_to_corner.get(value_tp).get(value_to_corner.get(value_tp).size()-1);
+									ArrayList<Double> weight_tp =(ArrayList<Double>) w_v_checked.get(w_v_checked.indexOf(value_tp)-1);
+									double v_sw = innerProduct(value_tp,weight_tp);
+									A_tp.add((ArrayList<Double>) weight_tp.clone());
+									b_tp.add(v_sw); 
+								}
+								ArrayList<Double> h_value = linSolver(A_tp,b_tp);
+								double v_ccs = innerProduct(h_value,w_new);
+								double v_sw = innerProduct(u, w_new);
+								priority = Math.abs((v_ccs-v_sw)/v_ccs);
+								mainLog.println("computing priority = "+priority);
+							}
+							
+
+							if (priority > threshold){
+								w_new.add(priority);
+								priority_queue.add((ArrayList<Double>) w_new.clone());
+							}
+
+							//delete obsolete list from priority queue
+							for (int i_obs=0; i_obs<obsolete_list.size();i_obs++){
+								ArrayList<Double> obsolete_weight =  obsolete_list.get(i_obs);
+								if (!obsolete_weight.contains(1.0)){
+									for (int j_queue=0; j_queue<priority_queue.size(); j_queue++){
+										ArrayList<Double> tp_weight = (ArrayList<Double>) priority_queue.get(j_queue).clone();
+										tp_weight.remove(tp_weight.size()-1);
+										if (tp_weight.equals(obsolete_weight)){
+											mainLog.println("Removing obsolete_weight:"+ Arrays.toString(obsolete_weight.toArray()));
+											priority_queue.remove(j_queue);
+										}
+
+									}
+								}
+							}
+
+						}
+					}
+				//
+				//add to solution
+				partial_CCS.add((ArrayList<Double>) u.clone());
+				partial_CCS_weights.add((ArrayList<Double>) w_pop.clone());
+				}
+			}
+			else {
+				mainLog.println("Vector already in the partial CCS");
+
+			}
+			
 		}
 		
+		mainLog.println("ALl weights checked:"+ weights_checked.size());
+		HashSet values_OLS = new HashSet();
+
+		for (int iprint=0; iprint<weights_checked.size();iprint++){
+			mainLog.print("weight: "+Arrays.toString(weights_checked.get(iprint).toArray())+"; vector: "+Arrays.toString(vector_checked.get(iprint).toArray())+"\n");
+		}
+		mainLog.println("*********************ParetoCurve by optimal linear solution*******************************");
+
+		for (int iprint=0; iprint<partial_CCS.size();iprint++){
+			mainLog.print("weight: "+Arrays.toString(partial_CCS_weights.get(iprint).toArray())+"; vector: "+Arrays.toString(partial_CCS.get(iprint).toArray())+"\n");
+			values_OLS.add(innerProduct(partial_CCS_weights.get(iprint),partial_CCS.get(iprint)));
+
+		}
+		mainLog.print("#weights: "+partial_CCS_weights.size()+"\n");
+		for (int iprint=0; iprint<partial_CCS.size();iprint++){
+			mainLog.print(Arrays.toString(partial_CCS_weights.get(iprint).toArray())+"\n");
+		}
+		mainLog.println("#Parecto Curve points: "+partial_CCS.size()+"\n");
+		for (int iprint=0; iprint<partial_CCS.size();iprint++){
+			mainLog.print(Arrays.toString(partial_CCS.get(iprint).toArray())+"\n");
+		}
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
     	// Dummy return value
 		return StateValues.createFromSingleValue(TypeDouble.getInstance(), 0.0, model);
     }
