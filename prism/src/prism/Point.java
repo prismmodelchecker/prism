@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 
 
-public class Point
+public class Point implements Comparable<Point>
 {	
 	/**
 	 * A number used as a basis when neglecting roundoff errors in tests
@@ -125,6 +125,20 @@ public class Point
 		return (int) (this.coords[0] * 100);
 	}
 	
+	@Override
+	public int compareTo(Point other)
+	{
+		if (other.getDimension() != this.getDimension()) {
+			throw new RuntimeException("Incomparable points: " + this + ", " + other);
+		}
+		for (int i = 0; i < this.getDimension(); i++) {
+			int c = Double.compare(getCoord(i), other.getCoord(i));
+			if (c != 0) {
+				return c;
+			}
+		}
+		return 0;
+	}
 
 	/**
 	 * Determines if this point is very close to the point {@code p}, where

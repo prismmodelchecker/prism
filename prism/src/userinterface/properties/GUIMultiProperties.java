@@ -93,6 +93,7 @@ import parser.type.Type;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.type.TypeInterval;
+import prism.Point;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismSettings;
@@ -906,6 +907,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		}
 
+		// Do plotting for properties with plottable (explicit engine Pareto) results
+		for (int p : selected) {
+			GUIProperty gp = propList.getProperty(p);
+			Object result = gp.getResult().getResult();
+			synchronized (result) {
+				if (result instanceof List) {
+					plotPareto((List<?>) result);
+				}
+			}
+		}
+		
 		// How to plot a parametric result...
 		/*if (selected.length == 1) {
 			GUIProperty gp = propList.getProperty(selected[0]);
@@ -975,6 +987,29 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 	}
 
+	private void plotPareto(List<?> list)
+	{
+		// Only consider Point objects
+		List<Point> pointList = new ArrayList<>();
+		for (Object o : list) {
+			if (o instanceof Point) {
+				pointList.add((Point) o);
+			}
+		}
+		if (!pointList.isEmpty()) {
+			// Sort for plotting
+			Collections.sort(pointList);
+			// Plot
+			Graph graph = new Graph();
+			SeriesKey sk = graph.addSeries("Pareto curve");
+			for (Point point : pointList) {
+				XYDataItem di = new XYDataItem(point.getCoord(0), point.getCoord(1));
+				graph.addPointToSeries(sk, di);
+			}
+			this.getGraphHandler().addGraph(graph);
+		}
+	}
+	
 	public void a_cut()
 	{
 		java.awt.datatransfer.Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

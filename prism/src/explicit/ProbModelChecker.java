@@ -55,6 +55,7 @@ import parser.type.TypePathDouble;
 import prism.AccuracyFactory;
 import prism.IntegerBound;
 import prism.OpRelOpBound;
+import prism.Point;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -2221,9 +2222,20 @@ public class ProbModelChecker extends NonProbModelChecker
 		mainLog.println("Weights and vectors checked by random sampling end: ");
 		//mainLog.println("scalarized values RS:"+values_rs.size());
 		//mainLog.println(values_rs);
-		// Dummy return value
-		return StateValues.createFromSingleValue(TypeDouble.getInstance(), 0.0, model);
+		
+		// Return Pareto curve as Point list
+		List<Point> points = new ArrayList<>();
+		for (ArrayList<Double> paretoPoint : paretoCurveCompact) {
+			Point point = new Point(2);
+			point.setCoord(0, paretoPoint.get(0));
+			point.setCoord(1, paretoPoint.get(1));
+			points.add(point);
+		}
+		Object array[] = new Object[model.getNumStates()];
+		array[model.getFirstInitialState()] = points;
+		return StateValues.createFromObjectArray(TypeDouble.getInstance(), array, model);
     }
+    
 	protected StateValues checkExpressionParetoMultiObj(Model model, List<ExpressionReward> objs, BitSet statesOfInterest) throws PrismException
 	{	
 		switch (model.getModelType()) {
