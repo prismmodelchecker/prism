@@ -177,6 +177,7 @@ else
 endif
 LD = $(CXX)
 JAVAC = javac
+JAVA = java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -490,6 +491,8 @@ count_loc:
 ###########
 # Testing #
 ###########
+unittests:
+	$(JAVA) -jar lib/junit-platform-console-standalone-1.7.2.jar -cp classes --scan-classpath
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
