@@ -4,7 +4,7 @@
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
 //	* Christian von Essen <christian.vonessen@imag.fr> (Verimag, Grenoble)
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -38,8 +38,7 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.function.Function;
 
 import common.IterableStateSet;
-import common.iterable.IterableInt;
-import common.iterable.MappingIterator;
+import common.iterable.PrimitiveIterable;
 import explicit.rewards.MCRewards;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -358,7 +357,7 @@ public class DTMCSparse extends DTMCExplicit
 	}
 
 	@Override
-	public void vmMultPowerSteadyState(double vect[], double result[], double[] diagsQ, double deltaT, IterableInt states)
+	public void vmMultPowerSteadyState(double vect[], double result[], double[] diagsQ, double deltaT, PrimitiveIterable.OfInt states)
 	{
 		// Recall that the generator matrix Q has entries
 		//       Q(s,s) = -sum_{t!=s} prob(s,t)
@@ -407,8 +406,8 @@ public class DTMCSparse extends DTMCExplicit
 			}
 		};
 		String s = "trans: [ ";
-		final IterableStateSet states = new IterableStateSet(numStates);
-		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.From<>(states, getDistribution);
+		IterableStateSet states = new IterableStateSet(numStates);
+		Iterator<Entry<Integer, Distribution>> distributions = states.iterator().map(getDistribution);
 		while (distributions.hasNext()) {
 			final Entry<Integer, Distribution> dist = distributions.next();
 			s += dist.getKey() + ": " + dist.getValue();

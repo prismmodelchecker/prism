@@ -39,7 +39,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import common.iterable.IterableInt;
+import common.iterable.PrimitiveIterable;
 import param.BigRational;
 
 /**
@@ -144,7 +144,7 @@ public class PrismUtils
 	 * <br>
 	 * Considers Inf == Inf and -Inf == -Inf.
 	 */
-	public static boolean doublesAreClose(double d1[], double d2[], IterableInt indizes, double epsilon, boolean abs)
+	public static boolean doublesAreClose(double d1[], double d2[], PrimitiveIterable.OfInt indizes, double epsilon, boolean abs)
 	{
 		return doublesAreClose(d1, d2, indizes.iterator(), epsilon, abs);
 	}
@@ -480,7 +480,7 @@ public class PrismUtils
 	 * @param entries Iterable over the entries (must not contain duplicates)
 	 * @return the altered vector (returned for convenience; it's the same one)
 	 */
-	public static double[] normalise(double[] vector, IterableInt entries)
+	public static double[] normalise(double[] vector, PrimitiveIterable.OfInt entries)
 	{
 		double sum = 0.0;
 		for (PrimitiveIterator.OfInt iter = entries.iterator(); iter.hasNext();) {

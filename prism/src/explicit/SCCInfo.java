@@ -27,9 +27,10 @@
 package explicit;
 
 import java.util.Arrays;
-import java.util.PrimitiveIterator.OfInt;
+import java.util.PrimitiveIterator;
 
 import common.IntSet;
+import common.iterable.FunctionalPrimitiveIterator;
 import prism.PrismLog;
 
 /**
@@ -144,9 +145,9 @@ public class SCCInfo implements SCCConsumer
 		return new IntSet() {
 
 			@Override
-			public OfInt iterator()
+			public FunctionalPrimitiveIterator.OfInt iterator()
 			{
-				return new OfInt() {
+				return new FunctionalPrimitiveIterator.OfInt() {
 					int cur = start;
 
 					@Override
@@ -164,9 +165,9 @@ public class SCCInfo implements SCCConsumer
 			}
 
 			@Override
-			public OfInt reversedIterator()
+			public FunctionalPrimitiveIterator.OfInt reversedIterator()
 			{
-				return new OfInt() {
+				return new FunctionalPrimitiveIterator.OfInt() {
 					int cur = end;
 
 					@Override
@@ -184,7 +185,7 @@ public class SCCInfo implements SCCConsumer
 			}
 
 			@Override
-			public int cardinality()
+			public long count()
 			{
 				return getNumStatesInSCC(sccIndex);
 			}
@@ -209,7 +210,7 @@ public class SCCInfo implements SCCConsumer
 	{
 		for (int scc = 0; scc < getNumSCCs(); scc++) {
 			log.println("SCC " + scc + " (" + getNumStatesInSCC(scc) + "):");
-			for (OfInt states = getStatesForSCC(scc).iterator(); states.hasNext();) {
+			for (PrimitiveIterator.OfInt states = getStatesForSCC(scc).iterator(); states.hasNext();) {
 				int state = states.nextInt();
 				log.print(" ");
 				log.print(state);

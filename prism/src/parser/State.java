@@ -28,6 +28,7 @@ package parser;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import prism.ModelInfo;
 import prism.PrismLangException;
@@ -46,7 +47,17 @@ public class State implements Comparable<State>
 	 */
 	public State(int n)
 	{
-		varValues = new Object[n];
+		this(new Object[n]);
+	}
+
+	/**
+	 * Construct state from value array.
+	 * @param n Number of variables.
+	 */
+	public State(Object[] varValues)
+	{
+		Objects.requireNonNull(varValues);
+		this.varValues = varValues;
 	}
 
 	/**

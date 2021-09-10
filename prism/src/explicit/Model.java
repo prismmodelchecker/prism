@@ -181,7 +181,7 @@ public interface Model
 	 */
 	public default int getNumTransitions(int s)
 	{
-		return IteratorTools.count(getSuccessorsIterator(s));
+		return Math.toIntExact(IteratorTools.count(getSuccessorsIterator(s)));
 	}
 
 	/**

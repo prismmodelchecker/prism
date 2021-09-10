@@ -3,6 +3,7 @@
 //	Copyright (c) 2016-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,13 +28,18 @@
 package common;
 
 import java.util.BitSet;
+import java.util.Objects;
+import java.util.PrimitiveIterator;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.PrimitiveIterator.OfInt;
+import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 import common.IterableBitSet;
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.FunctionalPrimitiveIterator;
+import common.iterable.SingletonIterable;
 
 /**
  * Interface for an ordered set of integers that allows efficient
@@ -42,19 +48,16 @@ import common.IterableBitSet;
  * <br>
  * Provides static helpers for wrapping a BitSet or a singleton value.
  */
-public interface IntSet extends Iterable<Integer>
+public interface IntSet extends FunctionalPrimitiveIterable.OfInt
 {
-	/** Return a PrimitiveIterator.OfInt iterator for iteration, normal order */
-	public OfInt iterator();
-
-	/** Return a PrimitiveIterator.OfInt iterator for iteration, reversed order */
-	public OfInt reversedIterator();
+	/** Return a FunctionalPrimitiveIterator.OfInt iterator for iteration, reversed order */
+	FunctionalPrimitiveIterator.OfInt reversedIterator();
 
 	/** Return the cardinality (number of elements) for this set */
-	public int cardinality();
-
-	/** Return true if {@code index} is a member of this set */
-	public boolean contains(int index);
+	default long cardinality()
+	{
+		return count();
+	}
 
 	/**
 	 * Return true if {@code index} is a member of this set
@@ -62,7 +65,7 @@ public interface IntSet extends Iterable<Integer>
 	 * <p>
 	 * <i>Default implementation</i>: Calls contains(index).
 	 */
-	public default boolean get(int index)
+	default boolean get(int index)
 	{
 		return contains(index);
 	}
@@ -74,9 +77,9 @@ public interface IntSet extends Iterable<Integer>
 	 * <i>Default implementation</i>:
 	 * Tests via contains for all elements of other.
 	 */
-	public default boolean contains(IntSet other)
+	default boolean contains(IntSet other)
 	{
-		return other.stream().allMatch(this::contains);
+		return other.allMatch((IntPredicate) this::contains);
 	}
 
 	/**
@@ -86,7 +89,7 @@ public interface IntSet extends Iterable<Integer>
 	 * <i>Default implementation</i>:
 	 * Uses contains(IntSet other).
 	 */
-	public default boolean contains(BitSet other)
+	default boolean contains(BitSet other)
 	{
 		return contains(asIntSet(other));
 	}
@@ -97,23 +100,32 @@ public interface IntSet extends Iterable<Integer>
 	 * <i>Default implementation</i>:
 	 * Wrap iterator() into an intStream.
 	 */
-	public default IntStream stream() {
+	default IntStream stream()
+	{
 		return StreamSupport.intStream(
-				() -> Spliterators.spliterator(
-						iterator(), cardinality(),
-						Spliterator.DISTINCT),
+				() -> spliterator(),
 				Spliterator.SIZED | Spliterator.DISTINCT,
 				false);
 	}
 
+	@Override
+	default Spliterator.OfInt spliterator()
+	{
+		return Spliterators.spliterator(
+				iterator(),
+				cardinality(),
+				Spliterator.SIZED | Spliterator.DISTINCT);
+	}
+
 	/** Return this set as a String */
-	public default String asString()
+	@Override
+	default String asString()
 	{
 		// can't overload toString() with a default method in interface
 		StringBuffer sb = new StringBuffer();
 		sb.append("{");
 		boolean first = true;
-		for (OfInt it = iterator(); it.hasNext(); ) {
+		for (PrimitiveIterator.OfInt it = iterator(); it.hasNext(); ) {
 			if (!first)
 				sb.append(",");
 			first = false;
@@ -123,33 +135,36 @@ public interface IntSet extends Iterable<Integer>
 		return sb.toString();
 	}
 
+
+
 	/**
 	 * Wrapper class for obtaining an IntSet from a BitSet.
 	 * <p>
 	 * Note: The BitSet should not be modified as long as the
 	 * derived IntSet is in use.
 	 */
-	public static class IntSetFromBitSet implements IntSet
+	static class IntSetFromBitSet implements IntSet
 	{
 		/** The wrapped BitSet */
-		private BitSet bs;
+		protected BitSet bs;
 		/** The cardinality of the underlying BitSet (cached, -1 = not yet computed) */
 		int cardinality = -1;
 
 		/** Constructor */
 		public IntSetFromBitSet(BitSet bs)
 		{
+			Objects.requireNonNull(bs);
 			this.bs = bs;
 		}
 
 		@Override
-		public OfInt iterator()
+		public FunctionalPrimitiveIterator.OfInt iterator()
 		{
 			return IterableBitSet.getSetBits(bs).iterator();
 		}
 
 		@Override
-		public OfInt reversedIterator()
+		public FunctionalPrimitiveIterator.OfInt reversedIterator()
 		{
 			return IterableBitSet.getSetBitsReversed(bs).iterator();
 		}
@@ -161,7 +176,7 @@ public interface IntSet extends Iterable<Integer>
 		}
 
 		@Override
-		public int cardinality()
+		public long count()
 		{
 			// not yet computed?
 			if (cardinality == -1)
@@ -183,86 +198,53 @@ public interface IntSet extends Iterable<Integer>
 		}
 	};
 
-	/** Convenience class for simulating a singleton set */
-	public static class SingletonIntSet implements IntSet
-	{
-		/** The single member of this singleton set */
-		private int singleMember;
 
+
+	/** Convenience class for simulating a singleton set */
+	static class SingletonIntSet extends SingletonIterable.OfInt implements IntSet
+	{
 		/**
 		 * Constructor.
 		 * @param singleMember the single member of this set
 		 */
 		public SingletonIntSet(int singleMember)
 		{
-			this.singleMember = singleMember;
+			super(singleMember);
 		}
 
 		@Override
-		public OfInt iterator()
-		{
-			return new OfInt() {
-				boolean done = false;
-				@Override
-				public boolean hasNext()
-				{
-					return !done;
-				}
-				@Override
-				public int nextInt()
-				{
-					done = true;
-					return singleMember;
-				}
-			};
-		}
-
-		@Override
-		public OfInt reversedIterator()
+		public FunctionalPrimitiveIterator.OfInt reversedIterator()
 		{
 			// iteration order does not matter for singleton set
 			return iterator();
 		}
 
 		@Override
-		public int cardinality()
-		{
-			return 1;
-		}
-
-		@Override
-		public boolean contains(int index)
-		{
-			return index == singleMember;
-		}
-
-		@Override
 		public String toString()
 		{
-			return "{" + singleMember + "}";
+			return "{" + element + "}";
 		}
-
 	}
 
 	/**
-	 * Static constructor for obtaining an IntSet from a BitSet
+	 * Factory method for obtaining an IntSet from a BitSet
 	 * <p>
 	 * Note: The BitSet should not be modified as long as the derived IntSet is in use.
+	 *
 	 * @param bs The underlying BitSet
 	 */
-	public static IntSet asIntSet(BitSet bs)
+	static IntSet asIntSet(BitSet bs)
 	{
 		return new IntSetFromBitSet(bs);
 	}
 
 	/**
-	 * Static constructor for obtaining an IntSet for a singleton set.
+	 * Factory method for obtaining an IntSet for a singleton set.
+	 *
 	 * @param singleMember The single member of the singleton set
 	 */
-	public static IntSet asIntSet(int singleMember)
+	static IntSet asIntSet(int singleMember)
 	{
 		return new SingletonIntSet(singleMember);
 	}
-
 }
-

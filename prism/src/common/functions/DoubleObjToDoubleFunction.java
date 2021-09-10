@@ -1,8 +1,8 @@
 //==============================================================================
 //	
-//	Copyright (c) 2016-
+//	Copyright (c) 2020-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -24,13 +24,28 @@
 //	
 //==============================================================================
 
-package common.iterable;
+package common.functions;
 
-import java.util.PrimitiveIterator.OfDouble;
+import java.util.Objects;
+import java.util.function.DoubleUnaryOperator;
 
-/** Iterable for a PrimitiveIterator.OfDouble */
-public interface IterableDouble extends Iterable<Double>
+/**
+ * Functional interface for a binary function (double, T) -> double.
+ */
+@FunctionalInterface
+public interface DoubleObjToDoubleFunction<T>
 {
-	@Override
-	public OfDouble iterator();
+	/**
+	 * Applies this function to the given arguments.
+	 */
+	double applyAsDouble(double d, T t);
+
+	/**
+	 * Returns a composed function that first applies this function to
+	 * its input, and then applies the {@code after} function to the result.
+	 */
+	default <V> DoubleObjToDoubleFunction<T> andThen(DoubleUnaryOperator after) {
+		Objects.requireNonNull(after);
+		return (double d, T t) -> after.applyAsDouble(applyAsDouble(d, t));
+	}
 }

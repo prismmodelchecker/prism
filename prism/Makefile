@@ -14,6 +14,7 @@
 # If this is a problem, the best solution is to create symlinks.
 
 export PRISM_SRC_DIR     = src
+export PRISM_TESTS_DIR   = unit-tests
 export PRISM_CLASSES_DIR = classes
 export PRISM_OBJ_DIR     = obj
 export PRISM_LIB_DIR     = lib
@@ -176,6 +177,7 @@ else
 endif
 LD = $(CXX)
 JAVAC = javac
+JAVA = java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -323,6 +325,7 @@ export CFLAGS CXXFLAGS LDFLAGS JFLAGS LIBPREFIX LIBSUFFIX
 ##########################################
 
 MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta param strat automata common cex
+TEST_DIRS = common
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -368,7 +371,7 @@ extpackages: checks
 
 # Compile main PRISM code
 # (we also do some preparatory checks, and build launch scripts afterwards)
-prism: checks make_dirs bin_scripts
+prism: checks make_dirs bin_scripts make_tests
 
 # Compile each (top-level) source directory separately
 make_dirs:
@@ -396,6 +399,22 @@ make_dirs:
 	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
 		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
 	fi;
+
+make_tests:
+	@for dir in $(TEST_DIRS); do \
+	  echo Making $(PRISM_TESTS_DIR)/$$dir ...; \
+	  (cd $(PRISM_TESTS_DIR)/$$dir && \
+	  $(MAKE) \
+	  CUDD_DIR="$(CUDD_DIR)" \
+	  JAVA_INCLUDES="$(JAVA_INCLUDES)" \
+	  JAVA_JNI_H_DIR="$(JAVA_JNI_H_DIR)" \
+	  JAVA_JNI_MD_H_DIR="$(JAVA_JNI_MD_H_DIR)" \
+	  SHARED="$(SHARED)" \
+	  EXE="$(EXE)" \
+	  LIBMATH="$(LIBMATH)" \
+	  CLASSPATHSEP="$(CLASSPATHSEP)") \
+	  || exit 1; \
+	done; \
 
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
@@ -472,6 +491,8 @@ count_loc:
 ###########
 # Testing #
 ###########
+unittests:
+	$(JAVA) -jar lib/junit-platform-console-standalone-1.7.2.jar -cp classes --scan-classpath
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
