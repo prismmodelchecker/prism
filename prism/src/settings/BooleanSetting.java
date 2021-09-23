@@ -70,8 +70,8 @@ public class BooleanSetting extends Setting
     
 	public Object parseStringValue(String string) throws SettingException
 	{
-		if(string.equals("true")) return new Boolean(true);
-		else if(string.equals("false")) return new Boolean(false);
+		if(string.equals("true")) return Boolean.valueOf(true);
+		else if(string.equals("false")) return Boolean.valueOf(false);
 		else throw new SettingException("Error when parsing: "+string+" as a Boolean value.");
 	}
 	

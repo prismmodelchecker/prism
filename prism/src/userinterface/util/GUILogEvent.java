@@ -75,7 +75,7 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(int type, boolean message)
     {
-        super(type, new Boolean(message));
+        super(type, Boolean.valueOf(message));
     }
     
     public GUILogEvent(Object message)
@@ -115,6 +115,6 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(boolean message)
     {
-        this(PRINTLN, new Boolean(message));
+        this(PRINTLN, Boolean.valueOf(message));
     }
 }

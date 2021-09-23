@@ -122,12 +122,12 @@ public class AxisSettings extends Observable implements SettingOwner
 		headingFont = new FontColorSetting("heading font", new FontColorPair(new Font("SansSerif", Font.PLAIN, 12), Color.black), "The font for this axis' heading.", this, true);
 		numberFont = new FontColorSetting("numbering font", new FontColorPair(new Font("SansSerif", Font.PLAIN, 12), Color.black), "The font used to number the axis.", this, true);
 		
-		showGrid = new BooleanSetting("show gridlines", new Boolean(true), "Should the gridlines be visible", this, true);
+		showGrid = new BooleanSetting("show gridlines", Boolean.valueOf(true), "Should the gridlines be visible", this, true);
 		gridColour = new ColorSetting("gridline colour", new Color(204,204,204), "The colour of the gridlines", this, true);
 		
 		String[] logarithmicChoices = {"Normal", "Logarithmic"};
 		scaleType = new ChoiceSetting("scale type", logarithmicChoices, logarithmicChoices[0], "Should the scale be normal, or logarithmic", this, true);
-		autoScale = new BooleanSetting("auto-scale", new Boolean(true), "When set to true, all minimum values, maximum values, grid intervals, maximum logarithmic powers and minimum logarithmic powers are automatically set and maintained when the data changes.", this, true);
+		autoScale = new BooleanSetting("auto-scale", Boolean.valueOf(true), "When set to true, all minimum values, maximum values, grid intervals, maximum logarithmic powers and minimum logarithmic powers are automatically set and maintained when the data changes.", this, true);
 		minValue = new DoubleSetting("minimum value", new Double(0.0), "The minimum value for the axis", this, true);
 		maxValue = new DoubleSetting("maximum value", new Double(1.0), "The maximum value for the axis", this, true);
 		gridInterval = new DoubleSetting("gridline interval", new Double(0.2), "The interval between gridlines", this, false, new RangeConstraint(0, Double.POSITIVE_INFINITY, false, true));
@@ -405,7 +405,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			autoScale.setValue(new Boolean(value));
+			autoScale.setValue(Boolean.valueOf(value));
 			doEnables();
 			updateAxis();
 			setChanged();
@@ -436,7 +436,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			showGrid.setValue(new Boolean(value));
+			showGrid.setValue(Boolean.valueOf(value));
 			doEnables();
 			updateAxis();
 			setChanged();
