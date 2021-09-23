@@ -397,7 +397,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	 */
 	public void setSeriesShape(int value) throws SettingException
 	{
-		seriesShape.setSelectedIndex(new Integer(value));
+		seriesShape.setSelectedIndex(Integer.valueOf(value));
 		updateSeries();
 		setChanged();
 		notifyObservers(this);		
@@ -467,7 +467,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	 */
 	public void setLineStyle(int value) throws SettingException
 	{
-		lineStyle.setSelectedIndex(new Integer(value));
+		lineStyle.setSelectedIndex(Integer.valueOf(value));
 		updateSeries();
 		setChanged();
 		notifyObservers(this);		

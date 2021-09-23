@@ -290,7 +290,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 						throw new NumberFormatException();
 					parameterValue = new Boolean(bool);
 				} else if (initValuesModel.getValue(i).type instanceof TypeInt) {
-					parameterValue = new Integer(initValuesModel.getValue(i).value.toString());
+					parameterValue = Integer.valueOf(initValuesModel.getValue(i).value.toString());
 				} else {
 					throw new NumberFormatException();
 				}

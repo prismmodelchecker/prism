@@ -131,7 +131,7 @@ public class SCCs {
 		if (_state_to_scc.size() <= state) {
 			_state_to_scc.setSize(state + 1);
 		}
-		_state_to_scc.set(state, new Integer(scc));
+		_state_to_scc.set(state, Integer.valueOf(scc));
 	}
 
 	/** Set flag that the graph was discovered to be disjoint */

@@ -142,8 +142,8 @@ public class DRAOptimizations {
 		public void setColor(int state, int color) {
 			assert(color < _nr_of_colors);
 
-			_coloring.set(state, new Integer(color));
-			_color2state.set(color, new Integer(state));
+			_coloring.set(state, Integer.valueOf(color));
+			_color2state.set(color, Integer.valueOf(state));
 
 			if (_detailed) {
 				_color2states.get(color).set(state);
@@ -326,7 +326,7 @@ public class DRAOptimizations {
 		states.setSize(dra.size());
 
 		for (int i = 0; i < dra.size(); i++) {
-			states.set(i, new Integer(i));
+			states.set(i, Integer.valueOf(i));
 		}
 
 		AcceptanceSignatureContainer accsig_container = new AcceptanceSignatureContainer(dra);

@@ -731,7 +731,7 @@ public class Buchi {
 		for (s = bstates.prv; s != bstates; s = s.prv) {
 			stateindex = nba.nba_i_newState();
 			// System.out.println("Seen ltl2ba state " + s.id + ", mapped to " + stateindex);
-			map.put(new LTL2BAState(s.id, s._final), new Integer(stateindex));
+			map.put(new LTL2BAState(s.id, s._final), Integer.valueOf(stateindex));
 			
 			if (s.id == -1)
 				nba.nba_i_setStartState(stateindex);
@@ -756,13 +756,13 @@ public class Buchi {
 				BTrans t1;
 				APMonom transMonom = new APMonom();
 				transMonom.setFromPosNeg(t.pos, t.neg);
-				// System.out.println("Seen ltl2ba transition " + s.id + " -|" + transMonom.toString() + "|-> " + t.to.id + ", mapped to " + map.get(new Integer(s.id)) + " -> " + map.get(new Integer(t.to.id)));
+				// System.out.println("Seen ltl2ba transition " + s.id + " -|" + transMonom.toString() + "|-> " + t.to.id + ", mapped to " + map.get(Integer.valueOf(s.id)) + " -> " + map.get(Integer.valueOf(t.to.id)));
 				nba.nba_i_addEdge(map.get(new LTL2BAState(s.id, s._final)), transMonom, map.get(new LTL2BAState(t.to.id, t.to._final)));
 				for (t1 = t; t1.nxt != s.trans;) {
 					if (t1.nxt.to.id == t.to.id && t1.nxt.to._final == t.to._final) {
 						transMonom = new APMonom();
 						transMonom.setFromPosNeg(t1.nxt.pos, t1.nxt.neg);
-						// System.out.println("Seen ltl2ba transition " + s.id + " -|" + transMonom.toString() + "|-> " + t.to.id + ", mapped to " + map.get(new Integer(s.id)) + " -> " + map.get(new Integer(t.to.id)));
+						// System.out.println("Seen ltl2ba transition " + s.id + " -|" + transMonom.toString() + "|-> " + t.to.id + ", mapped to " + map.get(Integer.valueOf(s.id)) + " -> " + map.get(Integer.valueOf(t.to.id)));
 						nba.nba_i_addEdge(map.get(new LTL2BAState(s.id, s._final)), transMonom, map.get(new LTL2BAState(t.to.id, t.to._final)));
 						t1.nxt = t1.nxt.nxt;
 					} 

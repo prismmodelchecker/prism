@@ -271,11 +271,11 @@ public class PrismSettings implements Observer
 																			"Criteria to use for checking termination of iterative numerical methods." },
 			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			new Double(1.0E-6),															"0.0,",																						
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
-			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			Integer.valueOf(10000),															"0,",																						
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
 			{ BOOLEAN_TYPE,		PRISM_EXPORT_ITERATIONS,				"Export iterations (debug/visualisation)",			"4.3.1",			false,														"",
 																			"Export solution vectors for iteration algorithms to iterations.html"},
-			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			new Integer(10),															"1,",																						
+			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			Integer.valueOf(10),															"1,",																						
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
 			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7dev",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
 																			"Export probabilities/rewards with n significant decimal places"},
@@ -310,7 +310,7 @@ public class PrismSettings implements Observer
 																			"Do not attempt to simplify deterministic automata, acceptance conditions (for debugging)." },
 
 			// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
-			{ INTEGER_TYPE,		PRISM_MULTI_MAX_POINTS,					"Max. multi-objective corner points",			"4.0.3",			new Integer(50),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_MULTI_MAX_POINTS,					"Max. multi-objective corner points",			"4.0.3",			Integer.valueOf(50),															"0,",																						
 																			"Maximum number of corner points to explore if (value iteration based) multi-objective model checking does not converge." },
 			{ DOUBLE_TYPE,		PRISM_PARETO_EPSILON,					"Pareto approximation threshold",			"4.0.3",			new Double(1.0E-2),															"0.0,",																						
 																			"Determines to what precision the Pareto curve will be approximated." },
@@ -326,21 +326,21 @@ public class PrismSettings implements Observer
 			// SPARSE/HYBRID/MTBDD OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_COMPACT,							"Use compact schemes",					"2.1",			new Boolean(true),															"",																							
 																			"Use additional optimisations for compressing sparse matrices and vectors with repeated values." },
-			{ INTEGER_TYPE,		PRISM_NUM_SB_LEVELS,					"Hybrid sparse levels",					"2.1",			new Integer(-1),															"-1,",																						
+			{ INTEGER_TYPE,		PRISM_NUM_SB_LEVELS,					"Hybrid sparse levels",					"2.1",			Integer.valueOf(-1),															"-1,",																						
 																			"Number of MTBDD levels ascended when adding sparse matrices to hybrid engine data structures (-1 means use default)." },
-			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"Hybrid sparse memory (KB)",			"2.1",			new Integer(1024),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"Hybrid sparse memory (KB)",			"2.1",			Integer.valueOf(1024),															"0,",																						
 																			"Maximum memory usage when adding sparse matrices to hybrid engine data structures (KB)." },
-			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"Hybrid GS levels",						"2.1",			new Integer(-1),															"-1,",																						
+			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"Hybrid GS levels",						"2.1",			Integer.valueOf(-1),															"-1,",																						
 																			"Number of MTBDD levels descended for hybrid engine data structures block division with GS/SOR." },
-			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			new Integer(1024),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			Integer.valueOf(1024),															"0,",																						
 																			"Maximum memory usage for hybrid engine data structures block division with GS/SOR (KB)." },
 			{ STRING_TYPE,		PRISM_CUDD_MAX_MEM,						"CUDD max. memory",				"4.2.1",			new String("1g"),														"",																						
 																			"Maximum memory available to CUDD (underlying BDD/MTBDD library), e.g. 125k, 50m, 4g. Note: Restart PRISM after changing this." },
 			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"CUDD epsilon",							"2.1",			new Double(1.0E-15),														"0.0,",																						
 																			"Epsilon value used by CUDD (underlying BDD/MTBDD library) for terminal cache comparisons." },
-			{ INTEGER_TYPE,		PRISM_DD_EXTRA_STATE_VARS,				"Extra DD state var allocation",		"4.3.1",			new Integer(20),														"",
+			{ INTEGER_TYPE,		PRISM_DD_EXTRA_STATE_VARS,				"Extra DD state var allocation",		"4.3.1",			Integer.valueOf(20),														"",
 																			"Number of extra DD state variables preallocated for use in model transformation." },
-			{ INTEGER_TYPE,		PRISM_DD_EXTRA_ACTION_VARS,				"Extra DD action var allocation",		"4.3.1",			new Integer(20),														"",
+			{ INTEGER_TYPE,		PRISM_DD_EXTRA_ACTION_VARS,				"Extra DD action var allocation",		"4.3.1",			Integer.valueOf(20),														"",
 																			"Number of extra DD action variables preallocated for use in model transformation." },
 
 
@@ -374,7 +374,7 @@ public class PrismSettings implements Observer
 																			"Type of representation for functions used during parametric model checking." },
 			{ CHOICE_TYPE,		PRISM_PARAM_ELIM_ORDER,					"Parametric model checking state elimination order",			"4.1",			"Backward",																		"Arbitrary,Forward,Forward-reversed,Backward,Backward-reversed,Random",
 																			"Order in which states are eliminated during unbounded parametric model checking analysis." },
-			{ INTEGER_TYPE,		PRISM_PARAM_RANDOM_POINTS,				"Parametric model checking random evaluations",		"4.1",			new Integer(5),																"",
+			{ INTEGER_TYPE,		PRISM_PARAM_RANDOM_POINTS,				"Parametric model checking random evaluations",		"4.1",			Integer.valueOf(5),																"",
 																			"Number of random points to evaluate per region to increase chance of correctness during parametric model checking." },
 			{ BOOLEAN_TYPE,		PRISM_PARAM_SUBSUME_REGIONS,			"Parametric model checking region subsumption",				"4.1",			new Boolean(true),															"",
 																			"Subsume adjacent regions during parametric model checking." },
@@ -386,15 +386,15 @@ public class PrismSettings implements Observer
 																			"For fast adaptive uniformisation (FAU), decides how much probability may be lost due to truncation of birth process." },
 			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	new Double(1E-12),     													"",
 																			"For fast adaptive uniformisation (FAU), states whose probability is below this value will be removed." },
-			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 					"4.1",   	 	new Integer(100),    	 													"",
+			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 					"4.1",   	 	Integer.valueOf(100),    	 													"",
 																			"For fast adaptive uniformisation (FAU), after this number of iterations without changes to the state space, storage is switched to a faster, fixed-size data structure." },
-			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	new Integer(1),     														"",
+			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	Integer.valueOf(1),     														"",
 																			"For fast adaptive uniformisation (FAU), the time period is split into this number of of intervals." },
 			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"FAU initial time interval",			"4.1",   	 	new Double(1.0),     														"",	
 																			"For fast adaptive uniformisation (FAU), the length of initial time interval to analyse." },
 		},
 		{
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		new Integer(1000),			"1,",
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		Integer.valueOf(1000),			"1,",
 																			"Default number of samples when using approximate (simulation-based) model checking (CI/ACI/APMC methods)." },
 			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"Default confidence parameter",			"4.0",		new Double(0.01),			"0,1",
 																			"Default value for the 'confidence' parameter when using approximate (simulation-based) model checking (CI/ACI/APMC/SPRT methods). For CI/ACI, this means that the corresponding 'confidence level' is 100 x (1 - confidence)%; for APMC, this is the probability of the 'approximation' being exceeded; for SPRT, this is the acceptable probability for type I/II errors." },
@@ -406,7 +406,7 @@ public class PrismSettings implements Observer
 																			"Default maximum path length when using approximate (simulation-based) model checking." },
 			{ BOOLEAN_TYPE,		SIMULATOR_DECIDE,						"Decide S^2=0 or not automatically",	"4.0",		new	Boolean(true),			"",
 																			"Let PRISM choose whether, after a certain number of iterations, the standard error is null or not." },
-			{ INTEGER_TYPE,		SIMULATOR_ITERATIONS_TO_DECIDE,			"Number of iterations to decide",		"4.0",		new	Integer(10000),			"1,",
+			{ INTEGER_TYPE,		SIMULATOR_ITERATIONS_TO_DECIDE,			"Number of iterations to decide",		"4.0",		Integer.valueOf(10000),			"1,",
 																			"Number of iterations to decide whether the standard error is null or not." },
 			{ DOUBLE_TYPE,		SIMULATOR_MAX_REWARD,					"Maximum reward",						"4.0",		new	Double(1000.0),			"1,",
 																			"Maximum reward for CI/ACI methods. It helps these methods in displaying the progress in case of rewards computation." },
@@ -424,7 +424,7 @@ public class PrismSettings implements Observer
 		{
 			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"2.1",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
 			{ BOOLEAN_TYPE,		MODEL_AUTO_MANUAL,						"Manual parse for large models",		"2.1",			new Boolean(true),															"",																							"Disable automatic model parsing when loading large PRISM models." },
-			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"Parse delay (ms)",						"2.1",			new Integer(1000),															"0,",																						"Time delay (after typing has finished) before an automatic re-parse of the model is performed." },
+			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"Parse delay (ms)",						"2.1",			Integer.valueOf(1000),															"0,",																						"Time delay (after typing has finished) before an automatic re-parse of the model is performed." },
 			{ FONT_COLOUR_TYPE,	MODEL_PRISM_EDITOR_FONT,				"PRISM editor font",					"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used in the PRISM model text editor." },
 			{ BOOLEAN_TYPE,		MODEL_SHOW_LINE_NUMBERS,				"PRISM editor line numbers",            "3.2",    new Boolean(true),															"",																							"Enable or disable line numbers in the PRISM model text editor" },
 			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_BG_COLOUR,			"PRISM editor background",				"2.1",			new Color(255,255,255),														"",																							"Background colour for the PRISM model text editor." },
@@ -450,7 +450,7 @@ public class PrismSettings implements Observer
 		{
 			{ FONT_COLOUR_TYPE,	LOG_FONT,								"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the log display." },
 			{ COLOUR_TYPE,		LOG_BG_COLOUR,							"Background colour",					"2.1",			new Color(255,255,255),														"",																							"Background colour for the log display." },
-			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"Buffer length",						"2.1",			new Integer(10000),															"1,",																						"Length of the buffer for the log display." }
+			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"Buffer length",						"2.1",			Integer.valueOf(10000),															"1,",																						"Length of the buffer for the log display." }
 		}
 	};
 	

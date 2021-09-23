@@ -339,7 +339,7 @@ public class GUIPrism extends JFrame
 			}
 		};
 		prismOptions.putValue(Action.LONG_DESCRIPTION, "Brings up an option dialog for setting PRISM and user interface parameters.");
-		prismOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
+		prismOptions.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_O));
 		prismOptions.putValue(Action.NAME, "Options");
 		prismOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 
@@ -354,7 +354,7 @@ public class GUIPrism extends JFrame
 			}
 		};
 		fontIncrease.putValue(Action.LONG_DESCRIPTION, "Increase the application font size.");
-		fontIncrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
+		fontIncrease.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_I));
 		fontIncrease.putValue(Action.NAME, "Increase font size");
 		fontIncrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontIncrease.png"));
 		fontIncrease.putValue(Action.ACCELERATOR_KEY,
@@ -371,7 +371,7 @@ public class GUIPrism extends JFrame
 			}
 		};
 		fontDecrease.putValue(Action.LONG_DESCRIPTION, "Decrease the application font size.");
-		fontDecrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		fontDecrease.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
 		fontDecrease.putValue(Action.NAME, "Decrease font size");
 		fontDecrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontDecrease.png"));
 		fontDecrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));

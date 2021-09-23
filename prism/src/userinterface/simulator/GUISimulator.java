@@ -1634,7 +1634,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		newPath.putValue(Action.LONG_DESCRIPTION, "Creates a new path.");
-		newPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		newPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
 		newPath.putValue(Action.NAME, "New path");
 		newPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 		newPath.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
@@ -1649,7 +1649,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		newPathFromState.putValue(Action.LONG_DESCRIPTION, "Creates a new path from a chosen state.");
-		//newPathFromState.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		//newPathFromState.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
 		newPathFromState.putValue(Action.NAME, "New path from state");
 		newPathFromState.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 
@@ -1661,7 +1661,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		newPathPlot.putValue(Action.LONG_DESCRIPTION, "Creates and plots a new path.");
-		//newPathPlot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		//newPathPlot.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
 		newPathPlot.putValue(Action.NAME, "Plot new path");
 		newPathPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 		newPathPlot.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -1674,7 +1674,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		newPathPlotFromState.putValue(Action.LONG_DESCRIPTION, "Creates and plots a new path from a chosen state.");
-		//newPathPlotFromState.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
+		//newPathPlotFromState.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
 		newPathPlotFromState.putValue(Action.NAME, "Plot new path from state");
 		newPathPlotFromState.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
@@ -1687,7 +1687,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		resetPath.putValue(Action.LONG_DESCRIPTION, "Resets the path.");
-		resetPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
+		resetPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
 		resetPath.putValue(Action.NAME, "Reset path");
 		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
 		resetPath.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, InputEvent.SHIFT_DOWN_MASK));
@@ -1701,7 +1701,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		exportPath.putValue(Action.LONG_DESCRIPTION, "Exports the path.");
-		exportPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
+		exportPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_X));
 		exportPath.putValue(Action.NAME, "Export path");
 		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 
@@ -1713,7 +1713,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		plotPath.putValue(Action.LONG_DESCRIPTION, "Plots the path on a graph.");
-		plotPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		plotPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_P));
 		plotPath.putValue(Action.NAME, "Plot path");
 		plotPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
@@ -1725,7 +1725,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		randomExploration.putValue(Action.LONG_DESCRIPTION, "Extends the path by simulating.");
-		randomExploration.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+		randomExploration.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_S));
 		randomExploration.putValue(Action.NAME, "Simulate");
 		randomExploration.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerFwd.png"));
 		randomExploration.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0));
@@ -1738,7 +1738,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		backtrack.putValue(Action.LONG_DESCRIPTION, "Backtracks the path.");
-		backtrack.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_K));
+		backtrack.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_K));
 		backtrack.putValue(Action.NAME, "Backtrack");
 		backtrack.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
 		backtrack.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F9, InputEvent.SHIFT_DOWN_MASK));
@@ -1751,7 +1751,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		backtrackToHere.putValue(Action.LONG_DESCRIPTION, "Backtracks the path to the selected state.");
-		backtrackToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_B));
+		backtrackToHere.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_B));
 		backtrackToHere.putValue(Action.NAME, "Backtrack to here");
 		backtrackToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
 
@@ -1768,7 +1768,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		removeToHere.putValue(Action.LONG_DESCRIPTION, "Removes states preceding the selected state from the path.");
-		removeToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
+		removeToHere.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
 		removeToHere.putValue(Action.NAME, "Remove preceding steps");
 		removeToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRemove.png"));
 
@@ -1780,7 +1780,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		configureView.putValue(Action.LONG_DESCRIPTION, "Configures the view.");
-		configureView.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
+		configureView.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_C));
 		configureView.putValue(Action.NAME, "Configure view");
 		configureView.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 
@@ -2061,7 +2061,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void setDisplayStyle(boolean displayStyle) throws PrismException
 	{
 
-		getPrism().getSettings().set(PrismSettings.SIMULATOR_RENDER_ALL_VALUES, new Integer(displayStyle ? 0 : 1));
+		getPrism().getSettings().set(PrismSettings.SIMULATOR_RENDER_ALL_VALUES, Integer.valueOf(displayStyle ? 0 : 1));
 
 	}
 

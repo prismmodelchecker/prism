@@ -219,7 +219,7 @@ public class DA {
 			Vector<Integer> mapping = new Vector<Integer>(_index.size());
 			for (i = 0, j = 0; i < _index.size(); i++) {
 				if (_index.get(i) != null) {
-					mapping.set(i, new Integer(j));
+					mapping.set(i, Integer.valueOf(j));
 					if (j != i) {
 						_index.set(j, _index.get(i));
 						_index.set(i, null);
