@@ -2081,7 +2081,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void setDisplayPathLoops(boolean b) throws PrismException
 	{
 		displayPathLoops = b;
-		//getPrism().getSettings().set(PrismSettings.SIMULATOR_????, new Boolean(b));
+		//getPrism().getSettings().set(PrismSettings.SIMULATOR_????, Boolean.valueOf(b));
 	}
 
 	public ModulesFile getModulesFile()

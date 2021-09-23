@@ -2665,12 +2665,12 @@ try {
       }
     case TRUE:{
       jj_consume_token(TRUE);
-ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(true));
+ret = new ExpressionLiteral(TypeBool.getInstance(), Boolean.valueOf(true));
       break;
       }
     case FALSE:{
       jj_consume_token(FALSE);
-ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(false));
+ret = new ExpressionLiteral(TypeBool.getInstance(), Boolean.valueOf(false));
       break;
       }
     default:

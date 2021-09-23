@@ -229,7 +229,7 @@ public final class SPRTMethod extends SimulationMethod
 	public Object getResult(Sampler sampler) throws PrismException
 	{
 		// Is hypothesis H0 true?
-		return new Boolean(h0true);
+		return Boolean.valueOf(h0true);
 	}
 
 	@Override

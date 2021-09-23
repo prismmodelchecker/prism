@@ -59,7 +59,7 @@ public class BooleanEditor implements SettingEditor, ActionListener
 	{
 		if (modified) {
 			modified = false;
-			return new Boolean(renderer.isSelected());
+			return Boolean.valueOf(renderer.isSelected());
 		} else
 			return NOT_CHANGED_VALUE;
 	}

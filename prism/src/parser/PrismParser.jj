@@ -1537,9 +1537,9 @@ Expression ExpressionLiteral(boolean prop, boolean pathprop) :
 			// NB: can't call generateParseException() here; it crashes
 		}}
 	|
-	<TRUE> { ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(true)); }
+	<TRUE> { ret = new ExpressionLiteral(TypeBool.getInstance(), Boolean.valueOf(true)); }
 	|
-	<FALSE> { ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(false)); }
+	<FALSE> { ret = new ExpressionLiteral(TypeBool.getInstance(), Boolean.valueOf(false)); }
 	)
 	{ ret.setPosition(getToken(0)); return ret; }
 }

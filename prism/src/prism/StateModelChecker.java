@@ -1348,7 +1348,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			states = new StateListMTBDD(dd, model);
 			b = dd.equals(ddFilter);
 			// Store as object/vector
-			resObj = new Boolean(b);
+			resObj = Boolean.valueOf(b);
 			resVals = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
 			// Set vals to null so that is not clear()-ed twice
 			vals = null;
@@ -1382,7 +1382,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			dd = JDD.And(dd, ddFilter);
 			b = !dd.equals(JDD.ZERO);
 			// Store as object/vector
-			resObj = new Boolean(b);
+			resObj = Boolean.valueOf(b);
 			resVals = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
 			// Set vals to null so that is not clear()-ed twice
 			vals = null;
