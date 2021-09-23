@@ -1157,10 +1157,10 @@ public class PrismCL implements PrismModelListener
 					}
 					exit();
 				}
-				// java max mem & java stack size
-				else if (sw.equals("javamaxmem") || sw.equals("javastack")) {
-					i++;
+				// java max mem & java stack size & java parameters
+				else if (sw.equals("javamaxmem") || sw.equals("javastack") || sw.equals("javaparams")) {
 					// ignore argument and subsequent value, this is dealt with before java is launched
+					i++;
 				}
 				// timeout
 				else if (sw.equals("timeout")) {

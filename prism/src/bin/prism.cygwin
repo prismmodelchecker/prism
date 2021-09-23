@@ -61,6 +61,14 @@ fi
 
 ####
 
+# JVM parameters via -javaparams switch
+ARGS=( "$@" )
+for ((i=0;i<${#ARGS[@]};i+=1)); do
+  if [ "${ARGS[$i]}" = "-javaparams" -o "${ARGS[$i]}" = "--javaparams" ]; then
+		JAVA_PARAMS=${JAVA_PARAMS}${JAVA_PARAMS:+ }${ARGS[$i+1]}
+	fi
+done
+
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
@@ -104,9 +112,9 @@ fi
 if [ "$PRISM_NO_EXEC" = "yes" ]; then
 	# Run PRISM through Java as a child process (exit code of script is exit code of the java call)
 	# Note: Killing this startup script will not necessarily kill the Java process
-	"$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH_WIN" -classpath "$PRISM_CLASSPATH_WIN" $PRISM_MAINCLASS "$@"
+	"$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVA_PARAMS $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH_WIN" -classpath "$PRISM_CLASSPATH_WIN" $PRISM_MAINCLASS "$@"
 else
 	# (Default) Run PRISM through Java via an exec call (the shell process is replaced by the Java process)
-	exec "$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH_WIN" -classpath "$PRISM_CLASSPATH_WIN" $PRISM_MAINCLASS "$@"
+	exec "$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVA_PARAMS $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH_WIN" -classpath "$PRISM_CLASSPATH_WIN" $PRISM_MAINCLASS "$@"
 fi
 
