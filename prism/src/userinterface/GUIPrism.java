@@ -425,8 +425,9 @@ public class GUIPrism extends JFrame
 				// remove optional second "-" (i.e. we allow switches of the form --sw too)
 				if (sw.charAt(0) == '-')
 					sw = sw.substring(1);
-				if (sw.equals("javamaxmem") || sw.equals("javastack")) {
-					// ignore argument and subsequent value
+				// java max mem & java stack size & java parameters
+				if (sw.equals("javamaxmem") || sw.equals("javastack") || sw.equals("javaparams")) {
+					// ignore argument and subsequent value, this is dealt with before java is launched
 					i++;
 				} else if (sw.equals("dir")) {
 					if (i < args.length - 1) {
