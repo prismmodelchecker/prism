@@ -402,7 +402,7 @@ public class PrismSettings implements Observer
 																			"Default (half-)width of the confidence interval when using approximate (simulation-based) model checking (CI/ACI/SPRT methods). For SPRT, this refers to the 'indifference' parameter." },
 			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"Default approximation parameter",		"4.0",		new Double(0.05),			"0,",
 																			"Default value for the 'approximation' parameter when using approximate (simulation-based) model checking (APMC method)." },
-			{ LONG_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"Default maximum path length",			"2.1",		new Long(10000),			"1,",
+			{ LONG_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"Default maximum path length",			"2.1",		Long.valueOf(10000),			"1,",
 																			"Default maximum path length when using approximate (simulation-based) model checking." },
 			{ BOOLEAN_TYPE,		SIMULATOR_DECIDE,						"Decide S^2=0 or not automatically",	"4.0",		Boolean.valueOf(true),			"",
 																			"Let PRISM choose whether, after a certain number of iterations, the standard error is null or not." },

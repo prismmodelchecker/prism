@@ -72,7 +72,7 @@ public class LongSetting extends Setting
 	{
 		try
 		{
-			return new Long(string);
+			return Long.valueOf(string);
 		}
 		catch(NumberFormatException e)
 		{
