@@ -91,7 +91,7 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 				if (!po.getDescriptor().equals(""))
 					ownerList += "\'" + po.getDescriptor() + "\'";
 				tempName = po.getClassDescriptor();//+" \'"+po.getDescriptor()+"\'";
-				groupStarts.add(new Integer(0));
+				groupStarts.add(Integer.valueOf(0));
 			} else if (po.getUniquePropertyID() == last.getUniquePropertyID()) {
 				//this is for the second or after in the sequence
 				currGroupCount++;
@@ -105,13 +105,13 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 				tempName += " " + ownerList + "";
 				ownerList = "";
 				groupNames.add(tempName);
-				groupSizes.add(new Integer(currGroupCount));
+				groupSizes.add(Integer.valueOf(currGroupCount));
 				currGroupCount = 0;
 				currGroupCount++;
 				ownerList += po.getDescriptor();
 				if (!po.getDescriptor().equals(""))
 					tempName = po.getClassDescriptor() + " \'" + po.getDescriptor() + "\'";
-				groupStarts.add(new Integer(index));
+				groupStarts.add(Integer.valueOf(index));
 			}
 			last = po;
 			index++;
@@ -119,7 +119,7 @@ public class PropertyTableModel extends AbstractTableModel implements Observer
 		if (owners.size() != 0) {
 			tempName += " " + ownerList + "";
 			groupNames.add(tempName);
-			groupSizes.add(new Integer(currGroupCount));
+			groupSizes.add(Integer.valueOf(currGroupCount));
 		}
 		if (currentGroup > owners.size() - 1)
 			currentGroup = 0;

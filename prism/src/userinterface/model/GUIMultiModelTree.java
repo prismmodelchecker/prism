@@ -1289,7 +1289,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			}
 		};
 		addModule.putValue(Action.LONG_DESCRIPTION, "Adds an editable module to the tree");
-		addModule.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_A));
+		addModule.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_A));
 		addModule.putValue(Action.NAME, "Add Module");
 		moduleCollectionPopup.add(addModule);
 

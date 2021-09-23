@@ -2639,7 +2639,7 @@ Expression ExpressionLiteral(boolean prop, boolean pathprop) throws ParseExcepti
       jj_consume_token(REG_INT);
 try {
                         int i = Integer.parseInt(getToken(0).image);
-                        ret = new ExpressionLiteral(TypeInt.getInstance(), new Integer(i));
+                        ret = new ExpressionLiteral(TypeInt.getInstance(), Integer.valueOf(i));
                 } catch (NumberFormatException e) {
                         // Need to catch this because some matches for regexp REG_INT
                         // are not valid integers (e.g. too big).

@@ -64,7 +64,7 @@ public class MyBitSet extends BitSet implements Comparable<BitSet>, Iterable<Int
 		Vector<Integer> tmp = new Vector<Integer>();
 		for (int i = 0; i < this.size(); i++)
 			if (this.get(i))
-				tmp.add(new Integer(i));
+				tmp.add(Integer.valueOf(i));
 		return tmp;
 	}
 
@@ -137,7 +137,7 @@ public class MyBitSet extends BitSet implements Comparable<BitSet>, Iterable<Int
 		}
 		
 		public Integer next() {
-			Integer rv = new Integer(index);
+			Integer rv = Integer.valueOf(index);
 			index = _bitset.nextSetBit(index + 1);
 			return rv;
 		}

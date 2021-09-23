@@ -117,7 +117,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 
 		graphOptions.putValue(Action.NAME, "Graph options");
-		graphOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_G));
+		graphOptions.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_G));
 		graphOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 		graphOptions.putValue(Action.LONG_DESCRIPTION, "Displays the options dialog for the graph.");
 
@@ -131,7 +131,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 
 		zoomIn.putValue(Action.NAME, "In");
-		zoomIn.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
+		zoomIn.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_I));
 		zoomIn.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerFwd.png"));
 		zoomIn.putValue(Action.LONG_DESCRIPTION, "Zoom in on the graph.");
 
@@ -145,7 +145,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 
 		zoomOut.putValue(Action.NAME, "Out");
-		zoomOut.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
+		zoomOut.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_O));
 		zoomOut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
 		zoomOut.putValue(Action.LONG_DESCRIPTION, "Zoom out of the graph.");
 
@@ -159,7 +159,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 		};
 
 		zoomDefault.putValue(Action.NAME, "Default");
-		zoomDefault.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		zoomDefault.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
 		zoomDefault.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
 		zoomDefault.putValue(Action.LONG_DESCRIPTION, "Set the default zoom for the graph.");
 
@@ -178,7 +178,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		importXML.putValue(Action.NAME, "PRISM graph (*.gra)");
-		importXML.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
+		importXML.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_I));
 		importXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 		importXML.putValue(Action.LONG_DESCRIPTION, "Imports a saved PRISM graph from a file.");
 
@@ -197,7 +197,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		exportXML.putValue(Action.NAME, "PRISM graph (*.gra)");
-		exportXML.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
+		exportXML.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_X));
 		exportXML.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 		exportXML.putValue(Action.LONG_DESCRIPTION, "Export graph as a PRISM graph file.");
 
@@ -211,7 +211,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		exportImageJPG.putValue(Action.NAME, "JPEG Interchange Format (*.jpg, *.jpeg)");
-		exportImageJPG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_J));
+		exportImageJPG.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_J));
 		exportImageJPG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileImage.png"));
 		exportImageJPG.putValue(Action.LONG_DESCRIPTION, "Export graph as a JPEG file.");
 
@@ -225,7 +225,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		exportImagePNG.putValue(Action.NAME, "Portable Network Graphics (*.png)");
-		exportImagePNG.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		exportImagePNG.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_P));
 		exportImagePNG.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileImage.png"));
 		exportImagePNG.putValue(Action.LONG_DESCRIPTION, "Export graph as a Portable Network Graphics file.");
 
@@ -239,7 +239,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		exportImageEPS.putValue(Action.NAME, "Encapsulated PostScript (*.eps)");
-		exportImageEPS.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_E));
+		exportImageEPS.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_E));
 		exportImageEPS.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFilePdf.png"));
 		exportImageEPS.putValue(Action.LONG_DESCRIPTION, "Export graph as an Encapsulated PostScript file.");
 
@@ -259,7 +259,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		exportMatlab.putValue(Action.NAME, "Matlab file (*.m)");
-		exportMatlab.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_M));
+		exportMatlab.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_M));
 		exportMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
 		exportMatlab.putValue(Action.LONG_DESCRIPTION, "Export graph as a Matlab file.");
 
@@ -280,7 +280,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		printGraph.putValue(Action.NAME, "Print graph");
-		printGraph.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+		printGraph.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_P));
 		printGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPrint.png"));
 		printGraph.putValue(Action.LONG_DESCRIPTION, "Print the graph to a printer or file");
 
@@ -296,7 +296,7 @@ public class GUIGraphHandler extends JPanel implements MouseListener
 			}
 		};
 		deleteGraph.putValue(Action.NAME, "Delete graph");
-		deleteGraph.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+		deleteGraph.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
 		deleteGraph.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
 		deleteGraph.putValue(Action.LONG_DESCRIPTION, "Deletes the graph.");
 

@@ -201,7 +201,7 @@ public class GUITextModelEditor extends GUIModelEditor implements DocumentListen
 				GUITextModelEditor.this.handler.getGUIPlugin().getSelectionChangeHandler().notifyListeners(new GUIEvent(1));				
 			}
 		}); 
-		editor.getDocument().putProperty( PlainDocument.tabSizeAttribute, new Integer(4) );
+		editor.getDocument().putProperty( PlainDocument.tabSizeAttribute, Integer.valueOf(4) );
 		
 		editor.addMouseListener(this);
 		errorHighlightPainter = new DefaultHighlighter.DefaultHighlightPainter(new Color(255,192,192));
