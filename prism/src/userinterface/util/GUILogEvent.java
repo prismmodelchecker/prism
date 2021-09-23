@@ -60,7 +60,7 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(int type, long message)
     {
-        super(type, new Long(message));
+        super(type, Long.valueOf(message));
     }
     
     public GUILogEvent(int type, short message)
@@ -100,7 +100,7 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(long message)
     {
-        this(PRINTLN, new Long(message));
+        this(PRINTLN, Long.valueOf(message));
     }
     
     public GUILogEvent(short message)
