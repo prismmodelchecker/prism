@@ -6,9 +6,7 @@
 PRISM_DIR=/home/luser/prism
 
 # Command to launch Java
-if [ "$PRISM_JAVA" = "" ]; then
-	PRISM_JAVA=java
-fi
+PRISM_JAVA=${PRISM_JAVA:-java}
 
 #### Java heap size handling (either via -javamaxmem argument or PRISM_JAVAMAXMEM environment variable)
 
@@ -76,25 +74,17 @@ PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$P
 PRISM_LIB_PATH="$PRISM_DIR"/lib
 
 # Copy library path to relevant vars
-if [ "$PATH" = "" ]; then
-	PATH="$PRISM_LIB_PATH"
-else
-	PATH="$PRISM_LIB_PATH":$PATH
-fi
+$PATH=${PRISM_LIB_PATH}${PATH:+:}${PATH}
 JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Export environment variables
 export PRISM_DIR PATH
 
 # Main Java class to launch
-if [ "$PRISM_MAINCLASS" = "" ]; then
-	PRISM_MAINCLASS=prism.PrismCL
-fi
+PRISM_MAINCLASS=${PRISM_MAINCLASS:-prism.PrismCL}
 
 # Do we run headless? (GUI overrides this)
-if [ "$PRISM_HEADLESS" = "" ]; then
-	PRISM_HEADLESS=true
-fi
+PRISM_HEADLESS=${PRISM_HEADLESS:-true}
 
 # Convert paths to Windows form
 PRISM_CLASSPATH_WIN=`cygpath -wp $"$PRISM_CLASSPATH"`
