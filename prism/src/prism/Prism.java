@@ -2546,7 +2546,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			} else {
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-				((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+				try {
+					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+				} catch (PrismNotSupportedException e){
+					if(!currentRewardGenerator.getRewardStructName(r).isEmpty()){
+						mainLog.println("Error: Cannot export the rewardstructure \""  +
+								currentRewardGenerator.getRewardStructName(r) + "\" (index: " + r + "). " + e.getMessage());
+					} else {
+						mainLog.println("Error: Cannot export the rewardstructure with the index: " + r + ". " +
+								e.getMessage());
+					}
+				}
 				out.close();
 			}
 		}
