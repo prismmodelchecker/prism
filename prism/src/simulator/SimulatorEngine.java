@@ -646,10 +646,11 @@ public class SimulatorEngine extends PrismComponent
 				for (int offset = 0; offset < numTransitions; offset++) {
 					if (modelGen.computeTransitionTarget(j, offset).equals(nextState)) {
 						found = true;
+						int index = modelGen.getTotalIndexOfTransition(j, offset);
 						if (modelType.continuousTime() && newPath.hasTimeInfo())
-							manualTransition(j, newPath.getTime(i));
+							manualTransition(index, newPath.getTime(i));
 						else
-							manualTransition(j);
+							manualTransition(index);
 						break;
 					}
 				}
