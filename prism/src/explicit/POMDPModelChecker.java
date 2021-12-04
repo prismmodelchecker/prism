@@ -167,7 +167,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		if (remain != null && remainObs == null) {
 			throw new PrismException("Left-hand side of until is not observable");
 		}
-		mainLog.println("target obs=" + targetObs.cardinality() + ", remain obs=" + remainObs.cardinality());
+		mainLog.println("target obs=" + targetObs.cardinality() + (remainObs == null ? "" : ", remain obs=" + remainObs.cardinality()));
 		
 		// Determine set of observations actually need to perform computation for
 		BitSet unknownObs = new BitSet();
