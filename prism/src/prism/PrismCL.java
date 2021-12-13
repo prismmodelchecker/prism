@@ -2485,6 +2485,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-testall ....................... Enable \"test\" mode, but don't exit on error");
 		mainLog.println("-javamaxmem <x>................. Set the maximum heap size for Java, e.g. 500m, 4g [default: 1g]");
 		mainLog.println("-javastack <x> ................. Set the Java stack size [default: 4m]");
+		mainLog.println("-javaparams <x>................. Pass additional command-line arguments to Java");
 		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
 		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 		mainLog.println();
