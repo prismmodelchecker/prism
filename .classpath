@@ -10,7 +10,8 @@
 	<classpathentry kind="lib" path="prism/lib/pepa.zip"/>
 	<classpathentry kind="lib" path="prism/lib/lpsolve55j.jar"/>
 	<classpathentry kind="lib" path="prism/lib/jas.jar"/>
-	<classpathentry kind="lib" path="prism/lib/log4j.jar"/>
+	<classpathentry kind="lib" path="prism/lib/log4j-api.jar"/>
+	<classpathentry kind="lib" path="prism/lib/log4j-core.jar"/>
 	<classpathentry kind="lib" path="prism/lib/nailgun-server.jar"/>
 	<classpathentry kind="output" path="prism/classes"/>
 </classpath>

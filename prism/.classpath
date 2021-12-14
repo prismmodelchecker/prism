@@ -10,7 +10,8 @@
 	<classpathentry kind="lib" path="lib/pepa.zip"/>
 	<classpathentry kind="lib" path="lib/lpsolve55j.jar"/>
 	<classpathentry kind="lib" path="lib/jas.jar"/>
-	<classpathentry kind="lib" path="lib/log4j.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-core.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-api.jar"/>
 	<classpathentry kind="lib" path="lib/nailgun-server.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
