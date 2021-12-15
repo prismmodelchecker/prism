@@ -2546,7 +2546,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			} else {
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-				((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+				try {
+					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+				} catch (PrismNotSupportedException e) {
+					mainLog.println("\nReward export failed: " + e.getMessage());
+				}
 				out.close();
 			}
 		}
