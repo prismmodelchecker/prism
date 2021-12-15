@@ -156,7 +156,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// state space cut-off to trigger MTBDD engine
 	protected static final int MTBDD_STATES_THRESHOLD = 100000000;
-	
+
 	// Options for type of strategy export
 	public enum StrategyExportType {
 		ACTIONS, INDICES, INDUCED_MODEL, DOT_FILE;
@@ -794,7 +794,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		return settings.getInteger(PrismSettings.PRISM_GRID_RESOLUTION);
 	}
-	
+
 	public boolean getVerbose()
 	{
 		return settings.getBoolean(PrismSettings.PRISM_VERBOSE);
@@ -2416,7 +2416,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Check again (in case engine was switched)
 		if (getExplicit())
 			throw new PrismNotSupportedException("Export to Dot file not yet supported by explicit engine");
-		
+
 		// Export to dot file
 		mainLog.println("\nExporting to dot file \"" + file + "\"...");
 		JDD.ExportDDToDotFileLabelled(currentModel.getTrans(), file.getPath(), currentModel.getDDVarNames());
@@ -2426,7 +2426,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Export the currently loaded model's transition matrix to a file (or to the log)
 	 * @param ordered Ensure that (source) states are in ascending order?
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_DOT}
 	 * <li> {@link #EXPORT_MRMC}
@@ -2507,7 +2507,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * If there is more than 1 reward structure, then multiple files are generated
 	 * (e.g. "rew.sta" becomes "rew1.sta", "rew2.sta", ...)
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_MRMC}
 	 * </ul>
@@ -2520,7 +2520,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("\nOmitting state reward export as there are no reward structures");
 			return;
 		}
-		
+
 		// Rows format does not apply to vectors
 		if (exportType == EXPORT_ROWS)
 			exportType = EXPORT_PLAIN;
@@ -2546,21 +2546,26 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			} else {
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-				((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+
+				try {
+					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+				} catch (PrismNotSupportedException e) {
+					mainLog.println("\nReward export failed: " + e.getMessage());
+				}
 				out.close();
 			}
 		}
-		
+
 		if (files.size() > 1) {
 			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
 		}
 	}
-	
+
 	/**
 	 * Export the currently loaded model's transition rewards to a file
 	 * @param ordered Ensure that (source) states are in ascending order?
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_MRMC}
 	 * <li> {@link #EXPORT_ROWS}
@@ -2574,7 +2579,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("\nOmitting transition reward export as there are no reward structures");
 			return;
 		}
-		
+
 		if (getExplicit())
 			throw new PrismNotSupportedException("Export of transition rewards not yet supported by explicit engine");
 
@@ -2619,7 +2624,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				// Not implemented yet
 			}
 		}
-		
+
 		if (files.size() > 1) {
 			mainLog.println("Rewards were exported to multiple files: " + PrismUtils.joinString(files, ","));
 		}
@@ -2628,7 +2633,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Export the currently loaded model's bottom strongly connected components (BSCCs) to a file
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -2723,7 +2728,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Export the (states of the) currently loaded model's maximal end components (MECs) to a file
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -2813,7 +2818,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Export the (states of the) currently loaded model's strongly connected components (SCCs) to a file
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -2908,7 +2913,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * The PropertiesFile should correspond to the currently loaded model. 
 	 * @param propertiesFile The properties file (for further labels)
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -2952,7 +2957,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Export the currently loaded model's states to a file
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -4124,7 +4129,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_DOT}
 	 * <li> {@link #EXPORT_MRMC}
@@ -4145,7 +4150,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_DOT}
 	 * <li> {@link #EXPORT_MRMC}
@@ -4166,7 +4171,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Load a (built) model and export its state rewards to a file
 	 * @param model The model
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_MRMC}
 	 * </ul>
@@ -4185,7 +4190,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param model The model
 	 * @param ordered Ensure that (source) states are in ascending order?
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * <li> {@link #EXPORT_MRMC}
 	 * <li> {@link #EXPORT_ROWS}
@@ -4204,7 +4209,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Load a (built) model and export its bottom strongly connected components (BSCCs) to a file
 	 * @param model The model
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -4224,7 +4229,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param modulesFile The corresponding (parsed) PRISM model (for the labels)
 	 * @param propertiesFile The properties file (for further labels)
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
@@ -4242,7 +4247,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Load a (built) model and export its states to a file
 	 * @param model The model
 	 * @param exportType Type of export; one of: <ul>
-	 * <li> {@link #EXPORT_PLAIN} 
+	 * <li> {@link #EXPORT_PLAIN}
 	 * <li> {@link #EXPORT_MATLAB}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
