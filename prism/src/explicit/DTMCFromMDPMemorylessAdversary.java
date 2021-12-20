@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import common.iterable.MappingIterator;
+import common.iterable.Reducible;
 import parser.State;
 import parser.Values;
 import prism.Pair;
@@ -163,7 +163,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	{
 		if (adv[s] >= 0) {
 			final Iterator<Entry<Integer, Double>> transitions = mdp.getTransitionsIterator(s, adv[s]);
-			return new MappingIterator.From<>(transitions, transition -> DTMC.attachAction(transition, mdp.getAction(s, adv[s])));
+			return Reducible.extend(transitions).map(transition -> DTMC.attachAction(transition, mdp.getAction(s, adv[s])));
 		} else {
 			// Empty iterator
 			return Collections.<Entry<Integer,Pair<Double, Object>>>emptyIterator(); 

@@ -35,6 +35,7 @@ import java.util.function.Predicate;
 
 import common.iterable.FilteringIterator;
 import common.iterable.MappingIterator;
+import common.iterable.Reducible;
 
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.PrimitiveIterator.OfInt;
@@ -127,7 +128,7 @@ public class IteratorTools
 	/** Sum over iterator elements */
 	public static int sumInt(final Iterator<Integer> numbers)
 	{
-		return sum(MappingIterator.toInt(numbers));
+		return Math.toIntExact(Reducible.unboxInt(Reducible.extend(numbers).nonNull()).sum());
 	}
 
 	/** Sum over iterator elements */
@@ -143,7 +144,7 @@ public class IteratorTools
 	/** Sum over iterator elements */
 	public static long sumLong(final Iterator<Long> numbers)
 	{
-		return sum(MappingIterator.toLong(numbers));
+		return Reducible.unboxLong(Reducible.extend(numbers).nonNull()).sum();
 	}
 
 	/** Sum over iterator elements */
@@ -159,7 +160,7 @@ public class IteratorTools
 	/** Sum over iterator elements */
 	public static double sumDouble(final Iterator<Double> numbers)
 	{
-		return sum(MappingIterator.toDouble(numbers));
+		return Reducible.unboxDouble(Reducible.extend(numbers).nonNull()).sum();
 	}
 
 	/** Sum over iterator elements */
@@ -172,4 +173,16 @@ public class IteratorTools
 		return sum;
 	}
 
+	/**
+	 * Create String "name = {e_1, e_2}".
+	 *
+	 * @param name     name of a variable
+	 * @param iterator the iterator to be printed
+	 */
+	public static <T> void printIterator(String name, Iterator<T> iterator)
+	{
+		System.out.print(name + " = ");
+		System.out.print(Reducible.extend(iterator).asString());
+		System.out.println();
+	}
 }

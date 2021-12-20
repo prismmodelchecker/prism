@@ -33,13 +33,9 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
-import common.iterable.MappingIterator;
 import common.iterable.PrimitiveIterable;
-import prism.ModelType;
-import prism.Pair;
-import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismUtils;
+import common.iterable.Reducible;
+import prism.*;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 
@@ -170,9 +166,9 @@ public interface DTMC extends Model
 	 */
 	public default Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
 	{
-		// Default implementation just adds null actions 
+		// Default implementation just adds null actions
 		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(s);
-		return new MappingIterator.From<>(transitions, transition -> attachAction(transition, null));
+		return Reducible.extend(transitions).map(transition -> attachAction(transition, null));
 	}
 
 	/**
@@ -239,7 +235,7 @@ public interface DTMC extends Model
 	 * Return sum_t f(s, t, P(s,t)), where t ranges over the successors of s.
 	 *
 	 * @param s the state s
-	 * @param c the consumer
+	 * @param f the consumer
 	 */
 	public default double sumOverTransitions(final int s, final TransitionToDoubleFunction f)
 	{
