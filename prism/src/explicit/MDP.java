@@ -206,7 +206,7 @@ public interface MDP extends MDPGeneric<Double>
 	@Override
 	default int getNumTransitions(final int s, final int i)
 	{
-		return IteratorTools.count(getTransitionsIterator(s, i));
+		return Math.toIntExact(IteratorTools.count(getTransitionsIterator(s, i)));
 	}
 	
 	@Override
