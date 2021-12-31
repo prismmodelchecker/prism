@@ -97,6 +97,7 @@ TOKEN :
 |	< CONST:			"const" >
 |	< CEIL:				"ceil" >
 |	< CTMC:				"ctmc" >
+|   < CTMDP:            "ctmdp" >
 |	< CUMUL:			"C" >
 |	< DOUBLE:			"double" >
 |	< DTMC:				"dtmc" >
@@ -232,7 +233,7 @@ void SingleExpression() : {}
 
 void ModulesFileType() : {}
 {
-	( <PROBABILISTIC> | <NONDETERMINISTIC> | <STOCHASTIC> | <DTMC> | <MDP> | <CTMC> )
+	( <PROBABILISTIC> | <NONDETERMINISTIC> | <STOCHASTIC> | <DTMC> | <MDP> | <CTMC> | <CTMDP> )
 }
 
 // formula definition
