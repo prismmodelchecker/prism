@@ -286,7 +286,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	private File explicitFilesStatesFile = null;
 	private File explicitFilesTransFile = null;
 	private File explicitFilesLabelsFile = null;
-	private File explicitFilesStateRewardsFile = null;
+	private List<File> explicitFilesStateRewardsFiles = new ArrayList();
 	private int explicitFilesNumStates = -1;
 
 	// Has the CUDD library been initialised yet?
@@ -1802,10 +1802,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param statesFile File containing a list of states (optional, can be null)
 	 * @param transFile File containing the list of transitions (required)
 	 * @param labelsFile File containing label definitions (optional, can be null)
-	 * @param stateRewardsFile File containing state reward definitions (optional, can be null)
+	 * @param stateRewardsFiles Files containing state reward definitions (optional, can be null)
 	 * @param typeOverride Model type (auto-detected if {@code null})
 	 */
-	public void loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
+	public void loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, List<File> stateRewardsFiles, ModelType typeOverride) throws PrismException
 	{
 		currentModelSource = ModelSource.EXPLICIT_FILES;
 		// Clear any existing built model(s)
@@ -1814,13 +1814,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		ExplicitFiles2ModelInfo ef2mi = new ExplicitFiles2ModelInfo(this);
 		currentModelInfo = ef2mi.buildModelInfo(statesFile, transFile, labelsFile, typeOverride);
 		currentModulesFile = null;
-		// Construct reward generator 
-		currentRewardGenerator = ef2mi.buildRewardInfo(stateRewardsFile);
+		// Construct reward generator
+		currentRewardGenerator = ef2mi.buildRewardInfo(stateRewardsFiles.isEmpty() ? null : stateRewardsFiles.get(0));
 		// Store explicit files info for later
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
 		explicitFilesLabelsFile = labelsFile;
-		explicitFilesStateRewardsFile = stateRewardsFile;
+
+		// Copy list of files
+		explicitFilesStateRewardsFiles.addAll(stateRewardsFiles);
 		explicitFilesNumStates = ef2mi.getNumStates();
 		// Reset dependent info
 		currentModelType = currentModelInfo == null ? null : currentModelInfo.getModelType();
@@ -2015,14 +2017,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
 					expf2mtbdd = new ExplicitFiles2MTBDD(this);
-					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, explicitFilesStateRewardsFile,
+					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, explicitFilesStateRewardsFiles,
 							currentModelInfo, explicitFilesNumStates);
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
 					currentModelGenerator = new ModelModelGenerator(currentModelExpl, currentModelInfo);
-					ExplicitFilesRewardGenerator efrg = new ExplicitFilesRewardGenerator(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
-					efrg.setStatesList(currentModelExpl.getStatesList());
-					currentRewardGenerator = efrg;
+					ExplicitFilesRewardGenerator efrg4e = new ExplicitFilesRewardGenerator4Explicit(this, explicitFilesStateRewardsFiles, explicitFilesNumStates);
+					efrg4e.setStatesList(currentModelExpl.getStatesList());
+					currentRewardGenerator = efrg4e;
 				}
 				break;
 			default:
@@ -2360,8 +2362,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * <li> {@link #EXPORT_MRMC}
 	 * </ul>
 	 * @param file File to export to (if null, print to the log instead)
+	 * @param noexportheaders disables export headers for srew files
 	 */
-	public void exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	public void exportStateRewardsToFile(int exportType, File file, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
 		if (numRewardStructs == 0) {
@@ -2396,7 +2399,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				try {
-					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, precision);
+					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, noexportheaders, precision);
 				} catch (PrismNotSupportedException e) {
 					mainLog.println("\nReward export failed: " + e.getMessage());
 				}
@@ -4137,7 +4140,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportStateRewardsToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
-		exportStateRewardsToFile(exportType, file);
+		exportStateRewardsToFile(exportType, file, false);
 	}
 
 	/**
@@ -4212,7 +4215,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportStatesToFile(Model model, int exportType, File file) throws FileNotFoundException, PrismException
 	{
 		loadBuiltModel(model);
-		exportStateRewardsToFile(exportType, file);
+		exportStateRewardsToFile(exportType, file, false);
 	}
 
 	/**

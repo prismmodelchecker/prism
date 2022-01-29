@@ -35,6 +35,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Vector;
 import java.util.Map.Entry;
+import java.util.List;
+import java.util.ArrayList;
 
 import common.IterableStateSet;
 import jdd.JDD;
@@ -56,7 +58,7 @@ public class ExplicitFiles2MTBDD
 	private File statesFile;
 	private File transFile;
 	private File labelsFile;
-	private File stateRewardsFile;
+	private List<File> stateRewardsFiles = new ArrayList<>();
 
 	// Model info
 	private ModelInfo modelInfo;
@@ -119,12 +121,13 @@ public class ExplicitFiles2MTBDD
 	 * Variable info and model type is taken from a {@code ModelInfo} object.
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
-	public Model build(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelInfo modelInfo, int numStates) throws PrismException
+	public Model build(File statesFile, File transFile, File labelsFile, List<File> stateRewardsFiles, ModelInfo modelInfo, int numStates) throws PrismException
 	{
 		this.statesFile = statesFile;
 		this.transFile = transFile;
 		this.labelsFile = labelsFile;
-		this.stateRewardsFile = stateRewardsFile;
+		this.stateRewardsFiles.addAll(stateRewardsFiles);
+
 		this.modelInfo = modelInfo;
 		modelType = modelInfo.getModelType();
 		varList = modelInfo.createVarList();
@@ -738,9 +741,13 @@ public class ExplicitFiles2MTBDD
 		}
 	}
 
-	/** Read info about state rewards from a .srew file */
+	/**
+	 * Read info about state rewards from a .srew file
+	 * @throws NullPointerException if a file is null
+	 */
 	private void computeStateRewards() throws PrismException
 	{
+		// TODO Fix Method (for all List objects)
 		String s, ss[];
 		int i, j, lineNum = 0;
 		double d;
@@ -749,14 +756,17 @@ public class ExplicitFiles2MTBDD
 		// initialise mtbdd
 		stateRewards = JDD.Constant(0);
 
-		if (stateRewardsFile == null)
-			return;
-
 		// open file for reading, automatic close when done
-		try (BufferedReader in = new BufferedReader(new FileReader(stateRewardsFile))) {
-			// skip first line
-			in.readLine();
+		try (BufferedReader in = new BufferedReader(new FileReader(stateRewardsFiles.get(0)))) {
+			// check if RewardStructure has name
 			lineNum = 1;
+			s = in.readLine();
+			if (s != null) {
+				if (s.charAt(0) == '#') {
+					//skip line when header present
+					in.readLine();
+				}
+			}
 			// read remaining lines
 			s = in.readLine();
 			lineNum++;
@@ -792,11 +802,11 @@ public class ExplicitFiles2MTBDD
 				lineNum++;
 			}
 		} catch (IOException e) {
-			throw new PrismException("File I/O error reading from \"" + stateRewardsFile + "\": " + e.getMessage());
+			throw new PrismException("File I/O error reading from \"" + stateRewardsFiles.get(0) + "\": " + e.getMessage());
 		} catch (NumberFormatException e) {
-			throw new PrismException("Error detected at line " + lineNum + " of state rewards file \"" + stateRewardsFile + "\"");
+			throw new PrismException("Error detected at line " + lineNum + " of state rewards file \"" + stateRewardsFiles.get(0) + "\"");
 		} catch (PrismException e) {
-			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of state rewards file \"" + stateRewardsFile + "\"");
+			throw new PrismException("Error detected " + e.getMessage() + "at line " + lineNum + " of state rewards file \"" + stateRewardsFiles.get(0) + "\"");
 		}
 	}
 }

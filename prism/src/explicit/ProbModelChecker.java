@@ -1268,10 +1268,11 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * @param r Index of reward structure to export (0-indexed)
 	 * @param exportType The format in which to export
 	 * @param out Where to export
+	 * @param noexportheaders disables export headers for srew files
 	 */
-	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out) throws PrismException
+	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out, boolean noexportheaders) throws PrismException
 	{
-		exportStateRewardsToFile(model, r, exportType, out, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportStateRewardsToFile(model, r, exportType, out, noexportheaders, DEFAULT_EXPORT_MODEL_PRECISION);
 	}
 
 	/**
@@ -1281,17 +1282,34 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * @param exportType The format in which to export
 	 * @param out Where to export
 	 * @param precision number of significant digits >= 1
+	 * @param noexportheaders disables export headers for srew files
 	 */
-	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out, int precision) throws PrismException
+	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
 	{
 		int numStates = model.getNumStates();
 		int nonZeroRews = 0;
+		Rewards modelRewards;
 
 		if (exportType != Prism.EXPORT_PLAIN) {
 			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
 		}
 
-		Rewards modelRewards = constructRewards(model, r);
+		try{
+			modelRewards = constructRewards(model, r);
+		} catch (PrismException e) {
+			if (e.getMessage() == "Explicit engine does not yet handle transition rewards for D/CTMCs.") {
+				// add header to empty srew file
+				if (!noexportheaders) {
+					out.println("# State rewards");
+				}
+				out.println(numStates + " 0");
+				return;
+			} else {
+				throw e;
+			}
+		}
+
+
 		switch (model.getModelType()) {
 		case DTMC:
 		case CTMC:
@@ -1302,6 +1320,15 @@ public class ProbModelChecker extends NonProbModelChecker
 					nonZeroRews++;
 				}
 			}
+			// add header to srew file, when not disabled
+			if(!noexportheaders){
+				String rewardStructName = rewardGen.getRewardStructName(r);
+				if(!"".equals(rewardStructName)){
+					out.println("# Reward structure: \"" + rewardStructName + "\"");
+				}
+				out.println("# State rewards");
+			}
+
 			out.println(numStates + " " + nonZeroRews);
 			for (int s = 0; s < numStates; s++) {
 				double d = mcRewards.getStateReward(s);
@@ -1319,6 +1346,15 @@ public class ProbModelChecker extends NonProbModelChecker
 					nonZeroRews++;
 				}
 			}
+			// add header to srew file, when not disabled
+			if(!noexportheaders){
+				String rewardStructName = rewardGen.getRewardStructName(r);
+				if(!"".equals(rewardStructName)){
+					out.println("# Reward structure: \"" + rewardStructName + "\"");
+				}
+				out.println("# State rewards");
+			}
+
 			out.println(numStates + " " + nonZeroRews);
 			for (int s = 0; s < numStates; s++) {
 				double d = mdpRewards.getStateReward(s);
