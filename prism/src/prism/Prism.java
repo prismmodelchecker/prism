@@ -2020,9 +2020,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
 					currentModelGenerator = new ModelModelGenerator(currentModelExpl, currentModelInfo);
-					ExplicitFilesRewardGenerator efrg = new ExplicitFilesRewardGenerator(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
-					efrg.setStatesList(currentModelExpl.getStatesList());
-					currentRewardGenerator = efrg;
+					ExplicitFilesRewardGenerator efrg4e = new ExplicitFilesRewardGenerator4Explicit(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
+					efrg4e.setStatesList(currentModelExpl.getStatesList());
+					currentRewardGenerator = efrg4e;
 				}
 				break;
 			default:
@@ -2395,7 +2395,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				try (PrismLog out = getPrismLogForFile(fileToUse)){
-					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, precision);
+					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, true, precision);
 				} catch (PrismNotSupportedException e1) {
 					mainLog.println("\nReward export failed: " + e1.getMessage());
 					try {

@@ -1271,7 +1271,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out) throws PrismException
 	{
-		exportStateRewardsToFile(model, r, exportType, out, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportStateRewardsToFile(model, r, exportType, out, true, DEFAULT_EXPORT_MODEL_PRECISION);
 	}
 
 	/**
@@ -1281,8 +1281,9 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * @param exportType The format in which to export
 	 * @param out Where to export
 	 * @param precision number of significant digits >= 1
+	 * @param noexportheaders disables export headers for srew files
 	 */
-	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out, int precision) throws PrismException
+	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out, boolean noexportheaders, int precision) throws PrismException
 	{
 		int numStates = model.getNumStates();
 		int nonZeroRews = 0;
@@ -1302,6 +1303,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					nonZeroRews++;
 				}
 			}
+			printStateRewardsHeader(r, out, noexportheaders);
 			out.println(numStates + " " + nonZeroRews);
 			for (int s = 0; s < numStates; s++) {
 				double d = mcRewards.getStateReward(s);
@@ -1319,6 +1321,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					nonZeroRews++;
 				}
 			}
+			printStateRewardsHeader(r, out, noexportheaders);
 			out.println(numStates + " " + nonZeroRews);
 			for (int s = 0; s < numStates; s++) {
 				double d = mdpRewards.getStateReward(s);
@@ -1330,5 +1333,31 @@ public class ProbModelChecker extends NonProbModelChecker
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet export state rewards for " + model.getModelType() + "s");
 		}
+	}
+	
+	/**
+	 * Print header to srew file, when not disabled.
+	 * Header format with reward struct name:
+	 * <pre>
+	 *   # Reward structure: "$1"
+	 *   # State rewards
+	 * </pre>
+	 * where $1 is the reward struct name.
+	 * If the structure is not named, that header line is omitted.
+	 *
+	 * @param r index of the reward structure
+	 * @param out print target
+	 * @param noexportheaders disable export of the header
+	 */
+	protected void printStateRewardsHeader(int r, PrismLog out, boolean noexportheaders)
+	{
+		if (noexportheaders) {
+			return;
+		}
+		String rewardStructName = rewardGen.getRewardStructName(r);
+		if (!"".equals(rewardStructName)) {
+			out.println("# Reward structure: \"" + rewardStructName + "\"");
+		}
+		out.println("# State rewards");
 	}
 }
