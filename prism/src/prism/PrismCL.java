@@ -1352,7 +1352,11 @@ public class PrismCL implements PrismModelListener
 				}
 				// import transition matrix from explicit format
 				else if (sw.equals("importtrans")) {
-					importtrans = true;
+					if (i < args.length - 1) {
+						processTransFilename(args[++i]);
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
 				}
 				// import states for explicit model import
 				else if (sw.equals("importstates")) {
@@ -1946,6 +1950,35 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
+	 * Process the filename of a transition matrix file (.tra).
+	 * Deal with cases where positional arguments and optional arguments are mixed, e.g.,
+	 * <ul>
+	 *     <li>prism model.prism</li>
+	 *     <li>prism model.prism properties.props</li>
+	 *     <li>prism --importmodel model.all</li>
+	 *     <li>prism --importmodel model.all properties.props</li>
+	 *     <li>prism properties.props --importmodel model.all</li>
+	 * </ul>
+	 * Sets both, {@link #modelFilename} and {@link #importtrans}.
+	 *
+	 * @param transFilename name of the transition matrix file
+	 * @return the {@code transFilename}
+	 */
+	private String processTransFilename(String transFilename)
+	{
+		if (importtrans || (modelFilename != null && propertiesFilename != null)) {
+			// Another model is given, either via import or as prism file
+			errorAndExit("Expected only one model but given " + modelFilename + " and " + transFilename);
+		}
+		if (modelFilename != null) {
+			// Assume first positional argument is properties file and not a model
+			propertiesFilename = modelFilename;
+		}
+		importtrans = true;
+		return modelFilename = transFilename;
+	}
+
+	/**
 	 * Process the arguments (files, options) to the -importmodel switch
 	 * NB: This is done at the time of parsing switches (not later)
 	 * because other individual switches (e.g. -importXXX) can later override
@@ -1969,8 +2002,7 @@ public class PrismCL implements PrismModelListener
 		for (String ext : exts) {
 			// Items to import
 			if (ext.equals("all")) {
-				importtrans = true;
-				modelFilename = basename + ".tra";
+				processTransFilename(basename + ".tra");
 				importstates = true;
 				importStatesFilename = basename + ".sta";
 				importlabels = true;
@@ -1983,8 +2015,7 @@ public class PrismCL implements PrismModelListener
 					importModelWarning = "Import of transition rewards is not yet supported so " + basename + ".trew is being ignored";
 				}
 			} else if (ext.equals("tra")) {
-				importtrans = true;
-				modelFilename = basename + ".tra";
+				processTransFilename(basename + ".tra");
 			} else if (ext.equals("sta")) {
 				importstates = true;
 				importStatesFilename = basename + ".sta";
