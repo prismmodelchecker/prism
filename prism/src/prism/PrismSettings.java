@@ -789,7 +789,7 @@ public class PrismSettings implements Observer
 			// Do we need to resave the file?
 			// (i.e. is the version of the saved settings (a) old? (b) unparseable?)
 			if (version == null) version = "0";
-			if (Prism.compareVersions(version, Prism.getVersion()) == -1) resaveNeeded = true;
+			if (PrismUtils.compareVersions(version, Prism.getVersion()) == -1) resaveNeeded = true;
 			
 			// Read whole file
 			reader = new BufferedReader(new FileReader(file));
@@ -817,7 +817,7 @@ public class PrismSettings implements Observer
 							{
 								// If the version of the settings file is not newer than the "version" of the setting,
 								// and we are re-saving the file, overwrite the setting with the default value 
-								if (resaveNeeded && Prism.compareVersions(version, set.getVersion()) <= 0) continue;
+								if (resaveNeeded && PrismUtils.compareVersions(version, set.getVersion()) <= 0) continue;
 								try
 								{
 									Object valObj = set.parseStringValue(value);
@@ -862,7 +862,7 @@ public class PrismSettings implements Observer
 						{
 							// If the version of the settings file is not newer than the "version" of the setting,
 							// and we are re-saving the file, overwrite the setting with the default value 
-							if (resaveNeeded && Prism.compareVersions(version, set.getVersion()) <= 0) continue;
+							if (resaveNeeded && PrismUtils.compareVersions(version, set.getVersion()) <= 0) continue;
 							try
 							{
 								Object valObj = set.parseStringValue(multiline.toString() + line);
