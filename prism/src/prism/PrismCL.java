@@ -1952,7 +1952,7 @@ public class PrismCL implements PrismModelListener
 	 * Process the non-switch command-line arguments,
 	 * which should be (model/properties) file names.
 	 */
-	private void processFileNames(List<String> filenameArgs)
+	private void processFileNames(List<String> filenameArgs) throws PrismException
 	{
 		if (filenameArgs.size() > 2) {
 			errorAndExit("Invalid argument syntax");
@@ -1966,6 +1966,9 @@ public class PrismCL implements PrismModelListener
 		} else {
 			if (filenameArgs.size() > 0) {
 				modelFilename = filenameArgs.get(0);
+				if (modelFilename.endsWith(".all")) {
+					processImportModelSwitch(modelFilename);
+				}
 			}
 			if (filenameArgs.size() > 1) {
 				propertiesFilename = filenameArgs.get(1);
