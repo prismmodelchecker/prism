@@ -13,13 +13,12 @@ PRISM_DIR_REL = ..
 
 JAVA_FILES_ALL := $(shell find . -name '*.java')
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
-CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)/%.class)
 
 PRISM_CLASSPATH = "$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_DIR_REL)/$(PRISM_LIB_DIR)/*"
 
 default: all
 
-all: checks $(CLASS_FILES)
+all: checks class_files
 
 # inhibit building in parallel (-j option)
 .NOTPARALLEL:
@@ -30,10 +29,16 @@ checks:
 	  (echo "Error: This Makefile is designed to be called from the main PRISM Makefile"; exit 1) \
 	fi;
 
-$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)/%.class: %.java
-	($(JAVAC) $(JFLAGS) -sourcepath $(PRISM_DIR_REL)/$(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_DIR_REL)/unit-tests -classpath $(PRISM_CLASSPATH) -d $(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR) $<)
+class_files:
+	@echo ${JAVA_FILES} > java_files.txt
+	$(JAVAC) $(JFLAGS) -sourcepath $(PRISM_DIR_REL)/$(PRISM_SRC_DIR)$(CLASSPATHSEP)$(PRISM_DIR_REL)/unit-tests\
+	                   -classpath $(PRISM_CLASSPATH)\
+	                   -d $(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)\
+	                   @java_files.txt
+	@rm -f java_files.txt
 
 clean: checks
+	CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)/%.class)
 	@rm -f $(CLASS_FILES)
 
 celan: clean
