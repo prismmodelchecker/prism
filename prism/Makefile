@@ -485,7 +485,8 @@ count_loc:
 
 # Run all unit tests
 unittests:
-	$(JAVA) -jar lib/junit-platform-console-standalone.jar -cp classes --scan-classpath
+	# Provide Regex to match our test classes. If none is given, only certain test classes are excluded by default.
+	$(JAVA) -jar lib/junit-platform-console-standalone.jar -cp classes --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' -scan-classpath
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
