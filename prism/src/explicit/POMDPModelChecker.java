@@ -558,7 +558,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Find observations for which not all states are in the set
 		// and remove them from the observation set to be returned
 		int numStates = pomdp.getNumStates();
-		for (int o = setObs.nextSetBit(0); o >= 0; o = set.nextSetBit(o + 1)) {
+		for (int o = setObs.nextSetBit(0); o >= 0; o = setObs.nextSetBit(o + 1)) {
 			for (int s = 0; s < numStates; s++) {
 				if (pomdp.getObservation(s) == o && !set.get(s)) {
 					setObs.set(o, false);
