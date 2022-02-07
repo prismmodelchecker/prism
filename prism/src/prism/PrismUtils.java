@@ -552,37 +552,28 @@ public class PrismUtils
 	 */
 	public static String formatDouble(double d)
 	{
-		// Use UK locale to avoid . being changed to , in some countries.
-		// To match C's printf, we have to tweak the Java version,
-		// strip trailing zeros after the .
-		String result = String.format(Locale.UK, "%.12g", d);
-		// if there are only zeros after the . (e.g., .000000), strip them including the . 
-		result = result.replaceFirst("\\.0+(e|$)", "$1");
-		// handle .xxxx0000
-		// we first match .xxx until there are only zeros before the end (or e)
-		// as we match reluctantly (using the *?), all trailing zeros are captured
-		// by the 0+ part
-		result = result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
-		return result;
+		return formatDouble(12, d);
 	}
 
 	/**
 	 * Format a double, as would be done by printf's %.(prec)g
+	 * @param prec precision (significant digits) >= 1
 	 */
 	public static String formatDouble(int prec, double d)
 	{
-		// Use UK locale to avoid . being changed to , in some countries.
+		if (prec < 1)
+			throw new IllegalArgumentException("Precision has to be >= 1; got " + prec);
+		// Use no locale to avoid . being changed to , in some countries.
 		// To match C's printf, we have to tweak the Java version,
 		// strip trailing zeros after the .
-		String result = String.format(Locale.UK, "%." + prec + "g", d);
-		// if there are only zeros after the . (e.g., .000000), strip them including the . 
+		String result = String.format((Locale)null, "%." + prec + "g", d);
+		// if there are only zeros after the . (e.g., .000000), strip them including the .
 		result = result.replaceFirst("\\.0+(e|$)", "$1");
 		// handle .xxxx0000
 		// we first match .xxx until there are only zeros before the end (or e)
 		// as we match reluctantly (using the *?), all trailing zeros are captured
 		// by the 0+ part
-		result = result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
-		return result;
+		return result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
 	}
 
 	/**

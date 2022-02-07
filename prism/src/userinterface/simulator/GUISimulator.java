@@ -2381,11 +2381,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	}
 
 	/**
-	 * Utility function to format floating point numbers.
+	 * Utility function to format floating point numbers with a precision of 6 decimal places.
 	 */
 	public String formatDouble(double d)
 	{
-		// getPrism().getSettings().
 		return PrismUtils.formatDouble(6, d);
 	}
 }
