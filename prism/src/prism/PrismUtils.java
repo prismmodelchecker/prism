@@ -548,11 +548,13 @@ public class PrismUtils
 	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00", DecimalFormatSymbols.getInstance(Locale.UK));
 
 	/**
-	 * Format a double, as would be done by printf's %.12g
+	 * Format a double, as would be done by printf's %.17g.
+	 * Preserving full double precision requires 17 = ceil(log(2^(52+1))) + 1 decimal places,
+	 * since the mantissa has 52+1 bits and one additional place is needed to tell close values apart.
 	 */
 	public static String formatDouble(double d)
 	{
-		return formatDouble(12, d);
+		return formatDouble(17, d);
 	}
 
 	/**
