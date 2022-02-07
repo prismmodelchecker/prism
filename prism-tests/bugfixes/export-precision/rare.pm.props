@@ -1,0 +1,6 @@
+// RESULT (p=1e-13): 1.0
+P=? [F rare];
+
+// RESULT (p=1e-13): true
+R>=0.99 [F rare];
+

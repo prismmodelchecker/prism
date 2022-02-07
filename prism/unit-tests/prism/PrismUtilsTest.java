@@ -30,14 +30,23 @@ public class PrismUtilsTest
 		assertEquals("Infinity", formatDouble(Double.POSITIVE_INFINITY));
 		// Rounding if number of significant digits > precision
 		assertEquals("123457", formatDouble(6, 123456.7));
-		assertEquals("1.23457e-05",formatDouble(6, 0.00001234567));
+		assertEquals("1.23457e-05", formatDouble(6, 0.00001234567));
 		// Small numbers
-		assertEquals("0.0001",formatDouble(6, 0.0001));
-		assertEquals("1e-05",formatDouble(6, 0.00001));
-		assertEquals("1.23456e-05",formatDouble(6, 0.0000123456));
+		assertEquals("0.0001", formatDouble(6, 0.0001));
+		assertEquals("1e-05", formatDouble(6, 0.00001));
+		assertEquals("1.23456e-05", formatDouble(6, 0.0000123456));
 		// Big numbers
-		assertEquals("999999",formatDouble(6, 999999.0));
+		assertEquals("999999", formatDouble(6, 999999.0));
 		assertEquals("1e+06", formatDouble(6, 999999.9));
 		assertEquals("1.23457e+06", formatDouble(6, 1234567.8));
+	}
+
+	@ParameterizedTest
+	@ValueSource(doubles = {Double.NaN, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, Double.MIN_VALUE, Double.MIN_NORMAL, Double.MAX_VALUE})
+	public void testFormatDoubleDefaultPrecision(double d)
+	{
+		String serialized = PrismUtils.formatDouble(d);
+		double parsed = Double.parseDouble(serialized);
+		assertEquals(d, parsed);
 	}
 }
