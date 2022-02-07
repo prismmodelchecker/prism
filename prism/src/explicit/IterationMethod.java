@@ -47,6 +47,8 @@ import prism.PrismUtils;
  */
 public abstract class IterationMethod {
 
+	public static final int LOGGING_PRECISION = 12;
+
 	/**
 	 * Interface for an object that provides the basic steps for a value iteration.
 	 */
@@ -624,14 +626,14 @@ public abstract class IterationMethod {
 				if (done) {
 					maxError = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
 					mc.getLog().println("Max " + (!absolute ? "relative ": "") +
-							"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(maxError));
+							"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(LOGGING_PRECISION, maxError));
 					done = true;
 				}
 
 				if (!done && updatesTimer.triggered()) {
 					double diff = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
 					mc.getLog().print("Iteration " + iters + ": ");
-					mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff=" + PrismUtils.formatDouble(diff));
+					mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff=" + PrismUtils.formatDouble(LOGGING_PRECISION, diff));
 					mc.getLog().println(", " + PrismUtils.formatDouble2dp(updatesTimer.elapsedMillisTotal() / 1000.0) + " sec so far");
 				}
 			}
@@ -766,7 +768,7 @@ public abstract class IterationMethod {
 						if (!doneSCC && updatesTimer.triggered()) {
 							double diff = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute, statesForSCC.iterator());
 							mc.getLog().print("Iteration " + iters + ": ");
-							mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff (for iteration " + itersInSCC + " in current SCC " + (finishedNonSingletonSCCs+1) + " of " + numNonSingletonSCCs + ") = " + PrismUtils.formatDouble(diff));
+							mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff (for iteration " + itersInSCC + " in current SCC " + (finishedNonSingletonSCCs+1) + " of " + numNonSingletonSCCs + ") = " + PrismUtils.formatDouble(LOGGING_PRECISION, diff));
 							mc.getLog().println(", " + PrismUtils.formatDouble2dp(updatesTimer.elapsedMillisTotal() / 1000.0) + " sec so far");
 						}
 					}
@@ -790,7 +792,7 @@ public abstract class IterationMethod {
 			if (done) {
 				maxError = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
 				mc.getLog().println("Max " + (absolute ? "" : "relative ") +
-						"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(maxError));
+						"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(LOGGING_PRECISION, maxError));
 				done = true;
 			}
 

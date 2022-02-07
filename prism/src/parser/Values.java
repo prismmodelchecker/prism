@@ -496,7 +496,7 @@ public class Values implements Cloneable //implements Comparable
 		String s;
 		
 		if (o instanceof Double) {
-			s = PrismUtils.formatDouble((double)o);
+			s = PrismUtils.formatDouble(12, (double) o);
 		} else {
 			s = String.valueOf(o);
 		}
