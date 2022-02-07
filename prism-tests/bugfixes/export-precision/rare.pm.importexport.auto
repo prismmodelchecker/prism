@@ -1,0 +1,5 @@
+-exportmodel rare.pm.tra
+-exportmodel rare.pm.srew
+
+-dtmc -importmodel rare.pm.sta,tra,srew -exportmodel rare.pm.tra
+-dtmc -importmodel rare.pm.sta,tra,srew -exportmodel rare.pm.srew

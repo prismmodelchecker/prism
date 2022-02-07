@@ -1,0 +1,6 @@
+// RESULT (p=1e-13): 1.0
+Pmax=? [F rare];
+
+// RESULT (p=1e-13): true
+0.99 <= Rmin=? [F rare];
+

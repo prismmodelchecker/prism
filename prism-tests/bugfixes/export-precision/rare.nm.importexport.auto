@@ -1,0 +1,5 @@
+-exportmodel rare.nm.tra
+-exportmodel rare.nm.srew
+
+-mdp -importmodel rare.nm.sta,tra,srew -exportmodel rare.nm.tra
+-mdp -importmodel rare.nm.sta,tra,srew -exportmodel rare.nm.srew
