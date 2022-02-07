@@ -144,11 +144,11 @@ jstring fn		// filename
 				d = dist[(int)(cols[j] & dist_mask)];
 			}
 			switch (export_type) {
-			case EXPORT_PLAIN: export_string("%d %d %.12g\n", r, c, d); break;
-			case EXPORT_MATLAB: export_string("%s(%d,%d)=%.12g;\n", export_name, r+1, c+1, d); break;
-			case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d -> %d [ label=\"%.12g\" ];\n", r, c, d); break;
-			case EXPORT_MRMC: export_string("%d %d %.12g\n", r+1, c+1, d); break;
-			case EXPORT_ROWS: export_string(" %.12g:%d", d, c); break;
+			case EXPORT_PLAIN: export_string("%d %d %.17g\n", r, c, d); break;
+			case EXPORT_MATLAB: export_string("%s(%d,%d)=%.17g;\n", export_name, r+1, c+1, d); break;
+			case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%d -> %d [ label=\"%.17g\" ];\n", r, c, d); break;
+			case EXPORT_MRMC: export_string("%d %d %.17g\n", r+1, c+1, d); break;
+			case EXPORT_ROWS: export_string(" %.17g:%d", d, c); break;
 			}
 		}
 		if (export_type == EXPORT_ROWS) export_string("\n");
