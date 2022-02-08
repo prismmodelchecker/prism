@@ -34,6 +34,7 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import common.iterable.Range;
 import explicit.QuantAbstractRefine;
 
 import java.util.regex.*;
@@ -53,7 +54,7 @@ public class PrismSettings implements Observer
 	public static final Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN, 12);
 	public static final FontColorPair DEFAULT_FONT_COLOUR = new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black);
 	public static final File DEFAULT_FILE = null;
-	
+
 	//Type Constants
 	public static final String STRING_TYPE = "s";
 	public static final String INTEGER_TYPE = "i";
@@ -66,7 +67,10 @@ public class PrismSettings implements Observer
 	public static final String CHOICE_TYPE = "ch";
 	public static final String FONT_COLOUR_TYPE = "fct";
 	public static final String FILE_TYPE = "fi";
-	
+
+	// Constraint constants
+	public static final Range RANGE_EXPORT_DOUBLE_PRECISION = Range.closed(1, 17);
+
 	//Property Constant Keys
 	//======================
 	
@@ -96,7 +100,8 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
 	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
 	public static final	String PRISM_GRID_RESOLUTION				= "prism.gridResolution";
-	
+	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportmodelprecision";
+
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
 	public static final	String PRISM_DD_EXTRA_STATE_VARS				= "prism.ddExtraStateVars";
@@ -271,6 +276,8 @@ public class PrismSettings implements Observer
 																			"Export solution vectors for iteration algorithms to iterations.html"},
 			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			new Integer(10),															"1,",																						
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
+			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7dev",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
+																			"Export probabilities/rewards with n significant decimal places"},
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1195,7 +1202,22 @@ public class PrismSettings implements Observer
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		
+		// export probabilities/rewards with up to n significant decimal places
+		else if (sw.equals("exportmodelprecision")) {
+			if (i < args.length - 1) {
+				try {
+					int precision = Integer.parseInt(args[++i]);
+					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(precision))
+						throw new NumberFormatException("");
+					set(PRISM_EXPORT_MODEL_PRECISION, precision);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+
 		// MODEL CHECKING OPTIONS:
 		
 		// Precomputation algs off
