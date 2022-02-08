@@ -70,6 +70,7 @@ public class PrismSettings implements Observer
 
 	// Constraint constants
 	public static final Range RANGE_EXPORT_DOUBLE_PRECISION = Range.closed(1, 17);
+	public static final int DEFAULT_EXPORT_MODEL_PRECISION = 17;
 
 	//Property Constant Keys
 	//======================

@@ -1593,7 +1593,8 @@ public class StateModelChecker extends PrismComponent
 	{
 		if (getExportProductTrans()) {
 			mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
-			product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename());
+			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+			product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename(), precision);
 		}
 		if (getExportProductStates()) {
 			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");

@@ -56,7 +56,7 @@ public interface POMDP extends MDP, PartiallyObservableModel
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out)
+	default void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Output transitions to .tra file
 		int numStates = getNumStates();
@@ -74,7 +74,7 @@ public interface POMDP extends MDP, PartiallyObservableModel
 				// Print out (sorted) transitions
 				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
 					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + " " + getObservation(e.getKey()));
+					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()) + " " + getObservation(e.getKey()));
 					Object action = getAction(i, j);
 					out.print(action == null ? "\n" : (" " + action + "\n"));
 				}

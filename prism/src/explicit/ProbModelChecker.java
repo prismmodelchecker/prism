@@ -58,6 +58,8 @@ import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
 
+import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
+
 /**
  * Super class for explicit-state probabilistic model checkers.
  */
@@ -1258,7 +1260,8 @@ public class ProbModelChecker extends NonProbModelChecker
 			return StateValues.create(TypeDouble.getInstance(), s -> model.isInitialState(s) ? pInit : 0.0, model);
 		}
 	}
-	
+
+
 	/**
 	 * Export (non-zero) state rewards for one reward structure of a model.
 	 * @param model The model
@@ -1267,6 +1270,19 @@ public class ProbModelChecker extends NonProbModelChecker
 	 * @param out Where to export
 	 */
 	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out) throws PrismException
+	{
+		exportStateRewardsToFile(model, r, exportType, out, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export (non-zero) state rewards for one reward structure of a model.
+	 * @param model The model
+	 * @param r Index of reward structure to export (0-indexed)
+	 * @param exportType The format in which to export
+	 * @param out Where to export
+	 * @param precision number of significant digits >= 1
+	 */
+	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out, int precision) throws PrismException
 	{
 		int numStates = model.getNumStates();
 		int nonZeroRews = 0;
@@ -1290,7 +1306,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			for (int s = 0; s < numStates; s++) {
 				double d = mcRewards.getStateReward(s);
 				if (d != 0) {
-					out.println(s + " " + PrismUtils.formatDouble(d));
+					out.println(s + " " + PrismUtils.formatDouble(precision, d));
 				}
 			}
 			break;
@@ -1307,7 +1323,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			for (int s = 0; s < numStates; s++) {
 				double d = mdpRewards.getStateReward(s);
 				if (d != 0) {
-					out.println(s + " " + PrismUtils.formatDouble(d));
+					out.println(s + " " + PrismUtils.formatDouble(precision, d));
 				}
 			}
 			break;

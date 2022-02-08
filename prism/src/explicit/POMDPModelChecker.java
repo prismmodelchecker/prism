@@ -48,6 +48,7 @@ import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 import prism.PrismUtils;
 
 /**
@@ -246,6 +247,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Export strategy if requested
 		// NB: proper storage of strategy for genStrat not yet supported,
 		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (genStrat || exportAdv) {
 			// Export in Dot format if filename extension is .dot
 			if (exportAdvFilename.endsWith(".dot")) {
@@ -257,11 +259,11 @@ public class POMDPModelChecker extends ProbModelChecker
 						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
 						return d;
 					}
-				}));
+				}), precision);
 			}
 			// Otherwise use .tra format
 			else {
-				mdp.exportToPrismExplicitTra(exportAdvFilename);
+				mdp.exportToPrismExplicitTra(exportAdvFilename, precision);
 			}
 		}
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
@@ -452,6 +454,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Export strategy if requested
 		// NB: proper storage of strategy for genStrat not yet supported,
 		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (genStrat || exportAdv) {
 			// Export in Dot format if filename extension is .dot
 			if (exportAdvFilename.endsWith(".dot")) {
@@ -463,11 +466,11 @@ public class POMDPModelChecker extends ProbModelChecker
 						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
 						return d;
 					}
-				}));
+				}), precision);
 			}
 			// Otherwise use .tra format
 			else {
-				mdp.exportToPrismExplicitTra(exportAdvFilename);
+				mdp.exportToPrismExplicitTra(exportAdvFilename, precision);
 			}
 		}
 
