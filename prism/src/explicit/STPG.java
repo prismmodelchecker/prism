@@ -68,7 +68,7 @@ public interface STPG extends NondetModel
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out)
+	default void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Output transitions to .tra file
 		// Just use MDP format for now; no specific format for games 
@@ -87,7 +87,7 @@ public interface STPG extends NondetModel
 				// Print out (sorted) transitions
 				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
 					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
+					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()));
 					Object action = getAction(i, j);
 					out.print(action == null ? "\n" : (" " + action + "\n"));
 				}
@@ -97,7 +97,7 @@ public interface STPG extends NondetModel
 	}
 
 	@Override
-	default void exportToPrismLanguage(final String filename) throws PrismException
+	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}

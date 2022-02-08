@@ -47,7 +47,7 @@ public interface LTS extends NondetModel
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out)
+	default void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Output transitions to .tra file
 		int numStates = getNumStates();
@@ -63,7 +63,7 @@ public interface LTS extends NondetModel
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing transitions (i.e. choices) for this state
 		int numChoices = getNumChoices(i);
@@ -86,7 +86,7 @@ public interface LTS extends NondetModel
 	}
 
 	@Override
-	default void exportToPrismLanguage(String filename) throws PrismException
+	default void exportToPrismLanguage(String filename, int precision) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -112,7 +112,7 @@ public interface LTS extends NondetModel
 	// Accessors (for NondetModel) - default implementations
 	
 	@Override
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat)
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat, int precision)
 	{
 		throw new UnsupportedOperationException();
 	}

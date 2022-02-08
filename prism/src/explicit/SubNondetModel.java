@@ -226,19 +226,19 @@ public class SubNondetModel implements NondetModel
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog log)
+	public void exportToPrismExplicitTra(PrismLog log, int precision)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
 	{
 		throw new UnsupportedOperationException();
 	}
 	
 	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
+	public void exportToPrismLanguage(String filename, int precision) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}

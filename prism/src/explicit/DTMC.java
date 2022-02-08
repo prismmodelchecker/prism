@@ -53,7 +53,7 @@ public interface DTMC extends Model
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out)
+	default void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Output transitions to .tra file
 		int numStates = getNumStates();
@@ -69,7 +69,7 @@ public interface DTMC extends Model
 			// Print out (sorted) transitions
 			for (Map.Entry<Integer, Pair<Double, Object>> e : sorted.entrySet()) {
 				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue().first));
+				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue().first));
 				Object action = e.getValue().second; 
 				if (action != null && !"".equals(action)) {
 					out.print(" " + action);
@@ -81,7 +81,7 @@ public interface DTMC extends Model
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing transitions for this state
 		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
@@ -91,7 +91,7 @@ public interface DTMC extends Model
 			out.print(i + " -> " + e.getKey());
 			// Annotate this arrow with the probability 
 			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(e.getValue().toString());
+			d.setLabel(PrismUtils.formatDouble(precision, e.getValue()));
 			// Apply any other decorators requested
 			if (decorators != null) {
 				for (Decorator decorator : decorators) {
@@ -104,7 +104,7 @@ public interface DTMC extends Model
 	}
 
 	@Override
-	default void exportToPrismLanguage(final String filename) throws PrismException
+	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {
 			out.write(getModelType().keyword() + "\n");
@@ -125,7 +125,7 @@ public interface DTMC extends Model
 					else
 						out.write("+");
 					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(PrismUtils.formatDouble(transition.getValue()) + ":(x'=" + transition.getKey() + ")");
+					out.write(PrismUtils.formatDouble(precision, transition.getValue()) + ":(x'=" + transition.getKey() + ")");
 				}
 				out.write(";\n");
 				sorted.clear();

@@ -66,7 +66,7 @@ public interface MDP extends MDPGeneric<Double>
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out)
+	default void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Output transitions to .tra file
 		int numStates = getNumStates();
@@ -84,7 +84,7 @@ public interface MDP extends MDPGeneric<Double>
 				// Print out (sorted) transitions
 				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
 					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()));
+					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()));
 					Object action = getAction(i, j);
 					out.print(action == null ? "\n" : (" " + action + "\n"));
 				}
@@ -94,7 +94,7 @@ public interface MDP extends MDPGeneric<Double>
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing choices for this state
 		int numChoices = getNumChoices(i);
@@ -125,7 +125,7 @@ public interface MDP extends MDPGeneric<Double>
 				out.print(nij + " -> " + e.getKey() + " ");
 				// Annotate this arrow with the probability 
 				d = new explicit.graphviz.Decoration();
-				d.setLabel(e.getValue().toString());
+				d.setLabel(PrismUtils.formatDouble(precision, e.getValue()));
 				// Apply any other decorators requested
 				if (decorators != null) {
 					for (Decorator decorator : decorators) {
@@ -139,7 +139,7 @@ public interface MDP extends MDPGeneric<Double>
 	}
 
 	@Override
-	default void exportToPrismLanguage(final String filename) throws PrismException
+	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {
 			// Output transitions to PRISM language file
@@ -165,7 +165,7 @@ public interface MDP extends MDPGeneric<Double>
 						else
 							out.write("+");
 						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.write(PrismUtils.formatDouble(e.getValue()) + ":(x'=" + e.getKey() + ")");
+						out.write(PrismUtils.formatDouble(precision, e.getValue()) + ":(x'=" + e.getKey() + ")");
 					}
 					out.write(";\n");
 					sorted.clear();
@@ -210,7 +210,7 @@ public interface MDP extends MDPGeneric<Double>
 	}
 	
 	@Override
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
 	{
 		int numStates = getNumStates();
 		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
@@ -230,7 +230,7 @@ public interface MDP extends MDPGeneric<Double>
 				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Double> e = iter.next();
-					out.print(nij + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\"" + style + " ];\n");
+					out.print(nij + " -> " + e.getKey() + " [ label=\"" + PrismUtils.formatDouble(precision, e.getValue()) + "\"" + style + " ];\n");
 				}
 			}
 		}

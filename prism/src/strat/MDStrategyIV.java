@@ -105,13 +105,13 @@ public class MDStrategyIV extends MDStrategy
 	// Methods for Strategy
 	
 	@Override
-	public void exportInducedModel(PrismLog out)
+	public void exportInducedModel(PrismLog out, int precision)
 	{
 		// TODO
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out)
+	public void exportDotFile(PrismLog out, int precision)
 	{
 		try {
 			model.exportToFile(Prism.EXPORT_DOT, true, new java.io.File("a.dot"));

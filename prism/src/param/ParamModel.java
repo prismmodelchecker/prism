@@ -260,7 +260,7 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
+	public void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		int i, j, numChoices;
 		Object action;
@@ -303,7 +303,7 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		int numChoices = getNumChoices(i);
 		for (int j = 0; j < numChoices; j++) {
@@ -366,13 +366,13 @@ public final class ParamModel extends ModelExplicit implements MDPGeneric<Functi
 	}
 
 	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat)
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int[] strat, int precision)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void exportToPrismLanguage(String filename) throws PrismException
+	public void exportToPrismLanguage(String filename, int precision) throws PrismException
 	{
 		throw new UnsupportedOperationException();
 	}

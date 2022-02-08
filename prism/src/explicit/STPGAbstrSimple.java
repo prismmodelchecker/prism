@@ -357,7 +357,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Custom dot format for game abstractions
 		// We ignore decorators for the moment
@@ -374,14 +374,14 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 				out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
 				out.print(nijk + " [ shape=point,label=\"\" ];\n");
 				for (Map.Entry<Integer, Double> e : distr) {
-					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + PrismUtils.formatDouble(precision, e.getValue()) + "\" ];\n");
 				}
 			}
 		}
 	}
 
 	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
 	{
 		throw new RuntimeException("Not yet supported");
 	}

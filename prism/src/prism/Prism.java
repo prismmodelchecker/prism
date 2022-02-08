@@ -794,7 +794,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		return settings.getInteger(PrismSettings.PRISM_GRID_RESOLUTION);
 	}
-	
+
 	public boolean getVerbose()
 	{
 		return settings.getBoolean(PrismSettings.PRISM_VERBOSE);
@@ -2287,21 +2287,22 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// do export
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (!getExplicit()) {
 			currentModel.exportToFile(exportType, ordered, file);
 		} else {
 			PrismLog tmpLog = getPrismLogForFile(file);
 			switch (exportType) {
 			case Prism.EXPORT_PLAIN:
-				currentModelExpl.exportToPrismExplicitTra(tmpLog);
+				currentModelExpl.exportToPrismExplicitTra(tmpLog, precision);
 				break;
 			case Prism.EXPORT_MATLAB:
 				throw new PrismNotSupportedException("Export not yet supported");
 			case Prism.EXPORT_DOT:
-				currentModelExpl.exportToDotFile(tmpLog);
+				currentModelExpl.exportToDotFile(tmpLog, precision);
 				break;
 			case Prism.EXPORT_DOT_STATES:
-				currentModelExpl.exportToDotFile(tmpLog, null, true);
+				currentModelExpl.exportToDotFile(tmpLog, null, true, precision);
 				break;
 			case Prism.EXPORT_MRMC:
 			case Prism.EXPORT_ROWS:
@@ -2355,6 +2356,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Do export, writing to multiple files if necessary
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2369,7 +2371,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				try {
-					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
+					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, precision);
 				} catch (PrismNotSupportedException e) {
 					mainLog.println("\nReward export failed: " + e.getMessage());
 				}
@@ -3317,6 +3319,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Export to file (or use main log)
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		tmpLog = getPrismLogForFile(file);
 		switch (exportType) {
 		case ACTIONS:
@@ -3326,10 +3329,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			strat.exportIndices(tmpLog);
 			break;
 		case INDUCED_MODEL:
-			strat.exportInducedModel(tmpLog);
+			strat.exportInducedModel(tmpLog, precision);
 			break;
 		case DOT_FILE:
-			strat.exportDotFile(tmpLog);
+			strat.exportDotFile(tmpLog, precision);
 			break;
 		}
 		if (file != null)
