@@ -496,7 +496,7 @@ test:
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  cd ../prism-tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping tests"; \
 	fi
@@ -504,13 +504,13 @@ tests: testslocal
 # Just display the command to run the test suite on this version of PRISM
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testsecho:
-	@echo etc/scripts/prism-auto -t -m --nailgun --ngprism bin/ngprism ../prism-tests -p bin/prism $(TESTS_ARGS)
+	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
 
 # Run local tests (in ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testslocal:
 	@if [ -d tests ]; then \
-	  cd tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping local tests"; \
 	fi
@@ -521,10 +521,9 @@ testslocal:
 # - We run with --test-all, as failures for some engines should not abort the tests
 # - We run with a timeout of 1 minute, as some engines take a long time for some properties
 testsfull:
-	cd ../prism-tests && \
-	"$(PWD)"/etc/scripts/prism-auto -t -m . \
-	--skip-export-runs --skip-duplicate-runs --test-all -a all-engines.args --timeout 1m \
-	-p "$(PWD)"/bin/prism --nailgun $(TESTS_ARGS);
+	etc/scripts/prism-auto -t -m ../prism-tests \
+	--skip-export-runs --skip-duplicate-runs --test-all -a ../prism-tests/all-engines.args --timeout 1m \
+	-p bin/prism --nailgun $(TESTS_ARGS);
 
 ##########################
 # Building distributions #
