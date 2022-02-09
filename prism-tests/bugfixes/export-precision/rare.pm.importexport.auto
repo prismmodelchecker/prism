@@ -1,5 +1,7 @@
--exportmodel rare.pm.tra
--exportmodel rare.pm.srew
+# Reduce precision for some tests due to minor differences between the engines
 
--dtmc -importmodel rare.pm.sta,tra,srew -exportmodel rare.pm.tra
--dtmc -importmodel rare.pm.sta,tra,srew -exportmodel rare.pm.srew
+-exportmodelprecision 16 -exportmodel rare.pm.tra
+-exportmodelprecision 16 -exportmodel rare.pm.srew
+
+-exportmodelprecision 16 -dtmc -importmodel rare.pm.sta,tra,srew -exportmodel rare.pm.tra
+-exportmodelprecision 16 -dtmc -importmodel rare.pm.sta,tra,srew -exportmodel rare.pm.srew

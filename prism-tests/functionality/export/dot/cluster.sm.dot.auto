@@ -1,2 +1,4 @@
--exporttransdot cluster.sm.dot
--exporttransdotstates cluster.sm.sta.dot
+# Reduce precision for some tests due to minor differences between the engines
+
+-exportmodelprecision 16 -exporttransdot cluster.sm.dot
+-exportmodelprecision 16 -exporttransdotstates cluster.sm.sta.dot

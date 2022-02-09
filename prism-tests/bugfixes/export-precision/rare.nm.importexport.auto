@@ -1,5 +1,7 @@
--exportmodel rare.nm.tra
--exportmodel rare.nm.srew
+# Reduce precision for some tests due to minor differences between the engines
 
--mdp -importmodel rare.nm.sta,tra,srew -exportmodel rare.nm.tra
--mdp -importmodel rare.nm.sta,tra,srew -exportmodel rare.nm.srew
+-exportmodelprecision 16 -exportmodel rare.nm.tra
+-exportmodelprecision 16 -exportmodel rare.nm.srew
+
+-exportmodelprecision 16 -mdp -importmodel rare.nm.sta,tra,srew -exportmodel rare.nm.tra
+-exportmodelprecision 16 -mdp -importmodel rare.nm.sta,tra,srew -exportmodel rare.nm.srew
