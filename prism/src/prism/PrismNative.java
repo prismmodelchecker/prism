@@ -125,6 +125,14 @@ public class PrismNative
 		PN_SetMaxIters(i);
 	}
 
+	private static native void PN_SetExportModelPrecision(int prec);
+	public static void setExportModelPrecision(int prec)
+	{
+		if (prec < 1)
+			throw new IllegalArgumentException("Precision has to be >= 1; got " + prec);
+		PN_SetExportModelPrecision(prec);
+	}
+
 	private static native void PN_SetSBMaxMem(int i);
 	public static void setSBMaxMem(int i)
 	{
