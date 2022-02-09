@@ -366,7 +366,7 @@ def prependToFile(prefix, option):
 
 def expandFilenames(args, dir=""):
     def isImportExportArg(arg):
-        return (arg.startswith("-export") or arg.startswith("-import"))
+        return (arg.startswith("-export") or arg.startswith("-import")) and not arg=="-exportmodelprecision"
     if args:
         return [args[0]] + [expandName(dir, args[i+1]) if isImportExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
     else:
@@ -376,7 +376,7 @@ def expandFilenames(args, dir=""):
 
 def renameExports(prefix, args):
     def isExportArg(arg):
-        return arg.startswith("-export")
+        return arg.startswith("-export") and not arg=="-exportmodelprecision"
     if args:
         return [args[0]] + [prependToFile(prefix, args[i+1]) if isExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
     else:
@@ -396,7 +396,7 @@ def hasExportSwitches(args):
 # and that multiple reward structures will result in filenames extended with a number
 
 def getExpectedOutFilesFromArgs(args):
-    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export")]
+    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export") and not args[i]=="-exportmodelprecision"]
     # Sometimes there are options appended, after a ":" - remove these
     files = map(lambda option: option.split(':')[0], options)
 
