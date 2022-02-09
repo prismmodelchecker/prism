@@ -1,1 +1,3 @@
--importpepa badge.pepa -exportmodel badge.pepa.sta,tra,lab
+# Reduce precision for some tests due to minor differences between the engines
+
+-importpepa badge.pepa -exportmodelprecision 16 -exportmodel badge.pepa.sta,tra,lab
