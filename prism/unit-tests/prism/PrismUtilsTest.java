@@ -1,8 +1,11 @@
 package prism;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static prism.PrismUtils.formatDouble;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class PrismUtilsTest
 {
@@ -16,5 +19,25 @@ public class PrismUtilsTest
 				 assertEquals(d, Integer.compare(i, j));
 			 }
 		 }
+	}
+
+	@Test
+	public void testFormatDouble()
+	{
+		// Special values
+		assertEquals("NaN", formatDouble(Double.NaN));
+		assertEquals("-Infinity", formatDouble(Double.NEGATIVE_INFINITY));
+		assertEquals("Infinity", formatDouble(Double.POSITIVE_INFINITY));
+		// Rounding if number of significant digits > precision
+		assertEquals("123457", formatDouble(6, 123456.7));
+		assertEquals("1.23457e-05",formatDouble(6, 0.00001234567));
+		// Small numbers
+		assertEquals("0.0001",formatDouble(6, 0.0001));
+		assertEquals("1e-05",formatDouble(6, 0.00001));
+		assertEquals("1.23456e-05",formatDouble(6, 0.0000123456));
+		// Big numbers
+		assertEquals("999999",formatDouble(6, 999999.0));
+		assertEquals("1e+06", formatDouble(6, 999999.9));
+		assertEquals("1.23457e+06", formatDouble(6, 1234567.8));
 	}
 }
