@@ -114,7 +114,7 @@ public class MDStrategyIV extends MDStrategy
 	public void exportDotFile(PrismLog out, int precision)
 	{
 		try {
-			model.exportToFile(Prism.EXPORT_DOT, true, new java.io.File("a.dot"));
+			model.exportToFile(Prism.EXPORT_DOT, true, new java.io.File("a.dot"), precision);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

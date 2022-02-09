@@ -2289,7 +2289,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// do export
 		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (!getExplicit()) {
-			currentModel.exportToFile(exportType, ordered, file);
+			currentModel.exportToFile(exportType, ordered, file, precision);
 		} else {
 			PrismLog tmpLog = getPrismLogForFile(file);
 			switch (exportType) {
@@ -2366,7 +2366,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (!getExplicit()) {
-				currentModel.exportStateRewardsToFile(r, exportType, fileToUse);
+				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision);
 			} else {
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
@@ -2433,6 +2433,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Do export, writing to multiple files if necessary
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2442,7 +2443,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (!getExplicit()) {
-				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse);
+				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse, precision);
 			} else {
 				// Not implemented yet
 			}

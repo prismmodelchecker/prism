@@ -109,9 +109,9 @@ jstring fn		// filename
 			if (export_type == EXPORT_ROWS) export_string("%d", i);
 			for (k = l2; k < h2; k++) {
 				switch (export_type) {
-				case EXPORT_PLAIN: export_string("%d %d %d %.17g\n", i, j-l1, cols[k], non_zeros[k]); break;
-				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.17g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
-				case EXPORT_ROWS: export_string(" %.17g:%d", non_zeros[k], cols[k]); break;
+				case EXPORT_PLAIN: export_string("%d %d %d %.*g\n", i, j-l1, cols[k], export_model_precision, non_zeros[k]); break;
+				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.*g;\n", export_name, j-l1+1, i+1, cols[k]+1, export_model_precision, non_zeros[k]); break;
+				case EXPORT_ROWS: export_string(" %.*g:%d", export_model_precision, non_zeros[k], cols[k]); break;
 				}
 			}
 			if (export_type == EXPORT_ROWS) export_string("\n");
