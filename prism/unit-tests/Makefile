@@ -13,6 +13,7 @@ PRISM_DIR_REL = ..
 
 JAVA_FILES_ALL := $(shell find . -name '*.java')
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))
+CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)/%.class)
 
 PRISM_CLASSPATH = "$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)$(CLASSPATHSEP)$(PRISM_DIR_REL)/$(PRISM_LIB_DIR)/*"
 
@@ -38,7 +39,6 @@ class_files:
 	@rm -f java_files.txt
 
 clean: checks
-	CLASS_FILES = $(JAVA_FILES:%.java=$(PRISM_DIR_REL)/$(PRISM_CLASSES_DIR)/%.class)
 	@rm -f $(CLASS_FILES)
 
 celan: clean
