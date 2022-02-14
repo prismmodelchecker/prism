@@ -132,7 +132,7 @@ jstring fn		// filename
 				switch (export_type) {
 				case EXPORT_PLAIN:
 					export_string("%d %d %d %.12g", i, j-l1, cols[k], non_zeros[k]);
-					if (actions != NULL) export_string(" %s", (actions[j]>0?action_names[actions[j]-1]:""));
+					if (actions != NULL && actions[j]>0) export_string(" %s", action_names[actions[j]-1]);
 					export_string("\n");
 					break;
 				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.12g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
