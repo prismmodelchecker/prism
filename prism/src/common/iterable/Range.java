@@ -250,7 +250,7 @@ public class Range implements FunctionalPrimitiveIterable.OfInt
 	/**
 	 * A abstract base class for an Iterator from {@code first} (inclusive) and {@code last} (exclusive) with a custom step width.
 	 */
-	protected abstract class RangeIterator implements FunctionalPrimitiveIterator.OfInt
+	public abstract class RangeIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		protected int next;
 
