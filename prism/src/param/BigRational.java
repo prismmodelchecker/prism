@@ -203,16 +203,30 @@ public final class BigRational extends Number implements Comparable<BigRational>
 			this.num = BigInteger.ONE.negate();
 			this.den = BigInteger.ZERO;
 		}
-		// Determine smallest exponent such that value = long_value * 2^exp
-		int exp = 0;
-		// Terminate as soon as value is an integer
-		while ((long) value != value) {
-			value *= 2;
-			exp += 1;
+		// Test whether value must be an integer
+		if (value <= -0x1.0P52 || value >= 0x1.0P52) {
+			// Determine smallest exponent such that value = long_value * 2^exp
+			int exp = 0;
+			// Terminate as soon as value is a long
+			while ((long) value != value) {
+				value /= 2;
+				exp += 1;
+			}
+			// No need to cancel as denumerator is one
+			this.num = BigInteger.valueOf((long) value).shiftLeft(exp);
+			this.den = BigInteger.ONE;
+		} else {
+			// Determine smallest exponent such that value = long_value / 2^exp
+			int exp = 0;
+			// Terminate as soon as value is an integer
+			while ((long) value != value) {
+				value *= 2;
+				exp += 1;
+			}
+			// No need to cancel as exp is the smallest exponent
+			this.num = BigInteger.valueOf((long) value);
+			this.den = BigInteger.ONE.shiftLeft(exp);
 		}
-		// No need to cancel as exp is the smallest exponent
-		this.num = BigInteger.valueOf((long) value);
-		this.den = BigInteger.valueOf(2).pow(exp);
 	}
 
 	/**
