@@ -65,10 +65,10 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
  jlong __jlongpointer _ndsm, //pointer to trans sparse matrix
  jobject synchs,
  jlongArray _yes_vec, //pointer to yes vector array
- jintArray _prob_step_bounds, //step bounds for probabilistic operators
+ jdoubleArray _prob_step_bounds, //step bounds for probabilistic operators
  jlongArray  _ndsm_r, //pointer to reward sparse matrix array
  jdoubleArray _weights, //weights of rewards and yes_vec vectors
- jintArray _ndsm_r_step_bounds //step bounds for rewards
+ jdoubleArray _ndsm_r_step_bounds //step bounds for rewards
   )
 {
 	// cast function parameters
@@ -116,7 +116,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	// storage for result array (0 means error)
 	jdoubleArray ret = 0;
 	// local copy of max_iters, since we will change it
-	int max_iters_local = max_iters;
+	double max_iters_local = max_iters;
 	// whether to export individual solution vectors (with adversaries)
 	bool export_vectors = false;
 	
@@ -128,8 +128,8 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 	jlong *ptr_ndsm_r = (has_rewards) ? env->GetLongArrayElements(_ndsm_r, 0) : NULL;
 	jlong *ptr_yes_vec = (has_yes_vec) ? env->GetLongArrayElements(_yes_vec, 0) : NULL;
 	double* weights = env->GetDoubleArrayElements(_weights, 0);
-	int* step_bounds_r = (has_rewards) ? (int*)env->GetIntArrayElements(_ndsm_r_step_bounds, 0) : NULL;
-	int* step_bounds = (has_yes_vec) ? (int*)env->GetIntArrayElements(_prob_step_bounds, 0) : NULL;
+	double* step_bounds_r = (has_rewards) ? (double*)env->GetDoubleArrayElements(_ndsm_r_step_bounds, 0) : NULL;
+	double* step_bounds = (has_yes_vec) ? (double*)env->GetDoubleArrayElements(_prob_step_bounds, 0) : NULL;
 	
 	// We will ignore one of the rewards and compute its value from the other ones and
 	// from the combined value. We must make sure that this reward has nonzero weight,
@@ -180,7 +180,7 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 		for(int rewi = 0; rewi < lenRew; rewi++)
 			ndsm_r[rewi] = (NDSparseMatrix *) jlong_to_NDSparseMatrix(ptr_ndsm_r[rewi]);
 		
-		int max_step_bound = 0;
+		double max_step_bound = 0;
 		for(int rewi = 0; rewi < lenRew; rewi++) {
 			if (step_bounds_r[rewi] == -1)
 				step_bounds_r[rewi] = max_iters_local;

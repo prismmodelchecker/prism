@@ -454,9 +454,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_TERM_CRIT_PARAM, d);
 	}
 
-	public void setMaxIters(int i) throws PrismException
+	public void setMaxIters(double d) throws PrismException
 	{
-		settings.set(PrismSettings.PRISM_MAX_ITERS, i);
+		if (! (d > 0 && d <= Integer.MAX_VALUE && (d == Math.floor(d) || Double.isInfinite(d)))) {
+			throw new PrismException("Expected positive integer or 'Infinity'.");
+		}
+		settings.set(PrismSettings.PRISM_MAX_ITERS, d);
 	}
 
 	public void setGridResolution(int i) throws PrismException
@@ -785,9 +788,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return settings.getDouble(PrismSettings.PRISM_TERM_CRIT_PARAM);
 	}
 
-	public int getMaxIters()
+	public double getMaxIters()
 	{
-		return settings.getInteger(PrismSettings.PRISM_MAX_ITERS);
+		return settings.getDouble(PrismSettings.PRISM_MAX_ITERS);
 	}
 
 	public int getGridResolution()
