@@ -609,7 +609,7 @@ public class PrismLogarithmicAxis extends ValueAxis {
 
         	double v = calculateValue(current);
             if (range.contains(v)) {
-                ticks.add(new NumberTick(new Double(v), createTickLabel(v), 
+                ticks.add(new NumberTick(Double.valueOf(v), createTickLabel(v), 
                         TextAnchor.TOP_CENTER, TextAnchor.CENTER, 0.0));
             }
             // add minor ticks (for gridlines)
@@ -618,7 +618,7 @@ public class PrismLogarithmicAxis extends ValueAxis {
             for (int i = 1; i < this.minorTickCount; i++) {
                 double minorV = v + i * ((next - v) / this.minorTickCount);
                 if (range.contains(minorV)) {
-                    ticks.add(new NumberTick(new Double(minorV), 
+                    ticks.add(new NumberTick(Double.valueOf(minorV), 
                         "", TextAnchor.TOP_CENTER, TextAnchor.CENTER, 0.0));
                 }
             }
@@ -649,7 +649,7 @@ public class PrismLogarithmicAxis extends ValueAxis {
         	
             double v = calculateValue(current);
             if (range.contains(v)) {
-                ticks.add(new NumberTick(new Double(v), createTickLabel(v), 
+                ticks.add(new NumberTick(Double.valueOf(v), createTickLabel(v), 
                         TextAnchor.CENTER_RIGHT, TextAnchor.CENTER, 0.0));
             }
             // add minor ticks (for gridlines)
@@ -658,7 +658,7 @@ public class PrismLogarithmicAxis extends ValueAxis {
             for (int i = 1; i < this.minorTickCount; i++) {
                 double minorV = v + i * ((next - v) / this.minorTickCount);
                 if (range.contains(minorV)) {
-                    ticks.add(new NumberTick(new Double(minorV), "", 
+                    ticks.add(new NumberTick(Double.valueOf(minorV), "", 
                             TextAnchor.CENTER_RIGHT, TextAnchor.CENTER, 0.0));
                 }
             }

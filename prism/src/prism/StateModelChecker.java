@@ -1299,7 +1299,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute average
 			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
 			// Store as object/vector
-			resObj = new Double(d);
+			resObj = Double.valueOf(d);
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Average over " + filterStatesString;

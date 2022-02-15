@@ -140,9 +140,9 @@ public abstract class CIMethod extends SimulationMethod
 		//double stddev = Math.sqrt(variance);
 		switch (prOp) {
 		case 0: // 0=quantitative
-			return new Double(mean);
+			return Double.valueOf(mean);
 			//return new prism.Interval(mean - stddev, mean + stddev);
-			//return new Double(stddev / mean); // noise
+			//return Double.valueOf(stddev / mean); // noise
 		case -1: // -1=lower bound
 			if (mean >= theta + width)
 				return Boolean.valueOf(true);

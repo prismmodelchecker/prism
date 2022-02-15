@@ -58,7 +58,7 @@ public class DoubleEditor implements SettingEditor, CaretListener, FocusListener
 			return NOT_CHANGED_VALUE;
 		valueGot = true;
 		try {
-			return new Double(field.getText());
+			return Double.valueOf(field.getText());
 		} catch (NumberFormatException e) {
 			throw new SettingException("The value entered is not a valid number.");
 		}
@@ -148,7 +148,7 @@ public class DoubleEditor implements SettingEditor, CaretListener, FocusListener
 				value = NOT_CHANGED_VALUE;
 			else {
 				try {
-					value = new Double(field.getText());
+					value = Double.valueOf(field.getText());
 				} catch (NumberFormatException ex) {
 					value = new SettingException("The value entered is not a valid number.");
 				}
