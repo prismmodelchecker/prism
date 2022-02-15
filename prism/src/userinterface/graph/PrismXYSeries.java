@@ -100,22 +100,22 @@ public class PrismXYSeries extends XYSeries
 	
 	@Override
 	public void add(double x, double y) {
-		add(new Double(x), new Double(y), true);
+		add(Double.valueOf(x), Double.valueOf(y), true);
 	}
 
 	@Override
 	public void add(double x, double y, boolean notify) {
-		add(new Double(x), new Double(y), notify);
+		add(Double.valueOf(x), Double.valueOf(y), notify);
 	}
 	
 	@Override
 	public void add(double x, Number y) {
-		add(new Double(x), y);
+		add(Double.valueOf(x), y);
 	}
 
 	@Override
 	public void add(double x, Number y, boolean notify) {
-		add(new Double(x), y, notify);
+		add(Double.valueOf(x), y, notify);
 	}
 
 	@Override

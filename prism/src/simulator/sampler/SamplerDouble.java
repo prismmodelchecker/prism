@@ -93,7 +93,7 @@ public abstract class SamplerDouble extends Sampler
 	@Override
 	public Object getCurrentValue()
 	{
-		return new Double(value);
+		return Double.valueOf(value);
 	}
 
 	@Override

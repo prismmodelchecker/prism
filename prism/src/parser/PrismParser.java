@@ -2654,7 +2654,7 @@ try {
       jj_consume_token(REG_DOUBLE);
 try {
                         double d = Double.parseDouble(getToken(0).image);
-                        ret = new ExpressionLiteral(TypeDouble.getInstance(), new Double(d), getToken(0).image);
+                        ret = new ExpressionLiteral(TypeDouble.getInstance(), Double.valueOf(d), getToken(0).image);
                 } catch (NumberFormatException e) {
                         // Need to catch this because some matches for regexp REG_DOUBLE
                         // may not be valid doubles.
