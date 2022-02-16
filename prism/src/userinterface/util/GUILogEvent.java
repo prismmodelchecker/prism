@@ -70,7 +70,7 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(int type, byte message)
     {
-        super(type, new Byte(message));
+        super(type, Byte.valueOf(message));
     }
     
     public GUILogEvent(int type, boolean message)
@@ -110,7 +110,7 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(byte message)
     {
-        this(PRINTLN, new Byte(message));
+        this(PRINTLN, Byte.valueOf(message));
     }
     
     public GUILogEvent(boolean message)
