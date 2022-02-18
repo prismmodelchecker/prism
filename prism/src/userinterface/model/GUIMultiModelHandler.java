@@ -754,7 +754,9 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 		// if export is being done to log, switch view to log
 		if (exportFile == null)
 			theModel.logToFront();
-		new ExportBuiltModelThread(this, exportEntity, exportType, exportFile).start();
+		new ExportBuiltModelThread(this, exportEntity, exportType, exportFile)
+		    .setExportModelLabels(true)
+		    .start();
 	}
 
 	// Compute steady-state...
