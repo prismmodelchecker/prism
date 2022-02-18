@@ -8,4 +8,5 @@
 -exportlabels dice.pm.matlab.2.lab:proplabels,matlab
 -exportmodel dice.pm.matlab.2.lab:proplabels,matlab
 
-
+-exportproplabels dice.pm.3.lab
+-exportproplabels dice.pm.matlab.3.lab:matlab
