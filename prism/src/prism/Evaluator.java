@@ -29,9 +29,12 @@ package prism;
 import param.BigRational;
 import param.Function;
 import param.FunctionFactory;
+import parser.EvaluateContext.EvalMode;
+import parser.EvaluateContextState;
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
+import parser.type.TypeDouble;
 
 /**
  * Interface specifying operations that need to be supported for classes used to
@@ -218,6 +221,11 @@ public interface Evaluator<Value>
 	 */
 	public boolean isSymbolic();
 	
+	/**
+	 * Get the evaluation model used by this Evaluator.
+	 */
+	public EvalMode evalMode();
+
 	// Static Evaluator instances for common types
 	
 	// Evaluator for doubles
@@ -350,6 +358,12 @@ public interface Evaluator<Value>
 		{
 			return false;
 		}
+		
+		@Override
+		public EvalMode evalMode()
+		{
+			return EvalMode.FP;
+		}
 	};
 
 	// Evaluator for rationals (using param.BigRational)
@@ -441,7 +455,8 @@ public interface Evaluator<Value>
 		@Override
 		public BigRational evaluate(Expression expr, Values constantValues, State state) throws PrismLangException
 		{
-			return expr.evaluateExact(constantValues, state);
+			Object value = expr.evaluate(new EvaluateContextState(constantValues, state).setEvaluationMode(EvalMode.EXACT));
+			return (BigRational) TypeDouble.getInstance().castValueTo(value, EvalMode.EXACT);
 		}
 
 		@Override
@@ -466,6 +481,12 @@ public interface Evaluator<Value>
 		public boolean isSymbolic()
 		{
 			return false;
+		}
+		
+		@Override
+		public EvalMode evalMode()
+		{
+			return EvalMode.EXACT;
 		}
 	};
 	
@@ -595,6 +616,13 @@ public interface Evaluator<Value>
 		public boolean isSymbolic()
 		{
 			return true;
+		}
+		
+		@Override
+		public EvalMode evalMode()
+		{
+			// Return EXACT for now since exact computation uses this
+			return EvalMode.EXACT;
 		}
 	}
 }

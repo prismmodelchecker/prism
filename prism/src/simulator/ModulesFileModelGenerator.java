@@ -6,6 +6,7 @@ import java.util.List;
 import param.BigRational;
 import param.Function;
 import param.FunctionFactory;
+import parser.EvaluateContextState;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -35,6 +36,9 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	
 	// Evaluator for values/states
 	protected Evaluator<Value> eval;
+	
+	// Evaluation context for expressions
+	protected EvaluateContextState ec;
 	
 	// PRISM model info
 	/** The original modules file (might have unresolved constants) */
@@ -181,6 +185,10 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		if (mfConstants != null) {
 			initialise();
 		}
+		
+		// Create evaluate context for re-use
+		ec = new EvaluateContextState(mfConstants, new State(modulesFile.getNumVars()));
+		ec.setEvaluationMode(eval.evalMode());
 	}
 	
 	/**
@@ -259,6 +267,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
 		modulesFile.setSomeUndefinedConstants(someValues, exact);
 		mfConstants = modulesFile.getConstantValues();
+		ec.setConstantValues(mfConstants);
 		initialise();
 	}
 	
@@ -376,7 +385,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	public State getInitialState() throws PrismException
 	{
 		if (modulesFile.getInitialStates() == null) {
-			return modulesFile.getDefaultInitialState(eval.exact());
+			return modulesFile.getDefaultInitialState(ec);
 		} else {
 			// Inefficient but probably won't be called
 			return getInitialStates().get(0);
@@ -389,7 +398,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		List<State> initStates = new ArrayList<State>();
 		// Easy (normal) case: just one initial state
 		if (modulesFile.getInitialStates() == null) {
-			State state = modulesFile.getDefaultInitialState(eval.exact());
+			State state = modulesFile.getDefaultInitialState(ec);
 			initStates.add(state);
 		}
 		// Otherwise, there may be multiple initial states
@@ -398,10 +407,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 			Expression init = modulesFile.getInitialStates();
 			List<State> allPossStates = varList.getAllStates();
 			for (State possState : allPossStates) {
-				if (!eval.exact() && init.evaluateBoolean(modulesFile.getConstantValues(), possState)) {
-					initStates.add(possState);
-				}
-				if (eval.exact() && init.evaluateExact(modulesFile.getConstantValues(), possState).toBoolean()) {
+				if (init.evaluateBoolean(ec.setState(possState))) {
 					initStates.add(possState);
 				}
 			}
@@ -509,6 +515,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		return transitions.getChoice(i).getClockGuard();
 	}
 	
+	@Override
 	public Value getTransitionProbability(int i, int offset) throws PrismException
 	{
 		TransitionList<Value> transitions = getTransitionList();
@@ -560,7 +567,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	public boolean isLabelTrue(int i) throws PrismException
 	{
 		Expression expr = labelList.getLabel(i);
-		return eval.exact() ? expr.evaluateExact(exploreState).toBoolean() : expr.evaluateBoolean(exploreState);
+		return expr.evaluateBoolean(ec.setState(exploreState));
 	}
 	
 	@Override
@@ -587,7 +594,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 				stateNoClocks.varValues[v] = null;
 			}
 		}
-		return (Expression) invariant.deepCopy().evaluatePartially(stateNoClocks).simplify();
+		return (Expression) invariant.deepCopy().evaluatePartially(ec.setState(stateNoClocks)).simplify();
 	}
 	
 	@Override
@@ -599,7 +606,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		int numObservables = getNumObservables();
 		State sObs = new State(numObservables);
 		for (int i = 0; i < numObservables; i++) {
-			Object oObs = modulesFile.getObservable(i).getDefinition().evaluate(modulesFile.getConstantValues(), state);
+			Object oObs = modulesFile.getObservable(i).getDefinition().evaluate(ec.setState(state));
 			sObs.setValue(i, oObs);
 		}
 		return sObs;
@@ -640,12 +647,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		for (int i = 0; i < n; i++) {
 			if (!rewStr.getRewardStructItem(i).isTransitionReward()) {
 				Expression guard = rewStr.getStates(i);
-				boolean guardSat;
-				if (eval.exact()) {
-					guardSat = guard.evaluateExact(modulesFile.getConstantValues(), state).toBoolean();
-				} else {
-					guardSat = guard.evaluateBoolean(modulesFile.getConstantValues(), state);
-				}
+				boolean guardSat = guard.evaluateBoolean(ec.setState(state));
 				if (guardSat) {
 					Value rew = eval.evaluate(rewStr.getReward(i), modulesFile.getConstantValues(), state);
 					// Check reward is finite/non-negative (would be checked at model construction time,
@@ -675,12 +677,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 				Expression guard = rewStr.getStates(i);
 				String cmdAction = rewStr.getSynch(i);
 				if (action == null ? (cmdAction.isEmpty()) : action.equals(cmdAction)) {
-					boolean guardSat;
-					if (eval.exact()) {
-						guardSat = guard.evaluateExact(modulesFile.getConstantValues(), state).toBoolean();
-					} else {
-						guardSat = guard.evaluateBoolean(modulesFile.getConstantValues(), state);
-					}
+					boolean guardSat = guard.evaluateBoolean(ec.setState(state));
 					if (guardSat) {
 						Value rew = eval.evaluate(rewStr.getReward(i), modulesFile.getConstantValues(), state);
 						// Check reward is finite/non-negative (would be checked at model construction time,

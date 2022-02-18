@@ -28,7 +28,6 @@ package parser.type;
 
 import java.math.BigInteger;
 
-import param.BigRational;
 import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
@@ -111,12 +110,6 @@ public class TypeInt extends Type
 		default:
 			throw new PrismLangException("Unknown evaluation mode " + evalMode);
 		}
-	}
-
-	@Override
-	public Object castFromBigRational(BigRational value) throws PrismLangException
-	{
-		return value.toInt();
 	}
 
 	// Standard methods:

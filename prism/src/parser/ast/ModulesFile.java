@@ -31,7 +31,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import param.BigRational;
+import parser.EvaluateContext;
+import parser.EvaluateContext.EvalMode;
+import parser.EvaluateContextConstants;
 import parser.IdentUsage;
 import parser.State;
 import parser.Values;
@@ -1372,13 +1374,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Create a State object representing the default initial state of this model.
 	 * If there are potentially multiple initial states (because the model has an 
-	 * init...endinit specification), this method returns null;
+	 * init...endinit specification), this method returns null.
 	 * Assumes that values for constants have been provided for the model.
-	 * Note: This method replaces the old getInitialValues() method,
-	 * since State objects are now preferred to Values objects for efficiency.
-	 * <br>
-	 * The init expression is evaluated using the default evaluate, i.e.,
-	 * not using exact arithmetic.
+	 * Initial state values are evaluated using the default evaluation mode,
+	 * i.e., not using exact arithmetic.
 	 */
 	public State getDefaultInitialState() throws PrismLangException
 	{
@@ -1388,53 +1387,61 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Create a State object representing the default initial state of this model.
 	 * If there are potentially multiple initial states (because the model has an
-	 * init...endinit specification), this method returns null;
+	 * init...endinit specification), this method returns null.
 	 * Assumes that values for constants have been provided for the model.
-	 * Note: This method replaces the old getInitialValues() method,
-	 * since State objects are now preferred to Values objects for efficiency.
-	 * @param exact use exact arithmetic in evaluation of init expression?
+	 * @param exact use exact arithmetic in evaluation of initial state values
 	 */
 	public State getDefaultInitialState(boolean exact) throws PrismLangException
 	{
-		int i, j, count, n, n2;
-		Module module;
-		Declaration decl;
-		State initialState;
-		Object initialValue;
-
+		return getDefaultInitialState(exact ? EvalMode.EXACT : EvalMode.FP);
+	}
+	
+	/**
+	 * Create a State object representing the default initial state of this model.
+	 * If there are potentially multiple initial states (because the model has an
+	 * init...endinit specification), this method returns null.
+	 * Assumes that values for constants have been provided for the model.
+	 * @param exact use exact arithmetic in evaluation of initial state values
+	 */
+	public State getDefaultInitialState(EvalMode evalMode) throws PrismLangException
+	{
+		EvaluateContext ec = new EvaluateContextConstants(constantValues);
+		ec.setEvaluationMode(evalMode);
+		return getDefaultInitialState(ec);
+	}
+	
+	/**
+	 * Create a State object representing the default initial state of this model.
+	 * If there are potentially multiple initial states (because the model has an
+	 * init...endinit specification), this method returns null.
+	 * The passed in EvaluateContext determines both the mode for evaluation of
+	 * the initial state values, and also any constant values,
+	 * i.e., any local stored constant values are ignored.
+	 * @param ec context for evaluation of initial state values
+	 */
+	public State getDefaultInitialState(EvaluateContext ec) throws PrismLangException
+	{
 		if (initStates != null) {
 			return null;
 		}
 
 		// Create State object
-		initialState = new State(getNumVars());
+		State initialState = new State(getNumVars());
 		// Then add values for all globals and all locals, in that order
-		count = 0;
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			decl = getGlobal(i);
-			if (exact) {
-				BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
-				initialValue = getGlobal(i).getType().castFromBigRational(r);
-			} else {
-				initialValue = decl.getStartOrDefault().evaluate(constantValues);
-				initialValue = getGlobal(i).getType().castValueTo(initialValue);
-			}
+		int count = 0;
+		int n = getNumGlobals();
+		for (int i = 0; i < n; i++) {
+			Declaration decl = getGlobal(i);
+			Object initialValue = decl.getType().castValueTo(decl.getStartOrDefault().evaluate(ec));
 			initialState.setValue(count++, initialValue);
 		}
 		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			module = getModule(i);
-			n2 = module.getNumDeclarations();
-			for (j = 0; j < n2; j++) {
-				decl = module.getDeclaration(j);
-				if (exact) {
-					BigRational r = decl.getStartOrDefault().evaluateExact(constantValues);
-					initialValue = module.getDeclaration(j).getType().castFromBigRational(r);
-				} else {
-					initialValue = decl.getStartOrDefault().evaluate(constantValues);
-					initialValue = module.getDeclaration(j).getType().castValueTo(initialValue);
-				}
+		for (int i = 0; i < n; i++) {
+			Module module = getModule(i);
+			int n2 = module.getNumDeclarations();
+			for (int j = 0; j < n2; j++) {
+				Declaration decl = module.getDeclaration(j);
+				Object initialValue = decl.getType().castValueTo(decl.getStartOrDefault().evaluate(ec));
 				initialState.setValue(count++, initialValue);
 			}
 		}

@@ -26,7 +26,9 @@
 
 package parser.ast;
 
-import param.BigRational;
+import parser.EvaluateContext;
+import parser.EvaluateContext.EvalMode;
+import parser.EvaluateContextState;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -169,14 +171,20 @@ public class UpdateElement extends ASTElement
 	 */
 	public void update(State oldState, State newState, boolean exact) throws PrismLangException
 	{
-		Object newValue;
-		if (exact) {
-			BigRational r = expr.evaluateExact(oldState);
-			// cast to Java data type
-			newValue = expr.getType().castFromBigRational(r);
-		} else {
-			newValue = getType().castValueTo(expr.evaluate(oldState));
-		}
+		EvaluateContext ec = new EvaluateContextState(oldState);
+		ec.setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
+		update(ec, newState);
+	}
+	
+	/**
+	 * Execute this update element, based on variable values specified as an EvaluateContext object.
+	 * The evaluation mode and values for any undefined constants are also taken from this object.
+	 * @param ec Context for evaluation of variables values etc.
+	 * @param newState State object to apply changes to
+	 */
+	public void update(EvaluateContext ec, State newState) throws PrismLangException
+	{
+		Object newValue = getType().castValueTo(expr.evaluate(ec));
 		newState.setValue(index, newValue);
 	}
 	

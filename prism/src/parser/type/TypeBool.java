@@ -26,7 +26,6 @@
 
 package parser.type;
 
-import param.BigRational;
 import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
@@ -95,12 +94,6 @@ public class TypeBool extends Type
 		}
 	}
 	
-	@Override
-	public Object castFromBigRational(BigRational value) throws PrismLangException
-	{
-		return value.toBoolean();
-	}
-
 	// Standard methods:
 	
 	@Override

@@ -31,7 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import param.BigRational;
+import parser.EvaluateContext;
+import parser.EvaluateContext.EvalMode;
+import parser.EvaluateContextConstants;
 import parser.Values;
 import parser.type.Type;
 import parser.type.TypeBool;
@@ -353,28 +355,16 @@ public class ConstantList extends ASTElement
 			}
 		}
 		
-		// Evaluate constants and store in new Values object (again, ignoring 'otherValues' ones)		
+		// Evaluate constants and store in new Values object (again, ignoring 'otherValues' ones)
+		EvaluateContext ec = new EvaluateContextConstants(otherValues).setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
 		allValues = new Values();
 		for (i = 0; i < numToEvaluate; i++) {
 			Expression constant = cl.getConstant(i);
 			// NB: We use otherValues when evaluating here, but that shouldn't be needed
 			// since these values have already been plugged in by expandConstants above
 			if (constant != null) {
-				if (exact) {
-					BigRational r = constant.evaluateExact(otherValues);
-					// handle differently, depending on constant type
-					if (constant.getType() instanceof TypeDouble) {
-						// we keep as BigRational for TypeDouble
-						val = r;
-					} else {
-						// we convert to Java int / boolean for TypeInt and TypeBool
-						// Note: throws exception if value can't be precisely represented
-						// using the corresponding Java data type
-						val = constant.getType().castFromBigRational(r);
-					}
-				} else {
-					val = constant.evaluate(otherValues);
-				}
+				val = constant.evaluate(ec);
+				val = cl.getConstantType(i).castValueTo(val, exact ? EvalMode.EXACT : EvalMode.FP);
 				allValues.addValue(cl.getConstantName(i), val);
 			}
 		}

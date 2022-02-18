@@ -134,12 +134,6 @@ public class TypeDouble extends Type
 		}
 	}
 
-	@Override
-	public Object castFromBigRational(BigRational value) throws PrismLangException
-	{
-		return value.doubleValue();
-	}
-
 	// Standard methods:
 	
 	public boolean equals(Object o)
