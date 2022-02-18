@@ -153,6 +153,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private String argsPropertiesFile;
 	private int exportType = Prism.EXPORT_PLAIN;
 	private File exportFile = null;
+	private boolean exportModelLabels = false;
 
 	// GUI
 	private FileFilter propsFilter;
@@ -176,7 +177,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private Action newExperiment, deleteExperiment, stopExperiment, parametric;
 	private Action viewResults, plotResults, exportResultsListText, exportResultsListCSV,
 			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsDataFrameCSV, exportResultsComment, importResultsDataFrameCSV;
-	private Action simulate, details, exportLabelsPlain, exportLabelsMatlab;
+	private Action simulate, details, exportLabelsPlain, exportModelLabelsPlain, exportLabelsMatlab, exportModelLabelsMatlab;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -649,7 +650,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportStrategyInduced.setEnabled(!computing && parsedModel != null && getGUI().getPrism().getStrategy() != null);
 		exportStrategyInducedDot.setEnabled(!computing && parsedModel != null && getGUI().getPrism().getStrategy() != null);
 		exportLabelsPlain.setEnabled(!computing && parsedModel != null);
+		exportModelLabelsPlain.setEnabled(!computing && parsedModel != null);
 		exportLabelsMatlab.setEnabled(!computing && parsedModel != null);
+		exportModelLabelsMatlab.setEnabled(!computing && parsedModel != null);
 		details.setEnabled(!computing && parsedModel != null && propList.existsValidSelectedProperties());
 		// properties list
 		propList.setEnabled(!computing);
@@ -1108,7 +1111,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		}
 	}
 
-	public void a_exportLabels(int exportType)
+	public void a_exportLabels(int exportType, boolean exportModelLabels)
 	{
 		int res = JFileChooser.CANCEL_OPTION;
 
@@ -1131,6 +1134,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		exportLabelsAfterReceiveParseNotification = true;
 		this.exportType = exportType;
 		this.exportFile = getChooserFile();
+		this.exportModelLabels = exportModelLabels;
 		// Request a parse
 		exportLabelsAfterReceiveParseNotification = true;
 		notifyEventListeners(new GUIPropertiesEvent(GUIPropertiesEvent.REQUEST_MODEL_PARSE));
@@ -1161,9 +1165,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			if (exportFile == null)
 				logToFront();
 			// Start export 
-			ExportBuiltModelThread ebmt = new ExportBuiltModelThread(this, GUIMultiModelHandler.LABELS_EXPORT, exportType, exportFile);
-			ebmt.setPropertiesFile(parsedProperties);
-			ebmt.start();
+			new ExportBuiltModelThread(this, GUIMultiModelHandler.LABELS_EXPORT, exportType, exportFile)
+			    .setPropertiesFile(parsedProperties)
+			    .setExportModelLabels(exportModelLabels)
+			    .start();
 		} catch (PrismException e) {
 			error(e.getMessage());
 			return;
@@ -1865,7 +1870,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			exportlabelsMenu.setMnemonic('E');
 			exportlabelsMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
 			exportlabelsMenu.add(exportLabelsPlain);
+			exportlabelsMenu.add(exportModelLabelsPlain);
 			exportlabelsMenu.add(exportLabelsMatlab);
+			exportlabelsMenu.add(exportModelLabelsMatlab);
 			propMenu.add(exportlabelsMenu);
 			propMenu.setMnemonic('P');
 		}
@@ -2358,26 +2365,50 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportLabels(Prism.EXPORT_PLAIN);
+				a_exportLabels(Prism.EXPORT_PLAIN, false);
 			}
 		};
-		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a plain text file");
+		exportLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the property file's labels and their satisfying states to a plain text file");
 		exportLabelsPlain.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_P);
 		exportLabelsPlain.putValue(Action.NAME, "Plain text file");
 		exportLabelsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
+
+		exportModelLabelsPlain = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportLabels(Prism.EXPORT_PLAIN, true);
+			}
+		};
+		exportModelLabelsPlain.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a plain text file");
+		exportModelLabelsPlain.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
+		exportModelLabelsPlain.putValue(Action.NAME, "Plain text file (+ model labels)");
+		exportModelLabelsPlain.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileText.png"));
 
 		exportLabelsMatlab = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				a_exportLabels(Prism.EXPORT_MATLAB);
+				a_exportLabels(Prism.EXPORT_MATLAB, false);
 			}
 		};
-		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a Matlab file");
+		exportLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the property file's labels and their satisfying states to a Matlab file");
 		exportLabelsMatlab.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_M);
 		exportLabelsMatlab.putValue(Action.NAME, "Matlab file");
 		exportLabelsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
-		
+
+		exportModelLabelsMatlab = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportLabels(Prism.EXPORT_MATLAB, true);
+			}
+		};
+		exportModelLabelsMatlab.putValue(Action.LONG_DESCRIPTION, "Exports the model and property file's labels and their satisfying states to a Matlab file");
+		exportModelLabelsMatlab.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+		exportModelLabelsMatlab.putValue(Action.NAME, "Matlab file (+ model labels)");
+		exportModelLabelsMatlab.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileMatlab.png"));
+
 		stopExperiment = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
