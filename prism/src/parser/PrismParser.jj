@@ -162,6 +162,7 @@ public class PrismParser
 	{
 		// Call default constructor
 		this(System.in);
+		setTabSize(8);
 	}
 	
 	// Parse modules file
