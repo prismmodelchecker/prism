@@ -1126,6 +1126,7 @@ public class PrismCL implements PrismModelListener
 
 		constSwitch = "";
 		paramSwitch = "";
+		List<String> filenameArgs = new ArrayList<>();
 
 		for (i = 0; i < args.length; i++) {
 
@@ -1352,7 +1353,12 @@ public class PrismCL implements PrismModelListener
 				}
 				// import transition matrix from explicit format
 				else if (sw.equals("importtrans")) {
-					importtrans = true;
+					if (i < args.length - 1) {
+						importtrans = true;
+						modelFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
 				}
 				// import states for explicit model import
 				else if (sw.equals("importstates")) {
@@ -1933,19 +1939,40 @@ public class PrismCL implements PrismModelListener
 					i = prism.getSettings().setFromCommandLineSwitch(args, i) - 1;
 				}
 			}
-			// otherwise argument must be a filename
-			else if (modelFilename == null) {
-				modelFilename = args[i];
-			} else if (propertiesFilename == null) {
-				propertiesFilename = args[i];
-			}
-			// anything else - must be something wrong with command line syntax
+			// otherwise argument is assumed to be a (model/properties) filename
 			else {
-				errorAndExit("Invalid argument syntax");
+				filenameArgs.add(args[i]);
+			}
+		}
+		
+		processFileNames(filenameArgs);
+	}
+
+	/**
+	 * Process the non-switch command-line arguments,
+	 * which should be (model/properties) file names.
+	 */
+	private void processFileNames(List<String> filenameArgs)
+	{
+		if (filenameArgs.size() > 2) {
+			errorAndExit("Invalid argument syntax");
+		}
+		if (importtrans) {
+			if (filenameArgs.size() > 1) {
+				errorAndExit("Two models provided (" + filenameArgs.get(0) + ", " + modelFilename + ")");
+			} else if (filenameArgs.size() == 1) {
+				propertiesFilename = filenameArgs.get(0);
+			}
+		} else {
+			if (filenameArgs.size() > 0) {
+				modelFilename = filenameArgs.get(0);
+			}
+			if (filenameArgs.size() > 1) {
+				propertiesFilename = filenameArgs.get(1);
 			}
 		}
 	}
-
+	
 	/**
 	 * Process the arguments (files, options) to the -importmodel switch
 	 * NB: This is done at the time of parsing switches (not later)
