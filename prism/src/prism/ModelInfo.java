@@ -165,7 +165,7 @@ public interface ModelInfo
 	 * This is specified using a subclass of {@link DeclarationType},
 	 * which specifies info such as bounds using {@link Expression} objects.
 	 * These can use constants which will later be supplied,
-	 * e.g., via the {@link #setSomeUndefinedConstants(Values) method.
+	 * e.g., via the {@link #setSomeUndefinedConstants(Values)} method.
 	 * If this method is not provided, a default implementation supplies sensible
 	 * declarations, but these are _unbounded_ for integers.
 	 * {@code i} should always be between 0 and getNumVars() - 1.
