@@ -175,11 +175,9 @@ public class Modules2PTA extends PrismComponent
 		// Model components
 		Update up;
 		Expression expr, invar;
-		List<Expression> exprs;
 		int numVars, numUpdates, numElements;
 		// PTA stuff
 		PTA pta;
-		Transition tr;
 		Edge edge;
 		// Misc
 		int i, j, k;
@@ -220,19 +218,8 @@ public class Modules2PTA extends PrismComponent
 				// The (partial) invariant should now be a conjunction of clock constraints (or true)
 				// Split into parts, convert to constraints and add to PTA (unless "true")
 				// If expression is not (syntactically) convex, complain
-				exprs = ParserUtils.splitConjunction(invar);
-				for (Expression ex : exprs) {
-					if (!(Expression.isTrue(ex) || Expression.isFalse(ex))) {
-						checkIsSimpleClockConstraint(ex);
-					}
-				}
-				for (Expression ex : exprs) {
-					if (!Expression.isTrue(ex)) {
-						for (Constraint c : exprToConstraint(ex, pta)) {
-							pta.addInvariantCondition(i, c);
-						}
-					}
-				}
+				final int iFinal = i;
+				PTAUtils.exprConjToConstraintConsumer(invar, constantValues, pta, c -> { pta.addInvariantCondition(iFinal, c); });
 			}
 		}
 
@@ -248,20 +235,8 @@ public class Modules2PTA extends PrismComponent
 			// RHS of guard should be conjunction of clock constraints (or true)
 			// Split into parts, convert to constraints and add to new PTA transition
 			// If expression is not (syntactically) convex, complain
-			tr = pta.addTransition(pcVal, command.getSynch());
-			exprs = ParserUtils.splitConjunction(((ExpressionBinaryOp) command.getGuard()).getOperand2());
-			for (Expression ex : exprs) {
-				if (!(Expression.isTrue(ex) || Expression.isFalse(ex))) {
-					checkIsSimpleClockConstraint(ex);
-				}
-			}
-			for (Expression ex2 : exprs) {
-				if (!Expression.isTrue(ex2)) {
-					for (Constraint c : exprToConstraint(ex2, pta)) {
-						tr.addGuardConstraint(c);
-					}
-				}
-			}
+			final Transition tr = pta.addTransition(pcVal, command.getSynch());
+			PTAUtils.exprConjToConstraintConsumer(((ExpressionBinaryOp) command.getGuard()).getOperand2(), constantValues, pta, c -> { tr.addGuardConstraint(c); });
 
 			// Go through all updates
 			numUpdates = command.getUpdates().getNumUpdates();
@@ -302,174 +277,6 @@ public class Modules2PTA extends PrismComponent
 		}
 
 		return pta;
-	}
-
-	/**
-	 * Check whether a PRISM expression (over clock variables) is a "simple" clock constraint, i.e. of the form
-	 * x~c or x~y where x and y are clocks, c is an integer-valued expression and ~ is one of <, <=, >=, >, =.
-	 * Throws an explanatory exception if not.
-	 * @param expr: The expression to be checked.
-	 */
-	private void checkIsSimpleClockConstraint(Expression expr) throws PrismLangException
-	{
-		ExpressionBinaryOp exprRelOp;
-		Expression expr1, expr2;
-		int op, clocks = 0;
-
-		// Check is rel op
-		if (!Expression.isRelOp(expr))
-			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-		// Split into parts
-		exprRelOp = (ExpressionBinaryOp) expr;
-		op = exprRelOp.getOperator();
-		expr1 = exprRelOp.getOperand1();
-		expr2 = exprRelOp.getOperand2();
-		// Check operator is of allowed type
-		if (!ExpressionBinaryOp.isRelOp(op))
-			throw new PrismLangException("Can't use operator " + exprRelOp.getOperatorSymbol() + " in clock constraint \"" + expr + "\"", expr);
-		if (op == ExpressionBinaryOp.NE)
-			throw new PrismLangException("Can't use negation in clock constraint \"" + expr + "\"", expr);
-		// LHS
-		if (expr1.getType() instanceof TypeClock) {
-			if (!(expr1 instanceof ExpressionVar)) {
-				throw new PrismLangException("Invalid clock expression \"" + expr1 + "\"", expr1);
-			}
-			clocks++;
-		} else if (expr1.getType() instanceof TypeInt) {
-			if (!expr1.isConstant()) {
-				throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-			}
-		} else {
-			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-		}
-		// RHS
-		if (expr2.getType() instanceof TypeClock) {
-			if (!(expr2 instanceof ExpressionVar)) {
-				throw new PrismLangException("Invalid clock expression \"" + expr2 + "\"", expr2);
-			}
-			clocks++;
-		} else if (expr2.getType() instanceof TypeInt) {
-			if (!expr2.isConstant()) {
-				throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-			}
-		} else {
-			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-		}
-		// Should be at least one clock
-		if (clocks == 0)
-			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-	}
-
-	/**
-	 * Convert a PRISM expression representing a (simple) clock constraint into
-	 * the Constraint data structures used in the pta package.
-	 * Actually creates a list of constraints (since e.g. x=c maps to multiple constraints) 
-	 * @param expr: The expression to be converted.
-	 * @param pta: The PTA for which this constraint will be used. 
-	 */
-	private List<Constraint> exprToConstraint(Expression expr, PTA pta) throws PrismLangException
-	{
-		ExpressionBinaryOp exprRelOp;
-		Expression expr1, expr2;
-		int x, y, v;
-		List<Constraint> res = new ArrayList<Constraint>();
-
-		// Check is rel op and split into parts
-		if (!Expression.isRelOp(expr))
-			throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
-		exprRelOp = (ExpressionBinaryOp) expr;
-		expr1 = exprRelOp.getOperand1();
-		expr2 = exprRelOp.getOperand2();
-		// 3 cases...
-		if (expr1.getType() instanceof TypeClock) {
-			// Comparison of two clocks (x ~ y)
-			if (expr2.getType() instanceof TypeClock) {
-				x = pta.getClockIndex(((ExpressionVar) expr1).getName());
-				if (x < 0)
-					throw new PrismLangException("Unknown clock \"" + ((ExpressionVar) expr1).getName() + "\"", expr);
-				y = pta.getClockIndex(((ExpressionVar) expr2).getName());
-				if (y < 0)
-					throw new PrismLangException("Unknown clock \"" + ((ExpressionVar) expr2).getName() + "\"", expr);
-				switch (exprRelOp.getOperator()) {
-				case ExpressionBinaryOp.EQ:
-					res.add(Constraint.buildXGeqY(x, y));
-					res.add(Constraint.buildXLeqY(x, y));
-					break;
-				case ExpressionBinaryOp.NE:
-					throw new PrismLangException("Can't use negation in clock constraint \"" + expr + "\"", expr);
-				case ExpressionBinaryOp.GT:
-					res.add(Constraint.buildXGtY(x, y));
-					break;
-				case ExpressionBinaryOp.GE:
-					res.add(Constraint.buildXGeqY(x, y));
-					break;
-				case ExpressionBinaryOp.LT:
-					res.add(Constraint.buildXLtY(x, y));
-					break;
-				case ExpressionBinaryOp.LE:
-					res.add(Constraint.buildXLeqY(x, y));
-					break;
-				}
-				return res;
-			}
-			// Comparison of clock and integer (x ~ v)
-			else {
-				x = pta.getClockIndex(((ExpressionVar) expr1).getName());
-				if (x < 0)
-					throw new PrismLangException("Unknown clock \"" + ((ExpressionVar) expr1).getName() + "\"", expr);
-				v = expr2.evaluateInt(constantValues);
-				switch (exprRelOp.getOperator()) {
-				case ExpressionBinaryOp.EQ:
-					res.add(Constraint.buildGeq(x, v));
-					res.add(Constraint.buildLeq(x, v));
-					break;
-				case ExpressionBinaryOp.NE:
-					throw new PrismLangException("Can't use negation in clock constraint \"" + expr + "\"", expr);
-				case ExpressionBinaryOp.GT:
-					res.add(Constraint.buildGt(x, v));
-					break;
-				case ExpressionBinaryOp.GE:
-					res.add(Constraint.buildGeq(x, v));
-					break;
-				case ExpressionBinaryOp.LT:
-					res.add(Constraint.buildLt(x, v));
-					break;
-				case ExpressionBinaryOp.LE:
-					res.add(Constraint.buildLeq(x, v));
-					break;
-				}
-				return res;
-			}
-		}
-		// Comparison of integer and clock (v ~ x)
-		else if (expr2.getType() instanceof TypeClock) {
-			x = pta.getClockIndex(((ExpressionVar) expr2).getName());
-			if (x < 0)
-				throw new PrismLangException("Unknown clock \"" + ((ExpressionVar) expr2).getName() + "\"", expr);
-			v = expr1.evaluateInt(constantValues);
-			switch (exprRelOp.getOperator()) {
-			case ExpressionBinaryOp.EQ:
-				res.add(Constraint.buildGeq(x, v));
-				res.add(Constraint.buildLeq(x, v));
-				break;
-			case ExpressionBinaryOp.NE:
-				throw new PrismLangException("Can't use negation in clock constraint \"" + expr + "\"", expr);
-			case ExpressionBinaryOp.GT:
-				res.add(Constraint.buildLt(x, v));
-				break;
-			case ExpressionBinaryOp.GE:
-				res.add(Constraint.buildLeq(x, v));
-				break;
-			case ExpressionBinaryOp.LT:
-				res.add(Constraint.buildGt(x, v));
-				break;
-			case ExpressionBinaryOp.LE:
-				res.add(Constraint.buildGeq(x, v));
-				break;
-			}
-			return res;
-		}
-		throw new PrismLangException("Invalid clock constraint \"" + expr + "\"", expr);
 	}
 
 	/**
