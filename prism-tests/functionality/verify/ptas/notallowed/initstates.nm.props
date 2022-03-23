@@ -1,2 +1,2 @@
-// RESULT: Error:endinit
+// RESULT: Error:initial
 "incorrect": Pmax=? [ F s=2 & ip=2 ];

@@ -33,6 +33,7 @@ import parser.ast.*;
 import parser.type.*;
 import parser.visitor.ASTTraverseModify;
 import prism.*;
+import simulator.ModulesFileModelGenerator;
 
 /**
  * Model checker for probabilistic timed automata (PTAs).
@@ -49,8 +50,6 @@ public class PTAModelChecker extends PrismComponent
 	private LabelList labelList;
 	// PTA
 	private PTA pta;
-	// Mapping from all (original model) variables to non-clocks only
-	private int[] nonClockVarMap;
 
 	/**
 	 * Constructor.
@@ -77,18 +76,6 @@ public class PTAModelChecker extends PrismComponent
 			labelList.addLabel(propertiesFile.getLabelList().getLabelNameIdent(i), propertiesFile.getLabelList().getLabel(i).deepCopy());
 		}
 		labelList = (LabelList) labelList.replaceConstants(constantValues);
-
-		// Build mapping from all (original model) variables to non-clocks only
-		int numVars = modulesFile.getNumVars();
-		nonClockVarMap = new int[numVars];
-		int count = 0;
-		for (int i = 0; i < numVars; i++) {
-			if (modulesFile.getVarType(i) instanceof TypeClock) {
-				nonClockVarMap[i] = -1;
-			} else {
-				nonClockVarMap[i] = count++;
-			}
-		}
 	}
 
 	/**
@@ -96,7 +83,6 @@ public class PTAModelChecker extends PrismComponent
 	 */
 	public Result check(Expression expr) throws PrismException
 	{
-		Modules2PTA m2pta;
 		Result res;
 		String resultString;
 		long timer;
@@ -104,15 +90,20 @@ public class PTAModelChecker extends PrismComponent
 		// Starting model checking
 		timer = System.currentTimeMillis();
 
-		// Check for system...endsystem - not supported yet
-		if (modulesFile.getSystemDefn() != null) {
-			throw new PrismException("The system...endsystem construct is not supported yet (try the digital clocks engine instead)");
+		// Build a model generator
+		ModelGenerator modelGen;
+		try {
+			modelGen = new ModulesFileModelGenerator(modulesFile, this);
+		} catch (PrismException e) {
+			throw new PrismException(e.getMessage() + ". Try the digital clocks engine instead");
 		}
 		
 		// Translate ModulesFile object into a PTA object
+		// Technically, this just requires a ModelGenerator,
+		// but for now we assume a ModulesFile for the purposes of labels
 		mainLog.println("\nBuilding PTA...");
-		m2pta = new Modules2PTA(this, modulesFile);
-		pta = m2pta.translate();
+		ConstructPTA constructPTA = new ConstructPTA(this);
+		pta = constructPTA.constructPTA(modelGen);
 		mainLog.println("\nPTA: " + pta.infoString());
 
 		// Check for references to clocks - not allowed (yet)
@@ -380,7 +371,7 @@ public class PTAModelChecker extends PrismComponent
 			for (i = 0; i < n; i++) {
 				//state = (Object[])states.get(i);
 				State state = (State) states.get(i);
-				if (expr.evaluateBoolean(state, nonClockVarMap)) {
+				if (expr.evaluateBoolean(state)) {
 					res.set(i);
 				}
 			}
