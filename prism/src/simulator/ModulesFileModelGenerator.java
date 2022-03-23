@@ -12,6 +12,7 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.RewardStruct;
 import parser.type.Type;
+import parser.type.TypeClock;
 import prism.ModelGenerator;
 import prism.ModelType;
 import prism.PrismComponent;
@@ -45,6 +46,8 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	protected TransitionList transitionList;
 	// Has the transition list been built? 
 	protected boolean transitionListBuilt;
+	// Global clock invariant (conjunction of per-module invariants)
+	protected Expression invariant;
 	
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a ModuleFile instance.
@@ -65,10 +68,6 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	{
 		this.parent = parent;
 		
-		// No support for real-time models yet
-		if (modulesFile.getModelType().realTime()) {
-			throw new PrismException(modulesFile.getModelType() + "s are not currently supported");
-		}
 		// No support for system...endsystem yet
 		if (modulesFile.getSystemDefn() != null) {
 			throw new PrismException("The system...endsystem construct is not currently supported");
@@ -368,6 +367,13 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	}
 	
 	@Override
+	public Expression getChoiceClockGuard(int i) throws PrismException
+	{
+		TransitionList transitions = getTransitionList();
+		return transitions.getChoice(i).getClockGuard();
+	}
+	
+	@Override
 	public double getTransitionProbability(int i, int offset) throws PrismException
 	{
 		TransitionList transitions = getTransitionList();
@@ -413,6 +419,33 @@ public class ModulesFileModelGenerator implements ModelGenerator, RewardGenerato
 	{
 		Expression expr = labelList.getLabel(i);
 		return expr.evaluateBoolean(exploreState);
+	}
+	
+	@Override
+	public Expression getClockInvariant() throws PrismException
+	{
+		// Compute the conjunction of all per-module invariants, if not already done
+		if (invariant == null) {
+			int numModules = modulesFile.getNumModules();
+			for (int m = 0; m < numModules; m++) {
+				Expression invariantMod = modulesFile.getModule(m).getInvariant();
+				if (invariantMod != null) {
+					invariant = (invariant == null) ? invariantMod : Expression.And(invariant, invariantMod);
+				}
+			}
+		}
+		if (invariant == null) {
+			return null;
+		}
+		// Replace non-clock variables with their values and simplify
+		int numVars = varList.getNumVars();
+		State stateNoClocks = new State(exploreState);
+		for (int v = 0; v < numVars; v++) {
+			if (varList.getType(v) instanceof TypeClock) {
+				stateNoClocks.varValues[v] = null;
+			}
+		}
+		return (Expression) invariant.deepCopy().evaluatePartially(stateNoClocks).simplify();
 	}
 	
 	@Override

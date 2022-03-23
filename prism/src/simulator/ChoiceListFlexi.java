@@ -32,6 +32,7 @@ import java.util.List;
 import parser.State;
 import parser.VarList;
 import parser.ast.Command;
+import parser.ast.Expression;
 import parser.ast.Update;
 import prism.ModelType;
 import prism.PrismException;
@@ -56,6 +57,11 @@ public class ChoiceListFlexi implements Choice
 	// but are just stored as lists of updates (for efficiency)
 	protected List<List<Update>> updates;
 	protected List<Double> probability;
+	
+	// For real-time models, the clock guard,
+	// i.e., an expression over clock variables
+	// denoting when it can be taken.
+	protected Expression clockGuard;
 
 	/**
 	 * Create empty choice.
@@ -64,6 +70,7 @@ public class ChoiceListFlexi implements Choice
 	{
 		updates = new ArrayList<List<Update>>();
 		probability = new ArrayList<Double>();
+		clockGuard = null;
 	}
 
 	/**
@@ -85,6 +92,7 @@ public class ChoiceListFlexi implements Choice
 		for (double p : ch.probability) {
 			probability.add(p);
 		}
+		clockGuard = ch.clockGuard;
 	}
 
 	// Set methods
@@ -97,6 +105,14 @@ public class ChoiceListFlexi implements Choice
 	public void setModuleOrActionIndex(int moduleOrActionIndex)
 	{
 		this.moduleOrActionIndex = moduleOrActionIndex;
+	}
+
+	/**
+	 * Set the clock guard
+	 */
+	public void setClockGuard(Expression clockGuard)
+	{
+		this.clockGuard = clockGuard;
 	}
 
 	/**
@@ -155,6 +171,9 @@ public class ChoiceListFlexi implements Choice
 			}
 			probability.set(j, pi * probability.get(j));
 		}
+		if (ch.clockGuard != null) {
+			clockGuard = (clockGuard == null) ? ch.clockGuard : Expression.And(clockGuard, ch.clockGuard);
+		}
 	}
 
 	// Get methods
@@ -177,6 +196,12 @@ public class ChoiceListFlexi implements Choice
 			return "[" + c.getSynch() + "]";
 	}
 
+	@Override
+	public Expression getClockGuard()
+	{
+		return clockGuard;
+	}
+	
 	@Override
 	public int size()
 	{
@@ -287,6 +312,9 @@ public class ChoiceListFlexi implements Choice
 		int i, n;
 		boolean first = true;
 		String s = "";
+		if (clockGuard != null) {
+			s += "(" + clockGuard + ")";
+		}
 		n = size();
 		for (i = 0; i < n; i++) {
 			if (first)

@@ -3032,6 +3032,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// If creation failed before, this tries again, throwing an explanatory exception.
 		try {
 			getModelGenerator();
+			// No support for real-time models yet
+			if (currentModelType.realTime()) {
+				throw new PrismException(currentModelType + "s are not currently supported");
+			}
 		} catch (PrismException e) {
 			throw new PrismException("Simulation not possible: "+ e.getMessage());
 		}
