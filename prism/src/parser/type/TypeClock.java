@@ -70,7 +70,7 @@ public class TypeClock extends Type
 	@Override
 	public boolean canAssign(Type type)
 	{
-		return (type instanceof TypeClock);
+		return (type instanceof TypeClock || TypeDouble.getInstance().canAssign(type));
 	}
 	
 	@Override
