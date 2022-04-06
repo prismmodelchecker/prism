@@ -39,7 +39,19 @@ import csv.ReplacingReader.FromPair;
  */
 public interface BasicReader extends AutoCloseable
 {
+	public static final int CR = (int) '\r';
+	public static final int LF = (int) '\n';
 	public static final int EOF = -1;
+
+	/**
+	 * Wrap a source reader.
+	 *
+	 * @param source the reader
+	 */
+	public static Wrapper wrap(Reader reader)
+	{
+		return new Wrapper(reader);
+	}
 
 	@Override
 	public abstract void close() throws IOException;
@@ -68,9 +80,45 @@ public interface BasicReader extends AutoCloseable
 	}
 
 	/**
+	 * Convert the line endings {@link #CR};{@link #LF} (\r\n) and {@link #CR} (\r) to {@link #LF} (\n).
+	 *
+	 * @return A reader that performs the normalization on the fly
+	 * @throws IOException
+	 */
+	default ReplacingReader.ToChar normalizeLineEndings() throws IOException
+	{
+		return normalizLineEndings(LF);
+	}
+
+	/**
+	 * Convert the line endings {@link #CR};{@link #LF} (\r\n) and {@link #CR} (\r) and LF (\n) to the provided character {@code eol} .
+	 *
+	 * @param eol the character to be used for line endings
+	 * @return A reader that performs the normalization on the fly
+	 * @throws IOException
+	 */
+	default ReplacingReader.ToChar normalizLineEndings(int eol) throws IOException
+	{
+		return convert(CR, LF).convert(CR).to(eol);
+	}
+
+	/**
+	 * Convert the line endings {@link #CR};{@link #LF} (\r\n) and {@link #CR} (\r) and LF (\n) to provided characters {@code eol_1};{@code eol_2} .
+	 *
+	 * @param eol_1 the first character to be used for line endings
+	 * @param eol_2 the second character to be used for line endings
+	 * @return A reader that performs the normalization on the fly
+	 * @throws IOException
+	 */
+	default ReplacingReader.ToPair normalizLineEndings(int eol_1, int eol_2) throws IOException
+	{
+		return convert(CR, LF).convert(CR).to(eol_1, eol_2);
+	}
+
+	/**
 	 * Read a single character from the input.
 	 * 
-	 * @return returns The next character as an integer in the range of 0 to 65536 or {@link #EOF} ({@value #EOF})
+	 * @return The next character as an integer in the range of 0 to 65536 or {@link #EOF} ({@value #EOF})
 	 * @throws IOException If and I/O error occurs
 	 */
 	int read() throws IOException;
@@ -170,7 +218,7 @@ public interface BasicReader extends AutoCloseable
 		/**
 		 * Peek the next character without advancing the underlying reader.
 		 * 
-		 * @return returns The next character as an integer in the range of 0 to 65536 or {@code EOF} (-1)
+		 * @return The next character as an integer in the range of 0 to 65536 or {@code EOF} (-1)
 		 */
 		public int peek()
 		{

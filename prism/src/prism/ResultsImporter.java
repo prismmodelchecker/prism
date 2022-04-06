@@ -57,6 +57,9 @@ import parser.type.TypeInt;
 import prism.DefinedConstant.DefinedDomain;
 import prism.ResultsImporter.RawResultsCollection;
 
+import static csv.BasicReader.CR;
+import static csv.BasicReader.LF;
+
 /**
  * A class to import Prism results collections from a data frame in CSV format.
  * <ul>
@@ -72,8 +75,6 @@ import prism.ResultsImporter.RawResultsCollection;
 public class ResultsImporter implements Iterable<Pair<Property, RawResultsCollection>>
 {
 	private static final int COMMA = CsvReader.COMMA;
-	private static final int LF = CsvReader.LF;
-	private static final int CR = CsvReader.CR;
 
 	final Header header;
 	final Map<String, RawResultsCollection> rawResults;
@@ -90,9 +91,8 @@ public class ResultsImporter implements Iterable<Pair<Property, RawResultsCollec
 	public ResultsImporter(Reader input) throws PrismLangException, IOException, CsvFormatException
 	{
 		// Convert all line endings to LF for compatibility
-		try (BasicReader reader = new BasicReader.Wrapper(input);
-				BasicReader normalized = reader.convert(CR, LF).convert(CR).to(LF);
-				CsvReader csv = new CsvReader(normalized, COMMA, LF)) {
+		try (BasicReader reader = BasicReader.wrap(input).normalizeLineEndings();
+				CsvReader csv = new CsvReader(reader, COMMA, LF)) {
 			header = new Header(csv.getHeader());
 			rawResults = new LinkedHashMap<>();
 			while (csv.hasNextRecord()) {
