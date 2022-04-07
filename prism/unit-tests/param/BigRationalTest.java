@@ -7,7 +7,7 @@ import java.util.BitSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class BigRationalTests
+public class BigRationalTest
 {
 	@Test
 	public void testBigRationalDouble()
