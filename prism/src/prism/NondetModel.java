@@ -502,13 +502,13 @@ public class NondetModel extends ProbModel
 
 		// Create a (new, unique) name for the variable that will represent extra states
 		extraStateVar = transformation.getExtraStateVariableName();
-		while (varList.getIndex(extraStateVar) != -1) {
+		while (varList.exists(extraStateVar)) {
 			extraStateVar = "_" + extraStateVar;
 		}
 
 		// Create a (new, unique) name for the variable that will represent extra actions
 		extraActionVar = transformation.getExtraActionVariableName();
-		while (varList.getIndex(extraActionVar) != -1) {
+		while (varList.exists(extraActionVar)) {
 			extraActionVar = "_" + extraActionVar;
 		}
 
@@ -580,7 +580,11 @@ public class NondetModel extends ProbModel
 			}
 			newVarList = (VarList) varList.clone();
 			Declaration decl = new Declaration(extraStateVar, new DeclarationInt(Expression.Int(0), Expression.Int((1 << nStateVars) - 1)));
-			newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, this.getConstantValues());
+			if (before) {
+				newVarList.addVarAtStart(decl, 1, this.getConstantValues());
+			} else {
+				newVarList.addVar(decl, 1, this.getConstantValues());
+			}
 		}
 
 		// Build transition matrix for transformed model

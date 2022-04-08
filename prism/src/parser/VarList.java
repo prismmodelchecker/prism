@@ -85,6 +85,17 @@ public class VarList
 	}
 
 	/**
+	 * Add a new variable to the start of the VarList.
+	 * @param decl Declaration defining the variable
+	 * @param module Index of module containing variable
+	 * @param constantValues Values of constants needed to evaluate low/high/etc.
+	 */
+	public void addVarAtStart(Declaration decl, int module, Values constantValues) throws PrismLangException
+	{
+		addVar(0, decl, module, constantValues);
+	}
+	
+	/**
 	 * Add a new variable at position i in the VarList.
 	 * @param decl Declaration defining the variable
 	 * @param module Index of module containing variable

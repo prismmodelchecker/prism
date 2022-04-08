@@ -974,7 +974,7 @@ public class ProbModel implements Model
 
 		// Create a (new, unique) name for the variable that will represent the extra states
 		extraVar = transformation.getExtraStateVariableName();
-		while (varList.getIndex(extraVar) != -1) {
+		while (varList.exists(extraVar)) {
 			extraVar = "_" + extraVar;
 		}
 
@@ -1029,7 +1029,11 @@ public class ProbModel implements Model
 			}
 			newVarList = (VarList) varList.clone();
 			Declaration decl = new Declaration(extraVar, new DeclarationInt(Expression.Int(0), Expression.Int((1 << n) - 1)));
-			newVarList.addVar(before ? 0 : varList.getNumVars(), decl, 1, this.getConstantValues());
+			if (before) {
+				newVarList.addVarAtStart(decl, 1, this.getConstantValues());
+			} else {
+				newVarList.addVar(decl, 1, this.getConstantValues());
+			}
 		}
 
 		// Build transition matrix for transformed model
