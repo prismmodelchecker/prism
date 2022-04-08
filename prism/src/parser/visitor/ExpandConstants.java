@@ -31,49 +31,55 @@ import parser.type.*;
 import prism.PrismLangException;
 
 /**
- * Expand all constants, return result.
+ * Expand constants whose definitions are contained in the supplied ConstantList.
  */
 public class ExpandConstants extends ASTTraverseModify
 {
 	private ConstantList constantList;
+	private boolean all;
 	
+	/**
+	 * @param constantList The ConstantList containing definitions
+	 */
 	public ExpandConstants(ConstantList constantList)
 	{
-		this.constantList = constantList;
+		this(constantList, true);
 	}
 	
+	/**
+	 * @param constantList The ConstantList containing definitions
+	 * @param all If true, an exception is thrown if any constants are undefined
+	 */
+	public ExpandConstants(ConstantList constantList, boolean all)
+	{
+		this.constantList = constantList;
+		this.all = all;
+	}
+	
+	@Override
 	public Object visit(ExpressionConstant e) throws PrismLangException
 	{
-		int i;
-		Type t;
-		Expression expr;
-		
-		// See if identifier corresponds to a constant
-		i = constantList.getConstantIndex(e.getName());
-		if (i != -1) {
-			// And check that the constant is defined
-			if (constantList.getConstant(i) != null) {
-				// If so, replace it with the corresponding expression
-				expr = constantList.getConstant(i).deepCopy();
-				// But also recursively expand that
-				expr = (Expression) expr.expandConstants(constantList);
-				// Put in brackets so precedence is preserved
-				// (for display purposes only; in case of re-parse)
-				// This is being done after type-checking so also set type
-				t = expr.getType();
-				expr = Expression.Parenth(expr);
-				expr.setType(t);
-				// Return replacement expression
-				return expr;
-			}
-			else {
-				// Error (should never happen)
-				throw new PrismLangException("Undefined constant", e);
-			}
+		// See if identifier corresponds to a constant defined in the list
+		int i = constantList.getConstantIndex(e.getName());
+		if (i != -1 && constantList.getConstant(i) != null) {
+			// If so, replace it with the corresponding expression
+			Expression expr = constantList.getConstant(i).deepCopy();
+			// But also recursively expand that
+			expr = (Expression) expr.expandConstants(constantList, all);
+			// Put in brackets so precedence is preserved
+			// (for display purposes only; in case of re-parse)
+			// This is being done after type-checking so also set type
+			Type t = expr.getType();
+			expr = Expression.Parenth(expr);
+			expr.setType(t);
+			// Return replacement expression
+			return expr;
 		}
-		else {
-			// Error (should never happen)
+		// Otherwise, either return unchanged or complain (depending on 'all')
+		if (all) {
 			throw new PrismLangException("Undefined constant", e);
+		} else {
+			return e;
 		}
 	}
 }

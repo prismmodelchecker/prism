@@ -355,11 +355,23 @@ public abstract class ASTElement implements Cloneable
 	}
 
 	/**
-	 * Expand all constants, return result.
+	 * Expand constants whose definitions are contained in the supplied ConstantList.
+	 * Throw an exception if constants are found with no definitions.
+	 * @param constantList The ConstantList containing definitions
 	 */
 	public ASTElement expandConstants(ConstantList constantList) throws PrismLangException
 	{
-		ExpandConstants visitor = new ExpandConstants(constantList);
+		return expandConstants(constantList, true);
+	}
+
+	/**
+	 * Expand constants whose definitions are contained in the supplied ConstantList.
+	 * @param constantList The ConstantList containing definitions
+	 * @param all If true, an exception is thrown if any constants are undefined
+	 */
+	public ASTElement expandConstants(ConstantList constantList, boolean all) throws PrismLangException
+	{
+		ExpandConstants visitor = new ExpandConstants(constantList, all);
 		return (ASTElement) accept(visitor);
 	}
 

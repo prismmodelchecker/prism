@@ -27,13 +27,9 @@
 package parser.ast;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import parser.EvaluateContext;
-import parser.EvaluateContext.EvalMode;
-import parser.EvaluateContextConstants;
 import parser.Values;
 import parser.type.Type;
 import parser.type.TypeBool;
@@ -243,198 +239,62 @@ public class ConstantList extends ASTElement
 	/**
 	 * Set values for *all* undefined constants, evaluate values for *all* constants
 	 * and return a Values object with values for *all* constants.
-	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
-	 * Argument 'otherValues' contains any other values which may be needed, null if none
-	 * <br>
-	 * Uses standard (integer, floating-point) arithmetic for evaluating constants.
+	 * The values being provided for these constants, as well as any other constants needed,
+	 * are provided in an EvaluateContext object. This also determines the evaluation mode.
 	 */
-	public Values evaluateConstants(Values someValues, Values otherValues) throws PrismLangException
+	public Values evaluateConstants(EvaluateContext ec) throws PrismLangException
 	{
-		return evaluateConstants(someValues, otherValues, false);
-	}
-
-	/**
-	 * Set values for *all* undefined constants, evaluate values for *all* constants
-	 * and return a Values object with values for *all* constants.
-	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
-	 * Argument 'otherValues' contains any other values which may be needed, null if none
-	 * If argument 'exact' is true, constants are evaluated using exact arithmetic (BigRational)
-	 */
-	public Values evaluateConstants(Values someValues, Values otherValues, boolean exact) throws PrismLangException
-	{
-		return evaluateSomeOrAllConstants(someValues, otherValues, true, exact);
+		return evaluateSomeOrAllConstants(ec, true);
 	}
 
 	/**
 	 * Set values for *some* undefined constants, evaluate values for constants where possible
 	 * and return a Values object with values for all constants that could be evaluated.
-	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
-	 * Argument 'otherValues' contains any other values which may be needed, null if none
-	 * <br>
-	 * Uses standard (integer, floating-point) arithmetic for evaluating constants.
+	 * The values being provided for these constants, as well as any other constants needed,
+	 * are provided in an EvaluateContext object. This also determines the evaluation mode.
 	 */
-	public Values evaluateSomeConstants(Values someValues, Values otherValues) throws PrismLangException
+	public Values evaluateSomeConstants(EvaluateContext ec) throws PrismLangException
 	{
-		return evaluateSomeConstants(someValues, otherValues, false);
-	}
-
-	/**
-	 * Set values for *some* undefined constants, evaluate values for constants where possible
-	 * and return a Values object with values for all constants that could be evaluated.
-	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined
-	 * Argument 'otherValues' contains any other values which may be needed, null if none
-	 * If argument 'exact' is true, constants are evaluated using exact arithmetic (BigRational)
-	 */
-	public Values evaluateSomeConstants(Values someValues, Values otherValues, boolean exact) throws PrismLangException
-	{
-		return evaluateSomeOrAllConstants(someValues, otherValues, false, exact);
+		return evaluateSomeOrAllConstants(ec, false);
 	}
 
 	/**
 	 * Set values for *some* or *all* undefined constants, evaluate values for constants where possible
 	 * and return a Values object with values for all constants that could be evaluated.
-	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined.
-	 * Argument 'otherValues' contains any other values which may be needed, null if none.
+	 * The values being provided for these constants, as well as any other constants needed,
+	 * are provided in an EvaluateContext object. This also determines the evaluation mode.
 	 * If argument 'all' is true, an exception is thrown if any undefined constant is not defined.
-	 * If argument 'exact' is true, constants are evaluated using exact arithmetic (BigRational)
 	 */
-	private Values evaluateSomeOrAllConstants(Values someValues, Values otherValues, boolean all, boolean exact) throws PrismLangException
+	private Values evaluateSomeOrAllConstants(EvaluateContext ec, boolean all) throws PrismLangException
 	{
-		ConstantList cl;
-		Expression e;
-		Values allValues;
-		int i, j, n, numToEvaluate;
-		Type t = null;
-		ExpressionIdent s;
-		Object val;
-		
-		// Create new copy of this ConstantList
-		// (copy existing constant definitions, add new ones where undefined)
-		cl = new ConstantList();
-		n = constants.size();
-		for (i = 0; i < n; i++) {
-			s = getConstantNameIdent(i);
-			e = getConstant(i);
-			t = getConstantType(i);
-			if (e != null) {
-				cl.addConstant((ExpressionIdent)s.deepCopy(), e.deepCopy(), t);
-			} else {
-				// Create new literal expression using values passed in (if possible and needed)
-				if (someValues != null && (j = someValues.getIndexOf(s.getName())) != -1) {
-					cl.addConstant((ExpressionIdent) s.deepCopy(), new ExpressionLiteral(t, t.castValueTo(someValues.getValue(j))), t);
-				} else {
-					if (all)
-						throw new PrismLangException("No value specified for constant", s);
-				}
-			}
-		}
-		numToEvaluate = cl.size();
-		
-		// Now add constants corresponding to the 'otherValues' argument to the new constant list
-		if (otherValues != null) {
-			n = otherValues.getNumValues();
-			for (i = 0; i < n; i++) {
-				Type iType = otherValues.getType(i);
-				cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(iType, iType.castValueTo(otherValues.getValue(i))), iType);
-			}
+		// Take a copy of this constant list,
+		// and replace all (defined) constant references with their definitions)
+		ConstantList cl = (ConstantList) deepCopy();
+		int n = size();
+		for (int i = 0; i < n; i++) {
+			Expression constant = cl.getConstant(i);
+			cl.setConstant(i, constant == null ? null : (Expression) constant.expandConstants(cl, false));
 		}
 		
-		// Go trough and expand definition of each constant
-		// (i.e. replace other constant references with their definitions)
-		// Note: work with new copy of constant list, don't need to expand 'otherValues' ones.
-		for (i = 0; i < numToEvaluate; i++) {
+		// Evaluate all constants and store in a new Values object
+		Values allValues = new Values();
+		for (int i = 0; i < n; i++) {
+			Expression constant = cl.getConstant(i);
+			if (constant == null) {
+				constant = new ExpressionConstant(cl.getConstantName(i), cl.getConstantType(i));
+			}
 			try {
-				e = (Expression)cl.getConstant(i).expandConstants(cl);
-				cl.setConstant(i, e);
+				Object val = constant.evaluate(ec);
+				val = cl.getConstantType(i).castValueTo(val, ec.getEvaluationMode());
+				allValues.addValue(cl.getConstantName(i), val);
 			} catch (PrismLangException ex) {
 				if (all) {
 					throw ex;
-				} else {
-					cl.setConstant(i, null);
 				}
-			}
-		}
-		
-		// Evaluate constants and store in new Values object (again, ignoring 'otherValues' ones)
-		EvaluateContext ec = new EvaluateContextConstants(otherValues).setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
-		allValues = new Values();
-		for (i = 0; i < numToEvaluate; i++) {
-			Expression constant = cl.getConstant(i);
-			// NB: We use otherValues when evaluating here, but that shouldn't be needed
-			// since these values have already been plugged in by expandConstants above
-			if (constant != null) {
-				val = constant.evaluate(ec);
-				val = cl.getConstantType(i).castValueTo(val, exact ? EvalMode.EXACT : EvalMode.FP);
-				allValues.addValue(cl.getConstantName(i), val);
 			}
 		}
 		
 		return allValues;
-	}
-
-	/**
-	 * Set values for some undefined constants, then partially evaluate values for constants where possible
-	 * and return a map from constant names to the Expression representing its value. 
-	 * Argument 'someValues' contains values for undefined ones, can be null if all already defined.
-	 * Argument 'otherValues' contains any other values which may be needed, null if none.
-	 */
-	public Map<String,Expression> evaluateConstantsPartially(Values someValues, Values otherValues) throws PrismLangException
-	{
-		ConstantList cl;
-		Expression e;
-		int i, j, n, numToEvaluate;
-		Type t = null;
-		ExpressionIdent s;
-		
-		// Create new copy of this ConstantList
-		// (copy existing constant definitions, add new ones where undefined)
-		cl = new ConstantList();
-		n = constants.size();
-		for (i = 0; i < n; i++) {
-			s = getConstantNameIdent(i);
-			e = getConstant(i);
-			t = getConstantType(i);
-			if (e != null) {
-				cl.addConstant((ExpressionIdent)s.deepCopy(), e.deepCopy(), t);
-			} else {
-				// Create new literal expression using values passed in (if possible and needed)
-				if (someValues != null && (j = someValues.getIndexOf(s.getName())) != -1) {
-					cl.addConstant((ExpressionIdent) s.deepCopy(), new ExpressionLiteral(t, t.castValueTo(someValues.getValue(j))), t);
-				}
-			}
-		}
-		numToEvaluate = cl.size();
-		
-		// Now add constants corresponding to the 'otherValues' argument to the new constant list
-		if (otherValues != null) {
-			n = otherValues.getNumValues();
-			for (i = 0; i < n; i++) {
-				Type iType = otherValues.getType(i);
-				cl.addConstant(new ExpressionIdent(otherValues.getName(i)), new ExpressionLiteral(iType, iType.castValueTo(otherValues.getValue(i))), iType);
-			}
-		}
-		
-		// Go trough and expand definition of each constant
-		// (i.e. replace other constant references with their definitions)
-		// Note: work with new copy of constant list, don't need to expand 'otherValues' ones.
-		for (i = 0; i < numToEvaluate; i++) {
-			try {
-				e = (Expression)cl.getConstant(i).expandConstants(cl);
-				cl.setConstant(i, e);
-			} catch (PrismLangException ex) {
-				cl.setConstant(i, null);
-			}
-		}
-		
-		// Store final expressions for each constant in a map and return
-		Map<String,Expression> constExprs = new HashMap<>();
-		for (i = 0; i < numToEvaluate; i++) {
-			if (cl.getConstant(i) != null) {
-				constExprs.put(cl.getConstantName(i), cl.getConstant(i).deepCopy());
-			}
-		}
-		
-		return constExprs;
 	}
 
 	// Methods required for ASTElement:
