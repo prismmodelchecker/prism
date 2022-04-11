@@ -274,9 +274,9 @@ public class TransitionList<Value>
 	/**
 	 * Get the target of a transition (as a new State object), specified by its index.
 	 */
-	public State computeTransitionTarget(int index, State currentState) throws PrismLangException
+	public State computeTransitionTarget(int index, State currentState, VarList varList) throws PrismLangException
 	{
-		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), currentState);
+		return getChoiceOfTransition(index).computeTarget(transitionOffsets.get(index), currentState, varList);
 	}
 	
 	// Other checks and queries
@@ -302,7 +302,7 @@ public class TransitionList<Value>
 	/**
 	 * Is there a deterministic self-loop, i.e. do all transitions go to the current state.
 	 */
-	public boolean isDeterministicSelfLoop(State currentState)
+	public boolean isDeterministicSelfLoop(State currentState, VarList varList)
 	{
 		// TODO: make more efficient, and also limit calls to it
 		// (e.g. only if already stayed in state twice?)
@@ -312,7 +312,7 @@ public class TransitionList<Value>
 			for (Choice<Value> ch : choices) {
 				n = ch.size();
 				for (i = 0; i < n; i++) {
-					ch.computeTarget(i, currentState, newState);
+					ch.computeTarget(i, currentState, newState, varList);
 					if (!currentState.equals(newState)) {
 						// Found a non-loop
 						return false;

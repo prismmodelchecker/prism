@@ -555,7 +555,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	@Override
 	public State computeTransitionTarget(int index, int offset) throws PrismException
 	{
-		return getTransitionList().getChoice(index).computeTarget(offset, exploreState);
+		return getTransitionList().getChoice(index).computeTarget(offset, exploreState, varList);
 	}
 
 	@Override
