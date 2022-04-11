@@ -26,26 +26,58 @@
 
 package pta;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import parser.*;
-import parser.ast.*;
+import parser.ParserUtils;
+import parser.Values;
+import parser.VarList;
+import parser.ast.ASTElement;
+import parser.ast.Command;
+import parser.ast.Declaration;
+import parser.ast.DeclarationClock;
+import parser.ast.DeclarationInt;
+import parser.ast.DeclarationType;
+import parser.ast.Expression;
+import parser.ast.ExpressionBinaryOp;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionFunc;
+import parser.ast.ExpressionIdent;
+import parser.ast.ExpressionLabel;
+import parser.ast.ExpressionProb;
+import parser.ast.ExpressionProp;
+import parser.ast.ExpressionTemporal;
+import parser.ast.ExpressionVar;
+import parser.ast.LabelList;
 import parser.ast.Module;
+import parser.ast.ModulesFile;
 import parser.ast.Observable;
-import parser.type.*;
-import parser.visitor.*;
-import prism.*;
+import parser.ast.PropertiesFile;
+import parser.ast.Property;
+import parser.ast.RewardStruct;
+import parser.ast.RewardStructItem;
+import parser.ast.Update;
+import parser.ast.Updates;
+import parser.type.TypeClock;
+import parser.type.TypeInt;
+import parser.visitor.ASTTraverse;
+import parser.visitor.ASTTraverseModify;
+import prism.ModelType;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismLangException;
 
 /**
  * Class that converts a PRISM modelling language description
  * of a PTA into a PRISM model of a PTA, through digital clocks
  */
-public class DigitalClocks
+public class DigitalClocks extends PrismComponent
 {
-	// Prism object
-	private Prism prism;
-	// Log
-	private PrismLog mainLog;
 	// Constants from model
 	private Values constantValues;
 	// Variable list for model
@@ -71,12 +103,11 @@ public class DigitalClocks
 	private Expression prop;
 
 	/**
-	 * Constructor.
+	 * Create a new DigitalClocks, inherit basic state from parent (unless null).
 	 */
-	public DigitalClocks(Prism prism)
+	public DigitalClocks(PrismComponent parent) throws PrismException
 	{
-		this.prism = prism;
-		mainLog = prism.getMainLog();
+		super(parent);
 		mf = null;
 		pf = null;
 		prop = null;
