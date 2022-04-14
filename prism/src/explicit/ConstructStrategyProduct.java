@@ -95,7 +95,7 @@ public class ConstructStrategyProduct
 			}
 			newVarList = (VarList) varList.clone();
 			Declaration decl = new Declaration(memVar, new DeclarationInt(Expression.Int(0), Expression.Int(strat.getMemorySize())));
-			newVarList.addVarAtStart(decl, 1, model.getConstantValues());
+			newVarList.addVarAtStart(decl, 1);
 		}
 
 		// Determine type of induced model

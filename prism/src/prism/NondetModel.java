@@ -581,9 +581,9 @@ public class NondetModel extends ProbModel
 			newVarList = (VarList) varList.clone();
 			Declaration decl = new Declaration(extraStateVar, new DeclarationInt(Expression.Int(0), Expression.Int((1 << nStateVars) - 1)));
 			if (before) {
-				newVarList.addVarAtStart(decl, 1, this.getConstantValues());
+				newVarList.addVarAtStart(decl, 1);
 			} else {
-				newVarList.addVar(decl, 1, this.getConstantValues());
+				newVarList.addVar(decl, 1);
 			}
 		}
 

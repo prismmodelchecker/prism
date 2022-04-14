@@ -513,7 +513,7 @@ public class LTLModelChecker extends PrismComponent
 			newVarList = (VarList) varList.clone();
 			// NB: if DA only has one state, we add an extra dummy state
 			Declaration decl = new Declaration(daVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(da.size() - 1, 1))));
-			newVarList.addVarAtStart(decl, 1, model.getConstantValues());
+			newVarList.addVarAtStart(decl, 1);
 		}
 
 		// Create a (simple, mutable) model of the appropriate type

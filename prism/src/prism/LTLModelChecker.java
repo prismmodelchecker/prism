@@ -535,9 +535,9 @@ public class LTLModelChecker extends PrismComponent
 		// NB: if DA only has one state, we add an extra dummy state
 		Declaration decl = new Declaration(daVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(da.size() - 1, 1))));
 		if (before) {
-			newVarList.addVarAtStart(decl, 1, model.getConstantValues());
+			newVarList.addVarAtStart(decl, 1);
 		} else {
-			newVarList.addVar(decl, 1, model.getConstantValues());
+			newVarList.addVar(decl, 1);
 		}
 
 		// Build transition matrix for product
@@ -830,9 +830,9 @@ public class LTLModelChecker extends PrismComponent
 		// NB: if DA only has one state, we add an extra dummy state
 		Declaration decl = new Declaration(daVar, new DeclarationInt(Expression.Int(0), Expression.Int(Math.max(da.size() - 1, 1))));
 		if (before) {
-			newVarList.addVarAtStart(decl, 1, model.getConstantValues());
+			newVarList.addVarAtStart(decl, 1);
 		} else {
-			newVarList.addVar(decl, 1, model.getConstantValues());
+			newVarList.addVar(decl, 1);
 		}
 
 		// Build transition matrix for product

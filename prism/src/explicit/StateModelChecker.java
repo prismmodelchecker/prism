@@ -1641,7 +1641,7 @@ public class StateModelChecker extends PrismComponent
 			while (newVarList.exists(daVar)) {
 				daVar = "_" + daVar;
 			}
-			newVarList.addVarAtStart(new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
+			newVarList.addVarAtStart(new Declaration(daVar, new DeclarationIntUnbounded()), 1);
 			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
 			out.close();
 		}

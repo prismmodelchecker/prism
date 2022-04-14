@@ -1030,9 +1030,9 @@ public class ProbModel implements Model
 			newVarList = (VarList) varList.clone();
 			Declaration decl = new Declaration(extraVar, new DeclarationInt(Expression.Int(0), Expression.Int((1 << n) - 1)));
 			if (before) {
-				newVarList.addVarAtStart(decl, 1, this.getConstantValues());
+				newVarList.addVarAtStart(decl, 1);
 			} else {
-				newVarList.addVar(decl, 1, this.getConstantValues());
+				newVarList.addVar(decl, 1);
 			}
 		}
 
