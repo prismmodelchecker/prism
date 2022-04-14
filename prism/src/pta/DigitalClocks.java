@@ -411,8 +411,8 @@ public class DigitalClocks
 		}
 		prop.findAllVars(mf.getVarNames(), mf.getVarTypes());
 		// Copy across undefined constants since these get lost in the call to tidyUp()
-		mf.setSomeUndefinedConstants(modulesFile.getUndefinedConstantValues());
-		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedConstantValues());
+		mf.setSomeUndefinedConstants(modulesFile.getUndefinedEvaluateContext());
+		pf.setSomeUndefinedConstants(propertiesFile.getUndefinedEvaluateContext());
 	}
 
 	/**

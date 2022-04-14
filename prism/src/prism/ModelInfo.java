@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import parser.EvaluateContext;
 import parser.Values;
 import parser.VarList;
+import parser.EvaluateContext.EvalMode;
 import parser.ast.ASTElement;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationIntUnbounded;
@@ -52,51 +54,68 @@ public interface ModelInfo
 	public ModelType getModelType();
 
 	/**
-	 * Set values for *some* undefined constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
+	 * Set values for some undefined constants.
+	 * The values being provided for these constants, as well as any other constants needed,
+	 * are provided in an EvaluateContext object. This also determines the evaluation mode.
+	 * If there are no undefined constants, {@code ecUndefined} can be null.
 	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}.
-	 * <br>
-	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
+	 * This may result in the values for other model constants now being known;
+	 * the values for all current constant values (if set) are available via {@link #getConstantValues()}.
 	 */
-	public default void setSomeUndefinedConstants(Values someValues) throws PrismException
+	public default void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismException
 	{
-		// By default, assume there are no constants to define 
-		if (someValues != null && someValues.getNumValues() > 0)
-			throw new PrismException("This model has no constants to set");
+		// Default implementation: assume no constants and do nothing.
+		// So if constants are actually being provided, this is a problem.
+		if (ecUndefined != null && ecUndefined.getConstantValues() != null && ecUndefined.getConstantValues().getNumValues() > 0) {
+			throw new PrismLangException("This model has no constants to set");
+		}
+		// Also assume no support for exact evaluation by default
+		if (ecUndefined != null && ecUndefined.getEvaluationMode() != EvalMode.FP) {
+			throw new PrismLangException("Evaluation mode " + ecUndefined.getEvaluationMode() + " not supported");
+		}
 	}
 
 	/**
-	 * Set values for *some* undefined constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
-	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}.
-	 * <br>
-	 * Constant values are evaluated using either using standard (integer, floating-point) arithmetic
-	 * or exact arithmetic, depending on the value of the {@code exact} flag.
+	 * Set values for some undefined constants.
+	 * Deprecated. Better to use {@link #setSomeUndefinedConstants(EvaluateContext)}.
+	 * @deprecated
+	 */
+	public default void setSomeUndefinedConstants(Values someValues) throws PrismException
+	{
+		setSomeUndefinedConstants(EvaluateContext.create(someValues));
+	}
+
+	/**
+	 * Set values for some undefined constants.
+	 * Deprecated. Better to use {@link #setSomeUndefinedConstants(EvaluateContext)}.
+	 * @deprecated
 	 */
 	public default void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
-		// default implementation: use implementation for setSomeUndefinedConstants(Values)
-		// for non-exact, error for exact
-		//
-		// implementers should override both this method and setSomeUndefinedConstants(Values)
-		// above
-		if (!exact)
-			setSomeUndefinedConstants(someValues);
-		else
-			throw new PrismException("This model can not set constants in exact mode");
+		setSomeUndefinedConstants(EvaluateContext.create(someValues, exact));
 	}
 
 	/**
 	 * Get access to the values for all constants in the model, including the 
-	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
-	 * Until they are set for the first time, this method returns null.  
+	 * undefined constants set previously via the method {@link #setSomeUndefinedConstants()}.
+	 * Until they are set for the first time, this method may return null.
 	 */
 	public default Values getConstantValues()
 	{
-		// By default, assume there are no constants to define 
-		return new Values();
+		// Default, get via getEvaluateContext()
+		return getEvaluateContext().getConstantValues();
+	}
+
+	/**
+	 * Get access to an EvaluateContext object defining the values
+	 * for all constants in the model, including the undefined constants
+	 * set previously via the method {@link #setSomeUndefinedConstants()}.
+	 * This also specified the evaluation mode being used.
+	 */
+	public default EvaluateContext getEvaluateContext()
+	{
+		// By default, assume there are no constants to define (and FP)
+		return EvaluateContext.create(new Values());
 	}
 
 	/**

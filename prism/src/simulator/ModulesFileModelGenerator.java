@@ -6,6 +6,7 @@ import java.util.List;
 import param.BigRational;
 import param.Function;
 import param.FunctionFactory;
+import parser.EvaluateContext;
 import parser.EvaluateContextState;
 import parser.State;
 import parser.Values;
@@ -250,13 +251,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	}
 
 	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismException
-	{
-		setSomeUndefinedConstants(someValues, false);
-	}
-
-	@Override
-	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
+	public void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismException
 	{
 		// We start again with a copy of the original modules file
 		// and set the constants in the copy.
@@ -265,7 +260,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		// start again at a place where references to constants have not
 		// yet been replaced.
 		modulesFile = (ModulesFile) originalModulesFile.deepCopy();
-		modulesFile.setSomeUndefinedConstants(someValues, exact);
+		modulesFile.setSomeUndefinedConstants(ecUndefined);
 		mfConstants = modulesFile.getConstantValues();
 		ec.setConstantValues(mfConstants);
 		initialise();
@@ -385,7 +380,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	public State getInitialState() throws PrismException
 	{
 		if (modulesFile.getInitialStates() == null) {
-			return modulesFile.getDefaultInitialState(ec);
+			return modulesFile.getDefaultInitialState();
 		} else {
 			// Inefficient but probably won't be called
 			return getInitialStates().get(0);
@@ -398,7 +393,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		List<State> initStates = new ArrayList<State>();
 		// Easy (normal) case: just one initial state
 		if (modulesFile.getInitialStates() == null) {
-			State state = modulesFile.getDefaultInitialState(ec);
+			State state = modulesFile.getDefaultInitialState();
 			initStates.add(state);
 		}
 		// Otherwise, there may be multiple initial states

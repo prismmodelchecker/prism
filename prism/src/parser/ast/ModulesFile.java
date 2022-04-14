@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Objects;
 
 import parser.EvaluateContext;
-import parser.EvaluateContext.EvalMode;
-import parser.EvaluateContextConstants;
 import parser.IdentUsage;
 import parser.State;
 import parser.Values;
@@ -92,10 +90,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private ArrayList<Type> observableTypes;
 	private ArrayList<String> observableVars;
 
-	// Values set for undefined constants (null if none)
-	private Values undefinedConstantValues;
+	// Copy of the evaluation context used to defined undefined constants (null if none)
+	private EvaluateContext ecUndefined;
+	
 	// Actual values of (some or all) constants
 	private Values constantValues;
+	// Evaluation context (all constant values + evaluation mode)
+	private EvaluateContext ec;
 
 	// Constructor
 
@@ -124,8 +125,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		observableNames = new ArrayList<>();
 		observableTypes = new ArrayList<>();
 		observableVars = new ArrayList<>();
-		undefinedConstantValues = null;
+		ecUndefined = null;
 		constantValues = null;
+		ec = EvaluateContext.create();
 	}
 
 	// Set methods
@@ -936,13 +938,13 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		checkObservables();
 		
 		// If there are no undefined constants, set up values for constants
-		// (to avoid need for a later call to setUndefinedConstants).
-		// NB: Can't call setUndefinedConstants if there are undefined constants
+		// (to avoid need for a later call to setSomeUndefinedConstants).
+		// NB: Can't call setSomeUndefinedConstants now if there are undefined constants
 		// because semanticCheckAfterConstants may fail. 
 		if (getUndefinedConstants().isEmpty()) {
-			// we use non-exact constant evaluation by default,
+			// NB: we use non-exact constant evaluation by default,
 			// for exact mode constants will be reevaluated later on
-			setUndefinedConstants(null, false);
+			setSomeUndefinedConstants(EvaluateContext.create());
 		}
 	}
 
@@ -1296,53 +1298,23 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return constantList.getUndefinedConstants();
 	}
 
-	/**
-	 * Set values for *all* undefined constants and then evaluate all constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
-	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
-	 * Calling this method also triggers some additional semantic checks
-	 * that can only be done once constant values have been specified.
-	 * <br>
-	 * Constant values are evaluated using standard (integer, floating-point) arithmetic.
-	 */
-	public void setUndefinedConstants(Values someValues) throws PrismLangException
+	@Override
+	public void setSomeUndefinedConstants(EvaluateContext ecUndefined) throws PrismLangException
 	{
-		setUndefinedConstants(someValues, false);
-	}
-
-	/**
-	 * Set values for *all* undefined constants and then evaluate all constants.
-	 * If there are no undefined constants, {@code someValues} can be null.
-	 * Undefined constants can be subsequently redefined to different values with the same method.
-	 * The current constant values (if set) are available via {@link #getConstantValues()}. 
-	 * Calling this method also triggers some additional semantic checks
-	 * that can only be done once constant values have been specified.
-	 * <br>
-	 * Constant values are evaluated using either standard (integer, floating-point) arithmetic
-	 * or exact arithmetic, depending on the value of the {@code exact} flag.
-	 */
-	public void setUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
-	{
-		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		EvaluateContext ec = new EvaluateContextConstants(someValues).setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
-		constantValues = constantList.evaluateConstants(ec);
+		this.ecUndefined = ecUndefined == null ? EvaluateContext.create() : EvaluateContext.create(ecUndefined);
+		constantValues = constantList.evaluateSomeConstants(ecUndefined);
+		ec = EvaluateContext.create(constantValues, ecUndefined.getEvaluationMode());
 		doSemanticChecksAfterConstants();
 	}
 
-	@Override
-	public void setSomeUndefinedConstants(Values someValues) throws PrismLangException
+	/**
+	 * Same as {@link #setSomeUndefinedConstants(Values)}.
+	 * Note: This method no longer throws an exception if some constants are undefined.
+	 * @deprecated
+	 */
+	public void setUndefinedConstants(Values someValues) throws PrismException
 	{
-		setSomeUndefinedConstants(someValues, false);
-	}
-
-	@Override
-	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismLangException
-	{
-		undefinedConstantValues = someValues == null ? null : new Values(someValues);
-		EvaluateContext ec = new EvaluateContextConstants(someValues).setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
-		constantValues = constantList.evaluateSomeConstants(ec);
-		doSemanticChecksAfterConstants();
+		setSomeUndefinedConstants(someValues);
 	}
 
 	/**
@@ -1355,73 +1327,33 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 	
 	/**
-	 * Get access to the values that have been provided for undefined constants in the model 
-	 * (e.g. via the method {@link #setUndefinedConstants(Values)}).
+	 * Get the evaluation context that was used to provide values for undefined constants in the model
+	 * (e.g. via the method {@link #setSomeUndefinedConstants(EvaluateContext)}).
 	 */
-	public Values getUndefinedConstantValues()
+	public EvaluateContext getUndefinedEvaluateContext()
 	{
-		return undefinedConstantValues;
+		return ecUndefined;
 	}
 
-	/**
-	 * Get access to the values for all constants in the model, including the 
-	 * undefined constants set previously via the method {@link #setUndefinedConstants(Values)}.
-	 * Until they are set for the first time, this method returns null.  
-	 */
+	@Override
 	public Values getConstantValues()
 	{
 		return constantValues;
 	}
 
-	/**
-	 * Create a State object representing the default initial state of this model.
-	 * If there are potentially multiple initial states (because the model has an 
-	 * init...endinit specification), this method returns null.
-	 * Assumes that values for constants have been provided for the model.
-	 * Initial state values are evaluated using the default evaluation mode,
-	 * i.e., not using exact arithmetic.
-	 */
-	public State getDefaultInitialState() throws PrismLangException
+	@Override
+	public EvaluateContext getEvaluateContext()
 	{
-		return getDefaultInitialState(false);
+		return ec;
 	}
 
 	/**
 	 * Create a State object representing the default initial state of this model.
 	 * If there are potentially multiple initial states (because the model has an
 	 * init...endinit specification), this method returns null.
-	 * Assumes that values for constants have been provided for the model.
-	 * @param exact use exact arithmetic in evaluation of initial state values
+	 * Assumes that values for constants (and evaluation mode) have been set for the model.
 	 */
-	public State getDefaultInitialState(boolean exact) throws PrismLangException
-	{
-		return getDefaultInitialState(exact ? EvalMode.EXACT : EvalMode.FP);
-	}
-	
-	/**
-	 * Create a State object representing the default initial state of this model.
-	 * If there are potentially multiple initial states (because the model has an
-	 * init...endinit specification), this method returns null.
-	 * Assumes that values for constants have been provided for the model.
-	 * @param exact use exact arithmetic in evaluation of initial state values
-	 */
-	public State getDefaultInitialState(EvalMode evalMode) throws PrismLangException
-	{
-		EvaluateContext ec = new EvaluateContextConstants(constantValues);
-		ec.setEvaluationMode(evalMode);
-		return getDefaultInitialState(ec);
-	}
-	
-	/**
-	 * Create a State object representing the default initial state of this model.
-	 * If there are potentially multiple initial states (because the model has an
-	 * init...endinit specification), this method returns null.
-	 * The passed in EvaluateContext determines both the mode for evaluation of
-	 * the initial state values, and also any constant values,
-	 * i.e., any local stored constant values are ignored.
-	 * @param ec context for evaluation of initial state values
-	 */
-	public State getDefaultInitialState(EvaluateContext ec) throws PrismLangException
+	public State getDefaultInitialState() throws PrismLangException
 	{
 		if (initStates != null) {
 			return null;
@@ -1702,12 +1634,14 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// clone other (generated) info
 		if (constantValues != null)
 			clone.constantValues = constantValues.clone();
-		if (undefinedConstantValues != null)
-			clone.undefinedConstantValues = undefinedConstantValues.clone();
 		if (moduleNames != null)
 			clone.moduleNames = moduleNames.clone();
 		if (synchs != null)
 			clone.synchs =  (ArrayList<String>) synchs.clone();
+		if (ecUndefined != null)
+			ecUndefined = EvaluateContext.create(ecUndefined);
+		if (ec != null)
+			ec = EvaluateContext.create(ec);
 
 		return clone;
 	}

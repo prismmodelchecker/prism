@@ -482,7 +482,7 @@ public class ConstructModel extends PrismComponent
 			UndefinedConstants undefinedConstants = new UndefinedConstants(modulesFile, null);
 			if (args.length > 2)
 				undefinedConstants.defineUsingConstSwitch(args[2]);
-			modulesFile.setUndefinedConstants(undefinedConstants.getMFConstantValues());
+			modulesFile.setSomeUndefinedConstants(undefinedConstants.getMFConstantValues());
 			ConstructModel constructModel = new ConstructModel(prism);
 			constructModel.setSortStates(true);
 			simulator.ModulesFileModelGenerator<?> modelGen = simulator.ModulesFileModelGenerator.create(modulesFile, constructModel);
