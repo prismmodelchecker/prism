@@ -2017,12 +2017,16 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
 					expf2mtbdd = new ExplicitFiles2MTBDD(this);
-					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, explicitFilesStateRewardsFiles,
-							currentModelInfo, explicitFilesNumStates);
+					ExplicitFilesRewardGenerator4MTBDD erfg4m = new ExplicitFilesRewardGenerator4MTBDD(this, explicitFilesStateRewardsFiles,
+							explicitFilesNumStates);
+					currentRewardGenerator = erfg4m;
+					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo,
+							explicitFilesNumStates, erfg4m);
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
 					currentModelGenerator = new ModelModelGenerator(currentModelExpl, currentModelInfo);
-					ExplicitFilesRewardGenerator efrg4e = new ExplicitFilesRewardGenerator4Explicit(this, explicitFilesStateRewardsFiles, explicitFilesNumStates);
+					ExplicitFilesRewardGenerator efrg4e = new ExplicitFilesRewardGenerator4Explicit(this, explicitFilesStateRewardsFiles,
+							explicitFilesNumStates);
 					efrg4e.setStatesList(currentModelExpl.getStatesList());
 					currentRewardGenerator = efrg4e;
 				}
@@ -2367,6 +2371,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportStateRewardsToFile(int exportType, File file, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		int numRewardStructs = currentRewardGenerator.getNumRewardStructs();
+
 		if (numRewardStructs == 0) {
 			mainLog.println("\nOmitting state reward export as there are no reward structures");
 			return;
@@ -2393,8 +2398,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				files.add(filename);
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
-			if (!getExplicit()) {
-				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision);
+			if(!getExplicit()) {
+				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision, noexportheaders);
 			} else {
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);

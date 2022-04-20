@@ -220,10 +220,11 @@ public interface Model
 	 * @param r Index of reward structure to export (0-indexed)
 	 * @param exportType The format in which to export
 	 * @param file File to export to (if null, print to the log instead)
+	 * @param noexportheaders disables export headers for srew files
 	 */
-	default void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException
+	default void exportStateRewardsToFile(int r, int exportType, File file, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
-		exportStateRewardsToFile(r, exportType, file, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportStateRewardsToFile(r, exportType, file, DEFAULT_EXPORT_MODEL_PRECISION, noexportheaders);
 	}
 
 	/**
@@ -232,8 +233,9 @@ public interface Model
 	 * @param exportType The format in which to export
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param precision number of significant digits >= 1
+	 * @param noexportheaders disables export headers for srew files
 	 */
-	void exportStateRewardsToFile(int r, int exportType, File file, int precision) throws FileNotFoundException, PrismException;
+	void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException;
 
 	@Deprecated
 	default String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException

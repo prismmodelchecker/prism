@@ -662,7 +662,7 @@ public class PrismCL implements PrismModelListener
 					lf = new File(importLabelsFilename);
 				}
 				if (importstaterewards) {
-					for(int k = 0;k < importStateRewardsFilename.size();k++){
+					for (int k = 0; k < importStateRewardsFilename.size(); k++) {
 						mainLog.print(", \"" + (String) importStateRewardsFilename.get(k) + "\"");
 						srf.add(new File(importStateRewardsFilename.get(k)));
 					}
@@ -2060,12 +2060,11 @@ public class PrismCL implements PrismModelListener
 					while (true) {
 						if (new File(basename + String.valueOf(index) + ".srew").exists()) {
 							importstaterewards = true;
-							importStateRewardsFilename.add(basename+ String.valueOf(index) + ".srew");
+							importStateRewardsFilename.add(basename + String.valueOf(index) + ".srew");
 							index++;
 						} else {
 							break;
 						}
-
 					}
 				}
 				if (new File(basename + ".trew").exists()) {

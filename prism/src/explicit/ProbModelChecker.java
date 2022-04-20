@@ -1294,7 +1294,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Exporting state rewards in the requested format is currently not supported by the explicit engine");
 		}
 
-		try{
+		try {
 			modelRewards = constructRewards(model, r);
 		} catch (PrismException e) {
 			if (e.getMessage() == "Explicit engine does not yet handle transition rewards for D/CTMCs.") {
@@ -1308,8 +1308,6 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw e;
 			}
 		}
-
-
 		switch (model.getModelType()) {
 		case DTMC:
 		case CTMC:

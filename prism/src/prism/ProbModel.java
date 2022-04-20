@@ -824,9 +824,11 @@ public class ProbModel implements Model
 	}
 
 	@Override
-	public void exportStateRewardsToFile(int r, int exportType, File file, int precision) throws FileNotFoundException, PrismException
+	public void exportStateRewardsToFile(int r, int exportType, File file, int precision, boolean noexportheaders)
+			throws FileNotFoundException, PrismException
 	{
-		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), precision);
+		PrismMTBDD.ExportVector(stateRewards[r], "c" + (r + 1), allDDRowVars, odd, exportType, (file == null) ? null : file.getPath(), precision,
+				rewardStructNames[r], noexportheaders);
 	}
 
 	@Deprecated
@@ -846,7 +848,7 @@ public class ProbModel implements Model
 				filename = PrismUtils.addCounterSuffixToFilename(filename, i + 1);
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
-			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i + 1), allDDRowVars, odd, exportType, filename, precision);
+			PrismMTBDD.ExportVector(stateRewards[i], "c" + (i + 1), allDDRowVars, odd, exportType, filename, precision, rewardStructNames[i], false);
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;
 	}
