@@ -2015,8 +2015,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			case EXPLICIT_FILES:
 				if (!getExplicit()) {
 					expf2mtbdd = new ExplicitFiles2MTBDD(this);
-					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, explicitFilesStateRewardsFile,
-							currentModelInfo, explicitFilesNumStates);
+					ExplicitFilesRewardGenerator4MTBDD erfg4m = new ExplicitFilesRewardGenerator4MTBDD(this, explicitFilesStateRewardsFile, explicitFilesNumStates);
+					currentRewardGenerator = erfg4m;
+					currentModel = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates, erfg4m);
 				} else {
 					currentModelExpl = new ExplicitFiles2Model(this).build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, currentModelInfo, explicitFilesNumStates);
 					currentModelGenerator = new ModelModelGenerator(currentModelExpl, currentModelInfo);
@@ -2391,7 +2392,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (!getExplicit()) {
-				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision);
+				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision, true);
 			} else {
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
 				try (PrismLog out = getPrismLogForFile(fileToUse)){
