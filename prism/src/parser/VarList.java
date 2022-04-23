@@ -29,7 +29,6 @@ package parser;
 import java.util.*;
 
 import prism.*;
-import parser.VarList.Var;
 import parser.ast.*;
 import parser.type.*;
 

@@ -30,6 +30,8 @@ import java.math.BigInteger;
 
 import param.BigRational;
 import parser.EvaluateContext.EvalMode;
+import parser.ast.DeclarationDoubleUnbounded;
+import parser.ast.DeclarationType;
 import prism.PrismLangException;
 
 public class TypeDouble extends Type 
@@ -68,6 +70,12 @@ public class TypeDouble extends Type
 	public Object defaultValue()
 	{
 		return 0.0;
+	}
+	
+	@Override
+	public DeclarationType defaultDeclarationType()
+	{
+		return new DeclarationDoubleUnbounded();
 	}
 	
 	@Override

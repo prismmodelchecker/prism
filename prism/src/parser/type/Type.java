@@ -27,6 +27,7 @@
 package parser.type;
 
 import parser.EvaluateContext.EvalMode;
+import parser.ast.DeclarationType;
 import prism.PrismLangException;
 
 public abstract class Type 
@@ -52,6 +53,15 @@ public abstract class Type
 	{
 		// Play safe: assume null
 		return null;
+	}
+	
+	/**
+	 * Returns an appropriate DeclarationType object for this type, assuming no info about bounds, etc.
+	 */
+	public DeclarationType defaultDeclarationType() throws PrismLangException
+	{
+		// Not implemented by default
+		throw new PrismLangException("Cannot create a DeclarationType for type " + getTypeString());
 	}
 	
 	/**

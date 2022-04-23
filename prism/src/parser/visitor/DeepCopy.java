@@ -27,6 +27,9 @@
 package parser.visitor;
 
 
+import java.util.List;
+import java.util.ListIterator;
+
 import parser.ast.ASTElement;
 import parser.ast.Command;
 import parser.ast.ConstantList;
@@ -34,6 +37,7 @@ import parser.ast.Declaration;
 import parser.ast.DeclarationArray;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationClock;
+import parser.ast.DeclarationDoubleUnbounded;
 import parser.ast.DeclarationInt;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.ExpressionBinaryOp;
@@ -82,9 +86,6 @@ import parser.ast.Update;
 import parser.ast.UpdateElement;
 import parser.ast.Updates;
 import prism.PrismLangException;
-
-import java.util.List;
-import java.util.ListIterator;
 
 /**
  * DeepCopy is a visitor that copies an AST.
@@ -197,6 +198,12 @@ public class DeepCopy implements ASTVisitor
 
 	@Override
 	public Object visit(DeclarationIntUnbounded e) throws PrismLangException
+	{
+		return e.clone().deepCopy(this);
+	}
+
+	@Override
+	public Object visit(DeclarationDoubleUnbounded e) throws PrismLangException
 	{
 		return e.clone().deepCopy(this);
 	}
