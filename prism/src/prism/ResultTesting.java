@@ -202,7 +202,7 @@ public class ResultTesting
 	{
 		try {
 			Expression expectedExpr = Prism.parseSingleExpressionString(strExpected);
-			expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
+			expectedExpr = (Expression) expectedExpr.findAllConstants(constValues.getNames(), constValues.getTypes());
 			expectedExpr.typeCheck();
 			return expectedExpr;
 		} catch (PrismLangException e) {

@@ -52,26 +52,28 @@ public class ConstantList extends ASTElement
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
 	private ArrayList<ExpressionIdent> nameIdents = new ArrayList<>();
-	
-	/** Constructor */
+
+	/**
+	 * Construct an empty constants list.
+	 */
 	public ConstantList()
 	{
 	}
 
-	/** Constructor from a Values object, i.e., a list of name=value tuples */
+	/**
+	 * Construct a constants list from a Values object, i.e., a list of name=value pairs.
+	 * This is just for convenience and only works for constants of primitive type.
+	 * In general, it is preferred to construct an empty list and then repeatedly call
+	 * {@link #addConstant(ExpressionIdent, Expression, Type)}
+	 * so that the type of each constant can be reliably determined.
+	 */
 	public ConstantList(Values constValues) throws PrismLangException
 	{
-		for (int i = 0; i < constValues.getNumValues(); i++) {
-			Type type = constValues.getType(i);
-			if (type.equals(TypeBool.getInstance()) ||
-			    type.equals(TypeInt.getInstance()) ||
-			    type.equals(TypeDouble.getInstance())) {
-				addConstant(new ExpressionIdent(constValues.getName(i)),
-				            new ExpressionLiteral(type, constValues.getValue(i)),
-				            type);
-			} else {
-				throw new PrismLangException("Unsupported type for constant " + constValues.getName(i));
-			}
+		int numConsts = constValues.getNumValues();
+		for (int i = 0; i < numConsts; i++) {
+			ExpressionIdent nameIdent = new ExpressionIdent(constValues.getName(i));
+			Expression constDefn = new ExpressionLiteral(type, constValues.getValue(i));
+			addConstant(nameIdent, constDefn, constValues.getType(i));
 		}
 	}
 
