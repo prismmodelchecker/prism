@@ -82,7 +82,7 @@ public class TypeCheck extends ASTTraverse
 		int i, n;
 		n = e.size();
 		for (i = 0; i < n; i++) {
-			if (e.getConstant(i) != null && !e.getConstantType(i).canAssign(e.getConstant(i).getType())) {
+			if (e.getConstant(i) != null && !e.getConstantType(i).canCastTypeTo(e.getConstant(i).getType())) {
 				throw new PrismLangException("Type mismatch in definition of constant \"" + e.getConstantName(i) + "\"", e.getConstant(i));
 			}
 		}
@@ -90,27 +90,27 @@ public class TypeCheck extends ASTTraverse
 
 	public void visitPost(Declaration e) throws PrismLangException
 	{
-		if (e.getStart() != null && !e.getType().canAssign(e.getStart().getType())) {
+		if (e.getStart() != null && !e.getType().canCastTypeTo(e.getStart().getType())) {
 			throw new PrismLangException("Type error: Initial value of variable \"" + e.getName() + "\" does not match", e.getStart());
 		}
 	}
 
 	public void visitPost(DeclarationInt e) throws PrismLangException
 	{
-		if (e.getLow() != null && !TypeInt.getInstance().canAssign(e.getLow().getType())) {
+		if (e.getLow() != null && !TypeInt.getInstance().canCastTypeTo(e.getLow().getType())) {
 			throw new PrismLangException("Type error: Integer range lower bound \"" + e.getLow() + "\" is not an integer", e.getLow());
 		}
-		if (e.getHigh() != null && !TypeInt.getInstance().canAssign(e.getHigh().getType())) {
+		if (e.getHigh() != null && !TypeInt.getInstance().canCastTypeTo(e.getHigh().getType())) {
 			throw new PrismLangException("Type error: Integer range upper bound \"" + e.getHigh() + "\" is not an integer", e.getHigh());
 		}
 	}
 
 	public void visitPost(DeclarationArray e) throws PrismLangException
 	{
-		if (e.getLow() != null && !TypeInt.getInstance().canAssign(e.getLow().getType())) {
+		if (e.getLow() != null && !TypeInt.getInstance().canCastTypeTo(e.getLow().getType())) {
 			throw new PrismLangException("Type error: Array lower bound \"" + e.getLow() + "\" is not an integer", e.getLow());
 		}
-		if (e.getHigh() != null && !TypeInt.getInstance().canAssign(e.getHigh().getType())) {
+		if (e.getHigh() != null && !TypeInt.getInstance().canCastTypeTo(e.getHigh().getType())) {
 			throw new PrismLangException("Type error: Array upper bound \"" + e.getHigh() + "\" is not an integer", e.getHigh());
 		}
 	}
@@ -129,8 +129,8 @@ public class TypeCheck extends ASTTraverse
 		for (i = 0; i < n; i++) {
 			if (e.getProbability(i) != null) {
 				Type typeProb = e.getProbability(i).getType();
-				boolean typeOK = TypeDouble.getInstance().canAssign(typeProb);
-				typeOK |= typeProb instanceof TypeInterval && TypeDouble.getInstance().canAssign(((TypeInterval) typeProb).getSubType());
+				boolean typeOK = TypeDouble.getInstance().canCastTypeTo(typeProb);
+				typeOK |= typeProb instanceof TypeInterval && TypeDouble.getInstance().canCastTypeTo(((TypeInterval) typeProb).getSubType());
 				if (!typeOK) {
 					throw new PrismLangException("Type error: Update probability/rate cannot have type " + typeProb, e.getProbability(i));
 				}
@@ -145,7 +145,7 @@ public class TypeCheck extends ASTTraverse
 		for (i = 0; i < n; i++) {
 			// Updates to non-clocks
 			if (!(e.getType(i) instanceof TypeClock)) {
-				if (!e.getType(i).canAssign(e.getExpression(i).getType())) {
+				if (!e.getType(i).canCastTypeTo(e.getExpression(i).getType())) {
 					throw new PrismLangException("Type error in update to variable \"" + e.getVar(i) + "\"", e.getExpression(i));
 				}
 			}
@@ -164,7 +164,7 @@ public class TypeCheck extends ASTTraverse
 		if (!(e.getStates().getType() instanceof TypeBool)) {
 			throw new PrismLangException("Type error in reward struct item: guard must be Boolean", e.getStates());
 		}
-		if (!TypeDouble.getInstance().canAssign(e.getReward().getType())) {
+		if (!TypeDouble.getInstance().canCastTypeTo(e.getReward().getType())) {
 			throw new PrismLangException("Type error in reward struct item: value must be an int or double", e.getReward());
 		}
 	}
@@ -172,10 +172,10 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(ExpressionTemporal e) throws PrismLangException
 	{
 		Type type;
-		if (e.getLowerBound() != null && !TypeDouble.getInstance().canAssign(e.getLowerBound().getType())) {
+		if (e.getLowerBound() != null && !TypeDouble.getInstance().canCastTypeTo(e.getLowerBound().getType())) {
 			throw new PrismLangException("Type error: Lower bound in " + e.getOperatorSymbol() + " operator must be an int or double", e.getLowerBound());
 		}
-		if (e.getUpperBound() != null && !TypeDouble.getInstance().canAssign(e.getUpperBound().getType())) {
+		if (e.getUpperBound() != null && !TypeDouble.getInstance().canCastTypeTo(e.getUpperBound().getType())) {
 			throw new PrismLangException("Type error: Upper bound in " + e.getOperatorSymbol() + " operator must be an int or double", e.getUpperBound());
 		}
 		switch (e.getOperator()) {
@@ -214,7 +214,7 @@ public class TypeCheck extends ASTTraverse
 		if (!(t1 instanceof TypeBool)) {
 			throw new PrismLangException("Type error: condition of ? operator is not Boolean", e.getOperand1());
 		}
-		if (!(t2.canAssign(t3) || t3.canAssign(t2))) {
+		if (!(t2.canCastTypeTo(t3) || t3.canCastTypeTo(t2))) {
 			throw new PrismLangException("Type error: types for then/else operands of ? operator must match", e);
 		}
 
@@ -486,7 +486,7 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(ExpressionProb e) throws PrismLangException
 	{
 		// Check prob bound
-		if (e.getProb() != null && !TypeDouble.getInstance().canAssign(e.getProb().getType())) {
+		if (e.getProb() != null && !TypeDouble.getInstance().canCastTypeTo(e.getProb().getType())) {
 			throw new PrismLangException("Type error: P operator probability bound is not a double", e.getProb());
 		}
 		// Check filter
@@ -524,7 +524,7 @@ public class TypeCheck extends ASTTraverse
 			}
 		}
 		// Check reward bound
-		if (e.getReward() != null && !TypeDouble.getInstance().canAssign(e.getReward().getType())) {
+		if (e.getReward() != null && !TypeDouble.getInstance().canCastTypeTo(e.getReward().getType())) {
 			throw new PrismLangException("Type error: R operator reward bound is not a double", e.getReward());
 		}
 		// Check filter
@@ -549,7 +549,7 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(ExpressionSS e) throws PrismLangException
 	{
 		// Check probability bound
-		if (e.getProb() != null && !TypeDouble.getInstance().canAssign(e.getProb().getType())) {
+		if (e.getProb() != null && !TypeDouble.getInstance().canCastTypeTo(e.getProb().getType())) {
 			throw new PrismLangException("Type error: S operator probability bound is not a double", e.getProb());
 		}
 		// Check filter

@@ -55,9 +55,9 @@ public abstract class Type
 	}
 	
 	/**
-	 * Returns true iff a variable of this type can be assigned a value that is of type {@code type}. 
+	 * Returns true iff a value of type {@code type} can be cast to a value of this type.
 	 */
-	public boolean canAssign(Type type)
+	public boolean canCastTypeTo(Type type)
 	{
 		// Play safe: assume not possible, unless explicitly overridden.
 		return false;

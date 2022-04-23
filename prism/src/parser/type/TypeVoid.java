@@ -65,7 +65,7 @@ public class TypeVoid extends Type
 	}
 	
 	@Override
-	public boolean canAssign(Type type)
+	public boolean canCastTypeTo(Type type)
 	{
 		return false;
 	}

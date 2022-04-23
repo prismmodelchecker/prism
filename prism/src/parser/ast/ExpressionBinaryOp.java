@@ -189,10 +189,10 @@ public class ExpressionBinaryOp extends Expression
 			// Cast arguments to the same type if needed,
 			// before testing using equals() on the resulting Objects
 			if (!operand1.getType().equals(operand2.getType())) {
-				if (operand1.getType().canAssign(operand2.getType())) {
+				if (operand1.getType().canCastTypeTo(operand2.getType())) {
 					eval1 = operand1.getType().castValueTo(eval1);
 					eval2 = operand1.getType().castValueTo(eval2);
-				} else if (operand2.getType().canAssign(operand1.getType())) {
+				} else if (operand2.getType().canCastTypeTo(operand1.getType())) {
 					eval1 = operand2.getType().castValueTo(eval1);
 					eval2 = operand2.getType().castValueTo(eval2);
 				} else {

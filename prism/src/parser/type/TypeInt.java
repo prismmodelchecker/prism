@@ -70,7 +70,7 @@ public class TypeInt extends Type
 	}
 	
 	@Override
-	public boolean canAssign(Type type)
+	public boolean canCastTypeTo(Type type)
 	{
 		return (type instanceof TypeInt);
 	}

@@ -68,7 +68,7 @@ public class TypeBool extends Type
 	}
 	
 	@Override
-	public boolean canAssign(Type type)
+	public boolean canCastTypeTo(Type type)
 	{
 		return (type instanceof TypeBool);
 	}

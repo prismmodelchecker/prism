@@ -283,7 +283,7 @@ public class GUIInitialStatePicker extends javax.swing.JDialog implements KeyLis
 					throw new PrismException("Not constant");
 				}
 				Object valueObj = valueExpr.evaluate();
-				if (!modelGen.getVarType(i).canAssign(valueExpr.getType())) {
+				if (!modelGen.getVarType(i).canCastTypeTo(valueExpr.getType())) {
 					throw new PrismException("Type mismatch");
 				}
 				valueObj = modelGen.getVarType(i).castValueTo(valueObj);

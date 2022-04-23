@@ -71,7 +71,7 @@ public class TypeDouble extends Type
 	}
 	
 	@Override
-	public boolean canAssign(Type type)
+	public boolean canCastTypeTo(Type type)
 	{
 		return (type instanceof TypeDouble || type instanceof TypeInt);
 	}
