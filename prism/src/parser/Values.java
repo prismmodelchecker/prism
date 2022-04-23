@@ -28,6 +28,7 @@ package parser;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
 
 import param.BigRational;
 import parser.type.Type;
@@ -207,6 +208,14 @@ public class Values implements Cloneable //implements Comparable
 	}
 
 	/**
+	 * Get a list of all names for values stored.
+	 */
+	public List<String> getNames()
+	{
+		return names;
+	}
+
+	/**
 	 * Get the index of the value for variable/constant {@code name} (-1 if not present).
 	 */
 	public int getIndexOf(String name)
@@ -256,6 +265,14 @@ public class Values implements Cloneable //implements Comparable
 		i = getIndexOf(name);
 		if (i == -1) throw new PrismLangException("Couldn't get value for \"" + name + "\"");
 		return getValue(i);
+	}
+
+	/**
+	 * Get a list of all values stored.
+	 */
+	public List<Object> getValues()
+	{
+		return values;
 	}
 
 	@Override

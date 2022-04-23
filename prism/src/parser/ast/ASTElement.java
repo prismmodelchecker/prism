@@ -309,12 +309,20 @@ public abstract class ASTElement implements Cloneable
 	}
 
 	/**
-	 * Find all idents which are constants, replace with ExpressionConstant,
-	 * return result.
+	 * Find all idents which are constants, replace with ExpressionConstant, return result.
 	 */
 	public ASTElement findAllConstants(ConstantList constantList) throws PrismLangException
 	{
 		FindAllConstants visitor = new FindAllConstants(constantList);
+		return (ASTElement) accept(visitor);
+	}
+
+	/**
+	 * Find all idents which are constants, replace with ExpressionConstant, return result.
+	 */
+	public ASTElement findAllConstants(List<String> constIdents, List<Type> constTypes) throws PrismLangException
+	{
+		FindAllConstants visitor = new FindAllConstants(constIdents, constTypes);
 		return (ASTElement) accept(visitor);
 	}
 
