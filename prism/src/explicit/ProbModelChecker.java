@@ -1251,12 +1251,12 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	public StateValues buildInitialDistribution(Model model) throws PrismException
 	{
-		int numStates = model.getNumStates();
-		if (numStates == 1) {
+		int numInitStates = model.getNumInitialStates();
+		if (numInitStates == 1) {
 			int sInit = model.getFirstInitialState();
 			return StateValues.create(TypeDouble.getInstance(), s -> s == sInit ? 1.0 : 0.0, model);
 		} else {
-			double pInit = 1.0 / numStates;
+			double pInit = 1.0 / numInitStates;
 			return StateValues.create(TypeDouble.getInstance(), s -> model.isInitialState(s) ? pInit : 0.0, model);
 		}
 	}
