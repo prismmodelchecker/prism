@@ -154,6 +154,12 @@ public class ForLoop extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public ForLoop clone()
+	{
+		return (ForLoop) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

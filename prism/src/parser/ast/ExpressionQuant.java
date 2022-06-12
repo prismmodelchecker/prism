@@ -162,6 +162,12 @@ public abstract class ExpressionQuant extends Expression
 	}
 
 	// Standard methods
+
+	@Override
+	public ExpressionQuant clone()
+	{
+		return (ExpressionQuant) super.clone();
+	}
 	
 	@Override
 	public int hashCode()

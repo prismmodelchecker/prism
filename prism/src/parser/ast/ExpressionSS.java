@@ -138,6 +138,12 @@ public class ExpressionSS extends ExpressionQuant
 		return expr;
 	}
 
+	@Override
+	public ExpressionSS clone()
+	{
+		return (ExpressionSS) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

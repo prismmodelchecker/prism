@@ -102,6 +102,12 @@ public class ExpressionForAll extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionForAll clone()
+	{
+		return (ExpressionForAll) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

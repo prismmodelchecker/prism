@@ -342,6 +342,12 @@ public class ExpressionBinaryOp extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionBinaryOp clone()
+	{
+		return (ExpressionBinaryOp) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

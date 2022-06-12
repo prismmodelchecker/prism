@@ -151,6 +151,12 @@ public class ExpressionProb extends ExpressionQuant
 		return expr;
 	}
 
+	@Override
+	public ExpressionProb clone()
+	{
+		return (ExpressionProb) super.clone();
+	}
+
 	// Standard methods
 
 	@Override

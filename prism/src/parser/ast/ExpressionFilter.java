@@ -495,6 +495,12 @@ public class ExpressionFilter extends Expression
 
 		return e;
 	}
+
+	@Override
+	public ExpressionFilter clone()
+	{
+		return (ExpressionFilter) super.clone();
+	}
 	
 	// Standard methods
 	

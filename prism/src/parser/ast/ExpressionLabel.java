@@ -108,6 +108,12 @@ public class ExpressionLabel extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionLabel clone()
+	{
+		return (ExpressionLabel) super.clone();
+	}
+
 	// Standard methods
 
 	@Override

@@ -161,6 +161,17 @@ public class SystemInterleaved extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemInterleaved clone()
+	{
+		SystemInterleaved clone = (SystemInterleaved) super.clone();
+
+		clone.operands = (Vector<SystemDefn>) operands.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

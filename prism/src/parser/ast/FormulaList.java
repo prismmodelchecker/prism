@@ -169,6 +169,19 @@ public class FormulaList extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public FormulaList clone()
+	{
+		FormulaList clone = (FormulaList) super.clone();
+
+		clone.names      = (Vector<String>)          names.clone();
+		clone.formulas   = (Vector<Expression>)      formulas.clone();
+		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+
+		return clone;
+	}
 }
 
 // ------------------------------------------------------------------------------

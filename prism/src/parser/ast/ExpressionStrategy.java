@@ -46,7 +46,7 @@ public class ExpressionStrategy extends Expression
 	protected Coalition coalition = new Coalition(); 
 	
 	/** Child expression(s) */
-	protected List<Expression> operands = new ArrayList<Expression>();
+	protected ArrayList<Expression> operands = new ArrayList<Expression>();
 	
 	/** Is there just a single operand (P/R operator)? If not, the operand list will be parenthesised. **/
 	protected boolean singleOperand = false;
@@ -206,6 +206,18 @@ public class ExpressionStrategy extends Expression
 		expr.setType(type);
 		expr.setPosition(this);
 		return expr;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ExpressionStrategy clone()
+	{
+		ExpressionStrategy clone = (ExpressionStrategy) super.clone();
+
+		clone.coalition = new Coalition(coalition);
+		clone.operands  = (ArrayList<Expression>) operands.clone();
+
+		return clone;
 	}
 
 	// Standard methods

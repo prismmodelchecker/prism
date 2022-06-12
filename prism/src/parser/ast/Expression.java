@@ -126,6 +126,13 @@ public abstract class Expression extends ASTElement
 	 */
 	public abstract Expression deepCopy();
 
+	// Override version of clone() from superclass (to reduce casting).
+	@Override
+	public Expression clone()
+	{
+		return (Expression) super.clone();
+	}
+
 	// Utility methods:
 
 	/**

@@ -187,6 +187,12 @@ public class ExpressionUnaryOp extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionUnaryOp clone()
+	{
+		return (ExpressionUnaryOp) super.clone();
+	}
+
 	// Standard methods
 
 	@Override

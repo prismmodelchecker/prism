@@ -102,6 +102,12 @@ public class ExpressionExists extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionExists clone()
+	{
+		return (ExpressionExists) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

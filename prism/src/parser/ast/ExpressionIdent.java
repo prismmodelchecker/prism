@@ -107,6 +107,12 @@ public class ExpressionIdent extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionIdent clone()
+	{
+		return (ExpressionIdent) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

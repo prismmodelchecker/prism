@@ -41,7 +41,7 @@ public class ObservableVars extends ASTElement
 	/**
 	 * List of variables (stored as AST elements referencing them)
 	 */
-	private List<Expression> vars;
+	private ArrayList<Expression> vars;
 	
 	// Constructor
 	
@@ -136,6 +136,15 @@ public class ObservableVars extends ASTElement
 		}
 		ret.setPosition(this);
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ObservableVars clone()
+	{
+		ObservableVars clone = (ObservableVars) super.clone();
+		clone.vars = (ArrayList<Expression>) vars.clone();
+		return clone;
 	}
 }
 

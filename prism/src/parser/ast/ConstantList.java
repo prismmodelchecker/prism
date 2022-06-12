@@ -492,6 +492,20 @@ public class ConstantList extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ConstantList clone()
+	{
+		ConstantList clone = (ConstantList) super.clone();
+
+		clone.names      = (Vector<String>)          names.clone();
+		clone.constants  = (Vector<Expression>)      constants.clone();
+		clone.types      = (Vector<Type>)            types.clone();
+		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

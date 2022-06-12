@@ -149,6 +149,12 @@ public class RewardStructItem extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public RewardStructItem clone()
+	{
+		return (RewardStructItem) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

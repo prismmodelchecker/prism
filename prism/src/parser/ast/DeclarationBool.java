@@ -68,4 +68,10 @@ public class DeclarationBool extends DeclarationType
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public DeclarationBool clone()
+	{
+		return (DeclarationBool) super.clone();
+	}
 }

@@ -310,6 +310,12 @@ public class Property extends ASTElement
 		prop.setPosition(this);
 		return prop;
 	}
+
+	@Override
+	public Property clone()
+	{
+		return (Property) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------
