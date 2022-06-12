@@ -122,6 +122,12 @@ public class ExpressionObs extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionObs clone()
+	{
+		return (ExpressionObs) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

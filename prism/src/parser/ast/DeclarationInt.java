@@ -97,4 +97,10 @@ public class DeclarationInt extends DeclarationType
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public DeclarationInt clone()
+	{
+		return (DeclarationInt) super.clone();
+	}
 }

@@ -127,6 +127,12 @@ public class Filter extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public Filter clone()
+	{
+		return (Filter) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

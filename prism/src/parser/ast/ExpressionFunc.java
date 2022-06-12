@@ -26,17 +26,18 @@
 
 package parser.ast;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-
 import common.SafeCast;
 import param.BigRational;
-import parser.*;
+import parser.EvaluateContext;
 import parser.EvaluateContext.EvalMode;
-import parser.visitor.*;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
 import prism.PrismUtils;
-import parser.type.*;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
 
 public class ExpressionFunc extends Expression
 {
@@ -629,6 +630,18 @@ public class ExpressionFunc extends Expression
 		e.setPosition(this);
 
 		return e;
+	}
+
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ExpressionFunc clone()
+	{
+		ExpressionFunc clone = (ExpressionFunc) super.clone();
+
+		clone.operands = (ArrayList<Expression>) operands.clone();
+
+		return clone;
 	}
 	
 	// Standard methods

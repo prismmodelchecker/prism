@@ -304,6 +304,19 @@ public class Module extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Module clone()
+	{
+		Module clone = (Module) super.clone();
+
+		clone.decls    = (ArrayList<Declaration>) decls.clone();
+		clone.commands = (ArrayList<Command>) commands.clone();
+		clone.alphabet = (Vector<String>) alphabet.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

@@ -134,4 +134,10 @@ public class DeclarationArray extends DeclarationType
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public DeclarationArray clone()
+	{
+		return (DeclarationArray) super.clone();
+	}
 }

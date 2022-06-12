@@ -673,6 +673,24 @@ public class PropertiesFile extends ASTElement
 
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public PropertiesFile clone()
+	{
+		PropertiesFile clone = (PropertiesFile) super.clone();
+
+		// clone main components
+		clone.properties = (Vector<Property>) properties.clone();
+
+		// clone other (generated) info
+		if (constantValues != null)
+			clone.constantValues = constantValues.clone();
+		if (undefinedConstantValues != null)
+			clone.undefinedConstantValues = undefinedConstantValues.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

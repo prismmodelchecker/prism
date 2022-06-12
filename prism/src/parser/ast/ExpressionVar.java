@@ -120,6 +120,12 @@ public class ExpressionVar extends Expression
 		return expr;
 	}
 
+	@Override
+	public ExpressionVar clone()
+	{
+		return (ExpressionVar) super.clone();
+	}
+
 	// Standard methods
 	
 	@Override

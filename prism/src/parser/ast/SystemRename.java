@@ -208,6 +208,18 @@ public class SystemRename extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemRename clone()
+	{
+		SystemRename clone = (SystemRename) super.clone();
+
+		clone.from = (Vector<String>) from.clone();
+		clone.to   = (Vector<String>) to.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

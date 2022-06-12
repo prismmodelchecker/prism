@@ -66,10 +66,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private ArrayList<SystemDefn> systemDefns; // System definitions (system...endsystem constructs)
 	private ArrayList<String> systemDefnNames; // System definition names (system...endsystem constructs)
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
-	private List<String> rewardStructNames; // Names of reward structures
+	private ArrayList<String> rewardStructNames; // Names of reward structures
 	private Expression initStates; // Initial states specification
-	private List<ObservableVars> observableVarLists; // Observable variables lists
-	private List<Observable> observableDefns; // Standalone observable definitions
+	private ArrayList<ObservableVars> observableVarLists; // Observable variables lists
+	private ArrayList<Observable> observableDefns; // Standalone observable definitions
 	
 	// Info about all identifiers used
 	private IdentUsage identUsage;
@@ -84,10 +84,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private Vector<Type> varTypes;
 	private Vector<Integer> varModules;
 	// Lists of observable info
-	private List<Observable> observables;
-	private List<String> observableNames;
-	private List<Type> observableTypes;
-	private List<String> observableVars;
+	private ArrayList<Observable> observables;
+	private ArrayList<String> observableNames;
+	private ArrayList<Type> observableTypes;
+	private ArrayList<String> observableVars;
 
 	// Values set for undefined constants (null if none)
 	private Values undefinedConstantValues;
@@ -1700,6 +1700,43 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
 		
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public ModulesFile clone()
+	{
+		ModulesFile clone = (ModulesFile) super.clone();
+
+		// clone main components
+		clone.globals            = (Vector<Declaration>) globals.clone();
+		clone.modules            = (Vector<Object>) modules.clone();
+		clone.systemDefns        = (ArrayList<SystemDefn>) systemDefns.clone();
+		clone.systemDefnNames    = (ArrayList<String>) systemDefnNames.clone();
+		clone.rewardStructs      = (ArrayList<RewardStruct>) rewardStructs.clone();
+		clone.rewardStructNames  = (ArrayList<String>) rewardStructNames.clone();
+		clone.observableVarLists = (ArrayList<ObservableVars>) observableVarLists.clone();
+		clone.observableDefns    = (ArrayList<Observable>) observableDefns.clone();
+		clone.varDecls           = (Vector<Declaration>) varDecls.clone();
+		clone.varNames           = (Vector<String>) varNames.clone();
+		clone.varTypes           = (Vector<Type>) varTypes.clone();
+		clone.varModules         = (Vector<Integer>) varModules.clone();
+		clone.observables        = (ArrayList<Observable>) observables.clone();
+		clone.observableNames    = (ArrayList<String>) observableNames.clone();
+		clone.observableTypes    = (ArrayList<Type>) observableTypes.clone();
+		clone.observableVars     = (ArrayList<String>) observableVars.clone();
+
+		// clone other (generated) info
+		if (constantValues != null)
+			clone.constantValues = constantValues.clone();
+		if (undefinedConstantValues != null)
+			clone.undefinedConstantValues = undefinedConstantValues.clone();
+		if (moduleNames != null)
+			clone.moduleNames = moduleNames.clone();
+		if (synchs != null)
+			clone.synchs =  (Vector<String>) synchs.clone();
+
+		return clone;
 	}
 }
 

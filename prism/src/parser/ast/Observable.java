@@ -110,6 +110,12 @@ public class Observable extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public Observable clone()
+	{
+		return (Observable) super.clone();
+	}
 }
 
 //------------------------------------------------------------------------------

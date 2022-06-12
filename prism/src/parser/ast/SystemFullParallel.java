@@ -161,6 +161,17 @@ public class SystemFullParallel extends SystemDefn
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public SystemFullParallel clone()
+	{
+		SystemFullParallel clone = (SystemFullParallel) super.clone();
+
+		clone.operands = (Vector<SystemDefn>) operands.clone();
+
+		return clone;
+	}
 }
 
 //------------------------------------------------------------------------------

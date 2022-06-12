@@ -328,6 +328,17 @@ public class Update extends ASTElement implements Iterable<UpdateElement>
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Update clone()
+	{
+		Update clone = (Update) super.clone();
+
+		clone.elements = (ArrayList<UpdateElement>) elements.clone();
+
+		return clone;
+	}
 	
 	// Other methods:
 	

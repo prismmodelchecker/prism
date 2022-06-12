@@ -38,7 +38,7 @@ import prism.PrismLangException;
 public class LabelList extends ASTElement
 {
 	// Name/expression pairs to define labels
-	private List<String> names;
+	private ArrayList<String> names;
 	private Vector<Expression> labels;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
@@ -148,6 +148,19 @@ public class LabelList extends ASTElement
 		}
 		ret.setPosition(this);
 		return ret;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public LabelList clone()
+	{
+		LabelList clone = (LabelList) super.clone();
+
+		clone.names      = (ArrayList<String>)       names.clone();
+		clone.labels     = (Vector<Expression>)      labels.clone();
+		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+
+		return clone;
 	}
 }
 

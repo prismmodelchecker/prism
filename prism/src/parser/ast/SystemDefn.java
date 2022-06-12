@@ -37,6 +37,12 @@ public abstract class SystemDefn extends ASTElement
 	 */
 	public abstract SystemDefn deepCopy();
 
+	@Override
+	public SystemDefn clone()
+	{
+		return (SystemDefn) super.clone();
+	}
+
 	// Methods required for SystemDefn (all subclasses should implement):
 
 	/**

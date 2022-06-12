@@ -209,6 +209,12 @@ public class UpdateElement extends ASTElement
 		result.index = index;
 		return result;
 	}
+
+	@Override
+	public UpdateElement clone()
+	{
+		return (UpdateElement) super.clone();
+	}
 	
 	// Other methods:
 	

@@ -150,6 +150,12 @@ public class Declaration extends ASTElement
 		ret.setPosition(this);
 		return ret;
 	}
+
+	@Override
+	public Declaration clone()
+	{
+		return (Declaration) super.clone();
+	}
 }
 
 // ------------------------------------------------------------------------------
