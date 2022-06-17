@@ -26,9 +26,11 @@
 
 package simulator.sampler;
 
-import simulator.*;
-import prism.*;
-import parser.ast.*;
+import parser.ast.Expression;
+import parser.ast.ExpressionTemporal;
+import prism.ModelGenerator;
+import prism.PrismException;
+import simulator.Path;
 
 public class SamplerRewardReach extends SamplerDouble
 {
@@ -60,8 +62,7 @@ public class SamplerRewardReach extends SamplerDouble
 		// If the answer is already known we should do nothing
 		if (valueKnown)
 			return true;
-		
-		if (target.evaluateBoolean(path.getCurrentState())) {
+		if (path.evaluateBooleanInCurrentState(target)) {
 			valueKnown = true;
 			value = path.getTotalCumulativeReward(rewardStructIndex);
 		}

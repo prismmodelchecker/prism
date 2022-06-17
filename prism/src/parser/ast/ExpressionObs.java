@@ -37,12 +37,15 @@ public class ExpressionObs extends Expression
 {
 	// Observable name
 	private String name;
+	// The index of the observable in the model to which it belongs
+	private int index;
 	
 	// Constructors
 	
 	public ExpressionObs(String name)
 	{
 		this.name = name;
+		index = -1;
 	}
 	
 	// Set methods
@@ -52,11 +55,21 @@ public class ExpressionObs extends Expression
 		this.name = name;
 	}
 	
+	public void setIndex(int i)
+	{
+		index = i;
+	}
+	
 	// Get methods
 	
 	public String getName()
 	{
 		return name;
+	}
+	
+	public int getIndex()
+	{
+		return index;
 	}
 	
 	// Methods required for Expression:
@@ -76,7 +89,13 @@ public class ExpressionObs extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		throw new PrismLangException("Cannot evaluate observations", this);
+		// Extract observable value from the evaluation context
+		Object res = ec.getObservableValue(name, index);
+		if (res == null) {
+			throw new PrismLangException("Could not evaluate observable", this);
+		}
+		// And cast it to the right type/mode if needed
+		return getType().castValueTo(res, ec.getEvaluationMode());
 	}
 
 	@Override
@@ -98,6 +117,7 @@ public class ExpressionObs extends Expression
 	{
 		ExpressionObs expr = new ExpressionObs(name);
 		expr.setType(type);
+		expr.setIndex(index);
 		expr.setPosition(this);
 		return expr;
 	}
@@ -115,6 +135,7 @@ public class ExpressionObs extends Expression
 	{
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + index;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -129,6 +150,8 @@ public class ExpressionObs extends Expression
 		if (getClass() != obj.getClass())
 			return false;
 		ExpressionObs other = (ExpressionObs) obj;
+		if (index != other.index)
+			return false;
 		if (name == null) {
 			if (other.name != null)
 				return false;

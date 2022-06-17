@@ -91,4 +91,13 @@ public abstract class EvaluateContext
 	 * Return the value for a variable (by name or index); null if unknown.
 	 */
 	public abstract Object getVarValue(String name, int index);
+
+	/**
+	 * Return the value for an observable (by name or index); null if unknown.
+	 */
+	public Object getObservableValue(String name, int index)
+	{
+		// No observables defined by default
+		return null;
+	}
 }

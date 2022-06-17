@@ -49,6 +49,7 @@ public class PathOnTheFly extends Path
 	protected boolean init;
 	protected State previousState;
 	protected State currentState;
+	protected State previousObs;
 	protected State currentObs;
 	protected Object previousAction;
 	protected String previousActionString;
@@ -75,8 +76,10 @@ public class PathOnTheFly extends Path
 		// Create State objects for current/previous state
 		previousState = new State(modelInfo.getNumVars());
 		currentState = new State(modelInfo.getNumVars());
+		previousObs = null;
 		currentObs = null;
 		if (modelInfo.getModelType().partiallyObservable()) {
+			previousObs = new State(modelInfo.getNumObservables());
 			currentObs = new State(modelInfo.getNumObservables());
 		}
 		// Create arrays to store totals
@@ -141,6 +144,7 @@ public class PathOnTheFly extends Path
 		previousState.copy(currentState);
 		currentState.copy(newState);
 		if (newObs != null) {
+			previousObs.copy(currentObs);
 			currentObs.copy(newObs);
 		}
 		previousAction = action;
@@ -192,6 +196,12 @@ public class PathOnTheFly extends Path
 	public State getCurrentState()
 	{
 		return currentState;
+	}
+
+	@Override
+	public State getPreviousObservation()
+	{
+		return previousObs;
 	}
 
 	@Override

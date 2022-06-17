@@ -33,7 +33,8 @@ import parser.type.Type;
 import prism.PrismLangException;
 
 /**
- * Find all references to observations (by name), replace the ExpressionLabels with ExpressionObs objects.
+ * Find all references to observables (by name), replace the ExpressionLabels with ExpressionObs objects.
+ * Also cache the index of the observable.
  */
 public class FindAllObsRefs extends ASTTraverseModify
 {
@@ -57,10 +58,26 @@ public class FindAllObsRefs extends ASTTraverseModify
 			ExpressionObs expr = new ExpressionObs(e.getName());
 			expr.setType(observableTypes.get(i));
 			expr.setPosition(e);
+			// Also store the observable index
+			expr.setIndex(i);
 			return expr;
 		}
 		// Otherwise, leave it unchanged
 		return e;
+	}
+	
+	// Also re-compute info for ExpressionObs objects in case observable indices have changed
+	public Object visit(ExpressionObs e) throws PrismLangException
+	{
+		// See if identifier corresponds to an observable
+		int i = observableNames.indexOf(e.getName());
+		if (i != -1) {
+			// If so, set the index
+			e.setIndex(i);
+			return e;
+		}
+		// Otherwise, there is a problem
+		throw new PrismLangException("Unknown observable " + e.getName() + " in ExpressionObs object", e);
 	}
 }
 
