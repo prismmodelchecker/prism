@@ -227,6 +227,29 @@ public interface ModelGenerator extends ModelInfo
 	}
 
 	/**
+	 * Get the index of the (first) choice with a given action label.
+	 * Returns -1 if none exists.
+	 */
+	public default int getChoiceIndexByAction(Object action) throws PrismException
+	{
+		// Default implementation just searches via getChoiceAction(i)
+		int n = getNumChoices();
+		for (int i = 0; i < n; i++) {
+			Object a = getChoiceAction(i);
+			if (a == null) {
+				if (action == null) {
+					return i;
+				}
+			} else {
+				if (a.equals(action)) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+	
+	/**
 	 * For real-time models, get the clock guard of a choice,
 	 * i.e., an expression over clock variables denoting when it can be taken.
 	 * If there is no guard, this returns null;
