@@ -60,6 +60,8 @@ public class PathOnTheFly extends Path
 	protected double previousStateRewards[];
 	protected double previousTransitionRewards[];
 	protected double currentStateRewards[];
+	protected int currentStrategyMemory;
+	protected Object currentStrategyDecision;
 	
 	// Loop detector for path
 	protected LoopDetector loopDet;
@@ -166,6 +168,13 @@ public class PathOnTheFly extends Path
 		loopDet.addStep(this, modelGen);
 	}
 
+	@Override
+	public void setStrategyInfoForCurrentState(int memory, Object decision)
+	{
+		currentStrategyMemory = memory;
+		currentStrategyDecision = decision;
+	}
+	
 	// ACCESSORS (for Path)
 
 	@Override
@@ -280,6 +289,18 @@ public class PathOnTheFly extends Path
 	public double[] getCurrentStateRewards()
 	{
 		return currentStateRewards;
+	}
+	
+	@Override
+	public int getCurrentStrategyMemory()
+	{
+		return currentStrategyMemory;
+	}
+	
+	@Override
+	public Object getCurrentStrategyDecision()
+	{
+		return currentStrategyDecision;
 	}
 	
 	@Override

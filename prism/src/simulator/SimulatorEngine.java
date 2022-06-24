@@ -58,6 +58,7 @@ import prism.UndefinedConstants;
 import simulator.method.SimulationMethod;
 import simulator.sampler.Sampler;
 import strat.Strategy;
+import strat.StrategyGenerator;
 import userinterface.graph.Graph;
 
 /**
@@ -117,11 +118,10 @@ public class SimulatorEngine extends PrismComponent
 	// Constant definitions from model file
 	private Values mfConstants;
 
-	// Objects from model checking
-	// Reachable states
-	private List<State> reachableStates;
-	// Strategy
-	private Strategy strategy;
+	// Loaded strategy
+	private StrategyGenerator stratGen;
+	// Whether the strategy should be enforced
+	private boolean stratEnforced;
 
 	// Labels + properties info
 	protected List<Expression> labels;
@@ -139,6 +139,9 @@ public class SimulatorEngine extends PrismComponent
 	// State for which transition list applies
 	// (if null, just the default - i.e. the last state in the current path)
 	protected State transitionListState;
+	// Index of step for which transition list applies
+	// (if -1, just the default - i.e. the last state in the current path)
+	protected int transitionListStep;
 	
 	// Temporary storage for manipulating states/rewards
 	protected double tmpStateRewards[];
@@ -180,6 +183,7 @@ public class SimulatorEngine extends PrismComponent
 		onTheFly = true;
 		currentState = null;
 		transitionListState = null;
+		transitionListStep = -1;
 		tmpStateRewards = null;
 		tmpTransitionRewards = null;
 		rng = new RandomNumberGenerator();
@@ -208,6 +212,9 @@ public class SimulatorEngine extends PrismComponent
 		varList = modelGen.createVarList();
 		numVars = varList.getNumVars();
 		
+		// Clear storage for strategy
+		stratGen = null;
+
 		// Initialise storage (should be re-done for each new path etc. but doesn't hurt)
 		initialise();
 	}
@@ -233,9 +240,6 @@ public class SimulatorEngine extends PrismComponent
 		tmpStateRewards = new double[rewardGen.getNumRewardStructs()];
 		tmpTransitionRewards = new double[rewardGen.getNumRewardStructs()];
 
-		// Clear storage for strategy
-		strategy = null;
-
 		// Create storage for labels/properties
 		labels = new ArrayList<Expression>();
 		properties = new ArrayList<Expression>();
@@ -258,6 +262,56 @@ public class SimulatorEngine extends PrismComponent
 		return rewardGen;
 	}
 	
+	// ------------------------------------------------------------------------------
+	// Attaching strategies
+	// ------------------------------------------------------------------------------
+
+	/**
+	 * Load a strategy for the currently loaded model into the simulator.
+	 * This will be enforced (during automated exploration or path generation)
+	 * by default; call {@code setStrategyEnforced(false)} to disable.
+	 */
+	public void loadStrategy(StrategyGenerator stratGen)
+	{
+		this.stratGen = stratGen;
+		setStrategyEnforced(true);
+	}
+
+	/**
+	 * Set whether the currently loaded strategy (if present)
+	 * is enforced during automated exploration or path generation.
+	 */
+	public void setStrategyEnforced(boolean stratEnforced)
+	{
+		this.stratEnforced = stratEnforced;
+	}
+
+	/**
+	 * Whether or not there is a currently loaded strategy available.
+	 */
+	public boolean hasStrategyInfo()
+	{
+		return stratGen != null;
+	}
+
+	/**
+	 * Get the strategy currently loaded into the simulator, if present.
+	 * Returns null if none loaded.
+	 */
+	public StrategyGenerator getStrategy()
+	{
+		return stratGen;
+	}
+
+	/**
+	 * Whether or not the currently loaded strategy (if any)
+	 * is being enforced during automated exploration or path generation.
+	 */
+	public boolean isStrategyEnforced()
+	{
+		return stratEnforced;
+	}
+
 	// ------------------------------------------------------------------------------
 	// Path creation and modification
 	// ------------------------------------------------------------------------------
@@ -310,13 +364,13 @@ public class SimulatorEngine extends PrismComponent
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Initialise stored path
 		path.initialise(currentState, currentObs, tmpStateRewards);
+		// Initialise the strategy (if loaded)
+		initialiseStrategy();
 		// Explore initial state in model generator
-		computeTransitionsForState(currentState);
+		computeTransitionsForCurrentState();
 		// Reset and then update samplers for any loaded properties
 		resetSamplers();
 		updateSamplers();
-		// Initialise the strategy (if loaded)
-		initialiseStrategy();
 	}
 
 	/**
@@ -377,9 +431,8 @@ public class SimulatorEngine extends PrismComponent
 			break;
 		case MDP:
 		case POMDP:
-			// Pick a random choice
-			i = rng.randomUnifInt(modelGen.getNumChoices());
-			// Pick a random transition from this choice
+			// Pick choice (from strategy or randomly) and random transition
+			i = getAutomaticChoiceIndex();
 			d = rng.randomUnifDouble();
 			j = getTransitionIndexByProbabilitySum(i, d);
 			// Execute
@@ -396,8 +449,8 @@ public class SimulatorEngine extends PrismComponent
 			executeTimedTransition(ref.i, ref.offset, rng.randomExpDouble(r), -1);
 			break;
 		case LTS:
-			// Pick a random choice
-			i = rng.randomUnifInt(modelGen.getNumChoices());
+			// Pick choice (from strategy or randomly)
+			i = getAutomaticChoiceIndex();
 			// Execute
 			executeTransition(i, 0, -1);
 			break;
@@ -408,6 +461,32 @@ public class SimulatorEngine extends PrismComponent
 		return true;
 	}
 
+	/**
+	 * Get the index of the choice to be automatically selected in the current state.
+	 * If a strategy is loaded (and to be enforced, and defined for the current state), this will be used.
+	 * If not, a choice is sampled (uniformly) at random.
+	 */
+	private int getAutomaticChoiceIndex() throws PrismException
+	{
+		int i = -1;
+		// Extract a choice from the strategy, if present
+		if (hasStrategyInfo() && isStrategyEnforced()) {
+			Object decision = path.getCurrentStrategyDecision();
+			Object act = stratGen.sampleChoiceAction(decision, rng);
+			if (act != Strategy.UNDEFINED) {
+				i = modelGen.getChoiceIndexByAction(act);
+				if (i == -1) {
+					throw new PrismException("Action " + act + " requested by strategy is unavailable");
+				}
+			}
+		}
+		// If unknown/undefined, sample randomly
+		if (i == -1) {
+			i = rng.randomUnifInt(modelGen.getNumChoices());
+		}
+		return i;
+	}
+	
 	/**
 	 * Get a reference to a transition according to a total probability (or rate) sum, x.
 	 * i.e.the first transition for which the sum of probabilities/rates of that and all prior
@@ -514,8 +593,10 @@ public class SimulatorEngine extends PrismComponent
 		((PathFull) path).backtrack(step);
 		// Update current state
 		currentState.copy(path.getCurrentState());
+		// Reset the strategy (if loaded)
+		resetStrategy();
 		// Re-explore current state in model generator
-		computeTransitionsForState(currentState);
+		computeTransitionsForCurrentState();
 		// Recompute samplers for any loaded properties
 		recomputeSamplers();
 	}
@@ -582,6 +663,7 @@ public class SimulatorEngine extends PrismComponent
 	public void computeTransitionsForStep(int step) throws PrismException
 	{
 		computeTransitionsForState(((PathFull) path).getState(step));
+		transitionListStep = step;
 	}
 
 	/**
@@ -590,6 +672,7 @@ public class SimulatorEngine extends PrismComponent
 	public void computeTransitionsForCurrentState() throws PrismException
 	{
 		computeTransitionsForState(path.getCurrentState());
+		transitionListStep = (int) path.size();
 	}
 
 	/**
@@ -602,24 +685,8 @@ public class SimulatorEngine extends PrismComponent
 	}
 
 	// ------------------------------------------------------------------------------
-	// Methods for loading objects from model checking: paths, strategies, etc.
+	// Methods for loading objects from model checking: paths, etc.
 	// ------------------------------------------------------------------------------
-
-	/**
-	 * Load the set of reachable states for the currently loaded model into the simulator.
-	 */
-	public void loadReachableStates(List<State> reachableStates)
-	{
-		this.reachableStates = reachableStates;
-	}
-
-	/**
-	 * Load a strategy for the currently loaded model into the simulator.
-	 */
-	public void loadStrategy(Strategy strategy)
-	{
-		this.strategy = strategy;
-	}
 
 	/**
 	 * Construct a path through the currently loaded model to match a supplied path,
@@ -895,12 +962,12 @@ public class SimulatorEngine extends PrismComponent
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
 		path.addStep(index, action, actionString, p, tmpTransitionRewards, currentState, currentObs, tmpStateRewards, modelGen);
-		// Explore new state in model generator
-		computeTransitionsForState(currentState);
-		// Update samplers for any loaded properties
-		updateSamplers();
 		// Update strategy (if loaded)
 		updateStrategy();
+		// Explore new state in model generator
+		computeTransitionsForCurrentState();
+		// Update samplers for any loaded properties
+		updateSamplers();
 	}
 
 	/**
@@ -935,12 +1002,12 @@ public class SimulatorEngine extends PrismComponent
 		calculateStateRewards(currentState, tmpStateRewards);
 		// Update path
 		path.addStep(time, index, action, actionString, p, tmpTransitionRewards, currentState, currentObs, tmpStateRewards, modelGen);
-		// Explore new state in model generator
-		computeTransitionsForState(currentState);
-		// Update samplers for any loaded properties
-		updateSamplers();
 		// Update strategy (if loaded)
 		updateStrategy();
+		// Explore new state in model generator
+		computeTransitionsForCurrentState();
+		// Update samplers for any loaded properties
+		updateSamplers();
 	}
 
 	/**
@@ -1004,11 +1071,11 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private void initialiseStrategy()
 	{
-		// Functionality temporarily disabled; to be replaced shortly
-		if (strategy != null) {
-//			State state = getCurrentState();
-//			int s = reachableStates.indexOf(state);
-//			strategy.initialise(s);
+		if (stratGen != null) {
+			stratGen.initialise(getCurrentState());
+			int memory = stratGen.getCurrentMemory();
+			Object decision = stratGen.getCurrentChoiceAction();
+			path.setStrategyInfoForCurrentState(memory, decision);
 		}
 	}
 
@@ -1017,12 +1084,21 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private void updateStrategy()
 	{
-		// Functionality temporarily disabled; to be replaced shortly
-		if (strategy != null) {
-//			State state = getCurrentState();
-//			int s = reachableStates.indexOf(state);
-//			Object action = path.getPreviousAction();
-//			strategy.update(action, s);
+		if (stratGen != null) {
+			stratGen.update(path.getPreviousAction(), getCurrentState());
+			int memory = stratGen.getCurrentMemory();
+			Object decision = stratGen.getCurrentChoiceAction();
+			path.setStrategyInfoForCurrentState(memory, decision);
+		}
+	}
+
+	/**
+	 * Reset the state of the loaded strategy, if present, based on the last step that occurred.
+	 */
+	private void resetStrategy()
+	{
+		if (stratGen != null) {
+			stratGen.reset(getCurrentState(), path.getCurrentStrategyMemory());
 		}
 	}
 
@@ -1075,7 +1151,7 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	public State getTransitionListState()
 	{
-		return (transitionListState == null) ? path.getCurrentState() : transitionListState;
+		return transitionListState;
 		
 	}
 	
@@ -1235,6 +1311,63 @@ public class SimulatorEngine extends PrismComponent
 		int i = modelGen.getChoiceIndexOfTransition(index);
 		int offset = modelGen.getChoiceOffsetOfTransition(index);
 		return computeTransitionTarget(i, offset);
+	}
+
+	/**
+	 * Is a transition, specified by its index, enabled by the current strategy (if any).
+	 * This will return true if no strategy is loaded (i.e., if {@link #hasStrategyInfo()} returns false.
+	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
+	 */
+	public boolean isTransitionEnabledByStrategy(int index) throws PrismException
+	{
+		// No strategy - assume enabled
+		if (!hasStrategyInfo()) {
+			return true;
+		}
+		Object decision = transitionListStep == path.size() ? path.getCurrentStrategyDecision() : ((PathFull) path).getStrategyDecision(transitionListStep);
+		// Undefined by strategy - assume enabled
+		if (decision == Strategy.UNDEFINED) {
+			return true;
+		}
+		// Otherwise interpret decision stored from strategy
+		else {
+			int i = modelGen.getChoiceIndexOfTransition(index);
+			Object act = modelGen.getChoiceAction(i);
+			return stratGen.isActionChosen(decision, act);
+		}
+	}
+
+	/**
+	 * Get a string describing the decision to be made by the current strategy (if any)
+	 * with respect to a transition, specified by its index.
+	 * This will return "" if no strategy is loaded (i.e., if {@link #hasStrategyInfo()} returns false.
+	 * and return "?" if the choice is undefined by the strategy.
+	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
+	 */
+	public String getStrategyDecisionString(int index) throws PrismException
+	{
+		// No strategy
+		if (!hasStrategyInfo()) {
+			return "";
+		}
+		Object decision = transitionListStep == path.size() ? path.getCurrentStrategyDecision() : ((PathFull) path).getStrategyDecision(transitionListStep);
+		// Undefined by strategy
+		if (decision == Strategy.UNDEFINED) {
+			return "?";
+		}
+		else {
+			// Otherwise interpret decision stored from strategy
+			int i = modelGen.getChoiceIndexOfTransition(index);
+			Object act = modelGen.getChoiceAction(i);
+			// Randomised strategy: show probability
+			if (stratGen.isRandomised()) {
+				return stratGen.getChoiceActionProbability(decision, act) + "";
+			}
+			// Deterministic strategy: mark selected choice with an arrow ("->")
+			else {
+				return stratGen.isActionChosen(decision, act) ? "->" : "";
+			}
+		}
 	}
 
 	// ------------------------------------------------------------------------------

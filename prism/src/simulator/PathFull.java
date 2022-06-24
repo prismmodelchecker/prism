@@ -151,6 +151,13 @@ public class PathFull extends Path implements PathFullInfo
 		loopDet.addStep(this, modelGen);
 	}
 
+	@Override
+	public void setStrategyInfoForCurrentState(int memory, Object decision)
+	{
+		steps.get(steps.size() - 1).stratMemory = memory;
+		steps.get(steps.size() - 1).stratDecision = decision;
+	}
+	
 	// MUTATORS (additional)
 
 	/**
@@ -334,6 +341,18 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
+	public int getCurrentStrategyMemory()
+	{
+		return steps.get(steps.size() - 1).stratMemory;
+	}
+	
+	@Override
+	public Object getCurrentStrategyDecision()
+	{
+		return steps.get(steps.size() - 1).stratDecision;
+	}
+	
+	@Override
 	public boolean isLooping()
 	{
 		return loopDet.isLooping();
@@ -392,6 +411,18 @@ public class PathFull extends Path implements PathFullInfo
 		return steps.get(step).rewardsCumul[rsi];
 	}
 
+	@Override
+	public int getStrategyMemory(int step)
+	{
+		return steps.get(step).stratMemory;
+	}
+	
+	@Override
+	public Object getStrategyDecision(int step)
+	{
+		return steps.get(step).stratDecision;
+	}
+	
 	@Override
 	public double getTime(int step)
 	{
@@ -593,6 +624,10 @@ public class PathFull extends Path implements PathFullInfo
 		public double timeCumul;
 		// Cumulative rewards spent up until entering this state
 		public double rewardsCumul[];
+		// Current memory of strategy (if present) on entering this state
+		public int stratMemory;
+		// Next decision of strategy (if present) for current state
+		public Object stratDecision;
 		// Time spent in state
 		public double time;
 		// Index of the choice taken

@@ -59,6 +59,11 @@ public abstract class Path
 	 */
 	public abstract void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
 
+	/**
+	 * Set the strategy info (mode and next decision) for the current state.
+	 */
+	public abstract void setStrategyInfoForCurrentState(int memory, Object decision);
+	
 	// ACCESSORS
 
 	/**
@@ -165,6 +170,16 @@ public abstract class Path
 	 * (For continuous-time models, need to multiply these by time spent in the state.)
 	 */
 	public abstract double[] getCurrentStateRewards();
+	
+	/**
+	 * Get the memory of the strategy (if present) for the current state.
+	 */
+	public abstract int getCurrentStrategyMemory();
+	
+	/**
+	 * Get the decision taken by the strategy (if present) in the current state.
+	 */
+	public abstract Object getCurrentStrategyDecision();
 	
 	/**
 	 * Does the path contain a deterministic loop?
