@@ -98,6 +98,7 @@ public class GUIPathPlotDialog extends JDialog
 
 	// State
 	private GUIPrism gui;
+	private GUISimulator guiSim;
 	private ModulesFile modulesFile;
 	private boolean cancelled;
 	private String simPathString;
@@ -125,6 +126,7 @@ public class GUIPathPlotDialog extends JDialog
 	private JRadioButton rdbtnVarsNone;
 	private JPanel bottomPanel;
 	private JPanel mainPanel;
+	private JCheckBox chckbxStrategy;
 	private JCheckBox chckbxChanges;
 	private JPanel rewardsRadios;
 	private JLabel lblRewardsShow;
@@ -138,9 +140,10 @@ public class GUIPathPlotDialog extends JDialog
 	 * Show "Path Plot Details" dialog, return the dialog.
 	 * Returns null if the dialog was cancelled.
 	 */
-	public static GUIPathPlotDialog showDialog(GUIPrism parent, ModulesFile modulesFile)
+	public static GUIPathPlotDialog showDialog(GUIPrism parent, GUISimulator guiSim, ModulesFile modulesFile)
 	{
-		GUIPathPlotDialog dialog = getInstance(parent, modulesFile);
+		GUIPathPlotDialog dialog = getInstance(parent, guiSim, modulesFile);
+		dialog.doEnables();
 		dialog.setVisible(true);
 		return dialog.wasCancelled() ? null : dialog;
 	}
@@ -149,9 +152,10 @@ public class GUIPathPlotDialog extends JDialog
 	 * Show "Path Plot Details" dialog, return settings as a simpath string.
 	 * Returns null if the dialog was cancelled.
 	 */
-	public static String getPathPlotSettings(GUIPrism parent, ModulesFile modulesFile)
+	public static String getPathPlotSettings(GUIPrism parent, GUISimulator guiSim, ModulesFile modulesFile)
 	{
-		GUIPathPlotDialog dialog = getInstance(parent, modulesFile);
+		GUIPathPlotDialog dialog = getInstance(parent, guiSim, modulesFile);
+		dialog.doEnables();
 		dialog.setVisible(true);
 		return dialog.wasCancelled() ? null : dialog.getSimPathString();
 	}
@@ -159,12 +163,12 @@ public class GUIPathPlotDialog extends JDialog
 	/**
 	 * Get static instance, creating if necessary.
 	 */
-	private static GUIPathPlotDialog getInstance(GUIPrism parent, ModulesFile modulesFile)
+	private static GUIPathPlotDialog getInstance(GUIPrism parent, GUISimulator guiSim, ModulesFile modulesFile)
 	{
 		if (instance != null && instance.gui == parent && instance.modulesFile == modulesFile)
 			return instance;
 		else {
-			instance = new GUIPathPlotDialog(parent, modulesFile);
+			instance = new GUIPathPlotDialog(parent, guiSim, modulesFile);
 			return instance;
 		}
 	}
@@ -187,10 +191,11 @@ public class GUIPathPlotDialog extends JDialog
 	/**
 	 * Create the dialog.
 	 */
-	public GUIPathPlotDialog(GUIPrism parent, ModulesFile modulesFile)
+	public GUIPathPlotDialog(GUIPrism parent, GUISimulator guiSim, ModulesFile modulesFile)
 	{
 		super(parent, "Path Plot Details", true);
 		this.gui = parent;
+		this.guiSim = guiSim;
 		this.modulesFile = modulesFile;
 		setBounds(100, 100, 361, 401);
 		getContentPane().setLayout(new BorderLayout());
@@ -320,12 +325,22 @@ public class GUIPathPlotDialog extends JDialog
 				textFieldInterval.setColumns(5);
 			}
 			{
+				chckbxStrategy = new JCheckBox("Enforce strategy");
+				GridBagConstraints gbc_chckbxStrategy = new GridBagConstraints();
+				gbc_chckbxStrategy.anchor = GridBagConstraints.WEST;
+				gbc_chckbxStrategy.gridwidth = 2;
+				gbc_chckbxStrategy.insets = new Insets(0, 0, 5, 5);
+				gbc_chckbxStrategy.gridx = 0;
+				gbc_chckbxStrategy.gridy = 2;
+				topPanel.add(chckbxStrategy, gbc_chckbxStrategy);
+			}
+			{
 				chckbxChanges = new JCheckBox("Plot changes only");
 				GridBagConstraints gbc_chckbxChanges = new GridBagConstraints();
 				gbc_chckbxChanges.anchor = GridBagConstraints.WEST;
 				gbc_chckbxChanges.gridwidth = 2;
 				gbc_chckbxChanges.insets = new Insets(0, 0, 5, 5);
-				gbc_chckbxChanges.gridx = 0;
+				gbc_chckbxChanges.gridx = 2;
 				gbc_chckbxChanges.gridy = 2;
 				topPanel.add(chckbxChanges, gbc_chckbxChanges);
 			}
@@ -485,6 +500,7 @@ public class GUIPathPlotDialog extends JDialog
 			textFieldTime.setText("100");
 			textFieldInterval.setText("");
 		}
+		chckbxStrategy.setSelected(true);
 		chckbxChanges.setSelected(true);
 		textFieldMaxLen.setText("" + gui.getPrism().getSettings().getLong(PrismSettings.SIMULATOR_DEFAULT_MAX_PATH));
 		rdbtnVarsAll.setSelected(true);
@@ -508,6 +524,7 @@ public class GUIPathPlotDialog extends JDialog
 			lblInterval.setEnabled(false);
 			textFieldInterval.setEnabled(false);
 		}
+		chckbxStrategy.setEnabled(guiSim.getSimulatorEngine().hasStrategyInfo());
 		// Variable list enabled iff "show selected"
 		if (rdbtnVarsSelected.isSelected()) {
 			varsCheckList.setEnabled(true);
@@ -566,6 +583,7 @@ public class GUIPathPlotDialog extends JDialog
 				return;
 			}
 		}
+		guiSim.getSimulatorEngine().setStrategyEnforced(chckbxChanges.isSelected());
 		if (chckbxChanges.isSelected()) {
 			simPathString += ",changes=true";
 		}

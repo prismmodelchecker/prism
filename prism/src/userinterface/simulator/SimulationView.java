@@ -707,4 +707,35 @@ public class SimulationView extends Observable
 			this.hasChanged = hasChanged;
 		}
 	}
+	
+	public class MemoryValue
+	{
+		private Integer value;
+		private boolean memoryValueUnknown;
+
+		public MemoryValue(Integer value)
+		{
+			this.value = value;
+		}
+
+		public Integer getValue()
+		{
+			return value;
+		}
+
+		public void setValue(Integer value)
+		{
+			this.value = value;
+		}
+		
+		public void setMemoryValueUnknown(boolean unknown)
+		{
+			this.memoryValueUnknown = unknown;
+		}
+
+		public boolean isMemoryValueUnknown()
+		{
+			return this.memoryValueUnknown;
+		}
+	}
 }

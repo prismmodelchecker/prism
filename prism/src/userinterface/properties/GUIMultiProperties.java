@@ -47,6 +47,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
 import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -64,6 +66,7 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
@@ -159,13 +162,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private FileFilter matlabFilter;
 	private JMenu propMenu;
 	private JPopupMenu propertiesPopup, constantsPopup, labelsPopup, experimentPopup;
+	private JMenu strategiesMenu;
 	private GUIExperimentTable experiments;
 	private GUIGraphHandler graphHandler;
 	private JScrollPane expScroller;
 	private JTextField fileTextField;
-	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty, newConstant, removeConstant, newLabel,
-			removeLabel, newExperiment, deleteExperiment, stopExperiment, parametric, viewResults, plotResults, exportResultsListText, exportResultsListCSV,
-			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsDataFrameCSV, exportResultsComment, importResultsDataFrameCSV, simulate, details, exportLabelsPlain, exportLabelsMatlab;;
+	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty;
+	private Action newConstant, removeConstant, newLabel, removeLabel;
+	private Action newExperiment, deleteExperiment, stopExperiment, parametric;
+	private Action viewResults, plotResults, exportResultsListText, exportResultsListCSV,
+			exportResultsMatrixText, exportResultsMatrixCSV, exportResultsDataFrameCSV, exportResultsComment, importResultsDataFrameCSV;
+	private Action simulate, details, exportLabelsPlain, exportLabelsMatlab;
 
 	// Current properties
 	private GUIPropertiesList propList;
@@ -1841,6 +1848,20 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propertiesPopup.add(newExperiment);
 		//propertiesPopup.add(parametric);
 		propertiesPopup.add(details);
+		strategiesMenu = new JMenu("Strategies");
+		strategiesMenu.setMnemonic('S');
+		strategiesMenu.setIcon(GUIPrism.getIconFromImage("smallStrategy.png"));
+		JCheckBoxMenuItem genStratCheckBox = new JCheckBoxMenuItem("Generate strategy", getGUI().getPrism().getGenStrat());
+		genStratCheckBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+		genStratCheckBox.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e)
+			{
+				boolean genStrat = (e.getStateChange() == ItemEvent.SELECTED);
+				getGUI().getPrism().setGenStrat(genStrat);
+			}
+		});
+		strategiesMenu.add(genStratCheckBox);
+		propertiesPopup.add(strategiesMenu);
 		propertiesPopup.add(new JSeparator());
 		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCutAction());
 		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCopyAction());

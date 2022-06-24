@@ -27,30 +27,50 @@
 
 package userinterface.simulator;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.AbstractListModel;
+import javax.swing.ActionMap;
+import javax.swing.ComponentInputMap;
+import javax.swing.ImageIcon;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellRenderer;
 
 import userinterface.GUIPrism;
 
 @SuppressWarnings("serial")
 public class GUISimulatorUpdatesTable extends JTable implements ListSelectionListener
 {
-	public static Color[] DISTRIBUTION_COLOURS = { new Color(255, 255, 255), //white
-			new Color(253, 255, 201) }; //yellow
-	/*new Color(224,255,224),     //green
-	new Color(255,227,255),     //pink
-	new Color(255,234,199),     //orange
-	new Color(209,217,255),     //blue
-	new Color(226,199,255),     //purple
-	new Color(212,255,255)} ;*///cyan
+	public static Color[] DISTRIBUTION_COLOURS = {
+		new Color(255, 255, 255), // white
+		new Color(253, 255, 201) // yellow
+	};
+	public static Color[] DISABLED_COLOURS = {
+		new Color(210, 210, 210), // pale grey
+		new Color(190, 190, 190) // pale-ish grey
+	};
+	
 	private GUISimulator.UpdateTableModel utm;
 
 	private UpdateHeaderListModel headerModel;
-	private JList header;
+	private JList<String> header;
 	private UpdateHeaderRenderer updateHeaderRenderer;
 	private UpdateTableRenderer updateTableRenderer;
 
@@ -69,7 +89,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		headerModel = new UpdateHeaderListModel();
-		JList rowHeader = new JList(headerModel);
+		JList<String> rowHeader = new JList<>(headerModel);
 
 		rowHeader.setBackground(new JPanel().getBackground());
 
@@ -126,7 +146,6 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 
 		this.setInputMap(JComponent.WHEN_FOCUSED, inputMap);
 		this.setActionMap(actionMap);
-
 	}
 
 	/** Override set font to pass changes onto renderer(s) and set row height */
@@ -147,7 +166,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		repaint();
 	}
 
-	public JList getUpdateRowHeader()
+	public JList<String> getUpdateRowHeader()
 	{
 		return header;
 	}
@@ -163,34 +182,36 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
-			renderer.setText(value == null ? "" : value.toString());
-
-			int dist;
-
-			// Select default background colour
-			// (depends on choice, for nondeterministic models)
-			if (sim.getModulesFile().getModelType().nondeterministic())
-				dist = utm.getChoiceIndexOf(row);
-			else
-				dist = 0;
-			Color c = DISTRIBUTION_COLOURS[dist % 2];
-
-			if (isSelected) {
-				Color newCol = new Color(c.getRed() - 20, c.getGreen() - 20, c.getBlue());
-				if (utm.oldUpdate) {
-					newCol = new Color(newCol.getRed() - 7, newCol.getGreen() - 7, newCol.getBlue() - 7);
-					renderer.setBackground(newCol);
+			// Pick colour for row
+			Color bgCol;
+			// Enabled
+			if (!sim.isStrategyShown() || utm.isEnabledByStrategy(row)) {
+				// Colours alternate for nondet models
+				if (utm.isNondetModel()) {
+					bgCol = DISTRIBUTION_COLOURS[utm.getChoiceIndexOf(row) % 2];
 				} else {
-					renderer.setBackground(newCol);
+					bgCol = DISTRIBUTION_COLOURS[0];
 				}
-			} else {
-				if (utm.oldUpdate) {
-					Color newCol = new Color(c.getRed() - 7, c.getGreen() - 7, c.getBlue() - 7);
-					renderer.setBackground(newCol);
-				} else
-					renderer.setBackground(c);
 			}
-
+			// Disabled
+			else {
+				// Colours alternate for nondet models
+				if (utm.isNondetModel()) {
+					bgCol = DISABLED_COLOURS[utm.getChoiceIndexOf(row) % 2];
+				} else {
+					bgCol = DISABLED_COLOURS[0];
+				}
+			}
+			// Darker (blue) shade if row is selected
+			if (isSelected) {
+				bgCol = new Color(bgCol.getRed() - 20, bgCol.getGreen() - 20, bgCol.getBlue());
+			}
+			// Slightly darker if an old update
+			if (utm.oldUpdate) {
+				bgCol = new Color(bgCol.getRed() - 7, bgCol.getGreen() - 7, bgCol.getBlue() - 7);
+			}
+			renderer.setText(value == null ? "" : value.toString());
+			renderer.setBackground(bgCol);
 			renderer.setBorder(new EmptyBorder(1, 1, 1, 1));
 			return renderer;
 		}
@@ -201,7 +222,7 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		}
 	}
 
-	class UpdateHeaderRenderer extends JButton implements ListCellRenderer
+	class UpdateHeaderRenderer extends JButton implements ListCellRenderer<String>
 	{
 
 		ImageIcon selectedIcon;
@@ -221,7 +242,8 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			selectedDisabledIcon = GUIPrism.getIconFromImage("smallItemSelectedDisabled.png");
 		}
 
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus)
+		@Override
+		public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus)
 		{
 			setBorder(null);
 			if (getSelectedRow() == index) {
@@ -234,13 +256,11 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 			}
 			return this;
 		}
-
 	}
 
-	class UpdateHeaderListModel extends AbstractListModel
+	class UpdateHeaderListModel extends AbstractListModel<String>
 	{
-
-		public Object getElementAt(int index)
+		public String getElementAt(int index)
 		{
 			return "" + index;
 		}
@@ -253,9 +273,6 @@ public class GUISimulatorUpdatesTable extends JTable implements ListSelectionLis
 		public void updateHeader()
 		{
 			fireContentsChanged(this, 0, utm.getRowCount());
-
-			//System.out.println("The tables width is "+getWidth());
 		}
-
 	}
 }
