@@ -112,13 +112,16 @@ public class LTSNBAProduct extends Product<Model>
 	private ArrayList<ProductState> productStates;
 	/** Accepting Büchi states in the product */
 	private BitSet acceptingStates;
+	/** Number of states in the NBA */
+	private int nbaSize;
 
 	/** Constructor for storing the product */
-	private LTSNBAProduct(LTS productModel, Model originalModel, ArrayList<ProductState> productStates, BitSet acceptingStates)
+	private LTSNBAProduct(LTS productModel, Model originalModel, ArrayList<ProductState> productStates, BitSet acceptingStates, int nbaSize)
 	{
 		super(productModel, originalModel);
 		this.productStates = productStates;
 		this.acceptingStates = acceptingStates;
+		this.nbaSize = nbaSize;
 	}
 
 	@Override
@@ -131,6 +134,12 @@ public class LTSNBAProduct extends Product<Model>
 	public int getAutomatonState(int productState)
 	{
 		return productStates.get(productState).automatonState;
+	}
+
+	@Override
+	public int getAutomatonSize()
+	{
+		return nbaSize;
 	}
 
 	/** Print the mapping between product state indizes and product states */
@@ -265,6 +274,6 @@ public class LTSNBAProduct extends Product<Model>
 			}
 		}
 
-		return new LTSNBAProduct(productModel, model, productIdToProductState, acceptingStates);
+		return new LTSNBAProduct(productModel, model, productIdToProductState, acceptingStates, nba.size());
 	}
 }

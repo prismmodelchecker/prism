@@ -60,6 +60,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.PrismUtils;
+import strat.FMDStrategyProduct;
 import strat.FMDStrategyStep;
 import strat.MDStrategy;
 import strat.MDStrategyArray;
@@ -128,6 +129,12 @@ public class MDPModelChecker extends ProbModelChecker
 				out.close();
 		}
 		
+		// If a strategy was generated, lift it to the product and store
+		if (res.strat != null) {
+			Strategy stratProduct = new FMDStrategyProduct(product, (MDStrategy) res.strat);
+			result.setStrategy(stratProduct);
+		}
+		
 		// Mapping probabilities in the original model
 		StateValues probs = product.projectToOriginalModel(probsProduct);
 		probsProduct.clear();
@@ -163,6 +170,12 @@ public class MDPModelChecker extends ProbModelChecker
 				out.close();
 		}
 
+		// If a strategy was generated, lift it to the product and store
+		if (res.strat != null) {
+			Strategy stratProduct = new FMDStrategyProduct(product, (MDStrategy) res.strat);
+			result.setStrategy(stratProduct);
+		}
+		
 		// Mapping rewards in the original model
 		StateValues rewards = product.projectToOriginalModel(rewardsProduct);
 		rewardsProduct.clear();
@@ -1299,7 +1312,6 @@ public class MDPModelChecker extends ProbModelChecker
 			soln = soln2;
 			soln2 = tmpsoln;
 		}
-
 		// Finished bounded probabilistic reachability
 		timer = System.currentTimeMillis() - timer;
 		mainLog.print("Bounded probabilistic reachability (" + (min ? "min" : "max") + ")");

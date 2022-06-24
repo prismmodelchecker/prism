@@ -59,6 +59,11 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 	public abstract int getAutomatonState(int productState);
 
 	/**
+	 * Return the number of states in the automaton.
+	 */
+	public abstract int getAutomatonSize();
+
+	/**
 	 * Constructor.
  	 * @param originalModel the original model
 	 */
