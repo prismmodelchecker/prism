@@ -1004,10 +1004,11 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private void initialiseStrategy()
 	{
+		// Functionality temporarily disabled; to be replaced shortly
 		if (strategy != null) {
-			State state = getCurrentState();
-			int s = reachableStates.indexOf(state);
-			strategy.initialise(s);
+//			State state = getCurrentState();
+//			int s = reachableStates.indexOf(state);
+//			strategy.initialise(s);
 		}
 	}
 
@@ -1016,11 +1017,12 @@ public class SimulatorEngine extends PrismComponent
 	 */
 	private void updateStrategy()
 	{
+		// Functionality temporarily disabled; to be replaced shortly
 		if (strategy != null) {
-			State state = getCurrentState();
-			int s = reachableStates.indexOf(state);
-			Object action = path.getPreviousAction();
-			strategy.update(action, s);
+//			State state = getCurrentState();
+//			int s = reachableStates.indexOf(state);
+//			Object action = path.getPreviousAction();
+//			strategy.update(action, s);
 		}
 	}
 
