@@ -97,6 +97,7 @@ import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.type.TypeInterval;
 import prism.Prism;
+import prism.Prism.StrategyExportType;
 import prism.PrismException;
 import prism.PrismSettings;
 import prism.PrismSettingsListener;
@@ -115,6 +116,7 @@ import userinterface.model.GUIModelEvent;
 import userinterface.model.GUIMultiModelHandler;
 import userinterface.model.computation.ExportBuiltModelThread;
 import userinterface.properties.computation.ExportResultsThread;
+import userinterface.properties.computation.ExportStrategyThread;
 import userinterface.properties.computation.ImportResultsThread;
 import userinterface.properties.computation.LoadPropertiesThread;
 import userinterface.properties.computation.ModelCheckThread;
@@ -156,18 +158,22 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	// GUI
 	private FileFilter propsFilter;
+	private Map<String,FileFilter> traFilters;
 	private Map<String,FileFilter> labFilters;
 	private FileFilter textFilter;
 	private FileFilter csvFilter;
+	private FileFilter dotFilter;
+	
 	private FileFilter matlabFilter;
 	private JMenu propMenu;
 	private JPopupMenu propertiesPopup, constantsPopup, labelsPopup, experimentPopup;
-	private JMenu strategiesMenu;
+	private JMenu strategiesMenu, exportStrategyMenu;
 	private GUIExperimentTable experiments;
 	private GUIGraphHandler graphHandler;
 	private JScrollPane expScroller;
 	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty;
+	private Action exportStrategyActions, exportStrategyInduced, exportStrategyInducedDot;
 	private Action newConstant, removeConstant, newLabel, removeLabel;
 	private Action newExperiment, deleteExperiment, stopExperiment, parametric;
 	private Action viewResults, plotResults, exportResultsListText, exportResultsListCSV,
@@ -640,6 +646,10 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		savePropsAs.setEnabled(!computing);
 		simulate.setEnabled(!computing && parsedModel != null && propList.existsValidSimulatableSelectedProperties());
 		verifySelected.setEnabled(!computing && parsedModel != null && propList.existsValidSelectedProperties());
+		//exportStrategyMenu.setEnabled(!computing && parsedModel != null && getGUI().getPrism().getStrategy() != null);
+		exportStrategyActions.setEnabled(!computing && parsedModel != null && getGUI().getPrism().getStrategy() != null);
+		exportStrategyInduced.setEnabled(!computing && parsedModel != null && getGUI().getPrism().getStrategy() != null);
+		exportStrategyInducedDot.setEnabled(!computing && parsedModel != null && getGUI().getPrism().getStrategy() != null);
 		exportLabelsPlain.setEnabled(!computing && parsedModel != null);
 		exportLabelsMatlab.setEnabled(!computing && parsedModel != null);
 		details.setEnabled(!computing && parsedModel != null && propList.existsValidSelectedProperties());
@@ -1160,6 +1170,34 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			error(e.getMessage());
 			return;
 		}
+	}
+	
+	public void a_exportStrategy(StrategyExportType exportType)
+	{
+		// Pop up dialog to select file
+		int res = JFileChooser.CANCEL_OPTION;
+		switch (exportType) {
+		case ACTIONS:
+			res = showSaveFileDialog(textFilter);
+			break;
+		case INDUCED_MODEL:
+			res = showSaveFileDialog(traFilters.values(), traFilters.get("tra"));
+			break;
+		case DOT_FILE:
+			res = showSaveFileDialog(dotFilter);
+			break;
+		default:
+			res = showSaveFileDialog(textFilter);
+			break;
+		}
+		if (res != JFileChooser.APPROVE_OPTION)
+			return;
+		File file = getChooserFile();
+		// Do export
+		getPrism().getMainLog().resetNumberOfWarnings();
+		ExportStrategyThread t = new ExportStrategyThread(this, exportType, file);
+		t.setPriority(Thread.NORM_PRIORITY);
+		t.start();
 	}
 	
 	public void a_newExperiment()
@@ -1828,12 +1866,16 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		createPopups();
 		//file filters
 		propsFilter = new FileNameExtensionFilter("PRISM properties (*.props, *.pctl, *.csl)", "props", "pctl", "csl");
+		traFilters = new HashMap<String,FileFilter>();
+		traFilters.put("tra", new FileNameExtensionFilter("Transition matrix files (*.tra)", "tra"));
+		traFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
 		labFilters = new HashMap<String,FileFilter>();
 		labFilters.put("lab", new FileNameExtensionFilter("Label files (*.lab)", "lab"));
 		labFilters.put("txt", new FileNameExtensionFilter("Plain text files (*.txt)", "txt"));
 		textFilter =  new FileNameExtensionFilter("Plain text files (*.txt)", "txt");
 		csvFilter =  new FileNameExtensionFilter("Comma-separated values (*.csv)", "csv");
 		matlabFilter = new FileNameExtensionFilter("Matlab files (*.m)", "m");
+		dotFilter = new FileNameExtensionFilter("Dot files (*.dot)", "dot");
 	}
 
 	private void createPopups()
@@ -1852,6 +1894,7 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		strategiesMenu.setMnemonic('S');
 		strategiesMenu.setIcon(GUIPrism.getIconFromImage("smallStrategy.png"));
 		JCheckBoxMenuItem genStratCheckBox = new JCheckBoxMenuItem("Generate strategy", getGUI().getPrism().getGenStrat());
+		genStratCheckBox.setIcon(GUIPrism.getIconFromImage("smallBuild.png"));
 		genStratCheckBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
 		genStratCheckBox.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e)
@@ -1861,6 +1904,13 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			}
 		});
 		strategiesMenu.add(genStratCheckBox);
+		exportStrategyMenu = new JMenu("Export stategy");
+		exportStrategyMenu.setMnemonic('E');
+		exportStrategyMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
+		exportStrategyMenu.add(exportStrategyActions);
+		exportStrategyMenu.add(exportStrategyInduced);
+		exportStrategyMenu.add(exportStrategyInducedDot);
+		strategiesMenu.add(exportStrategyMenu);
 		propertiesPopup.add(strategiesMenu);
 		propertiesPopup.add(new JSeparator());
 		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCutAction());
@@ -2048,6 +2098,42 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		editProperty.putValue(Action.NAME, "Edit");
 		editProperty.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallEdit.png"));
 
+		exportStrategyActions = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportStrategy(StrategyExportType.ACTIONS);
+			}
+		};
+		exportStrategyActions.putValue(Action.LONG_DESCRIPTION, "Export the current strategy to a file as a list of actions");
+		exportStrategyActions.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+		exportStrategyActions.putValue(Action.NAME, "Action list");
+		exportStrategyActions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
+		
+		exportStrategyInduced = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportStrategy(StrategyExportType.INDUCED_MODEL);
+			}
+		};
+		exportStrategyInduced.putValue(Action.LONG_DESCRIPTION, "Export the model induced by the current strategy to a transitions file");
+		exportStrategyInduced.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_I);
+		exportStrategyInduced.putValue(Action.NAME, "Induced model (transitions)");
+		exportStrategyInduced.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallMatrix.png"));
+		
+		exportStrategyInducedDot = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				a_exportStrategy(StrategyExportType.DOT_FILE);
+			}
+		};
+		exportStrategyInducedDot.putValue(Action.LONG_DESCRIPTION, "Export the model induced by the current strategy to a Dot file");
+		exportStrategyInducedDot.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_D);
+		exportStrategyInducedDot.putValue(Action.NAME, "Induced model (Dot)");
+		exportStrategyInducedDot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileDot.png"));
+		
 		newConstant = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)
