@@ -131,13 +131,13 @@ jstring fn		// filename
 			for (k = l2; k < h2; k++) {
 				switch (export_type) {
 				case EXPORT_PLAIN:
-					export_string("%d %d %d %.12g", i, j-l1, cols[k], non_zeros[k]);
-					if (actions != NULL) export_string(" %s", (actions[j]>0?action_names[actions[j]-1]:""));
+					export_string("%d %d %d %.*g", i, j-l1, cols[k], export_model_precision, non_zeros[k]);
+					if (actions != NULL && actions[j]>0) export_string(" %s", action_names[actions[j]-1]);
 					export_string("\n");
 					break;
-				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.12g;\n", export_name, j-l1+1, i+1, cols[k]+1, non_zeros[k]); break;
-				case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("n%d_%d -> %d [ label=\"%.12g\" ];\n", i, j-l1, cols[k], non_zeros[k]); break;
-				case EXPORT_ROWS: export_string(" %.12g:%d", non_zeros[k], cols[k]); break;
+				case EXPORT_MATLAB: export_string("%s%d(%d,%d)=%.*g;\n", export_name, j-l1+1, i+1, cols[k]+1, export_model_precision, non_zeros[k]); break;
+				case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("n%d_%d -> %d [ label=\"%.*g\" ];\n", i, j-l1, cols[k], export_model_precision, non_zeros[k]); break;
+				case EXPORT_ROWS: export_string(" %.*g:%d", export_model_precision, non_zeros[k], cols[k]); break;
 				}
 			}
 			if (export_type == EXPORT_ROWS && actions != NULL) export_string(" %s", (actions[j]>0?action_names[actions[j]-1]:""));

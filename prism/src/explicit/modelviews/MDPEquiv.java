@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -34,13 +34,12 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.Set;
+import java.util.function.IntUnaryOperator;
 
-import common.functions.primitive.PairPredicateInt;
-import common.iterable.FilteringIterator;
+import common.functions.PairPredicateInt;
 import common.IterableBitSet;
 import common.IterableStateSet;
-import common.IteratorTools;
-import common.iterable.MappingIterator;
+import common.iterable.Reducible;
 import explicit.BasicModelTransformation;
 import explicit.MDP;
 import parser.State;
@@ -80,8 +79,8 @@ public class MDPEquiv extends MDPView
 				// => leave it as it is
 				numChoices[representative] = model.getNumChoices(representative);
 			} else {
-				final IterableBitSet eqStates = new IterableBitSet(equivalenceClass);
-				numChoices[representative] = IteratorTools.sum(new MappingIterator.FromIntToInt(eqStates, model::getNumChoices));
+				IterableBitSet eqStates = new IterableBitSet(equivalenceClass);
+				numChoices[representative] = Math.toIntExact(eqStates.mapToInt((IntUnaryOperator) model::getNumChoices).sum());
 				StateChoicePair[] choices = originalChoices[representative] = new StateChoicePair[numChoices[representative]];
 				assert representative == equivalenceClass.nextSetBit(0);
 				int choice = model.getNumChoices(representative);
@@ -232,7 +231,7 @@ public class MDPEquiv extends MDPView
 		}
 		Iterator<Integer> successors = model.getSuccessorsIterator(originalState, originalChoice);
 		if (hasTransitionToNonRepresentative.get(originalState)) {
-			return FilteringIterator.dedupe(new MappingIterator.From<>(successors, this::mapStateToRestrictedModel));
+			return Reducible.extend(successors).map(this::mapStateToRestrictedModel).distinct();
 		}
 		return successors;
 	}
@@ -255,7 +254,7 @@ public class MDPEquiv extends MDPView
 		}
 		Iterator<Entry<Integer, Double>> transitions = model.getTransitionsIterator(originalState, originalChoice);
 		if (hasTransitionToNonRepresentative.get(originalState)) {
-			return new MappingIterator.From<>(transitions, this::mapTransitionToRestrictedModel);
+			return Reducible.extend(transitions).map(this::mapTransitionToRestrictedModel);
 		}
 		return transitions;
 	}

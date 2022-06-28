@@ -72,7 +72,7 @@ public class DoubleSetting extends Setting
 	{
 		try
 		{
-			return new Double(string);
+			return Double.valueOf(string);
 		}
 		catch(NumberFormatException e)
 		{

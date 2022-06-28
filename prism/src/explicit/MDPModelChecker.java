@@ -62,6 +62,7 @@ import parser.ast.Expression;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionReward;
 import parser.type.TypeInt;
+import parser.type.TypeDouble;
 import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.Prism;
@@ -361,8 +362,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Subtract from 1 if we're model checking a negated formula for regular Pmin
 		if (minMax.isMin()) {
-			probsProduct.timesConstant(-1.0);
-			probsProduct.plusConstant(1.0);
+			probsProduct.applyFunction(TypeDouble.getInstance(), v -> 1.0 - (double) v);
 		}
 
 		// Output vector over product, if required
@@ -722,7 +722,8 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 			// Export
 			PrismLog out = new PrismFileLog(exportAdvFilename);
-			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out, precision);
 			out.close();
 		}
 
@@ -1987,7 +1988,7 @@ public class MDPModelChecker extends ProbModelChecker
 		for (int scc = 0, numSCCs = sccs.getNumSCCs(); scc < numSCCs; scc++) {
 			IntSet statesForSCC = sccs.getStatesForSCC(scc);
 
-			int cardinality = statesForSCC.cardinality();
+			int cardinality = Math.toIntExact(statesForSCC.cardinality());
 
 			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
 			while (itSCC.hasNext()) {
@@ -2099,7 +2100,7 @@ public class MDPModelChecker extends ProbModelChecker
 			double q = 0;
 			double p = 1;
 
-			int cardinality = statesForSCC.cardinality();
+			int cardinality = Math.toIntExact(statesForSCC.cardinality());
 
 			PrimitiveIterator.OfInt itSCC = statesForSCC.iterator();
 			while (itSCC.hasNext()) {
@@ -2659,7 +2660,8 @@ public class MDPModelChecker extends ProbModelChecker
 			}
 			// Export
 			PrismLog out = new PrismFileLog(exportAdvFilename);
-			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out);
+			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+			new DTMCFromMDPMemorylessAdversary(mdp, strat).exportToPrismExplicitTra(out, precision);
 			out.close();
 		}
 

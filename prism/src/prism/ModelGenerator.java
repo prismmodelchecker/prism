@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 import parser.State;
+import parser.ast.Expression;
 
 /**
  * Interface for classes that generate a probabilistic model:
@@ -226,6 +227,18 @@ public interface ModelGenerator extends ModelInfo
 	}
 
 	/**
+	 * For real-time models, get the clock guard of a choice,
+	 * i.e., an expression over clock variables denoting when it can be taken.
+	 * If there is no guard, this returns null;
+	 * @param i Index of the nondeterministic choice
+	 */
+	public default Expression getChoiceClockGuard(int i) throws PrismException
+	{
+		// Absent by default
+		return null;
+	}
+	
+	/**
 	 * Get the probability/rate of a transition within a choice, specified by its index/offset.
 	 * @param i Index of the nondeterministic choice
 	 * @param offset Index of the transition within the choice
@@ -321,6 +334,18 @@ public interface ModelGenerator extends ModelInfo
 		} else {
 			return isLabelTrue(i);
 		}
+	}
+	
+	/**
+	 * For real-time models, get the clock invariant for the current state,
+	 * i.e., an expression over clock variables which must remain true.
+	 * If there is no invariant, this returns null;
+	 * @param i Index of the nondeterministic choice
+	 */
+	public default Expression getClockInvariant() throws PrismException
+	{
+		// Absent by default
+		return null;
 	}
 	
 	/**

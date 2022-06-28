@@ -45,7 +45,7 @@ public class BooleanProperty extends SingleProperty
     
     public BooleanProperty(PropertyOwner owner,String name, boolean property, String comment)
     {
-        super(owner, name, new Boolean(property), "", false, comment);
+        super(owner, name, Boolean.valueOf(property), "", false, comment);
         //FlowLayout fl = new FlowLayout(FlowLayout.CENTER, 0, 0);
         pan.setLayout(new GridBagLayout());
         renderer.setBorder(null);
@@ -56,7 +56,7 @@ public class BooleanProperty extends SingleProperty
     {
         try
         {
-            setProperty(new Boolean(property));
+            setProperty(Boolean.valueOf(property));
         }
         catch(PropertyException e)
         {
@@ -77,7 +77,7 @@ public class BooleanProperty extends SingleProperty
         else if(property instanceof String)
         {
             if(property.toString().equals("true") || property.toString().equals("false"))
-                super.setProperty(new Boolean(Boolean.getBoolean((String)property)));
+                super.setProperty(Boolean.valueOf(Boolean.getBoolean((String)property)));
             return;
             
         }
@@ -229,7 +229,7 @@ public class BooleanProperty extends SingleProperty
     public Boolean getEditorValue()
     {
         
-        return new Boolean(renderer.isSelected()); 
+        return Boolean.valueOf(renderer.isSelected()); 
     }
     
     public void addListenerToEditor(ActionListener e)

@@ -158,17 +158,17 @@ public class STPGExplicit extends MDPSimple implements STPG
 	}
 
 	@Override
-	public void exportToPrismExplicitTra(PrismLog out)
+	public void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		STPG.super.exportToPrismExplicitTra(out);
+		STPG.super.exportToPrismExplicitTra(out, precision);
 	}
 
 	@Override
-	public void exportToPrismLanguage(final String filename) throws PrismException
+	public void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		STPG.super.exportToPrismLanguage(filename);
+		STPG.super.exportToPrismLanguage(filename, precision);
 	}
 
 	@Override

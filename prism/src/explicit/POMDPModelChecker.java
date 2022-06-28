@@ -48,6 +48,7 @@ import prism.Pair;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
+import prism.PrismSettings;
 import prism.PrismUtils;
 
 /**
@@ -167,7 +168,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		if (remain != null && remainObs == null) {
 			throw new PrismException("Left-hand side of until is not observable");
 		}
-		mainLog.println("target obs=" + targetObs.cardinality() + ", remain obs=" + remainObs.cardinality());
+		mainLog.println("target obs=" + targetObs.cardinality() + (remainObs == null ? "" : ", remain obs=" + remainObs.cardinality()));
 		
 		// Determine set of observations actually need to perform computation for
 		BitSet unknownObs = new BitSet();
@@ -246,6 +247,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Export strategy if requested
 		// NB: proper storage of strategy for genStrat not yet supported,
 		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (genStrat || exportAdv) {
 			// Export in Dot format if filename extension is .dot
 			if (exportAdvFilename.endsWith(".dot")) {
@@ -257,11 +259,11 @@ public class POMDPModelChecker extends ProbModelChecker
 						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
 						return d;
 					}
-				}));
+				}), precision);
 			}
 			// Otherwise use .tra format
 			else {
-				mdp.exportToPrismExplicitTra(exportAdvFilename);
+				mdp.exportToPrismExplicitTra(exportAdvFilename, precision);
 			}
 		}
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
@@ -452,6 +454,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Export strategy if requested
 		// NB: proper storage of strategy for genStrat not yet supported,
 		// so just treat it as if -exportadv had been used, with default file (adv.tra)
+		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (genStrat || exportAdv) {
 			// Export in Dot format if filename extension is .dot
 			if (exportAdvFilename.endsWith(".dot")) {
@@ -463,11 +466,11 @@ public class POMDPModelChecker extends ProbModelChecker
 						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
 						return d;
 					}
-				}));
+				}), precision);
 			}
 			// Otherwise use .tra format
 			else {
-				mdp.exportToPrismExplicitTra(exportAdvFilename);
+				mdp.exportToPrismExplicitTra(exportAdvFilename, precision);
 			}
 		}
 
@@ -558,7 +561,7 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Find observations for which not all states are in the set
 		// and remove them from the observation set to be returned
 		int numStates = pomdp.getNumStates();
-		for (int o = setObs.nextSetBit(0); o >= 0; o = set.nextSetBit(o + 1)) {
+		for (int o = setObs.nextSetBit(0); o >= 0; o = setObs.nextSetBit(o + 1)) {
 			for (int s = 0; s < numStates; s++) {
 				if (pomdp.getObservation(s) == o && !set.get(s)) {
 					setObs.set(o, false);

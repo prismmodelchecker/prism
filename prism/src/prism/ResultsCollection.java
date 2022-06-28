@@ -65,17 +65,19 @@ public class ResultsCollection
 
 	public ResultsCollection(UndefinedConstants uCons, String resultName)
 	{
-		resultListeners = new Vector<ResultListener>();
-		rangingConstants = new Vector<DefinedConstant>();
-		Vector<DefinedConstant> tmpRangingConstants = uCons.getRangingConstants();
-		for (int i = 0; i < tmpRangingConstants.size(); i++) {
-			rangingConstants.add(tmpRangingConstants.get(i));
-		}
-		numMFRangingConstants = uCons.getNumModelRangingConstants(); 
-		numPFRangingConstants = uCons.getNumPropertyRangingConstants();
-		nonRangingConstantValues = uCons.getNonRangingConstantValues();
+		this(uCons.getRangingConstants(), uCons.getNumModelRangingConstants(), uCons.getNumPropertyRangingConstants(), uCons.getNonRangingConstantValues(), resultName);
+	}
 
-		this.root = (rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
+	@SuppressWarnings("unchecked")
+	public ResultsCollection(Vector<DefinedConstant> rangingConstants, int numMFRangingConstants, int numPFRangingConstants, Values nonRangingConstants, String resultName)
+	{
+		this.resultListeners = new Vector<ResultListener>();
+		this.rangingConstants = (Vector<DefinedConstant>) rangingConstants.clone();
+		this.numMFRangingConstants = numMFRangingConstants; 
+		this.numPFRangingConstants = numPFRangingConstants;
+		this.nonRangingConstantValues = Objects.requireNonNull(nonRangingConstants);
+
+		this.root = (this.rangingConstants.size() > 0) ? new TreeNode(0) : new TreeLeaf();
 		this.resultName = (resultName == null) ? "Result" : resultName;
 	}
 
@@ -262,7 +264,6 @@ public class ResultsCollection
 	 */
 	public String toString(boolean pv, String sep, String eq, boolean header)
 	{
-		int i;
 		String s = "";
 
 		// if there are no variables, override eq separator
@@ -270,10 +271,10 @@ public class ResultsCollection
 			eq = "";
 		// create header
 		if (header) {
-			for (i = 0; i < rangingConstants.size(); i++) {
+			for (int i = 0; i < rangingConstants.size(); i++) {
 				if (i > 0)
 					s += sep;
-				s += rangingConstants.elementAt(i).getName();
+				s += rangingConstants.get(i).getName();
 			}
 			s += eq + "Result\n";
 		}
@@ -588,7 +589,7 @@ public class ResultsCollection
 			// Print constants/indices for matrix
 			// NB: need to enclose in quotes for CSV
 			if (rangingConstants.size() == 1 || rangingConstants.size() - level == 2) {
-				if (sep.equals(", "))
+				if (sep.equals(","))
 					res += "\"";
 				if (rangingConstants.size() > 2)
 					res += head+", ";
@@ -596,9 +597,9 @@ public class ResultsCollection
 					res += constant.getName();
 				else
 					res += constant.getName() + "\\" + kids[0].constant.getName();
-				if (!sep.equals(", "))
+				if (!sep.equals(","))
 					res += ":";
-				if (sep.equals(", "))
+				if (sep.equals(","))
 					res += "\"";
 				res += "\n";
 			}
@@ -660,7 +661,7 @@ public class ResultsCollection
 
 		public String toStringMatrixRec(String sep, String head)
 		{
-			return val.toString();
+			return Values.valToString(val);
 		}
 
 		public String toStringRec(boolean pv, String sep, String eq, String head)

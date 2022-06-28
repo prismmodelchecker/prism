@@ -250,6 +250,12 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
+	public State getPreviousObservation()
+	{
+		return steps.get(steps.size() - 2).obs;
+	}
+
+	@Override
 	public State getCurrentObservation()
 	{
 		return steps.get(steps.size() - 1).obs;

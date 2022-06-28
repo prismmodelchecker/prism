@@ -26,9 +26,8 @@
 
 package parser.ast;
 
-import param.BigRational;
-import parser.*;
-import parser.visitor.*;
+import parser.EvaluateContext;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
 
 public class ExpressionForAll extends Expression
@@ -76,12 +75,6 @@ public class ExpressionForAll extends Expression
 	
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
-	{
-		throw new PrismLangException("Cannot evaluate an E operator without a model");
-	}
-
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate an E operator without a model");
 	}

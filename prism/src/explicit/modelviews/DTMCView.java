@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -34,7 +34,6 @@ import java.util.PrimitiveIterator;
 import java.util.function.IntFunction;
 
 import common.IterableStateSet;
-import common.iterable.MappingIterator;
 import explicit.DTMC;
 import explicit.Distribution;
 import explicit.SuccessorsIterator;
@@ -77,8 +76,8 @@ public abstract class DTMCView extends ModelView implements DTMC, Cloneable
 			}
 		};
 		String s = "trans: [ ";
-		final IterableStateSet states = new IterableStateSet(getNumStates());
-		final Iterator<Entry<Integer, Distribution>> distributions = new MappingIterator.FromInt<>(states, getDistribution);
+		IterableStateSet states = new IterableStateSet(getNumStates());
+		Iterator<Entry<Integer, Distribution>> distributions = states.iterator().map(getDistribution);
 		while (distributions.hasNext()) {
 			final Entry<Integer, Distribution> dist = distributions.next();
 			s += dist.getKey() + ": " + dist.getValue();

@@ -26,7 +26,10 @@
 
 package parser.type;
 
+import java.math.BigInteger;
+
 import param.BigRational;
+import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
 public class TypeDouble extends Type 
@@ -76,14 +79,59 @@ public class TypeDouble extends Type
 	@Override
 	public Number castValueTo(Object value) throws PrismLangException
 	{
-		if (value instanceof Double)
+		// Convert from int to double if needed, ignore eval mode
+		if (value instanceof Double) {
 			return (Double) value;
-		if (value instanceof BigRational)
+		}
+		if (value instanceof BigRational) {
 			return (BigRational) value;
-		if (value instanceof Integer)
-			return ((Integer) value).doubleValue();
-		else
+		}
+		if (value instanceof Integer) {
+			return Double.valueOf(((Integer) value).intValue());
+		}
+		if (value instanceof BigInteger) {
+			return new BigRational((BigInteger) value);
+		}
+		else {
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
+		}
+	}
+
+	@Override
+	public Number castValueTo(Object value, EvalMode evalMode) throws PrismLangException
+	{
+		switch (evalMode) {
+		// For floating point mode, should be a Double
+		case FP:
+			// Already a Double - nothing to do
+			if (value instanceof Double) {
+				return (Double) value;
+			}
+			// Other possibilities (Integer/BigRational/BigInteger) are all Numbers
+			if (value instanceof Number) {
+				return ((Number) value).doubleValue();
+			}
+			throw new PrismLangException("Cannot cast " + value.getClass() + " to " + getTypeString());
+		// For exact mode, should be a BigRational
+		case EXACT:
+			// Already a BigRational - nothing to do
+			if (value instanceof BigRational) {
+				return (BigRational) value;
+			}
+			// Other possibilities (Integer/BigRational/BigInteger) need conversion
+			if (value instanceof BigInteger) {
+				return new BigRational((BigInteger) value);
+			}
+			if (value instanceof Double) {
+				return new BigRational(value.toString());
+			}
+			if (value instanceof Integer) {
+				return new BigRational((Integer) value);
+			}
+			throw new PrismLangException("Cannot cast " + value.getClass() + " to " + getTypeString());
+		default:
+			throw new PrismLangException("Unknown evaluation mode " + evalMode);
+		}
 	}
 
 	@Override

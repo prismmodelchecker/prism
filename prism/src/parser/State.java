@@ -28,6 +28,7 @@ package parser;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import prism.ModelInfo;
 import prism.PrismLangException;
@@ -237,7 +238,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += varValues[i];
+			s += valueToString(varValues[i]);
 		}
 		s += ")";
 		return s;
@@ -254,7 +255,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += varValues[i];
+			s += valueToString(varValues[i]);
 		}
 		return s;
 	}
@@ -271,7 +272,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += varNames.get(i) + "=" + varValues[i];
+			s += varNames.get(i) + "=" + valueToString(varValues[i]);
 		}
 		s += ")";
 		return s;
@@ -289,12 +290,28 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += modelInfo.getVarName(i) + "=" + varValues[i];
+			s += modelInfo.getVarName(i) + "=" + valueToString(varValues[i]);
 		}
 		s += ")";
 		return s;
 	}
-	
+
+	/**
+	 * Convert a value, represented as an Object, to a string for display.
+	 * Like {@code Object.toString}, except that null is presented as "?"
+	 * and we remove spaces separating list elements.
+	 */
+	public static String valueToString(Object value)
+	{
+		if (value == null) {
+			return "?";
+		} else if (value instanceof List) {
+			return "[" + ((List<?>) value).stream().map(State::valueToString).collect(Collectors.joining(",")) + "]";
+		} else {
+			return value.toString();
+		}
+	}
+
 	/**
 	 * Utility method for comparing values stored as Objects.
 	 * Return values are as for the standard Comparable.compareTo method.
@@ -302,6 +319,12 @@ public class State implements Comparable<State>
 	@SuppressWarnings("unchecked")
 	public static int compareObjects(Object o1, Object o2)
 	{
+		// Deal with nulls
+		if (o1 == null) {
+			return (o2 == null) ? 0 : -1;
+		} else if (o2 == null) {
+			return 1; // (we know o1 is non-null here)
+		}
 		// Things that already implement Comparable (Integer, Double)
 		if (o1 instanceof Comparable && o2 instanceof Comparable && o1.getClass().equals(o2.getClass())) {
 			return ((Comparable<Object>) o1).compareTo((Comparable<Object>) o2);

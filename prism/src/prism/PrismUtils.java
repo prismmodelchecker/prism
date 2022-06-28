@@ -39,7 +39,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import common.iterable.IterableInt;
+import common.iterable.PrimitiveIterable;
+import param.BigRational;
 
 /**
  * Various general-purpose utility methods in Java
@@ -143,7 +144,7 @@ public class PrismUtils
 	 * <br>
 	 * Considers Inf == Inf and -Inf == -Inf.
 	 */
-	public static boolean doublesAreClose(double d1[], double d2[], IterableInt indizes, double epsilon, boolean abs)
+	public static boolean doublesAreClose(double d1[], double d2[], PrimitiveIterable.OfInt indizes, double epsilon, boolean abs)
 	{
 		return doublesAreClose(d1, d2, indizes.iterator(), epsilon, abs);
 	}
@@ -479,7 +480,7 @@ public class PrismUtils
 	 * @param entries Iterable over the entries (must not contain duplicates)
 	 * @return the altered vector (returned for convenience; it's the same one)
 	 */
-	public static double[] normalise(double[] vector, IterableInt entries)
+	public static double[] normalise(double[] vector, PrimitiveIterable.OfInt entries)
 	{
 		double sum = 0.0;
 		for (PrimitiveIterator.OfInt iter = entries.iterator(); iter.hasNext();) {
@@ -547,41 +548,45 @@ public class PrismUtils
 	private static DecimalFormat formatterDouble2dp = new DecimalFormat("#0.00", DecimalFormatSymbols.getInstance(Locale.UK));
 
 	/**
-	 * Format a double, as would be done by printf's %.12g
+	 * Format a double, as would be done by printf's %.17g.
+	 * Preserving full double precision requires 17 = ceil(log(2^(52+1))) + 1 decimal places,
+	 * since the mantissa has 52+1 bits and one additional place is needed to tell close values apart.
 	 */
 	public static String formatDouble(double d)
 	{
-		// Use UK locale to avoid . being changed to , in some countries.
-		// To match C's printf, we have to tweak the Java version,
-		// strip trailing zeros after the .
-		String result = String.format(Locale.UK, "%.12g", d);
-		// if there are only zeros after the . (e.g., .000000), strip them including the . 
-		result = result.replaceFirst("\\.0+(e|$)", "$1");
-		// handle .xxxx0000
-		// we first match .xxx until there are only zeros before the end (or e)
-		// as we match reluctantly (using the *?), all trailing zeros are captured
-		// by the 0+ part
-		result = result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
-		return result;
+		return formatDouble(17, d);
 	}
 
 	/**
 	 * Format a double, as would be done by printf's %.(prec)g
+	 * @param prec precision (significant digits) >= 1
 	 */
 	public static String formatDouble(int prec, double d)
 	{
-		// Use UK locale to avoid . being changed to , in some countries.
+		if (prec < 1)
+			throw new IllegalArgumentException("Precision has to be >= 1; got " + prec);
+		// Use no locale to avoid . being changed to , in some countries.
 		// To match C's printf, we have to tweak the Java version,
 		// strip trailing zeros after the .
-		String result = String.format(Locale.UK, "%." + prec + "g", d);
-		// if there are only zeros after the . (e.g., .000000), strip them including the . 
+		String result = String.format((Locale)null, "%." + prec + "g", d);
+		// if there are only zeros after the . (e.g., .000000), strip them including the .
 		result = result.replaceFirst("\\.0+(e|$)", "$1");
 		// handle .xxxx0000
 		// we first match .xxx until there are only zeros before the end (or e)
 		// as we match reluctantly (using the *?), all trailing zeros are captured
 		// by the 0+ part
-		result = result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
-		return result;
+		return result.replaceFirst("(\\.[0-9]*?)0+(e|$)", "$1$2");
+	}
+
+	/**
+	 * Format a double (that is known to be an integer, but not necessarily in the int range)
+	 * to a string.<br>
+	 * Correctly handles values beyond INT_MIN/INT_MAX, as well as -Inf/Inf and NaN.
+	 */
+	public static String formatIntFromDouble(double d)
+	{
+		BigRational v = BigRational.from(d);
+		return v.toString();
 	}
 
 	/**
@@ -755,6 +760,168 @@ public class PrismUtils
 		} catch (FileNotFoundException e) {
 			throw new PrismException("File \"" + filename + "\" could not opened for output");
 		}
+	}
+	
+	/**
+	 * Compare two version numbers of PRISM (strings).
+	 * Example ordering: { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
+	 * Returns: 1 if v1&gt;v2, -1 if v1&lt;v2, 0 if v1=v2
+	 */
+	public static int compareVersions(String v1, String v2)
+	{
+		String ss1[], ss2[], tmp[];
+		int i, n, x;
+		double s1 = 0, s2 = 0;
+		boolean s1num, s2num;
+
+		// Exactly equal
+		if (v1.equals(v2))
+			return 0;
+		// Otherwise split into sections
+		ss1 = v1.split("\\.");
+		ss2 = v2.split("\\.");
+		// Pad if one is shorter
+		n = Math.max(ss1.length, ss2.length);
+		if (ss1.length < n) {
+			tmp = new String[n];
+			for (i = 0; i < ss1.length; i++)
+				tmp[i] = ss1[i];
+			for (i = ss1.length; i < n; i++)
+				tmp[i] = "";
+			ss1 = tmp;
+		}
+		if (ss2.length < n) {
+			tmp = new String[n];
+			for (i = 0; i < ss2.length; i++)
+				tmp[i] = ss2[i];
+			for (i = ss2.length; i < n; i++)
+				tmp[i] = "";
+			ss2 = tmp;
+		}
+		// Loop through sections of string
+		for (i = 0; i < n; i++) {
+			// 2.1.alpha < 2.1, etc.
+			// 2.1.alpha < 2.1.alpha2 < 2.1.alpha3, etc.
+			// so replace alphax with -10000+x
+			if (ss1[i].matches("alpha.*")) {
+				try {
+					if (ss1[i].length() == 5)
+						x = 0;
+					else
+						x = Integer.parseInt(ss1[i].substring(5));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + (-10000 + x);
+			}
+			if (ss2[i].matches("alpha.*")) {
+				try {
+					if (ss2[i].length() == 5)
+						x = 0;
+					else
+						x = Integer.parseInt(ss2[i].substring(5));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + (-10000 + x);
+			}
+			// 2.1.beta < 2.1, etc.
+			// 2.1.beta < 2.1.beta2 < 2.1.beta3, etc.
+			// so replace betax with -100+x
+			if (ss1[i].matches("beta.*")) {
+				try {
+					if (ss1[i].length() == 4)
+						x = 0;
+					else
+						x = Integer.parseInt(ss1[i].substring(4));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + (-100 + x);
+			}
+			if (ss2[i].matches("beta.*")) {
+				try {
+					if (ss2[i].length() == 4)
+						x = 0;
+					else
+						x = Integer.parseInt(ss2[i].substring(4));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + (-100 + x);
+			}
+			// 2 < 2.1, etc.
+			// so treat 2 as 2.0
+			if (ss1[i].equals(""))
+				ss1[i] = "0";
+			if (ss2[i].equals(""))
+				ss2[i] = "0";
+			// 2.1 < 2.1.dev, etc.
+			// 2.1.dev < 2.1.dev2 < 2.1.dev3, etc.
+			// so replace devx with 0.5+x/1000
+			if (ss1[i].matches("dev.*")) {
+				try {
+					if (ss1[i].length() == 3)
+						x = 0;
+					else
+						x = Integer.parseInt(ss1[i].substring(3));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + (0.5 + x / 1000.0);
+			}
+			if (ss2[i].matches("dev.*")) {
+				try {
+					if (ss2[i].length() == 3)
+						x = 0;
+					else
+						x = Integer.parseInt(ss2[i].substring(3));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + (0.5 + x / 1000.0);
+			}
+			// replace rx (e.g. as in 4.0.alpha.r5555) with x
+			if (ss1[i].matches("r.*")) {
+				try {
+					x = Integer.parseInt(ss1[i].substring(1));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + x;
+			}
+			if (ss2[i].matches("r.*")) {
+				try {
+					x = Integer.parseInt(ss2[i].substring(1));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + x;
+			}
+			// See if strings are integers
+			try {
+				s1num = true;
+				s1 = Double.parseDouble(ss1[i]);
+			} catch (NumberFormatException e) {
+				s1num = false;
+			}
+			try {
+				s2num = true;
+				s2 = Double.parseDouble(ss2[i]);
+			} catch (NumberFormatException e) {
+				s2num = false;
+			}
+			if (s1num && s2num) {
+				if (s1 < s2)
+					return -1;
+				if (s1 > s2)
+					return 1;
+				if (s1 == s2)
+					continue;
+			}
+		}
+
+		return 0;
 	}
 }
 

@@ -1,6 +1,34 @@
+//==============================================================================
+//	
+//	Copyright (c) 2016-
+//	Authors:
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
+//	
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
 package common.iterable;
 
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.PrimitiveIterator.OfLong;
@@ -21,443 +49,657 @@ import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 import java.util.function.ToLongFunction;
 
-/** Helpers for mapping Iterators to another Iterator, performing some mapping on the elements */
-public abstract class MappingIterator<S, T> implements Iterator<T>
+/**
+ * Abstract base class for Iterators that map elements using a function {@code f: S -> E}.
+ * Yields the result of applying {@code f} to each each element of the underlying Iterator:
+ * Iterator(S) -{@code f}-> Iterator(E)
+ * <p>
+ * The calls to {@code next()} of the underlying Iterator happen on-the-fly,
+ * i.e., only when {@code next()} is called for this Iterator.
+ * <p>
+ * Implementations should release the underlying Iterator after iteration.
+ *
+ * @param <S> type of the underlying Iterator's elements
+ * @param <E> type of the Iterator's elements after mapping
+ * @param <I> type of the underlying Iterator
+ */
+public abstract class MappingIterator<S, E, I extends Iterator<S>> implements FunctionalIterator<E>
 {
-	protected final Iterator<S> iterator;
+	/** The Iterator which elements are mapped */
+	protected I iterator;
 
-	public MappingIterator(Iterable<S> iterable)
+	/**
+	 * Constructor for a MappingIterator without a mapping function.
+	 *
+	 * @param iterator an Iterator to be mapped
+	 */
+	public MappingIterator(I iterator)
 	{
-		this(iterable.iterator());
-	}
-
-	public MappingIterator(Iterator<S> iterator)
-	{
+		Objects.requireNonNull(iterator);
 		this.iterator = iterator;
 	}
 
 	@Override
 	public boolean hasNext()
 	{
-		return iterator.hasNext();
+		if (iterator.hasNext()) {
+			return true;
+		}
+		release();
+		return false;
 	}
 
 	@Override
-	public void remove()
+	public long count()
 	{
-		iterator.remove();
+		// do not apply mapping, just count elements of underlying iterator
+		return Reducible.extend(iterator).count();
 	}
 
-	/** Map an Iterator<S> to an Iterator<T> using the given mapping function */
-	public static class From<S, T> extends MappingIterator<S, T>
+
+
+	/**
+	 * Generic implementation of a MappingIterator using a function {@code f: S -> E}.
+	 *
+	 * @param <S> type of the underlying Iterator's elements
+	 * @param <E> type of the Iterator's elements after mapping
+	 */
+	public static class ObjToObj<S, E> extends MappingIterator<S, E, Iterator<S>>
 	{
-		protected final Function<? super S, T> function;
+		/** The function the Iterator uses to map the elements */
+		protected final Function<? super S, ? extends E> function;
 
-		public From(Iterable<S> iterable, Function<? super S, T> function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public From(Iterator<S> iterator, Function<? super S, T> function)
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public ObjToObj(Iterator<S> iterator, Function<? super S, ? extends E> function)
 		{
 			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
-		public T next()
+		public E next()
 		{
+			requireNext();
 			return function.apply(iterator.next());
 		}
-	}
-
-	/** Map an Iterable<Integer> to a PrimitiveIterator.OfInt */
-	public static OfInt toInt(Iterable<Integer> iterable)
-	{
-		return toInt(iterable.iterator());
-	}
-
-	/** Map an Iterator<Integer> to a PrimitiveIterator.OfInt */
-	public static OfInt toInt(Iterator<Integer> iterator)
-	{
-		if (iterator instanceof OfInt) {
-			return (OfInt) iterator;
-		}
-		return new ToInt<>(iterator, Integer::intValue);
-	}
-
-	/** Map an Iterator<S> to a PrimitiveIterator.OfInt using the given mapping function */
-	public static class ToInt<S> extends MappingIterator<S, Integer> implements OfInt
-	{
-		protected ToIntFunction<? super S> function;
-
-		public ToInt(Iterable<S> iterable, ToIntFunction<? super S> function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public ToInt(Iterator<S> iterator, ToIntFunction<? super S> function)
-		{
-			super(iterator);
-			this.function = function;
-		}
 
 		@Override
-		public int nextInt()
+		public void release()
 		{
-			return function.applyAsInt(iterator.next());
+			iterator = EmptyIterator.of();
 		}
 	}
 
-	/** Map an Iterable<Double> to a PrimitiveIterator.OfDouble */
-	public static OfDouble toDouble(Iterable<Double> iterable)
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: S -> double}.
+	 *
+	 * @param <S> type of the underlying Iterator's elements
+	 */
+	public static class ObjToDouble<S> extends MappingIterator<S, Double, Iterator<S>> implements FunctionalPrimitiveIterator.OfDouble
 	{
-		return toDouble(iterable.iterator());
-	}
+		/** The function the Iterator uses to map the elements */
+		protected final ToDoubleFunction<? super S> function;
 
-	/** Map an Iterator<Double> to a PrimitiveIterator.OfDouble */
-	public static OfDouble toDouble(Iterator<Double> iterator)
-	{
-		if (iterator instanceof OfDouble) {
-			return (OfDouble) iterator;
-		}
-		return new ToDouble<>(iterator, Double::doubleValue);
-	}
-
-	/** Map an Iterator<S> to a PrimitiveIterator.OfDouble using the given mapping function */
-	public static class ToDouble<S> extends MappingIterator<S, Double> implements OfDouble
-	{
-		protected ToDoubleFunction<? super S> function;
-
-		public ToDouble(Iterable<S> iterable, ToDoubleFunction<? super S> function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public ToDouble(Iterator<S> iterator, ToDoubleFunction<? super S> function)
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public ObjToDouble(Iterator<S> iterator, ToDoubleFunction<? super S> function)
 		{
 			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
 		public double nextDouble()
 		{
+			requireNext();
 			return function.applyAsDouble(iterator.next());
 		}
-	}
 
-	/** Map an Iterable<Long> to a PrimitiveIterator.OfLong */
-	public static OfLong toLong(Iterable<Long> iterable)
-	{
-		return toLong(iterable.iterator());
-	}
-
-	/** Map an Iterator<Long> to a PrimitiveIterator.OfLong */
-	public static OfLong toLong(Iterator<Long> iterator)
-	{
-		if (iterator instanceof OfLong) {
-			return (OfLong) iterator;
-		}
-		return new ToLong<>(iterator, Long::longValue);
-	}
-
-	/** Map an Iterator<S> to a PrimitiveIterator.OfLong using the given mapping function */
-	public static class ToLong<S> extends MappingIterator<S, Long> implements OfLong
-	{
-		protected ToLongFunction<? super S> function;
-
-		public ToLong(Iterable<S> iterable, ToLongFunction<? super S> function)
+		@Override
+		public void release()
 		{
-			this(iterable.iterator(), function);
+			iterator = EmptyIterator.of();
 		}
+	}
 
-		public ToLong(Iterator<S> iterator, ToLongFunction<? super S> function)
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: S -> int}.
+	 *
+	 * @param <S> type of the underlying Iterator's elements
+	 */
+	public static class ObjToInt<S> extends MappingIterator<S, Integer, Iterator<S>> implements FunctionalPrimitiveIterator.OfInt
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final ToIntFunction<? super S> function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public ObjToInt(Iterator<S> iterator, ToIntFunction<? super S> function)
 		{
 			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public int nextInt()
+		{
+			requireNext();
+			return function.applyAsInt(iterator.next());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.of();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: S -> long}.
+	 *
+	 * @param <S> type of the underlying Iterator's elements
+	 */
+	public static class ObjToLong<S> extends MappingIterator<S, Long, Iterator<S>> implements FunctionalPrimitiveIterator.OfLong
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final ToLongFunction<? super S> function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public ObjToLong(Iterator<S> iterator, ToLongFunction<? super S> function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
 		public long nextLong()
 		{
+			requireNext();
 			return function.applyAsLong(iterator.next());
 		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.of();
+		}
 	}
 
-	/** Map an iterator over integers to an iterator over T */
-	public static class FromInt<T> extends MappingIterator<Integer, T>
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: double -> E}.
+	 *
+	 * @param <E> type of the Iterator's elements after mapping
+	 */
+	public static class DoubleToObj<E> extends MappingIterator<Double, E, PrimitiveIterator.OfDouble>
 	{
-		protected IntFunction<T> function;
+		/** The function the Iterator uses to map the elements */
+		protected final DoubleFunction<? extends E> function;
 
-		public FromInt(IterableInt iterable, IntFunction<T> function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromInt(OfInt iterator, IntFunction<T> function)
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public DoubleToObj(OfDouble iterator, DoubleFunction<? extends E> function)
 		{
 			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
-		public T next()
+		public E next()
 		{
-			return function.apply(((OfInt) iterator).nextInt());
-		}
-	}
-
-	/** Map an iterator over integers to another iterator over integers */
-	public static class FromIntToInt extends MappingIterator<Integer, Integer> implements OfInt
-	{
-		protected IntUnaryOperator function;
-
-		public FromIntToInt(IterableInt iterable, IntUnaryOperator function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromIntToInt(OfInt iterator, IntUnaryOperator function)
-		{
-			super(iterator);
-			this.function = function;
+			requireNext();
+			return function.apply(iterator.nextDouble());
 		}
 
 		@Override
-		public int nextInt()
+		public void release()
 		{
-			return function.applyAsInt(((OfInt) iterator).nextInt());
+			iterator = EmptyIterator.ofDouble();
 		}
 	}
 
-	/** Map an iterator over integers to iterator over doubles */
-	public static class FromIntToDouble extends MappingIterator<Integer, Double> implements OfDouble
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: double -> double}.
+	 */
+	public static class DoubleToDouble extends MappingIterator<Double, Double, PrimitiveIterator.OfDouble> implements FunctionalPrimitiveIterator.OfDouble
 	{
-		protected IntToDoubleFunction function;
+		/** The function the Iterator uses to map the elements */
+		protected final DoubleUnaryOperator function;
 
-		public FromIntToDouble(IterableInt iterable, IntToDoubleFunction function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromIntToDouble(OfInt iterator, IntToDoubleFunction function)
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public DoubleToDouble(PrimitiveIterator.OfDouble iterator, DoubleUnaryOperator function)
 		{
 			super(iterator);
-			this.function = function;
-		}
-
-		@Override
-		public double nextDouble()
-		{
-			return function.applyAsDouble(((OfInt) iterator).nextInt());
-		}
-	}
-
-	/** Map an iterator over integers to iterator over longs */
-	public static class FromIntToLong extends MappingIterator<Integer, Long> implements OfLong
-	{
-		protected IntToLongFunction function;
-
-		public FromIntToLong(IterableInt iterable, IntToLongFunction function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromIntToLong(OfInt iterator, IntToLongFunction function)
-		{
-			super(iterator);
-			this.function = function;
-		}
-
-		@Override
-		public long nextLong()
-		{
-			return function.applyAsLong(((OfInt) iterator).nextInt());
-		}
-	}
-
-	/** Map an iterator over doubles to an iterator over T */
-	public static class FromDouble<T> extends MappingIterator<Double, T>
-	{
-		protected DoubleFunction<T> function;
-
-		public FromDouble(IterableDouble iterable, DoubleFunction<T> function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromDouble(OfDouble iterator, DoubleFunction<T> function)
-		{
-			super(iterator);
-			this.function = function;
-		}
-
-		@Override
-		public T next()
-		{
-			return function.apply(((OfDouble) iterator).nextDouble());
-		}
-	}
-
-	/** Map an iterator over doubles to an iterator over integers */
-	public static class FromDoubleToInt extends MappingIterator<Double, Integer> implements OfInt
-	{
-		protected DoubleToIntFunction function;
-
-		public FromDoubleToInt(IterableDouble iterable, DoubleToIntFunction function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromDoubleToInt(OfDouble iterator, DoubleToIntFunction function)
-		{
-			super(iterator);
-			this.function = function;
-		}
-
-		@Override
-		public int nextInt()
-		{
-			return function.applyAsInt(((OfDouble) iterator).nextDouble());
-		}
-	}
-
-	/** Map an iterator over doubles to another iterator over doubles */
-	public static class FromDoubleToDouble extends MappingIterator<Double, Double> implements OfDouble
-	{
-		protected DoubleUnaryOperator function;
-
-		public FromDoubleToDouble(IterableDouble iterable, DoubleUnaryOperator function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromDoubleToDouble(OfDouble iterator, DoubleUnaryOperator function)
-		{
-			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
 		public double nextDouble()
 		{
-			return function.applyAsDouble(((OfDouble) iterator).nextDouble());
-		}
-	}
-
-	/** Map an iterator over doubles to an iterator over longs */
-	public static class FromDoubleToLong extends MappingIterator<Double, Long> implements OfLong
-	{
-		protected DoubleToLongFunction function;
-
-		public FromDoubleToLong(IterableDouble iterable, DoubleToLongFunction function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromDoubleToLong(OfDouble iterator, DoubleToLongFunction function)
-		{
-			super(iterator);
-			this.function = function;
+			requireNext();
+			return function.applyAsDouble(iterator.nextDouble());
 		}
 
 		@Override
-		public long nextLong()
+		public void release()
 		{
-			return function.applyAsLong(((OfDouble) iterator).nextDouble());
+			iterator = EmptyIterator.ofDouble();
 		}
 	}
 
-	/** Map an iterator over longs to an iterator over T */
-	public static class FromLong<T> extends MappingIterator<Long, T>
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: double -> int}.
+	 */
+	public static class DoubleToInt extends MappingIterator<Double, Integer, PrimitiveIterator.OfDouble> implements FunctionalPrimitiveIterator.OfInt
 	{
-		protected LongFunction<T> function;
+		/** The function the Iterator uses to map the elements */
+		protected final DoubleToIntFunction function;
 
-		public FromLong(IterableLong iterable, LongFunction<T> function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromLong(OfLong iterator, LongFunction<T> function)
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public DoubleToInt(PrimitiveIterator.OfDouble iterator, DoubleToIntFunction function)
 		{
 			super(iterator);
-			this.function = function;
-		}
-
-		@Override
-		public T next()
-		{
-			return function.apply(((OfLong) iterator).nextLong());
-		}
-	}
-
-	/** Map an iterator over longs to an iterator over integers */
-	public static class FromLongToInt extends MappingIterator<Long, Integer> implements OfInt
-	{
-		protected LongToIntFunction function;
-
-		public FromLongToInt(IterableLong iterable, LongToIntFunction function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromLongToInt(OfLong iterator, LongToIntFunction function)
-		{
-			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
 		public int nextInt()
 		{
-			return function.applyAsInt(((OfLong) iterator).nextLong());
-		}
-	}
-
-	/** Map an iterator over longs to an iterator over doubles */
-	public static class FromLongToDouble extends MappingIterator<Long, Double> implements OfDouble
-	{
-		protected LongToDoubleFunction function;
-
-		public FromLongToDouble(IterableLong iterable, LongToDoubleFunction function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromLongToDouble(OfLong iterator, LongToDoubleFunction function)
-		{
-			super(iterator);
-			this.function = function;
+			requireNext();
+			return function.applyAsInt(iterator.nextDouble());
 		}
 
 		@Override
-		public double nextDouble()
+		public void release()
 		{
-			return function.applyAsDouble(((OfLong) iterator).nextLong());
+			iterator = EmptyIterator.ofDouble();
 		}
 	}
 
-	/** Map an iterator over longs to another iterator over longs */
-	public static class FromLongToLong extends MappingIterator<Long, Long> implements OfLong
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: double -> long}.
+	 */
+	public static class DoubleToLong extends MappingIterator<Double, Long, PrimitiveIterator.OfDouble> implements FunctionalPrimitiveIterator.OfLong
 	{
-		protected LongUnaryOperator function;
+		/** The function the Iterator uses to map the elements */
+		protected final DoubleToLongFunction function;
 
-		public FromLongToLong(IterableLong iterable, LongUnaryOperator function)
-		{
-			this(iterable.iterator(), function);
-		}
-
-		public FromLongToLong(OfLong iterator, LongUnaryOperator function)
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public DoubleToLong(PrimitiveIterator.OfDouble iterator, DoubleToLongFunction function)
 		{
 			super(iterator);
+			Objects.requireNonNull(function);
 			this.function = function;
 		}
 
 		@Override
 		public long nextLong()
 		{
-			return function.applyAsLong(((OfLong) iterator).nextLong());
+			requireNext();
+			return function.applyAsLong(iterator.nextDouble());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofDouble();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: int -> E}.
+	 *
+	 * @param <E> type of the Iterator's elements after mapping
+	 */
+	public static class IntToObj<E> extends MappingIterator<Integer, E, PrimitiveIterator.OfInt>
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final IntFunction<? extends E> function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public IntToObj(OfInt iterator, IntFunction<? extends E> function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public E next()
+		{
+			requireNext();
+			return function.apply(iterator.nextInt());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofInt();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: int -> double}.
+	 */
+	public static class IntToDouble extends MappingIterator<Integer, Double, PrimitiveIterator.OfInt> implements FunctionalPrimitiveIterator.OfDouble
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final IntToDoubleFunction function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public IntToDouble(PrimitiveIterator.OfInt iterator, IntToDoubleFunction function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public double nextDouble()
+		{
+			requireNext();
+			return function.applyAsDouble(iterator.nextInt());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofInt();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: int -> int}.
+	 */
+	public static class IntToInt extends MappingIterator<Integer, Integer, PrimitiveIterator.OfInt> implements FunctionalPrimitiveIterator.OfInt
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final IntUnaryOperator function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public IntToInt(PrimitiveIterator.OfInt iterator, IntUnaryOperator function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public int nextInt()
+		{
+			requireNext();
+			return function.applyAsInt(iterator.nextInt());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofInt();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: int -> long}.
+	 */
+	public static class IntToLong extends MappingIterator<Integer, Long, PrimitiveIterator.OfInt> implements FunctionalPrimitiveIterator.OfLong
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final IntToLongFunction function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public IntToLong(PrimitiveIterator.OfInt iterator, IntToLongFunction function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public long nextLong()
+		{
+			requireNext();
+			return function.applyAsLong(iterator.nextInt());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofInt();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: long -> E}.
+	 *
+	 * @param <E> type of the Iterator's elements after mapping
+	 */
+	public static class LongToObj<E> extends MappingIterator<Long, E, PrimitiveIterator.OfLong>
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final LongFunction<? extends E> function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public LongToObj(OfLong iterator, LongFunction<? extends E> function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public E next()
+		{
+			requireNext();
+			return function.apply(iterator.nextLong());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofLong();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: long -> double}.
+	 */
+	public static class LongToDouble extends MappingIterator<Long, Double, PrimitiveIterator.OfLong> implements FunctionalPrimitiveIterator.OfDouble
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final LongToDoubleFunction function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public LongToDouble(PrimitiveIterator.OfLong iterator, LongToDoubleFunction function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public double nextDouble()
+		{
+			requireNext();
+			return function.applyAsDouble(iterator.nextLong());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofLong();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: long -> int}.
+	 */
+	public static class LongToInt extends MappingIterator<Long, Integer, PrimitiveIterator.OfLong> implements FunctionalPrimitiveIterator.OfInt
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final LongToIntFunction function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public LongToInt(PrimitiveIterator.OfLong iterator, LongToIntFunction function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public int nextInt()
+		{
+			requireNext();
+			return function.applyAsInt(iterator.nextLong());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofLong();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation of a MappingIterator using a function {@code f: long -> long}.
+	 */
+	public static class LongToLong extends MappingIterator<Long, Long, PrimitiveIterator.OfLong> implements FunctionalPrimitiveIterator.OfLong
+	{
+		/** The function the Iterator uses to map the elements */
+		protected final LongUnaryOperator function;
+
+		/**
+		 * Constructor for an Iterator that maps elements using a function.
+		 *
+		 * @param iterator an Iterator to be mapped
+		 * @param function a function used to map the elements
+		 */
+		public LongToLong(PrimitiveIterator.OfLong iterator, LongUnaryOperator function)
+		{
+			super(iterator);
+			Objects.requireNonNull(function);
+			this.function = function;
+		}
+
+		@Override
+		public long nextLong()
+		{
+			requireNext();
+			return function.applyAsLong(iterator.nextLong());
+		}
+
+		@Override
+		public void release()
+		{
+			iterator = EmptyIterator.ofLong();
 		}
 	}
 }

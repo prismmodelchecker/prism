@@ -33,17 +33,20 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import parser.State;
+import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionIdent;
 import parser.ast.LabelList;
 import parser.ast.RewardStruct;
-import parser.type.TypeDouble;
-import parser.Values;
-import parser.State;
-import prism.*;
+import prism.ModelGenerator;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismSettings;
 
 /*
  * TODO
@@ -607,13 +610,9 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 		mainLog.println("\nComputing probabilities (fast adaptive uniformisation)...");
 		
 		if (initDist == null) {
-			initDist = new StateValues();
-			initDist.type = TypeDouble.getInstance();
-			initDist.size = 1;
-			initDist.valuesD = new double[1];
-			initDist.statesList = new ArrayList<State>();
-			initDist.valuesD[0] = 1.0;
-			initDist.statesList.add(modelGen.getInitialState());
+			List<State> initStatesList = new ArrayList<>();
+			initStatesList.add(modelGen.getInitialState());
+			initDist = StateValues.createFromDoubleArray(new double[] { 1.0 }, initStatesList);
 		}
 		
 		/* prepare fast adaptive uniformisation */
@@ -649,11 +648,7 @@ public final class FastAdaptiveUniformisation extends PrismComponent
 			probsArr[probsArrEntry] = statePair.getValue().getProb();
 			probsArrEntry++;
 		}
-		StateValues probs = new StateValues();
-		probs.type = TypeDouble.getInstance();
-		probs.size = probsArr.length;
-		probs.valuesD = probsArr;
-		probs.statesList = statesList;		
+		StateValues probs = StateValues.createFromDoubleArray(probsArr, statesList);
 
 		mainLog.println("\nTotal probability lost is : " + getTotalDiscreteLoss());
 		mainLog.println("Maximal number of states stored during analysis : " + getMaxNumStates());

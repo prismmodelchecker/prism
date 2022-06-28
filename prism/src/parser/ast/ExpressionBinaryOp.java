@@ -26,8 +26,12 @@
 
 package parser.ast;
 
+import java.math.BigInteger;
+
 import param.BigRational;
 import parser.EvaluateContext;
+import parser.EvaluateContext.EvalMode;
+import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
@@ -145,127 +149,165 @@ public class ExpressionBinaryOp extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		switch (op) {
-		case IMPLIES:
-			return !operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec);
-		case IFF:
-			return operand1.evaluateBoolean(ec) == operand2.evaluateBoolean(ec);
-		case OR:
-			return operand1.evaluateBoolean(ec) || operand2.evaluateBoolean(ec);
-		case AND:
-			return operand1.evaluateBoolean(ec) && operand2.evaluateBoolean(ec);
-		case EQ:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) == operand2.evaluateInt(ec);
-			} else {
-				return operand1.evaluateDouble(ec) == operand2.evaluateDouble(ec);
-			}
-		case NE:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) != operand2.evaluateInt(ec);
-			} else {
-				return operand1.evaluateDouble(ec) != operand2.evaluateDouble(ec);
-			}
-		case GT:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) > operand2.evaluateInt(ec);
-			} else {
-				return operand1.evaluateDouble(ec) > operand2.evaluateDouble(ec);
-			}
-		case GE:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) >= operand2.evaluateInt(ec);
-			} else {
-				return operand1.evaluateDouble(ec) >= operand2.evaluateDouble(ec);
-			}
-		case LT:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) < operand2.evaluateInt(ec);
-			} else {
-				return operand1.evaluateDouble(ec) < operand2.evaluateDouble(ec);
-			}
-		case LE:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				return operand1.evaluateInt(ec) <= operand2.evaluateInt(ec);
-			} else {
-				return operand1.evaluateDouble(ec) <= operand2.evaluateDouble(ec);
-			}
-		case PLUS:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				try {
-					return Math.addExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
-				} catch (ArithmeticException e) {
-					throw new PrismLangException(e.getMessage(), this);
-				}
-			} else {
-				return operand1.evaluateDouble(ec) + operand2.evaluateDouble(ec);
-			}
-		case MINUS:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				try {
-					return Math.subtractExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
-				} catch (ArithmeticException e) {
-					throw new PrismLangException(e.getMessage(), this);
-				}
-			} else {
-				return operand1.evaluateDouble(ec) - operand2.evaluateDouble(ec);
-			}
-		case TIMES:
-			if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
-				try {
-					return Math.multiplyExact(operand1.evaluateInt(ec), operand2.evaluateInt(ec));
-				} catch (ArithmeticException e) {
-					throw new PrismLangException(e.getMessage(), this);
-				}
-			} else {
-				return operand1.evaluateDouble(ec) * operand2.evaluateDouble(ec);
-			}
-		case DIVIDE:
-			return operand1.evaluateDouble(ec) / operand2.evaluateDouble(ec);
-		}
-		throw new PrismLangException("Unknown binary operator", this);
+		Object eval1 = operand1.evaluate(ec);
+		Object eval2 = operand2.evaluate(ec);
+		return apply(eval1, eval2, ec.getEvaluationMode());
 	}
 	
-	@Override
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	/**
+	 * Apply this binary operator instance to the arguments provided
+	 */
+	public Object apply(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
-		BigRational v1 = operand1.evaluateExact(ec);
-		BigRational v2 = operand2.evaluateExact(ec);
-
 		switch (op) {
+
+		// Boolean operators (any eval mode)
 		case IMPLIES:
-			return BigRational.from(!v1.toBoolean() || v2.toBoolean());
+			return !((boolean) eval1) || ((boolean) eval2);
 		case IFF:
-			return BigRational.from(v1.toBoolean() == v2.toBoolean());
+			return ((boolean) eval1) == ((boolean) eval2);
 		case OR:
-			return BigRational.from(v1.toBoolean() || v2.toBoolean());
+			return ((boolean) eval1) || ((boolean) eval2);
 		case AND:
-			return BigRational.from(v1.toBoolean() && v2.toBoolean());
+			return ((boolean) eval1) && ((boolean) eval2);
+
+		// (In)equality (any eval mode)
 		case EQ:
-			return BigRational.from(v1.equals(v2));
 		case NE:
-			return BigRational.from(!v1.equals(v2));
-		case GT:
-			return BigRational.from(v1.compareTo(v2) > 0);
-		case GE:
-			return BigRational.from(v1.equals(v2) || v1.compareTo(v2) > 0);
-		case LT:
-			return BigRational.from(v1.compareTo(v2) < 0);
-		case LE:
-			return BigRational.from(v1.equals(v2) || v1.compareTo(v2) < 0);
-		case PLUS:
-			return v1.add(v2);
-		case MINUS:
-			return v1.subtract(v2);
-		case TIMES:
-			return v1.multiply(v2);
+			// Cast arguments to the same type if needed,
+			// before testing using equals() on the resulting Objects
+			if (!operand1.getType().equals(operand2.getType())) {
+				if (operand1.getType().canAssign(operand2.getType())) {
+					eval1 = operand1.getType().castValueTo(eval1);
+					eval2 = operand1.getType().castValueTo(eval2);
+				} else if (operand2.getType().canAssign(operand1.getType())) {
+					eval1 = operand2.getType().castValueTo(eval1);
+					eval2 = operand2.getType().castValueTo(eval2);
+				} else {
+					throw new PrismLangException("Cannot apply " + getOperatorSymbol() + " to " + operand1.getType() + " and " + operand2.getType(), this);
+				}
+			}
+			return op == EQ ? eval1.equals(eval2) : !eval1.equals(eval2);
+
+		// Division (always evaluates to a double)
 		case DIVIDE:
-			return v1.divide(v2);
+			// Type will always be double; so cast both to doubles
+			Object eval1D = TypeDouble.getInstance().castValueTo(eval1, evalMode);
+			Object eval2D = TypeDouble.getInstance().castValueTo(eval2, evalMode);
+			switch (evalMode) {
+			case FP:
+				return ((double) eval1D) / ((double) eval2D);
+			case EXACT:
+				return ((BigRational) eval1D).divide(((BigRational) eval2D));
+			default:
+				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			}
+
+		// Other numerical (relations/arithmetic) - mix of doubles/ints
+		default:
+			try {
+				// Two ints
+				if (operand1.getType() == TypeInt.getInstance() && operand2.getType() == TypeInt.getInstance()) {
+					switch (evalMode) {
+					case FP:
+						int i1 = (int) eval1;
+						int i2 = (int) eval2;
+						switch (op) {
+						case GT:
+							return i1 > i2;
+						case GE:
+							return i1 >= i2;
+						case LT:
+							return i1 < i2;
+						case LE:
+							return i1 <= i2;
+						case PLUS:
+							return Math.addExact(i1, i2);
+						case MINUS:
+							return Math.subtractExact(i1, i2);
+						case TIMES:
+							return Math.multiplyExact(i1, i2);
+						}
+					case EXACT:
+						BigInteger bi1 = (BigInteger) eval1;
+						BigInteger bi2 = (BigInteger) eval2;
+						switch (op) {
+						case GT:
+							return bi1.compareTo(bi2) > 0;
+						case GE:
+							return bi1.compareTo(bi2) >= 0;
+						case LT:
+							return bi1.compareTo(bi2) < 0;
+						case LE:
+							return bi1.compareTo(bi2) <= 0;
+						case PLUS:
+							return bi1.add(bi2);
+						case MINUS:
+							return bi1.subtract(bi2);
+						case TIMES:
+							return bi1.multiply(bi2);
+						}
+					default:
+						throw new PrismLangException("Unknown evaluation mode " + evalMode);
+					}
+				}
+				// One or more arguments doubles - convert all to doubles
+				else {
+					eval1D = TypeDouble.getInstance().castValueTo(eval1, evalMode);
+					eval2D = TypeDouble.getInstance().castValueTo(eval2, evalMode);
+					switch (evalMode) {
+					case FP:
+						double d1 = (double) TypeDouble.getInstance().castValueTo(eval1, EvalMode.FP);
+						double d2 = (double) TypeDouble.getInstance().castValueTo(eval2, EvalMode.FP);
+						switch (op) {
+						case GT:
+							return d1 > d2;
+						case GE:
+							return d1 >= d2;
+						case LT:
+							return d1 < d2;
+						case LE:
+							return d1 <= d2;
+						case PLUS:
+							return d1 + d2;
+						case MINUS:
+							return d1 - d2;
+						case TIMES:
+							return d1 * d2;
+						default:
+							throw new PrismLangException("Unknown binary operator", this);
+						}
+					case EXACT:
+						BigRational br1 = (BigRational) TypeDouble.getInstance().castValueTo(eval1, EvalMode.EXACT);
+						BigRational br2 = (BigRational) TypeDouble.getInstance().castValueTo(eval2, EvalMode.EXACT);
+						switch (op) {
+						case GT:
+							return br1.compareTo(br2) > 0;
+						case GE:
+							return br1.compareTo(br2) >= 0;
+						case LT:
+							return br1.compareTo(br2) < 0;
+						case LE:
+							return br1.compareTo(br2) <= 0;
+						case PLUS:
+							return br1.add(br2);
+						case MINUS:
+							return br1.subtract(br2);
+						case TIMES:
+							return br1.multiply(br2);
+						default:
+							throw new PrismLangException("Unknown binary operator", this);
+						}
+					default:
+						throw new PrismLangException("Unknown evaluation mode " + evalMode);
+					}
+				}
+			} catch (ArithmeticException e) {
+				throw new PrismLangException(e.getMessage(), this);
+			}
 		}
-		throw new PrismLangException("Unknown binary operator", this);
 	}
-
-
+	
 	@Override
 	public boolean returnsSingleValue()
 	{

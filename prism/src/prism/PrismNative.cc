@@ -44,6 +44,7 @@ EXPORT double lin_eq_method_param;
 EXPORT int term_crit;
 EXPORT double term_crit_param;
 EXPORT int max_iters;
+EXPORT int export_model_precision;
 // use "compact modified" sparse matrix storage?
 EXPORT bool compact;
 // sparse bits info
@@ -130,6 +131,13 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCritParam(JNIEnv *env, 
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
 {
 	max_iters = i;
+}
+
+//------------------------------------------------------------------------------
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportModelPrecision(JNIEnv *env, jclass cls, jint prec)
+{
+	export_model_precision = prec;
 }
 
 //------------------------------------------------------------------------------

@@ -147,7 +147,7 @@ public class MDPDroppedAllChoices extends MDPView
 	@Override
 	public Iterator<Integer> getSuccessorsIterator(final int state)
 	{
-		return states.get(state) ? EmptyIterator.Of() : model.getSuccessorsIterator(state);
+		return states.get(state) ? EmptyIterator.of() : model.getSuccessorsIterator(state);
 	}
 
 

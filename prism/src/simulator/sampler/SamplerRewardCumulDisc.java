@@ -26,9 +26,10 @@
 
 package simulator.sampler;
 
-import simulator.*;
-import prism.*;
-import parser.ast.*;
+import parser.ast.ExpressionTemporal;
+import prism.ModelGenerator;
+import prism.PrismException;
+import simulator.Path;
 
 public class SamplerRewardCumulDisc extends SamplerDouble
 {

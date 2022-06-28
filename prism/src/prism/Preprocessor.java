@@ -334,11 +334,11 @@ public class Preprocessor
 		varTypes.add(TypeInt.getInstance());
 		varScopes.add(stack.size());
 		if (expr != null) {
-			values.addValue(name, new Integer(expr.evaluateInt(null, values)));
+			values.addValue(name, Integer.valueOf(expr.evaluateInt(null, values)));
 		} else {
 			if (params.length <= paramCounter + 1)
 				throw new PrismException("No value provided for undefined preprocessor constant \"" + name + "\"");
-			values.addValue(name, new Integer(Integer.parseInt(params[++paramCounter])));
+			values.addValue(name, Integer.valueOf(Integer.parseInt(params[++paramCounter])));
 		}
 		// move to next statement
 		pc++;
@@ -370,7 +370,7 @@ public class Preprocessor
 		varNames.add(fl.getLHS());
 		varTypes.add(TypeInt.getInstance());
 		varScopes.add(stack.size());
-		values.addValue(fl.getLHS(), new Integer(fl.getFrom().evaluateInt(null, values)));
+		values.addValue(fl.getLHS(), Integer.valueOf(fl.getFrom().evaluateInt(null, values)));
 		// if for loop trivially not satisfied, set output flag to false
 		if (fl.getFrom().evaluateInt(null, values) > fl.getTo().evaluateInt(null, values)) {
 			outputEnabled = false;
@@ -424,12 +424,12 @@ public class Preprocessor
 			// otherwise increment to see if we have finished yet
 			else {
 				// increment for loop
-				i = values.getIntValueOf(fl.getLHS());
+				i = (int) values.getValueOf(fl.getLHS());
 				i += fl.getStep().evaluateInt(null, values);
 				// if loop is not finished...
 				if (i <= fl.getTo().evaluateInt(null, values)) {
 					// update value of loop counter
-					values.setValue(fl.getLHS(), new Integer(i));
+					values.setValue(fl.getLHS(), Integer.valueOf(i));
 					// add "between" character to text
 					output += fl.getBetween();
 					// go back to start of loop

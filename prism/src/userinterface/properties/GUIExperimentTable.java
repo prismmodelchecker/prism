@@ -70,12 +70,24 @@ public class GUIExperimentTable extends JTable
 		}
 	}
 	
-	public int newExperiment(PropertiesFile propFile, UndefinedConstants cons, boolean useSimulation)//propFile only contains 1 con
+	/**
+	 * @param propFile  contains exactly 1 property
+	 */
+	public int newExperiment(PropertiesFile propFile, UndefinedConstants cons, boolean useSimulation)
 	{
 		GUIExperiment ge = new GUIExperiment(this, guiProps, propFile, cons, useSimulation); 
 		return expModel.addExperiment(ge);
 	}
-	
+
+	/**
+	 * Import the results of an experiment into the table.
+	 */
+	public int importExperiment(Property property, ResultsCollection results)
+	{
+		GUIExperiment ge = new GUIExperimentImported(this, guiProps, property, results); 
+		return expModel.addExperiment(ge);
+	}
+
 	public void removeExperiment(int i)
 	{
 		expModel.removeExperiment(i);
@@ -153,7 +165,7 @@ public class GUIExperimentTable extends JTable
 			GUIExperiment ge = getExperiment(rowIndex);
 			switch(columnIndex)
 			{
-				case 0: return ge.getPropertyString();
+				case 0: return ge.getExpressionString();
 				case 1: return ge.getDefinedConstantsString();
 				case 2:
 					{

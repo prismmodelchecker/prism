@@ -1,15 +1,15 @@
-P>0.55 [ F s=7&d>x ]:
+"Property_1": P>0.55 [ F s=7&d>x ]:
 x	Result
 1	true
 2	true
 3	false
 
-P=? [ F<=5 s=7&d>3 ]:
+"Intriguing": P=? [ F<=5 s=7&d>3 ]:
 Result
 0.46875
 
 R=? [ F "done"&d>=x ]:
 x	Result
-1	1.0
+1	1
 2	Infinity
 3	Infinity

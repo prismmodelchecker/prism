@@ -14,7 +14,7 @@ label "done" = s=7;
 // RESULT (AA=1,BB=2,x=1): true
 // RESULT (AA=1,BB=2,x=2): true
 // RESULT (AA=1,BB=2,x=3): false
-P>0.55 [ F s=7 & d>x ];
+"Property_1": P>0.55 [ F s=7 & d>x ];
 
 // RESULT (AA=0,BB=1,x=1): 0.78125
 // RESULT (AA=0,BB=1,x=2): 0.625
@@ -28,7 +28,7 @@ P>0.55 [ F s=7 & d>x ];
 // RESULT (AA=1,BB=2,x=1): 0.78125
 // RESULT (AA=1,BB=2,x=2): 0.625
 // RESULT (AA=1,BB=2,x=3): 0.46875
-P=? [ F<=5 s=7 & d>x ];
+"Intriguing": P=? [ F<=5 s=7 & d>x ];
 
 // RESULT (AA=0,BB=1,x=1): 0.78125
 // RESULT (AA=0,BB=1,x=2): 0.625

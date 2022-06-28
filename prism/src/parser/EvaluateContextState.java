@@ -27,40 +27,45 @@
 package parser;
 
 /**
- * Information required to evaluate an expression: a State object.
- * This is basically an array of Objects, indexed according to a model file. 
- * Optionally values for constants can also be supplied.
+ * Information required to evaluate an expression,
+ * where the values for variables are stored in a State object.
+ * A State is basically just an array of Objects, with no variable name info,
+ * so variable indices (i.e., offsets into the State array) need to be provided.
+ * Optionally, values for constants can also be stored and used.
  */
-public class EvaluateContextState implements EvaluateContext
+public class EvaluateContextState extends EvaluateContext
 {
-	private Values constantValues;
+	/**
+	 * Variable values for state
+	 */
 	private Object[] varValues;
 
 	public EvaluateContextState(State state)
 	{
-		this.constantValues = null;
-		this.varValues = state.varValues;
+		setState(state);
 	}
 
 	public EvaluateContextState(Values constantValues, State state)
 	{
-		this.constantValues = constantValues;
-		this.varValues = state.varValues;
+		setConstantValues(constantValues);
+		setState(state);
 	}
 
-	public Object getConstantValue(String name)
+	/**
+	 * Set the state variable values. The array of state values is extracted and stored, not copied.
+	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
+	 */
+	public EvaluateContext setState(State state)
 	{
-		if (constantValues == null)
-			return null;
-		int i = constantValues.getIndexOf(name);
-		if (i == -1)
-			return null;
-		return constantValues.getValue(i);
+		this.varValues = state.varValues;
+		return this;
 	}
 
+	@Override
 	public Object getVarValue(String name, int index)
 	{
-		// Use index to look up value
+		// There is no variable name info available,
+		// so use index if provided; otherwise unknown
 		return index == -1 ? null : varValues[index];
 	}
 }

@@ -1,43 +1,43 @@
-"P>0.55 [ F s=7&d>x ]"
+"""Property_1"": P>0.55 [ F s=7&d>x ]"
 "AA=0, BB\x"
-, 1, 2, 3
-1, true, true, false
-2, true, true, false
+,1,2,3
+1,true,true,false
+2,true,true,false
 
 "AA=1, BB\x"
-, 1, 2, 3
-1, true, true, false
-2, true, true, false
+,1,2,3
+1,true,true,false
+2,true,true,false
+
+"""Intriguing"": P=? [ F<=5 s=7&d>x ]"
+"AA=0, BB\x"
+,1,2,3
+1,0.78125,0.625,0.46875
+2,0.78125,0.625,0.46875
+
+"AA=1, BB\x"
+,1,2,3
+1,0.78125,0.625,0.46875
+2,0.78125,0.625,0.46875
 
 "P=? [ F<=5 s=7&d>x ]"
 "AA=0, BB\x"
-, 1, 2, 3
-1, 0.78125, 0.625, 0.46875
-2, 0.78125, 0.625, 0.46875
+,1,2,3
+1,0.78125,0.625,0.46875
+2,0.78125,0.625,0.46875
 
 "AA=1, BB\x"
-, 1, 2, 3
-1, 0.78125, 0.625, 0.46875
-2, 0.78125, 0.625, 0.46875
-
-"P=? [ F<=5 s=7&d>x ]"
-"AA=0, BB\x"
-, 1, 2, 3
-1, 0.78125, 0.625, 0.46875
-2, 0.78125, 0.625, 0.46875
-
-"AA=1, BB\x"
-, 1, 2, 3
-1, 0.78125, 0.625, 0.46875
-2, 0.78125, 0.625, 0.46875
+,1,2,3
+1,0.78125,0.625,0.46875
+2,0.78125,0.625,0.46875
 
 "R=? [ F ""done""&d>=x ]"
 "AA=0, BB\x"
-, 1, 2, 3
-1, 1.0, Infinity, Infinity
-2, 1.0, Infinity, Infinity
+,1,2,3
+1,1,Infinity,Infinity
+2,1,Infinity,Infinity
 
 "AA=1, BB\x"
-, 1, 2, 3
-1, 1.0, Infinity, Infinity
-2, 1.0, Infinity, Infinity
+,1,2,3
+1,1,Infinity,Infinity
+2,1,Infinity,Infinity

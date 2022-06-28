@@ -149,6 +149,18 @@ public class DigitalClocks
 				}
 			});
 		}
+		// Check for any global clocks
+		for (int v = 0; v < modulesFile.getNumGlobals(); v++) {
+			modulesFile.getGlobal(v).accept(new ASTTraverse()
+			{
+				public void visitPost(Declaration e) throws PrismLangException
+				{
+					if (e.getDeclType() instanceof DeclarationClock) {
+						throw new PrismLangException("Global clock variables are not allowed when using the digital clocks method", e);
+					}
+				}
+			});
+		}
 		// Check that the property is suitable for checking with digital clocks
 		if (propertyToCheck != null) {
 			checkProperty(propertyToCheck, propertiesFile);

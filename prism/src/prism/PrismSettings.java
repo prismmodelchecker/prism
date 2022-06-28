@@ -34,6 +34,7 @@ import java.awt.*;
 
 import javax.swing.*;
 
+import common.iterable.Range;
 import explicit.QuantAbstractRefine;
 
 import java.util.regex.*;
@@ -53,7 +54,7 @@ public class PrismSettings implements Observer
 	public static final Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN, 12);
 	public static final FontColorPair DEFAULT_FONT_COLOUR = new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black);
 	public static final File DEFAULT_FILE = null;
-	
+
 	//Type Constants
 	public static final String STRING_TYPE = "s";
 	public static final String INTEGER_TYPE = "i";
@@ -66,7 +67,11 @@ public class PrismSettings implements Observer
 	public static final String CHOICE_TYPE = "ch";
 	public static final String FONT_COLOUR_TYPE = "fct";
 	public static final String FILE_TYPE = "fi";
-	
+
+	// Constraint constants
+	public static final Range RANGE_EXPORT_DOUBLE_PRECISION = Range.closed(1, 17);
+	public static final int DEFAULT_EXPORT_MODEL_PRECISION = 17;
+
 	//Property Constant Keys
 	//======================
 	
@@ -96,7 +101,8 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
 	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
 	public static final	String PRISM_GRID_RESOLUTION				= "prism.gridResolution";
-	
+	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportmodelprecision";
+
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
 	public static final	String PRISM_DD_EXTRA_STATE_VARS				= "prism.ddExtraStateVars";
@@ -237,7 +243,7 @@ public class PrismSettings implements Observer
 																			"Which engine (hybrid, sparse, MTBDD, explicit) should be used for model checking." },
 			{ CHOICE_TYPE,		PRISM_HEURISTIC,						"Heuristic mode",							"4.5",			"None",																		"None,Speed,Memory",																		
 																			"Which heuristic mode to use for picking engines/settings (none, speed, memory)." },
-			{ BOOLEAN_TYPE,		PRISM_EXACT_ENABLED,					"Do exact model checking",			"4.2.1",			new Boolean(false),															"",
+			{ BOOLEAN_TYPE,		PRISM_EXACT_ENABLED,					"Do exact model checking",			"4.2.1",			Boolean.valueOf(false),															"",
 																			"Perform exact model checking." },
 																			
 			{ CHOICE_TYPE,		PRISM_PTA_METHOD,						"PTA model checking method",			"3.3",			"Stochastic games",																	"Digital clocks,Stochastic games,Backwards reachability",																
@@ -247,7 +253,7 @@ public class PrismSettings implements Observer
 			// NUMERICAL SOLUTION OPTIONS:
 			{ CHOICE_TYPE,		PRISM_LIN_EQ_METHOD,					"Linear equations method",				"2.1",			"Jacobi",																	"Power,Jacobi,Gauss-Seidel,Backwards Gauss-Seidel,Pseudo-Gauss-Seidel,Backwards Pseudo-Gauss-Seidel,JOR,SOR,Backwards SOR,Pseudo-SOR,Backwards Pseudo-SOR",
 																			"Which iterative method to use when solving linear equation systems." },
-			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"Over-relaxation parameter",			"2.1",			new Double(0.9),															"",																							
+			{ DOUBLE_TYPE,		PRISM_LIN_EQ_METHOD_PARAM,				"Over-relaxation parameter",			"2.1",			Double.valueOf(0.9),															"",																							
 																			"Over-relaxation parameter for iterative numerical methods such as JOR/SOR." },
 			{ BOOLEAN_TYPE,		PRISM_TOPOLOGICAL_VI,				"Use topological value iteration",				"4.3.1",		false,																		"",
 																			"Use topological value iteration in iterative numerical methods."},
@@ -263,32 +269,34 @@ public class PrismSettings implements Observer
 																			"Which method to use when solving multi-objective queries on Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_TERM_CRIT,						"Termination criteria",					"2.1",			"Relative",																	"Absolute,Relative",																		
 																			"Criteria to use for checking termination of iterative numerical methods." },
-			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			new Double(1.0E-6),															"0.0,",																						
+			{ DOUBLE_TYPE,		PRISM_TERM_CRIT_PARAM,					"Termination epsilon",					"2.1",			Double.valueOf(1.0E-6),															"0.0,",																						
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
-			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			Integer.valueOf(10000),															"0,",																						
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
 			{ BOOLEAN_TYPE,		PRISM_EXPORT_ITERATIONS,				"Export iterations (debug/visualisation)",			"4.3.1",			false,														"",
 																			"Export solution vectors for iteration algorithms to iterations.html"},
-			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			new Integer(10),															"1,",																						
+			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			Integer.valueOf(10),															"1,",																						
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
+			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7dev",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
+																			"Export probabilities/rewards with n significant decimal places"},
 			// MODEL CHECKING OPTIONS:
-			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			Boolean.valueOf(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
-			{ BOOLEAN_TYPE,		PRISM_PROB0,							"Use Prob0 precomputation",				"4.0.2",		new Boolean(true),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_PROB0,							"Use Prob0 precomputation",				"4.0.2",		Boolean.valueOf(true),															"",																							
 																			"Whether to use model checking precomputation algorithm Prob0 (if precomputation enabled)." },
-			{ BOOLEAN_TYPE,		PRISM_PROB1,							"Use Prob1 precomputation",				"4.0.2",		new Boolean(true),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_PROB1,							"Use Prob1 precomputation",				"4.0.2",		Boolean.valueOf(true),															"",																							
 																			"Whether to use model checking precomputation algorithm Prob1 (if precomputation enabled)." },
-			{ BOOLEAN_TYPE,		PRISM_PRE_REL,							"Use predecessor relation",		"4.2.1",		new Boolean(true),											"",
+			{ BOOLEAN_TYPE,		PRISM_PRE_REL,							"Use predecessor relation",		"4.2.1",		Boolean.valueOf(true),											"",
 																			"Whether to use a pre-computed predecessor relation in several algorithms." },
-			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"Use fairness",							"2.1",			new Boolean(false),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_FAIRNESS,							"Use fairness",							"2.1",			Boolean.valueOf(false),															"",																							
 																			"Constrain to fair adversaries when model checking MDPs." },
-			{ BOOLEAN_TYPE,		PRISM_FIX_DEADLOCKS,					"Automatically fix deadlocks",			"4.0.3",		new Boolean(true),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_FIX_DEADLOCKS,					"Automatically fix deadlocks",			"4.0.3",		Boolean.valueOf(true),															"",																							
 																			"Automatically fix deadlocks, where necessary, when constructing probabilistic models." },
-			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			new Boolean(true),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_DO_PROB_CHECKS,					"Do probability/rate checks",			"2.1",			Boolean.valueOf(true),															"",																							
 																			"Perform sanity checks on model probabilities/rates when constructing probabilistic models." },
-			{ DOUBLE_TYPE,		PRISM_SUM_ROUND_OFF,					"Probability sum threshold",					"2.1",			new Double(1.0E-5),													"0.0,",
+			{ DOUBLE_TYPE,		PRISM_SUM_ROUND_OFF,					"Probability sum threshold",					"2.1",			Double.valueOf(1.0E-5),													"0.0,",
 																			"Round-off threshold for places where doubles are summed and compared to integers (e.g. checking that probabilities sum to 1 in an update)." },							
-			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			new Boolean(true),															"0,",																						
+			{ BOOLEAN_TYPE,		PRISM_DO_SS_DETECTION,					"Use steady-state detection",			"2.1",			Boolean.valueOf(true),															"0,",																						
 																			"Use steady-state detection during CTMC transient probability computation." },
 			{ CHOICE_TYPE,		PRISM_SCC_METHOD,						"SCC decomposition method",				"3.2",			"Lockstep",																	"Xie-Beerel,Lockstep,SCC-Find",																
 																			"Which algorithm to use for (symbolic) decomposition of a graph into strongly connected components (SCCs)." },
@@ -296,43 +304,43 @@ public class PrismSettings implements Observer
 																			"Parameters for symmetry reduction (format: \"i j\" where i and j are the number of modules before and after the symmetric ones; empty string means symmetry reduction disabled)." },
 			{ STRING_TYPE,		PRISM_AR_OPTIONS,						"Abstraction refinement options",		"3.3",			"",																	"",																
 																			"Various options passed to the asbtraction-refinement engine (e.g. for PTA model checking)." },
-			{ BOOLEAN_TYPE,		PRISM_PATH_VIA_AUTOMATA,				"All path formulas via automata",			"4.2.1",			new Boolean(false),									"",
+			{ BOOLEAN_TYPE,		PRISM_PATH_VIA_AUTOMATA,				"All path formulas via automata",			"4.2.1",			Boolean.valueOf(false),									"",
 																			"Handle all path formulas via automata constructions." },
-			{ BOOLEAN_TYPE,		PRISM_NO_DA_SIMPLIFY,				"Do not simplify deterministic automata",			"4.3",			new Boolean(false),									"",
+			{ BOOLEAN_TYPE,		PRISM_NO_DA_SIMPLIFY,				"Do not simplify deterministic automata",			"4.3",			Boolean.valueOf(false),									"",
 																			"Do not attempt to simplify deterministic automata, acceptance conditions (for debugging)." },
 
 			// MULTI-OBJECTIVE MODEL CHECKING OPTIONS:
-			{ INTEGER_TYPE,		PRISM_MULTI_MAX_POINTS,					"Max. multi-objective corner points",			"4.0.3",			new Integer(50),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_MULTI_MAX_POINTS,					"Max. multi-objective corner points",			"4.0.3",			Integer.valueOf(50),															"0,",																						
 																			"Maximum number of corner points to explore if (value iteration based) multi-objective model checking does not converge." },
-			{ DOUBLE_TYPE,		PRISM_PARETO_EPSILON,					"Pareto approximation threshold",			"4.0.3",			new Double(1.0E-2),															"0.0,",																						
+			{ DOUBLE_TYPE,		PRISM_PARETO_EPSILON,					"Pareto approximation threshold",			"4.0.3",			Double.valueOf(1.0E-2),															"0.0,",																						
 																			"Determines to what precision the Pareto curve will be approximated." },
 			{ STRING_TYPE,		PRISM_EXPORT_PARETO_FILENAME,			"Pareto curve export filename",			"4.0.3",			"",															"0,",																						
 																			"If non-empty, any Pareto curve generated will be exported to this file." },
 			// OUTPUT OPTIONS:
-			{ BOOLEAN_TYPE,		PRISM_VERBOSE,							"Verbose output",						"2.1",		new Boolean(false),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_VERBOSE,							"Verbose output",						"2.1",		Boolean.valueOf(false),															"",																							
 																			"Display verbose output to log." },
-			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",		new Boolean(false),															"0,",																						
+			{ BOOLEAN_TYPE,		PRISM_EXTRA_DD_INFO,					"Extra MTBDD information",				"3.1.1",		Boolean.valueOf(false),															"0,",																						
 																			"Display extra information about (MT)BDDs used during and after model construction." },
-			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.1.1",		new Boolean(false),															"0,",																						
+			{ BOOLEAN_TYPE,		PRISM_EXTRA_REACH_INFO,					"Extra reachability information",		"3.1.1",		Boolean.valueOf(false),															"0,",																						
 																			"Display extra information about progress of reachability during model construction." },
 			// SPARSE/HYBRID/MTBDD OPTIONS:
-			{ BOOLEAN_TYPE,		PRISM_COMPACT,							"Use compact schemes",					"2.1",			new Boolean(true),															"",																							
+			{ BOOLEAN_TYPE,		PRISM_COMPACT,							"Use compact schemes",					"2.1",			Boolean.valueOf(true),															"",																							
 																			"Use additional optimisations for compressing sparse matrices and vectors with repeated values." },
-			{ INTEGER_TYPE,		PRISM_NUM_SB_LEVELS,					"Hybrid sparse levels",					"2.1",			new Integer(-1),															"-1,",																						
+			{ INTEGER_TYPE,		PRISM_NUM_SB_LEVELS,					"Hybrid sparse levels",					"2.1",			Integer.valueOf(-1),															"-1,",																						
 																			"Number of MTBDD levels ascended when adding sparse matrices to hybrid engine data structures (-1 means use default)." },
-			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"Hybrid sparse memory (KB)",			"2.1",			new Integer(1024),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_SB_MAX_MEM,						"Hybrid sparse memory (KB)",			"2.1",			Integer.valueOf(1024),															"0,",																						
 																			"Maximum memory usage when adding sparse matrices to hybrid engine data structures (KB)." },
-			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"Hybrid GS levels",						"2.1",			new Integer(-1),															"-1,",																						
+			{ INTEGER_TYPE,		PRISM_NUM_SOR_LEVELS,					"Hybrid GS levels",						"2.1",			Integer.valueOf(-1),															"-1,",																						
 																			"Number of MTBDD levels descended for hybrid engine data structures block division with GS/SOR." },
-			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			new Integer(1024),															"0,",																						
+			{ INTEGER_TYPE,		PRISM_SOR_MAX_MEM,						"Hybrid GS memory (KB)",				"2.1",			Integer.valueOf(1024),															"0,",																						
 																			"Maximum memory usage for hybrid engine data structures block division with GS/SOR (KB)." },
 			{ STRING_TYPE,		PRISM_CUDD_MAX_MEM,						"CUDD max. memory",				"4.2.1",			new String("1g"),														"",																						
 																			"Maximum memory available to CUDD (underlying BDD/MTBDD library), e.g. 125k, 50m, 4g. Note: Restart PRISM after changing this." },
-			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"CUDD epsilon",							"2.1",			new Double(1.0E-15),														"0.0,",																						
+			{ DOUBLE_TYPE,		PRISM_CUDD_EPSILON,						"CUDD epsilon",							"2.1",			Double.valueOf(1.0E-15),														"0.0,",																						
 																			"Epsilon value used by CUDD (underlying BDD/MTBDD library) for terminal cache comparisons." },
-			{ INTEGER_TYPE,		PRISM_DD_EXTRA_STATE_VARS,				"Extra DD state var allocation",		"4.3.1",			new Integer(20),														"",
+			{ INTEGER_TYPE,		PRISM_DD_EXTRA_STATE_VARS,				"Extra DD state var allocation",		"4.3.1",			Integer.valueOf(20),														"",
 																			"Number of extra DD state variables preallocated for use in model transformation." },
-			{ INTEGER_TYPE,		PRISM_DD_EXTRA_ACTION_VARS,				"Extra DD action var allocation",		"4.3.1",			new Integer(20),														"",
+			{ INTEGER_TYPE,		PRISM_DD_EXTRA_ACTION_VARS,				"Extra DD action var allocation",		"4.3.1",			Integer.valueOf(20),														"",
 																			"Number of extra DD action variables preallocated for use in model transformation." },
 
 
@@ -350,11 +358,11 @@ public class PrismSettings implements Observer
 																			"The syntax for LTL formulas passed to the external LTL->DA tool."},
 
 			// DEBUG / SANITY CHECK OPTIONS:
-			{ BOOLEAN_TYPE,		PRISM_JDD_SANITY_CHECKS,					"Do BDD sanity checks",			"4.3.1",			new Boolean(false),		"",
+			{ BOOLEAN_TYPE,		PRISM_JDD_SANITY_CHECKS,					"Do BDD sanity checks",			"4.3.1",			Boolean.valueOf(false),		"",
 																			"Perform internal sanity checks during computations (can cause significant slow-down)." },
 
 			// PARAMETRIC MODEL CHECKING
-			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			new Boolean(false),															"",
+			{ BOOLEAN_TYPE,		PRISM_PARAM_ENABLED,					"Do parametric model checking",			"4.1",			Boolean.valueOf(false),															"",
 																			"Perform parametric model checking." },
 			{ STRING_TYPE,		PRISM_PARAM_PRECISION,					"Parametric model checking precision",	"4.1",			"5/100",																	"",
 																			"Maximal volume of area to remain undecided in each step when performing parametric model checking." },
@@ -366,47 +374,47 @@ public class PrismSettings implements Observer
 																			"Type of representation for functions used during parametric model checking." },
 			{ CHOICE_TYPE,		PRISM_PARAM_ELIM_ORDER,					"Parametric model checking state elimination order",			"4.1",			"Backward",																		"Arbitrary,Forward,Forward-reversed,Backward,Backward-reversed,Random",
 																			"Order in which states are eliminated during unbounded parametric model checking analysis." },
-			{ INTEGER_TYPE,		PRISM_PARAM_RANDOM_POINTS,				"Parametric model checking random evaluations",		"4.1",			new Integer(5),																"",
+			{ INTEGER_TYPE,		PRISM_PARAM_RANDOM_POINTS,				"Parametric model checking random evaluations",		"4.1",			Integer.valueOf(5),																"",
 																			"Number of random points to evaluate per region to increase chance of correctness during parametric model checking." },
-			{ BOOLEAN_TYPE,		PRISM_PARAM_SUBSUME_REGIONS,			"Parametric model checking region subsumption",				"4.1",			new Boolean(true),															"",
+			{ BOOLEAN_TYPE,		PRISM_PARAM_SUBSUME_REGIONS,			"Parametric model checking region subsumption",				"4.1",			Boolean.valueOf(true),															"",
 																			"Subsume adjacent regions during parametric model checking." },
-			{ DOUBLE_TYPE,		PRISM_PARAM_DAG_MAX_ERROR,				"Parametric model checking max. DAG error",	"4.1",			new Double(1E-100),															"",
+			{ DOUBLE_TYPE,		PRISM_PARAM_DAG_MAX_ERROR,				"Parametric model checking max. DAG error",	"4.1",			Double.valueOf(1E-100),															"",
 																			"Maximal error probability (i.e. maximum probability of of a wrong result) in DAG function representation used for parametric model checking." },
 			
 			// FAST ADAPTIVE UNIFORMISATION																
-			{ DOUBLE_TYPE,      PRISM_FAU_EPSILON,						"FAU epsilon",		 					"4.1",   	 	new Double(1E-6),     													"",
+			{ DOUBLE_TYPE,      PRISM_FAU_EPSILON,						"FAU epsilon",		 					"4.1",   	 	Double.valueOf(1E-6),     													"",
 																			"For fast adaptive uniformisation (FAU), decides how much probability may be lost due to truncation of birth process." },
-			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	new Double(1E-12),     													"",
+			{ DOUBLE_TYPE,      PRISM_FAU_DELTA,						"FAU cut off delta", 					"4.1",   	 	Double.valueOf(1E-12),     													"",
 																			"For fast adaptive uniformisation (FAU), states whose probability is below this value will be removed." },
-			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 					"4.1",   	 	new Integer(100),    	 													"",
+			{ INTEGER_TYPE,     PRISM_FAU_ARRAYTHRESHOLD,				"FAU array threshold", 					"4.1",   	 	Integer.valueOf(100),    	 													"",
 																			"For fast adaptive uniformisation (FAU), after this number of iterations without changes to the state space, storage is switched to a faster, fixed-size data structure." },
-			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	new Integer(1),     														"",
+			{ INTEGER_TYPE,     PRISM_FAU_INTERVALS,					"FAU time intervals",					"4.1",   	 	Integer.valueOf(1),     														"",
 																			"For fast adaptive uniformisation (FAU), the time period is split into this number of of intervals." },
-			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"FAU initial time interval",			"4.1",   	 	new Double(1.0),     														"",	
+			{ DOUBLE_TYPE,      PRISM_FAU_INITIVAL,						"FAU initial time interval",			"4.1",   	 	Double.valueOf(1.0),     														"",	
 																			"For fast adaptive uniformisation (FAU), the length of initial time interval to analyse." },
 		},
 		{
-			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		new Integer(1000),			"1,",
+			{ INTEGER_TYPE,		SIMULATOR_DEFAULT_NUM_SAMPLES,			"Default number of samples",			"4.0",		Integer.valueOf(1000),			"1,",
 																			"Default number of samples when using approximate (simulation-based) model checking (CI/ACI/APMC methods)." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"Default confidence parameter",			"4.0",		new Double(0.01),			"0,1",
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_CONFIDENCE,			"Default confidence parameter",			"4.0",		Double.valueOf(0.01),			"0,1",
 																			"Default value for the 'confidence' parameter when using approximate (simulation-based) model checking (CI/ACI/APMC/SPRT methods). For CI/ACI, this means that the corresponding 'confidence level' is 100 x (1 - confidence)%; for APMC, this is the probability of the 'approximation' being exceeded; for SPRT, this is the acceptable probability for type I/II errors." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_WIDTH,				"Default width of confidence interval",	"4.0",		new Double(0.05),			"0,",
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_WIDTH,				"Default width of confidence interval",	"4.0",		Double.valueOf(0.05),			"0,",
 																			"Default (half-)width of the confidence interval when using approximate (simulation-based) model checking (CI/ACI/SPRT methods). For SPRT, this refers to the 'indifference' parameter." },
-			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"Default approximation parameter",		"4.0",		new Double(0.05),			"0,",
+			{ DOUBLE_TYPE,		SIMULATOR_DEFAULT_APPROX,				"Default approximation parameter",		"4.0",		Double.valueOf(0.05),			"0,",
 																			"Default value for the 'approximation' parameter when using approximate (simulation-based) model checking (APMC method)." },
-			{ LONG_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"Default maximum path length",			"2.1",		new Long(10000),			"1,",
+			{ LONG_TYPE,		SIMULATOR_DEFAULT_MAX_PATH,				"Default maximum path length",			"2.1",		Long.valueOf(10000),			"1,",
 																			"Default maximum path length when using approximate (simulation-based) model checking." },
-			{ BOOLEAN_TYPE,		SIMULATOR_DECIDE,						"Decide S^2=0 or not automatically",	"4.0",		new	Boolean(true),			"",
+			{ BOOLEAN_TYPE,		SIMULATOR_DECIDE,						"Decide S^2=0 or not automatically",	"4.0",		Boolean.valueOf(true),			"",
 																			"Let PRISM choose whether, after a certain number of iterations, the standard error is null or not." },
-			{ INTEGER_TYPE,		SIMULATOR_ITERATIONS_TO_DECIDE,			"Number of iterations to decide",		"4.0",		new	Integer(10000),			"1,",
+			{ INTEGER_TYPE,		SIMULATOR_ITERATIONS_TO_DECIDE,			"Number of iterations to decide",		"4.0",		Integer.valueOf(10000),			"1,",
 																			"Number of iterations to decide whether the standard error is null or not." },
-			{ DOUBLE_TYPE,		SIMULATOR_MAX_REWARD,					"Maximum reward",						"4.0",		new	Double(1000.0),			"1,",
+			{ DOUBLE_TYPE,		SIMULATOR_MAX_REWARD,					"Maximum reward",						"4.0",		Double.valueOf(1000.0),			"1,",
 																			"Maximum reward for CI/ACI methods. It helps these methods in displaying the progress in case of rewards computation." },
-			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"Check properties simultaneously",		"2.1",		new Boolean(true),			"",
+			{ BOOLEAN_TYPE,		SIMULATOR_SIMULTANEOUS,					"Check properties simultaneously",		"2.1",		Boolean.valueOf(true),			"",
 																			"Check multiple properties simultaneously over the same set of execution paths (simulator only)." },
 			{ CHOICE_TYPE,		SIMULATOR_FIELD_CHOICE,					"Values used in dialog",				"2.1",		"Last used values",			"Last used values,Always use defaults",
 																			"How to choose values for the simulation dialog: remember previously used values or revert to the defaults each time." },
-			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"Ask for view configuration",			"2.1",		new Boolean(false),			"",
+			{ BOOLEAN_TYPE,		SIMULATOR_NEW_PATH_ASK_VIEW,			"Ask for view configuration",			"2.1",		Boolean.valueOf(false),			"",
 																			"Display dialog with display options when creating a new simulation path." },
 			{ CHOICE_TYPE,		SIMULATOR_RENDER_ALL_VALUES,			"Path render style",					"3.2",		"Render all values",		"Render changes,Render all values",
 																			"Display style for paths in the simulator user interface: only show variable values when they change, or show all values regardless." },
@@ -414,11 +422,11 @@ public class PrismSettings implements Observer
 																			"File specifying the network profile used by the distributed PRISM simulator." }
 		},
 		{
-			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"2.1",			new Boolean(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
-			{ BOOLEAN_TYPE,		MODEL_AUTO_MANUAL,						"Manual parse for large models",		"2.1",			new Boolean(true),															"",																							"Disable automatic model parsing when loading large PRISM models." },
-			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"Parse delay (ms)",						"2.1",			new Integer(1000),															"0,",																						"Time delay (after typing has finished) before an automatic re-parse of the model is performed." },
+			{ BOOLEAN_TYPE,		MODEL_AUTO_PARSE,						"Auto parse",							"2.1",			Boolean.valueOf(true),															"",																							"Parse PRISM models automatically as they are loaded/edited in the text editor." },
+			{ BOOLEAN_TYPE,		MODEL_AUTO_MANUAL,						"Manual parse for large models",		"2.1",			Boolean.valueOf(true),															"",																							"Disable automatic model parsing when loading large PRISM models." },
+			{ INTEGER_TYPE,		MODEL_PARSE_DELAY,						"Parse delay (ms)",						"2.1",			Integer.valueOf(1000),															"0,",																						"Time delay (after typing has finished) before an automatic re-parse of the model is performed." },
 			{ FONT_COLOUR_TYPE,	MODEL_PRISM_EDITOR_FONT,				"PRISM editor font",					"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used in the PRISM model text editor." },
-			{ BOOLEAN_TYPE,		MODEL_SHOW_LINE_NUMBERS,				"PRISM editor line numbers",            "3.2",    new Boolean(true),															"",																							"Enable or disable line numbers in the PRISM model text editor" },
+			{ BOOLEAN_TYPE,		MODEL_SHOW_LINE_NUMBERS,				"PRISM editor line numbers",            "3.2",    Boolean.valueOf(true),															"",																							"Enable or disable line numbers in the PRISM model text editor" },
 			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_BG_COLOUR,			"PRISM editor background",				"2.1",			new Color(255,255,255),														"",																							"Background colour for the PRISM model text editor." },
 			{ COLOUR_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_COLOUR,		"PRISM editor numeric colour",			"2.1",			new Color(0,0,255),															"",																							"Syntax highlighting colour for numerical values in the PRISM model text editor." },
 			{ CHOICE_TYPE,		MODEL_PRISM_EDITOR_NUMERIC_STYLE,		"PRISM editor numeric style",			"2.1",			"Plain",																	"Plain,Italic,Bold,Bold Italic",															"Syntax highlighting style for numerical values in the PRISM model text editor." },
@@ -437,12 +445,12 @@ public class PrismSettings implements Observer
 			{ FONT_COLOUR_TYPE,	PROPERTIES_FONT,						"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the properties list." },
 			{ COLOUR_TYPE,		PROPERTIES_WARNING_COLOUR,				"Warning colour",						"2.1",			new Color(255,130,130),														"",																							"Colour used to indicate that a property is invalid." },
 			{ CHOICE_TYPE,		PROPERTIES_ADDITION_STRATEGY,			"Property addition strategy",			"2.1",			"Warn when invalid",														"Warn when invalid,Do not allow invalid",													"How to deal with properties that are invalid." },
-			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"Clear list when load model",			"2.1",			new Boolean(true),															"",																							"Clear the properties list whenever a new model is loaded." }
+			{ BOOLEAN_TYPE,		PROPERTIES_CLEAR_LIST_ON_LOAD,			"Clear list when load model",			"2.1",			Boolean.valueOf(true),															"",																							"Clear the properties list whenever a new model is loaded." }
 		},
 		{
 			{ FONT_COLOUR_TYPE,	LOG_FONT,								"Display font",							"2.1",			new FontColorPair(new Font("monospaced", Font.PLAIN, 12), Color.black),		"",																							"Font used for the log display." },
 			{ COLOUR_TYPE,		LOG_BG_COLOUR,							"Background colour",					"2.1",			new Color(255,255,255),														"",																							"Background colour for the log display." },
-			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"Buffer length",						"2.1",			new Integer(10000),															"1,",																						"Length of the buffer for the log display." }
+			{ INTEGER_TYPE,		LOG_BUFFER_LENGTH,						"Buffer length",						"2.1",			Integer.valueOf(10000),															"1,",																						"Length of the buffer for the log display." }
 		}
 	};
 	
@@ -789,7 +797,7 @@ public class PrismSettings implements Observer
 			// Do we need to resave the file?
 			// (i.e. is the version of the saved settings (a) old? (b) unparseable?)
 			if (version == null) version = "0";
-			if (Prism.compareVersions(version, Prism.getVersion()) == -1) resaveNeeded = true;
+			if (PrismUtils.compareVersions(version, Prism.getVersion()) == -1) resaveNeeded = true;
 			
 			// Read whole file
 			reader = new BufferedReader(new FileReader(file));
@@ -817,7 +825,7 @@ public class PrismSettings implements Observer
 							{
 								// If the version of the settings file is not newer than the "version" of the setting,
 								// and we are re-saving the file, overwrite the setting with the default value 
-								if (resaveNeeded && Prism.compareVersions(version, set.getVersion()) <= 0) continue;
+								if (resaveNeeded && PrismUtils.compareVersions(version, set.getVersion()) <= 0) continue;
 								try
 								{
 									Object valObj = set.parseStringValue(value);
@@ -862,7 +870,7 @@ public class PrismSettings implements Observer
 						{
 							// If the version of the settings file is not newer than the "version" of the setting,
 							// and we are re-saving the file, overwrite the setting with the default value 
-							if (resaveNeeded && Prism.compareVersions(version, set.getVersion()) <= 0) continue;
+							if (resaveNeeded && PrismUtils.compareVersions(version, set.getVersion()) <= 0) continue;
 							try
 							{
 								Object valObj = set.parseStringValue(multiline.toString() + line);
@@ -1195,7 +1203,22 @@ public class PrismSettings implements Observer
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
 		}
-		
+		// export probabilities/rewards with up to n significant decimal places
+		else if (sw.equals("exportmodelprecision")) {
+			if (i < args.length - 1) {
+				try {
+					int precision = Integer.parseInt(args[++i]);
+					if (!RANGE_EXPORT_DOUBLE_PRECISION.contains(precision))
+						throw new NumberFormatException("");
+					set(PRISM_EXPORT_MODEL_PRECISION, precision);
+				} catch (NumberFormatException e) {
+					throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+		}
+
 		// MODEL CHECKING OPTIONS:
 		
 		// Precomputation algs off

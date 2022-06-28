@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2014-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -29,9 +29,10 @@ package common;
 
 import java.util.BitSet;
 import java.util.NoSuchElementException;
-import java.util.PrimitiveIterator.OfInt;
+import java.util.Objects;
 
-import common.iterable.IterableInt;
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.FunctionalPrimitiveIterator;
 
 /**
  * Convenience class to loop easily over the set/clear bits of a BitSet.
@@ -39,21 +40,21 @@ import common.iterable.IterableInt;
  * For example:<br/><br/>
  * <code>for (Integer index : getSetBits(set)) { ... }</code><br/>
  */
-public class IterableBitSet implements IterableInt
+public class IterableBitSet implements FunctionalPrimitiveIterable.OfInt
 {
-	private BitSet set;
-	private boolean clearBits = false;
-	private boolean reversed = false;
-	private Integer maxIndex = null;
+	protected final BitSet set;
+	protected final boolean clearBits;
+	protected final boolean reversed;
+	protected final int maxIndex;
 
 	/**
 	 * Constructor for an Iterable that iterates over the set bits of {@code set}
+	 *
+	 * @param set the underlying BitSet
 	 */
 	public IterableBitSet(BitSet set)
 	{
-		this.set = set;
-		this.clearBits = false;
-		this.reversed = false;
+		this(set, null, false, false);
 	}
 
 	/**
@@ -83,14 +84,15 @@ public class IterableBitSet implements IterableInt
 	 */
 	public IterableBitSet(BitSet set, Integer maxIndex, boolean clearBits, boolean reversed)
 	{
+		Objects.requireNonNull(set);
 		this.set = set;
-		this.maxIndex = maxIndex;
+		this.maxIndex = maxIndex == null ? Integer.MAX_VALUE : Math.max(maxIndex, -1);
 		this.clearBits = clearBits;
 		this.reversed = reversed;
 	}
 
 	/** Implementation of the iterator over the set bits */
-	private class SetBitsIterator implements OfInt
+	private class SetBitsIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
 		private int next = set.nextSetBit(0);
@@ -98,7 +100,7 @@ public class IterableBitSet implements IterableInt
 		@Override
 		public boolean hasNext()
 		{
-			if (maxIndex != null && next > maxIndex) {
+			if (next > maxIndex) {
 				// limit to 0 ... maxIndex
 				return false;
 			}
@@ -110,7 +112,9 @@ public class IterableBitSet implements IterableInt
 		{
 			if (hasNext()) {
 				current = next;
-				next = set.nextSetBit(current + 1);
+				// mind potential overflow
+				int from = current + 1;
+				next = from < 0 ? -1 : set.nextSetBit(from);
 				return current;
 			}
 			throw new NoSuchElementException();
@@ -119,25 +123,22 @@ public class IterableBitSet implements IterableInt
 		@Override
 		public void remove()
 		{
-			set.clear(current);
+			if (current >= 0) {
+				set.clear(current);
+			}
 		}
 	}
 
 	/** Implementation of the iterator over the set bits (reverse order) */
-	private class SetBitsReversedIterator implements OfInt
+	private class SetBitsReversedIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
-		private int next = set.nextSetBit(0);
+		private int next;
 
 		public SetBitsReversedIterator()
 		{
-			current = -1;
-			if (maxIndex != null) {
-				// only consider set bits with index <= maxIndex
-				next = set.previousSetBit(maxIndex);
-			} else {
-				next = set.length() - 1;  // highest set bit
-			}
+			// only consider set bits with index <= maxIndex
+			next = maxIndex < 0 ? -1 : set.previousSetBit(maxIndex);
 		}
 
 		@Override
@@ -160,12 +161,14 @@ public class IterableBitSet implements IterableInt
 		@Override
 		public void remove()
 		{
-			set.clear(current);
+			if (current >= 0) {
+				set.clear(current);
+			}
 		}
 	}
 
 	/** Implementation of the iterator over the cleared bits, requires that {@code maxIndex != null} */
-	private class ClearBitsIterator implements OfInt
+	private class ClearBitsIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
 		private int next = set.nextClearBit(0);
@@ -177,7 +180,7 @@ public class IterableBitSet implements IterableInt
 				// limit to 0 ... maxIndex
 				return false;
 			}
-			return true;
+			return next >= 0;
 		}
 
 		@Override
@@ -185,7 +188,9 @@ public class IterableBitSet implements IterableInt
 		{
 			if (hasNext()) {
 				current = next;
-				next = set.nextClearBit(current + 1);
+				int from = current + 1;
+				// mind potential overflow
+				next = from < 0 ? -1 : set.nextClearBit(from);
 				return current;
 			}
 			throw new NoSuchElementException();
@@ -194,21 +199,22 @@ public class IterableBitSet implements IterableInt
 		@Override
 		public void remove()
 		{
-			set.set(current);
+			if (current >= 0) {
+				set.set(current);
+			}
 		}
 	}
 
 	/** Implementation of the iterator over the clear bits (reverse order), requires that {@code maxIndex != null} */
-	private class ClearBitsReversedIterator implements OfInt
+	private class ClearBitsReversedIterator implements FunctionalPrimitiveIterator.OfInt
 	{
 		private int current = -1;
-		private int next = set.nextSetBit(0);
+		private int next;
 
 		public ClearBitsReversedIterator()
 		{
-			current = -1;
 			// only consider clear bits with index <= maxIndex
-			next = set.previousClearBit(maxIndex);
+			next = maxIndex < 0 ? -1 : set.previousClearBit(maxIndex);
 		}
 
 		@Override
@@ -231,12 +237,14 @@ public class IterableBitSet implements IterableInt
 		@Override
 		public void remove()
 		{
-			set.clear(current);
+			if (current >= 0) {
+				set.set(current);
+			}
 		}
 	}
 
 	@Override
-	public OfInt iterator()
+	public FunctionalPrimitiveIterator.OfInt iterator()
 	{
 		if (clearBits == false) {
 			if (reversed) {
@@ -304,6 +312,7 @@ public class IterableBitSet implements IterableInt
 	public static void main(String[] args)
 	{
 		BitSet test = new BitSet();
+		test.set(0);
 		test.set(1);
 		test.set(2);
 		test.set(3);
@@ -311,6 +320,7 @@ public class IterableBitSet implements IterableInt
 		test.set(8);
 		test.set(13);
 		test.set(21);
+		test.set(Integer.MAX_VALUE);
 
 		System.out.println("\n" + test + " - set bits:");
 		for (Integer index : getSetBits(test)) {

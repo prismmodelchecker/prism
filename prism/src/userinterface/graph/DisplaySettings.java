@@ -69,7 +69,7 @@ public class DisplaySettings extends Observable implements SettingOwner
 		this.chart = graph.getChart();
 		this.plot = chart.getXYPlot();
 		
-		antiAlias = new BooleanSetting("anti-aliasing", new Boolean(true), "Should the graph be rendered using anti-aliasing?", this, false);
+		antiAlias = new BooleanSetting("anti-aliasing", Boolean.valueOf(true), "Should the graph be rendered using anti-aliasing?", this, false);
 		Color defaultColor = Color.white; 
 		
 		//Color defaultColor =  UIManager.getColor("Panel.background");
@@ -159,7 +159,7 @@ public class DisplaySettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			antiAlias.setValue(new Boolean(value));
+			antiAlias.setValue(Boolean.valueOf(value));
 			updateDisplay();
 			setChanged();
 			notifyObservers(this);

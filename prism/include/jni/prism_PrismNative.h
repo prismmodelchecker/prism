@@ -73,6 +73,14 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters
 
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_SetExportModelPrecision
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportModelPrecision
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_SetSBMaxMem
  * Signature: (I)V
  */

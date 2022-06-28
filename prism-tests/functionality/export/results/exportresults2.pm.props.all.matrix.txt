@@ -1,12 +1,12 @@
-P>0.55 [ F s=7&d>x ]:
+"Property_1": P>0.55 [ F s=7&d>x ]:
 x:
 1	2	3
 true	true	false
 
-P=? [ F<=5 s=7&d>3 ]:
+"Intriguing": P=? [ F<=5 s=7&d>3 ]:
 0.46875
 
 R=? [ F "done"&d>=x ]:
 x:
 1	2	3
-1.0	Infinity	Infinity
+1	Infinity	Infinity

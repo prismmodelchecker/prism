@@ -76,7 +76,7 @@ public class GUIGroupedTableColumnModel extends DefaultTableColumnModel implemen
 			this.addColumn(elementColumns.get(i));
 		}
 
-		lastColumn.add(new Integer(this.getColumnCount() - 1));
+		lastColumn.add(Integer.valueOf(this.getColumnCount() - 1));
 		updateGroups();
 	}
 

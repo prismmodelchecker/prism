@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -27,46 +27,44 @@
 
 package common.iterable;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
-import java.util.Set;
 import java.util.function.DoublePredicate;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
 /**
- * Base class for filtering iterators,
- * static helpers for common filtering task (deduping).
+ * Abstract base class implementing an Iterator that filters elements by a predicate.
+ * Returns only those elements for which the filter predicate evaluates to {@code true}.
+ * <p>
+ * The calls to {@code next()} of the underlying Iterator happen on-the-fly,
+ * i.e., only when {@code next()} is called for this Iterator.
+ * <p>
+ * Implementations should release the underlying Iterator after iteration.
+ * <p>
+ * This Iterator does not support the {@code remove()} method, even if the underlying
+ * Iterator support it.
+ *
+ * @param <E> type of the Iterator's elements
+ * @param <I> type of the underlying Iterator
  */
-public abstract class FilteringIterator<T> implements Iterator<T>
+public abstract class FilteringIterator<E, I extends Iterator<E>> implements FunctionalIterator<E>
 {
-	protected final Iterator<T> iterator;
+	/** The Iterator which elements are filtered */
+	protected I iterator;
+	/** A flag indicating whether another element exists */
 	protected boolean hasNext;
 
-	public static <T> Iterator<T> nonNull(Iterable<T> iterable)
+	/**
+	 * Constructor for a FilteringIterator without a predicate.
+	 *
+	 * @param iterator an Iterator to be filtered
+	 */
+	public FilteringIterator(I iterator)
 	{
-		return nonNull(iterable.iterator());
-	}
-
-	public static <T> Iterator<T> nonNull(Iterator<T> iterator)
-	{
-		if (iterator instanceof PrimitiveIterator) {
-			return iterator;
-		}
-		return new FilteringIterator.Of<>(iterator, Objects::nonNull);
-	}
-
-	public FilteringIterator(final Iterable<T> iterable)
-	{
-		this(iterable.iterator());
-	}
-
-	public FilteringIterator(final Iterator<T> iterator)
-	{
+		Objects.requireNonNull(iterator);
 		this.iterator = iterator;
 	}
 
@@ -76,188 +74,101 @@ public abstract class FilteringIterator<T> implements Iterator<T>
 		return hasNext;
 	}
 
-	protected void requireNext()
+	@Override
+	public void release()
 	{
-		if (!hasNext) {
-			throw new NoSuchElementException();
-		}
+		hasNext = false;
 	}
 
 	/**
-	 * Obtain filtering iterator for the given iterator,
-	 * filtering duplicate elements (via HashSet, requires
-	 * that {@code equals()} and {@code hashCode()} are properly
-	 * implemented).
+	 * Seek and store the next element for which the filter evaluates to {@code true}.
 	 */
-	public static <T> Iterator<T> dedupe(final Iterator<T> iterator)
-	{
-		final Set<T> elements = new HashSet<>();
-		return new FilteringIterator.Of<>(iterator, (Predicate<T>) elements::add);
-	}
+	protected abstract void seekNext();
+
+
+
 
 	/**
-	 * Obtain filtering iterator for the given primitive int iterator,
-	 * filtering duplicate elements (via HashSet).
+	 * Generic implementation of a FilteringIterator.
+	 *
+	 * @param <E> type of the Iterable's elements
 	 */
-	public static OfInt dedupe(final PrimitiveIterator.OfInt iterator)
+	public static class Of<E> extends FilteringIterator<E, Iterator<E>>
 	{
-		// TODO: use BitSet? Evaluate performance in practice...
-		final Set<Integer> elements = new HashSet<>();
-		return new FilteringIterator.OfInt(iterator, (IntPredicate) elements::add);
-	}
+		/** The predicate the Iterator uses to filter the elements */
+		protected final Predicate<E> filter;
+		/** The next element for which the filter predicates evaluates to {@code true} */
+		protected E next;
 
-	/**
-	 * Obtain filtering iterator for the given primitive long iterator,
-	 * filtering duplicate elements (via HashSet).
-	 */
-	public static OfLong dedupe(final PrimitiveIterator.OfLong iterator)
-	{
-		final Set<Long> elements = new HashSet<>();
-		return new FilteringIterator.OfLong(iterator, (LongPredicate) elements::add);
-	}
-
-	/**
-	 * Obtain filtering iterator for the given primitive double iterator,
-	 * filtering duplicate elements (via HashSet).
-	 */
-	public static OfDouble dedupe(final PrimitiveIterator.OfDouble iterator)
-	{
-		final Set<Double> elements = new HashSet<>();
-		return new FilteringIterator.OfDouble(iterator, (DoublePredicate) elements::add);
-	}
-
-	public static class Of<T> extends FilteringIterator<T>
-	{
-		protected final Predicate<? super T> predicate;
-		private T next;
-
-		public Of(Iterable<T> iterable, Predicate<? super T> predicate)
-		{
-			this(iterable.iterator(), predicate);
-		}
-
-		public Of(Iterator<T> iterator, Predicate<? super T> predicate)
+		/**
+		 * Constructor for an Iterator that filters elements by a predicate.
+		 *
+		 * @param iterator an Iterator to be filtered
+		 * @param predicate a predicate used to filter the elements
+		 */
+		@SuppressWarnings("unchecked")
+		public Of(Iterator<E> iterator, Predicate<? super E> predicate)
 		{
 			super(iterator);
-			this.predicate = predicate;
+			Objects.requireNonNull(predicate);
+			this.filter = (Predicate<E>) predicate;
 			seekNext();
 		}
 
 		@Override
-		public T next()
+		public E next()
 		{
 			requireNext();
-			T current = next;
+			E current = next;
 			seekNext();
 			return current;
 		}
 
-		private void seekNext()
+		@Override
+		public void release()
+		{
+			super.release();
+			iterator = EmptyIterator.of();
+			next     = null;
+		}
+
+		@Override
+		protected void seekNext()
 		{
 			while (iterator.hasNext()) {
 				next = iterator.next();
-				if (predicate.test(next)) {
+				if (filter.test(next)) {
 					hasNext = true;
 					return;
 				}
 			}
-			hasNext = false;
-			next = null;
+			release();
 		}
 	}
 
-	public static class OfInt extends FilteringIterator<Integer> implements PrimitiveIterator.OfInt
+
+
+	/**
+	 * Primitive specialisation for {@code double} of a FilteringIterator.
+	 */
+	public static class OfDouble extends FilteringIterator<Double, PrimitiveIterator.OfDouble> implements FunctionalPrimitiveIterator.OfDouble
 	{
-		protected final IntPredicate predicate;
-		private int next;
+		/** The predicate the Iterator uses to filter the elements */
+		protected final DoublePredicate filter;
+		/** The next element for which the filter predicates evaluates to {@code true} */
+		protected double next;
 
-		public OfInt(IterableInt iterable, IntPredicate predicate)
-		{
-			this(iterable.iterator(), predicate);
-		}
-
-		public OfInt(PrimitiveIterator.OfInt iterator, IntPredicate predicate)
-		{
-			super(iterator);
-			this.predicate = predicate;
-			seekNext();
-		}
-
-		@Override
-		public int nextInt()
-		{
-			requireNext();
-			int current = next;
-			seekNext();
-			return current;
-		}
-
-		private void seekNext()
-		{
-			while (iterator.hasNext()) {
-				next = ((PrimitiveIterator.OfInt) iterator).nextInt();
-				if (predicate.test(next)) {
-					hasNext = true;
-					return;
-				}
-			}
-			hasNext = false;
-		}
-	}
-
-	public static class OfLong extends FilteringIterator<Long> implements PrimitiveIterator.OfLong
-	{
-		protected final LongPredicate predicate;
-		private long next;
-
-		public OfLong(IterableLong iterable, LongPredicate predicate)
-		{
-			this(iterable.iterator(), predicate);
-		}
-
-		public OfLong(PrimitiveIterator.OfLong iterator, LongPredicate predicate)
-		{
-			super(iterator);
-			this.predicate = predicate;
-			seekNext();
-		}
-
-		@Override
-		public long nextLong()
-		{
-			requireNext();
-			long current = next;
-			seekNext();
-			return current;
-		}
-
-		private void seekNext()
-		{
-			while (iterator.hasNext()) {
-				next = ((PrimitiveIterator.OfLong) iterator).nextLong();
-				if (predicate.test(next)) {
-					hasNext = true;
-					return;
-				}
-			}
-			hasNext = false;
-		}
-	}
-
-	public static class OfDouble extends FilteringIterator<Double> implements PrimitiveIterator.OfDouble
-	{
-		protected final DoublePredicate predicate;
-		private double next;
-
-		public OfDouble(IterableDouble iterable, DoublePredicate predicate)
-		{
-			this(iterable.iterator(), predicate);
-		}
-
+		/**
+		 * Constructor for an Iterator that filters elements by a predicate.
+		 *
+		 * @param iterator an Iterator to be filtered
+		 * @param predicate a predicate used to filter the elements
+		 */
 		public OfDouble(PrimitiveIterator.OfDouble iterator, DoublePredicate predicate)
 		{
 			super(iterator);
-			this.predicate = predicate;
+			Objects.requireNonNull(predicate);
+			this.filter = predicate;
 			seekNext();
 		}
 
@@ -270,11 +181,134 @@ public abstract class FilteringIterator<T> implements Iterator<T>
 			return current;
 		}
 
-		private void seekNext()
+		@Override
+		public void release()
+		{
+			super.release();
+			iterator = EmptyIterator.ofDouble();
+			next     = 0.0;
+		}
+
+		@Override
+		protected void seekNext()
 		{
 			while (iterator.hasNext()) {
-				next = ((PrimitiveIterator.OfDouble) iterator).nextDouble();
-				if (predicate.test(next)) {
+				next = iterator.nextDouble();
+				if (filter.test(next)) {
+					hasNext = true;
+					return;
+				}
+			}
+			release();
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation for {@code int} of a FilteringIterator.
+	 */
+	public static class OfInt extends FilteringIterator<Integer, PrimitiveIterator.OfInt> implements FunctionalPrimitiveIterator.OfInt
+	{
+		/** The predicate the Iterator uses to filter the elements */
+		protected final IntPredicate filter;
+		/** The next element for which the filter predicates evaluates to {@code true} */
+		protected int next;
+
+		/**
+		 * Constructor for an Iterator that filters elements by a predicate.
+		 *
+		 * @param iterator an Iterator to be filtered
+		 * @param predicate a predicate used to filter the elements
+		 */
+		public OfInt(PrimitiveIterator.OfInt iterator, IntPredicate predicate)
+		{
+			super(iterator);
+			Objects.requireNonNull(predicate);
+			this.filter = predicate;
+			seekNext();
+		}
+
+		@Override
+		public int nextInt()
+		{
+			requireNext();
+			int current = next;
+			seekNext();
+			return current;
+		}
+
+		@Override
+		public void release()
+		{
+			super.release();
+			iterator = EmptyIterator.ofInt();
+			next     = 0;
+		}
+
+		@Override
+		protected void seekNext()
+		{
+			while (iterator.hasNext()) {
+				next = iterator.nextInt();
+				if (filter.test(next)) {
+					hasNext = true;
+					return;
+				}
+			}
+			hasNext = false;
+		}
+	}
+
+
+
+	/**
+	 * Primitive specialisation for {@code long} of a FilteringIterator.
+	 */
+	public static class OfLong extends FilteringIterator<Long, PrimitiveIterator.OfLong> implements FunctionalPrimitiveIterator.OfLong
+	{
+		/** The predicate the Iterator uses to filter the elements */
+		protected final LongPredicate filter;
+		/** The next element for which the filter predicates evaluates to {@code true} */
+		protected long next;
+
+		/**
+		 * Constructor for an Iterator that filters elements by a predicate.
+		 *
+		 * @param iterator an Iterator to be filtered
+		 * @param predicate a predicate used to filter the elements
+		 */
+		public OfLong(PrimitiveIterator.OfLong iterator, LongPredicate predicate)
+		{
+			super(iterator);
+			Objects.requireNonNull(predicate);
+			this.filter = predicate;
+			seekNext();
+		}
+
+		@Override
+		public long nextLong()
+		{
+			requireNext();
+			long current = next;
+			seekNext();
+			return current;
+		}
+
+		@Override
+		public void release()
+		{
+			super.release();
+			iterator = EmptyIterator.ofLong();
+			next     = 0;
+		}
+
+		@Override
+		protected void seekNext()
+		{
+			while (iterator.hasNext()) {
+				next = iterator.nextLong();
+				if (filter.test(next)) {
 					hasNext = true;
 					return;
 				}

@@ -44,10 +44,9 @@ import explicit.graphviz.Decorator;
 import parser.State;
 import parser.Values;
 import parser.VarList;
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismFileLog;
-import prism.PrismLog;
+import prism.*;
+
+import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
 /**
  * Interface for (abstract) classes that provide (read-only) access to an explicit-state model.
@@ -181,7 +180,7 @@ public interface Model
 	 */
 	public default int getNumTransitions(int s)
 	{
-		return IteratorTools.count(getSuccessorsIterator(s));
+		return Math.toIntExact(IteratorTools.count(getSuccessorsIterator(s)));
 	}
 
 	/**
@@ -322,15 +321,24 @@ public interface Model
 	public void checkForDeadlocks(BitSet except) throws PrismException;
 
 	// Export methods (explicit files)
-	
+
 	/**
 	 * Export to explicit format readable by PRISM (i.e. a .tra file, etc.).
 	 */
 	default void exportToPrismExplicit(String baseFilename) throws PrismException
 	{
+		exportToPrismExplicit(baseFilename, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to explicit format readable by PRISM (i.e. a .tra file, etc.).
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToPrismExplicit(String baseFilename, int precision) throws PrismException
+	{
 		// Default implementation - just output .tra file
 		// (some models might override this)
-		exportToPrismExplicitTra(baseFilename + ".tra");
+		exportToPrismExplicitTra(baseFilename + ".tra", precision);
 	}
 
 	/**
@@ -338,8 +346,17 @@ public interface Model
 	 */
 	default void exportToPrismExplicitTra(String filename) throws PrismException
 	{
+		exportToPrismExplicitTra(filename, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToPrismExplicitTra(String filename, int precision) throws PrismException
+	{
 		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToPrismExplicitTra(log);
+			exportToPrismExplicitTra(log, precision);
 		}
 	}
 
@@ -348,24 +365,53 @@ public interface Model
 	 */
 	default void exportToPrismExplicitTra(File file) throws PrismException
 	{
-		exportToPrismExplicitTra(file.getPath());
+		exportToPrismExplicitTra(file, DEFAULT_EXPORT_MODEL_PRECISION);
 	}
-	
+
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToPrismExplicitTra(File file, int precision) throws PrismException
+	{
+		exportToPrismExplicitTra(file.getPath(), precision);
+	}
+
+
 	/**
 	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
 	 */
-	public void exportToPrismExplicitTra(PrismLog log);
+	default void exportToPrismExplicitTra(PrismLog log)
+	{
+		exportToPrismExplicitTra(log, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export transition matrix to explicit format readable by PRISM (i.e. a .tra file).
+	 * @param precision number of significant digits >= 1
+	 */
+	public void exportToPrismExplicitTra(PrismLog log, int precision);
 	
 	// Export methods (dot files)
-	
+
 	/**
 	 * Export to a dot file.
 	 * @param filename Name of file to export to
 	 */
 	default void exportToDotFile(String filename) throws PrismException
 	{
+		exportToDotFile(filename, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file.
+	 * @param filename Name of file to export to
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(String filename, int precision) throws PrismException
+	{
 		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToDotFile(log);
+			exportToDotFile(log, precision);
 		}
 	}
 
@@ -376,8 +422,19 @@ public interface Model
 	 */
 	default void exportToDotFile(String filename, BitSet mark) throws PrismException
 	{
+		exportToDotFile(filename, mark, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark'.
+	 * @param filename Name of file to export to
+	 * @param mark States to highlight (ignored if null)
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(String filename, BitSet mark, int precision) throws PrismException
+	{
 		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToDotFile(log, mark);
+			exportToDotFile(log, mark, precision);
 		}
 	}
 
@@ -387,8 +444,18 @@ public interface Model
 	 */
 	default void exportToDotFile(String filename, Iterable<explicit.graphviz.Decorator> decorators) throws PrismException
 	{
+		exportToDotFile(filename, decorators, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file, decorating states and transitions with the provided decorators
+	 * @param filename Name of the file to export to
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(String filename, Iterable<explicit.graphviz.Decorator> decorators, int precision) throws PrismException
+	{
 		try (PrismFileLog log = PrismFileLog.create(filename)) {
-			exportToDotFile(log, decorators);
+			exportToDotFile(log, decorators, precision);
 		}
 	}
 
@@ -398,7 +465,17 @@ public interface Model
 	 */
 	default void exportToDotFile(PrismLog out)
 	{
-		exportToDotFile(out, (Iterable<explicit.graphviz.Decorator>)null);
+		exportToDotFile(out, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file.
+	 * @param out PrismLog to export to
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(PrismLog out, int precision)
+	{
+		exportToDotFile(out, (Iterable<explicit.graphviz.Decorator>)null, precision);
 	}
 
 	/**
@@ -408,10 +485,21 @@ public interface Model
 	 */
 	default void exportToDotFile(PrismLog out, BitSet mark)
 	{
+		exportToDotFile(out, mark, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark'.
+	 * @param out PrismLog to export to
+	 * @param mark States to highlight (ignored if null)
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(PrismLog out, BitSet mark, int precision)
+	{
 		if (mark == null) {
-			exportToDotFile(out);
+			exportToDotFile(out, precision);
 		}
-		exportToDotFile(out, Collections.singleton(new explicit.graphviz.MarkStateSetDecorator(mark)));
+		exportToDotFile(out, Collections.singleton(new explicit.graphviz.MarkStateSetDecorator(mark)), precision);
 	}
 
 	/**
@@ -421,6 +509,18 @@ public interface Model
 	 * @param showStates Show state info on nodes?
 	 */
 	default void exportToDotFile(PrismLog out, BitSet mark, boolean showStates)
+	{
+		exportToDotFile(out, mark, showStates, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark'.
+	 * @param out PrismLog to export to
+	 * @param mark States to highlight (ignored if null)
+	 * @param showStates Show state info on nodes?
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(PrismLog out, BitSet mark, boolean showStates, int precision)
 	{
 		ArrayList<explicit.graphviz.Decorator> decorators = new ArrayList<explicit.graphviz.Decorator>();
 		if (showStates) {
@@ -433,7 +533,7 @@ public interface Model
 		if (mark != null) {
 			decorators.add(new explicit.graphviz.MarkStateSetDecorator(mark));
 		}
-		exportToDotFile(out, decorators);
+		exportToDotFile(out, decorators, precision);
 	}
 
 	/**
@@ -441,6 +541,16 @@ public interface Model
 	 * @param out PrismLog to export to
 	 */
 	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	{
+		exportToDotFile(out, decorators, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file, decorating states and transitions with the provided decorators
+	 * @param out PrismLog to export to
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		explicit.graphviz.Decoration defaults = new explicit.graphviz.Decoration();
 		defaults.attributes().put("shape", "box");
@@ -464,7 +574,7 @@ public interface Model
 			out.println(i + " " + decoration + ";");
 
 			// Transitions for state i
-			exportTransitionsToDotFile(i, out, decorators);
+			exportTransitionsToDotFile(i, out, decorators, precision);
 		}
 
 		// Footer
@@ -484,13 +594,39 @@ public interface Model
 	 */
 	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
+		exportTransitionsToDotFile(i, out, decorators, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export the transitions from state {@code i} in Dot format to {@code out},
+	 * decorating using the given decorators.
+	 * <br>
+	 * The default implementation throws an UnsupportedOperationException,
+	 * so this method should be overloaded.
+	 *
+	 * @param i State index
+	 * @param out PrismLog for output
+	 * @param decorators the decorators (may be {@code null})
+	 * @param precision number of significant digits >= 1
+	 */
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
+	{
 		throw new UnsupportedOperationException();
 	}
 
 	/**
 	 * Export to a equivalent PRISM language model description.
 	 */
-	public void exportToPrismLanguage(String filename) throws PrismException;
+	default void exportToPrismLanguage(String filename) throws PrismException
+	{
+		exportToPrismLanguage(filename, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a equivalent PRISM language model description.
+	 * @param precision number of significant digits >= 1
+	 */
+	public void exportToPrismLanguage(String filename, int precision) throws PrismException;
 	
 	/**
 	 * Export states list.

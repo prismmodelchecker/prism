@@ -36,6 +36,8 @@ import java.util.function.IntPredicate;
 import prism.PrismLog;
 import strat.MDStrategy;
 
+import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
+
 /**
  * Interface for (abstract) classes that provide (read-only) access to an explicit-state model with nondeterminism.
  */
@@ -309,5 +311,14 @@ public interface NondetModel extends Model
 	/**
 	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
 	 */
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[]);
+	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
+	{
+		exportToDotFileWithStrat(out, mark, strat, DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	/**
+	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.
+	 * @param precision number of significant digits >= 1
+	 */
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision);
 }

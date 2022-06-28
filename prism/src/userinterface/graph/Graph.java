@@ -159,7 +159,7 @@ public class Graph extends ChartPanel implements SettingOwner, EntityResolver, O
 				"The font for the chart's title", this, false);
 		legendVisible = new BooleanSetting(
 				"legend visible?",
-				new Boolean(true),
+				Boolean.valueOf(true),
 				"Should the legend, which displays all of the series headings, be displayed?",
 				this, false);
 

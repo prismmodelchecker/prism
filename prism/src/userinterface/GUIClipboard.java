@@ -262,7 +262,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionUndo.putValue(Action.LONG_DESCRIPTION, "Undo the last edit.");
-        actionUndo.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_U));
+        actionUndo.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_U));
         actionUndo.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionUndo.putValue(Action.NAME, "Undo");
         actionUndo.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallUndo.png"));
@@ -275,7 +275,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionRedo.putValue(Action.LONG_DESCRIPTION, "Redo the last edit.");
-        actionRedo.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
+        actionRedo.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
         actionRedo.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionRedo.putValue(Action.NAME, "Redo");
         actionRedo.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRedo.png"));
@@ -289,7 +289,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionCut.putValue(Action.LONG_DESCRIPTION, "Copys the currently selected item/text to the clipboard and then removes it.");
-        actionCut.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
+        actionCut.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_C));
         actionCut.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_X, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionCut.putValue(Action.NAME, "Cut");
         actionCut.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCut.png"));
@@ -302,7 +302,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionCopy.putValue(Action.LONG_DESCRIPTION, "Copys the currently selected item/text to the clipboard.");
-        actionCopy.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
+        actionCopy.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_O));
         actionCopy.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionCopy.putValue(Action.NAME, "Copy");
         actionCopy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallCopy.png"));
@@ -315,7 +315,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionPaste.putValue(Action.LONG_DESCRIPTION, "Pastes the contents of the clipboard.");
-        actionPaste.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
+        actionPaste.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_P));
         actionPaste.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_V, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionPaste.putValue(Action.NAME, "Paste");
         actionPaste.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPaste.png"));
@@ -329,7 +329,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionDelete.putValue(Action.LONG_DESCRIPTION, "Removes the currently selected item");        
-        actionDelete.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
+        actionDelete.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
         actionDelete.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_D, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionDelete.putValue(Action.NAME, "Delete");
         actionDelete.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallDelete.png"));
@@ -342,7 +342,7 @@ public class GUIClipboard extends GUIPlugin
             }
         };
         actionSelectAll.putValue(Action.LONG_DESCRIPTION, "Selects all items of the focussed component.");
-        actionSelectAll.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
+        actionSelectAll.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_S));
         actionSelectAll.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_A, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         actionSelectAll.putValue(Action.NAME, "Select all");
         actionSelectAll.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallSelectAll.png"));     

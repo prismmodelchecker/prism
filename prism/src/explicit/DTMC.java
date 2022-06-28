@@ -33,13 +33,9 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
-import common.iterable.IterableInt;
-import common.iterable.MappingIterator;
-import prism.ModelType;
-import prism.Pair;
-import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismUtils;
+import common.iterable.PrimitiveIterable;
+import common.iterable.Reducible;
+import prism.*;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 
@@ -57,7 +53,7 @@ public interface DTMC extends Model
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out)
+	default void exportToPrismExplicitTra(PrismLog out, int precision)
 	{
 		// Output transitions to .tra file
 		int numStates = getNumStates();
@@ -73,7 +69,7 @@ public interface DTMC extends Model
 			// Print out (sorted) transitions
 			for (Map.Entry<Integer, Pair<Double, Object>> e : sorted.entrySet()) {
 				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue().first));
+				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue().first));
 				Object action = e.getValue().second; 
 				if (action != null && !"".equals(action)) {
 					out.print(" " + action);
@@ -85,7 +81,7 @@ public interface DTMC extends Model
 	}
 
 	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
 	{
 		// Iterate through outgoing transitions for this state
 		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
@@ -95,7 +91,7 @@ public interface DTMC extends Model
 			out.print(i + " -> " + e.getKey());
 			// Annotate this arrow with the probability 
 			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(e.getValue().toString());
+			d.setLabel(PrismUtils.formatDouble(precision, e.getValue()));
 			// Apply any other decorators requested
 			if (decorators != null) {
 				for (Decorator decorator : decorators) {
@@ -108,7 +104,7 @@ public interface DTMC extends Model
 	}
 
 	@Override
-	default void exportToPrismLanguage(final String filename) throws PrismException
+	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
 		try (FileWriter out = new FileWriter(filename)) {
 			out.write(getModelType().keyword() + "\n");
@@ -129,7 +125,7 @@ public interface DTMC extends Model
 					else
 						out.write("+");
 					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(PrismUtils.formatDouble(transition.getValue()) + ":(x'=" + transition.getKey() + ")");
+					out.write(PrismUtils.formatDouble(precision, transition.getValue()) + ":(x'=" + transition.getKey() + ")");
 				}
 				out.write(";\n");
 				sorted.clear();
@@ -170,9 +166,9 @@ public interface DTMC extends Model
 	 */
 	public default Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
 	{
-		// Default implementation just adds null actions 
+		// Default implementation just adds null actions
 		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(s);
-		return new MappingIterator.From<>(transitions, transition -> attachAction(transition, null));
+		return Reducible.extend(transitions).map(transition -> attachAction(transition, null));
 	}
 
 	/**
@@ -239,7 +235,7 @@ public interface DTMC extends Model
 	 * Return sum_t f(s, t, P(s,t)), where t ranges over the successors of s.
 	 *
 	 * @param s the state s
-	 * @param c the consumer
+	 * @param f the consumer
 	 */
 	public default double sumOverTransitions(final int s, final TransitionToDoubleFunction f)
 	{
@@ -740,7 +736,7 @@ public interface DTMC extends Model
 	 * @param deltaT deltaT conditioning factor
 	 * @param states subset of states to consider
 	 */
-	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, IterableInt states)
+	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, PrimitiveIterable.OfInt states)
 	{
 		// Recall that the generator matrix Q has entries
 		//       Q(s,s) = -sum_{t!=s} prob(s,t)

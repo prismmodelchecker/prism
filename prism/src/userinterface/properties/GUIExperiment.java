@@ -43,34 +43,44 @@ import userinterface.util.*;
 
 public class GUIExperiment
 {
-	private GUIMultiProperties guiProp;
-	private GUIExperimentTable table;
-	private prism.ResultsCollection results;
-	private boolean finished = false;
+	protected GUIMultiProperties guiProp;
+	protected GUIExperimentTable table;
+	protected prism.ResultsCollection results;
+	protected boolean finished = false;
 
-	private UndefinedConstants cons;
-	private PropertiesFile prop; //contains 1 property only
+	protected UndefinedConstants cons;
+	protected PropertiesFile prop; //contains 1 property only
 
-	private boolean running = false;
+	protected boolean running = false;
 
-	private Thread theThread;
+	protected Thread theThread;
 
-	private boolean useSimulation;
+	protected boolean useSimulation;
 
-	private Values definedMFConstants;
-	private Values definedPFConstants;
-	private Result res;
+	protected Values definedMFConstants;
+	protected Values definedPFConstants;
+	protected Result res;
 
-	/** Creates a new instance of GUIExperiment */
+	/** Creates a new instance of GUIExperiment
+	 * @param prop  contains exactly 1 property
+	 */
 	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, boolean useSimulation)
+	{
+		this(table, guiProp, prop, cons, useSimulation, null);
+	}
+
+	/**
+	 * Create an experiment from a result collection.
+	 * As the results are already complete, the experiment is finished and serves as a mockup.
+	 */
+	public GUIExperiment(GUIExperimentTable table, GUIMultiProperties guiProp, PropertiesFile prop, UndefinedConstants cons, boolean useSimulation, ResultsCollection results)
 	{
 		this.table = table;
 		this.guiProp = guiProp;
 		this.prop = prop;
 		this.cons = cons;
 		this.useSimulation = useSimulation;
-
-		results = new prism.ResultsCollection(cons, prop.getProperty(0).getResultName());
+		this.results = (results == null) ? new prism.ResultsCollection(cons, prop.getProperty(0).getResultName()) : results;
 	}
 
 	//ACCESS METHODS
@@ -85,6 +95,7 @@ public class GUIExperiment
 		return results.getCurrentIteration();
 	}
 
+	@SuppressWarnings("rawtypes")
 	public Vector<DefinedConstant> getRangingConstants()
 	{
 		return cons.getRangingConstants();
@@ -100,16 +111,21 @@ public class GUIExperiment
 		return cons.getPFDefinedConstantsString();
 	}
 
-	public String getPropertyString()
+	public Property getProperty()
 	{
+		// prop  contains exactly 1 property
 		int i = prop.getNumProperties() - 1;
-		return prop.getProperty(i).toString();
+		return prop.getPropertyObject(i);
 	}
 
-	public Type getPropertyType()
+	public String getExpressionString()
 	{
-		int i = prop.getNumProperties() - 1;
-		return prop.getProperty(i).getType();
+		return getProperty().getExpression().toString();
+	}
+
+	public Type getExpressionType()
+	{
+		return getProperty().getExpression().getType();
 	}
 
 	public ResultsCollection getResults()

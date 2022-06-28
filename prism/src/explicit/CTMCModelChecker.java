@@ -202,7 +202,7 @@ public class CTMCModelChecker extends ProbModelChecker
 				int n = model.getNumStates();
 				for (int i = 0; i < n; i++) {
 					if (b2.get(i))
-						probs.setDoubleValue(i, 1);
+						probs.setValue(i, 1.0);
 				}
 			}
 			// [lTime,uTime] (including where lTime == uTime)

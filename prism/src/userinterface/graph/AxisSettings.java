@@ -122,19 +122,19 @@ public class AxisSettings extends Observable implements SettingOwner
 		headingFont = new FontColorSetting("heading font", new FontColorPair(new Font("SansSerif", Font.PLAIN, 12), Color.black), "The font for this axis' heading.", this, true);
 		numberFont = new FontColorSetting("numbering font", new FontColorPair(new Font("SansSerif", Font.PLAIN, 12), Color.black), "The font used to number the axis.", this, true);
 		
-		showGrid = new BooleanSetting("show gridlines", new Boolean(true), "Should the gridlines be visible", this, true);
+		showGrid = new BooleanSetting("show gridlines", Boolean.valueOf(true), "Should the gridlines be visible", this, true);
 		gridColour = new ColorSetting("gridline colour", new Color(204,204,204), "The colour of the gridlines", this, true);
 		
 		String[] logarithmicChoices = {"Normal", "Logarithmic"};
 		scaleType = new ChoiceSetting("scale type", logarithmicChoices, logarithmicChoices[0], "Should the scale be normal, or logarithmic", this, true);
-		autoScale = new BooleanSetting("auto-scale", new Boolean(true), "When set to true, all minimum values, maximum values, grid intervals, maximum logarithmic powers and minimum logarithmic powers are automatically set and maintained when the data changes.", this, true);
-		minValue = new DoubleSetting("minimum value", new Double(0.0), "The minimum value for the axis", this, true);
-		maxValue = new DoubleSetting("maximum value", new Double(1.0), "The maximum value for the axis", this, true);
-		gridInterval = new DoubleSetting("gridline interval", new Double(0.2), "The interval between gridlines", this, false, new RangeConstraint(0, Double.POSITIVE_INFINITY, false, true));
-		logBase = new DoubleSetting("log base", new Double(10), "The base for the logarithmic scale", this, false, new RangeConstraint("1,"));
+		autoScale = new BooleanSetting("auto-scale", Boolean.valueOf(true), "When set to true, all minimum values, maximum values, grid intervals, maximum logarithmic powers and minimum logarithmic powers are automatically set and maintained when the data changes.", this, true);
+		minValue = new DoubleSetting("minimum value", Double.valueOf(0.0), "The minimum value for the axis", this, true);
+		maxValue = new DoubleSetting("maximum value", Double.valueOf(1.0), "The maximum value for the axis", this, true);
+		gridInterval = new DoubleSetting("gridline interval", Double.valueOf(0.2), "The interval between gridlines", this, false, new RangeConstraint(0, Double.POSITIVE_INFINITY, false, true));
+		logBase = new DoubleSetting("log base", Double.valueOf(10), "The base for the logarithmic scale", this, false, new RangeConstraint("1,"));
 		
-		minimumPower = new DoubleSetting("minimum power", new Double("0.0"), "The minimum logarithmic power that should be displayed on the scale", this, true);
-		maximumPower = new DoubleSetting("maximum power", new Double("1.0"), "The maximum logarithmic power that should be displayed on the scale", this, true);
+		minimumPower = new DoubleSetting("minimum power", Double.valueOf("0.0"), "The minimum logarithmic power that should be displayed on the scale", this, true);
+		maximumPower = new DoubleSetting("maximum power", Double.valueOf("1.0"), "The maximum logarithmic power that should be displayed on the scale", this, true);
 		
 		String[] logStyleChoices = {"Values", "Base and exponent"};
 		logStyle = new ChoiceSetting("logarithmic number style", logStyleChoices, logStyleChoices[1], "Should the style of the logarithmic scale show the actual values, or the base with the exponent.", this, false);
@@ -405,7 +405,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			autoScale.setValue(new Boolean(value));
+			autoScale.setValue(Boolean.valueOf(value));
 			doEnables();
 			updateAxis();
 			setChanged();
@@ -436,7 +436,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			showGrid.setValue(new Boolean(value));
+			showGrid.setValue(Boolean.valueOf(value));
 			doEnables();
 			updateAxis();
 			setChanged();
@@ -640,7 +640,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	 */
 	public void setMinimumPower(double value) throws SettingException
 	{		
-		minimumPower.setValue(new Double(value));
+		minimumPower.setValue(Double.valueOf(value));
 		doEnables();
 		updateAxis();
 		setChanged();
@@ -662,7 +662,7 @@ public class AxisSettings extends Observable implements SettingOwner
 	 */
 	public void setMaximumPower(double value) throws SettingException
 	{		
-		maximumPower.setValue(new Double(value));
+		maximumPower.setValue(Double.valueOf(value));
 		doEnables();
 		updateAxis();
 		setChanged();

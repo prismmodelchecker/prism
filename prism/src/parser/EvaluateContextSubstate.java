@@ -32,39 +32,29 @@ package parser;
  * and a mapping from indices (over all variables) to this subset (-1 if not in subset). 
  * Optionally values for constants can also be supplied.
  */
-public class EvaluateContextSubstate implements EvaluateContext
+public class EvaluateContextSubstate extends EvaluateContext
 {
-	private Values constantValues;
 	private Object[] varValues;
 	private int[] varMap;
 
 	public EvaluateContextSubstate(State substate, int[] varMap)
 	{
-		this.constantValues = null;
 		this.varValues = substate.varValues;
 		this.varMap = varMap;
 	}
 
 	public EvaluateContextSubstate(Values constantValues, State substate, int[] varMap)
 	{
-		this.constantValues = constantValues;
+		setConstantValues(constantValues);
 		this.varValues = substate.varValues;
 		this.varMap = varMap;
 	}
 
-	public Object getConstantValue(String name)
-	{
-		if (constantValues == null)
-			return null;
-		int i = constantValues.getIndexOf(name);
-		if (i == -1)
-			return null;
-		return constantValues.getValue(i);
-	}
-
+	@Override
 	public Object getVarValue(String name, int index)
 	{
-		// Use indices to look up value
+		// There is no variable name info available,
+		// so use index if provided; otherwise unknown
 		int newIndex;
 		if (index == -1 || (newIndex = varMap[index]) == -1)
 			return null;

@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import common.functions.primitive.PairPredicateInt;
+import common.functions.PairPredicateInt;
 import explicit.Distribution;
 import explicit.MDP;
 import parser.State;

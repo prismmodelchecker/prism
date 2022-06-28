@@ -366,7 +366,7 @@ def prependToFile(prefix, option):
 
 def expandFilenames(args, dir=""):
     def isImportExportArg(arg):
-        return (arg.startswith("-export") or arg.startswith("-import"))
+        return (arg.startswith("-export") or arg.startswith("-import")) and not arg=="-exportmodelprecision"
     if args:
         return [args[0]] + [expandName(dir, args[i+1]) if isImportExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
     else:
@@ -376,7 +376,7 @@ def expandFilenames(args, dir=""):
 
 def renameExports(prefix, args):
     def isExportArg(arg):
-        return arg.startswith("-export")
+        return arg.startswith("-export") and not arg=="-exportmodelprecision"
     if args:
         return [args[0]] + [prependToFile(prefix, args[i+1]) if isExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
     else:
@@ -396,7 +396,7 @@ def hasExportSwitches(args):
 # and that multiple reward structures will result in filenames extended with a number
 
 def getExpectedOutFilesFromArgs(args):
-    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export")]
+    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export") and not args[i]=="-exportmodelprecision"]
     # Sometimes there are options appended, after a ":" - remove these
     files = map(lambda option: option.split(':')[0], options)
 
@@ -623,9 +623,9 @@ def runPrism(args, bmArgs, dir=""):
             os.makedirs(logDir)
         logFile = os.path.join(logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
-        prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = execute(prismArgs)
-        #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
+        prismArgsExec = prismArgs + ['-mainlog', logFile]
+        exitCode = execute(prismArgsExec)
+        #exitCode = subprocess.Popen(prismArgsExec, cwd=dir, stdout=f).wait()
     elif options.test or options.ddWarnings:
         # create logfile
         if isWindows():
@@ -641,8 +641,8 @@ def runPrism(args, bmArgs, dir=""):
             f.close()
         # we want cleanup when we are done, as this is a real temporary file
         cleanupLogFile = True
-        prismArgs = prismArgs + ['-mainlog', logFile]
-        exitCode = execute(prismArgs)
+        prismArgsExec = prismArgs + ['-mainlog', logFile]
+        exitCode = execute(prismArgsExec)
     else:
         exitCode = execute(prismArgs)
     # Extract DD reference count warnings
@@ -681,6 +681,10 @@ def runPrism(args, bmArgs, dir=""):
                     printTestResult(line)
             print("To see log file, run:")
             print("edit " + logFile)
+            prismArgsPrint = prismArgs.copy()
+            prismArgsPrint[0] = options.prismExec
+            print("To re-run failing test:")
+            print(' '.join(prismArgsPrint))
         else:
             # in verbose test mode, print extra info and increment failure counter
             printColoured('FAILURE', "\n[Exit code: " + str(exitCode) + "]")

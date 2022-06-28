@@ -93,12 +93,12 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 		if (path.size() == 0) {
 			// Initially, zero time has elapsed so to satisfy the until,
 			// we need a lower time bound of 0 and the RHS to be satisfied 
-			if (lb == 0.0 && right.evaluateBoolean(path.getCurrentState())) {
+			if (lb == 0.0 && path.evaluateBooleanInCurrentState(right)) {
 				valueKnown = true;
 				value = true;
 			}
 			// If LHS of the until violated, will never be true
-			else if (!left.evaluateBoolean(path.getCurrentState())) {
+			else if (!path.evaluateBooleanInCurrentState(left)) {
 				valueKnown = true;
 				value = false;
 			}
@@ -110,7 +110,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 			if (timeSoFar > ub) {
 				// Upper time bound was exceeded (for first time) in *previous* state
 				// Had we reached the target (i.e. RHS of until)?
-				if (right.evaluateBoolean(path.getPreviousState())) {
+				if (path.evaluateBooleanInPreviousState(right)) {
 					valueKnown = true;
 					value = true;
 				}
@@ -123,7 +123,7 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 			// Lower bound not yet exceeded but LHS of until violated
 			// (no need to check RHS because too early)
 			else if (timeSoFar <= lb) {
-				if (!left.evaluateBoolean(path.getCurrentState())) {
+				if (!path.evaluateBooleanInCurrentState(left)) {
 					valueKnown = true;
 					value = false;
 				}
@@ -131,19 +131,19 @@ public class SamplerBoundedUntilCont extends SamplerBoolean
 			// Current time is between lower/upper bounds...
 			else {
 				// Have we reached the target (i.e. RHS of until)?
-				if (right.evaluateBoolean(path.getCurrentState())) {
+				if (path.evaluateBooleanInCurrentState(right)) {
 					valueKnown = true;
 					value = true;
 				}
 				// Or, if not, have we violated the LHS of the until?
-				else if (!left.evaluateBoolean(path.getCurrentState())) {
+				else if (!path.evaluateBooleanInCurrentState(left)) {
 					valueKnown = true;
 					value = false;
 				}
 				// If the lower bound was exceeded for the first time in the
 				// previous state, and that one satisfies the RHS of the until...
 				else if (timeSoFar - path.getTimeInPreviousState() <= lb) {
-					if (right.evaluateBoolean(path.getPreviousState())) {
+					if (path.evaluateBooleanInPreviousState(right)) {
 						valueKnown = true;
 						value = true;
 					}

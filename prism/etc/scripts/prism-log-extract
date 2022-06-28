@@ -27,6 +27,7 @@ all_fields_details = [\
     {'name': 'model_consts', 'descr': 'Constants defined for model', 'type': 'string', 'regexp': 'Model constants: (.+)'}, \
     {'name': 'model_type', 'descr': 'Model type', 'regexp': 'Type: *(.+)'}, \
     {'name': 'states', 'descr': 'Number of states in model', 'regexp': 'States: *(.+) \((.+) initial\)'}, \
+    {'name': 'dd_nodes', 'descr': 'Number of nodes in the DD for the model', 'regexp': 'Transition matrix: *(.+) nodes'}, \
     {'name': 'time_constr', 'descr': 'Time to construct the model', 'regexp': 'Time for model construction: *(.+) sec'}, \
     {'name': 'prop_file', 'descr': 'Name of PRISM property file', 'type': 'file', 'regexp': 'Parsing properties file "(.+)"...'}, \
     {'name': 'prop_consts', 'descr': 'Constants defined for property', 'type': 'string', 'regexp': 'Property constants: (.+)'}, \

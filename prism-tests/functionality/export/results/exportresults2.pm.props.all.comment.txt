@@ -1,12 +1,12 @@
 // RESULT (x=1): true
 // RESULT (x=2): true
 // RESULT (x=3): false
-P>0.55 [ F s=7&d>x ]
+"Property_1": P>0.55 [ F s=7&d>x ]
 
 // RESULT: 0.46875
-P=? [ F<=5 s=7&d>3 ]
+"Intriguing": P=? [ F<=5 s=7&d>3 ]
 
-// RESULT (x=1): 1.0
+// RESULT (x=1): 1
 // RESULT (x=2): Infinity
 // RESULT (x=3): Infinity
 R=? [ F "done"&d>=x ]
