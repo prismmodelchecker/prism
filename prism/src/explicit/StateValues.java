@@ -525,6 +525,7 @@ public class StateValues implements StateVector, Iterable<Object>
 	 */
 	public void readFromFile(File file) throws PrismException
 	{
+		initStorage(type);
 		int lineNum = 0, count = 0;
 		boolean hasIndices = false;
 		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
