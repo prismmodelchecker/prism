@@ -1714,12 +1714,15 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void setPRISMModelConstants(Values definedMFConstants, boolean exact) throws PrismException
 	{
-		if (currentDefinedMFConstants == null && definedMFConstants == null && currentDefinedMFConstantsAreExact == exact)
+		// If there is no change in constants, there is nothing to do
+		boolean currentMFNone = currentDefinedMFConstants == null || currentDefinedMFConstants.getNumValues() == 0;
+		boolean newMFNone = definedMFConstants == null || definedMFConstants.getNumValues() == 0;
+		if (currentMFNone && newMFNone && currentDefinedMFConstantsAreExact == exact) {
 			return;
+		}
 		if (currentDefinedMFConstants != null &&
 		    currentDefinedMFConstants.equals(definedMFConstants) &&
 		    currentDefinedMFConstantsAreExact == exact) {
-			// no change in constants and evaluation mode, nothing to do
 			return;
 		}
 
@@ -1871,6 +1874,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		return currentModelGenerator;
 	}
 
+	/**
+	 * Get the values that have been provided for undefined constants in the current model.
+	 */
+	public Values getUndefinedModelValues()
+	{
+		return currentDefinedMFConstants;
+	}
+	
 	/**
 	 * Get the currently stored built (symbolic) model.
 	 * @return

@@ -138,8 +138,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	// Current model (gets updated only by event listening to GUIModel)
 	private ModulesFile parsedModel;
-	// Constants for model (updated by events or locally)
-	private Values mfConstants;
 
 	// State
 	private boolean modified;
@@ -288,19 +286,19 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			uCon.setExactMode(exact);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
-				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
+				Values lastModelConstants = getPrism().getUndefinedModelValues();
+				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, lastModelConstants, pfConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
 			// Store model/property constants
-			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
-			getPrism().setPRISMModelConstants(mfConstants, exact);
+			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), exact);
 			parsedProperties.setSomeUndefinedConstants(pfConstants, exact);
 			// Store properties to be verified
 			propertiesToBeVerified = validGUIProperties;
 			for (GUIProperty gp : propertiesToBeVerified)
-				gp.setConstants(mfConstants, pfConstants);
+				gp.setConstants(uCon.getMFConstantValues(), pfConstants);
 			// Start model checking
 			Thread t = new ModelCheckThread(this, parsedProperties, propertiesToBeVerified);
 			t.setPriority(Thread.NORM_PRIORITY);
@@ -358,24 +356,24 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			uCon = new UndefinedConstants(parsedModel, parsedProperties, simulatableProperties);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
-				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
+				Values lastModelConstants = getPrism().getUndefinedModelValues();
+				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, lastModelConstants, pfConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
 
 			// Store model/property constants
-			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
 			// currently, evaluate constants non-exact for simulation
-			getPrism().setPRISMModelConstants(mfConstants, false);
+			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
 			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
 			for (GUIProperty gp : simulatableGUIProperties)
-				gp.setConstants(mfConstants, pfConstants);
+				gp.setConstants(uCon.getMFConstantValues(), pfConstants);
 
 			// Store properties to be verified
 			propertiesToBeVerified = validGUIProperties;
 			for (GUIProperty gp : propertiesToBeVerified)
-				gp.setConstants(mfConstants, pfConstants);
+				gp.setConstants(uCon.getMFConstantValues(), pfConstants);
 
 			// Get simulation info with dialog
 			SimulationInformation info = GUISimulationPicker.defineSimulationWithDialog(this.getGUI(), simulatableExprs, parsedModel, null);
@@ -1134,15 +1132,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, parsedProperties, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
 				// Use previous constant values as defaults in dialog
-				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, mfConstants, pfConstants);
+				Values lastModelConstants = getPrism().getUndefinedModelValues();
+				int result = GUIConstantsPicker.defineConstantsWithDialog(this.getGUI(), uCon, lastModelConstants, pfConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
 			// Store model/property constants
-			mfConstants = uCon.getMFConstantValues();
 			pfConstants = uCon.getPFConstantValues();
 			// currently, evaluate constants non-exact for model building
-			getPrism().setPRISMModelConstants(mfConstants, false);
+			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
 			parsedProperties.setSomeUndefinedConstants(pfConstants, false);
 			// If export is being done to log, switch view to log
 			if (exportFile == null)
@@ -1297,8 +1295,6 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 				doEnables();
 				//newList();
 			} else if (me.getID() == GUIModelEvent.MODEL_BUILT) {
-				if (me.getBuildValues() != null)
-					mfConstants = me.getBuildValues();
 				doEnables();
 			} else if (me.getID() == GUIModelEvent.MODEL_PARSED) {
 				setParsedModel(me.getModulesFile());

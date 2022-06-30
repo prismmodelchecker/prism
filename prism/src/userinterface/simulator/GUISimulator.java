@@ -117,7 +117,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private boolean newPathAfterReceiveParseNotification, newPathPlotAfterReceiveParseNotification;
 	private boolean chooseInitialState;
 
-	private Values lastConstants, lastPropertyConstants, lastInitialState;
+	private Values lastPropertyConstants, lastInitialState;
 	private boolean computing;
 
 	// Config/options
@@ -201,8 +201,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		});
 
 		pathTable.setModel(pathTableModel);
-
-		lastConstants = null;
 
 		lastPropertyConstants = null;
 
@@ -394,15 +392,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			//       (for path formulae display)
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
-				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
+				Values lastModelConstants = getPrism().getUndefinedModelValues();
+				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastModelConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
 			// remember constant values for next time
-			lastConstants = uCon.getMFConstantValues();
 			lastPropertyConstants = uCon.getPFConstantValues();
 			// store constants (currently, compute non-exact for simulation)
-			getPrism().setPRISMModelConstants(lastConstants, false);
+			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
 			pf.setSomeUndefinedConstants(lastPropertyConstants, false);
 
 			// check here for possibility of multiple initial states
@@ -811,14 +809,13 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// if necessary, get values for undefined constants from user
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, null);
 			if (uCon.getMFNumUndefined() > 0) {
-				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
+				Values lastModelConstants = getPrism().getUndefinedModelValues();
+				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastModelConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
-			// remember constant values for next time
-			lastConstants = uCon.getMFConstantValues();
 			// store constants (currently, compute non-exact for simulation)
-			getPrism().setPRISMModelConstants(lastConstants, false);
+			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
 
 			// do we need to ask for an initial state for simulation?
 			// no: just use default/random
