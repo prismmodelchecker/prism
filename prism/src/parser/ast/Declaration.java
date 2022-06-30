@@ -138,17 +138,12 @@ public class Declaration extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
 	@Override
-	public ASTElement deepCopy()
+	public Declaration deepCopyASTElements()
 	{
-		Declaration ret = new Declaration(getName(), (DeclarationType)getDeclType().deepCopy());
-		if (getStart() != null)
-			ret.setStart(getStart().deepCopy());
-		ret.setPosition(this);
-		return ret;
+		declType = declType.clone().deepCopyASTElements();
+		start = (start == null) ? null : start.clone().deepCopyASTElements();
+		return this;
 	}
 
 	@Override

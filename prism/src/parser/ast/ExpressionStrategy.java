@@ -194,18 +194,11 @@ public class ExpressionStrategy extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionStrategy deepCopyASTElements()
 	{
-		ExpressionStrategy expr = new ExpressionStrategy();
-		expr.setThereExists(isThereExists());
-		expr.coalition = new Coalition(coalition);
-		for (Expression operand : operands) {
-			expr.addOperand((Expression) operand.deepCopy());
-		}
-		expr.singleOperand = singleOperand;
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

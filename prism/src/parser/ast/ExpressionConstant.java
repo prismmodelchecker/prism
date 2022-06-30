@@ -102,11 +102,9 @@ public class ExpressionConstant extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionConstant deepCopyASTElements()
 	{
-		Expression ret = new ExpressionConstant(name, type);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

@@ -119,12 +119,19 @@ public abstract class Expression extends ASTElement
 	 */
 	public abstract boolean returnsSingleValue();
 	
-	// Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
+	// Overwritten version of deepCopy() and deepCopyASTElements() from superclass ASTElement (to reduce casting).
+
+	@Override
+	public abstract Expression deepCopyASTElements();
 
 	/**
 	 * Perform a deep copy.
 	 */
-	public abstract Expression deepCopy();
+	@Override
+	public Expression deepCopy()
+	{
+		return (Expression) super.deepCopy();
+	}
 
 	// Override version of clone() from superclass (to reduce casting).
 	@Override

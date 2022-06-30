@@ -112,12 +112,9 @@ public class ExpressionVar extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionVar deepCopyASTElements()
 	{
-		ExpressionVar expr = new ExpressionVar(name, type);
-		expr.setIndex(index);
-		expr.setPosition(this);
-		return expr;
+		return this;
 	}
 
 	@Override

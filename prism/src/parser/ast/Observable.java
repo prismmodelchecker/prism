@@ -102,13 +102,14 @@ public class Observable extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public Observable deepCopy()
+	@Override
+	public Observable deepCopyASTElements()
 	{
-		Observable ret = new Observable(name, definition.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		definition = definition.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

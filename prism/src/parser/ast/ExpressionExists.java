@@ -94,12 +94,11 @@ public class ExpressionExists extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionExists deepCopyASTElements()
 	{
-		ExpressionExists expr = new ExpressionExists(expression.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		expression = expression.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

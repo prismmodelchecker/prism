@@ -113,13 +113,9 @@ public class ExpressionObs extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionObs deepCopyASTElements()
 	{
-		ExpressionObs expr = new ExpressionObs(name);
-		expr.setType(type);
-		expr.setIndex(index);
-		expr.setPosition(this);
-		return expr;
+		return this;
 	}
 
 	@Override

@@ -179,12 +179,11 @@ public class ExpressionUnaryOp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionUnaryOp deepCopyASTElements()
 	{
-		ExpressionUnaryOp expr = new ExpressionUnaryOp(op, operand.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand = operand.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

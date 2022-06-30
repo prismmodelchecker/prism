@@ -150,16 +150,11 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemInterleaved deepCopyASTElements()
 	{
-		int i, n;
-		SystemInterleaved ret = new SystemInterleaved();
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			ret.addOperand(getOperand(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

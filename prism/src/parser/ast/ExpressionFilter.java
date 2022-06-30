@@ -484,16 +484,12 @@ public class ExpressionFilter extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionFilter deepCopyASTElements()
 	{
-		ExpressionFilter e;
-		e = new ExpressionFilter(opName, operand.deepCopy(), filter == null ? null : filter.deepCopy());
-		e.setInvisible(invisible);
-		e.setType(type);
-		e.setPosition(this);
-		e.param = this.param;
+		operand = operand.clone().deepCopyASTElements();
+		filter = (filter == null) ? null : filter.clone().deepCopyASTElements();
 
-		return e;
+		return this;
 	}
 
 	@Override

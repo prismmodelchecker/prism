@@ -140,19 +140,16 @@ public class ForLoop extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public ForLoop deepCopyASTElements()
 	{
-		ForLoop ret = new ForLoop();
-		ret.lhs = lhs;
-		ret.from = from.deepCopy();
-		ret.to = to.deepCopy();
-		ret.step = step.deepCopy();
-		ret.pc = pc;
-		ret.between = between;
-		ret.setPosition(this);
-		return ret;
+		to = to.clone().deepCopyASTElements();
+		from = from.clone().deepCopyASTElements();
+		step = step.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

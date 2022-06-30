@@ -170,6 +170,16 @@ public abstract class ExpressionQuant extends Expression
 	}
 	
 	@Override
+	public ExpressionQuant deepCopyASTElements()
+	{
+		bound = (bound == null) ? null : bound.clone().deepCopyASTElements();
+		filter = (filter == null) ? null : filter.clone().deepCopyASTElements();
+		expression = (expression == null) ? null : expression.clone().deepCopyASTElements();
+
+		return this;
+	}
+
+	@Override
 	public int hashCode()
 	{
 		final int prime = 31;

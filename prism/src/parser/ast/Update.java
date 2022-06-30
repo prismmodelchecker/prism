@@ -319,14 +319,11 @@ public class Update extends ASTElement implements Iterable<UpdateElement>
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public Update deepCopyASTElements()
 	{
-		Update ret = new Update();
-		for (UpdateElement e : this) {
-			ret.addElement(e.deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		elements.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

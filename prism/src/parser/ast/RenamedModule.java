@@ -185,20 +185,17 @@ public class RenamedModule extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public RenamedModule deepCopyASTElements()
 	{
-		int i, n;
-		RenamedModule ret = new RenamedModule(name, baseModule);
-		ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
-		ret.setBaseModuleASTElement((ExpressionIdent)baseModuleASTElement.deepCopy());
-		n = oldNames.size();
-		for (i = 0; i < n; i++) {
-			ret.addRename(oldNames.get(i), newNames.get(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		nameASTElement = nameASTElement.clone().deepCopyASTElements();
+		baseModuleASTElement = baseModuleASTElement.clone().deepCopyASTElements();
+		oldNameASTElements.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		newNameASTElements.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

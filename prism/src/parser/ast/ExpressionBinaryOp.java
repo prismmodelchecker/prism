@@ -334,12 +334,12 @@ public class ExpressionBinaryOp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionBinaryOp deepCopyASTElements()
 	{
-		ExpressionBinaryOp expr = new ExpressionBinaryOp(op, operand1.deepCopy(), operand2.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand1 = operand1.clone().deepCopyASTElements();
+		operand2 = operand2.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

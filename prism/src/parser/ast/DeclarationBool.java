@@ -62,11 +62,9 @@ public class DeclarationBool extends DeclarationType
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationBool deepCopyASTElements()
 	{
-		DeclarationBool ret = new DeclarationBool();
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

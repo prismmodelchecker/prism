@@ -99,12 +99,9 @@ public class ExpressionIdent extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionIdent deepCopyASTElements()
 	{
-		ExpressionIdent expr = new ExpressionIdent(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
 	}
 
 	@Override

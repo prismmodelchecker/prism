@@ -123,6 +123,12 @@ public class ExpressionBinaryOpShortCircuitTest
 		}
 
 		@Override
+		public ExpressionMock deepCopyASTElements()
+		{
+			return this;
+		}
+
+		@Override
 		public boolean isConstant()
 		{
 			return true;

@@ -202,12 +202,12 @@ public class UpdateElement extends ASTElement
 	}
 
 	@Override
-	public UpdateElement deepCopy()
+	public UpdateElement deepCopyASTElements()
 	{
-		UpdateElement result = new UpdateElement((ExpressionIdent)ident.deepCopy(), expr.deepCopy());
-		result.type = type;
-		result.index = index;
-		return result;
+		ident = ident.clone().deepCopyASTElements();
+		expr = expr.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

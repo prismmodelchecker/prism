@@ -136,18 +136,15 @@ public class LabelList extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public LabelList deepCopyASTElements()
 	{
-		int i, n;
-		LabelList ret = new LabelList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			ret.addLabel((ExpressionIdent)getLabelNameIdent(i).deepCopy(), getLabel(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		labels.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		nameIdents.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

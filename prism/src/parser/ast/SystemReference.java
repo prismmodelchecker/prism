@@ -113,11 +113,9 @@ public class SystemReference extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemReference deepCopyASTElements()
 	{
-		SystemDefn ret = new SystemReference(name);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

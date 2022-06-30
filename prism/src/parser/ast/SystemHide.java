@@ -154,16 +154,11 @@ public class SystemHide extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemHide deepCopyASTElements()
 	{
-		int i, n;
-		SystemHide ret = new SystemHide(getOperand().deepCopy());
-		n = getNumActions();
-		for (i = 0; i < n; i++) {
-			ret.addAction(getAction(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		operand = operand.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

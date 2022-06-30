@@ -88,12 +88,9 @@ public class ExpressionProp extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionProp deepCopyASTElements()
 	{
-		ExpressionProp expr = new ExpressionProp(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
 	}
 
 	@Override

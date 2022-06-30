@@ -129,12 +129,13 @@ public class ExpressionITE extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionITE deepCopyASTElements()
 	{
-		ExpressionITE expr = new ExpressionITE(operand1.deepCopy(), operand2.deepCopy(), operand3.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand1 = operand1.clone().deepCopyASTElements();
+		operand2 = operand2.clone().deepCopyASTElements();
+		operand3 = operand3.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

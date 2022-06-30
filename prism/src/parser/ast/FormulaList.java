@@ -156,18 +156,15 @@ public class FormulaList extends ASTElement
 	}
 
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public FormulaList deepCopyASTElements()
 	{
-		int i, n;
-		FormulaList ret = new FormulaList();
-		n = size();
-		for (i = 0; i < n; i++) {
-			ret.addFormula((ExpressionIdent)getFormulaNameIdent(i).deepCopy(), getFormula(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		formulas.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		nameIdents.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

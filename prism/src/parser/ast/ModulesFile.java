@@ -1640,66 +1640,35 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	}
 
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	@SuppressWarnings("unchecked")
-	public ASTElement deepCopy()
+	@Override
+	public ModulesFile deepCopyASTElements()
 	{
-		int i, n;
-		ModulesFile ret = new ModulesFile();
-		
-		// Copy ASTElement stuff
-		ret.setPosition(this);
-		// Copy type
-		ret.setModelTypeInFile(modelTypeInFile);
-		ret.setModelType(modelType);
 		// Deep copy main components
-		ret.setFormulaList((FormulaList) formulaList.deepCopy());
-		ret.setLabelList((LabelList) labelList.deepCopy());
-		ret.setConstantList((ConstantList) constantList.deepCopy());
-		n = getNumGlobals();
-		for (i = 0; i < n; i++) {
-			ret.addGlobal((Declaration) getGlobal(i).deepCopy());
+		labelList = labelList.clone().deepCopyASTElements();
+		formulaList = formulaList.clone().deepCopyASTElements();
+		constantList = constantList.clone().deepCopyASTElements();
+		initStates = (initStates == null) ? null : initStates.clone().deepCopyASTElements();
+		identUsage = (identUsage == null) ? null : identUsage.clone().deepCopyFields();
+		quotedIdentUsage = (quotedIdentUsage == null) ? null : quotedIdentUsage.clone().deepCopyFields();
+
+		// deepCopy all elements inside collections
+		globals.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		varDecls.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		systemDefns.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		observables.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		rewardStructs.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		observableDefns.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		observableVarLists.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		for (int i = 0, n = getNumModules(); i < n; i++) {
+			Module mod = getModule(i);
+			if (mod != null) {
+				setModule(i, mod.clone().deepCopyASTElements());
+			}
 		}
-		n = getNumModules();
-		for (i = 0; i < n; i++) {
-			ret.addModule((Module) getModule(i).deepCopy());
-		}
-		n = getNumSystemDefns();
-		for (i = 0; i < n; i++) {
-			ret.addSystemDefn(getSystemDefn(i).deepCopy(), getSystemDefnName(i));
-		}
-		n = getNumRewardStructs();
-		for (i = 0; i < n; i++) {
-			ret.addRewardStruct((RewardStruct) getRewardStruct(i).deepCopy());
-		}
-		if (initStates != null)
-			ret.setInitialStates(initStates.deepCopy());
-		for (ObservableVars obsVars : observableVarLists)
-			ret.observableVarLists.add(obsVars.deepCopy());
-		for (Observable obs : observableDefns)
-			ret.observableDefns.add(obs.deepCopy());
-		// Copy other (generated) info
-		ret.identUsage = (identUsage == null) ? null : identUsage.deepCopy();
-		ret.quotedIdentUsage = (quotedIdentUsage == null) ? null : quotedIdentUsage.deepCopy();
-		ret.moduleNames = (moduleNames == null) ? null : moduleNames.clone();
-		ret.synchs = (synchs == null) ? null : (Vector<String>)synchs.clone();
-		if (varDecls != null) {
-			ret.varDecls = new Vector<Declaration>();
-			for (Declaration d : varDecls)
-				ret.varDecls.add((Declaration) d.deepCopy());
-		}
-		ret.varNames = (varNames == null) ? null : (Vector<String>)varNames.clone();
-		ret.varTypes = (varTypes == null) ? null : (Vector<Type>)varTypes.clone();
-		ret.varModules = (varModules == null) ? null : (Vector<Integer>)varModules.clone();
-		for (Observable obs : observables)
-			ret.observables.add(obs.deepCopy());
-		ret.observableNames = (observableNames == null) ? null : new ArrayList<>(observableNames);
-		ret.observableTypes = (observableTypes == null) ? null : new ArrayList<>(observableTypes);
-		ret.observableVars = (observableVars == null) ? null : new ArrayList<>(observableVars);
-		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
-		
-		return ret;
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

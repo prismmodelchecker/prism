@@ -108,11 +108,9 @@ public class SystemModule extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemModule deepCopyASTElements()
 	{
-		SystemDefn ret = new SystemModule(name);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

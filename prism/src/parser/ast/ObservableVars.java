@@ -27,7 +27,6 @@
 package parser.ast;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import parser.visitor.ASTVisitor;
@@ -126,16 +125,14 @@ public class ObservableVars extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ObservableVars deepCopy()
+	@Override
+	public ObservableVars deepCopyASTElements()
 	{
-		ObservableVars ret = new ObservableVars();
-		for (Expression var : vars) {
-			ret.addVar(var.deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		vars.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

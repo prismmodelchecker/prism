@@ -113,12 +113,11 @@ public class ExpressionFormula extends Expression
 	}
 		
 	@Override
-	public Expression deepCopy()
+	public ExpressionFormula deepCopyASTElements()
 	{
-		ExpressionFormula ret = new ExpressionFormula(name);
-		ret.setDefinition(definition == null ? null : definition.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		definition = (definition == null) ? null : definition.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

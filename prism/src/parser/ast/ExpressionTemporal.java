@@ -267,20 +267,14 @@ public class ExpressionTemporal extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionTemporal deepCopyASTElements()
 	{
-		ExpressionTemporal expr = new ExpressionTemporal();
-		expr.setOperator(op);
-		if (operand1 != null)
-			expr.setOperand1(operand1.deepCopy());
-		if (operand2 != null)
-			expr.setOperand2(operand2.deepCopy());
-		expr.setLowerBound(lBound == null ? null : lBound.deepCopy(), lBoundStrict);
-		expr.setUpperBound(uBound == null ? null : uBound.deepCopy(), uBoundStrict);
-		expr.equals = equals;
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand1 = (operand1 == null) ? null : operand1.clone().deepCopyASTElements();
+		operand2 = (operand2 == null) ? null : operand2.clone().deepCopyASTElements();
+		lBound = (lBound == null) ? null : lBound.clone().deepCopyASTElements();
+		uBound = (uBound == null) ? null : uBound.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

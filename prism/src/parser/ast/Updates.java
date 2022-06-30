@@ -175,22 +175,15 @@ public class Updates extends ASTElement
 	}
 
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public Updates deepCopyASTElements()
 	{
-		int i, n;
-		Expression p;
-		Updates ret = new Updates();
-		n = getNumUpdates();
-		for (i = 0; i < n; i++) {
-			p = getProbability(i);
-			if (p != null)
-				p = p.deepCopy();
-			ret.addUpdate(p, (Update) getUpdate(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		probs.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		updates.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

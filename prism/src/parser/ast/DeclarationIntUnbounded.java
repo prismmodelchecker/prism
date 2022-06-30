@@ -61,11 +61,9 @@ public class DeclarationIntUnbounded extends DeclarationType
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationIntUnbounded deepCopyASTElements()
 	{
-		DeclarationIntUnbounded ret = new DeclarationIntUnbounded();
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

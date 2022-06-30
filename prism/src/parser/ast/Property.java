@@ -303,12 +303,11 @@ public class Property extends ASTElement
 	}
 
 	@Override
-	public Property deepCopy()
+	public Property deepCopyASTElements()
 	{
-		Property prop = new Property(expr.deepCopy(), name, comment);
-		prop.setType(type);
-		prop.setPosition(this);
-		return prop;
+		expr = expr.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

@@ -615,21 +615,11 @@ public class ExpressionFunc extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionFunc deepCopyASTElements()
 	{
-		int i, n;
-		ExpressionFunc e;
+		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
 
-		e = new ExpressionFunc(name);
-		e.setOldStyle(oldStyle);
-		n = getNumOperands();
-		for (i = 0; i < n; i++) {
-			e.addOperand((Expression) getOperand(i).deepCopy());
-		}
-		e.setType(type);
-		e.setPosition(this);
-
-		return e;
+		return this;
 	}
 
 

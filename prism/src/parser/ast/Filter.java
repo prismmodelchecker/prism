@@ -117,15 +117,14 @@ public class Filter extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public Filter deepCopyASTElements()
 	{
-		Filter ret = new Filter(expr.deepCopy());
-		ret.setMinRequested(minReq);
-		ret.setMaxRequested(maxReq);
-		ret.setPosition(this);
-		return ret;
+		expr = expr.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

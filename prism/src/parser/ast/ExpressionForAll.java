@@ -94,12 +94,11 @@ public class ExpressionForAll extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionForAll deepCopyASTElements()
 	{
-		ExpressionForAll expr = new ExpressionForAll(expression.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		expression = expression.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

@@ -146,19 +146,14 @@ public class RewardStruct extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public RewardStruct deepCopyASTElements()
 	{
-		int i, n;
-		RewardStruct ret = new RewardStruct();
-		ret.setName(name);
-		n = getNumItems();
-		for (i = 0; i < n; i++) {
-			ret.addItem((RewardStructItem)getRewardStructItem(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		items.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

@@ -126,16 +126,11 @@ public class ExpressionSS extends ExpressionQuant
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionSS deepCopyASTElements()
 	{
-		ExpressionSS expr = new ExpressionSS();
-		expr.setExpression(getExpression() == null ? null : getExpression().deepCopy());
-		expr.setRelOp(getRelOp());
-		expr.setBound(getBound() == null ? null : getBound().deepCopy());
-		expr.setFilter(getFilter() == null ? null : (Filter)getFilter().deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		super.deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

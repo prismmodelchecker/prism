@@ -26,12 +26,44 @@
 
 package parser.ast;
 
-import java.util.*;
+import parser.EvaluateContext;
+import parser.EvaluateContextConstants;
+import parser.EvaluateContextState;
+import parser.EvaluateContextSubstate;
+import parser.EvaluateContextValues;
+import parser.State;
+import parser.Token;
+import parser.Values;
+import parser.type.Type;
+import parser.visitor.ASTVisitor;
+import parser.visitor.ComputeProbNesting;
+import parser.visitor.EvaluatePartially;
+import parser.visitor.ExpandConstants;
+import parser.visitor.ExpandFormulas;
+import parser.visitor.ExpandLabels;
+import parser.visitor.ExpandPropRefsAndLabels;
+import parser.visitor.FindAllActions;
+import parser.visitor.FindAllConstants;
+import parser.visitor.FindAllFormulas;
+import parser.visitor.FindAllObsRefs;
+import parser.visitor.FindAllPropRefs;
+import parser.visitor.FindAllVars;
+import parser.visitor.GetAllConstants;
+import parser.visitor.GetAllFormulas;
+import parser.visitor.GetAllLabels;
+import parser.visitor.GetAllPropRefs;
+import parser.visitor.GetAllPropRefsRecursively;
+import parser.visitor.GetAllUndefinedConstantsRecursively;
+import parser.visitor.GetAllVars;
+import parser.visitor.Rename;
+import parser.visitor.SemanticCheck;
+import parser.visitor.Simplify;
+import parser.visitor.ToTreeString;
+import parser.visitor.TypeCheck;
+import prism.PrismLangException;
 
-import parser.*;
-import parser.type.*;
-import parser.visitor.*;
-import prism.*;
+import java.util.List;
+import java.util.Vector;
 
 // Abstract class for PRISM language AST elements
 
@@ -186,7 +218,15 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Perform a deep copy.
 	 */
-	public abstract ASTElement deepCopy();
+	public ASTElement deepCopy()
+	{
+		return clone().deepCopyASTElements();
+	}
+
+	/**
+	 * Copy all internal ASTElements (should be called after clone to create deep copy).
+	 */
+	public abstract ASTElement deepCopyASTElements();
 
 	/**
 	 * Perform a shallow copy of the receiver and

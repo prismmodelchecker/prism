@@ -140,14 +140,15 @@ public class RewardStructItem extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public RewardStructItem deepCopyASTElements()
 	{
-		RewardStructItem ret = new RewardStructItem(synch, states.deepCopy(), reward.deepCopy());
-		ret.setSynchIndex(getSynchIndex());
-		ret.setPosition(this);
-		return ret;
+		states = states.clone().deepCopyASTElements();
+		reward = reward.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

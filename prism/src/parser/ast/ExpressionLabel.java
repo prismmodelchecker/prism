@@ -100,12 +100,9 @@ public class ExpressionLabel extends Expression
 	}
 	
 	@Override
-	public Expression deepCopy()
+	public ExpressionLabel deepCopyASTElements()
 	{
-		ExpressionLabel expr = new ExpressionLabel(name);
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		return this;
 	}
 
 	@Override

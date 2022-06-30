@@ -114,11 +114,11 @@ public class SystemBrackets extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemBrackets deepCopyASTElements()
 	{
-		SystemDefn ret = new SystemBrackets(getOperand().deepCopy());
-		ret.setPosition(this);
-		return ret;
+		operand = operand.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

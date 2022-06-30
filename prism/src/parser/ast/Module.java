@@ -283,26 +283,18 @@ public class Module extends ASTElement
 	}
 	
 	/**
-	 * Perform a deep copy.
+	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
-	public ASTElement deepCopy()
+	@Override
+	public Module deepCopyASTElements()
 	{
-		int i, n;
-		Module ret = new Module(name);
-		if (nameASTElement != null)
-			ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
-		n = getNumDeclarations();
-		for (i = 0; i < n; i++) {
-			ret.addDeclaration((Declaration)getDeclaration(i).deepCopy());
-		}
-		n = getNumCommands();
-		for (i = 0; i < n; i++) {
-			ret.addCommand((Command)getCommand(i).deepCopy());
-		}
-		if (invariant != null)
-			ret.setInvariant(invariant.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		invariant = (invariant == null) ? null : invariant.clone().deepCopyASTElements();
+		nameASTElement = (nameASTElement == null) ? null : nameASTElement.clone().deepCopyASTElements();
+
+		decls.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		commands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -313,7 +305,7 @@ public class Module extends ASTElement
 
 		clone.decls    = (ArrayList<Declaration>) decls.clone();
 		clone.commands = (ArrayList<Command>) commands.clone();
-		clone.alphabet = (Vector<String>) alphabet.clone();
+		clone.alphabet = (alphabet == null) ? null : (Vector<String>) alphabet.clone();
 
 		return clone;
 	}

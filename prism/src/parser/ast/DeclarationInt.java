@@ -89,13 +89,12 @@ public class DeclarationInt extends DeclarationType
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationInt deepCopyASTElements()
 	{
-		Expression lowCopy = (low == null) ? null : low.deepCopy();
-		Expression highCopy = (high == null) ? null : high.deepCopy();
-		DeclarationInt ret = new DeclarationInt(lowCopy, highCopy);
-		ret.setPosition(this);
-		return ret;
+		low = (low == null) ? null : low.clone().deepCopyASTElements();
+		high = (high == null) ? null : high.clone().deepCopyASTElements();
+
+		return this;
 	}
 
 	@Override

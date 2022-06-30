@@ -61,11 +61,9 @@ public class DeclarationClock extends DeclarationType
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationClock deepCopyASTElements()
 	{
-		DeclarationClock ret = new DeclarationClock();
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override
