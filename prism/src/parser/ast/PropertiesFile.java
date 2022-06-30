@@ -26,13 +26,17 @@
 
 package parser.ast;
 
-import java.util.*;
-
-import parser.*;
-import parser.visitor.*;
+import parser.IdentUsage;
+import parser.Values;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
+import parser.visitor.PropertiesSemanticCheck;
 import prism.ModelInfo;
 import prism.PrismLangException;
 import prism.PrismUtils;
+
+import java.util.List;
+import java.util.Vector;
 
 // Class representing parsed properties file/list
 
@@ -650,17 +654,16 @@ public class PropertiesFile extends ASTElement
 	}
 
 	@Override
-	public PropertiesFile deepCopyASTElements()
+	public PropertiesFile deepCopy(DeepCopy copier) throws PrismLangException
 	{
 		quotedIdentUsage = new IdentUsage(true);
-		labelList = labelList.clone().deepCopyASTElements();
-		formulaList = formulaList.clone().deepCopyASTElements();
-		constantList = constantList.clone().deepCopyASTElements();
-		combinedLabelList = combinedLabelList.clone().deepCopyASTElements();
-		identUsage = (identUsage == null) ? null : identUsage.clone().deepCopyFields();
+		labelList = copier.copy(labelList);
+		formulaList = copier.copy(formulaList);
+		constantList = copier.copy(constantList);
+		combinedLabelList = copier.copy(combinedLabelList);
+		identUsage = identUsage.deepCopy();
 
-		// deepCopy all elements inside collections
-		properties.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(properties);
 
 		return this;
 	}

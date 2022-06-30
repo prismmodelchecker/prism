@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class SystemHide extends SystemDefn
 {
@@ -154,9 +155,9 @@ public class SystemHide extends SystemDefn
 	}
 	
 	@Override
-	public SystemHide deepCopyASTElements()
+	public SystemHide deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operand = operand.clone().deepCopyASTElements();
+		operand = copier.copy(operand);
 
 		return this;
 	}

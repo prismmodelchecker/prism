@@ -29,6 +29,7 @@ package parser.ast;
 import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.OpRelOpBound;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -275,15 +276,15 @@ public class ExpressionReward extends ExpressionQuant
 	}
 
 	@Override
-	public ExpressionReward deepCopyASTElements()
+	public ExpressionReward deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		super.deepCopyASTElements();
+		super.deepCopy(copier);
 
 		if (rewardStructIndex != null && rewardStructIndex instanceof Expression) {
-			rewardStructIndex = ((Expression) rewardStructIndex).clone().deepCopyASTElements();
+			rewardStructIndex = copier.copy((Expression) rewardStructIndex);
 		}
 		if (rewardStructIndexDiv != null && rewardStructIndexDiv instanceof Expression) {
-			rewardStructIndexDiv = ((Expression) rewardStructIndexDiv).clone().deepCopyASTElements();
+			rewardStructIndexDiv = copier.copy((Expression) rewardStructIndexDiv);
 		}
 
 		return this;

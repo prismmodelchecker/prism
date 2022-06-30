@@ -27,7 +27,8 @@
 
 package parser.ast;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -139,10 +140,10 @@ public class Declaration extends ASTElement
 	}
 
 	@Override
-	public Declaration deepCopyASTElements()
+	public Declaration deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		declType = declType.clone().deepCopyASTElements();
-		start = (start == null) ? null : start.clone().deepCopyASTElements();
+		declType = copier.copy(declType);
+		start = copier.copy(start);
 		return this;
 	}
 

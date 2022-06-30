@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.ArrayList;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.ArrayList;
 
 public class RenamedModule extends ASTElement
 {
@@ -188,12 +189,13 @@ public class RenamedModule extends ASTElement
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public RenamedModule deepCopyASTElements()
+	public RenamedModule deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		nameASTElement = nameASTElement.clone().deepCopyASTElements();
-		baseModuleASTElement = baseModuleASTElement.clone().deepCopyASTElements();
-		oldNameASTElements.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		newNameASTElements.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		nameASTElement = copier.copy(nameASTElement);
+		baseModuleASTElement = copier.copy(baseModuleASTElement);
+		// Do not reference ASTElements in the old AST
+		oldNameASTElements.clear();
+		newNameASTElements.clear();
 
 		return this;
 	}

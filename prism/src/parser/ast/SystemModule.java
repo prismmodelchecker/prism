@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class SystemModule extends SystemDefn
 {
@@ -108,7 +109,7 @@ public class SystemModule extends SystemDefn
 	}
 	
 	@Override
-	public SystemModule deepCopyASTElements()
+	public SystemModule deepCopy(DeepCopy copier)
 	{
 		return this;
 	}

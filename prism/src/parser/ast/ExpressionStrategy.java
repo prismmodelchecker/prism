@@ -31,6 +31,7 @@ import java.util.List;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -194,9 +195,9 @@ public class ExpressionStrategy extends Expression
 	}
 
 	@Override
-	public ExpressionStrategy deepCopyASTElements()
+	public ExpressionStrategy deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(operands);
 
 		return this;
 	}

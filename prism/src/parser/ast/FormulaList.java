@@ -28,7 +28,8 @@ package parser.ast;
 
 import java.util.Vector;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 import prism.PrismUtils;
 
@@ -156,13 +157,13 @@ public class FormulaList extends ASTElement
 	}
 
 	/**
-	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
+	 * Perform a deep copy.
 	 */
 	@Override
-	public FormulaList deepCopyASTElements()
+	public FormulaList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		formulas.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		nameIdents.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(formulas);
+		copier.copyAll(nameIdents);
 
 		return this;
 	}

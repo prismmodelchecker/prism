@@ -29,6 +29,7 @@ package parser.ast;
 
 import parser.type.TypeBool;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationBool extends DeclarationType
@@ -62,7 +63,7 @@ public class DeclarationBool extends DeclarationType
 	}
 
 	@Override
-	public DeclarationBool deepCopyASTElements()
+	public DeclarationBool deepCopy(DeepCopy copier)
 	{
 		return this;
 	}

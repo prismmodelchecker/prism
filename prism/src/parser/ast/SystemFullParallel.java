@@ -150,9 +150,9 @@ public class SystemFullParallel extends SystemDefn
 	}
 	
 	@Override
-	public SystemFullParallel deepCopyASTElements()
+	public SystemFullParallel deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(operands);
 
 		return this;
 	}

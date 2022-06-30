@@ -35,6 +35,7 @@ import parser.type.Type;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 public class ExpressionLiteral extends Expression
 {
@@ -133,7 +134,7 @@ public class ExpressionLiteral extends Expression
 	}
 
 	@Override
-	public ExpressionLiteral deepCopyASTElements()
+	public ExpressionLiteral deepCopy(DeepCopy copier)
 	{
 		return this;
 	}

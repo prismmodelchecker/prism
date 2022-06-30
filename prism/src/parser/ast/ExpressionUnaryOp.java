@@ -179,9 +179,9 @@ public class ExpressionUnaryOp extends Expression
 	}
 
 	@Override
-	public ExpressionUnaryOp deepCopyASTElements()
+	public ExpressionUnaryOp deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operand = operand.clone().deepCopyASTElements();
+		operand = copier.copy(operand);
 
 		return this;
 	}

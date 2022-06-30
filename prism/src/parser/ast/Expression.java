@@ -44,6 +44,7 @@ import parser.type.TypePathBool;
 import parser.visitor.ASTTraverse;
 import parser.visitor.CheckValid;
 import parser.visitor.ConvertForJltl2ba;
+import parser.visitor.DeepCopy;
 import parser.visitor.ExpressionTraverseNonNested;
 import prism.ModelType;
 import prism.PrismException;
@@ -119,10 +120,10 @@ public abstract class Expression extends ASTElement
 	 */
 	public abstract boolean returnsSingleValue();
 	
-	// Overwritten version of deepCopy() and deepCopyASTElements() from superclass ASTElement (to reduce casting).
+	// Overwritten version of deepCopy() and deepCopy(DeepCopy copier) from superclass ASTElement (to reduce casting).
 
 	@Override
-	public abstract Expression deepCopyASTElements();
+	public abstract Expression deepCopy(DeepCopy copier) throws PrismLangException;
 
 	/**
 	 * Perform a deep copy.

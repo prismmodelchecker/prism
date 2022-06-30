@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -128,9 +129,9 @@ public class ObservableVars extends ASTElement
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public ObservableVars deepCopyASTElements()
+	public ObservableVars deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		vars.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(vars);
 
 		return this;
 	}

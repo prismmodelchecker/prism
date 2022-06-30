@@ -29,6 +29,7 @@ package parser.ast;
 import parser.EvaluateContext;
 import parser.type.Type;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionVar extends Expression
@@ -112,7 +113,7 @@ public class ExpressionVar extends Expression
 	}
 
 	@Override
-	public ExpressionVar deepCopyASTElements()
+	public ExpressionVar deepCopy(DeepCopy copier)
 	{
 		return this;
 	}

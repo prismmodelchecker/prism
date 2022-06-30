@@ -125,9 +125,9 @@ public class IdentUsage implements Cloneable
 		}
 	}
 
-	public IdentUsage deepCopyFields()
+	public IdentUsage deepCopy()
 	{
-		return this;
+		return clone();
 	}
 
 	@SuppressWarnings("unchecked")

@@ -27,6 +27,9 @@
 
 package parser.ast;
 
+import parser.visitor.DeepCopy;
+import prism.PrismLangException;
+
 public abstract class DeclarationType extends ASTElement
 {
 	/**
@@ -38,7 +41,7 @@ public abstract class DeclarationType extends ASTElement
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public abstract DeclarationType deepCopyASTElements();
+	public abstract DeclarationType deepCopy(DeepCopy copier) throws PrismLangException;
 
 	@Override
 	public DeclarationType clone()

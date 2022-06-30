@@ -26,10 +26,7 @@
 
 package parser.ast;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 import param.BigRational;
 import parser.IdentUsage;
@@ -39,6 +36,7 @@ import parser.VarList;
 import parser.type.Type;
 import parser.visitor.ASTTraverse;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import parser.visitor.ModulesFileSemanticCheck;
 import parser.visitor.ModulesFileSemanticCheckAfterConstants;
 import prism.ModelInfo;
@@ -1643,30 +1641,27 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public ModulesFile deepCopyASTElements()
+	public ModulesFile deepCopy(DeepCopy copier) throws PrismLangException
 	{
 		// Deep copy main components
-		labelList = labelList.clone().deepCopyASTElements();
-		formulaList = formulaList.clone().deepCopyASTElements();
-		constantList = constantList.clone().deepCopyASTElements();
-		initStates = (initStates == null) ? null : initStates.clone().deepCopyASTElements();
-		identUsage = (identUsage == null) ? null : identUsage.clone().deepCopyFields();
-		quotedIdentUsage = (quotedIdentUsage == null) ? null : quotedIdentUsage.clone().deepCopyFields();
+		labelList = copier.copy(labelList);
+		formulaList = copier.copy(formulaList);
+		constantList = copier.copy(constantList);
+		initStates = copier.copy(initStates);
+		identUsage = identUsage.deepCopy();
+		quotedIdentUsage = quotedIdentUsage.deepCopy();
 
-		// deepCopy all elements inside collections
-		globals.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		varDecls.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		systemDefns.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		observables.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		rewardStructs.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		observableDefns.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		observableVarLists.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(globals);
+		copier.copyAll(varDecls);
+		copier.copyAll(systemDefns);
+		copier.copyAll(observables);
+		copier.copyAll(rewardStructs);
+		copier.copyAll(observableDefns);
+		copier.copyAll(observableVarLists);
 
 		for (int i = 0, n = getNumModules(); i < n; i++) {
-			Module mod = getModule(i);
-			if (mod != null) {
-				setModule(i, mod.clone().deepCopyASTElements());
-			}
+			Module mod = Objects.requireNonNull(getModule(i));
+			setModule(i, copier.copy(mod));
 		}
 		return this;
 	}

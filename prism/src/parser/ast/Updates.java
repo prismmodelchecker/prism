@@ -26,11 +26,14 @@
 
 package parser.ast;
 
-import java.util.*;
-
-import parser.*;
-import parser.visitor.*;
+import parser.State;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Class to store a list of updates with associated probabilities (or rates).
@@ -178,10 +181,14 @@ public class Updates extends ASTElement
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public Updates deepCopyASTElements()
+	public Updates deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		probs.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		updates.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(probs);
+		for (int i = 0, n = getNumUpdates(); i < n; i++) {
+			Update upd = Objects.requireNonNull(getUpdate(i));
+			setUpdate(i, copier.copy(upd));
+		}
+		copier.copyAll(updates);
 
 		return this;
 	}

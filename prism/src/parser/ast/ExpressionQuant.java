@@ -27,8 +27,10 @@
 package parser.ast;
 
 import parser.Values;
+import parser.visitor.DeepCopy;
 import prism.OpRelOpBound;
 import prism.PrismException;
+import prism.PrismLangException;
 
 /**
  * Abstract class for representing "quantitative" operators (P,R,S),
@@ -170,11 +172,11 @@ public abstract class ExpressionQuant extends Expression
 	}
 	
 	@Override
-	public ExpressionQuant deepCopyASTElements()
+	public ExpressionQuant deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		bound = (bound == null) ? null : bound.clone().deepCopyASTElements();
-		filter = (filter == null) ? null : filter.clone().deepCopyASTElements();
-		expression = (expression == null) ? null : expression.clone().deepCopyASTElements();
+		bound = copier.copy(bound);
+		filter = copier.copy(filter);
+		expression = copier.copy(expression);
 
 		return this;
 	}

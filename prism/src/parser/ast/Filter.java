@@ -26,7 +26,8 @@
 
 package parser.ast;
 
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -117,12 +118,12 @@ public class Filter extends ASTElement
 	}
 	
 	/**
-	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
+	 * Perform a deep copy.
 	 */
 	@Override
-	public Filter deepCopyASTElements()
+	public Filter deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		expr = expr.clone().deepCopyASTElements();
+		expr = copier.copy(expr);
 
 		return this;
 	}

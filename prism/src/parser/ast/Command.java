@@ -27,6 +27,7 @@
 package parser.ast;
 
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class Command extends ASTElement
@@ -139,10 +140,10 @@ public class Command extends ASTElement
 	}
 	
 	@Override
-	public Command deepCopyASTElements()
+	public Command deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		guard = guard.clone().deepCopyASTElements();
-		updates = updates.clone().deepCopyASTElements();
+		guard = copier.copy(guard);
+		setUpdates(copier.copy(updates));
 
 		return this;
 	}

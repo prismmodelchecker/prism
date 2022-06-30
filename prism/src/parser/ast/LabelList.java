@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Vector;
 
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 // class to store list of labels
@@ -136,13 +137,13 @@ public class LabelList extends ASTElement
 	}
 	
 	/**
-	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
+	 * Perform a deep copy.
 	 */
 	@Override
-	public LabelList deepCopyASTElements()
+	public LabelList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		labels.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		nameIdents.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(labels);
+		copier.copyAll(nameIdents);
 
 		return this;
 	}

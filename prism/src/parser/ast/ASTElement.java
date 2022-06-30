@@ -37,6 +37,7 @@ import parser.Values;
 import parser.type.Type;
 import parser.visitor.ASTVisitor;
 import parser.visitor.ComputeProbNesting;
+import parser.visitor.DeepCopy;
 import parser.visitor.EvaluatePartially;
 import parser.visitor.ExpandConstants;
 import parser.visitor.ExpandFormulas;
@@ -220,13 +221,23 @@ public abstract class ASTElement implements Cloneable
 	 */
 	public ASTElement deepCopy()
 	{
-		return clone().deepCopyASTElements();
+		try {
+			return new DeepCopy().copy(this);
+		} catch (PrismLangException e) {
+			throw new Error(e);
+		}
 	}
 
 	/**
-	 * Copy all internal ASTElements (should be called after clone to create deep copy).
+	 * Perform a deep copy of all internal ASTElements using a deep copy visitor.
+	 * This method is usually called after {@code clone()} and must return the receiver.
+	 *
+	 * @param copier the copy visitor
+	 * @return the receiver with deep-copied subcomponents
+	 * @throws PrismLangException
+	 * @see #clone()
 	 */
-	public abstract ASTElement deepCopyASTElements();
+	public abstract ASTElement deepCopy(DeepCopy copier) throws PrismLangException;
 
 	/**
 	 * Perform a shallow copy of the receiver and

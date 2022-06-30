@@ -478,10 +478,10 @@ public class ConstantList extends ASTElement
 	}
 	
 	@Override
-	public ConstantList deepCopyASTElements()
+	public ConstantList deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		constants.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		nameIdents.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(constants);
+		copier.copyAll(nameIdents);
 
 		return this;
 	}

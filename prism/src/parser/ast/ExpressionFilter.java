@@ -32,6 +32,7 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.Accuracy;
 import prism.PrismException;
 import prism.PrismLangException;
@@ -484,10 +485,10 @@ public class ExpressionFilter extends Expression
 	}
 
 	@Override
-	public ExpressionFilter deepCopyASTElements()
+	public ExpressionFilter deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operand = operand.clone().deepCopyASTElements();
-		filter = (filter == null) ? null : filter.clone().deepCopyASTElements();
+		operand = copier.copy(operand);
+		filter = copier.copy(filter);
 
 		return this;
 	}

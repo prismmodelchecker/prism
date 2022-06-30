@@ -29,6 +29,7 @@ package parser.ast;
 import parser.EvaluateContext;
 import parser.Values;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.OpRelOpBound;
 import prism.PrismLangException;
 
@@ -139,10 +140,9 @@ public class ExpressionProb extends ExpressionQuant
 	}
 
 	@Override
-	public ExpressionProb deepCopyASTElements()
+	public ExpressionProb deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		super.deepCopyASTElements();
-
+		super.deepCopy(copier);
 		return this;
 	}
 

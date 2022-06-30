@@ -150,9 +150,9 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public SystemInterleaved deepCopyASTElements()
+	public SystemInterleaved deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(operands);
 
 		return this;
 	}

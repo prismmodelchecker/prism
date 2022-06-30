@@ -29,6 +29,7 @@ package parser.ast;
 
 import parser.type.TypeArray;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationArray extends DeclarationType
@@ -125,11 +126,11 @@ public class DeclarationArray extends DeclarationType
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public DeclarationArray deepCopyASTElements()
+	public DeclarationArray deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		low = low.clone().deepCopyASTElements();
-		high = high.clone().deepCopyASTElements();
-		subtype = subtype.clone().deepCopyASTElements();
+		low = copier.copy(low);
+		high = copier.copy(high);
+		subtype = copier.copy(subtype);
 
 		return this;
 	}

@@ -33,6 +33,7 @@ import parser.EvaluateContext.EvalMode;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 import prism.PrismUtils;
 
@@ -615,9 +616,9 @@ public class ExpressionFunc extends Expression
 	}
 
 	@Override
-	public ExpressionFunc deepCopyASTElements()
+	public ExpressionFunc deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(operands);
 
 		return this;
 	}

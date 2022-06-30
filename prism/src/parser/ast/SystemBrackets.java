@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 // note: although this makes no difference to the meaning
 // of the expression, it means we can keep the user's
@@ -114,9 +115,9 @@ public class SystemBrackets extends SystemDefn
 	}
 	
 	@Override
-	public SystemBrackets deepCopyASTElements()
+	public SystemBrackets deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operand = operand.clone().deepCopyASTElements();
+		operand = copier.copy(operand);
 
 		return this;
 	}

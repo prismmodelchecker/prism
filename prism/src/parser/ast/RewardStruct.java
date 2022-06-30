@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class RewardStruct extends ASTElement
 {
@@ -149,9 +150,9 @@ public class RewardStruct extends ASTElement
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public RewardStruct deepCopyASTElements()
+	public RewardStruct deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		items.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(items);
 
 		return this;
 	}

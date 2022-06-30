@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionExists extends Expression
@@ -94,9 +95,9 @@ public class ExpressionExists extends Expression
 	}
 	
 	@Override
-	public ExpressionExists deepCopyASTElements()
+	public ExpressionExists deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		expression = expression.clone().deepCopyASTElements();
+		expression = copier.copy(expression);
 
 		return this;
 	}

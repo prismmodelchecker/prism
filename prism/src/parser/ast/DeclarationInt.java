@@ -27,8 +27,9 @@
 
 package parser.ast;
 
-import parser.type.*;
+import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationInt extends DeclarationType
@@ -89,10 +90,10 @@ public class DeclarationInt extends DeclarationType
 	}
 
 	@Override
-	public DeclarationInt deepCopyASTElements()
+	public DeclarationInt deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		low = (low == null) ? null : low.clone().deepCopyASTElements();
-		high = (high == null) ? null : high.clone().deepCopyASTElements();
+		low = copier.copy(low);
+		high = copier.copy(high);
 
 		return this;
 	}

@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionTemporal extends Expression
@@ -267,12 +268,12 @@ public class ExpressionTemporal extends Expression
 	}
 
 	@Override
-	public ExpressionTemporal deepCopyASTElements()
+	public ExpressionTemporal deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		operand1 = (operand1 == null) ? null : operand1.clone().deepCopyASTElements();
-		operand2 = (operand2 == null) ? null : operand2.clone().deepCopyASTElements();
-		lBound = (lBound == null) ? null : lBound.clone().deepCopyASTElements();
-		uBound = (uBound == null) ? null : uBound.clone().deepCopyASTElements();
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+		lBound = copier.copy(lBound);
+		uBound = copier.copy(uBound);
 
 		return this;
 	}

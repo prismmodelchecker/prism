@@ -26,10 +26,13 @@
 
 package parser.ast;
 
-import java.util.*;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 public class Module extends ASTElement
 {
@@ -286,13 +289,13 @@ public class Module extends ASTElement
 	 * Copy all internal ASTElements. (Should be called after clone to create deep copy)
 	 */
 	@Override
-	public Module deepCopyASTElements()
+	public Module deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		invariant = (invariant == null) ? null : invariant.clone().deepCopyASTElements();
-		nameASTElement = (nameASTElement == null) ? null : nameASTElement.clone().deepCopyASTElements();
+		invariant = copier.copy(invariant);
+		nameASTElement = copier.copy(nameASTElement);
 
-		decls.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
-		commands.replaceAll(e -> (e == null) ? null : e.clone().deepCopyASTElements());
+		copier.copyAll(decls);
+		copier.copyAll(commands);
 
 		return this;
 	}
