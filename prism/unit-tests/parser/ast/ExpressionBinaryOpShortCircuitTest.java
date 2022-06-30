@@ -9,6 +9,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 import java.util.Objects;
@@ -117,15 +118,15 @@ public class ExpressionBinaryOpShortCircuitTest
 		}
 
 		@Override
-		public String toString()
+		public ExpressionMock deepCopy(DeepCopy copier)
 		{
-			return "Evaluated? " + evaluated;
+			return this;
 		}
 
 		@Override
-		public ExpressionMock deepCopyASTElements()
+		public String toString()
 		{
-			return this;
+			return "Evaluated? " + evaluated;
 		}
 
 		@Override
