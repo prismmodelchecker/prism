@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class SystemReference extends SystemDefn
 {
@@ -113,11 +114,9 @@ public class SystemReference extends SystemDefn
 	}
 	
 	@Override
-	public SystemDefn deepCopy()
+	public SystemReference deepCopy(DeepCopy copier)
 	{
-		SystemDefn ret = new SystemReference(name);
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

@@ -36,6 +36,7 @@ import parser.Values;
 import parser.VarList;
 import parser.type.Type;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 /**
@@ -319,14 +320,11 @@ public class Update extends ASTElement implements Iterable<UpdateElement>
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public Update deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		Update ret = new Update();
-		for (UpdateElement e : this) {
-			ret.addElement(e.deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(elements);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

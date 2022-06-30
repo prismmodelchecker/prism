@@ -26,13 +26,17 @@
 
 package parser.ast;
 
-import java.util.*;
-
-import parser.*;
-import parser.visitor.*;
+import parser.IdentUsage;
+import parser.Values;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
+import parser.visitor.PropertiesSemanticCheck;
 import prism.ModelInfo;
 import prism.PrismLangException;
 import prism.PrismUtils;
+
+import java.util.List;
+import java.util.Vector;
 
 // Class representing parsed properties file/list
 
@@ -649,29 +653,19 @@ public class PropertiesFile extends ASTElement
 		return s;
 	}
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public PropertiesFile deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		PropertiesFile ret = new PropertiesFile(modelInfo);
-		// Copy ASTElement stuff
-		ret.setPosition(this);
-		// Deep copy main components
-		ret.setFormulaList((FormulaList) formulaList.deepCopy());
-		ret.setLabelList((LabelList) labelList.deepCopy());
-		ret.combinedLabelList = (LabelList) combinedLabelList.deepCopy();
-		ret.setConstantList((ConstantList) constantList.deepCopy());
-		n = getNumProperties();
-		for (i = 0; i < n; i++) {
-			ret.addProperty((Property) getPropertyObject(i).deepCopy());
-		}
-		// Copy other (generated) info
-		ret.identUsage = (identUsage == null) ? null : identUsage.deepCopy();
-		ret.constantValues = (constantValues == null) ? null : new Values(constantValues);
+		quotedIdentUsage = new IdentUsage(true);
+		labelList = copier.copy(labelList);
+		formulaList = copier.copy(formulaList);
+		constantList = copier.copy(constantList);
+		combinedLabelList = copier.copy(combinedLabelList);
+		identUsage = identUsage.deepCopy();
 
-		return ret;
+		copier.copyAll(properties);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

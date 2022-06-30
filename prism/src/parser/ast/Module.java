@@ -26,10 +26,13 @@
 
 package parser.ast;
 
-import java.util.*;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
 public class Module extends ASTElement
 {
@@ -282,27 +285,16 @@ public class Module extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public Module deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		Module ret = new Module(name);
-		if (nameASTElement != null)
-			ret.setNameASTElement((ExpressionIdent)nameASTElement.deepCopy());
-		n = getNumDeclarations();
-		for (i = 0; i < n; i++) {
-			ret.addDeclaration((Declaration)getDeclaration(i).deepCopy());
-		}
-		n = getNumCommands();
-		for (i = 0; i < n; i++) {
-			ret.addCommand((Command)getCommand(i).deepCopy());
-		}
-		if (invariant != null)
-			ret.setInvariant(invariant.deepCopy());
-		ret.setPosition(this);
-		return ret;
+		invariant = copier.copy(invariant);
+		nameASTElement = copier.copy(nameASTElement);
+
+		copier.copyAll(decls);
+		copier.copyAll(commands);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -313,7 +305,7 @@ public class Module extends ASTElement
 
 		clone.decls    = (ArrayList<Declaration>) decls.clone();
 		clone.commands = (ArrayList<Command>) commands.clone();
-		clone.alphabet = (Vector<String>) alphabet.clone();
+		clone.alphabet = (alphabet == null) ? null : (Vector<String>) alphabet.clone();
 
 		return clone;
 	}

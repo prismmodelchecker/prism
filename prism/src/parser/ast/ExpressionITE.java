@@ -30,6 +30,7 @@ import parser.EvaluateContext;
 import parser.EvaluateContext.EvalMode;
 import parser.type.TypeBool;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class ExpressionITE extends Expression
@@ -129,12 +130,13 @@ public class ExpressionITE extends Expression
 	}
 
 	@Override
-	public Expression deepCopy()
+	public ExpressionITE deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		ExpressionITE expr = new ExpressionITE(operand1.deepCopy(), operand2.deepCopy(), operand3.deepCopy());
-		expr.setType(type);
-		expr.setPosition(this);
-		return expr;
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+		operand3 = copier.copy(operand3);
+
+		return this;
 	}
 
 	@Override

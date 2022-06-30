@@ -26,16 +26,23 @@
 
 package parser.ast;
 
+import parser.visitor.DeepCopy;
+import prism.PrismLangException;
+
 import java.util.Vector;
 
 public abstract class SystemDefn extends ASTElement
 {
-	// Overrided version of deepCopy() from superclass ASTElement (to reduce casting).
+	// Overwritten version of deepCopy() and deepCopy(DeepCopy copier) from superclass ASTElement (to reduce casting).
 
-	/**
-	 * Perform a deep copy.
-	 */
-	public abstract SystemDefn deepCopy();
+	@Override
+	public abstract SystemDefn deepCopy(DeepCopy copier) throws PrismLangException;
+
+	@Override
+	public SystemDefn deepCopy()
+	{
+		return (SystemDefn) super.deepCopy();
+	}
 
 	@Override
 	public SystemDefn clone()

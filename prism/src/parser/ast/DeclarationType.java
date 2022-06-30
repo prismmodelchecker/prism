@@ -27,12 +27,18 @@
 
 package parser.ast;
 
+import parser.visitor.DeepCopy;
+import prism.PrismLangException;
+
 public abstract class DeclarationType extends ASTElement
 {
 	/**
 	 * Return the default start value for a variable of this type, as an Expression.
 	 */
 	public abstract Expression getDefaultStart();
+
+	@Override
+	public abstract DeclarationType deepCopy(DeepCopy copier) throws PrismLangException;
 
 	@Override
 	public DeclarationType clone()

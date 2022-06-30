@@ -395,7 +395,7 @@ public abstract class ResultsExporter
 			Map<String, Integer> nameCounts = new HashMap<>();
 			// 1. Ensure each property is given a name and count names
 			for (int i=0, size=properties.size(); i<size; i++) {
-				Property property = properties.get(i).deepCopy();
+				Property property = (Property) properties.get(i).deepCopy();
 				String name = property.getName();
 				if (name == null || name.isEmpty()) {
 					// Create copy with new name
@@ -449,7 +449,7 @@ public abstract class ResultsExporter
 				// Ensure property has a name
 				String name = property.getName();
 				if (name == null || name.isEmpty()) {
-					property = property.deepCopy();
+					property = (Property) property.deepCopy();
 					property.setName("Property_1");
 				}
 			}

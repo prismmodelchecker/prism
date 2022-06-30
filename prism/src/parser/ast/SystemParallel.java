@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class SystemParallel extends SystemDefn
 {
@@ -169,15 +170,12 @@ public class SystemParallel extends SystemDefn
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
-	public SystemDefn deepCopy()
+	public SystemParallel deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		SystemParallel ret = new SystemParallel();
-		ret.setOperand1(getOperand1().deepCopy());
-		ret.setOperand2(getOperand2().deepCopy());
-		ret.actions = (actions == null) ? null : (Vector<String>)actions.clone();
-		ret.setPosition(this);
-		return ret;
+		operand1 = copier.copy(operand1);
+		operand2 = copier.copy(operand2);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class RewardStruct extends ASTElement
 {
@@ -145,20 +146,12 @@ public class RewardStruct extends ASTElement
 		return s;
 	}
 	
-	/**
-	 * Perform a deep copy.
-	 */
-	public ASTElement deepCopy()
+	@Override
+	public RewardStruct deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		RewardStruct ret = new RewardStruct();
-		ret.setName(name);
-		n = getNumItems();
-		for (i = 0; i < n; i++) {
-			ret.addItem((RewardStructItem)getRewardStructItem(i).deepCopy());
-		}
-		ret.setPosition(this);
-		return ret;
+		copier.copyAll(items);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

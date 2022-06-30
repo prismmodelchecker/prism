@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+
+import java.util.Vector;
 
 public class SystemRename extends SystemDefn
 {
@@ -197,16 +198,11 @@ public class SystemRename extends SystemDefn
 	}
 
 	@Override
-	public SystemDefn deepCopy()
+	public SystemRename deepCopy(DeepCopy copier) throws PrismLangException
 	{
-		int i, n;
-		SystemRename ret = new SystemRename(getOperand().deepCopy());
-		n = getNumRenames();
-		for (i = 0; i < n; i++) {
-			ret.addRename(getFrom(i), getTo(i));
-		}
-		ret.setPosition(this);
-		return ret;
+		operand = copier.copy(operand);
+
+		return this;
 	}
 
 	@SuppressWarnings("unchecked")

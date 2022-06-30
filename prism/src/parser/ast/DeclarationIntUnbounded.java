@@ -28,6 +28,7 @@ package parser.ast;
 
 import parser.type.*;
 import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
 public class DeclarationIntUnbounded extends DeclarationType
@@ -61,11 +62,9 @@ public class DeclarationIntUnbounded extends DeclarationType
 	}
 
 	@Override
-	public ASTElement deepCopy()
+	public DeclarationIntUnbounded deepCopy(DeepCopy copier)
 	{
-		DeclarationIntUnbounded ret = new DeclarationIntUnbounded();
-		ret.setPosition(this);
-		return ret;
+		return this;
 	}
 
 	@Override

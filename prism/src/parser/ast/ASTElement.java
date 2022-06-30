@@ -26,12 +26,45 @@
 
 package parser.ast;
 
-import java.util.*;
+import parser.EvaluateContext;
+import parser.EvaluateContextConstants;
+import parser.EvaluateContextState;
+import parser.EvaluateContextSubstate;
+import parser.EvaluateContextValues;
+import parser.State;
+import parser.Token;
+import parser.Values;
+import parser.type.Type;
+import parser.visitor.ASTVisitor;
+import parser.visitor.ComputeProbNesting;
+import parser.visitor.DeepCopy;
+import parser.visitor.EvaluatePartially;
+import parser.visitor.ExpandConstants;
+import parser.visitor.ExpandFormulas;
+import parser.visitor.ExpandLabels;
+import parser.visitor.ExpandPropRefsAndLabels;
+import parser.visitor.FindAllActions;
+import parser.visitor.FindAllConstants;
+import parser.visitor.FindAllFormulas;
+import parser.visitor.FindAllObsRefs;
+import parser.visitor.FindAllPropRefs;
+import parser.visitor.FindAllVars;
+import parser.visitor.GetAllConstants;
+import parser.visitor.GetAllFormulas;
+import parser.visitor.GetAllLabels;
+import parser.visitor.GetAllPropRefs;
+import parser.visitor.GetAllPropRefsRecursively;
+import parser.visitor.GetAllUndefinedConstantsRecursively;
+import parser.visitor.GetAllVars;
+import parser.visitor.Rename;
+import parser.visitor.SemanticCheck;
+import parser.visitor.Simplify;
+import parser.visitor.ToTreeString;
+import parser.visitor.TypeCheck;
+import prism.PrismLangException;
 
-import parser.*;
-import parser.type.*;
-import parser.visitor.*;
-import prism.*;
+import java.util.List;
+import java.util.Vector;
 
 // Abstract class for PRISM language AST elements
 
@@ -186,7 +219,25 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Perform a deep copy.
 	 */
-	public abstract ASTElement deepCopy();
+	public ASTElement deepCopy()
+	{
+		try {
+			return new DeepCopy().copy(this);
+		} catch (PrismLangException e) {
+			throw new Error(e);
+		}
+	}
+
+	/**
+	 * Perform a deep copy of all internal ASTElements using a deep copy visitor.
+	 * This method is usually called after {@code clone()} and must return the receiver.
+	 *
+	 * @param copier the copy visitor
+	 * @return the receiver with deep-copied subcomponents
+	 * @throws PrismLangException
+	 * @see #clone()
+	 */
+	public abstract ASTElement deepCopy(DeepCopy copier) throws PrismLangException;
 
 	/**
 	 * Perform a shallow copy of the receiver and
