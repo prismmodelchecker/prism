@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import prism.PrismUtils;
+import simulator.RandomNumberGenerator;
 
 /**
  * Explicit representation of a probability distribution.
@@ -201,6 +202,44 @@ public class Distribution implements Iterable<Entry<Integer, Double>>
 		return map.size();
 	}
 
+	/**
+	 * Sample an index at random from the distribution.
+	 * Returns -1 if the distribution is empty.
+	 */
+	public int sample()
+	{
+		return getValueByProbabilitySum(Math.random());
+	}
+	
+	/**
+	 * Sample an index at random from the distribution, using the specified RandomNumberGenerator.
+	 * Returns -1 if the distribution is empty.
+	 */
+	public int sample(RandomNumberGenerator rng)
+	{
+		return getValueByProbabilitySum(rng.randomUnifDouble());
+	}
+	
+	/**
+	 * Get the first index for which the sum of probabilities of that and all prior indices exceeds x.
+	 * Returns -1 if the distribution is empty.
+	 * @param x Probability sum
+	 */
+	private int getValueByProbabilitySum(double x)
+	{
+		if (isEmpty()) {
+			return -1;
+		}
+		Iterator<Entry<Integer, Double>> i = iterator();
+		Map.Entry<Integer, Double> e = null;
+		double tot = 0.0;
+		while (x >= tot && i.hasNext()) {
+			e = i.next();
+			tot += e.getValue();
+		}
+		return e.getKey();
+	}
+	
 	/**
 	 * Get the mean of the distribution.
 	 */
