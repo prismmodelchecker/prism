@@ -302,8 +302,12 @@ public class GUIPrism extends JFrame
 				theTabs.addTab(plug.getTabText(), plug);
 				theTabs.setEnabledAt(theTabs.getComponentCount() - 1, plug.isEnabled());
 			}
-			if (plug.getMenu() != null) {
-				menuBar.add(plug.getMenu());
+			if (plug.getMenus() != null) {
+				for (JMenu menu : plug.getMenus()) {
+					if (menu != null) {
+						menuBar.add(menu);
+					}
+				}
 			}
 			if (plug.getToolBar() != null) {
 				toolPanel.add(plug.getToolBar());

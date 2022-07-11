@@ -47,8 +47,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
 import java.awt.event.InputEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -165,15 +163,15 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 	private FileFilter dotFilter;
 	
 	private FileFilter matlabFilter;
-	private JMenu propMenu;
+	private JMenu propMenu, stratMenu;
 	private JPopupMenu propertiesPopup, constantsPopup, labelsPopup, experimentPopup;
-	private JMenu strategiesMenu, exportStrategyMenu;
+	private JMenu stratSubMenu;
 	private GUIExperimentTable experiments;
 	private GUIGraphHandler graphHandler;
 	private JScrollPane expScroller;
 	private JTextField fileTextField;
 	private Action newProps, openProps, saveProps, savePropsAs, insertProps, verifySelected, newProperty, editProperty;
-	private Action exportStrategyActions, exportStrategyInduced, exportStrategyInducedDot;
+	private Action generateStrategy, exportStrategyActions, exportStrategyInduced, exportStrategyInducedDot;
 	private Action newConstant, removeConstant, newLabel, removeLabel;
 	private Action newExperiment, deleteExperiment, stopExperiment, parametric;
 	private Action viewResults, plotResults, exportResultsListText, exportResultsListCSV,
@@ -1301,7 +1299,16 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 
 	public JMenu getMenu()
 	{
-		return propMenu;
+		// Not used
+		return null;
+	}
+
+	public List<JMenu> getMenus()
+	{
+		List<JMenu> menus = new ArrayList<>();
+		menus.add(propMenu);
+		menus.add(stratMenu);
+		return menus;
 	}
 
 	public String getTabText()
@@ -1839,10 +1846,9 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		setLayout(new BorderLayout());
 		add(mainSplit, BorderLayout.CENTER);
 		add(topPanel, BorderLayout.NORTH);
-		//menu
+		//menus
 		propMenu = new JMenu("Properties");
 		{
-			//JSplitter split = new JSeparator();
 			propMenu.add(newProps);
 			propMenu.add(new JSeparator());
 			propMenu.add(openProps);
@@ -1863,6 +1869,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 			propMenu.add(exportlabelsMenu);
 			propMenu.setMnemonic('P');
 		}
+		stratMenu = new JMenu("Strategies");
+		{
+			JCheckBoxMenuItem genStratCheckBox = new JCheckBoxMenuItem(generateStrategy);
+			genStratCheckBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
+			stratMenu.add(genStratCheckBox);
+			stratMenu.add(createStrategyExportMenu());
+			stratMenu.setMnemonic('T');
+		}
 		createPopups();
 		//file filters
 		propsFilter = new FileNameExtensionFilter("PRISM properties (*.props, *.pctl, *.csl)", "props", "pctl", "csl");
@@ -1878,6 +1892,17 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		dotFilter = new FileNameExtensionFilter("Dot files (*.dot)", "dot");
 	}
 
+	private JMenu createStrategyExportMenu()
+	{
+		JMenu exportStrategyMenu = new JMenu("Export stategy");
+		exportStrategyMenu.setMnemonic('E');
+		exportStrategyMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
+		exportStrategyMenu.add(exportStrategyActions);
+		exportStrategyMenu.add(exportStrategyInduced);
+		exportStrategyMenu.add(exportStrategyInducedDot);
+		return exportStrategyMenu;
+	}
+	
 	private void createPopups()
 	{
 		propertiesPopup = new JPopupMenu();
@@ -1890,28 +1915,14 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		propertiesPopup.add(newExperiment);
 		//propertiesPopup.add(parametric);
 		propertiesPopup.add(details);
-		strategiesMenu = new JMenu("Strategies");
-		strategiesMenu.setMnemonic('S');
-		strategiesMenu.setIcon(GUIPrism.getIconFromImage("smallStrategy.png"));
-		JCheckBoxMenuItem genStratCheckBox = new JCheckBoxMenuItem("Generate strategy", getGUI().getPrism().getGenStrat());
-		genStratCheckBox.setIcon(GUIPrism.getIconFromImage("smallBuild.png"));
+		stratSubMenu = new JMenu("Strategies");
+		stratSubMenu.setMnemonic('S');
+		stratSubMenu.setIcon(GUIPrism.getIconFromImage("smallStrategy.png"));
+		JCheckBoxMenuItem genStratCheckBox = new JCheckBoxMenuItem(generateStrategy);
 		genStratCheckBox.putClientProperty("CheckBoxMenuItem.doNotCloseOnMouseClick", true);
-		genStratCheckBox.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e)
-			{
-				boolean genStrat = (e.getStateChange() == ItemEvent.SELECTED);
-				getGUI().getPrism().setGenStrat(genStrat);
-			}
-		});
-		strategiesMenu.add(genStratCheckBox);
-		exportStrategyMenu = new JMenu("Export stategy");
-		exportStrategyMenu.setMnemonic('E');
-		exportStrategyMenu.setIcon(GUIPrism.getIconFromImage("smallExport.png"));
-		exportStrategyMenu.add(exportStrategyActions);
-		exportStrategyMenu.add(exportStrategyInduced);
-		exportStrategyMenu.add(exportStrategyInducedDot);
-		strategiesMenu.add(exportStrategyMenu);
-		propertiesPopup.add(strategiesMenu);
+		stratSubMenu.add(genStratCheckBox);
+		stratSubMenu.add(createStrategyExportMenu());
+		propertiesPopup.add(stratSubMenu);
 		propertiesPopup.add(new JSeparator());
 		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCutAction());
 		propertiesPopup.add(GUIPrism.getClipboardPlugin().getCopyAction());
@@ -2098,6 +2109,22 @@ public class GUIMultiProperties extends GUIPlugin implements MouseListener, List
 		editProperty.putValue(Action.NAME, "Edit");
 		editProperty.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallEdit.png"));
 
+		generateStrategy = new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				Boolean sel = (Boolean) getValue(Action.SELECTED_KEY);
+				if (sel != null) {
+					getGUI().getPrism().setGenStrat(sel.booleanValue());
+				}
+			}
+		};
+		generateStrategy.putValue(Action.SELECTED_KEY, getPrism().getGenStrat());
+		generateStrategy.putValue(Action.LONG_DESCRIPTION, "Whether or not strategy generation is enabled");
+		generateStrategy.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_G);
+		generateStrategy.putValue(Action.NAME, "Generate strategy");
+		generateStrategy.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallBuild.png"));
+		
 		exportStrategyActions = new AbstractAction()
 		{
 			public void actionPerformed(ActionEvent e)

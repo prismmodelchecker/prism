@@ -31,6 +31,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JFileChooser;
@@ -140,9 +141,20 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	
 	/** Abstract access method to be implemented to provide the JMenu object that should
 	 * be added to the top level GUI to provide menu functionality for this plugin.
+	 * If multiple menus are to be added, use getMenus() instead.
 	 * @return The JMenu to be displayed in the GUI.  Returns null if no menu is required
 	 */	
 	public abstract JMenu getMenu();
+	
+	/** Abstract access method to be implemented to provide the JMenu object that should
+	 * be added to the top level GUI to provide menu functionality for this plugin.
+	 * @return The JMenus to be displayed in the GUI.  Returns null if no menus are required
+	 */
+	public List<JMenu> getMenus()
+	{
+		// Default implementation: just one menu
+		return Collections.singletonList(getMenu());
+	}
 	
 	/** Abstract access method to be implemented to provide a toolbar to be displayed in
 	 * the top level GUI.
