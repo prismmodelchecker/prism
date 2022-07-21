@@ -29,37 +29,33 @@ package explicit.rewards;
 import explicit.Model;
 import explicit.Product;
 
+import java.util.Arrays;
+
 /**
  * Explicit-state storage of just state rewards (as an array).
  */
 public class StateRewardsArray extends StateRewards
 {
 	/** Array of state rewards **/
-	protected double stateRewards[] = null;
-	
+	protected double stateRewards[];
+
 	/**
 	 * Constructor: all zero rewards.
 	 * @param numStates Number of states
 	 */
 	public StateRewardsArray(int numStates)
 	{
+		// Default to all zero
 		stateRewards = new double[numStates];
-		for (int i = 0; i < numStates; i++) {
-			stateRewards[i] = 0.0;
-		}
 	}
-	
+
 	/**
 	 * Copy constructor
 	 * @param rews Rewards to copy
 	 */
 	public StateRewardsArray(StateRewardsArray rews)
 	{
-		int numStates= rews.stateRewards.length;
-		stateRewards = new double[numStates];
-		for (int i = 0; i < numStates; i++) {
-			stateRewards[i] = rews.stateRewards[i];
-		}
+		stateRewards = Arrays.copyOf(rews.stateRewards, rews.stateRewards.length);
 	}
 
 	// Mutators
