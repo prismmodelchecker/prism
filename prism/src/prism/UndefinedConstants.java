@@ -189,11 +189,11 @@ public class UndefinedConstants
 	 */
 	public void initialise()
 	{
-		Vector<String> mfv, pfv;
+		List<String> mfv, pfv;
 		// determine which constants are undefined
-		mfv = (modulesFile == null) ? new Vector<String>() : modulesFile.getUndefinedConstants();
+		mfv = (modulesFile == null) ? new ArrayList<>() : modulesFile.getUndefinedConstants();
 		if (propertiesFile == null) {
-			pfv = new Vector<String>();
+			pfv = new ArrayList<>();
 		} else {
 			if (props == null) {
 				if (justLabels) {
@@ -214,10 +214,10 @@ public class UndefinedConstants
 	/**
 	 * Create a new copy of a list of constant names, sorted by their occurrence in a PropertiesFile. 
 	 */
-	private Vector<String> orderConstantsByPropertiesFile(Vector<String> oldList, PropertiesFile propertiesFile)
+	private List<String> orderConstantsByPropertiesFile(List<String> oldList, PropertiesFile propertiesFile)
 	{
-		Vector<String> newList = new Vector<String>();
-		Vector<String> pfList = propertiesFile.getUndefinedConstants();
+		List<String> newList = new ArrayList<>();
+		List<String> pfList = propertiesFile.getUndefinedConstants();
 		for (String s : pfList) {
 			if (oldList.contains(s))
 				newList.add(s);
@@ -228,7 +228,7 @@ public class UndefinedConstants
 	/**
 	 * Set up data structures (as required by constructor methods)
 	 */
-	private void setUpDataStructures(Vector<String> mfv, Vector<String> pfv)
+	private void setUpDataStructures(List<String> mfv, List<String> pfv)
 	{
 		int i;
 		String s;
@@ -238,13 +238,13 @@ public class UndefinedConstants
 		// create storage for info about constant definitions
 		mfConsts = new ArrayList<DefinedConstant>(mfNumConsts);
 		for (i = 0; i < mfNumConsts; i++) {
-			s = (String) mfv.elementAt(i);
+			s = mfv.get(i);
 			Type type = modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s));
 			mfConsts.add(new DefinedConstant.Undefined(s, type));
 		}
 		pfConsts = new ArrayList<DefinedConstant>(pfNumConsts);
 		for (i = 0; i < pfNumConsts; i++) {
-			s = (String) pfv.elementAt(i);
+			s = pfv.get(i);
 			Type type = propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s));
 			pfConsts.add(new DefinedConstant.Undefined(s, type));
 		}

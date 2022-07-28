@@ -44,7 +44,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -437,7 +436,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			tableScroll.setViewportView(pathTable);
 
 			displayPathLoops = true;
-			
+
 			// Create a new path in the simulator and add labels/properties
 			getPrism().loadModelIntoSimulator();
 			getPrism().loadStrategyIntoSimulator();
@@ -896,8 +895,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 	/**
 	 * Re-populate lists of labels and path formulas.
-	 * Labels are taken from current model and passed in properties file. 
-	 * Path formulas are taken from the passed in properties file. 
+	 * Labels are taken from current model and passed in properties file.
+	 * Path formulas are taken from the passed in properties file.
 	 */
 	private void repopulateFormulae(PropertiesFile propertiesFile)
 	{
@@ -934,7 +933,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				GUIProperty gp = gpl.getProperty(i);
 
 				// obtain constants in property
-				Vector<String> propertyConstants = gp.getProperty().getAllConstants();
+				List<String> propertyConstants = gp.getProperty().getAllConstants();
 				boolean allConstantsDefined = true;
 				for (String propertyConstant : propertyConstants) {
 					if (!parsedModel.isDefinedConstant(propertyConstant) &&
@@ -2300,7 +2299,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	enum UpdateTableModelColumn {
 		STRAT, ACTION, PROB, UPDATE
 	};
-	
+
 	class UpdateTableModel extends AbstractTableModel
 	{
 		private List<UpdateTableModelColumn> visibleColumns = new ArrayList<>();
@@ -2437,7 +2436,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 			visibleColumns.add(UpdateTableModelColumn.UPDATE);
 		}
-		
+
 		public void restartUpdatesTable()
 		{
 			fireTableStructureChanged();

@@ -26,7 +26,7 @@
 
 package parser.ast;
 
-import java.util.Vector;
+import java.util.List;
 
 public abstract class SystemDefn extends ASTElement
 {
@@ -42,33 +42,33 @@ public abstract class SystemDefn extends ASTElement
 	/**
 	 * Get list of all modules appearing (recursively).
 	 * Duplicates are not removed and will appear multiple times in the list.
-	 * @deprecated Use {@link SystemDefn#getModules(Vector, ModulesFile)} instead.
+	 * @deprecated Use {@link SystemDefn#getModules(List, ModulesFile)} instead.
 	 */
 	@Deprecated
-	public abstract void getModules(Vector<String> v);
+	public abstract void getModules(List<String> v);
 
 	/**
 	 * Get list of all modules appearing (recursively, including descent into references).
 	 * Duplicates are not removed and will appear multiple times in the list.
 	 */
-	public abstract void getModules(Vector<String> v, ModulesFile modulesFile);
+	public abstract void getModules(List<String> v, ModulesFile modulesFile);
 
 	/**
 	 * Get list of all synchronising actions _introduced_ (recursively).
-	 * @deprecated Use {@link SystemDefn#getSynchs(Vector, ModulesFile)} instead.
+	 * @deprecated Use {@link SystemDefn#getSynchs(List, ModulesFile)} instead.
 	 */
 	@Deprecated
-	public abstract void getSynchs(Vector<String> v);
+	public abstract void getSynchs(List<String> v);
 
 	/**
 	 * Get list of all synchronising actions _introduced_ (recursively, including descent into references).
 	 */
-	public abstract void getSynchs(Vector<String> v, ModulesFile modulesFile);
+	public abstract void getSynchs(List<String> v, ModulesFile modulesFile);
 
 	/**
 	 * Get list of all references to other SystemDefns (recursively, but not following references).
 	 */
-	public abstract void getReferences(Vector<String> v);
+	public abstract void getReferences(List<String> v);
 }
 
 //------------------------------------------------------------------------------

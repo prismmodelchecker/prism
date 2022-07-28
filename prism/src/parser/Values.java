@@ -28,6 +28,7 @@ package parser;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
 
 import param.BigRational;
 import parser.type.Type;
@@ -44,8 +45,8 @@ import prism.PrismUtils;
  */
 public class Values implements Cloneable //implements Comparable
 {
-	protected ArrayList<String> names;
-	protected ArrayList<Object> values;
+	protected List<String> names;
+	protected List<Object> values;
 	
 	// Constructors
 	
@@ -69,8 +70,8 @@ public class Values implements Cloneable //implements Comparable
 			names = new ArrayList<String>();
 			values = new ArrayList<Object>();
 		} else {
-			names = (ArrayList<String>) v.names.clone();
-			values = (ArrayList<Object>) v.values.clone();
+			names = new ArrayList<String>(v.names);
+			values = new ArrayList<Object>(v.values);
 		}
 	}
 	
@@ -328,8 +329,8 @@ public class Values implements Cloneable //implements Comparable
 		} catch (CloneNotSupportedException e) {
 			throw new InternalError("Object#clone is expected to work for Cloneable objects.", e);
 		}
-		clone.names = (ArrayList<String>) names.clone();
-		clone.values = (ArrayList<Object>) values.clone();
+		clone.names = new ArrayList<String>(names);
+		clone.values = new ArrayList<Object>(values);
 		return clone;
 	}
 

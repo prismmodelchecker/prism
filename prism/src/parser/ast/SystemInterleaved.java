@@ -26,33 +26,34 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
 import parser.visitor.*;
 import prism.PrismLangException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SystemInterleaved extends SystemDefn
 {
-	// Vector of operands
-	private Vector<SystemDefn> operands;
+	// List of operands
+	private List<SystemDefn> operands;
 	
 	// Constructor
 	
 	public SystemInterleaved()
 	{
-		operands = new Vector<SystemDefn>();
+		operands = new ArrayList<>();
 	}
 	
 	// Set methods
 	
 	public void addOperand(SystemDefn s)
 	{
-		operands.addElement(s);
+		operands.add(s);
 	}
 		
 	public void setOperand(int i, SystemDefn s)
 	{
-		operands.setElementAt(s, i);
+		operands.set(i, s);
 	}
 			
 	// Get methods
@@ -64,14 +65,14 @@ public class SystemInterleaved extends SystemDefn
 	
 	public SystemDefn getOperand(int i)
 	{
-		return operands.elementAt(i);
+		return operands.get(i);
 	}
 		
 	// Methods required for SystemDefn (all subclasses should implement):
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		int i, n;
 		
@@ -82,7 +83,7 @@ public class SystemInterleaved extends SystemDefn
 	}
 
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		int i, n;
 		
@@ -94,7 +95,7 @@ public class SystemInterleaved extends SystemDefn
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		int i, n;
 		
@@ -105,7 +106,7 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		int i, n;
 		
@@ -116,7 +117,7 @@ public class SystemInterleaved extends SystemDefn
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		int n = getNumOperands();
 		for (int i = 0; i < n; i++) {

@@ -26,6 +26,8 @@
 
 package prism;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -63,7 +65,7 @@ public class Modules2MTBDD
 	private Values constantValues;	// values of constants
 	// synch info
 	private int numSynchs;			// number of synchronisations
-	private Vector<String> synchs;			// synchronisations
+	private List<String> synchs;			// synchronisations
 	// rewards
 	private int numRewardStructs;		// number of reward structs
 	private String[] rewardStructNames;	// reward struct names
@@ -322,7 +324,7 @@ public class Modules2MTBDD
 			modelWasBuilt = true;
 
 			// We also store a copy of the list of action label names
-			model.setSynchs((Vector<String>)synchs.clone());
+			model.setSynchs(new ArrayList<>(synchs));
 		
 			// For MDPs, we also store the DDs used to construct the part
 			// of the transition matrix that corresponds to each action
@@ -487,7 +489,7 @@ public class Modules2MTBDD
 			if (modelType == ModelType.MDP) {
 				// allocate vars
 				for (i = 0; i < numSynchs; i++) {
-					ddSynchVars[i] = modelVariables.allocateVariable(synchs.elementAt(i)+".a");
+					ddSynchVars[i] = modelVariables.allocateVariable(synchs.get(i)+".a");
 				}
 			}
 		
@@ -564,7 +566,7 @@ public class Modules2MTBDD
 			// allocate synchronizing action variables
 			if (modelType == ModelType.MDP) {
 				for (i = 0; i < numSynchs; i++) {
-					ddSynchVars[i] = modelVariables.allocateVariable(synchs.elementAt(i)+".a");
+					ddSynchVars[i] = modelVariables.allocateVariable(synchs.get(i)+".a");
 				}
 			}
 
@@ -1017,7 +1019,7 @@ public class Modules2MTBDD
 		sysDDs.ind = translateModule(m, module, "", 0);
 		// build mtbdd for each synchronising action
 		for (i = 0; i < numSynchs; i++) {
-			synch = synchs.elementAt(i);
+			synch = synchs.get(i);
 			sysDDs.synchs[i] = translateModule(m, module, synch, synchMin[i]);
 		}
 		// store identity matrix
@@ -1139,7 +1141,7 @@ public class Modules2MTBDD
 		// go thru all synchronising actions and decide if we will synchronise on each one
 		synchBool = new boolean[numSynchs];
 		for (i = 0; i < numSynchs; i++) {
-			synchBool[i] = sys.containsAction(synchs.elementAt(i));
+			synchBool[i] = sys.containsAction(synchs.get(i));
 		}
 		
 		// construct mtbdds for first operand
@@ -1198,7 +1200,7 @@ public class Modules2MTBDD
 		// store this in new array - old one may still be used elsewhere
 		newSynchMin = new int[numSynchs];
 		for (i = 0; i < numSynchs; i++) {
-			if (sys.containsAction(synchs.elementAt(i))) {
+			if (sys.containsAction(synchs.get(i))) {
 				newSynchMin[i] = 0;
 			}
 			else {
@@ -1221,7 +1223,7 @@ public class Modules2MTBDD
 			// if the action is in the set to be hidden, hide it...
 			// note that it doesn't matter if an action is included more than once in the set
 			// (although this would be picked up during the syntax check anyway)
-			if (sys.containsAction(synchs.elementAt(i))) {
+			if (sys.containsAction(synchs.get(i))) {
 				
 				// move these transitions into the independent bit
 				sysDDs.ind = combineComponentDDs(sysDDs.ind, sysDDs1.synchs[i]);
@@ -1267,7 +1269,7 @@ public class Modules2MTBDD
 		for (i = 0; i < numSynchs; i++) {
 			// find out what this action is renamed to
 			// (this may be itself, i.e. it's not renamed)
-			s = sys.getNewName(synchs.elementAt(i));
+			s = sys.getNewName(synchs.get(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
 				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);
@@ -1299,7 +1301,7 @@ public class Modules2MTBDD
 			// find out what this action is renamed to
 			// (this may be itself, i.e. it's not renamed)
 			// then add it to result
-			s = sys.getNewName(synchs.elementAt(i));
+			s = sys.getNewName(synchs.get(i));
 			j = synchs.indexOf(s);
 			if (j == -1) {
 				throw new PrismLangException("Invalid action name \"" + s + "\" in renaming", sys);

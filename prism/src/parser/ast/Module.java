@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import java.util.*;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Module extends ASTElement
 {
@@ -47,15 +48,15 @@ public class Module extends ASTElement
 	// Base module (if was constructed through renaming; null if not)
 	private String baseModule;
 	// Alphabet (if defined explicitly rather than deduced from syntax)
-	private Vector<String> alphabet;
+	private List<String> alphabet;
 
 	// Constructor
 	
 	public Module(String n)
 	{
 		name = n;
-		decls = new ArrayList<Declaration>();
-		commands = new ArrayList<Command>();
+		decls = new ArrayList<>();
+		commands = new ArrayList<>();
 		invariant = null;
 		parent = null;
 		baseModule = null;
@@ -122,7 +123,7 @@ public class Module extends ASTElement
 	 */
 	public void setAlphabet(List<String> alphabet)
 	{
-		this.alphabet = (alphabet == null) ? null : new Vector<String>(alphabet); 
+		this.alphabet = (alphabet == null) ? null : new ArrayList<>(alphabet);
 	}
 	
 	// Get methods
@@ -209,7 +210,7 @@ public class Module extends ASTElement
 	 * module ensures that a is in the alphabet, regardless of whether the guard is true.
 	 * The alphabet for a module can also be overridden using {@link #setAlphabet(List)}
 	 */
-	public Vector<String> getAllSynchs()
+	public List<String> getAllSynchs()
 	{
 		// If overridden, use this
 		if (alphabet != null) {
@@ -218,7 +219,7 @@ public class Module extends ASTElement
 		// Otherwise, deduce syntactically
 		int i, n;
 		String s;
-		Vector<String> allSynchs = new Vector<String>();
+		List<String> allSynchs = new ArrayList<>();
 		n = getNumCommands();
 		for (i = 0; i < n; i++) {
 			s = getCommand(i).getSynch();

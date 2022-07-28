@@ -28,7 +28,6 @@ package parser.ast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
@@ -39,18 +38,18 @@ public class LabelList extends ASTElement
 {
 	// Name/expression pairs to define labels
 	private List<String> names;
-	private Vector<Expression> labels;
+	private List<Expression> labels;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private Vector<ExpressionIdent> nameIdents;
+	private List<ExpressionIdent> nameIdents;
 	
 	// Constructor
 	
 	public LabelList()
 	{
-		names = new ArrayList<String>();
-		labels = new Vector<Expression>();
-		nameIdents = new Vector<ExpressionIdent>();
+		names = new ArrayList<>();
+		labels = new ArrayList<>();
+		nameIdents = new ArrayList<>();
 	}
 	
 	// Set methods
@@ -58,7 +57,7 @@ public class LabelList extends ASTElement
 	public void addLabel(ExpressionIdent n, Expression l)
 	{
 		names.add(n.getName());
-		labels.addElement(l);
+		labels.add(l);
 		nameIdents.add(n);
 	}
 	
@@ -92,12 +91,12 @@ public class LabelList extends ASTElement
 	
 	public Expression getLabel(int i)
 	{
-		return labels.elementAt(i);
+		return labels.get(i);
 	}
 	
 	public ExpressionIdent getLabelNameIdent(int i)
 	{
-		return nameIdents.elementAt(i);
+		return nameIdents.get(i);
 	}
 
 	/**

@@ -26,39 +26,40 @@
 
 package parser.ast;
 
-import java.util.Vector;
-
-import parser.visitor.*;
+import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
 import prism.PrismUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // class to store list of formulas
 
 public class FormulaList extends ASTElement
 {
 	// Name/expression pairs to define formulas
-	private Vector<String> names;
-	private Vector<Expression> formulas;
+	private List<String> names;
+	private List<Expression> formulas;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private Vector<ExpressionIdent> nameIdents;
+	private List<ExpressionIdent> nameIdents;
 
 	// Constructor
 
 	public FormulaList()
 	{
-		names = new Vector<String>();
-		formulas = new Vector<Expression>();
-		nameIdents = new Vector<ExpressionIdent>();
+		names = new ArrayList<>();
+		formulas = new ArrayList<>();
+		nameIdents = new ArrayList<>();
 	}
 
 	// Set methods
 
 	public void addFormula(ExpressionIdent n, Expression f)
 	{
-		names.addElement(n.getName());
-		formulas.addElement(f);
-		nameIdents.addElement(n);
+		names.add(n.getName());
+		formulas.add(f);
+		nameIdents.add(n);
 	}
 
 	public void setFormulaName(int i, ExpressionIdent n)
@@ -81,17 +82,17 @@ public class FormulaList extends ASTElement
 
 	public String getFormulaName(int i)
 	{
-		return names.elementAt(i);
+		return names.get(i);
 	}
 
 	public Expression getFormula(int i)
 	{
-		return formulas.elementAt(i);
+		return formulas.get(i);
 	}
 
 	public ExpressionIdent getFormulaNameIdent(int i)
 	{
-		return nameIdents.elementAt(i);
+		return nameIdents.get(i);
 	}
 
 	/**
@@ -112,9 +113,9 @@ public class FormulaList extends ASTElement
 		int n = size();
 		boolean matrix[][] = new boolean[n][n];
 		for (int i = 0; i < n; i++) {
-			Vector<String> v = getFormula(i).getAllFormulas();
+			List<String> v = getFormula(i).getAllFormulas();
 			for (int j = 0; j < v.size(); j++) {
-				int k = getFormulaIndex((String) v.elementAt(j));
+				int k = getFormulaIndex(v.get(j));
 				if (k != -1) {
 					matrix[i][k] = true;
 				}
