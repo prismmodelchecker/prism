@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Vector;
 
 import parser.State;
 import parser.ast.Command;
@@ -52,7 +51,7 @@ public class SymbolicEngine
 	protected ModelType modelType;
 	protected int numModules;
 	// Synchronising action info
-	protected Vector<String> synchs;
+	protected List<String> synchs;
 	protected int numSynchs;
 	protected int synchModuleCounts[];
 	

@@ -26,6 +26,9 @@
 
 package parser.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import parser.EvaluateContext;
 import parser.EvaluateContextConstants;
 import parser.EvaluateContextState;
@@ -62,9 +65,6 @@ import parser.visitor.Simplify;
 import parser.visitor.ToTreeString;
 import parser.visitor.TypeCheck;
 import prism.PrismLangException;
-
-import java.util.List;
-import java.util.Vector;
 
 // Abstract class for PRISM language AST elements
 
@@ -291,9 +291,9 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Get all formulas (i.e. ExpressionFormula objects), store names in set.
 	 */
-	public Vector<String> getAllFormulas() throws PrismLangException
+	public List<String> getAllFormulas() throws PrismLangException
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllFormulas visitor = new GetAllFormulas(v);
 		accept(visitor);
 		return v;
@@ -321,9 +321,9 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Get all constants (i.e. ExpressionConstant objects), store names in set.
 	 */
-	public Vector<String> getAllConstants()
+	public List<String> getAllConstants()
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllConstants visitor = new GetAllConstants(v);
 		try {
 			accept(visitor);
@@ -342,9 +342,9 @@ public abstract class ASTElement implements Cloneable
 	* ConstantList must be non-null so that we can determine which constants are undefined;
 	* LabelList and PropertiesFile passed in as null are ignored.
 	 */
-	public Vector<String> getAllUndefinedConstantsRecursively(ConstantList constantList, LabelList labelList, PropertiesFile propertiesFile)
+	public List<String> getAllUndefinedConstantsRecursively(ConstantList constantList, LabelList labelList, PropertiesFile propertiesFile)
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllUndefinedConstantsRecursively visitor = new GetAllUndefinedConstantsRecursively(v, constantList, labelList, propertiesFile);
 		try {
 			accept(visitor);
@@ -385,9 +385,9 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Get all variables (i.e. ExpressionVar objects), store names in set.
 	 */
-	public Vector<String> getAllVars() throws PrismLangException
+	public List<String> getAllVars() throws PrismLangException
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllVars visitor = new GetAllVars(v);
 		accept(visitor);
 		return v;
@@ -406,9 +406,9 @@ public abstract class ASTElement implements Cloneable
 	 * Get all labels (i.e. ExpressionLabel objects), store names in set.
 	 * Special labels "deadlock", "init" *are* included in the list.
 	 */
-	public Vector<String> getAllLabels() throws PrismLangException
+	public List<String> getAllLabels() throws PrismLangException
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllLabels visitor = new GetAllLabels(v);
 		accept(visitor);
 		return v;
@@ -437,9 +437,9 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Get all references to properties (by name) (i.e. ExpressionProp objects), store names in set.
 	 */
-	public Vector<String> getAllPropRefs() throws PrismLangException
+	public List<String> getAllPropRefs() throws PrismLangException
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllPropRefs visitor = new GetAllPropRefs(v);
 		accept(visitor);
 		return v;
@@ -448,9 +448,9 @@ public abstract class ASTElement implements Cloneable
 	/**
 	 * Get all references to properties (by name) (i.e. ExpressionProp objects) recursively, store names in set.
 	 */
-	public Vector<String> getAllPropRefsRecursively(PropertiesFile propertiesFile) throws PrismLangException
+	public List<String> getAllPropRefsRecursively(PropertiesFile propertiesFile) throws PrismLangException
 	{
-		Vector<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		GetAllPropRefsRecursively visitor = new GetAllPropRefsRecursively(v, propertiesFile);
 		accept(visitor);
 		return v;

@@ -27,6 +27,7 @@
 
 package parser.visitor;
 
+import java.util.List;
 import java.util.Vector;
 
 import parser.ast.ExpressionLabel;
@@ -40,10 +41,10 @@ import prism.PrismLangException;
  */
 public class GetAllPropRefsRecursively extends ASTTraverse
 {
-	private Vector<String> v;
+	private List<String> v;
 	private PropertiesFile pf;
 
-	public GetAllPropRefsRecursively(Vector<String> v, PropertiesFile pf)
+	public GetAllPropRefsRecursively(List<String> v, PropertiesFile pf)
 	{
 		this.v = v;
 		this.pf = pf;
@@ -52,7 +53,7 @@ public class GetAllPropRefsRecursively extends ASTTraverse
 	public void visitPost(ExpressionProp e) throws PrismLangException
 	{
 		if (!v.contains(e.getName())) {
-			v.addElement(e.getName());
+			v.add(e.getName());
 		}
 	}
 
@@ -67,7 +68,7 @@ public class GetAllPropRefsRecursively extends ASTTraverse
 		}
 		if (prop != null) {
 			// If so, add the name
-			v.addElement(e.getName());
+			v.add(e.getName());
 		}
 	}
 }

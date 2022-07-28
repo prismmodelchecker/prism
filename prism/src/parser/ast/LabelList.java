@@ -28,7 +28,6 @@ package parser.ast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
@@ -40,18 +39,18 @@ public class LabelList extends ASTElement
 {
 	// Name/expression pairs to define labels
 	private ArrayList<String> names;
-	private Vector<Expression> labels;
+	private ArrayList<Expression> labels;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private Vector<ExpressionIdent> nameIdents;
+	private ArrayList<ExpressionIdent> nameIdents;
 	
 	// Constructor
 	
 	public LabelList()
 	{
-		names = new ArrayList<String>();
-		labels = new Vector<Expression>();
-		nameIdents = new Vector<ExpressionIdent>();
+		names = new ArrayList<>();
+		labels = new ArrayList<>();
+		nameIdents = new ArrayList<>();
 	}
 	
 	// Set methods
@@ -59,7 +58,7 @@ public class LabelList extends ASTElement
 	public void addLabel(ExpressionIdent n, Expression l)
 	{
 		names.add(n.getName());
-		labels.addElement(l);
+		labels.add(l);
 		nameIdents.add(n);
 	}
 	
@@ -93,12 +92,12 @@ public class LabelList extends ASTElement
 	
 	public Expression getLabel(int i)
 	{
-		return labels.elementAt(i);
+		return labels.get(i);
 	}
 	
 	public ExpressionIdent getLabelNameIdent(int i)
 	{
-		return nameIdents.elementAt(i);
+		return nameIdents.get(i);
 	}
 
 	/**
@@ -151,9 +150,9 @@ public class LabelList extends ASTElement
 	{
 		LabelList clone = (LabelList) super.clone();
 
-		clone.names      = (ArrayList<String>)       names.clone();
-		clone.labels     = (Vector<Expression>)      labels.clone();
-		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+		clone.names      = (ArrayList<String>)       	names.clone();
+		clone.labels     = (ArrayList<Expression>)      labels.clone();
+		clone.nameIdents = (ArrayList<ExpressionIdent>) nameIdents.clone();
 
 		return clone;
 	}

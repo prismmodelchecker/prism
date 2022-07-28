@@ -26,16 +26,16 @@
 
 package parser.ast;
 
+import java.util.ArrayList;
+
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 
-import java.util.Vector;
-
 public class RewardStruct extends ASTElement
 {
 	private String name;		// name (optional)
-	private Vector<RewardStructItem> items;		// list of items
+	private ArrayList<RewardStructItem> items;		// list of items
 	private int numStateItems;	// how may of the items are state rewards
 	private int numTransItems;	// how may of the items are transition rewards
 	
@@ -44,7 +44,7 @@ public class RewardStruct extends ASTElement
 	public RewardStruct()
 	{
 		name = "";
-		items = new Vector<RewardStructItem>();
+		items = new ArrayList<>();
 		numStateItems = 0;
 		numTransItems = 0;
 	}
@@ -98,7 +98,7 @@ public class RewardStruct extends ASTElement
 	
 	public RewardStructItem getRewardStructItem(int i)
 	{
-		return items.elementAt(i);
+		return items.get(i);
 	}
 	
 	public String getSynch(int i)
@@ -160,7 +160,7 @@ public class RewardStruct extends ASTElement
 	{
 		RewardStruct clone = (RewardStruct) super.clone();
 
-		clone.items = (Vector<RewardStructItem>) items.clone();
+		clone.items = (ArrayList<RewardStructItem>) items.clone();
 
 		return clone;
 	}

@@ -26,16 +26,21 @@
 
 package parser.ast;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import param.BigRational;
-import parser.*;
-import parser.visitor.*;
+import parser.Values;
+import parser.type.Type;
+import parser.type.TypeBool;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
+import parser.visitor.ASTVisitor;
+import parser.visitor.DeepCopy;
 import prism.PrismLangException;
 import prism.PrismUtils;
-import parser.type.*;
 
 /**
  * Class to store list of (defined and undefined) constants
@@ -43,12 +48,12 @@ import parser.type.*;
 public class ConstantList extends ASTElement
 {
 	// Name/expression/type triples to define constants
-	private Vector<String> names = new Vector<String>();
-	private Vector<Expression> constants = new Vector<Expression>(); // these can be null, i.e. undefined
-	private Vector<Type> types = new Vector<Type>();
+	private ArrayList<String> names = new ArrayList<>();
+	private ArrayList<Expression> constants = new ArrayList<>(); // these can be null, i.e. undefined
+	private ArrayList<Type> types = new ArrayList<>();
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private Vector<ExpressionIdent> nameIdents = new Vector<ExpressionIdent>();
+	private ArrayList<ExpressionIdent> nameIdents = new ArrayList<>();
 	
 	/** Constructor */
 	public ConstantList()
@@ -76,15 +81,15 @@ public class ConstantList extends ASTElement
 	
 	public void addConstant(ExpressionIdent n, Expression c, Type t)
 	{
-		names.addElement(n.getName());
-		constants.addElement(c);
-		types.addElement(t);
-		nameIdents.addElement(n);
+		names.add(n.getName());
+		constants.add(c);
+		types.add(t);
+		nameIdents.add(n);
 	}
 	
 	public void setConstant(int i, Expression c)
 	{
-		constants.setElementAt(c, i);
+		constants.set(i, c);
 	}
 	
 	// Get methods
@@ -96,22 +101,22 @@ public class ConstantList extends ASTElement
 
 	public String getConstantName(int i)
 	{
-		return names.elementAt(i);
+		return names.get(i);
 	}
 	
 	public Expression getConstant(int i)
 	{
-		return constants.elementAt(i);
+		return constants.get(i);
 	}
 	
 	public Type getConstantType(int i)
 	{
-		return types.elementAt(i);
+		return types.get(i);
 	}
 	
 	public ExpressionIdent getConstantNameIdent(int i)
 	{
-		return nameIdents.elementAt(i);
+		return nameIdents.get(i);
 	}
 
 	/**
@@ -164,9 +169,9 @@ public class ConstantList extends ASTElement
 		for (int i = 0; i < n; i++) {
 			Expression e = getConstant(i);
 			if (e != null) {
-				Vector<String> v = e.getAllConstants();
+				List<String> v = e.getAllConstants();
 				for (int j = 0; j < v.size(); j++) {
-					int k = getConstantIndex(v.elementAt(j));
+					int k = getConstantIndex(v.get(j));
 					if (k != -1) {
 						matrix[i][k] = true;
 					}
@@ -204,18 +209,17 @@ public class ConstantList extends ASTElement
 	/**
 	 * Get a list of the undefined constants in the list.
 	 */
-	public Vector<String> getUndefinedConstants()
+	public List<String> getUndefinedConstants()
 	{
 		int i, n;
 		Expression e;
-		Vector<String> v;
-		
-		v = new Vector<String>();
+		List<String> v = new ArrayList<>();
+
 		n = constants.size();
 		for (i = 0; i < n; i++) {
 			e = getConstant(i);
 			if (e == null) {
-				v.addElement(getConstantName(i));
+				v.add(getConstantName(i));
 			}
 		}
 		
@@ -492,10 +496,10 @@ public class ConstantList extends ASTElement
 	{
 		ConstantList clone = (ConstantList) super.clone();
 
-		clone.names      = (Vector<String>)          names.clone();
-		clone.constants  = (Vector<Expression>)      constants.clone();
-		clone.types      = (Vector<Type>)            types.clone();
-		clone.nameIdents = (Vector<ExpressionIdent>) nameIdents.clone();
+		clone.names      = (ArrayList<String>)          names.clone();
+		clone.constants  = (ArrayList<Expression>)      constants.clone();
+		clone.types      = (ArrayList<Type>)            types.clone();
+		clone.nameIdents = (ArrayList<ExpressionIdent>) nameIdents.clone();
 
 		return clone;
 	}

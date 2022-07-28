@@ -26,7 +26,10 @@
 
 package parser.ast;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 
 import param.BigRational;
 import parser.IdentUsage;
@@ -59,8 +62,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	private FormulaList formulaList;
 	private LabelList labelList;
 	private ConstantList constantList;
-	private Vector<Declaration> globals; // Global variables
-	private Vector<Object> modules; // Modules (includes renamed modules)
+	private ArrayList<Declaration> globals; // Global variables
+	private ArrayList<Object> modules; // Modules (includes renamed modules)
 	private ArrayList<SystemDefn> systemDefns; // System definitions (system...endsystem constructs)
 	private ArrayList<String> systemDefnNames; // System definition names (system...endsystem constructs)
 	private ArrayList<RewardStruct> rewardStructs; // Rewards structures
@@ -75,12 +78,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	// List of all module names
 	private String[] moduleNames;
 	// List of synchronising actions
-	private Vector<String> synchs;
+	private ArrayList<String> synchs;
 	// Lists of variable info (declaration, name, type, module index)
-	private Vector<Declaration> varDecls;
-	private Vector<String> varNames;
-	private Vector<Type> varTypes;
-	private Vector<Integer> varModules;
+	private ArrayList<Declaration> varDecls;
+	private ArrayList<String> varNames;
+	private ArrayList<Type> varTypes;
+	private ArrayList<Integer> varModules;
 	// Lists of observable info
 	private ArrayList<Observable> observables;
 	private ArrayList<String> observableNames;
@@ -100,8 +103,8 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		labelList = new LabelList();
 		constantList = new ConstantList();
 		modelTypeInFile = modelType = null; // Unspecified
-		globals = new Vector<Declaration>();
-		modules = new Vector<Object>();
+		globals = new ArrayList<>();
+		modules = new ArrayList<>();
 		systemDefns = new ArrayList<SystemDefn>();
 		systemDefnNames = new ArrayList<String>();
 		rewardStructs = new ArrayList<RewardStruct>();
@@ -111,10 +114,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		observableDefns = new ArrayList<>();
 		identUsage = new IdentUsage();
 		quotedIdentUsage = new IdentUsage(true);
-		varDecls = new Vector<Declaration>();
-		varNames = new Vector<String>();
-		varTypes = new Vector<Type>();
-		varModules = new Vector<Integer>();
+		varDecls = new ArrayList<>();
+		varNames = new ArrayList<>();
+		varTypes = new ArrayList<>();
+		varModules = new ArrayList<>();
 		observables = new ArrayList<>();
 		observableNames = new ArrayList<>();
 		observableTypes = new ArrayList<>();
@@ -370,7 +373,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	public Declaration getGlobal(int i)
 	{
-		return globals.elementAt(i);
+		return globals.get(i);
 	}
 	
 	public int getNumModules()
@@ -383,7 +386,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	// these will have been replaced with Modules after tidyUp()
 	public Module getModule(int i)
 	{
-		Object o = modules.elementAt(i);
+		Object o = modules.get(i);
 		return (o instanceof Module) ? (Module) o : null;
 	}
 
@@ -703,7 +706,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Get the list of action names.
 	 */
-	public Vector<String> getSynchs()
+	public List<String> getSynchs()
 	{
 		return synchs;
 	}
@@ -767,12 +770,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		return varTypes.get(i);
 	}
 
-	public Vector<String> getVarNames()
+	public List<String> getVarNames()
 	{
 		return varNames;
 	}
 
-	public Vector<Type> getVarTypes()
+	public List<Type> getVarTypes()
 	{
 		return varTypes;
 	}
@@ -966,7 +969,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Go through modules and find ones which are defined by renaming
 		n = modules.size();
 		for (i = 0; i < n; i++) {
-			o = modules.elementAt(i);
+			o = modules.get(i);
 			if (o instanceof Module)
 				continue;
 			module = (RenamedModule) o;
@@ -1044,12 +1047,12 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 
 	private void getSynchNames() throws PrismLangException
 	{
-		Vector<String> v;
+		List<String> v;
 		String s;
 		int i, j, n, m;
 
-		// create vector to store names
-		synchs = new Vector<String>();
+		// create list to store names
+		synchs = new ArrayList<>();
 
 		// go thru modules and extract names which appear in their commands
 		n = modules.size();
@@ -1057,7 +1060,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 			v = getModule(i).getAllSynchs();
 			m = v.size();
 			for (j = 0; j < m; j++) {
-				s = v.elementAt(j);
+				s = v.get(j);
 				if (!synchs.contains(s)) {
 					synchs.add(s);
 				}
@@ -1178,10 +1181,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		boolean matrix[][] = new boolean[n][n];
 		for (int i = 0; i < n; i++) {
 			SystemDefn sys = systemDefns.get(i);
-			Vector<String> v = new Vector<String>();
+			List<String> v = new ArrayList<>();
 			sys.getReferences(v);
 			for (int j = 0; j < v.size(); j++) {
-				int k = getSystemDefnIndex(v.elementAt(j));
+				int k = getSystemDefnIndex(v.get(j));
 				if (k != -1) {
 					matrix[i][k] = true;
 				}
@@ -1286,7 +1289,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	 * Get  a list of constants in the model that are undefined
 	 * ("const int x;" rather than "const int x = 1;") 
 	 */
-	public Vector<String> getUndefinedConstants()
+	public List<String> getUndefinedConstants()
 	{
 		return constantList.getUndefinedConstants();
 	}
@@ -1461,10 +1464,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		int i, n;
 
 		// Recompute lists of all variables and types
-		varDecls = new Vector<Declaration>();
-		varNames = new Vector<String>();
-		varTypes = new Vector<Type>();
-		varModules = new Vector<Integer>();
+		varDecls = new ArrayList<>();
+		varNames = new ArrayList<>();
+		varTypes = new ArrayList<>();
+		varModules = new ArrayList<>();
 		// Globals
 		for (Declaration decl : globals) {
 			varDecls.add(decl);
@@ -1614,9 +1617,9 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		}
 
 		for (i = 0; i < modules.size() - 1; i++) {
-			s += modules.elementAt(i) + "\n\n";
+			s += modules.get(i) + "\n\n";
 		}
-		s += modules.elementAt(modules.size() - 1) + "\n";
+		s += modules.get(modules.size() - 1) + "\n";
 
 		for (i = 0; i < systemDefns.size(); i++) {
 			s += "\nsystem ";
@@ -1670,18 +1673,18 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		ModulesFile clone = (ModulesFile) super.clone();
 
 		// clone main components
-		clone.globals            = (Vector<Declaration>) globals.clone();
-		clone.modules            = (Vector<Object>) modules.clone();
+		clone.globals            = (ArrayList<Declaration>) globals.clone();
+		clone.modules            = (ArrayList<Object>) modules.clone();
 		clone.systemDefns        = (ArrayList<SystemDefn>) systemDefns.clone();
 		clone.systemDefnNames    = (ArrayList<String>) systemDefnNames.clone();
 		clone.rewardStructs      = (ArrayList<RewardStruct>) rewardStructs.clone();
 		clone.rewardStructNames  = (ArrayList<String>) rewardStructNames.clone();
 		clone.observableVarLists = (ArrayList<ObservableVars>) observableVarLists.clone();
 		clone.observableDefns    = (ArrayList<Observable>) observableDefns.clone();
-		clone.varDecls           = (Vector<Declaration>) varDecls.clone();
-		clone.varNames           = (Vector<String>) varNames.clone();
-		clone.varTypes           = (Vector<Type>) varTypes.clone();
-		clone.varModules         = (Vector<Integer>) varModules.clone();
+		clone.varDecls           = (ArrayList<Declaration>) varDecls.clone();
+		clone.varNames           = (ArrayList<String>) varNames.clone();
+		clone.varTypes           = (ArrayList<Type>) varTypes.clone();
+		clone.varModules         = (ArrayList<Integer>) varModules.clone();
 		clone.observables        = (ArrayList<Observable>) observables.clone();
 		clone.observableNames    = (ArrayList<String>) observableNames.clone();
 		clone.observableTypes    = (ArrayList<Type>) observableTypes.clone();
@@ -1695,7 +1698,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		if (moduleNames != null)
 			clone.moduleNames = moduleNames.clone();
 		if (synchs != null)
-			clone.synchs =  (Vector<String>) synchs.clone();
+			clone.synchs =  (ArrayList<String>) synchs.clone();
 
 		return clone;
 	}

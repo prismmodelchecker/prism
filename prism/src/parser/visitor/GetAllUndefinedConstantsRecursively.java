@@ -26,10 +26,17 @@
 
 package parser.visitor;
 
-import java.util.Vector;
-
-import parser.ast.*;
+import parser.ast.ConstantList;
+import parser.ast.Expression;
+import parser.ast.ExpressionConstant;
+import parser.ast.ExpressionLabel;
+import parser.ast.ExpressionProp;
+import parser.ast.LabelList;
+import parser.ast.PropertiesFile;
+import parser.ast.Property;
 import prism.PrismLangException;
+
+import java.util.List;
 
 /**
  * Get all undefined constants used (i.e. in ExpressionConstant objects) recursively and return as a list.
@@ -41,12 +48,12 @@ import prism.PrismLangException;
  */
 public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 {
-	private Vector<String> v;
+	private List<String> v;
 	private ConstantList constantList;
 	private LabelList labelList;
 	private PropertiesFile propertiesFile;
 
-	public GetAllUndefinedConstantsRecursively(Vector<String> v, ConstantList constantList, LabelList labelList, PropertiesFile propertiesFile)
+	public GetAllUndefinedConstantsRecursively(List<String> v, ConstantList constantList, LabelList labelList, PropertiesFile propertiesFile)
 	{
 		this.v = v;
 		this.constantList = constantList;
@@ -65,7 +72,7 @@ public class GetAllUndefinedConstantsRecursively extends ASTTraverse
 		// If constant is undefined, add to the list
 		if (expr == null) {
 			if (!v.contains(e.getName())) {
-				v.addElement(e.getName());
+				v.add(e.getName());
 			}
 		}
 		// If not, check constant definition recursively for more undefined constants

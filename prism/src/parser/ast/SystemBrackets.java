@@ -26,11 +26,11 @@
 
 package parser.ast;
 
+import java.util.List;
+
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
 import prism.PrismLangException;
-
-import java.util.Vector;
 
 // note: although this makes no difference to the meaning
 // of the expression, it means we can keep the user's
@@ -70,32 +70,32 @@ public class SystemBrackets extends SystemDefn
 	
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getModules(Vector<String> v)
+	public void getModules(List<String> v)
 	{
 		operand.getModules(v);
 	}
 
 	@Override
-	public void getModules(Vector<String> v, ModulesFile modulesFile)
+	public void getModules(List<String> v, ModulesFile modulesFile)
 	{
 		operand.getModules(v, modulesFile);
 	}
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void getSynchs(Vector<String> v)
+	public void getSynchs(List<String> v)
 	{
 		operand.getSynchs(v);
 	}
 	
 	@Override
-	public void getSynchs(Vector<String> v, ModulesFile modulesFile)
+	public void getSynchs(List<String> v, ModulesFile modulesFile)
 	{
 		operand.getSynchs(v, modulesFile);
 	}
 	
 	@Override
-	public void getReferences(Vector<String> v)
+	public void getReferences(List<String> v)
 	{
 		operand.getReferences(v);
 	}

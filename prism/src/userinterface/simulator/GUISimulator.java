@@ -44,7 +44,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -934,7 +933,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 				GUIProperty gp = gpl.getProperty(i);
 
 				// obtain constants in property
-				Vector<String> propertyConstants = gp.getProperty().getAllConstants();
+				List<String> propertyConstants = gp.getProperty().getAllConstants();
 				boolean allConstantsDefined = true;
 				for (String propertyConstant : propertyConstants) {
 					if (!parsedModel.isDefinedConstant(propertyConstant) &&
