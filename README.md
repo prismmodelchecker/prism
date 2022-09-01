@@ -2,6 +2,7 @@
 
 This is PRISM (Probabilistic Symbolic Model Checker).
 
+We use regression for interval iteration.
 
 ## Installation
 
