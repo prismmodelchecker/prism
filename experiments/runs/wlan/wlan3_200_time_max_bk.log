@@ -1,0 +1,86 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Fri Feb 19 16:48:58 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/wlan/wlan3.nm ../../examples/mdps/wlan/time_max.pctl -s '-ii:upper=1.2e+12' -backward -maxiters 900500 -const COL=5 -const TRANS_TIME_MAX=200
+
+Parsing model file "../../examples/mdps/wlan/wlan3.nm"...
+
+Parsing properties file "../../examples/mdps/wlan/time_max.pctl"...
+
+1 property:
+(1) "time_max": R{"time"}max=? [ F s1=12&s2=12 ]
+
+Type:        MDP
+Modules:     medium station1 station2 
+Variables:   col c1 c2 x1 s1 slot1 backoff1 bc1 x2 s2 slot2 backoff2 bc2 
+
+---------------------------------------------------------------------
+
+Model checking: "time_max": R{"time"}max=? [ F s1=12&s2=12 ]
+Model constants: COL=5,TRANS_TIME_MAX=200
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: COL=5,TRANS_TIME_MAX=200
+
+Computing reachable states...
+
+Reachability (BFS): 342 iterations in 2.92 seconds (average 0.008541, setup 0.00)
+
+Time for model construction: 3.35 seconds.
+
+Type:        MDP
+States:      352413 (1 initial)
+Transitions: 733496
+Choices:     563516
+
+Transition matrix: 101743 nodes (6 terminal), 733496 minterms, vars: 49r/49c/7nd
+
+Prob0E: 1040 iterations in 14.66 seconds (average 0.014101, setup 0.00)
+
+Prob1A: 1 iterations in 0.01 seconds (average 0.013000, setup 0.00)
+
+goal = 6, inf = 0, maybe = 352407
+
+Warning: Upper bound for interval iteration manually set to 1.2E12
+
+Computing remaining rewards...
+ 6
+Building sparse matrix (transitions)... [n=352413, nc=563510, nnz=733490, k=3] [11.9 MB]
+Building sparse matrix (transition rewards)... [n=352413, nc=563510, nnz=207934, k=3] [5.9 MB]
+Creating vector for state rewards... [2.7 MB]
+Creating vector for inf... [2.7 MB]
+Creating vector for lower bounds... [2.7 MB]
+Creating vector for upper bounds... [2.7 MB]
+Allocating iteration vectors... [4 x 2.7 MB]
+TOTAL: [39.3 MB]
+
+Starting iterations (interval iteration)...
+
+Time for state ordering: 0.010000
+
+
+Iters: 500 , Maximum difference of values of bel_vec: 50 & Maximum difference of values of abov_vec: 8.48438E+11 
+Iters: 1000 , Maximum difference of values of bel_vec: 0.839208 & Maximum difference of values of abov_vec: 5.36343E+09 
+Iters: 1500 , Maximum difference of values of bel_vec: 2.12489E-05 & Maximum difference of values of abov_vec: 121846 
+Iters: 2000 , Maximum difference of values of bel_vec: 1.15688E-08 & Maximum difference of values of abov_vec: 49.8822 
+Iters: 2500 , Maximum difference of values of bel_vec: 7.27596E-12 & Maximum difference of values of abov_vec: 0.000577008 
+Iters: 3000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.72532E-07 Max relative diff between upper and lower bound on convergence: 7.6877E-07
+Iterative method: 3046 iterations in 32.85 seconds (average 0.010785, setup 0.60)
+Maximum finite value in solution vector at end of interval iteration: 42293.91326085228
+
+Value in the initial state: 34274.96561881354
+
+Time for model checking: 48.227 seconds.
+
+Result: 34274.96561881354 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 2 warnings during computation.
+

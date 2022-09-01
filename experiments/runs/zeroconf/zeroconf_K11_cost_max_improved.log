@@ -1,0 +1,88 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Thu Aug 11 22:35:27 IRDT 2022
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/zeroconf/zeroconf.nm ../../examples/mdps/zeroconf/max_cost.pctl -s '-ii:upper=1.2e+12' -improvedbk -maxiters 900500 -const 'K=11,N=3000,reset=false,err=.1'
+
+Parsing model file "../../examples/mdps/zeroconf/zeroconf.nm"...
+
+Parsing properties file "../../examples/mdps/zeroconf/max_cost.pctl"...
+
+1 property:
+(1) Rmax=? [ F l=4 ]
+
+Type:        MDP
+Modules:     environment host0 
+Variables:   b_ip7 b_ip6 b_ip5 b_ip4 b_ip3 b_ip2 b_ip1 b_ip0 n n0 n1 b z ip_mess x y coll probes mess defend ip l 
+
+---------------------------------------------------------------------
+
+Model checking: Rmax=? [ F l=4 ]
+Model constants: N=3000,K=11,err=0.1
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: N=3000,K=11,err=0.1
+
+Computing reachable states...
+
+Reachability (BFS): 685 iterations in 99.04 seconds (average 0.144584, setup 0.00)
+
+Time for model construction: 99.856 seconds.
+
+Type:        MDP
+States:      3387245 (1 initial)
+Transitions: 7659711
+Choices:     6233814
+
+Transition matrix: 184560 nodes (6 terminal), 7659711 minterms, vars: 58r/58c/7nd
+
+Prob0E: 146 iterations in 8.11 seconds (average 0.055514, setup 0.00)
+
+Prob1A: 1 iterations in 0.04 seconds (average 0.037000, setup 0.00)
+
+goal = 20243, inf = 0, maybe = 3367002
+
+Warning: Upper bound for interval iteration manually set to 1.2E12
+
+Computing remaining rewards...
+ 7
+Building sparse matrix (transitions)... [n=3387245, nc=6198905, nnz=7616166, k=4] [123.7 MB]
+Building sparse matrix (transition rewards)... [n=3387245, nc=6198905, nnz=942336, k=4] [47.4 MB]
+Creating vector for state rewards... [25.8 MB]
+Creating vector for inf... [25.8 MB]
+Creating vector for lower bounds... [25.8 MB]
+Creating vector for upper bounds... [25.8 MB]
+Allocating iteration vectors... [4 x 25.8 MB]
+TOTAL: [377.8 MB]
+
+Starting iterations (interval iteration)...
+
+ Time for pre-computation: 1.291000 Iteration 34: max relative diff=0.007170, 3.72 sec so far
+
+First round (updates from below) finished after 64 iters.Iteration 81: max relative diff=3.793031, 8.76 sec so far
+Iteration 125: max relative diff=0.000017, 13.79 sec so far
+
+Second round (updates from above) finished after 133 iters.
+Update from both sides... 
+Max relative diff between upper and lower bound on convergence: 0
+
+Number of iterations for the lower bound = 68
+
+Iterative method: 137 iterations in 15.25 seconds (average 0.111285, setup 5.80)
+Maximum finite value in solution vector at end of interval iteration: 114.06989809185755
+
+Value in the initial state: 27.170801109299777
+
+Time for model checking: 31.063 seconds.
+
+Result: 27.170801109299777 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 2 warnings during computation.
+

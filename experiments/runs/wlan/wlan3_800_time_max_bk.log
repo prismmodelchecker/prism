@@ -1,0 +1,104 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Fri Feb 19 20:07:12 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/wlan/wlan3.nm ../../examples/mdps/wlan/time_max.pctl -s '-ii:upper=1.2e+12' -backward -maxiters 900500 -const COL=5 -const TRANS_TIME_MAX=800
+
+Parsing model file "../../examples/mdps/wlan/wlan3.nm"...
+
+Parsing properties file "../../examples/mdps/wlan/time_max.pctl"...
+
+1 property:
+(1) "time_max": R{"time"}max=? [ F s1=12&s2=12 ]
+
+Type:        MDP
+Modules:     medium station1 station2 
+Variables:   col c1 c2 x1 s1 slot1 backoff1 bc1 x2 s2 slot2 backoff2 bc2 
+
+---------------------------------------------------------------------
+
+Model checking: "time_max": R{"time"}max=? [ F s1=12&s2=12 ]
+Model constants: COL=5,TRANS_TIME_MAX=800
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: COL=5,TRANS_TIME_MAX=800
+
+Computing reachable states...
+
+Reachability (BFS): 942 iterations in 22.41 seconds (average 0.023794, setup 0.00)
+
+Time for model construction: 26.029 seconds.
+
+Type:        MDP
+States:      829413 (1 initial)
+Transitions: 1696496
+Choices:     1526516
+
+Transition matrix: 346647 nodes (6 terminal), 1696496 minterms, vars: 53r/53c/7nd
+
+Prob0E: 2840 iterations in 74.06 seconds (average 0.026077, setup 0.00)
+
+Prob1A: 1 iterations in 0.05 seconds (average 0.047000, setup 0.00)
+
+goal = 6, inf = 0, maybe = 829407
+
+Warning: Upper bound for interval iteration manually set to 1.2E12
+
+Computing remaining rewards...
+ 6
+Building sparse matrix (transitions)... [n=829413, nc=1526510, nnz=1696490, k=3] [28.4 MB]
+Building sparse matrix (transition rewards)... [n=829413, nc=1526510, nnz=678934, k=3] [16.8 MB]
+Creating vector for state rewards... [6.3 MB]
+Creating vector for inf... [6.3 MB]
+Creating vector for lower bounds... [6.3 MB]
+Creating vector for upper bounds... [6.3 MB]
+Allocating iteration vectors... [4 x 6.3 MB]
+TOTAL: [95.8 MB]
+
+Starting iterations (interval iteration)...
+
+Time for state ordering: 0.015000
+
+
+Iters: 500 , Maximum difference of values of bel_vec: 50 & Maximum difference of values of abov_vec: 1.2E+12 
+Iters: 1000 , Maximum difference of values of bel_vec: 50 & Maximum difference of values of abov_vec: 1.2E+12 
+Iters: 1500 , Maximum difference of values of bel_vec: 50 & Maximum difference of values of abov_vec: 1.2E+12 
+Iters: 2000 , Maximum difference of values of bel_vec: 50 & Maximum difference of values of abov_vec: 8.48438E+11 
+Iters: 2500 , Maximum difference of values of bel_vec: 9.17969 & Maximum difference of values of abov_vec: 9.49173E+10 
+Iters: 3000 , Maximum difference of values of bel_vec: 9.17969 & Maximum difference of values of abov_vec: 9.49173E+10 
+Iters: 3500 , Maximum difference of values of bel_vec: 0.851631 & Maximum difference of values of abov_vec: 5.36343E+09 
+Iters: 4000 , Maximum difference of values of bel_vec: 0.841618 & Maximum difference of values of abov_vec: 5.36343E+09 
+Iters: 4500 , Maximum difference of values of bel_vec: 0.0395044 & Maximum difference of values of abov_vec: 2.82189E+08 
+Iters: 5000 , Maximum difference of values of bel_vec: 0.000921062 & Maximum difference of values of abov_vec: 5.89648E+06 
+Iters: 5500 , Maximum difference of values of bel_vec: 0.000921062 & Maximum difference of values of abov_vec: 5.89648E+06 
+Iters: 6000 , Maximum difference of values of bel_vec: 2.1475E-05 & Maximum difference of values of abov_vec: 121846 
+Iters: 6500 , Maximum difference of values of bel_vec: 5.00775E-07 & Maximum difference of values of abov_vec: 2494.79 
+Iters: 7000 , Maximum difference of values of bel_vec: 5.00775E-07 & Maximum difference of values of abov_vec: 2494.79 
+Iters: 7500 , Maximum difference of values of bel_vec: 1.17579E-08 & Maximum difference of values of abov_vec: 51.0342 
+Iters: 8000 , Maximum difference of values of bel_vec: 1.17143E-08 & Maximum difference of values of abov_vec: 51.0342 
+Iters: 8500 , Maximum difference of values of bel_vec: 3.49246E-10 & Maximum difference of values of abov_vec: 1.16555 
+Iters: 9000 , Maximum difference of values of bel_vec: 5.82077E-11 & Maximum difference of values of abov_vec: 0.0262347 
+Iters: 9500 , Maximum difference of values of bel_vec: 5.82077E-11 & Maximum difference of values of abov_vec: 0.0262347 
+Iters: 10000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000580758 
+Iters: 10500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.26818E-05 
+Iters: 11000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.26818E-05 
+Iters: 11500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.7378E-07 
+Iters: 12000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.7378E-07 Max relative diff between upper and lower bound on convergence: 7.69636E-07
+Iterative method: 12045 iterations in 293.63 seconds (average 0.024378, setup 2.02)
+Maximum finite value in solution vector at end of interval iteration: 133010.07374079415
+
+Value in the initial state: 130315.40030135884
+
+Time for model checking: 370.038 seconds.
+
+Result: 130315.40030135884 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 2 warnings during computation.
+

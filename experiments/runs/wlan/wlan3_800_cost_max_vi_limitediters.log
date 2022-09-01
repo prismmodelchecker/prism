@@ -1,0 +1,94 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Fri Feb 19 19:31:50 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/wlan/wlan3.nm ../../examples/mdps/wlan/cost_max.pctl -s -improvedbk -maxiters 8045 -epsilon 1e-10 -const COL=5 -const TRANS_TIME_MAX=800
+
+Parsing model file "../../examples/mdps/wlan/wlan3.nm"...
+
+Parsing properties file "../../examples/mdps/wlan/cost_max.pctl"...
+
+1 property:
+(1) "cost_max": R{"cost"}max=? [ F s1=12&s2=12 ]
+
+Type:        MDP
+Modules:     medium station1 station2 
+Variables:   col c1 c2 x1 s1 slot1 backoff1 bc1 x2 s2 slot2 backoff2 bc2 
+
+---------------------------------------------------------------------
+
+Model checking: "cost_max": R{"cost"}max=? [ F s1=12&s2=12 ]
+Model constants: COL=5,TRANS_TIME_MAX=800
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: COL=5,TRANS_TIME_MAX=800
+
+Computing reachable states...
+
+Reachability (BFS): 942 iterations in 22.37 seconds (average 0.023749, setup 0.00)
+
+Time for model construction: 26.02 seconds.
+
+Type:        MDP
+States:      829413 (1 initial)
+Transitions: 1696496
+Choices:     1526516
+
+Transition matrix: 346647 nodes (6 terminal), 1696496 minterms, vars: 53r/53c/7nd
+
+Prob0E: 2840 iterations in 74.64 seconds (average 0.026281, setup 0.00)
+
+Prob1A: 1 iterations in 0.05 seconds (average 0.047000, setup 0.00)
+
+goal = 6, inf = 0, maybe = 829407
+
+Computing remaining rewards...
+
+Building sparse matrix (transitions)... [n=829413, nc=1526510, nnz=1696490, k=3] [28.4 MB]
+Building sparse matrix (transition rewards)... [n=829413, nc=1526510, nnz=678934, k=3] [16.8 MB]
+Creating vector for state rewards... [6.3 MB]
+Creating vector for inf... [6.3 MB]
+Creating vector for lower bounds... [6.3 MB]
+Creating vector for upper bounds... [6.3 MB]
+Allocating iteration vectors... [4 x 6.3 MB]
+TOTAL: [95.8 MB]
+
+Starting iterations (interval iteration)...
+
+ Time for pre-computation: 0.775000 Iteration 375: max relative diff=100000.000000, 4.24 sec so far
+Iteration 825: max relative diff=9730.957031, 9.25 sec so far
+Iteration 1274: max relative diff=9730.957031, 14.26 sec so far
+Iteration 1723: max relative diff=1000.000000, 19.27 sec so far
+Iteration 2172: max relative diff=1000.000000, 24.27 sec so far
+Iteration 2621: max relative diff=170.824338, 29.28 sec so far
+Iteration 3070: max relative diff=170.824338, 34.29 sec so far
+Iteration 3520: max relative diff=10.363694, 39.29 sec so far
+Iteration 3969: max relative diff=10.363694, 44.30 sec so far
+Iteration 4419: max relative diff=0.440308, 49.30 sec so far
+Iteration 4868: max relative diff=0.010293, 54.30 sec so far
+Iteration 5317: max relative diff=0.010293, 59.31 sec so far
+Iteration 5766: max relative diff=0.000241, 64.32 sec so far
+Iteration 6215: max relative diff=0.000241, 69.33 sec so far
+Iteration 6664: max relative diff=0.000006, 74.33 sec so far
+Iteration 7113: max relative diff=0.000006, 79.34 sec so far
+Iteration 7562: max relative diff=0.000000, 84.34 sec so far
+Iteration 8011: max relative diff=0.000000, 89.35 sec so far
+
+First round (updates from below) finished after 8044 iters.
+Iterative method: 8044 iterations in 89.73 seconds (average 0.011155, setup 1.97)
+
+Value in the initial state: 1.7721027959453046E7
+
+Time for model checking: 167.362 seconds.
+
+Result: 1.7721027959453046E7 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+
