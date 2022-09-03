@@ -1,38 +1,36 @@
 PRISM
 =====
 
-Version: 4.4
-Date: Fri Aug 12 01:07:43 IRDT 2022
+Version: 4.6
+Date: Sat Feb 27 19:12:43 IRST 2021
 Hostname: sadegh-H81M-S2PH
 Memory limits: cudd=1g, java(heap)=910.5m
-Command line: prism ../../examples/mdps/zeroconf/zeroconf.nm ../../examples/mdps/zeroconf/max_cost.pctl -s '-ii:upper=138' -asynchupper -maxiters 900500 -const 'K=18,N=3000,reset=false,err=.1'
+Command line: prism ../prism-examples/mdps/zeroconf/zeroconf.nm ../prism-examples/mdps/zeroconf/max_cost.pctl -s '-ii:upper=139' -asynchupper -maxiters 900500 -const 'K=18,N=1000,reset=false,err=.1'
 
-Parsing model file "../../examples/mdps/zeroconf/zeroconf.nm"...
-
-Parsing properties file "../../examples/mdps/zeroconf/max_cost.pctl"...
-
-1 property:
-(1) Rmax=? [ F l=4 ]
+Parsing model file "../prism-examples/mdps/zeroconf/zeroconf.nm"...
 
 Type:        MDP
 Modules:     environment host0 
 Variables:   b_ip7 b_ip6 b_ip5 b_ip4 b_ip3 b_ip2 b_ip1 b_ip0 n n0 n1 b z ip_mess x y coll probes mess defend ip l 
 
+Parsing properties file "../prism-examples/mdps/zeroconf/max_cost.pctl"...
+
+1 property:
+(1) Rmax=? [ F l=4 ]
+
 ---------------------------------------------------------------------
 
 Model checking: Rmax=? [ F l=4 ]
-Model constants: N=3000,K=18,err=0.1
-
-Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+Model constants: reset=false,N=1000,K=18,err=0.1
 
 Building model...
-Model constants: N=3000,K=18,err=0.1
+Model constants: reset=false,N=1000,K=18,err=0.1
 
 Computing reachable states...
 
-Reachability (BFS): 1103 iterations in 223.47 seconds (average 0.202606, setup 0.00)
+Reachability (BFS): 1103 iterations in 227.84 seconds (average 0.206559, setup 0.00)
 
-Time for model construction: 225.122 seconds.
+Time for model construction: 229.507 seconds.
 
 Type:        MDP
 States:      5477150 (1 initial)
@@ -41,16 +39,17 @@ Choices:     10095684
 
 Transition matrix: 307471 nodes (6 terminal), 12374708 minterms, vars: 59r/59c/7nd
 
-Prob0E: 174 iterations in 14.25 seconds (average 0.081874, setup 0.00)
+Prob0E: 174 iterations in 14.75 seconds (average 0.084747, setup 0.00)
 
-Prob1A: 1 iterations in 0.07 seconds (average 0.072000, setup 0.00)
+Prob1A: 1 iterations in 0.08 seconds (average 0.078000, setup 0.00)
 
 goal = 13630, inf = 0, maybe = 5463520
 
-Warning: Upper bound for interval iteration manually set to 138.0
+Warning: Upper bound for interval iteration manually set to 139.0
 
 Computing remaining rewards...
- 10
+Engine: Sparse
+
 Building sparse matrix (transitions)... [n=5477150, nc=10072347, nnz=12345599, k=4] [200.6 MB]
 Building sparse matrix (transition rewards)... [n=5477150, nc=10072347, nnz=1541484, k=4] [77.0 MB]
 Creating vector for state rewards... [41.8 MB]
@@ -62,25 +61,25 @@ TOTAL: [611.9 MB]
 
 Starting iterations (interval iteration)...
 
-Soln above finished after 143 iterations, while flag is False.
+Soln above finished after 124 iterations, while flag is False.
 
-Checking for lower bound passed after 19 iterations.Iteration 1: max relative diff=1.000000, 42.62 sec so far
-Iteration 24: max relative diff=1.000000, 47.83 sec so far
-Iteration 46: max relative diff=0.000019, 53.08 sec so far
-Max relative diff between upper and lower bound on convergence: 8.85652E-07Iteration 57: max relative diff=0.000001, 58.47 sec so far
+Checking for lower bound passed after 19 iterations.
+Iteration 1: max relative diff=1.000000, 40.69 sec so far
+Iteration 22: max relative diff=1.000000, 45.87 sec so far
+Iteration 39: max relative diff=0.000006, 51.29 sec so far
+Max relative diff between upper and lower bound on convergence: 9.50783E-07
+LowItr:63 , UpItr:134  
 
-LowItr:76 , UpItr:155  
+Iterative method: 44 iterations in 53.82 seconds (average 1.223227, setup 9.79)
+Maximum finite value in solution vector at end of interval iteration: 139.99114636470543
 
-Iterative method: 57 iterations in 58.47 seconds (average 1.025737, setup 9.37)
-Maximum finite value in solution vector at end of interval iteration: 142.06971173614724
+Value in the initial state: 41.054502534589865
 
-Value in the initial state: 41.170801108050185
+Time for model checking: 79.515 seconds.
 
-Time for model checking: 83.111 seconds.
-
-Result: 41.170801108050185 (value in the initial state)
+Result: 41.054502534589865 (value in the initial state)
 
 ---------------------------------------------------------------------
 
-Note: There were 2 warnings during computation.
+Note: There was 1 warning during computation.
 

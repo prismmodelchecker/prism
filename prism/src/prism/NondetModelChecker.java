@@ -43,6 +43,7 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
+import odd.ODDUtils;
 import parser.BooleanUtils;
 import parser.ast.Coalition;
 import parser.ast.Expression;
@@ -258,11 +259,11 @@ public class NondetModelChecker extends NonProbModelChecker
 			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies all states");
 			JDD.Ref(reach);
 			JDD.Deref(statesOfInterest);
-			return new StateValuesMTBDD(reach, model, AccuracyFactory.doublesFromQualitative());
+			return new StateValuesMTBDD(reach, model);
 		} else if (opInfo.isTriviallyFalse()) {
 			mainLog.printWarning("Checking for probability " + opInfo.relOpBoundString() + " - formula trivially satisfies no states");
 			JDD.Deref(statesOfInterest);
-			return new StateValuesMTBDD(JDD.Constant(0), model, AccuracyFactory.doublesFromQualitative());
+			return new StateValuesMTBDD(JDD.Constant(0), model);
 		}
 
 		// Compute probabilities
@@ -871,9 +872,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Output product, if required
 		if (prism.getExportProductTrans()) {
 			try {
-				int precision = getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()), precision);
+				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
@@ -1050,7 +1050,7 @@ public class NondetModelChecker extends NonProbModelChecker
 			// the trivial case: windowSize = 0
 			// prob is 1 in b2 states, 0 otherwise
 			JDD.Ref(b2);
-			probs = new StateValuesMTBDD(b2, model, AccuracyFactory.doublesFromQualitative());
+			probs = new StateValuesMTBDD(b2, model);
 		} else {
 			try {
 				probs = computeBoundedUntilProbs(trans, trans01, b1, b2, windowSize, min);
@@ -1264,9 +1264,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Output product, if required
 		if (prism.getExportProductTrans()) {
 			try {
-				int precision = getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()), precision);
+				modelProduct.exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
@@ -1357,7 +1356,7 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// a trivial case: "<=0"
 		if (time == 0) {
-			rewards = new StateValuesMTBDD(JDD.Constant(0), model, AccuracyFactory.doublesFromQualitative());
+			rewards = new StateValuesMTBDD(JDD.Constant(0), model);
 		} else {
 			// compute rewards
 			try {
@@ -1539,9 +1538,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		// Output product, if required
 		if (prism.getExportProductTrans()) {
 			try {
-				int precision = getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 				mainLog.println("\nExporting product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"...");
-				modelProduct.getProductModel().exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()), precision);
+				modelProduct.getProductModel().exportToFile(Prism.EXPORT_PLAIN, true, new File(prism.getExportProductTransFilename()));
 			} catch (FileNotFoundException e) {
 				mainLog.printWarning("Could not export product transition matrix to file \"" + prism.getExportProductTransFilename() + "\"");
 			}
@@ -1611,7 +1609,6 @@ public class NondetModelChecker extends NonProbModelChecker
 			tmp = JDD.MaxAbstract(tmp, allDDNondetVars);
 		}
 		probs = new StateValuesMTBDD(tmp, model);
-		probs.setAccuracy(AccuracyFactory.boundedNumericalIterations());
 
 		return probs;
 	}
@@ -1656,9 +1653,8 @@ public class NondetModelChecker extends NonProbModelChecker
 		JDD.Ref(a);
 		tmp = JDD.Apply(JDD.MIN, tmp, a);
 
-		ddX.clear();
 		probs = new StateValuesMTBDD(tmp, model);
-		probs.setAccuracy(AccuracyFactory.boundedNumericalIterations());
+		ddX.clear();
 		return probs;
 	}
 
@@ -1721,7 +1717,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (maybe.equals(JDD.ZERO)) {
 			JDD.Ref(yes);
 			probs = new StateValuesMTBDD(yes, model);
-			probs.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		}
 		// otherwise explicitly compute the remaining probabilities
 		else {
@@ -1745,8 +1740,6 @@ public class NondetModelChecker extends NonProbModelChecker
 				default:
 					throw new PrismException("Unknown engine");
 				}
-				// Set accuracy info
-				probs.setAccuracy(AccuracyFactory.boundedNumericalIterations());
 			} catch (PrismException e) {
 				JDD.Deref(yes);
 				JDD.Deref(no);
@@ -1820,7 +1813,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (maybe.equals(JDD.ZERO)) {
 			JDD.Ref(yes);
 			probs = new StateValuesMTBDD(yes, model);
-			probs.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		}
 		// otherwise we set the probabilities for maybe states to be 0.5
 		// (actual probabilities for these states are unknown but definitely >0
@@ -1835,7 +1827,6 @@ public class NondetModelChecker extends NonProbModelChecker
 			JDD.Ref(yes);
 			JDD.Ref(maybe);
 			probs = new StateValuesMTBDD(JDD.Apply(JDD.PLUS, yes, JDD.Apply(JDD.TIMES, maybe, JDD.Constant(0.5))), model);
-			// No accuracy info, but should end up as a Boolean, not numerical, value anyway 
 		}
 
 		// derefs
@@ -1967,7 +1958,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (maybe.equals(JDD.ZERO)) {
 			JDD.Ref(yes);
 			probs = new StateValuesMTBDD(yes, model);
-			probs.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		}
 		// otherwise we compute the actual probabilities
 		else {
@@ -2007,9 +1997,8 @@ public class NondetModelChecker extends NonProbModelChecker
 
 					if (false) {
 						try {
-							int precision = getSettings().getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-							model.exportToFile(Prism.EXPORT_DOT, true, new File("model.dot"), precision);
-							transform.getTransformedModel().exportToFile(Prism.EXPORT_DOT, true, new File("quotient.dot"), precision);
+							model.exportToFile(Prism.EXPORT_DOT, true, new File("model.dot"));
+							transform.getTransformedModel().exportToFile(Prism.EXPORT_DOT, true, new File("quotient.dot"));
 						} catch (FileNotFoundException e) {
 						}
 					}
@@ -2155,12 +2144,6 @@ public class NondetModelChecker extends NonProbModelChecker
 				default:
 					throw new PrismException("Unknown engine");
 				}
-				// Set accuracy info
-				if (doIntervalIteration) {
-					probs.setAccuracy(AccuracyFactory.guaranteedNumericalIterative(PrismNative.getLastErrorBound(), PrismNative.getTermCrit() == Prism.ABSOLUTE));
-				} else {
-					probs.setAccuracy(AccuracyFactory.valueIteration(PrismNative.getTermCritParam(), PrismNative.getLastErrorBound(), PrismNative.getTermCrit() == Prism.ABSOLUTE));
-				}
 
 				if (transform != null) {
 					// we have to project back to the original
@@ -2215,8 +2198,6 @@ public class NondetModelChecker extends NonProbModelChecker
 			default:
 				throw new PrismException("Unknown engine");
 			}
-			// Set accuracy info
-			rewards.setAccuracy(AccuracyFactory.boundedNumericalIterations());
 		} catch (PrismException e) {
 			throw e;
 		}
@@ -2318,7 +2299,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		// if maybe is empty, we have the rewards already
 		if (maybe.equals(JDD.ZERO)) {
 			rewards = new StateValuesMTBDD(JDD.ITE(inf.copy(), JDD.PlusInfinity(), JDD.Constant(0)), model);
-			rewards.setAccuracy(AccuracyFactory.doublesFromQualitative());
 			JDD.Deref(maybe, inf);
 		}
 		// otherwise we compute the actual rewards
@@ -2356,8 +2336,6 @@ public class NondetModelChecker extends NonProbModelChecker
 				default:
 					throw new PrismException("Unknown engine");
 				}
-				// Set accuracy info
-				rewards.setAccuracy(AccuracyFactory.valueIteration(PrismNative.getTermCritParam(), PrismNative.getLastErrorBound(), PrismNative.getTermCrit() == Prism.ABSOLUTE));
 			} finally {
 				JDD.Deref(inf);
 				JDD.Deref(maybe);
@@ -2384,7 +2362,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (time == 0) {
 			JDD.Ref(sr);
 			rewards = new StateValuesMTBDD(sr, model);
-			rewards.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		}
 		// otherwise we compute the actual rewards
 		else {
@@ -2411,8 +2388,6 @@ public class NondetModelChecker extends NonProbModelChecker
 				default:
 					throw new PrismException("Unknown engine");
 				}
-				// Set accuracy info
-				rewards.setAccuracy(AccuracyFactory.boundedNumericalIterations());
 			} catch (PrismException e) {
 				throw e;
 			}
@@ -2531,7 +2506,6 @@ public class NondetModelChecker extends NonProbModelChecker
 		if (maybe.equals(JDD.ZERO)) {
 			JDD.Ref(inf);
 			rewards = new StateValuesMTBDD(JDD.ITE(inf, JDD.PlusInfinity(), JDD.Constant(0)), model);
-			rewards.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		}
 		// otherwise we compute the actual rewards
 		else {
@@ -2577,11 +2551,41 @@ public class NondetModelChecker extends NonProbModelChecker
 					rewards = new StateValuesMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					if (doIntervalIteration) {
-						rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
-								maybe, lower, upper, min, prism.getIntervalIterationFlags());
+					if (doIntervalIteration) { 
+						//System.out.println("\n  << " + prism.getMDPSolnMethod() + " >>   \n");
+						switch(prism.getMDPSolnMethod())
+						{
+							case 1:
+								rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							case 2:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalGS(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							case 6:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalBW(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							case 7:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalImprovedBW(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());							break;
+							case 8:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalAsynch(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;						
+							case 9:
+								rewardsDV = PrismSparse.NondetReachRewardImprovedMPI(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;						
+							case 10:
+								rewardsDV = PrismSparse.NondetReachRewardAsynchupper(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							default:
+	rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+						}
+
+
+						//rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,		maybe, lower, upper, min, prism.getIntervalIterationFlags());
 					} else {
-						rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
+			//System.out.println("\n  << " + prism.getMDPSolnMethod() + " >>   \n");
+				if(prism.getMDPSolnMethod() == 7)
+					rewardsDV = PrismSparse.NondetReachRewardGSB(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+				else	rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
 								maybe, min);
 					}
 					rewards = new StateValuesDV(rewardsDV, model);
@@ -2595,12 +2599,6 @@ public class NondetModelChecker extends NonProbModelChecker
 					// break;
 				default:
 					throw new PrismException("Unknown engine");
-				}
-				// Set accuracy info
-				if (doIntervalIteration) {
-					rewards.setAccuracy(AccuracyFactory.guaranteedNumericalIterative(PrismNative.getLastErrorBound(), PrismNative.getTermCrit() == Prism.ABSOLUTE));
-				} else {
-					rewards.setAccuracy(AccuracyFactory.valueIteration(PrismNative.getTermCritParam(), PrismNative.getLastErrorBound(), PrismNative.getTermCrit() == Prism.ABSOLUTE));
 				}
 			} catch (PrismException e) {
 				JDD.Deref(inf);

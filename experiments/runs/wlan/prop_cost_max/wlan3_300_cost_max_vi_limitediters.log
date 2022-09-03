@@ -1,0 +1,40 @@
+PRISM
+=====
+
+Version: 4.6
+Date: Sat Feb 27 20:01:49 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../prism-examples/mdps/wlan/wlan3.nm ../prism-examples/mdps/wlan/cost_max.pctl -s -improvedbk -maxiters 3045 -epsilon 1e-10 -const COL=3 -const TRANS_TIME_MAX=300
+
+Parsing model file "../prism-examples/mdps/wlan/wlan3.nm"...
+
+Type:        MDP
+Modules:     medium station1 station2 
+Variables:   col c1 c2 x1 s1 slot1 backoff1 bc1 x2 s2 slot2 backoff2 bc2 
+
+Parsing properties file "../prism-examples/mdps/wlan/cost_max.pctl"...
+
+1 property:
+(1) "cost_max": R{"cost"}max=? [ F s1=12&s2=12 ]
+
+---------------------------------------------------------------------
+
+Model checking: "cost_max": R{"cost"}max=? [ F s1=12&s2=12 ]
+Model constants: COL=3,TRANS_TIME_MAX=300
+
+Building model...
+Model constants: COL=3,TRANS_TIME_MAX=300
+
+Computing reachable states...
+
+Reachability (BFS): 406 iterations in 3.70 seconds (average 0.009108, setup 0.00)
+
+Time for model construction: 4.29 seconds.
+
+Type:        MDP
+States:      211841 (1 initial)
+Transitions: 439065
+Choices:     358189
+
+Transition matrix: 118362 nodes (6 terminal), 439065 minterms, vars: 51r/51c/7nd
