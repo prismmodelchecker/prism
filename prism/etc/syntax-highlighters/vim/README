@@ -1,9 +1,0 @@
-To install, copy the files prismmodel.vim and prismproperty.vim to a directory where syntax files reside, e.g. on Unix this can be the ~/.vim/syntax/ directory
-
-Then add the following 3 lines to your filetype.vim (on Unix, this can be in ~/.vim/filetype.vim):
-
-au BufRead,BufNewFile *.prism setfiletype prismmodel
-au BufRead,BufNewFile *.[pns]m setfiletype prismmodel
-au BufRead,BufNewFile *.smg setfiletype prismmodel
-au BufRead,BufNewFile *.props setfiletype prismproperty
-au BufRead,BufNewFile *.pctl setfiletype prismproperty

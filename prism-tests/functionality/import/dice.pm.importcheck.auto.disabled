@@ -1,4 +1,0 @@
--dtmc -importmodel dice.all dice.pm.props
--dtmc -importmodel dice.all dice.pm.props -ex -prop 1
--dtmc -importmodel dice.all dice.pm.props -ex -prop 2
-

@@ -1,2 +1,0 @@
-// RESULT: 1
-filter(max, Pmax=? [ G (("done"&(X (F "even")))=>("done"&(X ("done" U "even")))) ])

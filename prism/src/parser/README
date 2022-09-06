@@ -1,7 +1,0 @@
-parser
-======
-
-To compile .jj file into .java parser
--------------------------------------
-
-(cd parser; javacc PrismParser.jj); javac parser/PrismParser.java

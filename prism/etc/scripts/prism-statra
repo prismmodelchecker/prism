@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# Script to combine PRISM states and transitions files
-
-# Launch using main PRISM script
-PRISM_MAINCLASS="prism.PrismStaTra"
-export PRISM_MAINCLASS
-prism "$@"

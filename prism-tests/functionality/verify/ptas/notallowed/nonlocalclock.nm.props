@@ -1,2 +1,0 @@
-// RESULT: Error:non-local
-"incorrect": Pmax=? [ F s=2 & ip=2 ];

@@ -1,3 +1,0 @@
--param p=0:1
--exact -const p=0:0.1:1
--const p=0:0.1:1

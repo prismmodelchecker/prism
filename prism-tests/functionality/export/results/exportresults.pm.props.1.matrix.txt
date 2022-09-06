@@ -1,9 +1,0 @@
-AA=0, BB\x:
-	1	2	3
-1	true	true	false
-2	true	true	false
-
-AA=1, BB\x:
-	1	2	3
-1	true	true	false
-2	true	true	false

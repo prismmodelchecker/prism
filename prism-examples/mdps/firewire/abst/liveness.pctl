@@ -1,2 +1,0 @@
-// liveness property (eventually a process is made the leader)
-P>=1 [ F (s=9) ]

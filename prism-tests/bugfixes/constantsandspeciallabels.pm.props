@@ -1,4 +1,0 @@
-const int x;
-
-// RESULT (x=3): 1/6
-P=? [ F "deadlock" & d=x ];
