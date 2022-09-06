@@ -77,7 +77,7 @@ jboolean min				// min or max probabilities (true = min, false = max)
 	DdNode **ndvars = jlong_to_DdNode_array(ndv);	// nondet vars
 	DdNode *goal = jlong_to_DdNode(g);				// 'goal' states
 	DdNode *inf = jlong_to_DdNode(in); 				// 'inf' states
-	DdNode *maybe = jlong_to_DdNode(m); 			// 'maybe' states
+	DdNode *maybe = jlong_to_DdNode(m); 			// 'maybe' states 
 
 
 	// mtbdds

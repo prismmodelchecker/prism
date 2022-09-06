@@ -2582,7 +2582,10 @@ public class NondetModelChecker extends NonProbModelChecker
 
 						//rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,		maybe, lower, upper, min, prism.getIntervalIterationFlags());
 					} else {
-						rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
+			//System.out.println("\n  << " + prism.getMDPSolnMethod() + " >>   \n");
+				if(prism.getMDPSolnMethod() == 7)
+					rewardsDV = PrismSparse.NondetReachRewardGSB(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, min);
+				else	rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
 								maybe, min);
 					}
 					rewards = new StateValuesDV(rewardsDV, model);
