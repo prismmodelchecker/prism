@@ -125,6 +125,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int MDP_POLITER = 3;
 	public static final int MDP_MODPOLITER = 4;
 	public static final int MDP_LP = 5;
+	public static final int MDP_BACKWARD = 6;
+	public static final int MDP_IMPROVED_BACKWARD = 7;
+	public static final int MDP_ASYNCH = 8;
+	public static final int MDP_IMPROVED_MPI = 9;
 
 	// methods for solving multi-objective queries on MDPs
 	public static final int MDP_MULTI_VALITER = 1;
@@ -3024,10 +3028,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Auto-switch engine if required
 		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
-				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				setEngine(Prism.EXPLICIT);
+				//mainLog.printWarning("Switching to st rather explicit engine to allow use of chosen MDP solution method.");
+				//engineSwitch = true;
+				//lastEngine = getEngine();
+				//setEngine(Prism.EXPLICIT);
 			}
 		}
 		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
@@ -3038,10 +3042,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER)) {
 			if (currentModelType == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
-				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				setEngine(Prism.EXPLICIT);
+				//mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
+				//engineSwitch = true;
+				//lastEngine = getEngine();
+				//setEngine(Prism.EXPLICIT);
 			}
 		}
 		try {

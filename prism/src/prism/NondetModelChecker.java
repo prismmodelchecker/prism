@@ -2551,9 +2551,36 @@ public class NondetModelChecker extends NonProbModelChecker
 					rewards = new StateValuesMTBDD(rewardsMTBDD, model);
 					break;
 				case Prism.SPARSE:
-					if (doIntervalIteration) {
-						rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
-								maybe, lower, upper, min, prism.getIntervalIterationFlags());
+					if (doIntervalIteration) { 
+						//System.out.println("\n  << " + prism.getMDPSolnMethod() + " >>   \n");
+						switch(prism.getMDPSolnMethod())
+						{
+							case 1:
+								rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf, maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							case 2:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalGS(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							case 6:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalBW(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							case 7:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalImprovedBW(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());							break;
+							case 8:
+								rewardsDV = PrismSparse.NondetReachRewardIntervalAsynch(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;						
+							case 9:
+								rewardsDV = PrismSparse.NondetReachRewardImprovedMPI(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;						
+							case 10:
+								rewardsDV = PrismSparse.NondetReachRewardAsynchupper(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+							break;
+							default:
+	rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,maybe, lower, upper, min, prism.getIntervalIterationFlags());
+						}
+
+
+						//rewardsDV = PrismSparse.NondetReachRewardInterval(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,		maybe, lower, upper, min, prism.getIntervalIterationFlags());
 					} else {
 						rewardsDV = PrismSparse.NondetReachReward(tr, tra, model.getSynchs(), sr, trr, odd, allDDRowVars, allDDColVars, allDDNondetVars, b, inf,
 								maybe, min);

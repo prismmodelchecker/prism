@@ -256,7 +256,7 @@ public class PrismSettings implements Observer
 																				"Use interval iteration (from above and below) in iterative numerical methods."},
 			{ STRING_TYPE,		PRISM_INTERVAL_ITER_OPTIONS,				"Interval iteration options",				"4.3.1",		"",																		"",
 																	"Interval iteration options, a comma-separated list of the following:\n" + OptionsIntervalIteration.getOptionsDescription() },
-			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming",
+			{ CHOICE_TYPE,		PRISM_MDP_SOLN_METHOD,					"MDP solution method",				"4.0",			"Value iteration",																"Value iteration,Gauss-Seidel,Policy iteration,Modified policy iteration,Linear programming,Backward,Improved Backward,Asynchronous II,Improved MPI,Asynchronous Upper",
 																			"Which method to use when solving Markov decision processes." },
 			{ CHOICE_TYPE,		PRISM_MDP_MULTI_SOLN_METHOD,			"MDP multi-objective solution method",				"4.0.3",			"Value iteration",											"Value iteration,Gauss-Seidel,Linear programming",
 																			"Which method to use when solving multi-objective queries on Markov decision processes." },
@@ -1085,6 +1085,16 @@ public class PrismSettings implements Observer
 			set(PRISM_MDP_SOLN_METHOD, "Policy iteration");
 		} else if (sw.equals("modpoliter")) {
 			set(PRISM_MDP_SOLN_METHOD, "Modified policy iteration");
+		} else if (sw.equals("backward")) {
+			set(PRISM_MDP_SOLN_METHOD, "Backward");
+		} else if (sw.equals("improvedmpi")) {
+			set(PRISM_MDP_SOLN_METHOD, "Improved MPI");
+		} else if (sw.equals("asynchupper")) {
+			set(PRISM_MDP_SOLN_METHOD, "Asynchronous Upper");
+		} else if (sw.equals("asynchii")) {
+			set(PRISM_MDP_SOLN_METHOD, "Asynchronous II");      
+		} else if (sw.equals("improvedbk")) {
+			set(PRISM_MDP_SOLN_METHOD, "Improved Backward");
 		} else if (sw.equals("linprog") || sw.equals("lp")) {
 			set(PRISM_MDP_SOLN_METHOD, "Linear programming");
 			set(PRISM_MDP_MULTI_SOLN_METHOD, "Linear programming");
