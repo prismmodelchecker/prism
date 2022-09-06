@@ -1,2 +1,0 @@
-Main-Class: userinterface.GUIPrism
-Class-Path: pepa.zip

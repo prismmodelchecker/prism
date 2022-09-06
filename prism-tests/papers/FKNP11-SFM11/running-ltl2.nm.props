@@ -1,3 +1,0 @@
-// ex 16
-// RESULT: 1
-Pmax=? [ (F G !"L1") & (G F "K1") ]

@@ -1,2 +1,0 @@
-// RESULT: Error:timelock
-"incorrect": Pmax=? [ F s=2 & ip=2 ];

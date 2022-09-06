@@ -1,5 +1,0 @@
-// RESULT: 0.0
-Pmax=? [ F seenA ];
-
-// RESULT: 0.0
-Pmax=? [ F seenB ];

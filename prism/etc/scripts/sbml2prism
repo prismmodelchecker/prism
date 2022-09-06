@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# Startup script for SBML to PRISM converter (Linux/Mac/Solaris)
-
-# Launch using main PRISM script
-PRISM_MAINCLASS="prism.SBML2Prism"
-export PRISM_MAINCLASS
-prism "$@"

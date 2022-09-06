@@ -1,6 +1,0 @@
-const int k;
-
-// max probability stations collide
-// (min is always zero)
-Pmax=?[ true U col=k ]
-
