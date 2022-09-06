@@ -1,4 +1,4 @@
-# PRISM
+﻿# PRISM
 
 This is PRISM (Probabilistic Symbolic Model Checker).
 
@@ -10,7 +10,7 @@ Results for the training step are located in the "prism/experiments/training" fo
 This folder also contains the results of applying regression on the training data, proposed in the 'regression.ods' file.
 
 Results for the training step are located in the "prism/experiments/training" folder. This folder also contains the results of applying regression on the training data, proposed in the 'regression.ods' file.
-
+Send e-mail for more question: mohagheghi@vru.ac.ir
 
 ## Installation
 
