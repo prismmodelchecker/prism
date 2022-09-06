@@ -334,6 +334,24 @@ public class PrismSparse
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
 
+	// pctl reach reward BackWard (nondeterministic/mdp), interval iteration
+	private static native long PS_NondetReachRewardIntervalBW(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
+	public static DoubleVector NondetReachRewardIntervalBW(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
+	{
+		long ptr = PS_NondetReachRewardIntervalBW(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
+	// pctl reach reward BackWard (nondeterministic/mdp), interval iteration
+	private static native long PS_NondetReachRewardIntervalImprovedBW(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
+	public static DoubleVector NondetReachRewardIntervalImprovedBW(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
+	{
+		long ptr = PS_NondetReachRewardIntervalImprovedBW(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
 	// pctl reach reward (nondeterministic/mdp), interval iteration
 	private static native long PS_NondetReachRewardInterval(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
 	public static DoubleVector NondetReachRewardInterval(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
@@ -344,6 +362,44 @@ public class PrismSparse
 		if (ptr == 0) throw generateExceptionForError();
 		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
 	}
+
+	// pctl reach reward (nondeterministic/mdp), Asynchromous interval iteration
+	private static native long PS_NondetReachRewardIntervalAsynch(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
+	public static DoubleVector NondetReachRewardIntervalAsynch(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
+	{	
+		long ptr = PS_NondetReachRewardIntervalAsynch(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
+
+	// pctl reach reward improved Interval Iteration with MPI (nondeterministic/mdp), interval iteration
+	private static native long PS_NondetReachRewardImprovedMPI(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
+	public static DoubleVector NondetReachRewardImprovedMPI(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
+	{
+		long ptr = PS_NondetReachRewardImprovedMPI(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
+	// pctl reach reward improved Interval Iteration with Upper initial value (nondeterministic/mdp)
+	private static native long PS_NondetReachRewardAsynchupper(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
+	public static DoubleVector NondetReachRewardAsynchupper(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
+	{
+		long ptr = PS_NondetReachRewardAsynchupper(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
+	// pctl reach reward GS (nondeterministic/mdp), interval iteration
+	private static native long PS_NondetReachRewardIntervalGS(long trans, long trans_actions, List<String> synchs, long sr, long trr, long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, long goal, long inf, long maybe, long lower, long upper, boolean minmax, int flags);
+	public static DoubleVector NondetReachRewardIntervalGS(JDDNode trans, JDDNode transActions, List<String> synchs, JDDNode sr, JDDNode trr, ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, JDDNode goal, JDDNode inf, JDDNode maybe, JDDNode lower, JDDNode upper, boolean minmax, int flags) throws PrismException
+	{
+		long ptr = PS_NondetReachRewardIntervalGS(trans.ptr(), (transActions == null) ? 0 : transActions.ptr(), synchs, sr.ptr(), trr.ptr(), odd.ptr(), rows.array(), rows.n(), cols.array(), cols.n(), nondet.array(), nondet.n(), goal.ptr(), inf.ptr(), maybe.ptr(), lower.ptr(), upper.ptr(), minmax, flags);
+		if (ptr == 0) throw new PrismException(getErrorMessage());
+		return new DoubleVector(ptr, (int)(odd.getEOff() + odd.getTOff()));
+	}
+
 
 	private static native double[] PS_NondetMultiObj(long odd, long rv, int nrv, long cv, int ncv, long ndv, int nndv, boolean minmax, long start, long ptr_adversary, long ptr_TransSparseMatrix, List<String> synchs, long[] ptr_yes_vec, int[] probStepBounds, long[] ptr_RewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds);
 	public static double[] NondetMultiObj(ODDNode odd, JDDVars rows, JDDVars cols, JDDVars nondet, boolean minmax, JDDNode start, NativeIntArray adversary, NDSparseMatrix transSparseMatrix, List<String> synchs, DoubleVector[] yes_vec, int[] probStepBounds, NDSparseMatrix[] rewSparseMatrix, double[] rewardWeights, int[] rewardStepBounds) throws PrismException
