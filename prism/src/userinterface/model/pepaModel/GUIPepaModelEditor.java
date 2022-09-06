@@ -27,41 +27,18 @@
 
 package userinterface.model.pepaModel;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.JEditorPane;
-import javax.swing.JScrollPane;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.Document;
-import javax.swing.text.Element;
-import javax.swing.text.PlainDocument;
-import javax.swing.text.PlainView;
-import javax.swing.text.Segment;
-import javax.swing.text.StyleContext;
-import javax.swing.text.Utilities;
-import javax.swing.text.View;
-import javax.swing.text.ViewFactory;
+import javax.swing.*;
+import javax.swing.text.*;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 
-import userinterface.model.GUIModelEditor;
-import userinterface.model.GUIMultiModelHandler;
-import userinterface.model.Style;
+import java.util.regex.*;
+import java.awt.*;
+
+import javax.swing.event.*;
+import java.io.*;
+import userinterface.model.*;
 
 public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListener
 {	
@@ -258,7 +235,7 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 		
 	}
 	
-	static final Style PLAIN_S = new Style(Color.black, Font.PLAIN);
+	static final userinterface.model.Style PLAIN_S = new userinterface.model.Style(Color.black, Font.PLAIN);
 	class PepaView extends PlainView
 	{
 		
@@ -276,71 +253,108 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 			super.paint(g, a);
 		}
 		
-		@Override
-		protected float drawUnselectedText(Graphics2D g, float x, float y, int p0, int p1) throws BadLocationException
+		
+		protected int drawUnselectedText(Graphics g, int x, int y,int p0, int p1) throws BadLocationException
 		{
 			int stLine = findStartOfLine(p0, getDocument());
 			int enLine = findEndOfLine(p1, getDocument());
-			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-			try {
+			
+			if (g instanceof Graphics2D) {
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			}
+	        
+			try
+			{
 				g.setColor(Color.green);
 				Document doc = getDocument();
+				Segment segment = getLineBuffer();
+				
+				
+				//String s = doc.getText(p0, p1-p0);
 				String s = doc.getText(stLine, enLine-stLine);
-				Style[] styles = highlight(s, (p0-stLine), (p1-p0));
+				userinterface.model.Style[] styles = highlight(s, (p0-stLine), (p1-p0));
+				int currStart = 0;
+				int currEnd = 0;
+				Color last = null;
 				String fname = handler.getPepaEditorFontFast().getName();
 				int fsize = handler.getPepaEditorFontFast().getSize();
-				for (int curr = 0; curr < styles.length; curr++) {
-					Style c = styles[curr];
+				
+				for(int curr = 0; curr < styles.length; curr++)
+				{
+					
+					userinterface.model.Style c = styles[curr];
+					
 					g.setColor(c.c);
 					g.setFont(new Font(fname, c.style, fsize));
 					Segment segm = getLineBuffer();
 					doc.getText(p0+curr, 1, segm);
 					x = Utilities.drawTabbedText(segm, x, y, g, this, p0+curr);
+					
 				}
 				g.setColor(Color.black);
 				g.setFont(new Font(fname, Font.PLAIN, fsize));
 			}
-			catch(BadLocationException ex) {
+			catch(BadLocationException ex)
+			{
 				//System.out.println("ex = "+ex);
 				//ex.printStackTrace();
 			}
 			return x;
 		}
 		
-		@Override
-		protected float drawSelectedText(Graphics2D g, float x, float y,int p0, int p1) throws BadLocationException
+		protected int drawSelectedText(Graphics g, int x, int y,int p0, int p1) throws BadLocationException
 		{
 			int stLine = findStartOfLine(p0, getDocument());
 			int enLine = findEndOfLine(p1, getDocument());
-			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-			try {
+			
+			if (g instanceof Graphics2D) {
+				Graphics2D g2d = (Graphics2D)g;
+				g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			}
+	        
+			try
+			{
 				g.setColor(Color.green);
 				Document doc = getDocument();
+				Segment segment = getLineBuffer();
+				
+				
+				//String s = doc.getText(p0, p1-p0);
 				String s = doc.getText(stLine, enLine-stLine);
-				Style[] styles = highlight(s, (p0-stLine), (p1-p0));
+				userinterface.model.Style[] styles = highlight(s, (p0-stLine), (p1-p0));
+				int currStart = 0;
+				int currEnd = 0;
+				Color last = null;
 				String fname = handler.getPepaEditorFontFast().getName();
 				int fsize = handler.getPepaEditorFontFast().getSize();
-				for(int curr = 0; curr < styles.length; curr++) {
-					Style c = styles[curr];
+				
+				for(int curr = 0; curr < styles.length; curr++)
+				{
+					
+					userinterface.model.Style c = styles[curr];
+					
 					g.setColor(c.c);
 					g.setFont(new Font(fname, c.style, fsize));
 					Segment segm = getLineBuffer();
 					doc.getText(p0+curr, 1, segm);
 					x = Utilities.drawTabbedText(segm, x, y, g, this, p0+curr);
+					
 				}
 				g.setColor(Color.black);
 				g.setFont(new Font(fname, Font.PLAIN, fsize));
 			}
-			catch(BadLocationException ex) {
+			catch(BadLocationException ex)
+			{
 				//System.out.println("ex = "+ex);
 				//ex.printStackTrace();
 			}
 			return x;
 		}
 		
-		private synchronized Style[] highlight(String s, int offset, int length)
+		private synchronized userinterface.model.Style[] highlight(String s, int offset, int length)
 		{
-			Style[] styles = new Style[s.length()];
+			userinterface.model.Style[] styles = new userinterface.model.Style[s.length()];
 			for(int i = 0; i < styles.length; i++)
 				styles[i] = PLAIN_S;
 			
@@ -365,7 +379,7 @@ public class GUIPepaModelEditor extends GUIModelEditor implements DocumentListen
 			//System.out.println("styles.length = "+styles.length);
 			//System.out.println("ret.length = "+length);
 			//System.out.println("offset = "+offset);
-			Style[]ret = new Style[length];
+			userinterface.model.Style[]ret = new userinterface.model.Style[length];
 			for(int i = 0; i < ret.length; i++)
 			{
 				ret[i] = styles[i+offset];

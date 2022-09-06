@@ -31,10 +31,7 @@ import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.RelOp;
-import prism.Accuracy;
 import prism.PrismException;
-import prism.Accuracy.AccuracyLevel;
-import prism.Accuracy.AccuracyType;
 import simulator.sampler.Sampler;
 import simulator.sampler.SamplerDouble;
 
@@ -229,17 +226,7 @@ public final class SPRTMethod extends SimulationMethod
 	public Object getResult(Sampler sampler) throws PrismException
 	{
 		// Is hypothesis H0 true?
-		return Boolean.valueOf(h0true);
-	}
-
-	@Override
-	public Accuracy getResultAccuracy(Sampler sampler) throws PrismException
-	{
-		// Boolean result so accuracy error bound is meaningless
-		Accuracy accuracy = new Accuracy(AccuracyLevel.PROBABLY_BOUNDED, 0.0, AccuracyType.ABSOLUTE);
-		// TODO: handle case where alpha != beta (not used in PRISM atm)
-		accuracy.setProbability(1.0 - alpha);
-		return accuracy;
+		return new Boolean(h0true);
 	}
 
 	@Override

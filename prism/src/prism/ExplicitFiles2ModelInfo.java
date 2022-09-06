@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import parser.VarList;
+import parser.ast.Declaration;
 import parser.ast.DeclarationBool;
 import parser.ast.DeclarationInt;
 import parser.ast.DeclarationType;
@@ -57,9 +59,7 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 	private int numVars;
 	private List<String> varNames;
 	private List<Type> varTypes;
-	private int varMins[];
-	private int varMaxs[];
-	private int varRanges[];
+	private VarList varList;
 	private List<String> labelNames;
 	
 	// Num states
@@ -102,8 +102,6 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 		// This way, expressions can refer to the labels later on.
 		if (labelsFile != null) {
 			extractLabelNamesFromLabelsFile(labelsFile);
-		} else {
-			labelNames = new ArrayList<>();
 		}
 		
 		// Set model type: if no preference stated, try to autodetect
@@ -144,13 +142,9 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 			}
 			
 			@Override
-			public DeclarationType getVarDeclarationType(int i) throws PrismException
+			public VarList createVarList() throws PrismException
 			{
-				if (varTypes.get(i) instanceof TypeInt) {
-					return new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i]));
-				} else {
-					return new DeclarationBool();
-				}
+				return varList;
 			}
 			
 			@Override
@@ -193,6 +187,12 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 	private void extractVarInfoFromStatesFile(File statesFile) throws PrismException
 	{
 		int i, j, lineNum = 0;
+		Declaration d;
+		DeclarationType dt;
+		// Var info
+		int varMins[];
+		int varMaxs[];
+		int varRanges[];
 
 		// open file for reading, automatic close when done
 		try (BufferedReader in = new BufferedReader(new FileReader(statesFile))) {
@@ -271,6 +271,20 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 		} catch (PrismException e) {
 			throw new PrismException("Error detected (" + e.getMessage() + ") at line " + lineNum + " of states file \"" + statesFile + "\"");
 		}
+		
+		varList = new VarList();
+		for (i = 0; i < numVars; i++) {
+			if (varTypes.get(i) instanceof TypeInt) {
+				dt = new DeclarationInt(Expression.Int(varMins[i]), Expression.Int(varMaxs[i]));
+				d = new Declaration(varNames.get(i), dt);
+				d.setStart(Expression.Int(varMins[i]));
+			} else {
+				dt = new DeclarationBool();
+				d = new Declaration(varNames.get(i), dt);
+				d.setStart(Expression.False());
+			}
+			varList.addVar(d, -1, null);
+		}
 	}
 
 	/**
@@ -294,13 +308,12 @@ public class ExplicitFiles2ModelInfo extends PrismComponent
 		} catch (NumberFormatException e) {
 			throw new PrismException("Error detected at line 1 of transition matrix file \"" + transFile + "\"");
 		}
-		// Store dummy variable info
-		numVars = 1;
-		varNames = Collections.singletonList("x");
-		varTypes = Collections.singletonList(TypeInt.getInstance());
-		varMins = new int[] { 0 };
-		varMaxs = new int[] { numStates - 1 };
-		varRanges = new int[] { numStates - 1 };
+		
+		varList = new VarList();
+		DeclarationType dt = new DeclarationInt(Expression.Int(0), Expression.Int(numStates - 1));
+		Declaration d = new Declaration("x", dt);
+		d.setStart(Expression.Int(0));
+		varList.addVar(d, -1, null);
 	}
 	
 

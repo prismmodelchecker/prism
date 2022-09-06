@@ -26,10 +26,7 @@
 
 package parser.type;
 
-import java.math.BigInteger;
-
 import param.BigRational;
-import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
 public class TypeInt extends Type 
@@ -45,12 +42,10 @@ public class TypeInt extends Type
 	{		
 	}
 	
-	public static TypeInt getInstance()
+	public boolean equals(Object o)
 	{
-		return singleton;
+		return (o instanceof TypeInt);
 	}
-	
-	// Methods required for Type:
 	
 	@Override
 	public String getTypeString()
@@ -59,15 +54,14 @@ public class TypeInt extends Type
 	}
 	
 	@Override
-	public boolean isPrimitive()
-	{
-		return true;
-	}
-	
-	@Override
 	public Object defaultValue()
 	{
-		return 0;
+		return new Integer(0);
+	}
+	
+	public static TypeInt getInstance()
+	{
+		return singleton;
 	}
 	
 	@Override
@@ -77,40 +71,12 @@ public class TypeInt extends Type
 	}
 	
 	@Override
-	public Number castValueTo(Object value) throws PrismLangException
+	public Integer castValueTo(Object value) throws PrismLangException
 	{
-		if (value instanceof Integer) {
+		if (value instanceof Integer)
 			return (Integer) value;
-		} else if (value instanceof BigInteger) {
-			return (BigInteger) value;
-		} else {
+		else
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
-		}
-	}
-
-	@Override
-	public Number castValueTo(Object value, EvalMode evalMode) throws PrismLangException
-	{
-		switch (evalMode) {
-		// For floating point mode, should be an Integer
-		case FP:
-			if (value instanceof Integer) {
-				return (Integer) value;
-			} else if (value instanceof BigInteger) {
-				return ((BigInteger) value).intValue();
-			}
-			throw new PrismLangException("Cannot convert " + value.getClass() + " to " + getTypeString());
-		// For exact mode, should be a BigInteger
-		case EXACT:
-			if (value instanceof BigInteger) {
-				return (BigInteger) value;
-			} else if (value instanceof Integer) {
-				return BigInteger.valueOf((Integer) value);
-			}
-			throw new PrismLangException("Cannot convert " + value.getClass() + " to " + getTypeString());
-		default:
-			throw new PrismLangException("Unknown evaluation mode " + evalMode);
-		}
 	}
 
 	@Override
@@ -119,10 +85,4 @@ public class TypeInt extends Type
 		return value.toInt();
 	}
 
-	// Standard methods:
-	
-	public boolean equals(Object o)
-	{
-		return (o instanceof TypeInt);
-	}
 }

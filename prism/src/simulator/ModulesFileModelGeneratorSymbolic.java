@@ -11,7 +11,6 @@ import parser.State;
 import parser.Values;
 import parser.VarList;
 import parser.ast.ConstantList;
-import parser.ast.DeclarationType;
 import parser.ast.Expression;
 import parser.ast.LabelList;
 import parser.ast.ModulesFile;
@@ -111,7 +110,7 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	 * (Re-)Initialise the class ready for model exploration
 	 * (can only be done once any constants needed have been provided)
 	 */
-	private void initialise() throws PrismException
+	private void initialise() throws PrismLangException
 	{
 		// Evaluate constants on (a copy) of the modules file, insert constant values
 		// Note that we don't optimise expressions since this can create some round-off issues
@@ -200,30 +199,6 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	}
 
 	@Override
-	public DeclarationType getVarDeclarationType(int i) throws PrismException
-	{
-		return modulesFile.getVarDeclarationType(i);
-	}
-	
-	@Override
-	public int getVarModuleIndex(int i)
-	{
-		return modulesFile.getVarModuleIndex(i);
-	}
-	
-	@Override
-	public String getModuleName(int i)
-	{
-		return modulesFile.getModuleName(i);
-	}
-	
-	@Override
-	public VarList createVarList() throws PrismException
-	{
-		return varList;
-	}
-	
-	@Override
 	public int getNumLabels()
 	{
 		return labelList.size();	
@@ -251,6 +226,12 @@ public class ModulesFileModelGeneratorSymbolic implements ModelGeneratorSymbolic
 	public int getLabelIndex(String label)
 	{
 		return labelList.getLabelIndex(label);
+	}
+	
+	@Override
+	public VarList createVarList()
+	{
+		return varList;
 	}
 	
 	// Methods for ModelGenerator interface

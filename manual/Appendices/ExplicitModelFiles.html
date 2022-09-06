@@ -127,7 +127,7 @@ Below, we describe:
 </p><h3>States (.sta) files</h3>
 <p>These contain an explicit list of the reachable states of a model. The first line is of the form <code>(v1,...,vn)</code>, listing the names of all the variables in the model in the order that they appear in the PRISM model. Subsequent lines list the values of the <code>n</code> variables in each state of the model. Each line is of the form <code>i:(x1,...,xn)</code>, where <code>i</code> is the index of the state (starting from 0) and <code>x1,...,xn</code> are the values of each variable in the state. States are ordered by their index, or, equivalently, lexicographically according to the tuple of variable values.
 </p>
-<p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a>, the states file looks like:
+<p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm'>poll2.sm</a>, the states file looks like:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
@@ -175,7 +175,7 @@ Below, we describe:
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>and here is one for the (CTMC) PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a> (which looks like <a class='urllink' href='../uploads/poll2.dot.pdf'>this</a>):
+<p class='vspace'>and here is one for the (CTMC) PRISM model <a class='urllink' href='../uploads/poll2.sm'>poll2.sm</a> (which looks like <a class='urllink' href='../uploads/poll2.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
@@ -214,7 +214,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
 </p>
 <p class='vspace'>Row/column state indices and choice indices are all zero-indexed. Probability values (as above) are written as (positive) floating point numbers and should sum to 1 for each choice. Often, the transition lines in the file are ordered by row index, then choice index and then column index, but this is optional.
 </p>
-<p class='vspace'>Here is an example, for the (MDP) PRISM model <a class='urllink' href='../uploads/lec12mdp.nm.html'>lec12mdp.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdp.dot.pdf'>this</a>):
+<p class='vspace'>Here is an example, for the (MDP) PRISM model <a class='urllink' href='../uploads/lec12mdp.nm'>lec12mdp.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdp.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock4'>
@@ -229,7 +229,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>and here is an action-labelled version of the same model, <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdpa.dot.pdf'>this</a>):
+<p class='vspace'>and here is an action-labelled version of the same model, <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdpa.dot.pdf'>this</a>):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock5'>
@@ -263,7 +263,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>for the <a class='urllink' href='../uploads/lec12mdp.nm.html'>lec12mdp.nm</a> example (an MDP):
+<p class='vspace'>for the <a class='urllink' href='../uploads/lec12mdp.nm'>lec12mdp.nm</a> example (an MDP):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock7'>
@@ -276,7 +276,7 @@ To clarify terminology: each <em>state</em> of the MDP contains (nondeterministi
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>and for the <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> example (an MDP with actions):
+<p class='vspace'>and for the <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> example (an MDP with actions):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock8'>
@@ -342,7 +342,7 @@ except that probabilities/rates are replaced with reward values, and the number 
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>And or the <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
+<p class='vspace'>And or the <a class='urllink' href='../uploads/lec12mdpa.nm'>lec12mdpa.nm</a> (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock12'>

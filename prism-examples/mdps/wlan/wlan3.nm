@@ -2,24 +2,29 @@
 // discrete time model
 // gxn/jzs 20/02/02
 
+mdp
+
+// COLLISIONS
+const int COL; // maximum number of collisions
+
 // TIMING CONSTRAINTS
 // we have used the FHSS parameters
 // then scaled by the value of ASLOTTIME
-const ASLOTTIME = 1;
-const DIFS = 3; // due to scaling can be either 2 or 3 which is modelled by a non-deterministic choice
-const VULN = 1; // due to scaling can be either 0 or 1 which is modelled by a non-deterministic choice
-const TRANS_TIME_MAX; // scaling up
-const TRANS_TIME_MIN = 4; // scaling down
-const ACK_TO = 6; 
-const ACK = 4; // due to scaling can be either 3 or 4 which is modelled by a non-deterministic choice
-const SIFS = 1; // due to scaling can be either 0 or 1 which is modelled by a non-deterministic choice
+const int ASLOTTIME = 1;
+const int DIFS = 3; // due to scaling can be either 2 or 3 which is modelled by a non-deterministic choice
+const int VULN = 1; // due to scaling can be either 0 or 1 which is modelled by a non-deterministic choice
+const int TRANS_TIME_MAX; // scaling up
+const int TRANS_TIME_MIN = 4; // scaling down
+const int ACK_TO = 6;
+const int ACK = 4; // due to scaling can be either 3 or 4 which is modelled by a non-deterministic choice
+const int SIFS = 1; // due to scaling can be either 0 or 1 which is modelled by a non-deterministic choice
 // maximum constant used in timing constraints + 1
-const TIME_MAX = max(ACK_TO,TRANS_TIME_MAX)+1;
+const int TIME_MAX = max(ACK_TO,TRANS_TIME_MAX)+1;
 
 // CONTENTION WINDOW
 // CWMIN =15 & CWMAX =127
 // this means that MAX_BACKOFF IS 3
-const MAX_BACKOFF = 3;
+const int MAX_BACKOFF = 3;
 
 //-----------------------------------------------------------------//
 // THE MEDIUM/CHANNEL
@@ -31,6 +36,9 @@ formula busy = c1>0 | c2>0;
 formula free = c1=0 & c2=0;
 
 module medium
+	
+	// number of collisions
+	col : [0..COL+1];
 	
 	// medium status 
 	c1 : [0..2];
@@ -46,8 +54,8 @@ module medium
 	
 	// begin sending message and  something is already being sent
 	// in this case both messages become garbled
-	[send1] c1=0 & c2>0 -> (c1'=2) & (c2'=2);
-	[send2] c2=0 & c1>0 -> (c1'=2) & (c2'=2);
+	[send1] c1=0 & c2>0 -> (c1'=2) & (c2'=2) & (col'=min(col+1,COL));
+	[send2] c2=0 & c1>0 -> (c1'=2) & (c2'=2) & (col'=min(col+1,COL));
 	
 	// finish sending message
 	[finish1] c1>0 -> (c1'=0);
@@ -231,7 +239,7 @@ rewards "collisions"
 endrewards
 
 // reward structure for expected time
-// recall one time unit equals ASLOT(=50μs)
+// recall one time unit equals ASLOT(=50{\mu}s)
 rewards "time"
 	[time] true : 50;
 endrewards

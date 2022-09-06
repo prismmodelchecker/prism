@@ -29,8 +29,6 @@ package strat;
 
 import prism.PrismLog;
 
-import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
-
 /**
  * Interface for classes to store strategies (for MDPs, games, etc.)
  */
@@ -50,34 +48,16 @@ public interface Strategy
 	 * Export the strategy to a PrismLog, displaying strategy choices as indices.
 	 */
 	public void exportIndices(PrismLog out);
-
+	
 	/**
 	 * Export the model induced by this strategy to a PrismLog.
 	 */
-	default void exportInducedModel(PrismLog out)
-	{
-		exportInducedModel(out, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	/**
-	 * Export the model induced by this strategy to a PrismLog.
-	 * @param precision number of significant digits >= 1
-	 */
-	public void exportInducedModel(PrismLog out, int precision);
-
+	public void exportInducedModel(PrismLog out);
+	
 	/**
 	 * Export the strategy to a dot file (of the model showing the strategy).
 	 */
-	default void exportDotFile(PrismLog out)
-	{
-		exportDotFile(out, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	/**
-	 * Export the strategy to a dot file (of the model showing the strategy).
-	 * @param precision number of significant digits >= 1
-	 */
-	public void exportDotFile(PrismLog out, int precision);
+	public void exportDotFile(PrismLog out);
 	
 	/**
 	 * Initialise the strategy, based on an initial model state.

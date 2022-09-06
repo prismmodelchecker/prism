@@ -52,19 +52,19 @@ public class PathFullPrefix extends Path
 	// MUTATORS (for Path)
 
 	@Override
-	public void initialise(State initialState, State initialObs, double[] initialStateRewards)
+	public void initialise(State initialState, double[] initialStateRewards)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
 
 	@Override
-	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
+	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
 
 	@Override
-	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
+	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		// Do nothing (we are not allowed to modify the underlying PathFull)
 	}
@@ -87,12 +87,6 @@ public class PathFullPrefix extends Path
 	@Override
 	public long size()
 	{
-		return prefixLength + 1;
-	}
-
-	@Override
-	public long numStates()
-	{
 		return prefixLength;
 	}
 
@@ -106,18 +100,6 @@ public class PathFullPrefix extends Path
 	public State getCurrentState()
 	{
 		return pathFull.getState(prefixLength);
-	}
-
-	@Override
-	public State getPreviousObservation()
-	{
-		return pathFull.getObservation(prefixLength - 1);
-	}
-
-	@Override
-	public State getCurrentObservation()
-	{
-		return pathFull.getObservation(prefixLength);
 	}
 
 	@Override

@@ -1,4 +1,0 @@
-# Reduce precision for some tests due to minor differences between the engines
-
--exportmodelprecision 16 -exportmodel rare.nm.tra
--exportmodelprecision 16 -exportmodel rare.nm.srew

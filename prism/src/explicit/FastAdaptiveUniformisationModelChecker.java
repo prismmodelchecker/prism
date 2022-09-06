@@ -215,7 +215,7 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		mainLog.println("\nTotal probability lost is : " + fau.getTotalDiscreteLoss());
 		mainLog.println("Maximal number of states stored during analysis : " + fau.getMaxNumStates());
 
-		return new Result(Double.valueOf(fau.getValue()));
+		return new Result(new Double(fau.getValue()));
 	}
 
 	/**
@@ -244,6 +244,6 @@ public class FastAdaptiveUniformisationModelChecker extends PrismComponent
 		fau.computeTransientProbsAdaptive(time);
 		mainLog.println("\nTotal probability lost is : " + fau.getTotalDiscreteLoss());
 		mainLog.println("Maximal number of states stored during analysis : " + fau.getMaxNumStates());
-		return new Result(Double.valueOf(fau.getValue()));
+		return new Result(new Double(fau.getValue()));
 	}
 }

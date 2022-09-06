@@ -28,26 +28,13 @@ package parser.ast;
 
 import jltl2ba.SimpleLTL;
 import param.BigRational;
-import parser.BooleanUtils;
-import parser.EvaluateContext;
-import parser.EvaluateContext.EvalMode;
-import parser.EvaluateContextConstants;
-import parser.EvaluateContextState;
-import parser.EvaluateContextSubstate;
-import parser.EvaluateContextValues;
-import parser.State;
-import parser.Values;
-import parser.type.TypeBool;
-import parser.type.TypeDouble;
-import parser.type.TypeInt;
-import parser.type.TypePathBool;
-import parser.visitor.ASTTraverse;
-import parser.visitor.CheckValid;
-import parser.visitor.ConvertForJltl2ba;
-import parser.visitor.ExpressionTraverseNonNested;
+import parser.*;
+import parser.ast.ExpressionFilter.FilterOperator;
+import parser.visitor.*;
 import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
+import parser.type.*;
 
 // Abstract class for PRISM language expressions
 
@@ -65,45 +52,16 @@ public abstract class Expression extends ASTElement
 	public abstract boolean isProposition();
 
 	/**
-	 * Evaluate this expression and return the result as an Object
-	 * of the appropriate type for the type of this expression and the
-	 * evaluation mode of the {@link EvaluateContext} object.
-	 * E.g. a "double" is returned as a Double for floating point mode (EvalMode.FP)
-	 * but as a BigRational for exact mode (EvalMode.EXACT).
+	 * Evaluate this expression, return result.
 	 * Note: assumes that type checking has been done already.
 	 */
 	public abstract Object evaluate(EvaluateContext ec) throws PrismLangException;
 
 	/**
-	 * Evaluate this expression exactly and return the result as a BigRational.
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Evaluate this expression exactly, return the result as a BigRational.
 	 * Note: assumes that type checking has been done already.
 	 */
-	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
-	{
-		// Evaluate using a copy of the EvaluateContext
-		// where the evaluation mode is set to EXACT.
-		// Then convert the result to BigRational, regardless of type.
-		return BigRational.from(evaluate(new EvaluateContext()
-		{
-			public EvalMode getEvaluationMode()
-			{
-				return EvalMode.EXACT;
-			}
-			
-			@Override
-			public Object getVarValue(String name, int index)
-			{
-				return ec.getVarValue(name, index);
-			}
-			
-			@Override
-			public Object getConstantValue(String name)
-			{
-				return ec.getConstantValue(name);
-			}
-		}));
-	}
+	public abstract BigRational evaluateExact(EvaluateContext ec) throws PrismLangException;
 
 	/**
 	  * Get "name" of the result of this expression (used for y-axis of any graphs plotted)
@@ -218,7 +176,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public Object evaluate() throws PrismLangException
 	{
-		return evaluate(new EvaluateContextConstants(null));
+		return evaluate(new EvaluateContextValues(null, null));
 	}
 
 	/**
@@ -228,7 +186,7 @@ public abstract class Expression extends ASTElement
 	 */
 	public Object evaluate(Values constantValues) throws PrismLangException
 	{
-		return evaluate(new EvaluateContextConstants(constantValues));
+		return evaluate(new EvaluateContextValues(constantValues, null));
 	}
 
 	/**
@@ -289,42 +247,44 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as an integer.
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors,
-	 * and converts to evaluation mode FP (e.g. from EXACT) if needed.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 */
 	public int evaluateInt(EvaluateContext ec) throws PrismLangException
 	{
-		return (Integer) TypeInt.getInstance().castValueTo(evaluate(ec), EvalMode.FP);
+		Object o = evaluate(ec);
+		if (o instanceof Integer) {
+			return ((Integer) o).intValue();
+		}
+		if (o instanceof Boolean) {
+			return ((Boolean) o).booleanValue() ? 1 : 0;
+		}
+		throw new PrismLangException("Cannot evaluate to an integer", this);
 	}
 
 	/**
 	 * Evaluate this expression as an integer, using no constant or variable values.
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Note: assumes that type checking has been done already.
 	 */
 	public int evaluateInt() throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextConstants(null));
+		return evaluateInt(new EvaluateContextValues(null, null));
 	}
 
 	/**
 	 * Evaluate this expression as an integer, based on values for constants (but not variables).
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Constant values are supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
 	public int evaluateInt(Values constantValues) throws PrismLangException
 	{
-		return evaluateInt(new EvaluateContextConstants(constantValues));
+		return evaluateInt(new EvaluateContextValues(constantValues, null));
 	}
 
 	/**
 	 * Evaluate this expression as an integer, based on values for constants/variables.
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Each set of values is supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
@@ -335,8 +295,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as an integer, based on values for variables (but not constants).
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
@@ -347,8 +306,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as an integer, based on values for constants/variables.
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Constant values are supplied as a Values object. 
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that type checking has been done.
@@ -360,8 +318,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as an integer, based on values for some variables (but not constants).
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
 	 * If any variables required for evaluation are missing, this will fail with an exception.
@@ -374,8 +331,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as an integer, based on values for constants and some variables.
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Constant values are supplied as a Values object. 
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
@@ -388,54 +344,51 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this object as an integer.
-	 * This assumes that the type of the expression is int.
-	 * Basically casts the result to an int, checking for any type errors.
-	 */
-	public static int evaluateObjectAsInt(Object o) throws PrismLangException
-	{
-		return (Integer) TypeInt.getInstance().castValueTo(o, EvalMode.FP);
-	}
-
-	/**
 	 * Evaluate this expression as a double.
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors,
-	 * and converts to evaluation mode FP (e.g. from EXACT) if needed.
 	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 */
 	public double evaluateDouble(EvaluateContext ec) throws PrismLangException
 	{
-		return (Double) TypeDouble.getInstance().castValueTo(evaluate(ec), EvalMode.FP);
+		Object o = evaluate(ec);
+		if (o instanceof Integer) {
+			return ((Integer) o).intValue();
+		}
+		if (o instanceof Double) {
+			return ((Double) o).doubleValue();
+		}
+		if (o instanceof BigRational) {
+			return ((BigRational)o).doubleValue();
+		}
+		if (o instanceof Boolean) {
+			return ((Boolean) o).booleanValue() ? 1.0 : 0.0;
+		}
+		throw new PrismLangException("Cannot evaluate to a double", this);
 	}
 
 	/**
 	 * Evaluate this expression as a double, using no constant or variable values.
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Note: assumes that type checking has been done already.
 	 */
 	public double evaluateDouble() throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextConstants(null));
+		return evaluateDouble(new EvaluateContextValues(null, null));
 	}
 
 	/**
 	 * Evaluate this expression as a double, based on values for constants (but not variables).
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Constant values are supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
 	public double evaluateDouble(Values constantValues) throws PrismLangException
 	{
-		return evaluateDouble(new EvaluateContextConstants(constantValues));
+		return evaluateDouble(new EvaluateContextValues(constantValues, null));
 	}
 
 	/**
 	 * Evaluate this expression as a double, based on values for constants/variables.
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Each set of values is supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
@@ -446,8 +399,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a double, based on values for variables (but not constants).
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
@@ -458,8 +410,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a double, based on values for constants/variables.
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Constant values are supplied as a Values object. 
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that type checking has been done.
@@ -471,8 +422,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a double, based on values for some variables (but not constants).
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
 	 * If any variables required for evaluation are missing, this will fail with an exception.
@@ -485,8 +435,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a double, based on values for constants and some variables.
-	 * This assumes that the type of the expression is (or can be cast to) double.
-	 * Basically casts the result to a double, checking for any type errors.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0.0/1.0).
 	 * Constant values are supplied as a Values object. 
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
@@ -500,38 +449,41 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a boolean.
-	 * This assumes that the type of the expression is bool.
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 */
 	public boolean evaluateBoolean(EvaluateContext ec) throws PrismLangException
 	{
-		return TypeBool.getInstance().castValueTo(evaluate(ec), EvalMode.FP);
+		Object o = evaluate(ec);
+		if (!(o instanceof Boolean)) {
+			throw new PrismLangException("Cannot evaluate to a boolean", this);
+		}
+		return ((Boolean) o).booleanValue();
 	}
 
 	/**
 	 * Evaluate this expression as a boolean, using no constant or variable values.
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Note: assumes that type checking has been done already.
 	 */
 	public boolean evaluateBoolean() throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextConstants(null));
+		return evaluateBoolean(new EvaluateContextValues(null, null));
 	}
 
 	/**
 	 * Evaluate this expression as a boolean, based on values for constants (but not variables).
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Constant values are supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
 	public boolean evaluateBoolean(Values constantValues) throws PrismLangException
 	{
-		return evaluateBoolean(new EvaluateContextConstants(constantValues));
+		return evaluateBoolean(new EvaluateContextValues(constantValues, null));
 	}
 
 	/**
 	 * Evaluate this expression as a boolean, based on values for constants/variables.
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Each set of values is supplied as a Values object. 
 	 * Note: assumes that type checking has been done already.
 	 */
@@ -542,7 +494,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a boolean, based on values for variables (but not constants).
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
@@ -553,7 +505,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a boolean, based on values for constants/variables.
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Constant values are supplied as a Values object. 
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that type checking has been done.
@@ -565,7 +517,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a boolean, based on values for some variables (but not constants).
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
 	 * If any variables required for evaluation are missing, this will fail with an exception.
@@ -578,7 +530,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression as a boolean, based on values for constants and some variables.
-	 * Basically casts the result to a boolean, checking for any type errors.
+	 * Any typing issues cause an exception.
 	 * Constant values are supplied as a Values object. 
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
@@ -593,28 +545,28 @@ public abstract class Expression extends ASTElement
 	
 	/**
 	 * Evaluate this expression exactly to a BigRational, using no constant or variable values.
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Note: assumes that type checking has been done already.
 	 */
 	public BigRational evaluateExact() throws PrismLangException
 	{
-		return evaluateExact(new EvaluateContextConstants(null));
+		return evaluateExact(new EvaluateContextValues(null, null));
 	}
 
 	/**
 	 * Evaluate this expression exactly to a BigRational, based on values for constants (but not variables).
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Constant values are supplied as a Values object.
 	 * Note: assumes that type checking has been done already.
 	 */
 	public BigRational evaluateExact(Values constantValues) throws PrismLangException
 	{
-		return evaluateExact(new EvaluateContextConstants(constantValues));
+		return evaluateExact(new EvaluateContextValues(constantValues, null));
 	}
 
 	/**
 	 * Evaluate this expression exactly to a BigRational, based on values for constants/variables.
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Each set of values is supplied as a Values object.
 	 * Note: assumes that type checking has been done already.
 	 */
@@ -625,7 +577,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression exactly to a BigRational, based on values for variables (but not constants).
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that constants have been evaluated and type checking has been done.
 	 */
@@ -635,8 +587,8 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
-	 * Evaluate this expression exactly to a BigRational, based on values for constants/variables.
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Evaluate this expression as an integer, based on values for constants/variables.
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Constant values are supplied as a Values object.
 	 * Variable values are supplied as a State object, i.e. array of variable values.
 	 * Note: assumes that type checking has been done.
@@ -648,7 +600,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression exactly to a BigRational, based on values for some variables (but not constants).
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).
 	 * If any variables required for evaluation are missing, this will fail with an exception.
@@ -661,7 +613,7 @@ public abstract class Expression extends ASTElement
 
 	/**
 	 * Evaluate this expression exactly to a BigRational, based on values for constants and some variables.
-	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Any typing issues cause an exception (but: we do allow conversion of boolean to 0/1).
 	 * Constant values are supplied as a Values object.
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
 	 * and a mapping from indices (over all variables) to this subset (-1 if not in subset).

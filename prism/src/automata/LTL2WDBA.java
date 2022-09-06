@@ -50,7 +50,7 @@ import acceptance.AcceptanceReach;
 import common.IterableBitSet;
 
 import explicit.LTS;
-import explicit.LTSSimple;
+import explicit.LTSExplicit;
 import explicit.NonProbModelChecker;
 import explicit.SCCComputer;
 import explicit.SCCConsumerStore;
@@ -510,7 +510,7 @@ public class LTL2WDBA extends PrismComponent
 		BitSet expanded = new BitSet();
 		BitSet F = new BitSet();
 
-		LTSSimple lts = new LTSSimple();
+		LTSExplicit lts = new LTSExplicit();
 
 		for (int startNBA : IterableBitSet.getSetBits(p.idToState.get(lasso.cycleStart))) {
 			int i = lts.addState();
@@ -552,7 +552,7 @@ public class LTL2WDBA extends PrismComponent
 					//System.out.println("new: " + prodTo + " = " +toProd);
 				}
 
-				lts.addTransition(curProd, prodTo);
+				lts.addEdge(curProd, prodTo);
 				//System.out.println(" " + curProd +" -> " +prodTo);
 			}
 		}

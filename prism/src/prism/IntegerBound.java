@@ -49,12 +49,12 @@ public class IntegerBound
 	{
 		// normalize
 		if (lower_strict && lower != null) {
-			lowest = Integer.valueOf(lower+1);
+			lowest = new Integer(lower+1);
 		} else {
 			lowest = lower;
 		}
 		if (upper_strict && upper != null) {
-			highest = Integer.valueOf(upper-1);
+			highest = new Integer(upper-1);
 		} else {
 			highest = upper;
 		}

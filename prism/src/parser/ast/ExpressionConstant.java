@@ -26,10 +26,11 @@
 
 package parser.ast;
 
-import parser.EvaluateContext;
-import parser.type.Type;
-import parser.visitor.ASTVisitor;
+import param.BigRational;
+import parser.*;
+import parser.visitor.*;
 import prism.PrismLangException;
+import parser.type.*;
 
 public class ExpressionConstant extends Expression
 {
@@ -78,13 +79,27 @@ public class ExpressionConstant extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		// Extract constant value from the evaluation context
 		Object res = ec.getConstantValue(name);
-		if (res == null) {
+		if (res == null)
 			throw new PrismLangException("Could not evaluate constant", this);
+
+		if (res instanceof BigRational) {
+			// Constants can also be BigRational, cast to appropriate type
+			// This might lose precision
+			BigRational r = (BigRational) res;
+			return getType().castFromBigRational(r);
 		}
-		// And cast it to the right type/mode if needed
-		return getType().castValueTo(res, ec.getEvaluationMode());
+		return res;
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		Object res = ec.getConstantValue(name);
+		if (res == null)
+			throw new PrismLangException("Could not evaluate constant", this);
+
+		return BigRational.from(res);
 	}
 
 	@Override

@@ -27,7 +27,6 @@
 
 package simulator.method;
 
-import prism.Accuracy;
 import prism.PrismException;
 import simulator.sampler.Sampler;
 import cern.jet.stat.Probability;
@@ -113,16 +112,6 @@ public final class CIwidth extends CIMethod
 		return super.getResult(sampler);
 	}
 
-	@Override
-	public Accuracy getResultAccuracy(Sampler sampler) throws PrismException
-	{
-		// We may use 'width' to compute the result, so compute if necessary
-		// (this should never happen)
-		if (!missingParameterComputed)
-			computeMissingParameterAfterSim();
-		return super.getResultAccuracy(sampler);
-	}
-	
 	@Override
 	public String getResultExplanation(Sampler sampler) throws PrismException
 	{

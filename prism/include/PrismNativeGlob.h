@@ -115,7 +115,6 @@ EXPORT extern double lin_eq_method_param;
 EXPORT extern int term_crit;
 EXPORT extern double term_crit_param;
 EXPORT extern int max_iters;
-EXPORT extern int export_model_precision;
 // use "compact modified" sparse matrix storage?
 EXPORT extern bool compact;
 // sparse bits info
@@ -132,9 +131,6 @@ EXPORT extern int export_adv;
 EXPORT extern const char *export_adv_filename;
 // export iterations filename
 EXPORT extern const char *export_iterations_filename;
-
-// details from numerical computation which may be queried
-EXPORT extern double last_error_bound;
 
 //------------------------------------------------------------------------------
 

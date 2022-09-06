@@ -93,9 +93,9 @@ static void export_rec(DdNode *dd, DdNode **vars, int num_vars, int level, ODDNo
 	// base case - non zero terminal
 	if (level == num_vars) {
 		switch (export_type) {
-		case EXPORT_PLAIN: export_string("%" PRId64 " %.*g\n", index, export_model_precision, Cudd_V(dd)); break;
-		case EXPORT_MATLAB: export_string("%s(%" PRId64 ")=%.*g;\n", export_name, index+1, export_model_precision, Cudd_V(dd)); break;
-		case EXPORT_MRMC: export_string("%" PRId64 " %.*g\n", index+1, export_model_precision, Cudd_V(dd)); break;
+		case EXPORT_PLAIN: export_string("%" PRId64 " %.12g\n", index, Cudd_V(dd)); break;
+		case EXPORT_MATLAB: export_string("%s(%" PRId64 ")=%.12g;\n", export_name, index+1, Cudd_V(dd)); break;
+		case EXPORT_MRMC: export_string("%" PRId64 " %.12g\n", index+1, Cudd_V(dd)); break;
 		}
 		return;
 	}

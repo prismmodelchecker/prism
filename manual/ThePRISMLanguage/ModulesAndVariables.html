@@ -111,7 +111,7 @@ The variables describe the possible states that the module can be in;
 the <a class='wikilink' href='Commands.html'>commands</a> describe its behaviour, i.e. the way in which the state changes over time.
 Currently, PRISM supports just a few simple types of variables:
 they can either be (finite ranges of) integers or Booleans
-(we ignore <a class='wikilink' href='Real-timeModels.html'>clocks</a> for now).
+(we ignore <a class='wikilink' href='PTAs.html'>clocks</a> for now).
 </p>
 <p class='vspace'>In the example above, each module has one integer variable with range <code>[0..2]</code>.
 A variable declaration looks like:
@@ -164,61 +164,7 @@ As will be described later, it is also possible to specify
 Identifiers can be made up of letters, digits and the underscore character, but cannot begin with a digit,
 i.e. they must satisfy the regular expression [A-Za-z_][A-Za-z0-9_]*, and are case-sensitive.
 Furthermore, identifiers cannot be any of the following, which are all reserved keywords in PRISM:
-<code><strong>A</strong></code>,
-<code><strong>bool</strong></code>,
-<code><strong>clock</strong></code>,
-<code><strong>const</strong></code>,
-<code><strong>ctmc</strong></code>,
-<code><strong>C</strong></code>,
-<code><strong>double</strong></code>,
-<code><strong>dtmc</strong></code>,
-<code><strong>E</strong></code>,
-<code><strong>endinit</strong></code>,
-<code><strong>endinvariant</strong></code>,
-<code><strong>endmodule</strong></code>,
-<code><strong>endobservables</strong></code>,
-<code><strong>endrewards</strong></code>,
-<code><strong>endsystem</strong></code>,
-<code><strong>false</strong></code>,
-<code><strong>formula</strong></code>,
-<code><strong>filter</strong></code>,
-<code><strong>func</strong></code>,
-<code><strong>F</strong></code>,
-<code><strong>global</strong></code>,
-<code><strong>G</strong></code>,
-<code><strong>init</strong></code>,
-<code><strong>invariant</strong></code>,
-<code><strong>I</strong></code>,
-<code><strong>int</strong></code>,
-<code><strong>label</strong></code>,
-<code><strong>max</strong></code>,
-<code><strong>mdp</strong></code>,
-<code><strong>min</strong></code>,
-<code><strong>module</strong></code>,
-<code><strong>X</strong></code>,
-<code><strong>nondeterministic</strong></code>,
-<code><strong>observable</strong></code>,
-<code><strong>observables</strong></code>,
-<code><strong>of</strong></code>,
-<code><strong>Pmax</strong></code>,
-<code><strong>Pmin</strong></code>,
-<code><strong>P</strong></code>,
-<code><strong>pomdp</strong></code>,
-<code><strong>popta</strong></code>,
-<code><strong>probabilistic</strong></code>,
-<code><strong>prob</strong></code>,
-<code><strong>pta</strong></code>,
-<code><strong>rate</strong></code>,
-<code><strong>rewards</strong></code>,
-<code><strong>Rmax</strong></code>,
-<code><strong>Rmin</strong></code>,
-<code><strong>R</strong></code>,
-<code><strong>S</strong></code>,
-<code><strong>stochastic</strong></code>,
-<code><strong>system</strong></code>,
-<code><strong>true</strong></code>,
-<code><strong>U</strong></code>,
-<code><strong>W</strong></code>.
+<code><strong>A</strong></code>, <code><strong>bool</strong></code>, <code><strong>clock</strong></code>, <code><strong>const</strong></code>, <code><strong>ctmc</strong></code>, <code><strong>C</strong></code>, <code><strong>double</strong></code>, <code><strong>dtmc</strong></code>, <code><strong>E</strong></code>, <code><strong>endinit</strong></code>, <code><strong>endinvariant</strong></code>, <code><strong>endmodule</strong></code>, <code><strong>endrewards</strong></code>, <code><strong>endsystem</strong></code>, <code><strong>false</strong></code>, <code><strong>formula</strong></code>, <code><strong>filter</strong></code>, <code><strong>func</strong></code>, <code><strong>F</strong></code>, <code><strong>global</strong></code>, <code><strong>G</strong></code>, <code><strong>init</strong></code>, <code><strong>invariant</strong></code>, <code><strong>I</strong></code>, <code><strong>int</strong></code>, <code><strong>label</strong></code>, <code><strong>max</strong></code>, <code><strong>mdp</strong></code>, <code><strong>min</strong></code>, <code><strong>module</strong></code>, <code><strong>X</strong></code>, <code><strong>nondeterministic</strong></code>, <code><strong>Pmax</strong></code>, <code><strong>Pmin</strong></code>, <code><strong>P</strong></code>, <code><strong>probabilistic</strong></code>, <code><strong>prob</strong></code>, <code><strong>pta</strong></code>, <code><strong>rate</strong></code>, <code><strong>rewards</strong></code>, <code><strong>Rmax</strong></code>, <code><strong>Rmin</strong></code>, <code><strong>R</strong></code>, <code><strong>S</strong></code>, <code><strong>stochastic</strong></code>, <code><strong>system</strong></code>, <code><strong>true</strong></code>, <code><strong>U</strong></code>, <code><strong>W</strong></code>.
 </p>
 </div>
 
@@ -257,9 +203,8 @@ Furthermore, identifiers cannot be any of the following, which are all reserved 
 </li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
 </li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
 </li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
+</li><li><a class='wikilink' href='PTAs.html'>PTAs</a>
 </li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>
-</li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='ProcessAlgebraOperators.html'>Process Algebra Operators</a>
 </li><li><a class='wikilink' href='PRISMModelFiles.html'>PRISM Model Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]

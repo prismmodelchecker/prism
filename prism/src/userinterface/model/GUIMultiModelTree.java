@@ -648,6 +648,377 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 				modelType.setUserObject(tp);
 				theModel.nodeChanged(modelType);
 			}
+
+			//MODULES
+
+			//If there is no module tree, but we need to have modules, add the tree
+			if (root.getIndex(modules) == -1 && parsedModel.getNumModules() > 0) {
+				root.add(modules);
+				theModel.nodesWereInserted(root, new int[] { root.getIndex(modules) });
+			}
+			//If there is a module tree, but no modules, remove the module tree
+			else if (root.getIndex(modules) != -1 && parsedModel.getNumModules() == 0) {
+				int index = root.getIndex(modules);
+				root.remove(modules);
+				theModel.nodesWereRemoved(root, new int[] { index }, new Object[] { modules });
+			}
+
+			//Create 2 ArrayLists: one of Modules in the tree and one of modules not in the tree
+			ArrayList<Module> inTree = new ArrayList<Module>();
+			ArrayList<Module> notInTree = new ArrayList<Module>();
+
+			for (int i = 0; i < parsedModel.getNumModules(); i++) {
+				Module aMod = parsedModel.getModule(i);
+				if (moduleIsMember(aMod))
+					inTree.add(aMod);
+				else
+					notInTree.add(aMod);
+			}
+
+			//make sure modules in the tree are valid
+			for (int i = 0; i < inTree.size(); i++) {
+				Module inTreeMod = inTree.get(i);
+				int treeIndex = getModuleTreeIndexOf(inTreeMod); //should not be -1
+				ModuleNode inTreeNode = (ModuleNode) modules.getChildAt(treeIndex);
+
+				/*  Check its variables getting variables which are already there
+				 *  and putting them in varInTree, and getting variables which
+				 *  are not there and putting them in varNotInTree*/
+				ArrayList<Declaration> varInTree = new ArrayList<Declaration>();
+				ArrayList<Declaration> varNotInTree = new ArrayList<Declaration>();
+
+				for (int j = 0; j < inTreeMod.getNumDeclarations(); j++) {
+					Declaration d = inTreeMod.getDeclaration(j);
+					if (variableIsMember(d, inTreeNode))
+						varInTree.add(d);
+					else
+						varNotInTree.add(d);
+				}
+
+				//make sure variables in this module tree are valid
+				for (int j = 0; j < varInTree.size(); j++) {
+					Declaration inTreeDec = varInTree.get(j);
+					int decIndex = getVarTreeIndexOf(inTreeDec, inTreeNode);
+					DeclarationNode dNode = (DeclarationNode) inTreeNode.getChildAt(decIndex);
+					if (dNode instanceof VarNode) {
+						VarNode vNode = (VarNode) dNode;
+						vNode.setInitial(parsedModel.getSystemDefn() == null ? inTreeDec.getStartOrDefault() : null);
+						if (inTreeDec.getDeclType() instanceof DeclarationInt) {
+							DeclarationInt dt = (DeclarationInt) inTreeDec.getDeclType();
+							vNode.setMin(dt.getLow());
+							vNode.setMax(dt.getHigh());
+						}
+						theModel.nodesChanged(vNode, new int[] { 0, 1, 2 });
+					} else if (dNode instanceof BoolNode) {
+						BoolNode bNode = (BoolNode) dNode;
+						bNode.setInitial(parsedModel.getSystemDefn() == null ? inTreeDec.getStartOrDefault() : null);
+						theModel.nodesChanged(bNode, new int[] { 0 });
+					}
+
+				}
+				//add variable in varNotInTree to the tree
+				int[] cIndices = new int[varNotInTree.size()];
+				for (int j = 0; j < varNotInTree.size(); j++) {
+					Declaration notTreeDec = varNotInTree.get(j);
+					if (notTreeDec.getType() instanceof TypeInt) {
+						if (notTreeDec.getDeclType() instanceof DeclarationInt) {
+							DeclarationInt declInt = (DeclarationInt) notTreeDec.getDeclType();
+							VarNode newVariable = new VarNode(notTreeDec.getName(),
+									parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, declInt.getLow(), declInt.getHigh(), false);
+							inTreeNode.add(newVariable);
+							cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+						} else {
+							VarNode newVariable = new VarNode(notTreeDec.getName(),
+									parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null, null, null, false);
+							inTreeNode.add(newVariable);
+							cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+						}
+					} else if (notTreeDec.getType() instanceof TypeBool) {
+						BoolNode newVariable = new BoolNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null,
+								false);
+						inTreeNode.add(newVariable);
+						cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+					} else if (notTreeDec.getType() instanceof TypeClock) {
+						VarNode newVariable = new VarNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null,
+								Expression.Int(0), null, false);
+						inTreeNode.add(newVariable);
+						cIndices[j] = getVarTreeIndexOf(notTreeDec, inTreeNode);
+					}
+				}
+				theModel.nodesWereInserted(inTreeNode, cIndices);
+
+				/*  remove variables which are in the tree but not in varInTree or
+				 *  varNotInTree */
+				ArrayList<DeclarationNode> removeNodes = new ArrayList<DeclarationNode>();
+				for (int j = 0; j < inTreeNode.getChildCount(); j++) {
+					DeclarationNode vNode = (DeclarationNode) inTreeNode.getChildAt(j);
+					if (!variableExists(vNode, varInTree, varNotInTree)) {
+						removeNodes.add(vNode);
+					}
+				}
+				Object[] remObj = new Object[removeNodes.size()];
+				int[] remInd = new int[removeNodes.size()];
+				for (int j = 0; j < removeNodes.size(); j++) {
+					DeclarationNode vNode = removeNodes.get(j);
+					int index = inTreeNode.getIndex(vNode);
+					remObj[j] = vNode;
+					remInd[j] = index;
+				}
+				//remove nodes backwards
+				for (int j = removeNodes.size() - 1; j >= 0; j--) {
+					inTreeNode.remove(remInd[j]);
+				}
+				theModel.nodesWereRemoved(inTreeNode, remInd, remObj);
+			}
+
+			//add modules which are not in the tree
+			for (int i = 0; i < notInTree.size(); i++) {
+				Module aMod = notInTree.get(i);
+				ModuleNode newNode = new ModuleNode(aMod.getName(), false);
+				//add variables to this
+				for (int j = 0; j < aMod.getNumDeclarations(); j++) {
+					Declaration aDec = aMod.getDeclaration(j);
+
+					if (aDec.getType() instanceof TypeInt) {
+						if (aDec.getDeclType() instanceof DeclarationInt) {
+							DeclarationInt declInt = (DeclarationInt) aDec.getDeclType();
+							VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null,
+									declInt.getLow(), declInt.getHigh(), false);
+							newNode.add(newVariable);
+						} else {
+							VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, null,
+									null, false);
+							newNode.add(newVariable);
+						}
+					} else if (aDec.getType() instanceof TypeBool) {
+						BoolNode newVariable = new BoolNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null, false);
+						newNode.add(newVariable);
+					}
+					if (aDec.getType() instanceof TypeClock) {
+						VarNode newVariable = new VarNode(aDec.getName(), parsedModel.getSystemDefn() == null ? aDec.getStartOrDefault() : null,
+								Expression.Int(0), null, false);
+						newNode.add(newVariable);
+					}
+				}
+				modules.addModule(newNode);
+				int index = modules.getIndex(newNode);
+				theModel.nodesWereInserted(modules, new int[] { index });
+			}
+			//remove modules from the tree which are not in either inTree or notInTree
+			ArrayList<DefaultMutableTreeNode> removeNodes = new ArrayList<DefaultMutableTreeNode>();
+			for (int i = 0; i < modules.getChildCount(); i++) {
+				ModuleNode mNode = (ModuleNode) modules.getChildAt(i);
+				if (!moduleExists(mNode, inTree, notInTree)) {
+					removeNodes.add(mNode);
+				}
+			}
+			Object[] remObj = new Object[removeNodes.size()];
+			int[] remInd = new int[removeNodes.size()];
+			for (int i = 0; i < removeNodes.size(); i++) {
+				ModuleNode mNode = (ModuleNode) removeNodes.get(i);
+				int index = modules.getIndex(mNode);
+				remObj[i] = mNode;
+				remInd[i] = index;
+			}
+			//remove nodes backwards
+			for (int i = removeNodes.size() - 1; i >= 0; i--) {
+				modules.remove(remInd[i]);
+			}
+			theModel.nodesWereRemoved(modules, remInd, remObj);
+
+			//DECLARATIONS
+
+			//If there is no declaration tree, but we need to have declarations, add the tre
+			if (root.getIndex(declarations) == -1 && parsedModel.getNumGlobals() > 0) {
+				root.add(declarations);
+				theModel.nodesWereInserted(root, new int[] { root.getIndex(declarations) });
+			}
+			//If there is a module tree, but no modules, remove the module tree
+			else if (root.getIndex(declarations) != -1 && parsedModel.getNumGlobals() == 0) {
+				int index = root.getIndex(declarations);
+				root.remove(declarations);
+				theModel.nodesWereRemoved(root, new int[] { index }, new Object[] { declarations });
+			}
+
+			/*  Create 2 ArrayLists.  One of Declarations in the tree and one of declarations
+			 *  not in the tree. */
+			ArrayList<Declaration> decInTree = new ArrayList<Declaration>();
+			ArrayList<Declaration> decNotInTree = new ArrayList<Declaration>();
+
+			for (int i = 0; i < parsedModel.getNumGlobals(); i++) {
+				Declaration d = parsedModel.getGlobal(i);
+				if (declarationIsMember(d))
+					decInTree.add(d);
+				else
+					decNotInTree.add(d);
+			}
+			//make sure declarations in this declaration tree are valid
+			for (int i = 0; i < decInTree.size(); i++) {
+				Declaration inTreeDec = decInTree.get(i);
+				int decIndex = getIndexOfDec(inTreeDec);
+				DeclarationNode dNode = (DeclarationNode) declarations.getChildAt(decIndex);
+				if (dNode instanceof GlobalNode) {
+					GlobalNode vNode = (GlobalNode) declarations.getChildAt(decIndex);
+					vNode.setInitial(parsedModel.getSystemDefn() == null ? inTreeDec.getStartOrDefault() : null);
+					if (inTreeDec.getDeclType() instanceof DeclarationInt) {
+						DeclarationInt declInt = (DeclarationInt) inTreeDec.getDeclType();
+						vNode.setMin(declInt.getLow());
+						vNode.setMax(declInt.getHigh());
+					}
+					theModel.nodesChanged(vNode, new int[] { 0, 1, 2 });
+				} else if (dNode instanceof BoolNode) {
+					BoolNode bNode = (BoolNode) dNode;
+					bNode.setInitial(parsedModel.getSystemDefn() == null ? inTreeDec.getStartOrDefault() : null);
+					theModel.nodesChanged(bNode, new int[] { 0 });
+				}
+
+			}
+
+			//add declarations in decNotInTree to the tree
+			int[] cIndices = new int[decNotInTree.size()];
+			for (int i = 0; i < decNotInTree.size(); i++) {
+				Declaration notTreeDec = decNotInTree.get(i);
+				if (notTreeDec.getType() instanceof TypeInt) {
+					if (notTreeDec.getDeclType() instanceof DeclarationInt) {
+						DeclarationInt declInt = (DeclarationInt) notTreeDec.getDeclType();
+						GlobalNode newVariable = new GlobalNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault()
+								: null, declInt.getLow(), declInt.getHigh(), false);
+						declarations.add(newVariable);
+					} else {
+						GlobalNode newVariable = new GlobalNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault()
+								: null, null, null, false);
+						declarations.add(newVariable);
+					}
+					cIndices[i] = getIndexOfDec(notTreeDec);
+				} else if (notTreeDec.getType() instanceof TypeBool) {
+					BoolNode newVariable = new BoolNode(notTreeDec.getName(), parsedModel.getSystemDefn() == null ? notTreeDec.getStartOrDefault() : null,
+							false);
+					declarations.add(newVariable);
+					cIndices[i] = getIndexOfDec(notTreeDec);
+				}
+			}
+			theModel.nodesWereInserted(declarations, cIndices);
+
+			/*  remove declarations which are in the tree but not in decInTree or
+			 *  decNotInTree */
+			removeNodes = new ArrayList<DefaultMutableTreeNode>();
+			for (int i = 0; i < declarations.getChildCount(); i++) {
+				DeclarationNode vNode = (DeclarationNode) declarations.getChildAt(i);
+				if (!declarationExists(vNode, decInTree, decNotInTree)) {
+					removeNodes.add(vNode);
+				}
+			}
+			remObj = new Object[removeNodes.size()];
+			remInd = new int[removeNodes.size()];
+			for (int i = 0; i < removeNodes.size(); i++) {
+				DeclarationNode vNode = (DeclarationNode) removeNodes.get(i);
+				int index = declarations.getIndex(vNode);
+				remObj[i] = vNode;
+				remInd[i] = index;
+			}
+			//remove nodes backwards
+			for (int i = removeNodes.size() - 1; i >= 0; i--) {
+				declarations.remove(remInd[i]);
+			}
+			theModel.nodesWereRemoved(declarations, remInd, remObj);
+
+			//CONSTANTS
+
+			ConstantList csts = parsedModel.getConstantList();
+			//If there is no constant tree, but we need to have constant, add the tre
+			if (root.getIndex(constants) == -1 && csts.size() > 0) {
+				root.add(constants);
+				theModel.nodesWereInserted(root, new int[] { root.getIndex(constants) });
+			}
+			//If there is a constant tree, but no constants, remove the module tree
+			else if (root.getIndex(constants) != -1 && csts.size() == 0) {
+				int index = root.getIndex(constants);
+				root.remove(constants);
+				theModel.nodesWereRemoved(root, new int[] { index }, new Object[] { constants });
+			}
+
+			/*  Create 2 ArrayLists.  One of Constants in the tree and one of constants
+			 *  not in the tree. */
+			ArrayList<ConstantNode> conInTree = new ArrayList<ConstantNode>();
+			ArrayList<ConstantNode> conNotInTree = new ArrayList<ConstantNode>();
+
+			for (int i = 0; i < csts.size(); i++) {
+				String name = csts.getConstantName(i);
+				Expression expr = csts.getConstant(i);
+				Type type = csts.getConstantType(i);
+				ConstantNode cn;
+				if (type instanceof TypeBool) {
+					cn = new BoolConstantNode(name, expr, false);
+				} else if (type instanceof TypeDouble) {
+					cn = new DoubleConstantNode(name, expr, false);
+				} else {
+					cn = new IntegerConstantNode(name, expr, false);
+				}
+				if (constantIsMember(cn))
+					conInTree.add(cn);
+				else
+					conNotInTree.add(cn);
+			}
+
+			//make sure constants in this declaration tree are valid
+			for (int i = 0; i < conInTree.size(); i++) {
+				ConstantNode inTreeCon = conInTree.get(i);
+				int conIndex = getIndexOfCon(inTreeCon);
+				ConstantNode cNode = (ConstantNode) constants.getChildAt(conIndex);
+				if (cNode instanceof IntegerConstantNode) {
+					IntegerConstantNode iNode = (IntegerConstantNode) cNode;
+
+					iNode.setName(inTreeCon.getName());
+					iNode.setValue(inTreeCon.getValue());
+					theModel.nodesChanged(iNode, new int[] { 0 });
+				} else if (cNode instanceof BoolConstantNode) {
+					BoolConstantNode bNode = (BoolConstantNode) cNode;
+
+					bNode.setName(inTreeCon.getName());
+					bNode.setValue(inTreeCon.getValue());
+					theModel.nodesChanged(bNode, new int[] { 0 });
+				} else if (cNode instanceof DoubleConstantNode) {
+					DoubleConstantNode dNode = (DoubleConstantNode) cNode;
+
+					dNode.setName(inTreeCon.getName());
+					dNode.setValue(inTreeCon.getValue());
+					theModel.nodesChanged(dNode, new int[] { 0 });
+				}
+
+			}
+
+			//add declarations in decNotInTree to the tree
+			cIndices = new int[conNotInTree.size()];
+			for (int i = 0; i < conNotInTree.size(); i++) {
+				ConstantNode notTreeCon = conNotInTree.get(i);
+				constants.add(notTreeCon);
+				cIndices[i] = getIndexOfCon(notTreeCon);
+			}
+			theModel.nodesWereInserted(constants, cIndices);
+
+			/*  remove declarations which are in the tree but not in decInTree or
+			 *  decNotInTree */
+			removeNodes = new ArrayList<DefaultMutableTreeNode>();
+			for (int i = 0; i < constants.getChildCount(); i++) {
+				ConstantNode cNode = (ConstantNode) constants.getChildAt(i);
+				if (!constantExists(cNode, conInTree, conNotInTree)) {
+					removeNodes.add(cNode);
+				}
+			}
+			remObj = new Object[removeNodes.size()];
+			remInd = new int[removeNodes.size()];
+			for (int i = 0; i < removeNodes.size(); i++) {
+				ConstantNode vNode = (ConstantNode) removeNodes.get(i);
+				int index = constants.getIndex(vNode);
+				remObj[i] = vNode;
+				remInd[i] = index;
+			}
+			//remove nodes backwards
+			for (int i = removeNodes.size() - 1; i >= 0; i--) {
+				constants.remove(remInd[i]);
+			}
+			theModel.nodesWereRemoved(constants, remInd, remObj);
+
 		} else {
 			String tp = "<Unknown>";
 			if (!modelType.getValue().equals(tp)) {
@@ -1289,7 +1660,7 @@ public class GUIMultiModelTree extends JPanel implements MouseListener
 			}
 		};
 		addModule.putValue(Action.LONG_DESCRIPTION, "Adds an editable module to the tree");
-		addModule.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_A));
+		addModule.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_A));
 		addModule.putValue(Action.NAME, "Add Module");
 		moduleCollectionPopup.add(addModule);
 

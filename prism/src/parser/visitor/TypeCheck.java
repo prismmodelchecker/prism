@@ -582,14 +582,6 @@ public class TypeCheck extends ASTTraverse
 		e.setType(TypeBool.getInstance());
 	}
 
-	public void visitPost(ExpressionObs e) throws PrismLangException
-	{
-		// Type should be already known
-		if (e.getTypeIfDefined() == null) {
-			throw new PrismLangException("Cannot determine type of observable", e);
-		}
-	}
-
 	public void visitPost(ExpressionProp e) throws PrismLangException
 	{
 		// Recursively type check referenced property

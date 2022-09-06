@@ -81,31 +81,22 @@ It is based on the construction of a precise mathematical model of a system whic
 Properties of this system are then expressed formally in temporal logic
 and automatically analysed against the constructed model.
 </p>
-<p class='vspace'>PRISM has support for a wide range of probabilistic models:
+<p class='vspace'>PRISM has direct support for several types of probabilistic models:
 </p>
-<div class='vspace'></div><ul><li>discrete-time Markov chains (DTMCs)
-</li><li>continuous-time Markov chains (CTMCs)
-</li><li>Markov decision processes (MDPs)
-</li><li>probabilistic timed automata (PTAs)
-</li><li>partially observable Markov decision processes (POMDPs)
-</li><li>partially observable probabilistic timed automata (POPTAs)
-</li></ul><p class='vspace'>In fact, PRISM's support for MDPs extends to the more general model of 
-probabilistic automata (PAs) [<a class='wikilink' href='References.html#Seg95'>Seg95</a>], which does not require unique action names in each state.
-For background material on these models, look at the pointers to
-<a class='urllink' href='http://www.prismmodelchecker.org/about.php'>resources</a>
-on the PRISM web site.
-</p>
-<p class='vspace'>PRISM also supports non-probabilistic models, notably labelled transition systems (LTSs).
-</p>
-<p class='vspace'>Models are supplied to the tool by writing descriptions in the <a class='wikilink' href='../ThePRISMLanguage/Main.html'>PRISM language</a>, a simple, high-level modelling language.
+<div class='vspace'></div><ul><li>discrete-time Markov chains (DTMCs),
+</li><li>continuous-time Markov chains (CTMCs),
+</li><li>Markov decision processes (MDPs),
+</li><li>probabilistic timed automata (PTAs).
+</li></ul><p class='vspace'>It also supports probabilistic automata (PAs) [<a class='wikilink' href='References.html#Seg95'>Seg95</a>], but refers to them as MDPs.
+Models are supplied to the tool by writing descriptions in the <a class='wikilink' href='../ThePRISMLanguage/Main.html'>PRISM language</a>, a simple, high-level modelling language.
 </p>
 <p class='vspace'>Properties of these models are written in the PRISM <a class='wikilink' href='../PropertySpecification/Main.html'>property specification language</a> which is based on temporal logic. It incorporates several well-known probabilistic temporal logics:
 </p>
 <div class='vspace'></div><ul><li>PCTL (probabilistic computation tree logic),
 </li><li>CSL (continuous stochastic logic),
-</li><li>(probabiistic) LTL (linear time logic),
+</li><li>LTL (linear time logic),
 </li><li>PCTL* (which subsumes both PCTL and LTL).
-</li></ul><p class='vspace'>The property language also supports <a class='wikilink' href='../PropertySpecification/Reward-basedProperties.html'>costs and rewards</a>, "<a class='wikilink' href='../PropertySpecification/ThePOperator.html'>numerical</a>" properties, several other custom features and extensions, and also also incorporates the non-probabilistic temporal logics CTL (computation tree logic) and LTL.
+</li></ul><p class='vspace'>plus support for <a class='wikilink' href='../PropertySpecification/Reward-basedProperties.html'>costs/rewards</a>, "<a class='wikilink' href='../PropertySpecification/ThePOperator.html'>quantitative</a>" properties and several other custom features and extensions.
 </p>
 <p class='vspace'>PRISM performs probabilistic model checking, based on exhaustive search and numerical solution, to automatically analyse such properties. It also contains a <a class='wikilink' href='../RunningPRISM/DebuggingModelsWithTheSimulator.html'>discrete-event simulation</a> engine for <a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>approximate model checking</a>.
 </p>

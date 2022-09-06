@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -27,13 +27,14 @@
 
 package explicit.modelviews;
 
+import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.iterable.FilteringIterable;
-import common.iterable.FunctionalPrimitiveIterable;
 import common.IterableBitSet;
+import common.iterable.IterableInt;
 import common.IterableStateSet;
 import explicit.Model;
 import explicit.PredecessorRelation;
@@ -43,6 +44,7 @@ import parser.VarList;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismLog;
 
 /**
@@ -78,7 +80,7 @@ public abstract class ModelView implements Model
 	}
 
 	@Override
-	public FunctionalPrimitiveIterable.OfInt getDeadlockStates()
+	public IterableInt getDeadlockStates()
 	{
 		return new IterableBitSet(deadlockStates);
 	}
@@ -115,9 +117,9 @@ public abstract class ModelView implements Model
 		}
 	}
 
-	public FunctionalPrimitiveIterable.OfInt findDeadlocks(final BitSet except)
+	public IterableInt findDeadlocks(final BitSet except)
 	{
-		IterableStateSet states = new IterableStateSet(except, getNumStates(), true);
+		IterableInt states = new IterableStateSet(except, getNumStates(), true);
 		return new FilteringIterable.OfInt(states, state -> !getSuccessorsIterator(state).hasNext());
 	}
 
@@ -134,6 +136,26 @@ public abstract class ModelView implements Model
 		if (deadlocks.hasNext()) {
 			throw new PrismException(getModelType() + " has a deadlock in state " + deadlocks.nextInt());
 		}
+	}
+
+	@Override
+	public void exportToPrismExplicit(final String baseFilename) throws PrismException
+	{
+		exportToPrismExplicitTra(baseFilename + ".tra");
+	}
+
+	@Override
+	public void exportToPrismExplicitTra(final String filename) throws PrismException
+	{
+		try (PrismFileLog log = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(log);
+		}
+	}
+
+	@Override
+	public void exportToPrismExplicitTra(final File file) throws PrismException
+	{
+		exportToPrismExplicitTra(file.getPath());
 	}
 
 	@Override

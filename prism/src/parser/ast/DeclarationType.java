@@ -30,7 +30,7 @@ package parser.ast;
 public abstract class DeclarationType extends ASTElement
 {
 	/**
-	 * Return the default start value for a variable of this type, as an Expression.
+	 * Return the default start value for a variable of this type.
 	 */
 	public abstract Expression getDefaultStart();
 }

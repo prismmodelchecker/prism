@@ -125,7 +125,7 @@ where <code>p</code> is a PRISM language expression evaluating to a double in th
 <p class='vspace'>The types of path property supported by PRISM and their semantics will be discussed shortly.
 </p>
 <div class='vspace'></div><h3>Nondeterminism</h3>
-<p>For models that can exhibit nondeterministic behaviour, such as MDPs or PTAs, some additional clarifications are necessary. Whereas for fully probabilistic models such as DTMCs and CTMCs, probability measures over paths are well defined (see e.g. [<a class='wikilink' href='../Main/References.html#KSK76'>KSK76</a>] and [<a class='wikilink' href='../Main/References.html#BKH99'>BKH99</a>], respectively), for nondeterministic models a probability measure can only be feasibly defined once all nondeterminism has been removed.
+<p>For models that can exhibit nondeterministic behaviour (MDPs or PTAs), some additional clarifications are necessary. Whereas for fully probabilistic models such as DTMCs and CTMCs, probability measures over paths are well defined (see e.g. [<a class='wikilink' href='../Main/References.html#KSK76'>KSK76</a>] and [<a class='wikilink' href='../Main/References.html#BKH99'>BKH99</a>], respectively), for nondeterministic models a probability measure can only be feasibly defined once all nondeterminism has been removed.
 </p>
 <p class='vspace'>Hence, the actual meaning of the property <code>P bound [ pathprop ]</code> in these cases is: 
 "the probability that <code>pathprop</code> is satisfied by the paths from state <em>s</em>
@@ -307,7 +307,7 @@ as in the following example:
 
 <p class='vspace'>which refer to the probability of <code>y</code> becoming equal to 4 after 10 or more time units, and after between 10 and 20 time-units respectively.
 </p>
-<p class='vspace'>For CTMCs, the time bounds can be any (non-negative) numerical values - they are not restricted to integers, as for discrete-time models.
+<p class='vspace'>For CTMCs, the time bounds can be any (non-negative) numerical values - they are not restricted to integers, as for DTMCs and MDPs.
 For example:
 </p>
 <div class='vspace'></div>
@@ -428,12 +428,11 @@ For example:
 </li><li><a class='selflink' href='ThePOperator.html'>The P Operator</a>
 </li><li><a class='wikilink' href='TheSOperator.html'>The S Operator</a>
 </li><li><a class='wikilink' href='Reward-basedProperties.html'>Reward-based Properties</a>
-</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
-</li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='Non-probabilisticProperties.html'>Non-probabilistic Properties</a>
 </li><li><a class='wikilink' href='SyntaxAndSemantics.html'>Syntax And Semantics</a>
 </li><li><a class='wikilink' href='Filters.html'>Filters</a>
+</li><li><a class='wikilink' href='PTAProperties.html'>PTA Properties</a>
+</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
 </li><li><a class='wikilink' href='PropertiesFiles.html'>Properties Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
 </p>

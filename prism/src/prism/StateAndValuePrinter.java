@@ -105,7 +105,15 @@ class StateAndValuePrinter implements StateAndValueConsumer
 			for (int i = 0; i < n; i++) {
 				if (i > 0)
 					outputLog.print(",");
-				outputLog.print(varList.decodeFromInt(i, varValues[i]).toString());
+
+				// integer variable
+				if (varList.getType(i) instanceof TypeInt) {
+					outputLog.print(varValues[i]);
+				}
+				// boolean variable
+				else {
+					outputLog.print(varValues[i] == 1);
+				}
 			}
 			outputLog.print(")");
 		}

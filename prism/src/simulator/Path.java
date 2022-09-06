@@ -26,13 +26,8 @@
 
 package simulator;
 
-import parser.EvaluateContext.EvalMode;
-import parser.EvaluateContextFull;
 import parser.State;
-import parser.ast.Expression;
-import parser.type.TypeBool;
 import prism.ModelGenerator;
-import prism.PrismLangException;
 
 /**
  * Classes that store and manipulate a path though a model.
@@ -42,22 +37,22 @@ public abstract class Path
 	// MUTATORS
 	
 	/**
-	 * Initialise the path with an initial state, observation and rewards.
-	 * Note: State objects and array will be copied, not stored directly.
+	 * Initialise the path with an initial state and rewards.
+	 * Note: State object and array will be copied, not stored directly.
 	 */
-	public abstract void initialise(State initialState, State initialObs, double[] initialStateRewards);
+	public abstract void initialise(State initialState, double[] initialStateRewards);
 
 	/**
 	 * Add a step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
+	public abstract void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, double[] newStateRewards, ModelGenerator modelGen);
 
 	/**
 	 * Add a timed step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
+	public abstract void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, double[] newStateRewards, ModelGenerator modelGen);
 
 	// ACCESSORS
 
@@ -72,11 +67,6 @@ public abstract class Path
 	public abstract long size();
 
 	/**
-	 * Get the number of states in the path (0 if not initialised; otherwise size() + 1).
-	 */
-	public abstract long numStates();
-
-	/**
 	 * Get the previous state, i.e. the penultimate state of the current path.
 	 */
 	public abstract State getPreviousState();
@@ -85,16 +75,6 @@ public abstract class Path
 	 * Get the current state, i.e. the current final state of the path.
 	 */
 	public abstract State getCurrentState();
-
-	/**
-	 * Get the observation for the previous state, i.e. for the penultimate state of the current path.
-	 */
-	public abstract State getPreviousObservation();
-
-	/**
-	 * Get the observation for the current state, i.e. for the current final state of the path.
-	 */
-	public abstract State getCurrentObservation();
 
 	/**
 	 * Get the action taken in the previous step.
@@ -180,46 +160,4 @@ public abstract class Path
 	 * What is the step index of the end of the deterministic loop, if it exists?
 	 */
 	public abstract long loopEnd();
-	
-	// UTILITY METHODS
-
-	/**
-	 * Evaluate an expression in the current state of the path.
-	 * This takes in to account both the state variables and observables.
-	 */
-	public Object evaluateInCurrentState(Expression expr) throws PrismLangException
-	{
-		EvaluateContextFull ec = new EvaluateContextFull(getCurrentState(), getCurrentObservation());
-		return expr.evaluate(ec);
-	}
-	
-	/**
-	 * Evaluate a Boolean-valued expression in the current state of the path.
-	 * This takes in to account both the state variables and observables.
-	 */
-	public boolean evaluateBooleanInCurrentState(Expression expr) throws PrismLangException
-	{
-		EvaluateContextFull ec = new EvaluateContextFull(getCurrentState(), getCurrentObservation());
-		return TypeBool.getInstance().castValueTo(expr.evaluate(ec), EvalMode.FP);
-	}
-
-	/**
-	 * Evaluate an expression in the penultimate state of the path.
-	 * This takes in to account both the state variables and observables.
-	 */
-	public Object evaluateInPreviousState(Expression expr) throws PrismLangException
-	{
-		EvaluateContextFull ec = new EvaluateContextFull(getPreviousState(), getPreviousObservation());
-		return expr.evaluate(ec);
-	}
-	
-	/**
-	 * Evaluate a Boolean-valued expression in the penultimate state of the path.
-	 * This takes in to account both the state variables and observables.
-	 */
-	public boolean evaluateBooleanInPreviousState(Expression expr) throws PrismLangException
-	{
-		EvaluateContextFull ec = new EvaluateContextFull(getPreviousState(), getPreviousObservation());
-		return TypeBool.getInstance().castValueTo(expr.evaluate(ec), EvalMode.FP);
-	}
 }

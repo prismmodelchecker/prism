@@ -1,6 +1,0 @@
-#!/bin/bash
-
-prism crypt3.prism crypt.props -gridresolution 8
-prism crypt4.prism crypt.props -gridresolution 8
-prism crypt5.prism crypt.props -gridresolution 8
-prism crypt6.prism crypt.props -gridresolution 8

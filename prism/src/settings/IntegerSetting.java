@@ -72,7 +72,7 @@ public class IntegerSetting extends Setting
 	{
 		try
 		{
-			return Integer.valueOf(string);
+			return new Integer(string);
 		}
 		catch(NumberFormatException e)
 		{

@@ -152,7 +152,7 @@ final class JasFunctionFactory extends FunctionFactory {
 	}
 
 	@Override
-	public Function getVar(int var) {
+	Function getVar(int var) {
 		return parameters[var];
 	}
 }

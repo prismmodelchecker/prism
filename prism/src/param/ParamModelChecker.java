@@ -736,7 +736,7 @@ final public class ParamModelChecker extends PrismComponent
 			// Compute count
 			int count = vals.countOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = Integer.valueOf(count);
+			resObj = new Integer(count);
 			resVals = new RegionValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = filterTrue ? "Count of satisfying states" : "Count of satisfying states also in filter";
@@ -796,7 +796,7 @@ final public class ParamModelChecker extends PrismComponent
 				// Check "for all" over filter
 				b = vals.forallOverBitSet(bsFilter);
 				// Store as object/vector
-				resObj = Boolean.valueOf(b);
+				resObj = new Boolean(b);
 				resVals = new RegionValues(expr.getType(), resObj, model); 
 				// Create explanation of result and print some details to log
 				resultExpl = "Property " + (b ? "" : "not ") + "satisfied in ";
@@ -825,7 +825,7 @@ final public class ParamModelChecker extends PrismComponent
 			// Check "there exists" over filter
 			b = vals.existsOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = Boolean.valueOf(b);
+			resObj = new Boolean(b);
 			resVals = new RegionValues(expr.getType(), resObj, model); 
 			// Create explanation of result and print some details to log
 			resultExpl = "Property satisfied in ";

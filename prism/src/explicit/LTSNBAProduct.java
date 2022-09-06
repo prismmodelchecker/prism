@@ -163,7 +163,7 @@ public class LTSNBAProduct extends Product<Model>
 		HashMap<ProductState, Integer> productStateToProductId = new HashMap<ProductState, Integer>();
 
 		// storage for the product model
-		LTSSimple productModel = new LTSSimple();
+		LTSExplicit productModel = new LTSExplicit();
 		// the accepting states in the product model
 		BitSet acceptingStates = new BitSet();
 
@@ -257,7 +257,7 @@ public class LTSNBAProduct extends Product<Model>
 					}
 
 					// add the edge
-					productModel.addTransition(fromId, successorID);
+					productModel.addEdge(fromId, successorID);
 				}
 
 				// fromId is fully expanded in the product

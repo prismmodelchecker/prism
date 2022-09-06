@@ -1,3 +1,0 @@
-// Minimum expected number of steps to reach the target
-// RESULT: [5.69230763076923,5.692307692307692] (grid resolution 20)
-Rmin=? [ F "target" ]

@@ -953,9 +953,9 @@ public class GUISimulationPicker extends javax.swing.JDialog implements KeyListe
 						String bool = initValuesModel.getValue(i).value.toString();
 						if (!(bool.equals("true") || bool.equals("false")))
 							throw new NumberFormatException();
-						parameterValue = Boolean.valueOf(bool);
+						parameterValue = new Boolean(bool);
 					} else if (initValuesModel.getValue(i).type instanceof TypeInt) {
-						parameterValue = Integer.valueOf(initValuesModel.getValue(i).value.toString());
+						parameterValue = new Integer(initValuesModel.getValue(i).value.toString());
 					} else { 
 						throw new NumberFormatException();
 					}

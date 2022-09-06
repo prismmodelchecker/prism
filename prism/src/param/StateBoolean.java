@@ -38,7 +38,7 @@ final class StateBoolean extends StateValue {
 
 	public StateBoolean()
 	{
-		value = Boolean.valueOf(false);
+		value = new Boolean(false);
 	}
 	
 	public StateBoolean(boolean value)

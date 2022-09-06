@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import common.functions.PairPredicateInt;
+import common.functions.primitive.PairPredicateInt;
 import explicit.Distribution;
 import explicit.MDP;
 import parser.State;
@@ -184,6 +184,12 @@ public class MDPDroppedChoicesCached extends MDPView
 	{
 		final int originalChoice = mapChoiceToOriginalModel(state, choice);
 		return model.getAction(state, originalChoice);
+	}
+
+	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		return model.areAllChoiceActionsUnique() ? true : super.areAllChoiceActionsUnique();
 	}
 
 	@Override

@@ -216,21 +216,12 @@ jint flags
 		Cudd_Ref(sol_above);
 
 		// compute midpoint for result
-		// use x + ( y - x ) / 2 instead of (x+y)/2 for better numerical stability
-		// TODO: ensure that below <= result <= above?
 		DdNode* difference = DD_Apply(ddman, APPLY_MINUS, sol_above, sol_below);
+		difference = DD_Apply(ddman, APPLY_DIVIDE, difference, DD_Constant(ddman, 2.0));
+
 		Cudd_Ref(sol_below);
-		Cudd_Ref(difference);
-		result = DD_Apply(ddman, APPLY_PLUS, sol_below, DD_Apply(ddman, APPLY_DIVIDE, difference, DD_Constant(ddman, 2.0)));
-		
-		// also compute/store accuracy
-		// TODO: handle cases where result is zero
-		if (term_crit == TERM_CRIT_RELATIVE) {
-			Cudd_Ref(result);
-			difference = DD_Apply(ddman, APPLY_DIVIDE, difference, result);
-		}
-		last_error_bound = DD_FindMax(ddman, difference);
-		Cudd_RecursiveDeref(ddman, difference);
+		result = DD_Apply(ddman, APPLY_PLUS, sol_below, difference);
+		// TODO: ensure that below <= result <= above?
 
 		// export midpoint as vector above and below
 		if (iterationExport) {

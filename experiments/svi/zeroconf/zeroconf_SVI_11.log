@@ -1,0 +1,33 @@
+Storm 1.6.2
+
+Date: Sat Feb 27 18:56:39 2021
+Command line arguments: --prism models/mdps/zeroconf/zeroconf.nm --prop models/mdps/zeroconf/max_cost.pctl -const 'N=1000,K=11,reset=false' --sound --eqsolver topological '--native:method' power '--minmax:method' topological '--topological:minmax' svi -tm -pc --absolute '--topological:eqsolver' native -i 2000000000 --filterrewzero
+Current working directory: /home/linuxbrew
+
+ WARN (GmmxxEquationSolverSettings.cpp:102): gmm++ is not selected as the preferred equation solver, so setting options for gmm++ might have no effect.
+ WARN (EigenEquationSolverSettings.cpp:108): Eigen is not selected as the preferred equation solver, so setting options for eigen might have no effect.
+Time for model input parsing: 0.007s.
+
+Time for model construction: 25.446s.
+
+-------------------------------------------------------------- 
+Model type: 	MDP (sparse)
+States: 	3385731
+Transitions: 	7634895
+Choices: 	6217634
+Reward Models:  (default)
+State Labels: 	3 labels
+   * deadlock -> 0 item(s)
+   * (l = 4) -> 18729 item(s)
+   * init -> 1 item(s)
+Choice Labels: 	none
+-------------------------------------------------------------- 
+
+Model checking property "1": R[exp]max=? [F (l = 4)] ...
+Result (for initial states): 27.05450254
+Time for model checking: 53.800s.
+
+Performance statistics:
+  * peak memory usage: 1180MB
+  * CPU time: 78.754s
+  * wallclock time: 79.295s

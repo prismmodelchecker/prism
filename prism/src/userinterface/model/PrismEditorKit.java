@@ -32,6 +32,7 @@ package userinterface.model;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
@@ -138,62 +139,113 @@ class PrismView extends PlainView
 		this.handler = handler;
 	}
 
-	@Override
-	protected float drawUnselectedText(Graphics2D g, float x, float y, int p0, int p1) throws BadLocationException
+	protected int drawUnselectedText(Graphics g, int x, int y,int p0, int p1) throws BadLocationException
 	{
 		int stLine = p0;// findStartOfLine(p0, getDocument());
 		int enLine = p1;// findEndOfLine(p1-1, getDocument());
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		try {
+
+		if (g instanceof Graphics2D) {
+			Graphics2D g2d = (Graphics2D)g;
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		}
+        
+		// x+= getLeftInset();
+		// System.out.println("p0 = "+p0+", p1 = "+p1+", st = "+stLine+",
+		// enLine = "+enLine+".");
+		try
+		{
 			g.setColor(Color.green);
 			Document doc = getDocument();
+			// Segment segment = getLineBuffer();
+
+			// System.out.println(doc.getText(p0, p1-p0));
+			// String s = doc.getText(p0, p1-p0);
 			String s = doc.getText(stLine, enLine-stLine);
+			// System.out.println("------");
+			// System.out.println("highlighting unselected string = \n"+s);
+			// System.out.println("------");
+
 			Style[] styles = highlight(s, (p0-stLine), (p1-p0));
+			int currStart = 0;
+			int currEnd = 0;
+			Color last = null;
 			String fname = handler.getPrismEditorFontFast().getName();
 			int fsize = handler.getPrismEditorFontFast().getSize();
 
-			for (int curr = 0; curr < styles.length; curr++) {
+			for(int curr = 0; curr < styles.length; curr++)
+			{
+
 				Style c = styles[curr];
+
 				g.setColor(c.c);
 				g.setFont(new Font(fname, c.style, fsize));
 				Segment segm = new Segment();// getLineBuffer();
 				doc.getText(p0+curr, 1, segm);
 				x = Utilities.drawTabbedText(segm, x, y, g, this, p0+curr);
+
 			}
 			g.setColor(Color.black);
 			g.setFont(new Font(fname, Font.PLAIN, fsize));
 		}
-		catch(BadLocationException ex) {
+		catch(BadLocationException ex)
+		{
 			ex.printStackTrace();
 		}
 		return x;
 	}
 
-	@Override
-	protected float drawSelectedText(Graphics2D g, float x, float y,int p0, int p1) throws BadLocationException
+	protected int drawSelectedText(Graphics g, int x, int y,int p0, int p1) throws BadLocationException
 	{
 		int stLine = p0;// findStartOfLine(p0, getDocument());
 		int enLine = p1;// findEndOfLine(p1-1, getDocument());
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		try {
+
+		if (g instanceof Graphics2D) {
+			Graphics2D g2d = (Graphics2D)g;
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		}
+        
+		// x+= getLeftInset();
+		// System.out.println("p0 = "+p0+", p1 = "+p1+", st = "+stLine+",
+		// enLine = "+enLine+".");
+		try
+		{
 			g.setColor(Color.green);
 			Document doc = getDocument();
+			// Segment segment = getLineBuffer();
+
+
+			// String s = doc.getText(p0, p1-p0);
+			// System.out.println(doc.getText(p0, p1-p0));
+
+
 			String s = doc.getText(stLine, enLine-stLine);
+			// System.out.println("------");
+			// System.out.println("highlighting selected string = \n"+s);
+			// System.out.println("------");
 			Style[] styles = highlight(s, (p0-stLine), (p1-p0));
+			int currStart = 0;
+			int currEnd = 0;
+			Color last = null;
 			String fname = handler.getPrismEditorFontFast().getName();
 			int fsize = handler.getPrismEditorFontFast().getSize();
-			for (int curr = 0; curr < styles.length; curr++) {
+
+			for(int curr = 0; curr < styles.length; curr++)
+			{
+
 				Style c = styles[curr];
+
 				g.setColor(c.c);
 				g.setFont(new Font(fname, c.style, fsize));
 				Segment segm = new Segment();// getLineBuffer();
 				doc.getText(p0+curr, 1, segm);
 				x = Utilities.drawTabbedText(segm, x, y, g, this, p0+curr);
+
 			}
 			g.setColor(Color.black);
 			g.setFont(new Font(fname, Font.PLAIN, fsize));
 		}
-		catch(BadLocationException ex) {
+		catch(BadLocationException ex)
+		{
 			ex.printStackTrace();
 		}
 		return x;

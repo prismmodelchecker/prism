@@ -28,21 +28,18 @@ package simulator;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Vector;
 
 import parser.State;
 import parser.VarList;
 import parser.ast.Command;
-import parser.ast.Expression;
 import parser.ast.Module;
 import parser.ast.ModulesFile;
+import parser.ast.RewardStruct;
 import parser.ast.Update;
 import parser.ast.Updates;
-import parser.type.TypeClock;
 import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
@@ -68,9 +65,7 @@ public class Updater extends PrismComponent
 	protected int synchModuleCounts[];
 	// Model info/stats
 	protected int numRewardStructs;
-	// For real-time models, info about which vars are clocks (bitset over variable indices)
-	protected BitSet clockVars;
-	
+
 	// Temporary storage:
 
 	// Element i,j of updateLists is a list of the updates from module i labelled with action j
@@ -82,8 +77,6 @@ public class Updater extends PrismComponent
 	// Element j of enabledModules is a BitSet showing modules which enable action j
 	// (where j=0 denotes independent, otherwise 1-indexed action label)
 	protected BitSet enabledModules[];
-	// For real-time models, the guards over clock variables attached to (some) Updates
-	protected Map<Updates,Expression> clockGuards;
 
 	public Updater(ModulesFile modulesFile, VarList varList)
 	{
@@ -104,17 +97,6 @@ public class Updater extends PrismComponent
 		numSynchs = synchs.size();
 		numRewardStructs = modulesFile.getNumRewardStructs();
 		this.varList = varList;
-
-		// For real-time models, store info about which vars are clocks
-		if (modelType.realTime()) {
-			int numVars = varList.getNumVars();
-			clockVars = new BitSet();
-			for (int v = 0; v < numVars; v++) {
-				if (varList.getType(v) instanceof TypeClock) {
-					clockVars.set(v);
-				}
-			}
-		}
 
 		// Compute count of number of modules using each synch action
 		// First, compute and cache the synch actions for each of the modules
@@ -146,7 +128,6 @@ public class Updater extends PrismComponent
 		for (int j = 0; j < numSynchs + 1; j++) {
 			enabledModules[j] = new BitSet(numModules);
 		}
-		clockGuards = new HashMap<Updates, Expression>();
 	}
 
 	/**
@@ -186,10 +167,9 @@ public class Updater extends PrismComponent
 		for (i = 0; i < numSynchs + 1; i++) {
 			enabledModules[i].clear();
 		}
-		clockGuards.clear();
 
 		// Calculate the available updates for each module/action
-		// (update information in updateLists, clockGuards, enabledSynchs and enabledModules)
+		// (update information in updateLists, enabledSynchs and enabledModules)
 		for (i = 0; i < numModules; i++) {
 			calculateUpdatesForModule(i, state);
 		}
@@ -280,6 +260,54 @@ public class Updater extends PrismComponent
 		
 		//System.out.println(transitionList);
 	}
+
+	/**
+	 * Calculate the state rewards for a given state.
+	 * @param state The state to compute rewards for
+	 * @param store An array in which to store the rewards
+	 */
+	public void calculateStateRewards(State state, double[] store) throws PrismLangException
+	{
+		int i, j, n;
+		double d;
+		RewardStruct rw;
+		for (i = 0; i < numRewardStructs; i++) {
+			rw = modulesFile.getRewardStruct(i);
+			n = rw.getNumItems();
+			d = 0.0;
+			for (j = 0; j < n; j++) {
+				if (!rw.getRewardStructItem(j).isTransitionReward())
+					if (rw.getStates(j).evaluateBoolean(state))
+						d += rw.getReward(j).evaluateDouble(state);
+			}
+			store[i] = d;
+		}
+	}
+
+	/**
+	 * Calculate the transition rewards for a given state and outgoing choice.
+	 * @param state The state to compute rewards for
+	 * @param ch The choice from the state to compute rewards for
+	 * @param store An array in which to store the rewards
+	 */
+	public void calculateTransitionRewards(State state, Choice ch, double[] store) throws PrismLangException
+	{
+		int i, j, n;
+		double d;
+		RewardStruct rw;
+		for (i = 0; i < numRewardStructs; i++) {
+			rw = modulesFile.getRewardStruct(i);
+			n = rw.getNumItems();
+			d = 0.0;
+			for (j = 0; j < n; j++) {
+				if (rw.getRewardStructItem(j).isTransitionReward())
+					if (rw.getRewardStructItem(j).getSynchIndex() == Math.max(0, ch.getModuleOrActionIndex()))
+						if (rw.getStates(j).evaluateBoolean(state))
+							d += rw.getReward(j).evaluateDouble(state);
+			}
+			store[i] = d;
+		}
+	}
 	
 	// Private helpers
 	
@@ -291,36 +319,19 @@ public class Updater extends PrismComponent
 	 */
 	protected void calculateUpdatesForModule(int m, State state) throws PrismLangException
 	{
-		Module module = modulesFile.getModule(m);
-		int n = module.getNumCommands();
-		for (int i = 0; i < n; i++) {
-			Command command = module.getCommand(i);
-			// See if the guard is satisfied
-			boolean guardSat = false;
-			Expression clockGuard = null;
-			// For real-time models, we only evaluate in terms of non-clock vars, and store any clock guard
-			if (modelType.realTime()) {
-				State stateNoClocks = new State(state);
-				for (int v = clockVars.nextSetBit(0); v >= 0; v = clockVars.nextSetBit(v + 1)) {
-					stateNoClocks.varValues[v] = null;
-				}
-				clockGuard = command.getGuard().deepCopy();
-				clockGuard = (Expression) clockGuard.evaluatePartially(stateNoClocks).simplify();
-				if (!Expression.isFalse(clockGuard)) {
-					guardSat = true;
-				}
-			} else {
-				guardSat = command.getGuard().evaluateBoolean(state);
-			}
-			// If the command is enabled, update stored info
-			if (guardSat) {
-				int j = command.getSynchIndex();
+		Module module;
+		Command command;
+		int i, j, n;
+
+		module = modulesFile.getModule(m);
+		n = module.getNumCommands();
+		for (i = 0; i < n; i++) {
+			command = module.getCommand(i);
+			if (command.getGuard().evaluateBoolean(state)) {
+				j = command.getSynchIndex();
 				updateLists.get(m).get(j).add(command.getUpdates());
 				enabledSynchs.set(j);
 				enabledModules[j].set(m);
-				if (modelType.realTime()) {
-					clockGuards.put(command.getUpdates(), clockGuard);
-				}
 			}
 		}
 	}
@@ -348,8 +359,8 @@ public class Updater extends PrismComponent
 		for (i = 0; i < n; i++) {
 			// Compute probability/rate
 			p = ups.getProbabilityInState(i, state);
-			// Check for non-finite/NaN probabilities/rates
-			if (!Double.isFinite(p) || p < 0) {
+			// Check for negative/NaN probabilities/rates
+			if (Double.isNaN(p) || p < 0) {
 				String s = modelType.choicesSumToOne() ? "Probability" : "Rate";
 				s += " is invalid (" + p + ") in state " + state.toString(modulesFile);
 				// Note: we indicate error in whole Updates object because the offending
@@ -375,9 +386,6 @@ public class Updater extends PrismComponent
 		// Check distribution sums to 1 (if required, and if is non-empty)
 		if (doProbChecks && ch.size() > 0 && modelType.choicesSumToOne() && Math.abs(sum - 1) > sumRoundOff) {
 			throw new PrismLangException("Probabilities sum to " + sum + " in state " + state.toString(modulesFile), ups);
-		}
-		if (modelType.realTime() && clockGuards.containsKey(ups)) {
-			ch.setClockGuard(clockGuards.get(ups));
 		}
 		return ch;
 	}

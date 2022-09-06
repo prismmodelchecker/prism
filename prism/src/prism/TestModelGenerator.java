@@ -31,15 +31,16 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 
-import explicit.ConstructModel;
-import explicit.DTMCModelChecker;
 import parser.State;
+import parser.VarList;
+import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
-import parser.ast.DeclarationType;
 import parser.ast.Expression;
 import parser.ast.PropertiesFile;
 import parser.type.Type;
 import parser.type.TypeInt;
+import explicit.ConstructModel;
+import explicit.DTMCModelChecker;
 
 public class TestModelGenerator implements ModelGenerator
 {
@@ -72,12 +73,6 @@ public class TestModelGenerator implements ModelGenerator
 		return varTypes;
 	}
 
-	@Override
-	public DeclarationType getVarDeclarationType(int i) throws PrismException
-	{
-		return new DeclarationInt(Expression.Int(0), Expression.Int(n));
-	}
-	
 	@Override
 	public List<String> getLabelNames()
 	{
@@ -145,6 +140,19 @@ public class TestModelGenerator implements ModelGenerator
 		}
 	}
 
+	@Override
+	public VarList createVarList()
+	{
+		VarList varList = new VarList();
+		try {
+			varList.addVar(new Declaration("x", new DeclarationInt(Expression.Int(0), Expression.Int(n))), 0, null);
+		} catch (PrismLangException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return varList;
+	}
+	
 	public static void main(String args[])
 	{
 		try {

@@ -46,11 +46,8 @@ public class PathOnTheFly extends Path
 
 	// Path info required to implement Path abstract class:
 	protected long size;
-	protected boolean init;
 	protected State previousState;
 	protected State currentState;
-	protected State previousObs;
-	protected State currentObs;
 	protected Object previousAction;
 	protected String previousActionString;
 	protected double previousProbability;
@@ -76,12 +73,6 @@ public class PathOnTheFly extends Path
 		// Create State objects for current/previous state
 		previousState = new State(modelInfo.getNumVars());
 		currentState = new State(modelInfo.getNumVars());
-		previousObs = null;
-		currentObs = null;
-		if (modelInfo.getModelType().partiallyObservable()) {
-			previousObs = new State(modelInfo.getNumObservables());
-			currentObs = new State(modelInfo.getNumObservables());
-		}
 		// Create arrays to store totals
 		totalRewards = new double[numRewardStructs];
 		previousStateRewards = new double[numRewardStructs];
@@ -100,7 +91,6 @@ public class PathOnTheFly extends Path
 	{
 		// Initialise all path info
 		size = 0;
-		init = false;
 		previousState.clear();
 		currentState.clear();
 		totalTime = 0.0;
@@ -116,14 +106,10 @@ public class PathOnTheFly extends Path
 	// MUTATORS (for Path)
 
 	@Override
-	public void initialise(State initialState, State initialObs, double[] initialStateRewards)
+	public void initialise(State initialState, double[] initialStateRewards)
 	{
 		clear();
-		init = true;
 		currentState.copy(initialState);
-		if (initialObs != null) {
-			currentObs.copy(initialObs);
-		}
 		for (int i = 0; i < numRewardStructs; i++) {
 			currentStateRewards[i] = initialStateRewards[i];
 		}
@@ -132,21 +118,17 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
+	public void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, double[] newStateRewards, ModelGenerator modelGen)
 	{
-		addStep(1.0, choice, action, actionString, probability, transRewards, newState, newObs, newStateRewards, modelGen);
+		addStep(1.0, choice, action, actionString, probability, transRewards, newState, newStateRewards, modelGen);
 	}
 
 	@Override
-	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen)
+	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		size++;
 		previousState.copy(currentState);
 		currentState.copy(newState);
-		if (newObs != null) {
-			previousObs.copy(currentObs);
-			currentObs.copy(newObs);
-		}
 		previousAction = action;
 		previousActionString = actionString;
 		previousProbability = probability;
@@ -181,12 +163,6 @@ public class PathOnTheFly extends Path
 	}
 
 	@Override
-	public long numStates()
-	{
-		return init ? size + 1 : 0;
-	}
-
-	@Override
 	public State getPreviousState()
 	{
 		return previousState;
@@ -196,18 +172,6 @@ public class PathOnTheFly extends Path
 	public State getCurrentState()
 	{
 		return currentState;
-	}
-
-	@Override
-	public State getPreviousObservation()
-	{
-		return previousObs;
-	}
-
-	@Override
-	public State getCurrentObservation()
-	{
-		return currentObs;
 	}
 
 	@Override

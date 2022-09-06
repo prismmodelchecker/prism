@@ -21,14 +21,11 @@ LPSOLVE_LIB_DIR=../../../../lib
 SRC_DIR=../../src/c
 INCL="-I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
 
-if [ "$ARCH" = "" ]; then
-	CFLAGS="-arch i386 -fno-common"
-fi
-if [ "$ARCH" = "x86_64" ]; then
+if [ "$ARCH" = "" ]
+then
+	CFLAGS=-"arch i386 -fno-common"
+else
 	CFLAGS="-arch x86_64 -fPIC -DPIC -fno-common"
-fi
-if [ "$ARCH" = "arm64" ]; then
-	CFLAGS="-arch arm64 -fPIC -DPIC -fno-common"
 fi
 
 g++ $CFLAGS $INCL -c $SRC_DIR/lpsolve5j.cpp

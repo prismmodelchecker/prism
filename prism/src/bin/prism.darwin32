@@ -69,14 +69,6 @@ fi
 
 ####
 
-# JVM parameters via -javaparams switch
-ARGS=( "$@" )
-for ((i=0;i<${#ARGS[@]};i+=1)); do
-	if [ "${ARGS[$i]}" = "-javaparams" -o "${ARGS[$i]}" = "--javaparams" ]; then
-		JAVA_PARAMS=${JAVA_PARAMS}${JAVA_PARAMS:+ }${ARGS[$i+1]}
-	fi
-done
-
 
 # Set up CLASSPATH:
 #  - PRISM jar file (for binary versions) (gets priority)
@@ -90,17 +82,25 @@ PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$P
 PRISM_LIB_PATH="$PRISM_DIR"/lib
 
 # Copy library path to relevant vars
-DYLD_LIBRARY_PATH=${PRISM_LIB_PATH}${DYLD_LIBRARY_PATH:+:}${DYLD_LIBRARY_PATH}
+if [ "$DYLD_LIBRARY_PATH" = "" ]; then
+	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH"
+else
+	DYLD_LIBRARY_PATH="$PRISM_LIB_PATH":$DYLD_LIBRARY_PATH
+fi
 JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Export environment variables
 export PRISM_DIR DYLD_LIBRARY_PATH
 
 # Main Java class to launch
-PRISM_MAINCLASS=${PRISM_MAINCLASS:-prism.PrismCL}
+if [ "$PRISM_MAINCLASS" = "" ]; then
+	PRISM_MAINCLASS=prism.PrismCL
+fi
 
 # Do we run headless? (GUI overrides this)
-PRISM_HEADLESS=${PRISM_HEADLESS:-true}
+if [ "$PRISM_HEADLESS" = "" ]; then
+	PRISM_HEADLESS=true
+fi
 
 PRISM_ICON="-Xdock:icon=$PRISM_DIR/etc/icons/p64.png"
 PRISM_DOCK_NAME="-Xdock:name=PRISM"
@@ -119,9 +119,9 @@ fi
 if [ "$PRISM_NO_EXEC" = "yes" ]; then
 	# Run PRISM through Java as a child process (exit code of script is exit code of the java call)
 	# Note: Killing this startup script will not necessarily kill the Java process
-	"$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVA_PARAMS $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE "$PRISM_ICON" "$PRISM_DOCK_NAME" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+	"$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE "$PRISM_ICON" "$PRISM_DOCK_NAME" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 else
 	# (Default) Run PRISM through Java via an exec call (the shell process is replaced by the Java process)
-	exec "$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVA_PARAMS $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE "$PRISM_ICON" "$PRISM_DOCK_NAME" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
+	exec "$PRISM_JAVA" $PRISM_JAVA_ARG1 $PRISM_JAVA_ARG2 $PRISM_JAVA_DEBUG $PRISM_JAVAMAXMEM $PRISM_JAVASTACKSIZE "$PRISM_ICON" "$PRISM_DOCK_NAME" -Djava.awt.headless=$PRISM_HEADLESS -Djava.library.path="$JAVA_LIBRARY_PATH" -classpath "$PRISM_CLASSPATH" $PRISM_MAINCLASS "$@"
 fi
 

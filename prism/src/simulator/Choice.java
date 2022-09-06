@@ -26,17 +26,9 @@
 
 package simulator;
 
-import parser.State;
-import parser.VarList;
-import parser.ast.Expression;
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLangException;
+import parser.*;
+import prism.*;
 
-/**
- * Representation of a single (nondeterministic) choice in a PRISM model,
- * i.e, a list of transitions, each specified by updates to variables.
- */
 public interface Choice
 {
 	/**
@@ -56,16 +48,6 @@ public interface Choice
 	 * (form is "module" or "[action]")
 	 */
 	public String getModuleOrAction();
-	
-	/**
-	 * For real-time models, get the clock ,
-	 * i.e., an expression over clock variables denoting when it can be taken.
-	 * If there is no guard, this returns null;
-	 */
-	public default Expression getClockGuard()
-	{
-		return null;
-	}
 	
 	/**
 	 * Get the number of transitions in this choice.

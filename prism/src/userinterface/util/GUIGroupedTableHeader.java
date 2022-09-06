@@ -43,7 +43,7 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 	private JTableHeader bottomHeader;
 	private JTableHeader topHeader;
 	private GUIGroupedTableModel tableModel;
-    
+			
 	/**
 	 * Creates a new GUIGroupedTableHeader.
 	 * @param model The column model that is the basis of this table header (must be grouped).
@@ -82,6 +82,10 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 		
 		model.updateGroups();
 					
+		this.setPreferredSize(new Dimension(bottomHeader.getPreferredSize().width, bottomHeader.getPreferredSize().height * 2));
+		this.setMinimumSize(new Dimension(bottomHeader.getMinimumSize().width, bottomHeader.getMinimumSize().height * 2));
+		this.setMaximumSize(new Dimension(bottomHeader.getMaximumSize().width, bottomHeader.getMaximumSize().height * 2));
+		
 		Component[] cs = this.getComponents();
 		for (int i = 0; i < cs.length; i++) 
 		{
@@ -141,23 +145,6 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
 		//bottomHeader.setToolTipText(null);
 	}
 	
-	@Override
-	public Dimension getPreferredSize()
-	{
-		return new Dimension(bottomHeader.getPreferredSize().width, bottomHeader.getPreferredSize().height * 2);
-	}
-	
-	@Override
-	public Dimension getMinimumSize()
-	{
-		return new Dimension(bottomHeader.getMinimumSize().width, bottomHeader.getMinimumSize().height * 2);
-	}
-	
-	@Override
-	public Dimension getMaximumSize()
-	{
-		return new Dimension(bottomHeader.getMaximumSize().width, bottomHeader.getMaximumSize().height * 2);
-	}
 	
 	/**
 	 * A fairly ugly hack to prevent a CellRenderer to be added to this container. More elegant solutions are welcome.
@@ -195,16 +182,20 @@ public class GUIGroupedTableHeader extends JTableHeader implements TableColumnMo
      * Overwritten to give the JTableHeaders a change to resize as well.
      * @see javax.swing.table.JTableHeader#resizeAndRepaint()
      */
-    /*@Override
+    @Override
     public void resizeAndRepaint() 
     {   	
     	if (topHeader != null && bottomHeader != null)
     	{
+    		this.setPreferredSize(new Dimension(bottomHeader.getPreferredSize().width, bottomHeader.getPreferredSize().height * 2));
+    		this.setMinimumSize(new Dimension(bottomHeader.getMinimumSize().width, bottomHeader.getMinimumSize().height * 2));
+    		this.setMaximumSize(new Dimension(bottomHeader.getMaximumSize().width, bottomHeader.getMaximumSize().height * 2));
+    		
     		this.doLayout();
     	}   
     	
 	    super.resizeAndRepaint();	   
-    }*/
+    }
    
 	/**
 	 * Set the column model.

@@ -26,9 +26,8 @@
 
 package prism;
 
-import explicit.MinMax;
 import parser.ast.RelOp;
-import parser.type.Type;
+import explicit.MinMax;
 
 /**
  * Class to represent info (operator, relational operator, bound, etc.) found in a P/R/S operator.
@@ -114,7 +113,7 @@ public class OpRelOpBound
 	{
 		MinMax minMax = MinMax.blank();
 		if (modelType.nondeterministic()) {
-			if (!(modelType == ModelType.MDP || modelType == ModelType.POMDP || modelType == ModelType.CTMDP)) {
+			if (!(modelType == ModelType.MDP || modelType == ModelType.CTMDP)) {
 				throw new PrismLangException("Don't know how to model check " + getTypeOfOperator() + " properties for " + modelType + "s");
 			}
 			if (isNumeric()) {
@@ -150,42 +149,5 @@ public class OpRelOpBound
 	public String toString()
 	{
 		return op + relOp.toString() + (isNumeric() ? "?" : bound);
-	}
-
-	/**
-	 * Apply this relational operator and bound instance to a value.
-	 */
-	public boolean apply(double value) throws PrismException
-	{
-		switch (relOp) {
-		case GEQ:
-			return (double) value >= bound;
-		case GT:
-			return (double) value > bound;
-		case LEQ:
-			return (double) value <= bound;
-		case LT:
-			return (double) value < bound;
-		default:
-			throw new PrismException("Cannot apply relational operator " + relOp);
-		}
-	}
-	
-	/**
-	 * Apply this relational operator and bound instance to a value.
-	 * If the value is stored imprecisely (i.e., floating point),
-	 * the specified accuracy (if non-null) is taken into account, and an
-	 * exception is thrown if the value is not accurate enough to check the bound.
-	 */
-	public boolean apply(double value, Accuracy accuracy) throws PrismException
-	{
-		if (accuracy != null) {
-			boolean valueLow = apply(accuracy.getResultLowerBound(value));
-			boolean valueHigh = apply(accuracy.getResultUpperBound(value));
-			if (valueLow != valueHigh) {
-				throw new PrismException("Accuracy of value " + value  + " is not enough to compare to bound " + bound);
-			}
-		}
-		return apply(value);
 	}
 }

@@ -33,8 +33,6 @@ import jdd.*;
 import odd.*;
 import parser.*;
 
-import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
-
 public interface Model
 {
 	ModelType getModelType();
@@ -201,49 +199,22 @@ public interface Model
 	void findDeadlocks(boolean fix);
 	
 	void printTrans();
-
 	void printTrans01();
-
-	void printTransInfo(PrismLog log);
-
-	void printTransInfo(PrismLog log, boolean extra);
-
-	default void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
-	{
-		exportToFile(exportType, explicit, file, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException;
-
+	public void printTransInfo(PrismLog log);
+	public void printTransInfo(PrismLog log, boolean extra);
+	void exportToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
+	
 	/**
 	 * Export (non-zero) state rewards for one reward structure of the model.
 	 * @param r Index of reward structure to export (0-indexed)
 	 * @param exportType The format in which to export
 	 * @param file File to export to (if null, print to the log instead)
 	 */
-	default void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException
-	{
-		exportStateRewardsToFile(r, exportType, file, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	/**
-	 * Export (non-zero) state rewards for one reward structure of the model.
-	 * @param r Index of reward structure to export (0-indexed)
-	 * @param exportType The format in which to export
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param precision number of significant digits >= 1
-	 */
-	void exportStateRewardsToFile(int r, int exportType, File file, int precision) throws FileNotFoundException, PrismException;
-
+	void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException;
+	
 	@Deprecated
-	default String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException
-	{
-		return exportStateRewardsToFile(exportType, file, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	@Deprecated
-	String exportStateRewardsToFile(int exportType, File file, int precision) throws FileNotFoundException, PrismException;
-
+	String exportStateRewardsToFile(int exportType, File file) throws FileNotFoundException, PrismException;
+	
 	/**
 	 * Export (non-zero) transition rewards for one reward structure of the model.
 	 * @param r Index of reward structure to export (0-indexed)
@@ -251,29 +222,10 @@ public interface Model
 	 * @param ordered Do the entries need to be printed in order?
 	 * @param file File to export to (if null, print to the log instead)
 	 */
-	default void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException
-	{
-		exportTransRewardsToFile(r, exportType, ordered, file, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	/**
-	 * Export (non-zero) transition rewards for one reward structure of the model.
-	 * @param r Index of reward structure to export (0-indexed)
-	 * @param exportType The format in which to export
-	 * @param ordered Do the entries need to be printed in order?
-	 * @param file File to export to (if null, print to the log instead)
-	 * @param precision number of significant digits >= 1
-	 */
-	void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision) throws FileNotFoundException, PrismException;
+	void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException;
 
 	@Deprecated
-	default String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException
-	{
-		return exportTransRewardsToFile(exportType, explicit, file, DEFAULT_EXPORT_MODEL_PRECISION);
-	}
-
-	@Deprecated
-	String exportTransRewardsToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException;
+	String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException;
 
 	void exportStates(int exportType, PrismLog log);
 

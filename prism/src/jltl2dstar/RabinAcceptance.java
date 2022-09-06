@@ -364,7 +364,7 @@ public class RabinAcceptance implements Iterable<Integer> {
 		
 		public Integer next() throws NoSuchElementException {
 			if (hasNext()) {
-				Integer rv = Integer.valueOf(index);
+				Integer rv = new Integer(index);
 				increment();
 				return rv;
 			}

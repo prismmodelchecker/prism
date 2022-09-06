@@ -74,24 +74,15 @@ a.varlink { text-decoration:none; }
   </div>
 <!--PageText-->
 <div id='wikitext'>
-<p>As mentioned above, the PRISM language can be used to describe several types of probabilistic models.
-To indicate which type is being described, a PRISM model usually includes a model type keyword:
-</p>
-<div class='vspace'></div><ul><li><code><strong>dtmc</strong></code>: discrete-time Markov chain
-</li><li><code><strong>ctmc</strong></code>: continuous-time Markov chain
-</li><li><code><strong>mdp</strong></code>: Markov decision process (or probabilistic automaton)
-</li><li><code><strong>pta</strong></code>: probabilistic timed automaton
-</li><li><code><strong>pomdp</strong></code>: partially observable Markov decision process
-</li><li><code><strong>popta</strong></code>: partially observable probabilistic timed automaton
-</li></ul><p class='vspace'>This is typically at the very start of the file,
+<p>As mentioned above, the PRISM language can be used to describe several types of probabilistic models:
+DTMCs, CTMCs, MDPs and PTAs.
+To indicate which type is being described, a PRISM model should include one of the keywords
+<code><strong>dtmc</strong></code>, <code><strong>ctmc</strong></code>, <code><strong>mdp</strong></code> or <code><strong>pta</strong></code>.
+This is typically at the very start of the file,
 but can actually occur anywhere in the file (except inside modules and other declarations).
+If no such model type declaration is included, the model is by default assumed to be an MDP.
 </p>
-<p class='vspace'>If no such model type declaration is included, the model is by default assumed to be an MDP.
-PRISM also performs some auto-detection of the model type;
-for example, an MDP with <a class='wikilink' href='Real-timeModels.html'>clock variables</a> is assumed to be a PTA,
-and an MDP with <a class='createlinktext' rel='nofollow'
-    href='POMDPs@action=edit.html'>observables</a><a rel='nofollow' 
-    class='createlink' href='POMDPs@action=edit.html'>?</a> is assumed to be a POMDP.
+<p class='vspace'><strong>Note:</strong> As mentioned earlier, PRISM also supports probabilistic automata (PAs) [<a class='wikilink' href='../Main/References.html#Seg95'>Seg95</a>], but (mis)uses the terminology Markov decision process (MDP) for this model.
 </p>
 <p class='vspace'><strong>Note:</strong> For compatibility with old versions of PRISM,
 the keywords <code><strong>probabilistic</strong></code>, <code><strong>stochastic</strong></code> and <code><strong>nondeterministic</strong></code>
@@ -135,9 +126,8 @@ can be used as alternatives for <code><strong>dtmc</strong></code>, <code><stron
 </li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
 </li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
 </li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
+</li><li><a class='wikilink' href='PTAs.html'>PTAs</a>
 </li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>
-</li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='ProcessAlgebraOperators.html'>Process Algebra Operators</a>
 </li><li><a class='wikilink' href='PRISMModelFiles.html'>PRISM Model Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]

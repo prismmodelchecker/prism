@@ -322,29 +322,6 @@ public class JDD
 	}
 
 	/**
-	 * Dereference dd, if the JDDNode is not {@code null}.
-	 * @param dd a JDDNode (may be {@code null})
-	 * <br>[ REFS: <i>none</i>, DEREFS: dd ]
-	 */
-	public static void DerefNonNull(JDDNode dd)
-	{
-		if (dd != null)
-			JDD.Deref(dd);
-	}
-
-	/**
-	 * Dereference dds (if the given JDDNode is not {@code null}), multi-argument variant.
-	 * @param dds a list of JDDNode (some of which may be {@code null})
-	 * <br>[ REFS: <i>none</i>, DEREFS: <i>all argument dds</i> ]
-	 */
-	public static void DerefNonNull(JDDNode... dds)
-	{
-		for (JDDNode d : dds) {
-			JDD.DerefNonNull(d);
-		}
-	}
-
-	/**
 	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
 	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
 	 * @param dds the array of JDDNodes
@@ -356,34 +333,9 @@ public class JDD
 			throw new RuntimeException("Mismatch in length of dd array and expected length!");
 		}
 		for (JDDNode dd : dds) {
-			JDD.DerefNonNull(dd);
+			if (dd != null)
+				JDD.Deref(dd);
 		}
-	}
-
-	/**
-	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
-	 * This is a convenience wrapper around JDD.DerefArray that results in a no-op if {@code dds == null}.
-	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
-	 * @param dds the array of JDDNodes (may be {@code null}.
-	 */
-	public static void DerefArrayNonNull(JDDNode[] dds)
-	{
-		if (dds != null)
-			DerefArray(dds, dds.length);
-	}
-
-	/**
-	 * Dereference array of JDDNodes, by dereferencing all (non-null) elements.
-	 * This is a convenience wrapper around JDD.DerefArray that results in a no-op if {@code dds == null}.
-	 * <br>[ REFS: <i>none</i>, DEREFS: all elements of dds ]
-	 * @param dds the array of JDDNodes (may be {@code null}.
-	 * @param n the expected length of the array (for detecting problems with refactoring)
-	 */
-	
-	public static void DerefArrayNonNull(JDDNode[] dds, int n)
-	{
-		if (dds != null)
-			DerefArray(dds, n);
 	}
 
 	/**
@@ -1003,20 +955,6 @@ public class JDD
 	}
 
 	/**
-	 * Returns the minimum terminal in the part of
-	 * dd that overlaps with filter.
-	 * If filter is empty, returns +infinity.
-	 * <br>[ REFS: <i>none</i>, DEREFS: <i>filter</i> ]
-	 */
-	public static double FindMinOver(JDDNode dd, JDDNode filter)
-	{
-		JDDNode filtered = JDD.ITE(filter, dd.copy(), JDD.PlusInfinity());
-		double rv = FindMin(filtered);
-		JDD.Deref(filtered);
-		return rv;
-	}
-
-	/**
 	 * returns maximum terminal in dd
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
@@ -1040,20 +978,6 @@ public class JDD
 	}
 
 	/**
-	 * Returns the maximum terminal in the part of
-	 * dd that overlaps with filter.
-	 * If filter is empty, returns -infinity.
-	 * <br>[ REFS: <i>none</i>, DEREFS: <i>filter</i> ]
-	 */
-	public static double FindMaxOver(JDDNode dd, JDDNode filter)
-	{
-		JDDNode filtered = JDD.ITE(filter, dd.copy(), JDD.MinusInfinity());
-		double rv = FindMax(filtered);
-		JDD.Deref(filtered);
-		return rv;
-	}
-
-	/**
 	 * returns dd restricted to first non-zero path (cube)
 	 * <br>[ REFS: <i>result</i>, DEREFS: dd ]
 	 */
@@ -1062,42 +986,6 @@ public class JDD
 		if (DebugJDD.debugEnabled)
 			DebugJDD.DD_Method_Argument(dd);
 		return ptrToNode(DD_RestrictToFirst(dd.ptr(), vars.array(), vars.n()));
-	}
-
-	/**
-	 * Returns the value in dd of the first non-zero path (cube) of filter.
-	 * <br>
-	 * This method handles NaN values correctly.
-	 * <br>[ REFS: <i>none</i>, DEREFS: dd, filter ]
-	 */
-	public static double RestrictToFirstValue(JDDNode dd, JDDNode filter)
-	{
-		if (SanityJDD.enabled) {
-			SanityJDD.checkIsZeroOneMTBDD(filter);
-		}
-
-		try {
-			JDDNode d = dd;
-			JDDNode f = filter;
-
-			while (!d.isConstant()) {
-				if (f.isConstant()) {
-					throw new RuntimeException("Invalid filter");
-				}
-				boolean chooseThen = f.getElse().equals(JDD.ZERO);
-
-				if (d.getIndex() == f.getIndex()) {
-					d = chooseThen ? d.getThen() : d.getElse();
-				} else if (d.getIndex() < f.getIndex()) {
-					throw new RuntimeException("Invalid filter");
-				}
-				f = chooseThen ? f.getThen() : f.getElse();
-			}
-
-			return d.getValue();
-		} finally {
-			JDD.Deref(dd, filter);
-		}
 	}
 
 	// wrapper methods for dd_info

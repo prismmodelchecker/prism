@@ -31,10 +31,7 @@ import parser.ast.Expression;
 import parser.ast.ExpressionProb;
 import parser.ast.ExpressionReward;
 import parser.ast.RelOp;
-import prism.Accuracy;
 import prism.PrismException;
-import prism.Accuracy.AccuracyLevel;
-import prism.Accuracy.AccuracyType;
 import simulator.sampler.Sampler;
 
 /**
@@ -151,39 +148,24 @@ public abstract class APMCMethod extends SimulationMethod
 		double estimate = sampler.getMeanValue();
 		switch (prOp) {
 		case 0: // 0=quantitative
-			return Double.valueOf(estimate);
+			return new Double(estimate);
 		case -1: // -1=lower bound
 			if (estimate >= theta + approximation)
-				return Boolean.valueOf(true);
+				return new Boolean(true);
 			else if (estimate <= theta - approximation)
-				return Boolean.valueOf(false);
+				return new Boolean(false);
 			else
 				throw new PrismException("Approximation is not precise enough to get a result");
 		case 1: // 1=upper bound
 			if (estimate >= theta + approximation)
-				return Boolean.valueOf(false);
+				return new Boolean(false);
 			else if (estimate <= theta - approximation)
-				return Boolean.valueOf(true);
+				return new Boolean(true);
 			else
 				throw new PrismException("Approximation is not precise enough to get a result");
 		default:
 			throw new PrismException("Unknown property type");
 		}
-	}
-	
-	@Override
-	public Accuracy getResultAccuracy(Sampler sampler){
-		Accuracy accuracy;
-		// Quantitative
-		if (prOp == 0) {
-			accuracy = new Accuracy(AccuracyLevel.PROBABLY_BOUNDED, approximation, AccuracyType.ABSOLUTE);
-		}
-		// Bounded (accuracy error bound is meaningless)
-		else {
-			accuracy = new Accuracy(AccuracyLevel.PROBABLY_BOUNDED, 0.0, AccuracyType.ABSOLUTE);
-		}
-		accuracy.setProbability(1.0 - confidence);
-		return accuracy;
 	}
 	
 	@Override

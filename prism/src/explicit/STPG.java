@@ -29,15 +29,9 @@ package explicit;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import explicit.rewards.STPGRewards;
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLog;
-import prism.PrismUtils;
 
 /**
  * Interface for classes that provide (read) access to an explicit-state stochastic two-player game (STPG).
@@ -59,75 +53,6 @@ import prism.PrismUtils;
  */
 public interface STPG extends NondetModel
 {
-	// Accessors (for Model) - default implementations
-	
-	@Override
-	default ModelType getModelType()
-	{
-		return ModelType.STPG;
-	}
-
-	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		// Just use MDP format for now; no specific format for games 
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
-		for (int i = 0; i < numStates; i++) {
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()));
-					Object action = getAction(i, j);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-				sorted.clear();
-			}
-		}
-	}
-
-	@Override
-	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
-	{
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	default String infoString()
-	{
-		final int numStates = getNumStates();
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		s += ", " + getNumChoices() + " choices";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates);
-		return s;
-	}
-
-	@Override
-	default String infoStringTable()
-	{
-		final int numStates = getNumStates();
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		s += "Choices:     " + getNumChoices() + "\n";
-		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates) + "\n";
-		return s;
-	}
-
-	// Accessors
-	
 	/**
 	 * Get the player that owns state {@code s} (1 or 2 for an STPG).
 	 */

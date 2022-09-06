@@ -62,6 +62,11 @@ public class GUIFileMenu extends GUIPlugin
         return menu;
     }
     
+    public OptionsPanel getOptions()
+    {
+        return null;
+    }
+    
     public String getTabText()
     {
         return "";
@@ -104,7 +109,7 @@ public class GUIFileMenu extends GUIPlugin
         };
         exitAction.putValue(Action.LONG_DESCRIPTION, "Exits the application");
         //exitAction.putValue(Action.SHORT_DESCRIPTION, "Exit");
-        exitAction.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_X));
+        exitAction.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
         exitAction.putValue(Action.NAME, "Exit");
         exitAction.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExit.png"));
         exitAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));

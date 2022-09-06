@@ -37,7 +37,7 @@ public class DoubleProperty extends SingleProperty
     
     public DoubleProperty(PropertyOwner owner,String name, double property, String comment)
     {
-        super(owner,name, Double.valueOf(property), "", false, comment);
+        super(owner,name, new Double(property), "", false, comment);
     }
     
     public void setValue(double property)
@@ -49,7 +49,7 @@ public class DoubleProperty extends SingleProperty
     {
         try
         {
-            setProperty(Double.valueOf(property), notifyObservers);
+            setProperty(new Double(property), notifyObservers);
         }
         catch(PropertyException e)
         {
@@ -76,7 +76,7 @@ public class DoubleProperty extends SingleProperty
             try
             {
             
-                super.setProperty(Double.valueOf(Double.parseDouble((String)property)), notifyObservers);
+                super.setProperty(new Double(Double.parseDouble((String)property)), notifyObservers);
                 return;
             }
             catch(NumberFormatException e)

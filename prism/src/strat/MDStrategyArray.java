@@ -97,16 +97,16 @@ public class MDStrategyArray extends MDStrategy
 	// Methods for Strategy
 
 	@Override
-	public void exportInducedModel(PrismLog out, int precision)
+	public void exportInducedModel(PrismLog out)
 	{
 		Model dtmcInd = model.constructInducedModel(this);
-		dtmcInd.exportToPrismExplicitTra(out, precision);
+		dtmcInd.exportToPrismExplicitTra(out);
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision)
+	public void exportDotFile(PrismLog out)
 	{
-		model.exportToDotFileWithStrat(out, null, choices, precision);
+		model.exportToDotFileWithStrat(out, null, choices);
 	}
 
 	@Override

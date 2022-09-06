@@ -73,14 +73,6 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters
 
 /*
  * Class:     prism_PrismNative
- * Method:    PN_SetExportModelPrecision
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportModelPrecision
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     prism_PrismNative
  * Method:    PN_SetSBMaxMem
  * Signature: (I)V
  */
@@ -150,22 +142,6 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetDefaultExportIterationsFile
  */
 JNIEXPORT jint JNICALL Java_prism_PrismNative_PN_1SetWorkingDirectory
   (JNIEnv *, jclass, jstring);
-
-/*
- * Class:     prism_PrismNative
- * Method:    PN_SetLastErrorBound
- * Signature: (D)V
- */
-JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLastErrorBound
-  (JNIEnv *, jclass, jdouble);
-
-/*
- * Class:     prism_PrismNative
- * Method:    PN_GetLastErrorBound
- * Signature: ()D
- */
-JNIEXPORT jdouble JNICALL Java_prism_PrismNative_PN_1GetLastErrorBound
-  (JNIEnv *, jclass);
 
 /*
  * Class:     prism_PrismNative

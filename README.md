@@ -2,7 +2,11 @@
 
 This is PRISM (Probabilistic Symbolic Model Checker).
 
-We use regression for interval iteration.
+This extension includes the implementations and experimental results for the work “Approximating the Upper Bound of Interval Iteration for Probabilistic Model Checking” proposed by Mohammadsadegh Mohagheghi and Khayyam Salehi.
+
+Experimental results of the proposed work are located in the "prism/experiments" folder.
+Results for the training step are located in the "prism/experiments/training" folder. 
+This folder also contains the results of applying regression on the training data, proposed in the 'regression.ods' file.
 
 ## Installation
 
@@ -84,7 +88,6 @@ Development of the tool is currently led from Birmingham by Dave Parker. Other c
 We gratefully acknowledge contributions to the PRISM code-base from various sources,
 including (in approximately reverse chronological order):
 
- * Xueyi Zou: Partially observable Markov decision processes (POMDPs)
  * Steffen Märcker: Fixes and improvements, especially in explicit engine
  * Chris Novakovic: Build infrastructure and explicit engine improvements
  * Ernst Moritz Hahn: Parametric model checking, fast adaptive uniformisation + various other features

@@ -169,9 +169,7 @@ public class ConstructModel extends PrismComponent
 		DTMCSimple dtmc = null;
 		CTMCSimple ctmc = null;
 		MDPSimple mdp = null;
-		POMDPSimple pomdp = null;
 		CTMDPSimple ctmdp = null;
-		LTSSimple lts = null;
 		ModelExplicit model = null;
 		Distribution distr = null;
 		// Misc
@@ -199,30 +197,26 @@ public class ConstructModel extends PrismComponent
 			switch (modelType) {
 			case DTMC:
 				modelSimple = dtmc = new DTMCSimple();
+				dtmc.setVarList(varList);
 				break;
 			case CTMC:
 				modelSimple = ctmc = new CTMCSimple();
+				ctmc.setVarList(varList);
 				break;
 			case MDP:
 				modelSimple = mdp = new MDPSimple();
-				break;
-			case POMDP:
-				modelSimple = pomdp = new POMDPSimple();
+				mdp.setVarList(varList);
 				break;
 			case CTMDP:
 				modelSimple = ctmdp = new CTMDPSimple();
-				break;
-			case LTS:
-				modelSimple = lts = new LTSSimple();
+				ctmdp.setVarList(varList);
 				break;
 			case STPG:
 			case SMG:
 			case PTA:
-			case POPTA:
+			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
-			// Attach variable info
-	        ((ModelExplicit) modelSimple).setVarList(varList);
 		}
 
 		// Initialise states storage
@@ -249,15 +243,6 @@ public class ConstructModel extends PrismComponent
 			// Look at each outgoing choice in turn
 			nc = modelGen.getNumChoices();
 			for (i = 0; i < nc; i++) {
-				// If required, check for duplicate actions here
-				if (modelType.partiallyObservable()) {
-					if (((NondetModel) modelSimple).getChoiceByAction(src, modelGen.getChoiceAction(i)) != -1) {
-						String act = modelGen.getChoiceAction(i) == null ? "" : modelGen.getChoiceAction(i).toString();
-						String err = modelType + " is not allowed duplicate action";
-						err += " (\"" + act + "\") in state " + state.toString(modelGen);
-						throw new PrismException(err);
-					}
-				}
 				// For nondet models, collect transitions in a Distribution
 				if (!justReach && modelType.nondeterministic()) {
 					distr = new Distribution();
@@ -287,20 +272,13 @@ public class ConstructModel extends PrismComponent
 							ctmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
 							break;
 						case MDP:
-						case POMDP:
 						case CTMDP:
 							distr.add(dest, modelGen.getTransitionProbability(i, j));
-							break;
-						case LTS:
-							if (distinguishActions) {
-								lts.addActionLabelledTransition(src, dest, modelGen.getChoiceAction(i));
-							} else {
-								lts.addTransition(src, dest);
-							}
 							break;
 						case STPG:
 						case SMG:
 						case PTA:
+						case LTS:
 							throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 						}
 					}
@@ -313,12 +291,6 @@ public class ConstructModel extends PrismComponent
 						} else {
 							mdp.addChoice(src, distr);
 						}
-					} else if (modelType == ModelType.POMDP) {
-						if (distinguishActions) {
-							pomdp.addActionLabelledChoice(src, distr, modelGen.getChoiceAction(i));
-						} else {
-							pomdp.addChoice(src, distr);
-						}
 					} else if (modelType == ModelType.CTMDP) {
 						if (distinguishActions) {
 							ctmdp.addActionLabelledChoice(src, distr, modelGen.getChoiceAction(i));
@@ -327,11 +299,6 @@ public class ConstructModel extends PrismComponent
 						}
 					}
 				}
-			}
-			// For partially observable models, add observation info to state
-			// (do it after transitions are added, since observation actions are checked)
-			if (!justReach && modelType == ModelType.POMDP) {
-				setStateObservation(modelGen, (POMDPSimple) modelSimple, src, state);
 			}
 			// Print some progress info occasionally
 			progress.updateIfReady(src + 1);
@@ -386,18 +353,13 @@ public class ConstructModel extends PrismComponent
 					model = sortStates ? new MDPSimple(mdp, permut) : mdp;
 				}
 				break;
-			case POMDP:
-				model = sortStates ? new POMDPSimple(pomdp, permut) : pomdp;
-				break;
 			case CTMDP:
 				model = sortStates ? new CTMDPSimple(ctmdp, permut) : ctmdp;
-				break;
-			case LTS:
-				model = sortStates ? new LTSSimple(lts, permut) : lts;
 				break;
 			case STPG:
 			case SMG:
 			case PTA:
+			case LTS:
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			model.setStatesList(statesList);
@@ -414,27 +376,6 @@ public class ConstructModel extends PrismComponent
 		return model;
 	}
 
-	private void setStateObservation(ModelGenerator modelGen, POMDPSimple pomdp, int s, State state) throws PrismException
-	{
-		// Get observation for the current state
-		// An observation is a State containing the value for each observable
-		State sObs = modelGen.getObservation(state);
-		// Build unobservation for the current state
-		// An unobservation is a State containing the value for
-		// all variables that are not observable
-		int numVars = modelGen.getNumVars();
-		int numUnobsVars = numVars - modelGen.getNumObservableVars();
-		State sUnobs = new State(numUnobsVars);
-		int count = 0;
-		for (int i = 0; i < numVars; i++) {
-			if (!modelGen.isVarObservable(i)) {
-				sUnobs.setValue(count++, state.varValues[i]);
-			}
-		}
-		// Set observation/unobservation
-		pomdp.setObservation(s, sObs, sUnobs, modelGen.getObservableNames());
-	}
-	
 	private void attachLabels(ModelGenerator modelGen, ModelExplicit model) throws PrismException
 	{
 		// Get state info

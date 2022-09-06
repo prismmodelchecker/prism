@@ -20,7 +20,6 @@ export PRISM_LIB_DIR     = lib
 export PRISM_INCLUDE_DIR = include
 export PRISM_IMAGES_DIR  = images
 export PRISM_DTDS_DIR    = dtds
-export PRISM_TESTS_DIR   = unit-tests
 
 # Location of CUDD (used to be variable; now mainly fixed with the git repo layout)
 
@@ -79,7 +78,7 @@ endif
 # Architecture #
 ################
 
-# For Linux/Mac, we use uname to check the architecture
+# For Linux, we use uname to see if we are on a 64-bit (AMD64 or Itanium) machine
 ifeq ($(OSTYPE),linux)
 	ifneq (,$(findstring 86_64, $(shell uname -m)))
 		ARCH = amd64
@@ -87,20 +86,18 @@ ifeq ($(OSTYPE),linux)
 	ifneq (,$(findstring ia64, $(shell uname -m)))
 		ARCH = ia64
 	endif
-	ifneq (,$(findstring aarch64, $(shell uname -m)))
-		ARCH = aarch64
-	endif
 endif
-ifeq ($(OSTYPE),darwin)
-	ifneq (,$(findstring x86_64, $(shell uname -m)))
-		ARCH = x86_64
-	endif
-	ifneq (,$(findstring arm64, $(shell uname -m)))
-		ARCH = arm64
-	endif
-endif
-# For Windows, we decide whether to build in 64-bit mode based on
+# For Mac/Windows, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
+ifeq ($(OSTYPE),darwin)
+    JAVA_VERSION_STRING = $(shell java -version 2>&1)
+    ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
+        ARCH = x86_64
+    endif
+    ifneq (,$(findstring 64-Bit, $(JAVA_VERSION_STRING)))
+        ARCH = x86_64
+    endif
+endif
 ifeq ($(OSTYPE),cygwin)
     JAVA_VERSION_STRING = $(shell java -version 2>&1)
     ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
@@ -177,7 +174,6 @@ else
 endif
 LD = $(CXX)
 JAVAC = javac
-JAVA = java
 
 export CC CXX LD JAVAC JAVACC
 
@@ -222,18 +218,10 @@ ifeq ($(OSTYPE),linux)
 		LDFLAGS = $(CFLAGS)
 		BINDISTSUFFIX = linux64
 	else
-	ifeq ($(ARCH),aarch64)
-		# Position Independent Code required on Aarch64
-		CFLAGS = -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
-		BINDISTSUFFIX = linux64
-	else
 		CFLAGS = -m32 -malign-double -DHAVE_IEEE_754 -DBSD $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = $(CFLAGS)
 		BINDISTSUFFIX = linux32
-	endif
 	endif
 	endif
 	BIN_TARGETS=prism.linux xprism.linux
@@ -295,19 +283,11 @@ ifeq ($(OSTYPE),darwin)
 		BINDISTSUFFIX = osx64
 		BIN_TARGETS=prism.darwin64 xprism.linux
 	else
-	ifeq ($(ARCH),arm64)
-		CFLAGS = -arch arm64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
-		BINDISTSUFFIX = osx64
-		BIN_TARGETS=prism.darwin64 xprism.linux
-	else
 		CFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
 		BINDISTSUFFIX = osx32
 		BIN_TARGETS=prism.darwin32 xprism.linux
-	endif
 	endif
 	JFLAGS = -encoding UTF8
 	SHARED = -dynamiclib
@@ -399,14 +379,6 @@ make_dirs:
 		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
 	fi;
 
-# Compile unit tests
-make_tests:
-	@echo Making $(PRISM_TESTS_DIR) ...; \
-	(cd $(PRISM_TESTS_DIR) && \
-	$(MAKE) \
-	CLASSPATHSEP="$(CLASSPATHSEP)") \
-	|| exit 1;
-
 # Copy/modify the launch scripts and put in the bin directory
 bin_scripts:
 	@for target in $(BIN_TARGETS); do \
@@ -483,11 +455,6 @@ count_loc:
 # Testing #
 ###########
 
-# Run all unit tests
-unittests: make_tests
-	# Provide Regex to match our test classes. If none is given, only certain test classes are excluded by default.
-	$(JAVA) -jar lib/junit-platform-console-standalone.jar -cp classes --include-classname '^(Test.*|.+[.$$]Test.*|.+Tests?[.$$].+|.*Tests?)$$' -scan-classpath
-
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
 	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
@@ -496,7 +463,7 @@ test:
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  cd ../prism-tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping tests"; \
 	fi
@@ -504,13 +471,13 @@ tests: testslocal
 # Just display the command to run the test suite on this version of PRISM
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testsecho:
-	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
+	@echo etc/scripts/prism-auto -t -m --nailgun --ngprism bin/ngprism ../prism-tests -p bin/prism $(TESTS_ARGS)
 
 # Run local tests (in ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testslocal:
 	@if [ -d tests ]; then \
-	  etc/scripts/prism-auto -t -m tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  cd tests && "$(PWD)"/etc/scripts/prism-auto -t -m . -p "$(PWD)"/bin/prism --nailgun --ngprism "$(PWD)"/bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping local tests"; \
 	fi
@@ -521,9 +488,10 @@ testslocal:
 # - We run with --test-all, as failures for some engines should not abort the tests
 # - We run with a timeout of 1 minute, as some engines take a long time for some properties
 testsfull:
-	etc/scripts/prism-auto -t -m ../prism-tests \
-	--skip-export-runs --skip-duplicate-runs --test-all -a ../prism-tests/all-engines.args --timeout 1m \
-	-p bin/prism --nailgun $(TESTS_ARGS);
+	cd ../prism-tests && \
+	"$(PWD)"/etc/scripts/prism-auto -t -m . \
+	--skip-export-runs --skip-duplicate-runs --test-all -a all-engines.args --timeout 1m \
+	-p "$(PWD)"/bin/prism --nailgun $(TESTS_ARGS);
 
 ##########################
 # Building distributions #
@@ -566,7 +534,7 @@ BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 
 # Build a (binary) distribution in the release directory
 
-release: JFLAGS += --release 9
+release: JFLAGS += -source 1.8 -target 1.8
 release: clean_all all binary release_check_version build_release clean_binary
 
 release_check_version:
@@ -627,7 +595,7 @@ clean: checks
 celan: clean
 
 # Clean PRISM + CUDD and external libs
-clean_all: checks clean_cudd clean_ext clean clean_tests
+clean_all: checks clean_cudd clean_ext clean
 
 clean_cudd:
 	@(cd $(CUDD_DIR) && $(MAKE) distclean)
@@ -639,9 +607,6 @@ clean_ext:
 	  $(MAKE) -s clean) \
 	  || exit 1; \
 	done )
-
-clean_tests:
-	@(cd $(PRISM_TESTS_DIR) && $(MAKE) clean)
 
 # Remove just the prism.jar binary
 clean_binary:

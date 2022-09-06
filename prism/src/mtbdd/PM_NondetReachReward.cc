@@ -196,25 +196,6 @@ jboolean min		// min or max probabilities (true = min, false = max)
 			start3 = util_cpu_time();
 		}
 		
-		// store accuracy info, once converged
-		// the difference between vector values is not a reliable error bound
-		// but we store it anyway in case it is useful for estimating a bound
-		// TODO: handle cases where result is zero
-		if (done) {
-			Cudd_Ref(tmp);
-			Cudd_Ref(sol);
-			DdNode* difference = DD_Apply(ddman, APPLY_MINUS, tmp, sol);
-			if (term_crit == TERM_CRIT_RELATIVE) {
-				Cudd_Ref(tmp);
-				difference = DD_Apply(ddman, APPLY_DIVIDE, difference, tmp);
-			}
-			// No DD absolute operator so check most +ve/-ve
-			double max_diff = fabs(DD_FindMax(ddman, difference));
-			double min_diff = fabs(DD_FindMin(ddman, difference));
-			last_error_bound = max_diff > min_diff ? max_diff : min_diff;
-			Cudd_RecursiveDeref(ddman, difference);
-		}
-		
 		// prepare for next iteration
 		Cudd_RecursiveDeref(ddman, sol);
 		sol = tmp;

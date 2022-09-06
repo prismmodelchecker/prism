@@ -19,15 +19,12 @@ from optparse import OptionParser
 
 # Details of all the fields that can be extracted from logs
 all_fields_details = [\
-    {'name': 'prog_name', 'descr': 'Name of program run', 'type': 'string'}, \
-    {'name': 'prog_version', 'descr': 'Version of program run', 'type': 'string', 'regexp': 'Version: ([^ \n]+)'}, \
     {'name': 'log_dir', 'descr': 'Name of directory containing log file', 'type': 'string'}, \
     {'name': 'log_file', 'descr': 'Name of log file', 'type': 'string'}, \
     {'name': 'model_file', 'descr': 'Name of PRISM model file', 'type': 'file', 'regexp': 'Parsing model file "(.+)"...'}, \
     {'name': 'model_consts', 'descr': 'Constants defined for model', 'type': 'string', 'regexp': 'Model constants: (.+)'}, \
     {'name': 'model_type', 'descr': 'Model type', 'regexp': 'Type: *(.+)'}, \
     {'name': 'states', 'descr': 'Number of states in model', 'regexp': 'States: *(.+) \((.+) initial\)'}, \
-    {'name': 'dd_nodes', 'descr': 'Number of nodes in the DD for the model', 'regexp': 'Transition matrix: *(.+) nodes'}, \
     {'name': 'time_constr', 'descr': 'Time to construct the model', 'regexp': 'Time for model construction: *(.+) sec'}, \
     {'name': 'prop_file', 'descr': 'Name of PRISM property file', 'type': 'file', 'regexp': 'Parsing properties file "(.+)"...'}, \
     {'name': 'prop_consts', 'descr': 'Constants defined for property', 'type': 'string', 'regexp': 'Property constants: (.+)'}, \
@@ -42,7 +39,6 @@ all_fields = list(map(lambda x: x['name'], all_fields_details))
 # Meta-fields
 meta_fields = {\
     'all': all_fields, \
-    'prog': ['prog_name', 'prog_version'], \
     'model': ['model_file', 'model_consts'], \
     'prop': ['prop_file', 'prop_consts'], \
     'benchmark' : ['model_file', 'model_consts', 'prop_file', 'prop_consts'], \
@@ -108,13 +104,8 @@ def grep_for_info_file(logFile, fields):
         info['log_dir'] = os.path.basename(os.path.dirname(logFile))
     if 'log_file' in fields:
         info['log_file'] = os.path.basename(logFile)
-    # For other fields, we parse the log
-    line_num = 1
+    # For most fields, a regexp is used to grep the log
     for line in open(logFile, 'r').readlines():
-        # We assume the first line printed out is the tool name
-        if line_num == 1:
-            info['prog_name'] = line.strip()
-        # For most fields, a regexp is used to grep the log
         for field in fields:
             field_details = get_field_details(field)
             if 'regexp' in field_details and (info[field] == '' or ('match' in field_details and field_details['match'] == 'last')):
@@ -122,7 +113,6 @@ def grep_for_info_file(logFile, fields):
                 m = re.search(regexp, line)
                 if not m is None:
                     info[field] = m.group(1)
-        line_num = line_num + 1
     # Some field processing based on type
     for field in info.keys():
         field_details = get_field_details(field)
@@ -130,7 +120,11 @@ def grep_for_info_file(logFile, fields):
             info[field] = os.path.basename(info[field])
         if 'type' in field_details and field_details['type'] in ['string', 'file']:
             info[field] = '"' + info[field] + '"'
-    return [info]
+    # If there is not at least a model_file, we assume something went wrong
+    if (info['model_file']):
+        return [info]
+    else:
+        return []
 
 # Print info from a log, i.e. a list of fields, comma-separated
 def print_info(info, fields):

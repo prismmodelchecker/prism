@@ -50,6 +50,7 @@ import javax.swing.text.JTextComponent;
 
 import prism.PrismSettings;
 import userinterface.GUIPrism;
+import userinterface.OptionsPanel;
 
 /**
  * Information gutter for the text model editor. It displays line numbers for 
@@ -184,7 +185,7 @@ public class GUITextModelEditorGutter extends JPanel implements PropertyChangeLi
 			
 			if (errorMessages != null)
 			{
-				if (errorMessages.containsKey(Integer.valueOf(i+1)))
+				if (errorMessages.containsKey(new Integer(i+1)))
 					isErrorLine = true;
 			}
 			
@@ -364,6 +365,7 @@ public class GUITextModelEditorGutter extends JPanel implements PropertyChangeLi
 
 	public boolean displaysTab() {return false;}
 	public JMenu getMenu() {return null;}
+	public OptionsPanel getOptions() {return null;}
 	public String getTabText() {return null;}
 	public JToolBar getToolBar() {return null;}
 	public String getXMLIDTag() {return null;}

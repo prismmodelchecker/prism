@@ -639,10 +639,9 @@ EXPORT bool doubles_are_close_rel(double d1, double d2, double epsilon)
 	// Compute/check error
 	d1 = fabs(d1);
 	d2 = fabs(d2);
-	if (d2 == 0) {
-		   // If both are zero, error is 0; otherwise +inf
-		   return (d1 == 0);
-	}
+	// For two (near) zero values, return true, for just one, return false
+	if (d1 < epsilon_double)
+		return (d2 < epsilon_double);
 	return (fabs(d1 - d2) / d1 < epsilon);
 }
 

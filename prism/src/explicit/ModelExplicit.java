@@ -26,6 +26,7 @@
 
 package explicit;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -37,8 +38,10 @@ import java.util.TreeSet;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
+import prism.PrismFileLog;
 import prism.PrismLog;
 
 /**
@@ -77,47 +80,47 @@ public abstract class ModelExplicit implements Model
 	// Mutators
 
 	/**
-	 * Copy data from another Model (used by superclass copy constructors).
+	 * Copy data from another ModelExplicit (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 */
-	public void copyFrom(Model model)
+	public void copyFrom(ModelExplicit model)
 	{
-		numStates = model.getNumStates();
-		for (int in : model.getInitialStates()) {
+		numStates = model.numStates;
+		for (int in : model.initialStates) {
 			addInitialState(in);
 		}
-		for (int dl : model.getDeadlockStates()) {
+		for (int dl : model.deadlocks) {
 			addDeadlockState(dl);
 		}
 		// Shallow copy of read-only stuff
-		statesList = model.getStatesList();
-		constantValues = model.getConstantValues();
-		labels = model.getLabelToStatesMap();
-		varList = model.getVarList();
+		statesList = model.statesList;
+		constantValues = model.constantValues;
+		labels = model.labels;
+		varList = model.varList;
 	}
 
 	/**
-	 * Copy data from another Model and a state index permutation,
+	 * Copy data from another ModelExplicit and a state index permutation,
 	 * i.e. state index i becomes index permut[i]
 	 * (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 * Pointer to states list is NOT copied (since now wrong).
 	 */
-	public void copyFrom(Model model, int permut[])
+	public void copyFrom(ModelExplicit model, int permut[])
 	{
-		numStates = model.getNumStates();
-		for (int in : model.getInitialStates()) {
+		numStates = model.numStates;
+		for (int in : model.initialStates) {
 			addInitialState(permut[in]);
 		}
-		for (int dl : model.getDeadlockStates()) {
+		for (int dl : model.deadlocks) {
 			addDeadlockState(permut[dl]);
 		}
 		// Shallow copy of (some) read-only stuff
 		// (i.e. info that is not broken by permute)
 		statesList = null;
-		constantValues = model.getConstantValues();
+		constantValues = model.constantValues;
 		labels.clear();
-		varList = model.getVarList();
+		varList = model.varList;
 	}
 
 	/**
@@ -246,6 +249,9 @@ public abstract class ModelExplicit implements Model
 	// Accessors (for Model interface)
 
 	@Override
+	public abstract ModelType getModelType();
+
+	@Override
 	public int getNumStates()
 	{
 		return numStates;
@@ -347,11 +353,8 @@ public abstract class ModelExplicit implements Model
 	}
 	
 	@Override
-	public Map<String, BitSet> getLabelToStatesMap()
-	{
-		return labels;
-	}
-	
+	public abstract int getNumTransitions();
+
 	@Override
 	public void checkForDeadlocks() throws PrismException
 	{
@@ -360,6 +363,34 @@ public abstract class ModelExplicit implements Model
 
 	@Override
 	public abstract void checkForDeadlocks(BitSet except) throws PrismException;
+
+	@Override
+	public void exportToPrismExplicit(String baseFilename) throws PrismException
+	{
+		// Default implementation - just output .tra file
+		// (some models might override this)
+		exportToPrismExplicitTra(baseFilename + ".tra");
+	}
+
+	@Override
+	public void exportToPrismExplicitTra(String filename) throws PrismException
+	{
+		try (PrismFileLog log = PrismFileLog.create(filename)) {
+			exportToPrismExplicitTra(log);
+		}
+	}
+
+	@Override
+	public void exportToPrismExplicitTra(File file) throws PrismException
+	{
+		exportToPrismExplicitTra(file.getPath());
+	}
+
+	@Override
+	public abstract void exportToPrismExplicitTra(PrismLog out);
+
+	@Override
+	public abstract void exportToPrismLanguage(String filename) throws PrismException;
 
 	@Override
 	public void exportStates(int exportType, VarList varList, PrismLog log) throws PrismException
@@ -395,6 +426,24 @@ public abstract class ModelExplicit implements Model
 			log.println("];");
 	}
 
+	@Override
+	public String infoString()
+	{
+		String s = "";
+		s += numStates + " states (" + getNumInitialStates() + " initial)";
+		s += ", " + getNumTransitions() + " transitions";
+		return s;
+	}
+
+	@Override
+	public String infoStringTable()
+	{
+		String s = "";
+		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
+		s += "Transitions: " + getNumTransitions() + "\n";
+		return s;
+	}
+	
 	@Override
 	public boolean equals(Object o)
 	{

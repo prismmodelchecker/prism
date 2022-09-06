@@ -304,7 +304,7 @@ public abstract class ASTElement
 	 */
 	public ASTElement replaceConstants(Values constantValues) throws PrismLangException
 	{
-		return evaluatePartially(new EvaluateContextConstants(constantValues));
+		return evaluatePartially(new EvaluateContextValues(constantValues, null));
 	}
 
 	/**
@@ -392,15 +392,6 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Find all references to observables (by name), replace the ExpressionLabels with ExpressionObs objects.
-	 */
-	public ASTElement findAllObsRefs(List<String> observableNames, List<Type> observableTypes) throws PrismLangException
-	{
-		FindAllObsRefs visitor = new FindAllObsRefs(observableNames, observableTypes);
-		return (ASTElement) accept(visitor);
-	}
-
-	/**
 	 * Expand property references and labels, return result.
 	 * Property expansion is done recursively.
 	 * Special labels "deadlock", "init" and any not in label list are left.
@@ -466,16 +457,6 @@ public abstract class ASTElement
 	}
 
 	/**
-	 * Evaluate partially: replace some constants with actual values. 
-	 * Constants are specified as a Values object.
-	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
-	 */
-	public ASTElement evaluatePartially(Values constantValues) throws PrismLangException
-	{
-		return evaluatePartially(new EvaluateContextValues(constantValues, null));
-	}
-
-	/**
 	 * Evaluate partially: replace some constants and variables with actual values. 
 	 * Constants/variables are specified as Values objects; either can be left null.
 	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
@@ -483,25 +464,6 @@ public abstract class ASTElement
 	public ASTElement evaluatePartially(Values constantValues, Values varValues) throws PrismLangException
 	{
 		return evaluatePartially(new EvaluateContextValues(constantValues, varValues));
-	}
-
-	/**
-	 * Evaluate partially: replace variables with actual values, specified as a State object.
-	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
-	 */
-	public ASTElement evaluatePartially(State state) throws PrismLangException
-	{
-		return evaluatePartially(new EvaluateContextState(state));
-	}
-
-	/**
-	 * Evaluate partially: replace variables with actual values, specified as a State object.
-	 * Constant values are supplied as a Values object. 
-	 * Warning: Unlike evaluate(), evaluatePartially() methods modify (and return) the expression. 
-	 */
-	public ASTElement evaluatePartially(Values constantValues, State state) throws PrismLangException
-	{
-		return evaluatePartially(new EvaluateContextState(constantValues, state));
 	}
 
 	/**

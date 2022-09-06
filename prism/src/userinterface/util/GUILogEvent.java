@@ -45,37 +45,37 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(int type, int message)
     {
-        super(type, Integer.valueOf(message));
+        super(type, new Integer(message));
     }
     
     public GUILogEvent(int type, double message)
     {
-        super(type, Double.valueOf(message));
+        super(type, new Double(message));
     }
     
     public GUILogEvent(int type, float message)
     {
-        super(type, Float.valueOf(message));
+        super(type, new Float(message));
     }
     
     public GUILogEvent(int type, long message)
     {
-        super(type, Long.valueOf(message));
+        super(type, new Long(message));
     }
     
     public GUILogEvent(int type, short message)
     {
-        super(type, Short.valueOf(message));
+        super(type, new Short(message));
     }
     
     public GUILogEvent(int type, byte message)
     {
-        super(type, Byte.valueOf(message));
+        super(type, new Byte(message));
     }
     
     public GUILogEvent(int type, boolean message)
     {
-        super(type, Boolean.valueOf(message));
+        super(type, new Boolean(message));
     }
     
     public GUILogEvent(Object message)
@@ -85,36 +85,36 @@ public class GUILogEvent extends GUIEvent
     
     public GUILogEvent(int message)
     {
-        this(PRINTLN, Integer.valueOf(message));
+        this(PRINTLN, new Integer(message));
     }
     
     public GUILogEvent(double message)
     {
-        this(PRINTLN, Double.valueOf(message));
+        this(PRINTLN, new Double(message));
     }
     
     public GUILogEvent(float message)
     {
-        this(PRINTLN, Float.valueOf(message));
+        this(PRINTLN, new Float(message));
     }
     
     public GUILogEvent(long message)
     {
-        this(PRINTLN, Long.valueOf(message));
+        this(PRINTLN, new Long(message));
     }
     
     public GUILogEvent(short message)
     {
-        this(PRINTLN, Short.valueOf(message));
+        this(PRINTLN, new Short(message));
     }
     
     public GUILogEvent(byte message)
     {
-        this(PRINTLN, Byte.valueOf(message));
+        this(PRINTLN, new Byte(message));
     }
     
     public GUILogEvent(boolean message)
     {
-        this(PRINTLN, Boolean.valueOf(message));
+        this(PRINTLN, new Boolean(message));
     }
 }

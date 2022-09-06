@@ -28,23 +28,11 @@ package explicit;
 
 import java.util.BitSet;
 
-import prism.ModelType;
-
 /**
  * Interface for classes that provide (read) access to an explicit-state CTMC.
  */
 public interface CTMC extends DTMC
 {
-	// Accessors (for Model) - default implementations
-	
-	@Override
-	default ModelType getModelType()
-	{
-		return ModelType.CTMC;
-	}
-
-	// Accessors
-	
 	/**
 	 * Get the exit rate for state {@code i}.
 	 * i.e. sum_j R(i,j)

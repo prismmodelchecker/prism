@@ -16,7 +16,7 @@ Pmax=? [ F s=2 & ip=L ];
 const int T = 150;
 
 // Maximum probability of configuring IP address incorrectly by time T
-// RESULT (T=100): 130321/200000000
-// RESULT (T=150): 8580204319/8000000000000
-// RESULT (T=200): 390893418881359/320000000000000000
+// RESULT (T=100): 6.51605e-4
+// RESULT (T=150): 0.00107253
+// RESULT (T=200): 0.00122154
 "deadline": Pmax=? [ F<=T s=2 & ip=2 ];

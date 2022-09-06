@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -27,77 +27,17 @@
 package parser;
 
 /**
- * Classes providing the information required to evaluate an expression.
- * Primarily, this means providing values for variables.
- * Optionally, values for constants can also be supplied.
+ * Information required to evaluate an expression. 
  */
-public abstract class EvaluateContext
+public interface EvaluateContext
 {
-	/**
-	 * Evaluation mode (floating point? exact?)
-	 */
-	public enum EvalMode { FP, EXACT }
-	protected EvalMode evalMode = EvalMode.FP;
-	
-	/**
-	 * Constant values (optional)
-	 */
-	protected Values constantValues = null;
-	
-	/**
-	 * Set the evaluation mode (floating point? exact?)
-	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
-	 */
-	public EvaluateContext setEvaluationMode(EvalMode evalMode)
-	{
-		this.evalMode = evalMode;
-		return this;
-	}
-
-	/**
-	 * Get the evaluation mode (floating point? exact?)
-	 */
-	public EvalMode getEvaluationMode()
-	{
-		return evalMode;
-	}
-
-	/**
-	 * Set the constant values. The Values object is stored, not copied.
-	 * Returns a copy of this EvaluateContext to allow chaining of method calls.
-	 */
-	public EvaluateContext setConstantValues(Values constantValues)
-	{
-		this.constantValues = constantValues;
-		return this;
-	}
-	
 	/**
 	 * Return the value for a constant (by name); null if unknown.
 	 */
-	public Object getConstantValue(String name)
-	{
-		if (constantValues == null) {
-			return null;
-		}
-		int i = constantValues.getIndexOf(name);
-		if (i == -1) {
-			return null;
-		}
-		return constantValues.getValue(i);
-	}
+	public Object getConstantValue(String name);
 
 	/**
 	 * Return the value for a variable (by name or index); null if unknown.
 	 */
-	public abstract Object getVarValue(String name, int index);
-
-	/**
-	 * Return the value for an observable (by name or index); null if unknown.
-	 */
-	public Object getObservableValue(String name, int index)
-	{
-		// No observables defined by default
-		return null;
-	}
+	public Object getVarValue(String name, int index);
 }

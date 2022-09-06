@@ -40,26 +40,47 @@ public class DeclarationClock extends DeclarationType
 		setType(TypeClock.getInstance());
 	}
 
-	@Override
+	/**
+	 * Return the default start value for a variable of this type.
+	 */
 	public Expression getDefaultStart()
 	{
 		return Expression.Double(0);
 	}
 	
+	/* TODO:
+	@Override
+	public Expression getStart(ModulesFile parent)
+	{
+		if (parent != null && parent.getInitialStates() != null)
+			return null;
+
+		return start != null ? start : low;
+	}
+	*/
+	
 	// Methods required for ASTElement:
 	
-	@Override
+	/**
+	 * Visitor method.
+	 */
 	public Object accept(ASTVisitor v) throws PrismLangException
 	{
 		return v.visit(this);
 	}
 
+	/**
+	 * Convert to string.
+	 */
 	@Override
 	public String toString()
 	{
 		return "clock";
 	}
 
+	/**
+	 * Perform a deep copy.
+	 */
 	@Override
 	public ASTElement deepCopy()
 	{
