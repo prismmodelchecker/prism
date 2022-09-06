@@ -531,7 +531,7 @@ jint flags
 		if(flg)
 			break;
 	}	
-	printf("\nChecking for lower bound passed after %d iterations.\n", low_itr);
+	printf("\nChecking for lower bound passed after %d iterations.", low_itr);
 	if(!flg)
 		for(i = 0; i < n; i++)
 			soln_below[i] = (inf_vec[i] > 0) ? HUGE_VAL : lower_vec[i];

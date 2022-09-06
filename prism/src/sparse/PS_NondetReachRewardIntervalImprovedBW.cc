@@ -604,7 +604,7 @@ jint flags
 		}	
 	}
 	printf("\n\nNumber of iterations for the lower bound = %d\n", low_itr);
-	done = true;
+	
 	// Traverse matrix to extract adversary
 	if (export_adv_enabled != EXPORT_ADV_NONE) {
 		// Do two passes: first to compute the number of transitions,
