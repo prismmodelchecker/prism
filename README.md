@@ -5,8 +5,14 @@ This is PRISM (Probabilistic Symbolic Model Checker).
 This extension includes the implementations and experimental results for the work “Approximating the Upper Bound of Interval Iteration for Probabilistic Model Checking” proposed by Mohammadsadegh Mohagheghi and Khayyam Salehi.
 
 Experimental results of the proposed work are located in the "prism/experiments" folder.
+<<<<<<< HEAD
 Results for the training step are located in the "prism/experiments/training" folder. 
 This folder also contains the results of applying regression on the training data, proposed in the 'regression.ods' file.
+=======
+Results for the training step are located in the "prism/experiments/training" folder. This folder also contains the results of applying regression on the training data, proposed in the 'regression.ods' file.
+
+
+>>>>>>> 295adec295352d2ab2d74fa99c568ab2e6ad28c5
 
 ## Installation
 
