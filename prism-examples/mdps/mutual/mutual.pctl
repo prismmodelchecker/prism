@@ -1,0 +1,18 @@
+// Theorem 1 (mutual exclusion)
+
+filter(forall, num_crit <= 1)
+
+// Lemma C
+// If the crical section is occupied then eventually it becomes clear
+
+filter(forall, num_crit > 0 => P>=1 [ F num_crit = 0 ])
+
+// Lemma D
+// If a process is between 4 and 13 (in our version) then eventually some process gets to 14
+
+filter(forall, "some_4_13" => P>=1 [ F "some_14" ])
+
+// Theorem 2 (liveness)
+// If process 1 tries then eventually it enters the critical section
+
+filter(forall, p1=1 => P>=1 [ F p1=10 ])

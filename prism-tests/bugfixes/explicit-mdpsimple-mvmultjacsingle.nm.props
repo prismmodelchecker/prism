@@ -1,0 +1,8 @@
+// MDPSparse used for first formula (simple path formula), LTL-product (second formula) generates MDPSimple
+
+// RESULT : 0.9
+Pmax=?[ F "goal" ]
+
+// RESULT : 0.9
+Pmax=?[ (F "goal") & true]
+

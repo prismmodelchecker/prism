@@ -1,0 +1,97 @@
+// asynchronous leader election
+// 4 processes
+// gxn/dxp 29/01/01
+
+mdp
+
+const N= 4; // number of processes
+
+//----------------------------------------------------------------------------------------------------------------------------
+module process1
+	
+	// COUNTER
+	c1 : [0..4-1];
+	
+	// STATES
+	s1 : [0..4];
+	// 0  make choice
+	// 1 have not received neighbours choice
+	// 2 active
+	// 3 inactive
+	// 4 leader
+	
+	// PREFERENCE
+	p1 : [0..1];
+	
+	// VARIABLES FOR SENDING AND RECEIVING
+	receive1 : [0..2];
+	// not received anything
+	// received choice
+	// received counter
+	sent1 : [0..2];
+	// not send anything
+	// sent choice
+	// sent counter
+	
+	// pick value
+	[] (s1=0) -> 0.5 : (s1'=1) & (p1'=0) + 0.5 : (s1'=1) & (p1'=1);
+	
+	// send preference
+	[p12] (s1=1) & (sent1=0) -> (sent1'=1);
+	// receive preference
+	// stay active
+	[p41] (s1=1) & (receive1=0) & !( (p1=0) & (p4=1) ) -> (s1'=2) & (receive1'=1);
+	// become inactive
+	[p41] (s1=1) & (receive1=0) & (p1=0) & (p4=1) -> (s1'=3) & (receive1'=1);
+	
+	// send preference (can now reset preference)
+	[p12] (s1=2) & (sent1=0) -> (sent1'=1) & (p1'=0);
+	// send counter (already sent preference)
+	// not received counter yet
+	[c12] (s1=2) & (sent1=1) & (receive1=1) -> (sent1'=2);
+	// received counter (pick again)
+	[c12] (s1=2) & (sent1=1) & (receive1=2) -> (s1'=0) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	
+	// receive counter and not sent yet (note in this case do not pass it on as will send own counter)
+	[c41] (s1=2) & (receive1=1) & (sent1<2) -> (receive1'=2);
+	// receive counter and sent counter
+	// only active process (decide)
+	[c41] (s1=2) & (receive1=1) & (sent1=2) & (c4=N-1) -> (s1'=4) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	// other active process (pick again)
+	[c41] (s1=2) & (receive1=1) & (sent1=2) & (c4<N-1) -> (s1'=0) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	
+	// send preference (must have received preference) and can now reset
+	[p12] (s1=3) & (receive1>0) & (sent1=0) -> (sent1'=1) & (p1'=0);
+	// send counter (must have received counter first) and can now reset
+	[c12] (s1=3) & (receive1=2) & (sent1=1) ->  (s1'=3) & (p1'=0) & (c1'=0) & (sent1'=0) & (receive1'=0);
+	
+	// receive preference
+	[p41] (s1=3) & (receive1=0) -> (p1'=p4) & (receive1'=1);
+	// receive counter
+	[c41] (s1=3) & (receive1=1) & (c4<N-1) -> (c1'=c4+1) & (receive1'=2);
+		
+	// done
+	[done] (s1=4) -> (s1'=s1);
+	// add loop for processes who are inactive
+	[done] (s1=3) -> (s1'=s1);
+
+endmodule
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+// construct further stations through renaming
+module process2=process1[s1=s2,p1=p2,c1=c2,sent1=sent2,receive1=receive2,p12=p23,p41=p12,c12=c23,c41=c12,p4=p1,c4=c1] endmodule
+module process3=process1[s1=s3,p1=p3,c1=c3,sent1=sent3,receive1=receive3,p12=p34,p41=p23,c12=c34,c41=c23,p4=p2,c4=c2] endmodule
+module process4=process1[s1=s4,p1=p4,c1=c4,sent1=sent4,receive1=receive4,p12=p41,p41=p34,c12=c41,c41=c34,p4=p3,c4=c3] endmodule
+
+//----------------------------------------------------------------------------------------------------------------------------
+
+// reward - expected number of rounds (equals the number of times a process receives a counter)
+rewards
+	[c12] true : 1;
+endrewards
+
+//----------------------------------------------------------------------------------------------------------------------------
+formula leaders = (s1=4?1:0)+(s2=4?1:0)+(s3=4?1:0)+(s4=4?1:0);
+label "elected" = s1=4|s2=4|s3=4|s4=4;
+

@@ -1,0 +1,28 @@
+ctmc
+
+module M
+
+	s : [0..4];
+	
+	// Multiply rates by 10 to help distinguish from original DTMC
+	[] s=0 -> 4:(s'=1) + 6:(s'=3);
+	[] s=1 -> 10:(s'=2);
+	[] s=2 -> 10:(s'=1);
+	[] s=3 -> 10:(s'=4);
+	[] s=4 -> 10:(s'=3);
+
+endmodule
+
+rewards "a"
+	s=0: 2;
+endrewards
+
+rewards "b"
+	s=0: 2;
+	s=1: 5;
+endrewards
+
+rewards "c"
+	s=0: 2;
+	[] s=3: 5;
+endrewards

@@ -1,0 +1,17 @@
+// RESULT: true
+multi(R{"R1"}>=2.9[C<=2],R{"R2"}>=2[C<=2])
+
+// RESULT: false
+multi(R{"R1"}>=3[C<=2],R{"R2"}>=2[C<=2])
+
+// RESULT: 2.9
+multi(R{"R1"}max=?[C<=2],R{"R2"}>=2[C<=2])
+
+// RESULT: 1.0
+multi(R{"R1"}max=?[C<=1],R{"R2"}>=2[C<=2])
+
+// RESULT: 0.5
+multi(R{"R2"}max=?[C<=1],R{"R1"}>=2.95[C<=2])
+
+// RESULT: 0.4
+multi(R{"R4"}max=?[C<=2],R{"R1"}>=0.5[C<=1],R{"R3"}>=0.3[C<=2])

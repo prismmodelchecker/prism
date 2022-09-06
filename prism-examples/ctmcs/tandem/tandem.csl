@@ -1,0 +1,16 @@
+const double T;
+
+// long run expected customers in the network
+R=?[S]
+
+// probability network becomes full in T time units
+P=? [ true U<=T sc=c & sm=c & ph=2 ]
+
+// probability first queue becomes full in T time units
+P=? [ true U<=T sc=c ]
+
+// the minimimum probability of leaving a situation where the second queue is entirely populated within T time units
+P=? [ sm=c U<=T sm<c {sm=c}{min} ]
+
+// expected number of customers in the network
+R=?[I=T]

@@ -1,0 +1,12 @@
+// ex 6 (ish)
+// RESULT: 0.75
+Pmax=? [ F s=2 ]
+
+// ex 10
+// RESULT: 8
+Rmin=? [ F (s=2|s=3) ]
+// RESULT: 6
+Rmin=? [ F (s=2|s=3) {s=1} ]
+// RESULT: 0
+Rmin=? [ F (s=2|s=3) {s=2} ]
+

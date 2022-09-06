@@ -1,0 +1,7 @@
+#!/bin/csh
+
+prism herman7.pm herman.pctl -prop 1 -const k=0,K=0
+prism herman7.pm herman.pctl -prop 2 -const k=0,K=0
+prism herman7.pm herman.pctl -prop 3 -const k=1:2:7,K=0
+prism herman7.pm herman.pctl -prop 4 -const k=1:2:7,K=0
+prism herman7.pm herman.pctl -prop 5 -const k=0,K=1:1:100

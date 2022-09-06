@@ -1,0 +1,10 @@
+#!/bin/csh
+
+prism leader3.nm leader.pctl -const K=1 -m
+prism leader4.nm leader.pctl -const K=1 -m
+prism leader5.nm leader.pctl -const K=1 -m
+#prism leader6.nm leader.pctl -const K=1 -m
+#prism leader7.nm leader.pctl -const K=1 -m
+#prism leader8.nm leader.pctl -const K=1 -m
+#prism leader9.nm leader.pctl -const K=1 -m
+#prism leader10.nm leader.pctl -const K=1 -m

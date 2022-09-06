@@ -1,0 +1,16 @@
+//Error after line 1
+// RESULT : 0.265
+S=? [ x!=y ]
+
+//between the output of line1 and line 2
+// RESULT : 0.2119125
+S=? [ y!=z ]
+
+// after l1 + l2 with single transmission error either in l1 or l2
+// RESULT : 0.22131875
+S=? [x!=z & x!=y]
+
+//after l1+l2 with double transmission error in line1 and line 2
+// RESULT : 0.04368125
+S=? [x=z & x!=y]
+

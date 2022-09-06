@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | ConfiguringPRISM / SolutionMethodsAndOptions 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Configuring PRISM</a> /
+</p><h1>Solution Methods And Options</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>Separately from the choice of <a class='wikilink' href='ComputationEngines.html'>engines</a>,
+PRISM often offers several different solution methods
+that can be used for the computation of probabilities and expected costs/rewards during model checking.
+Many, but not all, of these are iterative numerical methods.
+The choice of method (and their settings) depends on the type of analysis that is being done (i.e., what type of model and property).
+</p>
+<div class='vspace'></div><h3>Linear Equation Systems</h3>
+<p>For many properties of Markov chains
+(e.g. "reachability"/"until" properties for DTMCs and CTMCs, steady-state properties for CTMCs and "reachability reward" properties for DTMCs),
+PRISM solves a set of linear equation systems, for which several numerical methods are available.
+Below is a list of the alternatives and the switches used to select them from the command-line.
+The corresponding GUI option is "Linear equations method".
+</p>
+<div class='vspace'></div><ul><li>Power method: <code>-power</code> (or <code>-pow</code>, <code>-pwr</code>)
+</li><li>Jacobi method: <code>-jacobi</code> (or <code>-jac</code>)
+</li><li>Gauss-Seidel method: <code>-gaussseidel</code> (or <code>-gs</code>)
+</li><li>Backwards Gauss-Seidel method: <code>-bgaussseidel</code> (or <code>-bgs</code>)
+</li><li>JOR method (Jacobi with over-relaxation): <code>-jor</code>
+</li><li>SOR method: <code>-sor</code>
+</li><li>Backwards SOR method: <code>-bsor</code>
+</li></ul><p class='vspace'>When using the MTBDD engine, Gauss-Seidel/SOR based methods are not available.
+When using the hybrid engine, <em>pseudo</em> variants of Gauss-Seidel/SOR based method can also be used [<a class='wikilink' href='../Main/References.html#Par02'>Par02</a>]
+(type <code>prism -help</code> at the command-line for details of the corresponding switches).
+For methods which use over-relaxation (JOR/SOR), the over-relaxation parameter (between 0.0 and 2.0)
+can also be specified with option "Over-relaxation parameter" (switch <code>-omega &lt;val&gt;</code>).
+</p>
+<p class='vspace'>For options relating to convergence (of this and other iterative methods),
+see the <a class='wikilink' href='SolutionMethodsAndOptions.html#convergence'>Convergence</a> section below.
+</p>
+<p class='vspace'><a name='mdp' id='mdp'></a>
+</p><h3>MDP Solution Methods</h3>
+<p>When analysing MDPs, there are multiple solution methods on offer.
+For most of these, you can select them under the "MDP solution method" setting from the GUI,
+or use the command-line switches listed below.
+Currently, all except value iteration are only supported by the <a class='wikilink' href='ComputationEngines.html'>explicit engine</a>.
+For more details of the methods, see e.g. [<a class='wikilink' href='../Main/References.html#FKNP11'>FKNP11</a>] (about probabilistic verification of MDPs)
+or classic MDP texts such as [<a class='wikilink' href='../Main/References.html#Put94'>Put94</a>]).
+</p>
+<div class='vspace'></div><ul><li><strong>Value iteration</strong> (switch <code>-valiter</code>) [this is the default]
+</li><li><strong>Gauss Seidel</strong> (switch <code>-gs</code>)
+</li><li><strong>Policy iteration</strong> (switch <code>-politer</code>)
+</li><li><strong>Modified policy iteration</strong> (switch <code>-modpoliter</code>)
+</li></ul><p class='vspace'>Where the methods above use iterative numerical solution,
+you can also use the settings under described in the <a class='wikilink' href='SolutionMethodsAndOptions.html#convergence'>Convergence</a> section below.
+</p>
+<p class='vspace'><a name='iiter' id='iiter'></a>
+</p><h3>Interval Iteration</h3>
+<p>Interval iteration [<a class='wikilink' href='../Main/References.html#HM14'>HM14</a>],[<a class='wikilink' href='../Main/References.html#BKLPW17'>BKLPW17</a>] is an alternative solution method for either MDPs or DTMCs
+which performs two separate instances of numerical iterative solution,
+one from below and one from above. This is designed to provide clearer information
+about the accuracy of the computed values and avoid possible problems with premature convergence.
+This can be enabled using the switch <code>-intervaliter</code> (or <code>-ii</code>)
+or via the "Use interval iteration" GUI option.
+A variety of options can be configured, either using
+<code>-intervaliter:option1,option2,...</code> or by
+setting the string "<code>option1,option2,...</code>" under "Interval iteration options" in the GUI.
+Type <code>prism -help intervaliter</code> from the command-line for a list of the options
+and see [<a class='wikilink' href='../Main/References.html#BKLPW17'>BKLPW17</a>] for the details.
+</p>
+<p class='vspace'><a name='topo' id='topo'></a>
+</p><h3>Topological Value Iteration</h3>
+<p>Topological value iteration is a variant of value iteration which improves efficiency
+by analysing the graph structure of the model and using this to update the values for
+states in an alternative order which increases the speed of convergence.
+Use switch <code>-topological</code> or GUI option "Use topological value iteration" to enable this.
+In addition to standard value iteration for MDPs, the topological variant can be used to optimise
+both interval iteration (see above) and the numerical solution of DTMCs.
+</p>
+<p class='vspace'><a name='transient' id='transient'></a>
+</p><h3>CTMC Transient Analysis</h3>
+<p>When computing transient probabilities of a CTMC
+(either <a class='wikilink' href='../RunningPRISM/ComputingSteady-stateAndTransientProbabilities.html'>directly</a> or when verifying <a class='wikilink' href='../PropertySpecification/ThePOperator.html#bounded'>time-bounded operators</a> of CSL), there are two options:
+<em>uniformisation</em> and <em>fast adaptive uniformisation</em> (FAU). These can be selected using the GUI option "Transient probability computation method", or using the command-line switch <code>-transientmethod &lt;name&gt;</code>, where <code>&lt;name&gt;</code> is either <code>unif</code> or <code>fau</code>.
+</p>
+<p class='vspace'><strong>Uniformisation</strong> is a standard iterative numerical method for computing transient probabilities on a CTMC, which works by reducing the problem to an analysis of a "uniformised" DTMC.
+As an optimisation, when it is detected that the transient probabilities have converged, no further iterations are performed. If necessary (e.g. in case of round-off problems), this optimisation can be disabled with the "Use steady-state detection" option (command-line switch <code>-nossdetect</code>).
+</p>
+<p class='vspace'><a name='fau' id='fau'></a>
+<strong>Fast adaptive uniformisation</strong> (FAU) [<a class='wikilink' href='../Main/References.html#MWDH10'>MWDH10</a>] is a method to efficiently approximate transient properties of large CTMCs. The basic idea is that only the parts of the model that are relevant for the current time period are kept in memory. In more detail, starting with the initial states, in each step FAU
+explores further states in a DTMC which is a discrete-time version of the original CTMC. By combining the
+probabilities there with those of a certain continuous-time stochastic process (a birth process), transient properties in the original CTMC can be computed. If it turns out that the probability of being in some state in the DTMC is below a given threshold, this state is removed from the model explored so far. After a given number of steps, which corresponds to the number of steps which are likely to happen within the time bound, the exploration can be stopped. In the implementation in PRISM [<a class='wikilink' href='../Main/References.html#DHK13'>DHK13</a>], FAU can be used to compute transient probability distributions and to model check the following types of non-nested CSL formulas: time-bounded until, instantaneous reward, cumulative reward.
+</p>
+<p class='vspace'>The following options can be used to configure FAU:
+</p>
+<div class='vspace'></div><ul><li>"FAU epsilon" (switch <code>-fauepsilon &lt;x&gt;</code>): FAU analyses the DTMC for a number of iterations such that the probability of more steps being relevant is below this value. The default is 1e-6.
+<div class='vspace'></div></li><li>"FAU cut off delta" (switch <code>-faudelta &lt;x&gt;</code>): States that have a lower probability than this value are discarded. The default is 1e-12.
+<div class='vspace'></div></li><li>"FAU array threshold" (switch <code>-fauarraythreshold &lt;x&gt;</code>): After this number of steps without any new states being explored or discarded, FAU will switch to a faster, fixed-size data structure until further states have to be explored or discarded. The default is 100.
+<div class='vspace'></div></li><li>"FAU time intervals" (switch <code>-fauintervals &lt;x&gt;</code>): In some cases, it is advantageous to divide the time interval the analysis is done for into several smaller intervals. This option dictates the number of (equal length) intervals used for this split. The default is 1, meaning that only one time interval is used.
+<div class='vspace'></div></li><li>"FAU initial time interval" (switch <code>-fauinitival &lt;x&gt;</code>): It is also possible to specify an additional initial time interval which is handled separately from the rest of the time. This is often advantageous, because in this interval certain parameters of the model can be explored, which can subsequently be used to speed up the computation of the remaining time interval. The default for this option is 1.0.
+</li></ul><p class='vspace'><a name='convergence' id='convergence'></a>
+</p><h3>Convergence</h3>
+<p>Common to all of these methods is the way that PRISM checks convergence, i.e. decides when to terminate the iterative methods because the answers have converged sufficiently. This is done by checking when the maximum difference between elements in the solution vectors from successive iterations drops below a given threshold (or, in the case of interval iteration, if the difference of the elements in the iterations from above and below are below the threshold).
+The default value for this threshold is 10<sup>-6</sup> but it can be altered with the "Termination epsilon" option (switch <code>-epsilon &lt;val&gt;</code>). The way that the maximum difference is computed can also be varied:
+either "relative" or "absolute" (the default is "relative"). This can be changed using the "Termination criteria" option (command-line switches <code>-relative</code> and <code>-absolute</code>, or <code>-rel</code> and <code>-abs</code> for short).
+</p>
+<p class='vspace'>Also, the maximum number of iterations performed is given an upper limit
+in order to trap the cases when computation will not converge.
+The default limit is 10,000 but can be changed with the "Termination max. iterations" option (switch <code>-maxiters &lt;val&gt;</code>). Computations that reach this upper limit will trigger an error during model checking to alert the user to this fact.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Configuring PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Introduction</a>
+</li><li><a class='wikilink' href='ComputationEngines.html'>Computation Engines</a>
+</li><li><a class='selflink' href='SolutionMethodsAndOptions.html'>Solution Methods And Options</a>
+</li><li><a class='wikilink' href='AutomataGeneration.html'>Automata Generation</a>
+</li><li><a class='wikilink' href='OtherOptions.html'>Other Options</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

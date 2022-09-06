@@ -1,0 +1,23 @@
+ctmc
+
+module M1
+
+	x : [0..2];
+
+	[a] x=0 -> (x'=1);
+	[] x>0 -> true;
+	
+endmodule
+
+module M2
+
+	y : [0..2];
+	
+	[a] y=0 -> (y'=1);
+	[] y>0 -> true;
+	
+endmodule
+
+system
+	M1 ||| M2
+endsystem

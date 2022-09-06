@@ -1,0 +1,27 @@
+// single cell in wireless communication network [HMPT01]
+// gxn/dxp 5/3/01
+
+ctmc
+
+const int N; // N - number of channels
+const double lambda1=49; // arrival rate of new calls
+const double lambda2=21; // arrival rate of hand-off calls
+const double mu=1; // departure rate of calls
+
+module cell
+	
+	n : [0..N]; // number of calls in the cell
+	
+	// arrival of new call
+	[] (n<N*0.8) -> lambda1 : (n'=n+1);
+	// arrival of hand of call
+	[] (n<N) -> lambda2 : (n'=n+1);
+	// completion of call or mobile departs cell
+	[] (n>0) -> n*mu : (n'=n-1);
+	
+endmodule
+
+// rewards - number calls in the cell
+rewards "calls"
+	true : n;
+endrewards

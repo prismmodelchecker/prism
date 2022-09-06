@@ -1,0 +1,34 @@
+// this is a test case to check that complex
+// probability expression are handled correctly
+
+dtmc
+
+// the param constant
+const double p;
+
+// other constants
+const int x = 3;
+const double y = 1/3;
+const double z;
+
+module M1
+  s: [0..10] init 0;
+
+  // ITE, depending on state value
+  [] s<=4 -> (s<3 ? p : 0.5):(s'=s+1) + (s<3 ? 1-p : 1/2):(s'=s); 
+  // ITE, depending on state value and constant
+  [] s=5  -> (s>x ? p : 0.5):(s'=s+1) + (s>x ? 1-p : 1/2):(s'=s);
+  // min (over constants and state values)
+  [] s=6  -> (min(x,y,z,s)>0.1 ? p : 0.5):(s'=s+1) + (min(x,y,z,s)>0.1 ? 1-p : 1/2):(s'=s);
+  // max (over constants and state values)
+  [] s=7  -> (max(x,y,z,s)=7 ? p : 0.5):(s'=s+1) + (max(x,y,z,s)=7 ? 1-p : 1/2):(s'=s);
+  // floor
+  [] s=8  -> (floor(s+y)=8 ? p : 0.5):(s'=s+1) + (floor(s+y)=8 ? 1-p : 1/2):(s'=s);
+  // floor
+  [] s=9  -> (ceil(s+y)=10 ? p : 0.5):(s'=s+1) + (ceil(s+y)=10 ? 1-p : 1/2):(s'=s);
+  [] s=10  -> true;
+endmodule
+
+rewards
+  true : 1;
+endrewards

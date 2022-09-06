@@ -1,0 +1,46 @@
+const double T; // time bound
+
+// causes of failues
+label "fail_sensors" = i=2&s<MIN_SENSORS; // sensors have failed
+label "fail_actuators" = o=2&a<MIN_ACTUATORS; // actuators have failed
+label "fail_io" = count=MAX_COUNT+1; // IO has failed
+label "fail_main" = m=0; // ,main processor has failed
+
+// system status
+label "down" = (i=2&s<MIN_SENSORS)|(count=MAX_COUNT+1)|(o=2&a<MIN_ACTUATORS)|(m=0); // system has shutdown
+label "danger" = !down & (i=1 | o=1); // transient fault has occured
+label "up" = !down & !danger; // system is operational
+
+// Probability of any failure occurring within T hours
+P=? [ true U<=(T*3600) "down" ]
+
+// Probability of each failure type occurring first (within T hours)
+P=? [ !"down" U<=(T*3600) "fail_sensors" ]
+P=? [ !"down" U<=(T*3600) "fail_actuators" ]
+P=? [ !"down" U<=(T*3600) "fail_io" ]
+P=? [ !"down" U<=(T*3600) "fail_main" ]
+
+// Probability of any failure occurring within T days
+P=? [ true U<=(T*3600*24) "down" ]
+
+// Probability of each failure type occurring first (within T days)
+P=? [ !"down" U<=(T*3600*24) "fail_sensors" ]
+P=? [ !"down" U<=(T*3600*24) "fail_actuators" ]
+P=? [ !"down" U<=(T*3600*24) "fail_io" ]
+P=? [ !"down" U<=(T*3600*24) "fail_main" ]
+
+
+// Long-run probability of each failure type occurring
+P=? [ !"down" U "fail_sensors" ]
+P=? [ !"down" U "fail_actuators" ]
+P=? [ !"down" U "fail_io" ]
+P=? [ !"down" U "fail_main" ]
+
+// Expected time spent in "up"/"danger"/"down" by time T
+R{"up"}=? [ C<=(T*3600) ]
+R{"danger"}=? [ C<=(T*3600) ]
+R{"down"}=? [ C<=(T*3600) ]
+
+// Expected time spent in "up"/"danger" before "down"
+R{"up"}=? [ F "down" ]
+R{"danger"}=? [ F "down" ]

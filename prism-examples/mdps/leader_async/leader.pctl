@@ -1,0 +1,14 @@
+// only one leader is elected
+fiter(forall, leaders<=1)
+
+// with probability 1 eventually a leader is elected
+P>=1 [ F "elected" ]
+
+// min/max probability leader is elected within K steps
+const int K;
+Pmin=? [ F<=K "elected" ]
+Pmax=? [ F<=K "elected" ]
+
+// the min/max expected time to elect a leader
+Rmin=? [ F "elected" ]
+Rmax=? [ F "elected" ]

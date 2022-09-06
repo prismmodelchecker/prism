@@ -1,0 +1,8 @@
+	// RESULT: true (should be satisfied by {0,1})
+	filter(forall, P<0.8 [ (G !(s=3)) & (G F (s=6)) ], s=0|s=1);
+	// RESULT: true (should be satisfied by {0,1})
+	filter(count, P<0.8 [ (G !(s=3)) & (G F (s=6)) ]) = 2;
+	// RESULT: true (should be satisfied by {3})
+	filter(forall, P>0 [ (G !(s=3)) & (G F (s=6)) ], s=6);
+	// RESULT: true (should be satisfied by {3})
+	filter(count, P>0 [ (G !(s=3)) & (G F (s=6)) ]) = 1;

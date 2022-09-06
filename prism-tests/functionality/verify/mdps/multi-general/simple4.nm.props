@@ -1,0 +1,23 @@
+// RESULT: 2.2
+multi(R{"R1"}max=? [ C ],P>=0.4 [ G F s=1 ],P>=0.6 [ G F s=2 ])
+
+// RESULT: 2.2
+multi(R{"R1"}max=? [ C ],P>=0.4 [ G F s=1 ],P>=0.4 [ G F s=2 ])
+
+// RESULT: 2.6
+multi(R{"R2"}max=? [ C ],P>=0.4 [ G F s=1 ],P>=0.4 [ G F s=2 ])
+
+// RESULT: true
+multi(P>=0.4 [ G F s=2 ],P>=0.6 [ G F s=1 ])
+
+// RESULT: true
+multi(P>=0.4 [ F s=2 ],P>=0.6 [ G F s=1 ])
+
+// RESULT: 0.4
+multi(Pmax=? [ F s=2 ],P>=0.6 [ G F s=1 ])
+
+// RESULT: 1.0
+multi(R{"R1"}min=? [ C ], R{"R2"}>=0 [ C ])
+
+// RESULT: 3.0
+multi(R{"R1"}max=? [ C ], R{"R2"}>=0 [ C ])

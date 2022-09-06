@@ -1,0 +1,6 @@
+	// Use GS because Jacobi converges v slowly
+	
+	// RESULT: 3150000/19062347
+	S=? [ na=2 ];
+	// RESULT: 162702420/19062347
+	R=? [ S ];

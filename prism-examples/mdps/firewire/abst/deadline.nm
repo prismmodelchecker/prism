@@ -1,0 +1,79 @@
+// integer semantics version of abstract firewire protocol
+// with clock for deadline properties
+// gxn 23/05/2001
+
+mdp
+
+// deadline
+const int deadline;
+const int ky = deadline;
+// wire delay (based on max length of wire)
+const int delay;
+// probability of choosing fast
+const double fast;
+const double slow = 1-fast;
+
+// maximal constant
+const int kx = 167;
+
+module abstract_firewire
+	
+	// deadline clock
+	y : [0..ky+1];
+	
+	// model clock 
+	x : [0..kx+1];
+	
+	// local state
+	s : [0..11];
+	// 0 -start_start
+	// 1 -fast_start
+	// 2 -start_fast
+	// 3 -start_slow
+	// 4 -slow_start
+	// 5 -fast_fast
+	// 6 -fast_slow
+	// 7 -slow_fast
+	// 8 -slow_slow
+	// 9 -seldone
+	// 10 -done_before
+	// 11 -done_after
+	
+	// initial state
+	[] (s=0) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=0) -> fast : (s'=1) + slow : (s'=4);
+	[] (s=0) -> fast : (s'=2) + slow : (s'=3);
+	// fast_start
+	[] (s=1) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=1) -> fast : (s'=5) & (x'=0) + slow : (s'=6) & (x'=0);
+	// start_fast
+	[] (s=2) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=2) -> fast : (s'=5) & (x'=0) + slow : (s'=7) & (x'=0);
+	// start_slow
+	[] (s=3) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=3) -> fast : (s'=6) & (x'=0) + slow : (s'=8) & (x'=0);
+	// slow_start
+	[] (s=4) & (x<delay) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=4) -> fast : (s'=7) & (x'=0) + slow : (s'=8) & (x'=0);
+	// fast_fast
+	[] (s=5) & (x<85) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=5) & (x>=76) -> (s'=0) & (x'=0);
+	[] (s=5) & (x>=76-delay) -> (s'=9) & (x'=0);
+	// fast_slow
+	[] (s=6) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=6) & (x>=159-delay) -> (s'=9) & (x'=0);
+	// slow_fast
+	[] (s=7) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=7) & (x>=159-delay) -> (s'=9) & (x'=0);
+	// slow_slow
+	[] (s=8) & (x<167) -> (x'=min(x+1,kx+1)) & (y'=min(y+1,ky+1));
+	[] (s=8) & (x>=159) -> (s'=0) & (x'=0);
+	[] (s=8) & (x>=159-delay) -> (s'=9) & (x'=0);
+	
+	// move to deadline exceeded when y>=deadline
+	[] (y<=deadline) & (s=9) -> (s'=10) & (y'=0);
+	[] (y>deadline) & (s=9) -> (s'=11) & (y'=0);
+	// done
+	[] (s>=10) -> true;
+	
+endmodule

@@ -1,0 +1,21 @@
+const double T; // time bound
+
+// the maximum probability that a hand off call can be dropped within t time units (assuming a guarded channel is free)
+P=?[ true U<=T (n=N) {n<N}{max} ]
+
+// the maximum probability that a call can be dropped within t time units (assuming a non-guarded channel is free)
+P=?[ true U<=T (n>=N*0.8) {n<N*0.8}{max} ]
+
+// the minimum probability that a cell will be accepted within T time units (assuming no channels are free)
+P=?[ true U<=T (n<N*0.8) {n=N}{min} ]
+
+// the expected number of calls at time T
+R{"calls"}=? [ I=T ]
+
+// the probability that in the long run any call can be dropped
+S=? [ n<N*0.8 ]
+
+// the expected number calls in the cell in the long run
+R{"calls"}=? [ S ]
+
+

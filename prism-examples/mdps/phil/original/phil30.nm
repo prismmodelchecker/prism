@@ -1,0 +1,67 @@
+// randomized dining philosophers [LR81]
+// dxp/gxn 12/12/99
+// atomic formulae 
+// left fork free and right fork free resp.
+formula lfree = (p2>=0&p2<=4)|p2=6|p2=10;
+formula rfree = (p30>=0&p30<=3)|p30=5|p30=7|p30=11;
+
+module phil1
+
+	p1: [0..11];
+
+	[] p1=0 -> (p1'=0); // stay thinking
+	[] p1=0 -> (p1'=1); // trying
+	[] p1=1 -> 0.5 : (p1'=2) + 0.5 : (p1'=3); // draw randomly
+	[] p1=2 &  lfree -> (p1'=4); // pick up left
+	[] p1=2 &  !lfree -> (p1'=2); // left not free
+	[] p1=3 &  rfree -> (p1'=5); // pick up right
+	[] p1=3 &  !rfree -> (p1'=3); // right not free
+	[] p1=4 &  rfree -> (p1'=8); // pick up right (got left)
+	[] p1=4 & !rfree -> (p1'=6); // right not free (got left)
+	[] p1=5 &  lfree -> (p1'=8); // pick up left (got right)
+	[] p1=5 & !lfree -> (p1'=7); // left not free (got right)
+	[] p1=6  -> (p1'=1); // put down left
+	[] p1=7  -> (p1'=1); // put down right
+	[] p1=8  -> (p1'=9); // move to eating (got forks)
+	[] p1=9  -> (p1'=10); // finished eating and put down left 
+	[] p1=9  -> (p1'=11); // finished eating and put down right
+	[] p1=10 -> (p1'=0); // put down right and return to think
+	[] p1=11 -> (p1'=0); // put down left and return to think
+
+endmodule
+
+// construct further modules through renaming
+module phil2 = phil1 [ p1=p2, p2=p3, p30=p1 ] endmodule
+module phil3 = phil1 [ p1=p3, p2=p4, p30=p2 ] endmodule
+module phil4 = phil1 [ p1=p4, p2=p5, p30=p3 ] endmodule
+module phil5 = phil1 [ p1=p5, p2=p6, p30=p4 ] endmodule
+module phil6 = phil1 [ p1=p6, p2=p7, p30=p5 ] endmodule
+module phil7 = phil1 [ p1=p7, p2=p8, p30=p6 ] endmodule
+module phil8 = phil1 [ p1=p8, p2=p9, p30=p7 ] endmodule
+module phil9 = phil1 [ p1=p9, p2=p10, p30=p8 ] endmodule
+module phil10 = phil1 [ p1=p10, p2=p11, p30=p9 ] endmodule
+module phil11 = phil1 [ p1=p11, p2=p12, p30=p10 ] endmodule
+module phil12 = phil1 [ p1=p12, p2=p13, p30=p11 ] endmodule
+module phil13 = phil1 [ p1=p13, p2=p14, p30=p12 ] endmodule
+module phil14 = phil1 [ p1=p14, p2=p15, p30=p13 ] endmodule
+module phil15 = phil1 [ p1=p15, p2=p16, p30=p14 ] endmodule
+module phil16 = phil1 [ p1=p16, p2=p17, p30=p15 ] endmodule
+module phil17 = phil1 [ p1=p17, p2=p18, p30=p16 ] endmodule
+module phil18 = phil1 [ p1=p18, p2=p19, p30=p17 ] endmodule
+module phil19 = phil1 [ p1=p19, p2=p20, p30=p18 ] endmodule
+module phil20 = phil1 [ p1=p20, p2=p21, p30=p19 ] endmodule
+module phil21 = phil1 [ p1=p21, p2=p22, p30=p20 ] endmodule
+module phil22 = phil1 [ p1=p22, p2=p23, p30=p21 ] endmodule
+module phil23 = phil1 [ p1=p23, p2=p24, p30=p22 ] endmodule
+module phil24 = phil1 [ p1=p24, p2=p25, p30=p23 ] endmodule
+module phil25 = phil1 [ p1=p25, p2=p26, p30=p24 ] endmodule
+module phil26 = phil1 [ p1=p26, p2=p27, p30=p25 ] endmodule
+module phil27 = phil1 [ p1=p27, p2=p28, p30=p26 ] endmodule
+module phil28 = phil1 [ p1=p28, p2=p29, p30=p27 ] endmodule
+module phil29 = phil1 [ p1=p29, p2=p30, p30=p28 ] endmodule
+module phil30 = phil1 [ p1=p30, p2=p1, p30=p29 ] endmodule
+
+// labels
+label "hungry" = ((p1>0)&(p1<8))|((p2>0)&(p2<8))|((p3>0)&(p3<8))|((p4>0)&(p4<8))|((p5>0)&(p5<8))|((p6>0)&(p6<8))|((p7>0)&(p7<8))|((p8>0)&(p8<8))|((p9>0)&(p9<8))|((p10>0)&(p10<8))|((p11>0)&(p11<8))|((p12>0)&(p12<8))|((p13>0)&(p13<8))|((p14>0)&(p14<8))|((p15>0)&(p15<8))|((p16>0)&(p16<8))|((p17>0)&(p17<8))|((p18>0)&(p18<8))|((p19>0)&(p19<8))|((p20>0)&(p20<8))|((p21>0)&(p21<8))|((p22>0)&(p22<8))|((p23>0)&(p23<8))|((p24>0)&(p24<8))|((p25>0)&(p25<8))|((p26>0)&(p26<8))|((p27>0)&(p27<8))|((p28>0)&(p28<8))|((p29>0)&(p29<8))|((p30>0)&(p30<8));
+label "eat" = ((p1>=8)&(p1<=9))|((p2>=8)&(p2<=9))|((p3>=8)&(p3<=9))|((p4>=8)&(p4<=9))|((p5>=8)&(p5<=9))|((p6>=8)&(p6<=9))|((p7>=8)&(p7<=9))|((p8>=8)&(p8<=9))|((p9>=8)&(p9<=9))|((p10>=8)&(p10<=9))|((p11>=8)&(p11<=9))|((p12>=8)&(p12<=9))|((p13>=8)&(p13<=9))|((p14>=8)&(p14<=9))|((p15>=8)&(p15<=9))|((p16>=8)&(p16<=9))|((p17>=8)&(p17<=9))|((p18>=8)&(p18<=9))|((p19>=8)&(p19<=9))|((p20>=8)&(p20<=9))|((p21>=8)&(p21<=9))|((p22>=8)&(p22<=9))|((p23>=8)&(p23<=9))|((p24>=8)&(p24<=9))|((p25>=8)&(p25<=9))|((p26>=8)&(p26<=9))|((p27>=8)&(p27<=9))|((p28>=8)&(p28<=9))|((p29>=8)&(p29<=9))|((p30>=8)&(p30<=9));
+

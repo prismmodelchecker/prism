@@ -1,0 +1,18 @@
+const int k; // number of tokens
+const int K; // number of steps
+
+// labels
+label "k_tokens" = num_tokens=k; // configurations with k tokens
+
+// From any configuration, a stable configuration is reached with probability 1
+filter(forall, "init" => P>=1 [ F "stable" ])
+
+// Maximum expected time to reach a stable configuration (for all configurations)
+Rmax=? [ F "stable" {"init"}{max} ]
+
+// Maximum/minimum expected time to reach a stable configuration (for all k-token configurations)
+Rmax=? [ F "stable" {"k_tokens"}{max} ]
+Rmin=? [ F "stable" {"k_tokens"}{min} ]
+
+// Minimum probability reached a stable configuration within K steps (for all configurations)
+Pmin=? [ F<=K "stable" {"init"}{min} ]

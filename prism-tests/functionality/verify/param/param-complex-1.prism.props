@@ -1,0 +1,7 @@
+// probability of reaching trap state
+// RESULT: 1
+P=?[ F s=10 ]
+
+// expected number of steps util reaching trap state
+// RESULT: 4+8/p
+R=?[ F s=10 ]

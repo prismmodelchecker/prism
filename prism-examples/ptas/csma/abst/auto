@@ -1,0 +1,7 @@
+#!/bin/csh
+
+prism csma.nm -const K=1 eventually.pctl -aroptions refine=all,nopre,opt
+
+prism csma.nm -const K=1 deadline.pctl -const T=1000 -aroptions refine=all,nopre,opt
+prism csma.nm -const K=1 deadline.pctl -const T=2000 -aroptions refine=all,nopre,opt
+prism csma.nm -const K=1 deadline.pctl -const T=3000 -aroptions refine=all,nopre,opt

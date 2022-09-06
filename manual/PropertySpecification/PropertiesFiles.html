@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | PropertySpecification / PropertiesFiles 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Property Specification</a> /
+</p><h1>Properties Files</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<h3>Constants</h3>
+<p>Files containing properties to be analysed by PRISM can also contain constants, as is the case for model files.
+These are defined in identical fashion, for example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">k</span> = <span class="prismnum">7</span>;<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span> = <span class="prismnum">9.5</span>;<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">p</span> = <span class="prismnum">0.01</span>;<br/>
+<br/>
+<span class="prismkeyword">P</span>&lt;<span class="prismident">p</span> [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">x</span>=<span class="prismident">k</span> ];<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PropertiesFiles?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>As before, these constants can actually be left undefined and then later
+assigned either a single value or a range of values using <a class='wikilink' href='../RunningPRISM/Experiments.html'>experiments</a>.
+</p>
+<p class='vspace'>In fact, values such as the probability bounds for the <code><strong>P</strong></code> or <code><strong>S</strong></code> operators (like <code><strong>P</strong></code> above)
+and upper or lower bounds for the <code><strong>U</strong></code> operator (like <code> T</code> above)
+can be arbitrary expressions, provided they are constant.
+Furthermore, expressions in the properties file can also refer to constants previous defined in the model file.
+</p>
+<p class='vspace'><a name='labels' id='labels'></a>
+</p><h3>Labels</h3>
+<p>Another feature of properties files is <em>labels</em>. These are a way of defining sets of states that will be referred to in properties (they correspond to <em>atomic propositions</em> in a temporal logic setting). As described <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>earlier</a>, labels can be defined in either model files or property files.
+</p>
+<p class='vspace'>Labels are defined using the keyword <code><strong>label</strong></code>, followed by a name (identifier) in double quotes, and then an expression which evaluates to a Boolean. Definition and usage of labels are illustrated in the following example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">label</span> "<span class="prismident">safe</span>" = <span class="prismident">temp</span>&lt;=<span class="prismnum">100</span> | <span class="prismident">alarm</span>=<span class="prismkeyword">true</span>;<br/>
+<span class="prismkeyword">label</span> "<span class="prismident">fail</span>" = <span class="prismident">temp</span>&gt;<span class="prismnum">100</span> &amp; <span class="prismident">alarm</span>=<span class="prismkeyword">false</span>;<br/>
+<br/>
+<span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.99</span> [ "<span class="prismident">safe</span>" <span class="prismkeyword">U</span> "<span class="prismident">fail</span>" ];<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PropertiesFiles?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Two special cases are the <code>"init"</code> and <code>"deadlock"</code> labels which are always defined.
+These are true in initial states of the model and states where deadlocks were found (and, usually, fixed by adding self-loops), respectively.
+</p>
+<p class='vspace'><a name='names' id='names'></a>
+</p><h3>Property names</h3>
+<p>For convenience, properties can be annotated with <em>names</em>, as shown in the following example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism">"<span class="prismident">safe</span>": <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> <span class="prismident">temperature</span> &gt; <span class="prismident">t_max</span> ];<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PropertiesFiles?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which gives the name <code>"safe"</code> to the property. It is then possible to include named properties as sub-expressions of other properties, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismident">num_sensors</span>&gt;<span class="prismnum">0</span> =&gt; "<span class="prismident">safe</span>");<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/PropertiesFiles?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Notice that the syntax for referring to named properties is identical to the syntax for labels. For this reason, property names must be disjoint from those of any existing labels.
+</p>
+<p class='vspace'>You can refer to property names when using the command-line switch <a class='wikilink' href='../RunningPRISM/ModelChecking.html#cl'><code>-prop</code></a> to specify which property is to be model checked.
+</p>
+<div class='vspace'></div><h3>Properties files</h3>
+<p>A PRISM properties file can contain any number of properties.
+It is good practice, as shown in the examples above, to terminate each property with a semicolon. Currently, this is not enforced by PRISM (to prevent incompatibility with old properties files) but this may change in the future.
+</p>
+<p class='vspace'>Like model files, properties can also include any amount of white space (spaces, tabs, new lines, etc.) and C-style comments, which are both ignored.
+The recommended file extension for PRISM properties is now <code>.props</code>.
+Previously, though, the convention was to use extension <code>.pctl</code> for properties of DTMCs, MDPs or PTAs
+and extension <code>.csl</code> for properties of CTMCs, so these are still also valid.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Property Specification</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Introduction</a>
+</li><li><a class='wikilink' href='IdentifyingASetOfStates.html'>Identifying A Set Of States</a>
+</li><li><a class='wikilink' href='ThePOperator.html'>The P Operator</a>
+</li><li><a class='wikilink' href='TheSOperator.html'>The S Operator</a>
+</li><li><a class='wikilink' href='Reward-basedProperties.html'>Reward-based Properties</a>
+</li><li><a class='wikilink' href='Non-probabilisticProperties.html'>Non-probabilistic Properties</a>
+</li><li><a class='wikilink' href='SyntaxAndSemantics.html'>Syntax And Semantics</a>
+</li><li><a class='wikilink' href='Filters.html'>Filters</a>
+</li><li><a class='wikilink' href='PTAProperties.html'>PTA Properties</a>
+</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
+</li><li><a class='selflink' href='PropertiesFiles.html'>Properties Files</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

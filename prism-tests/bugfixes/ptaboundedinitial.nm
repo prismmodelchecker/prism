@@ -1,0 +1,21 @@
+// PTA time-bounded bug fixed in trunk rev 11569
+// (and related catch of negative time bounds fixed in rev 11570)
+
+pta
+
+module M
+	
+	s:[0..6] init 0;
+	x: clock;
+	
+	invariant
+		(true => x<=5)
+	endinvariant
+	
+	[] s=0 & x>=5 -> 0.5:(s'=1)&(x'=0) + 0.5:(s'=2)&(x'=0);
+	[] s=1 & x>=1 -> 0.5:(s'=3)&(x'=0)+ 0.5:(s'=4)&(x'=0);
+	[] s=2 & x>=5 -> 0.5:(s'=5)&(x'=0) + 0.5:(s'=6)&(x'=0);
+	[] s>2 & x>=5 -> (s'=s)&(x'=0);
+	
+	
+endmodule

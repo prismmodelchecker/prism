@@ -1,0 +1,32 @@
+
+# -------------------------------------------------------------------
+# This is a build file for the lp_solve Java wrapper stub library
+# on Mac OS X platforms.
+#
+# Requirements and preconditions:
+#
+# - gcc and g++ compiler installed (I used gcc Version 3.3 20030304 )
+# - Apple JDK 1.4 installed (I have JDK 1.4.2)
+# - lp_solve archive (lp_solve_5.5_source.tar.gz) unpacked
+#
+# Change the paths below this line and you should be ready to go!
+# -------------------------------------------------------------------
+LPSOLVE_DIR=../../../lpsolve55/src/lp_solve_5.5
+LPSOLVE_LIB_DIR=../../../../lib
+#JDK_DIR=/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers
+#JDK_DIR=$JAVA_DIR
+
+# OK, here we go!
+
+SRC_DIR=../../src/c
+INCL="-I$JAVA_JNI_H_DIR -I$JAVA_JNI_MD_H_DIR -I $LPSOLVE_DIR -I $SRC_DIR -idirafter /usr/include/sys"
+
+if [ "$ARCH" = "" ]
+then
+	CFLAGS=-"arch i386 -fno-common"
+else
+	CFLAGS="-arch x86_64 -fPIC -DPIC -fno-common"
+fi
+
+g++ $CFLAGS $INCL -c $SRC_DIR/lpsolve5j.cpp
+g++ $CFLAGS -dynamiclib lpsolve5j.o -compatibility_version 5.5.0 -current_version 5.5.0 -o liblpsolve55j.jnilib -lc -llpsolve55 -L$LPSOLVE_LIB_DIR

@@ -1,0 +1,18 @@
+// Simple MDP from Lec 13 of Probabilistic Model Checking
+
+mdp
+
+module M
+
+s:[0..3];
+
+[] s=0 -> 1:(s'=1);
+[] s=0 -> 0.25:(s'=0) + 0.5:(s'=2) + 0.25:(s'=3);
+[] s=1 -> 0.1:(s'=0) + 0.5:(s'=1) + 0.4:(s'=2);
+[] s=2 -> 1:(s'=2);
+[] s=3 -> 1:(s'=2);
+[] s=3 -> 1:(s'=3);
+
+endmodule
+
+label "a" = s=2;

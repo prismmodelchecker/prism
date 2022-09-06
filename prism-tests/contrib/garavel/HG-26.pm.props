@@ -1,0 +1,15 @@
+
+// long run probability that s = 0
+// RESULT: ~0.6209277663961226
+S=? [s = 0]
+
+// = b / (a+b)
+
+
+// long run probability that s = 1
+// RESULT: ~0.3790722336038772
+S=? [s = 1]
+
+// = a / (a+b)
+
+

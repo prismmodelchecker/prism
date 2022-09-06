@@ -1,0 +1,2 @@
+// Liveness (if a philosopher is hungry then eventually some philosopher eats)
+filter(forall, "hungry" => P>=1 [ F "eat" ])

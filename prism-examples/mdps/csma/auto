@@ -1,0 +1,12 @@
+#!/bin/csh
+
+prism csma2_2.nm csma.pctl -const k=1 -s
+prism csma2_4.nm csma.pctl -const k=1 -s
+prism csma2_6.nm csma.pctl -const k=1 -s
+prism csma3_2.nm csma.pctl -const k=1 -s
+prism csma3_4.nm csma.pctl -const k=1 -s
+#prism csma3_6.nm csma.pctl -const k=1 -s
+prism csma4_2.nm csma.pctl -const k=1 -s
+#prism csma4_4.nm csma.pctl -const k=1 -s
+#prism csma4_6.nm csma.pctl -const k=1 -s
+

@@ -1,0 +1,2 @@
+-ctmc -importmodel poll2.all poll2.sm.props
+-ctmc -importmodel poll2.all poll2.sm.props -ex

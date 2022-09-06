@@ -1,0 +1,29 @@
+#!/bin/csh
+
+prism wlan0.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+prism wlan1.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+prism wlan2.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+#prism wlan3.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+#prism wlan4.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+#prism wlan5.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+#prism wlan6.nm wlan.pctl -const TRANS_TIME_MAX=10,k=2 -m
+
+
+# probability collide
+prism wlan0_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+prism wlan1_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+prism wlan2_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+#prism wlan3_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+#prism wlan4_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+#prism wlan5_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+#prism wlan6_collide.nm wlan_collide.pctl -const COL=2,TRANS_TIME_MAX=10,k=2
+
+# time bounded
+prism wlan0_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+prism wlan1_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+prism wlan2_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+#prism wlan3_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+#prism wlan4_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+#prism wlan5_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+#prism wlan6_time_bounded.nm wlan_time_bounded.pctl -const TRANS_TIME_MAX=10,DEADLINE=100 -nopre -m -prop 3
+

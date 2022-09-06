@@ -1,0 +1,19 @@
+// Bug fix in svn rev 11036
+// (the first of these used to be mis-detected as timed LTL properties)
+
+// RESULT: true
+P>0.5 [ X F P>0 [ F<=4 "a" ] ]
+// RESULT: true
+P>=1 [ F<=1 P>0 [ X F "a" ] ]
+// RESULT: true
+P>0.5 [ F>=1 P>0 [ X F "a" ] ]
+
+// These ones *should* fail for now
+// since there is no support for timed LTL currently
+
+// RESULT: Error "not supported"
+P>0.5 [ X F P>0 [ X F<=4 "a" ] ]
+// RESULT: Error "not supported"
+P>0.5 [ X F<=1 P>0 [ X F "a" ] ]
+// RESULT: Error "not supported"
+P>0.5 [ X F P>0 [ X F<=1 "a" ] ]

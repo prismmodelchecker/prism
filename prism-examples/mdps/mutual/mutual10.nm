@@ -1,0 +1,71 @@
+// mutual exclusion [PZ82]
+// dxp/gxn 19/12/99
+
+mdp
+
+// atomic formula
+// none in low, high, tie
+formula none_lht = !(p2>=4&p2<=13)&!(p3>=4&p3<=13)&!(p4>=4&p4<=13)&!(p5>=4&p5<=13)&!(p6>=4&p6<=13)&!(p7>=4&p7<=13)&!(p8>=4&p8<=13)&!(p9>=4&p9<=13)&!(p10>=4&p10<=13);
+// some in admit
+formula some_a   = (p2>=14&p2<=15)|(p3>=14&p3<=15)|(p4>=14&p4<=15)|(p5>=14&p5<=15)|(p6>=14&p6<=15)|(p7>=14&p7<=15)|(p8>=14&p8<=15)|(p9>=14&p9<=15)|(p10>=14&p10<=15);
+// some in high, admit
+formula some_ha  = (p2>=4&p2<=5|p2>=10&p2<=15)|(p3>=4&p3<=5|p3>=10&p3<=15)|(p4>=4&p4<=5|p4>=10&p4<=15)|(p5>=4&p5<=5|p5>=10&p5<=15)|(p6>=4&p6<=5|p6>=10&p6<=15)|(p7>=4&p7<=5|p7>=10&p7<=15)|(p8>=4&p8<=5|p8>=10&p8<=15)|(p9>=4&p9<=5|p9>=10&p9<=15)|(p10>=4&p10<=5|p10>=10&p10<=15);
+// none in high, tie, admit
+formula none_hta = (p2>=0&p2<=3|p2>=7&p2<=8)&(p3>=0&p3<=3|p3>=7&p3<=8)&(p4>=0&p4<=3|p4>=7&p4<=8)&(p5>=0&p5<=3|p5>=7&p5<=8)&(p6>=0&p6<=3|p6>=7&p6<=8)&(p7>=0&p7<=3|p7>=7&p7<=8)&(p8>=0&p8<=3|p8>=7&p8<=8)&(p9>=0&p9<=3|p9>=7&p9<=8)&(p10>=0&p10<=3|p10>=7&p10<=8);
+// none in enter
+formula none_e   = !(p2>=2&p2<=3)&!(p3>=2&p3<=3)&!(p4>=2&p4<=3)&!(p5>=2&p5<=3)&!(p6>=2&p6<=3)&!(p7>=2&p7<=3)&!(p8>=2&p8<=3)&!(p9>=2&p9<=3)&!(p10>=2&p10<=3);
+
+
+module process1
+
+	p1: [0..15];
+	
+	[] p1=0 -> (p1'=0);
+	[] p1=0 -> (p1'=1);
+	[] p1=1 -> (p1'=2);
+	[] p1=2 &  (none_lht | some_a) -> (p1'=3);
+	[] p1=2 & !(none_lht | some_a) -> (p1'=2);
+	[] p1=3 -> (p1'=4);
+	[] p1=3 -> (p1'=7);
+	[] p1=4 &  some_ha -> (p1'=5);
+	[] p1=4 & !some_ha -> (p1'=10);
+	[] p1=5 -> (p1'=6);
+	[] p1=6 &  some_ha -> (p1'=6);
+	[] p1=6 & !some_ha -> (p1'=9);
+	[] p1=7 &  none_hta -> (p1'=8);
+	[] p1=7 & !none_hta -> (p1'=7);
+	[] p1=8  -> (p1'=9);
+	[] p1=9  -> 0.5 : (p1'=4) + 0.5 : (p1'=7);
+	[] p1=10 -> (p1'=11);
+	[] p1=11 &  none_lht -> (p1'=13);
+	[] p1=11 & !none_lht -> (p1'=12);
+	[] p1=12 -> (p1'=0);
+	[] p1=13 -> (p1'=14);
+	[] p1=14 &  none_e -> (p1'=15);
+	[] p1=14 & !none_e -> (p1'=14);
+	[] p1=15 -> (p1'=0);
+	
+endmodule
+
+// construct further modules through renaming
+
+module process2 = process1 [ p1=p2, p2=p1 ] endmodule
+module process3 = process1 [ p1=p3, p3=p1 ] endmodule
+module process4 = process1 [ p1=p4, p4=p1 ] endmodule
+module process5 = process1 [ p1=p5, p5=p1 ] endmodule
+module process6 = process1 [ p1=p6, p6=p1 ] endmodule
+module process7 = process1 [ p1=p7, p7=p1 ] endmodule
+module process8 = process1 [ p1=p8, p8=p1 ] endmodule
+module process9 = process1 [ p1=p9, p9=p1 ] endmodule
+module process10 = process1 [ p1=p10, p10=p1 ] endmodule
+
+// formulas/labels for properties
+
+// number of procs in critical section
+formula num_crit = p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0+p1>9?1:0;
+// some process is between 4 and 13
+label "some_4_13"  = (p1>=4&p1<=13)|(p2>=4&p2<=13)|(p3>=4&p3<=13)|(p4>=4&p4<=13)|(p5>=4&p5<=13)|(p6>=4&p6<=13)|(p7>=4&p7<=13)|(p8>=4&p8<=13)|(p9>=4&p9<=13)|(p10>=4&p10<=13);
+// some process is in 14
+label "some_14"    = (p1=14)|(p2=14)|(p3=14)|(p4=14)|(p5=14)|(p6=14)|(p7=14)|(p8=14)|(p9=14)|(p10=14);
+
+

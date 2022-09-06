@@ -1,0 +1,11 @@
+#!/bin/csh
+
+prism rabin3.nm rabin.pctl -m
+prism rabin4.nm rabin.pctl -m
+prism rabin5.nm rabin.pctl -m
+prism rabin6.nm rabin.pctl -m
+prism rabin7.nm rabin.pctl -m
+prism rabin8.nm rabin.pctl -m
+#prism rabin9.nm rabin.pctl -m
+#prism rabin10.nm rabin.pctl -m
+

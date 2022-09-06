@@ -1,0 +1,3 @@
+-const p=1/3,x=0 -exact
+-const p=1/3 -param x=0:1
+-const p=1/1/3,x=0 -exact

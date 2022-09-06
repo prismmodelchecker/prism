@@ -1,0 +1,28 @@
+% A small model (72 states) of a location tracking system based on 
+% active badges made by Stephen Gilmore, Jane Hillston and 
+% Graham Clark.  The paper ``Specifying performance measures for
+% PEPA'' appeared in the proceedings of Fifth International AMAST 
+% Workshop on Real-Time and Probabilistic Systems, Bamberg 1999.
+% The proceedings were published as Springer-Verlag LNCS 1601.
+
+m = 0.1;
+r = 2.5;
+s = 45.0;
+
+#P14 = (reg14, r).P14 + (move15, m).P15;
+#P15 = (reg15, r).P15 + (move14, m).P14 + (move16, m).P16;
+#P16 = (reg16, r).P16 + (move15, m).P15;
+
+#S14 = (reg14, infty).T14;
+#S15 = (reg15, infty).T15;
+#S16 = (reg16, infty).T16;
+
+#T14 = (rep14, s).S14;
+#T15 = (rep15, s).S15;
+#T16 = (rep16, s).S16;
+
+#DB14 = (rep14,infty).DB14 + (rep15,infty).DB15 + (rep16,infty).DB16;
+#DB15 = (rep14,infty).DB14 + (rep15,infty).DB15 + (rep16,infty).DB16;
+#DB16 = (rep14,infty).DB14 + (rep15,infty).DB15 + (rep16,infty).DB16;
+
+( P14 <reg14,reg15,reg16> (S14 <> S15 <> S16) ) <rep14, rep15, rep16> DB14

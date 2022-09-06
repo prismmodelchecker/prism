@@ -1,0 +1,26 @@
+// PTA used as running example in FORMATS'09 paper
+
+pta
+
+module M
+
+	s : [0..3];
+	x : clock;
+	y : clock;
+	
+	[] s=0 -> 0.6 : (s'=1) + 0.4 : (s'=2)&(x'=0);
+	[] s=1 & x=0 -> (s'=3);
+	[] s=1 & y>2 -> (s'=1)&(y'=0);
+	[] s=2 & x=0 & y=1 -> (s'=3)&(y'=0);
+	[] s=2 & x>2 -> (s'=1)&(y'=0);
+	[] s=3 -> (s'=3);
+
+endmodule
+
+label "target" = s=3;
+label "end" = s=3 | s=1;
+
+rewards "time"
+	true : 1;
+endrewards
+

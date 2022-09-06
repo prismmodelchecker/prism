@@ -1,0 +1,12 @@
+pta
+
+module M
+	
+	s : [0..1];
+	x : clock;
+	
+	[a] s=0 & x=2 -> 0.5:(x'=0) + 0.5:(s'=1);
+
+endmodule
+
+label "target" = s=1;

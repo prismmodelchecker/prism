@@ -1,0 +1,37 @@
+# Export all model info in different formats
+
+-exportmodel dice.pm.all
+-exportmodel dice.pm.mrmc.all:mrmc
+-exportmodel dice.pm.matlab.all:matlab
+-exportmodel dice.pm.rows.all:rows
+
+# Export model info separately (for a few formats)
+
+-exportmodel dice.pm.tra
+-exportmodel dice.pm.lab
+-exportmodel dice.pm.sta
+-exportmodel dice.pm.srew
+-exportmodel dice.pm.trew
+-exportmodel dice.pm.mrmc.tra:mrmc
+-exportmodel dice.pm.mrmc.lab:mrmc
+-exportmodel dice.pm.mrmc.sta:mrmc
+-exportmodel dice.pm.mrmc.srew:mrmc
+-exportmodel dice.pm.mrmc.trew:mrmc
+
+# Export model info separately (for a few formats) - explicit
+
+-exportmodel dice.pm.tra -ex
+-exportmodel dice.pm.sta -ex
+-exportmodel dice.pm.lab -ex
+#-exportmodel dice.pm.srew -ex
+#-exportmodel dice.pm.trew -ex
+#-exportmodel dice.pm.mrmc.tra:mrmc -ex
+#-exportmodel dice.pm.mrmc.sta:mrmc -ex
+-exportmodel dice.pm.mrmc.lab:mrmc -ex
+#-exportmodel dice.pm.mrmc.srew:mrmc -ex
+#-exportmodel dice.pm.mrmc.trew:mrmc -ex
+#-exportmodel dice.pm.matlab.tra:matlab -ex
+#-exportmodel dice.pm.matlab.sta:matlab -ex
+-exportmodel dice.pm.matlab.lab:matlab -ex
+#-exportmodel dice.pm.matlab.srew:matlab -ex
+#-exportmodel dice.pm.matlab.trew:matlab -ex

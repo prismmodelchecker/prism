@@ -1,0 +1,8 @@
+const double T; // time bound
+
+// probability that all clients have received all blocks by time T
+P=? [ true U<=T  "done"  ]
+
+// expected fraction of blocks received by time T
+R=? [ I=T ]
+

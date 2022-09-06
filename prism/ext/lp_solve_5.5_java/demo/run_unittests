@@ -1,0 +1,15 @@
+:
+
+#determine platform (32/64 bit)
+>/tmp/platform.c
+echo '#include <stdlib.h>'>>/tmp/platform.c
+echo '#include <stdio.h>'>>/tmp/platform.c
+echo 'main(){printf("ux%d", (int) (sizeof(void *)*8));}'>>/tmp/platform.c
+cc /tmp/platform.c -o /tmp/platform
+PLATFORM=`/tmp/platform`
+rm /tmp/platform /tmp/platform.c >/dev/null 2>&1
+
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../../../xli/xli_CPLEX/bin/$PLATFORM:../../../xli/xli_LINDO/bin/$PLATFORM:../../../bfp/bfp_LUSOL/bin/$PLATFORM
+export LD_LIBRARY_PATH
+
+java -cp ./unittests.jar:../lib/lpsolve55j.jar:../lib/junit.jar -Djava.library.path=../lib/$PLATFORM LpSolveTest

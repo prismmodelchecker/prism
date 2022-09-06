@@ -1,0 +1,12 @@
+	// RESULT: 0
+	S=? [ s=0 ];
+	// RESULT: 0
+	S=? [ s=1 ];
+	// RESULT: 1/12
+	S=? [ s=2 ];
+	// RESULT: 2/3
+	S=? [ s=3 ];
+	// RESULT: 1/6
+	S=? [ s=4 ];
+	// RESULT: 1/12
+	S=? [ s=5 ];

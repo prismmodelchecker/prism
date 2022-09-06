@@ -1,0 +1,6 @@
+	// RESULT: 0.6
+	P=? [ !(x=3) U (x=2) ];
+	// RESULT: ?
+	"ex": P>=0.5 [ !(x=3) U (x=2) ];
+	// RESULT: true
+	filter(forall, "ex" <=> (x=0|x=1|x=2));

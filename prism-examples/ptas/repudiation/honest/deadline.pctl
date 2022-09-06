@@ -1,0 +1,4 @@
+const int T;
+
+// Minimum probability that protocol terminates successfully by the deadline
+Pmin=? [ F<T "terminated_successfully" ]

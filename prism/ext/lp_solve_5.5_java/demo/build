@@ -1,0 +1,11 @@
+:
+
+mkdir lpsolve >/dev/null 2>&1
+cp ../src/java/lpsolve/*.class lpsolve
+jar cvf ../lib/lpsolve55j.jar *.class lpsolve
+
+javac -classpath ../lib/lpsolve55j.jar Demo.java
+jar cvf Demo.jar Demo.class
+
+javac -classpath ../lib/lpsolve55j.jar:../lib/junit.jar LpSolveTest.java
+jar cvf unittests.jar LpSolveTest.class 'LpSolveTest$1MyListener.class' 'LpSolveTest$2MyListener.class' 'LpSolveTest$3MyListener.class'

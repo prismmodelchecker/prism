@@ -1,0 +1,5 @@
+const int T;
+
+// Maximum probability of configuring incorrectly (using unfresh address) by time T
+Pmax=? [ F<=T "incorrect" ]
+

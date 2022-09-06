@@ -1,0 +1,83 @@
+// Abstract model of Firewire protocol (PTA model)
+// dxp/gxn 08/07/09
+
+pta
+
+// maximum and minimum delays
+// fast
+const int rc_fast_max = 850;
+const int rc_fast_min = 760;
+// slow
+const int rc_slow_max = 1670;
+const int rc_slow_min = 1590;
+// delay caused by the wire length
+const int delay;
+// probability of choosing fast and slow
+const double fast = 0.5;
+const double slow = 1-fast;
+
+module abstract_firewire
+
+	// clock 
+	x : clock;
+	// local state
+	s : [0..9];
+	// 0 - start_start
+	// 1 - fast_start
+	// 2 - start_fast
+	// 3 - start_slow
+	// 4 - slow_start
+	// 5 - fast_fast
+	// 6 - fast_slow
+	// 7 - slow_fast
+	// 8 - slow_slow
+	// 9 - done
+
+	// clock invariant
+	invariant
+		(s=0 => x<=delay) &
+		(s=1 => x<=delay) &
+		(s=2 => x<=delay) &
+		(s=3 => x<=delay) &
+		(s=4 => x<=delay) &
+		(s=5 => x<=rc_fast_max) &
+		(s=6 => x<=rc_slow_max) &
+		(s=7 => x<=rc_slow_max) &
+		(s=8 => x<=rc_slow_max)
+	endinvariant
+	
+	// start_start (initial state)
+	[] s=0 -> fast : (s'=1) + slow : (s'=4);
+	[] s=0 -> fast : (s'=2) + slow : (s'=3);
+	// fast_start
+	[] s=1 -> fast : (s'=5) & (x'=0) + slow : (s'=6) & (x'=0);
+	// start_fast
+	[] s=2 -> fast : (s'=5) & (x'=0) + slow : (s'=7) & (x'=0);
+	// start_slow
+	[] s=3 -> fast : (s'=6) & (x'=0) + slow : (s'=8) & (x'=0);
+	// slow_start
+	[] s=4 -> fast : (s'=7) & (x'=0) + slow : (s'=8) & (x'=0);
+	// fast_fast
+	[] s=5 & (x>=rc_fast_min)       -> (s'=0) & (x'=0);
+	[] s=5 & (x>=rc_fast_min-delay) -> (s'=9) & (x'=0);
+	// fast_slow
+	[] s=6 & x>=rc_slow_min-delay -> (s'=9) & (x'=0);
+	// slow_fast
+	[] s=7 & x>=rc_slow_min-delay -> (s'=9) & (x'=0);
+	// slow_slow
+	[] s=8 & x>=rc_slow_min       -> (s'=0) & (x'=0);
+	[] s=8 & x>=rc_slow_min-delay -> (s'=9) & (x'=0);
+	// done
+	[] s=9 -> true;
+	
+endmodule
+
+// labels
+label "done" = (s=9);
+
+// reward structures
+// time
+rewards "time"
+	true : 1;
+endrewards
+

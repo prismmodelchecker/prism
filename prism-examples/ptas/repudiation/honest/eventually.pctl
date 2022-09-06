@@ -1,0 +1,2 @@
+// Minimum probability that the protocol terminates successfully
+Pmin=? [ F "terminated_successfully" ]

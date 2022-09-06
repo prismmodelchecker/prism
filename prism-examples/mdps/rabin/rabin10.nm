@@ -1,0 +1,92 @@
+// N-processor mutual exclusion [Rab82]
+// gxn/dxp 03/12/08
+
+// to remove the need for fairness constraints for this model it is sufficent
+// to remove the self loops from the model 
+
+// the step corresponding to a process making a draw has been split into two steps
+// to allow us to identify states where a process will draw without knowing the value
+// randomly drawn
+// to correctly model the protocol and prevent erroneous behaviour, the two steps are atomic
+// (i.e. no other process can move one the first step has been made)
+// as for example otherwise an adversary can prevent the process from actually drawing
+// in the current round by not scheduling it after it has performed the first step
+
+mdp
+
+// size of shared counter
+const int K = 8; // 4+ceil(log_2 N)
+
+// global variables (all modules can read and write)
+global c : [0..1]; // 0/1 critical section free/taken
+global b : [0..K]; // current highest draw
+global r : [1..2]; // current round
+
+// formula for process 1 drawing
+formula draw = p1=1 & (b<b1 | r!=r1);
+
+// formula to keep drawing phase atomic
+// (a process can only move if no other process is in the middle of drawing)
+formula go = (draw2=0&draw3=0&draw4=0&draw5=0&draw6=0&draw7=0&draw8=0&draw9=0&draw10=0);
+
+module process1
+
+	p1 : [0..2]; // local state
+	//  0 remainder
+	//  1 trying
+	//  2 critical section
+	b1 : [0..K]; // current draw: bi
+	r1 : [0..2]; // current round: ri
+	draw1 : [0..1]; // performed first step of drawing phase
+
+	// remain in remainder
+	// [] go & p1=0 -> (p1'=0);
+	// enter trying
+	[] go & p1=0 -> (p1'=1);
+	// make a draw
+	[] go & draw & draw1=0 -> (draw1'=1);
+	[] draw1=1 -> 0.5 : (b1'=1) & (r1'=r) & (b'=max(b,1)) & (draw1'=0)
+	         + 0.25 : (b1'=2) & (r1'=r) & (b'=max(b,2)) & (draw1'=0)
+	         + 0.125 : (b1'=3) & (r1'=r) & (b'=max(b,3)) & (draw1'=0)
+	         + 0.0625 : (b1'=4) & (r1'=r) & (b'=max(b,4)) & (draw1'=0)
+	         + 0.03125 : (b1'=5) & (r1'=r) & (b'=max(b,5)) & (draw1'=0)
+	         + 0.015625 : (b1'=6) & (r1'=r) & (b'=max(b,6)) & (draw1'=0)
+	         + 0.0078125 : (b1'=7) & (r1'=r) & (b'=max(b,7)) & (draw1'=0)
+	         + 0.0078125 : (b1'=8) & (r1'=r) & (b'=max(b,8)) & (draw1'=0);
+	// enter critical section and randomly set r to 1 or 2
+	[] go & p1=1 & b=b1 & r=r1 & c=0 -> 0.5 : (r'=1) & (c'=1) & (b'=0) & (b1'=0) & (r1'=0) & (p1'=2)
+	                                  + 0.5 : (r'=2) & (c'=1) & (b'=0) & (b1'=0) & (r1'=0) & (p1'=2);
+	// loop when trying and cannot make a draw or enter critical section
+	// [] go & p1=1 & r1=r & b1<=b & ((c=0 & b1!=b) | c=1) -> (p1'=p1);
+	// leave crictical section
+	[] go & p1=2 -> (p1'=0) & (c'=0);
+	// stay in critical section
+	// [] go & p1=2 -> (p1'=2);
+	
+endmodule
+
+// construct further modules through renaming
+module process2 = process1 [p1=p2, b1=b2, r1=r2, draw1=draw2, draw2=draw1 ] endmodule
+module process3 = process1 [p1=p3, b1=b3, r1=r3, draw1=draw3, draw3=draw1 ] endmodule
+module process4 = process1 [p1=p4, b1=b4, r1=r4, draw1=draw4, draw4=draw1 ] endmodule
+module process5 = process1 [p1=p5, b1=b5, r1=r5, draw1=draw5, draw5=draw1 ] endmodule
+module process6 = process1 [p1=p6, b1=b6, r1=r6, draw1=draw6, draw6=draw1 ] endmodule
+module process7 = process1 [p1=p7, b1=b7, r1=r7, draw1=draw7, draw7=draw1 ] endmodule
+module process8 = process1 [p1=p8, b1=b8, r1=r8, draw1=draw8, draw8=draw1 ] endmodule
+module process9 = process1 [p1=p9, b1=b9, r1=r9, draw1=draw9, draw9=draw1 ] endmodule
+module process10 = process1 [p1=p10, b1=b10, r1=r10, draw1=draw10, draw10=draw1 ] endmodule
+
+// formulas/labels for use in properties:
+
+// number of processes in critical section
+formula num_procs_in_crit = (p1=2?1:0)+(p2=2?1:0)+(p3=2?1:0)+(p4=2?1:0)+(p5=2?1:0)+(p6=2?1:0)+(p7=2?1:0)+(p8=2?1:0)+(p9=2?1:0)+(p10=2?1:0);
+
+// one of the processes is trying
+label "one_trying" = p1=1|p2=1|p3=1|p4=1|p5=1|p6=1|p7=1|p8=1|p9=1|p10=1;
+
+// one of the processes is in the critical section
+label "one_critical" = p1=2|p2=2|p3=2|p4=2|p5=2|p6=2|p7=2|p8=2|p9=2|p10=2;
+
+// maximum current draw of the processes
+formula maxb = max(b1,b2,b3,b4,b5,b6,b7,b8,b9,b10);
+

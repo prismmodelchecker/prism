@@ -1,0 +1,8 @@
+multi(P>=0.6 [ F s=2], P>=0.6 [ G F s=2 ])
+multi(P>=0.4 [ G F s=2], P>=0.6 [ G F s=1 ])
+multi(P>=0.4 [ F s=2], P>=0.6 [ G F s=1 ])
+multi(Pmax=? [ F s=2], P>=0.6 [ G F s=1 ])
+Pmax=? [ G F s=2 ]
+Pmax=? [ G F s=4 ]
+multi(Pmax=? [ G F s=2 ])
+fairness(SF({s=1}, {[a]}))

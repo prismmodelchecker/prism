@@ -1,0 +1,4 @@
+#!/bin/csh
+
+prism phil_lss3.nm phil_lss3.pctl -const K=3:6,L=1 -m
+#prism phil_lss4.nm phil_lss4.pctl -const K=4:5,L=1 -m

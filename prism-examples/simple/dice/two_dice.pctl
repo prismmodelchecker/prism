@@ -1,0 +1,9 @@
+const int x;
+
+// probability of throwing x
+Pmin=? [ F s1=7 & s2=7 & d1+d2=x ]
+Pmax=? [ F s1=7 & s2=7 & d1+d2=x ]
+
+// min/max expected cost to complete
+Rmin=? [ F s1=7 & s2=7 ]
+Rmax=? [ F s1=7 & s2=7 ]

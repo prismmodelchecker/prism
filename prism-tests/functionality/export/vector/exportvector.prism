@@ -1,0 +1,11 @@
+dtmc
+
+const int N;
+
+module M
+
+	x : [-N..N] init 0;
+	
+	[] true -> 0.5:(x'=max(x-1,-N)) + 0.5:(x'=min(x+1,N));
+
+endmodule

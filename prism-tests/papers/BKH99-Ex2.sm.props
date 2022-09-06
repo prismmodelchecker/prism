@@ -1,0 +1,11 @@
+	// NB: "phi" should be a subformula of the S operator
+	// but it seems to be model checked wrongly in the paper
+	// so we don't actually use it...
+	// RESULT: ?
+	"phi": ("a" & "b") | P<=0.8 [ "a" U<=2 "b" ];
+	// RESULT: 5/6
+	S=? [ x=2 | x=3 ];
+	// RESULT: ?
+	"prop" : S>0.5 [ x=2 | x=3 ];
+	// RESULT: true
+	filter(forall, "prop" <=> true);

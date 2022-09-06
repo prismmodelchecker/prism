@@ -1,0 +1,25 @@
+// Example showing that digital clocks can't do nested properties, from:
+// Marta Kwiatkowska, Gethin Norman, David Parker and Jeremy Sproston.
+// Performance Analysis of Probabilistic Timed Automata using Digital Clocks.
+// Formal Methods in System Design, 29, pages 33-78, Springer. August 2006.
+// (Fig 4, p.33)
+
+// The example is not actually used, since none of the implemented methods
+// can check nested properties
+
+pta
+
+module M
+
+	l : [0..1];
+	x : clock;
+
+	invariant
+	(l=0 => (x>=0 & x<=3)) &
+	(l=2 => true)
+	endinvariant
+
+	[]  l=0 & x>=3 -> (l'=1);
+	[]  l=0 & x<=3 -> (l'=1);
+	
+endmodule

@@ -1,0 +1,29 @@
+// Policy iteration bug fixed in revision 7707
+
+mdp
+
+module strips
+state : [ 0 .. 4 ] init 0;
+
+[ takestick ] state=0 -> 1: (state'=1) ;
+[ askforhelp ] state=0 -> 0.4: (state'=2)  + 0.6: (state'=0) ;
+[ takestick ] state=2 -> 1: (state'=3) ;
+[ leavehelp ] state=2 -> 1: (state'=0) ;
+[ takebananas2 ] state=3 -> 0.2: (state'=4)  + 0.8: (state'=3) ;
+[ dropstick ] state=3 -> 1: (state'=2) ;
+[ leavehelp ] state=3 -> 1: (state'=1) ;
+[ askforhelpwithstick ] state=1 -> 0.8: (state'=3)  + 0.2: (state'=1) ;
+[ askforhelp ] state=1 -> 0.4: (state'=3)  + 0.6: (state'=1) ;
+[ dropstick ] state=1 -> 1: (state'=0) ;
+endmodule
+
+rewards "cost"
+[ takestick ] true : 5;
+[ askforhelp ] true : 8;
+[ leavehelp ] true : 1;
+[ takebananas2 ] true : 3;
+[ askforhelpwithstick ] true : 8;
+[ dropstick ] true : 1;
+endrewards
+
+

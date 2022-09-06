@@ -1,0 +1,81 @@
+// K + Na + 2Cl <--> K+ + Na+ + 2Cl- 
+// dxp/gxn 04/10/04
+
+// ctmc model
+ctmc
+
+// constants
+const int N1; // number of Na molecules
+const int N2; // number of Cl molecules
+const int N3; // number of K molecules
+
+// Na and Na+ module
+module na
+	
+	na : [0..N1] init N1;
+	// total number of Na and Na+ molecules is fixed at N1
+	// na is the number of Na molecules 
+	// therefore N1-na gives the number of Na+ molecules
+	
+	[e1] na>0  ->     na  : (na'=na-1);
+	[e2] na<N1 -> (N1-na) : (na'=na+1);
+	
+endmodule
+
+// Cl and Cl- module
+module cl
+	
+	cl : [0..N2] init N2;
+	// total number of Cl and Cl- molecules is fixed at N2
+	// cl is the number of Cl molecules 
+	// therefore N2-cl is the number of Cl- molecules
+	
+	// reactions with Cl
+	[e1] cl>0  ->     cl  : (cl'=cl-1);
+	[e3] cl>0  ->     cl  : (cl'=cl-1);
+	// reactions with CL-
+	[e2] cl<N2 -> (N2-cl) : (cl'=cl+1);
+	[e4] cl<N2 -> (N2-cl) : (cl'=cl+1);
+	
+endmodule
+
+// K and K+ module
+module k
+	
+	k : [0..N3] init N3;
+	// total number of K and K+ molecules is fixed at N3
+	// k is the number of K molecules 
+	// therefore N3-k gives the number of K+ molecules
+	
+	[e3] k>0  ->     k  : (k'=k-1);
+	[e4] k<N3 -> (N3-k) : (k'=k+1);
+	
+endmodule
+
+// base rates
+const double e1rate = 100; // Na + Cl  -> Na+ + Cl-
+const double e2rate = 10;  // Na+ + Cl- -> Na + Cl
+const double e3rate = 30;  // K + Cl  -> K+ + Cl-
+const double e4rate = 20;  // K+ + Cl- -> K + Cl
+
+// module representing the base rates of reactions
+module base_rates
+	
+	dummy : bool; // dummy variable
+	
+	[e1] true -> e1rate : true;
+	[e2] true -> e2rate : true;
+	[e3] true -> e3rate : true;
+	[e4] true -> e4rate : true;
+	
+endmodule
+
+// reward structure (percentage of Na)
+rewards "percentage_na"
+	true : 100*na/N1;	
+endrewards
+
+// reward structure (percentage of K)
+rewards "percentage_k"
+	true : 100*k/N3;
+endrewards

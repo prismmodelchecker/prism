@@ -1,0 +1,3 @@
+// Maximum expected time to elect a leader
+R{"time"}min=? [ F "done" ]
+

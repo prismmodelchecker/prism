@@ -1,0 +1,14 @@
+# explicit engine
+-ex
+
+# explicit engine, force LTL for all path formulas
+-ex -pathviaautomata
+
+# symbolic engine
+-mtbdd
+
+# explicit engine, treat as MDP
+-mdp -ex
+
+# explicit engine, treat as MDP, force LTL for all path formulas
+-mdp -ex -pathviaautomata

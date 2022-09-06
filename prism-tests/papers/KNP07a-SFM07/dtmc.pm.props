@@ -1,0 +1,41 @@
+	// ex 4
+	// RESULT: ?
+	"ex4": P>=0.9 [ X (!"try")|"succ" ];
+	// RESULT: true
+	filter(forall, "ex4" <=> (x=1|x=2|x=3));
+	
+	// ex 5
+	// RESULT: 0.9898
+	P=? [ F<=2 "succ" {x=1} ];
+	// RESULT: ?
+	"ex5": P>0.98 [ F<=2 "succ" ];
+	// RESULT: true
+	filter(forall, "ex5" <=> (x=1|x=3));
+	
+	// ex 6
+	// RESULT: ?
+	"ex6": P>0.99 [ "try" U "succ" ];
+	// RESULT: true
+	filter(forall, "ex6" <=> (x=3));
+	
+	// ex 9
+	// RESULT: ?
+	"ex9": R>1 [ C<=2 ];
+	// RESULT: true
+	filter(forall, "ex9" <=> (x=1));
+	
+	// ex 10
+	// RESULT: 0.0001
+	R=? [ I=2 {x=1} ];
+	// RESULT: ?
+	"ex10": R>0 [ I=2 ];
+	// RESULT: true
+	filter(forall, "ex10" <=> (x=0|x=1|x=2));
+	
+	// ex 11
+	// RESULT: 100/98
+	R=? [ F "succ" ];
+	// RESULT: ?
+	"ex11": R<1 [ F "succ" ];
+	// RESULT: true
+	filter(forall, "ex11" <=> (x=3));

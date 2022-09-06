@@ -1,0 +1,4 @@
+-const MAX_COUNT=2 -e 1e-8 -ex -ex
+-const MAX_COUNT=2 -e 1e-8 -ex -h
+-const MAX_COUNT=2 -e 1e-8 -ex -s
+-const MAX_COUNT=2 -e 1e-8 -ex -m

@@ -1,0 +1,9 @@
+// expected throughput of each machine
+R{"throughput_m1"}=?  [ S ]
+R{"throughput_m2"}=?  [ S ]
+R{"throughput_m3"}=?  [ S ]
+R{"throughput_m12"}=? [ S ]
+
+// expected productivity of the system
+R{"productivity"}=? [ S ]
+

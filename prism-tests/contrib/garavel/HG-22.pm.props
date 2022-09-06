@@ -1,0 +1,13 @@
+//Project 3, Question 4
+
+// RESULT : 0.03
+S=? [ error1 ]
+
+// RESULT : 0.0292
+S=? [ error2 ]
+
+// RESULT : 0.057401
+S=? [ (!error1prev & error2) | (error1prev & !error2) ]
+
+// RESULT : 8.995E-4
+S=? [ error1prev & error2 ]

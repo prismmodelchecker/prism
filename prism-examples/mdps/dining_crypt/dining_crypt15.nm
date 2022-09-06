@@ -1,0 +1,87 @@
+// model of dining cryptographers
+// gxn/dxp 15/11/06
+
+mdp
+
+// number of cryptographers
+const int N = 15;
+
+// constants used in renaming (identities of cryptographers)
+const int p1 = 1;
+const int p2 = 2;
+const int p3 = 3;
+const int p4 = 4;
+const int p5 = 5;
+const int p6 = 6;
+const int p7 = 7;
+const int p8 = 8;
+const int p9 = 9;
+const int p10 = 10;
+const int p11 = 11;
+const int p12 = 12;
+const int p13 = 13;
+const int p14 = 14;
+const int p15 = 15;
+
+// global variable which decides who pays
+// (0 - master pays, i=1..N - cryptographer i pays)
+global pay : [0..N];
+
+// module for first cryptographer
+module crypt1
+	
+	coin1 : [0..2]; // value of its coin
+	s1 : [0..1]; // its status (0 = not done, 1 = done)
+	agree1 : [0..1]; // what it states (0 = disagree, 1 = agree)
+	
+	// flip coin
+	[] coin1=0 -> 0.5 : (coin1'=1) + 0.5 : (coin1'=2);
+	
+	// make statement (once relevant coins have been flipped)
+	// agree (coins the same and does not pay)
+	[] s1=0 & coin1>0 & coin2>0 & coin1=coin2    & (pay!=p1) -> (s1'=1) & (agree1'=1);
+	// disagree (coins different and does not pay)
+	[] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay!=p1) -> (s1'=1);
+	// disagree (coins the same and pays)
+	[] s1=0 & coin1>0 & coin2>0 & coin1=coin2    & (pay=p1)  -> (s1'=1);
+	// agree (coins different and pays)
+	[] s1=0 & coin1>0 & coin2>0 & !(coin1=coin2) & (pay=p1)  -> (s1'=1) & (agree1'=1);
+	
+	// synchronising loop when finished to avoid deadlock
+	[done] s1=1 -> true;
+
+endmodule
+
+// construct further cryptographers with renaming
+module crypt2 = crypt1 [ coin1=coin2, s1=s2, agree1=agree2, p1=p2, coin2=coin3 ] endmodule
+module crypt3 = crypt1 [ coin1=coin3, s1=s3, agree1=agree3, p1=p3, coin2=coin4 ] endmodule
+module crypt4 = crypt1 [ coin1=coin4, s1=s4, agree1=agree4, p1=p4, coin2=coin5 ] endmodule
+module crypt5 = crypt1 [ coin1=coin5, s1=s5, agree1=agree5, p1=p5, coin2=coin6 ] endmodule
+module crypt6 = crypt1 [ coin1=coin6, s1=s6, agree1=agree6, p1=p6, coin2=coin7 ] endmodule
+module crypt7 = crypt1 [ coin1=coin7, s1=s7, agree1=agree7, p1=p7, coin2=coin8 ] endmodule
+module crypt8 = crypt1 [ coin1=coin8, s1=s8, agree1=agree8, p1=p8, coin2=coin9 ] endmodule
+module crypt9 = crypt1 [ coin1=coin9, s1=s9, agree1=agree9, p1=p9, coin2=coin10 ] endmodule
+module crypt10 = crypt1 [ coin1=coin10, s1=s10, agree1=agree10, p1=p10, coin2=coin11 ] endmodule
+module crypt11 = crypt1 [ coin1=coin11, s1=s11, agree1=agree11, p1=p11, coin2=coin12 ] endmodule
+module crypt12 = crypt1 [ coin1=coin12, s1=s12, agree1=agree12, p1=p12, coin2=coin13 ] endmodule
+module crypt13 = crypt1 [ coin1=coin13, s1=s13, agree1=agree13, p1=p13, coin2=coin14 ] endmodule
+module crypt14 = crypt1 [ coin1=coin14, s1=s14, agree1=agree14, p1=p14, coin2=coin15 ] endmodule
+module crypt15 = crypt1 [ coin1=coin15, s1=s15, agree1=agree15, p1=p15, coin2=coin1 ] endmodule
+
+// set of initial states
+// (cryptographers in their initial state, "pay" can be anything)
+init  coin1=0&s1=0&agree1=0 & coin2=0&s2=0&agree2=0 & coin3=0&s3=0&agree3=0 & coin4=0&s4=0&agree4=0 & coin5=0&s5=0&agree5=0 & coin6=0&s6=0&agree6=0 & coin7=0&s7=0&agree7=0 & coin8=0&s8=0&agree8=0 & coin9=0&s9=0&agree9=0 & coin10=0&s10=0&agree10=0 & coin11=0&s11=0&agree11=0 & coin12=0&s12=0&agree12=0 & coin13=0&s13=0&agree13=0 & coin14=0&s14=0&agree14=0 & coin15=0&s15=0&agree15=0  endinit
+
+// unique integer representing outcome
+formula outcome =  16384*agree1 + 8192*agree2 + 4096*agree3 + 2048*agree4 + 1024*agree5 + 512*agree6 + 256*agree7 + 128*agree8 + 64*agree9 + 32*agree10 + 16*agree11 + 8*agree12 + 4*agree13 + 2*agree14 + 1*agree15 ;
+
+// parity of number of "agree"s (0 = even, 1 = odd)
+formula parity = func(mod, agree1+agree2+agree3+agree4+agree5+agree6+agree7+agree8+agree9+agree10+agree11+agree12+agree13+agree14+agree15, 2);
+
+// label denoting states where protocol has finished
+label "done" = s1=1&s2=1&s3=1&s4=1&s5=1&s6=1&s7=1&s8=1&s9=1&s10=1&s11=1&s12=1&s13=1&s14=1&s15=1;
+// label denoting states where number of "agree"s is even
+label "even" = func(mod,(agree1+agree2+agree3+agree4+agree5+agree6+agree7+agree8+agree9+agree10+agree11+agree12+agree13+agree14+agree15),2)=0;
+// label denoting states where number of "agree"s is even
+label "odd" = func(mod,(agree1+agree2+agree3+agree4+agree5+agree6+agree7+agree8+agree9+agree10+agree11+agree12+agree13+agree14+agree15),2)=1;
+

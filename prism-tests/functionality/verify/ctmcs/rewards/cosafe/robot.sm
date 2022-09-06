@@ -1,0 +1,21 @@
+ctmc
+
+module M
+
+s:[0..5];
+
+// Multiply rates by 10 to help distinguish from original DTMC
+[south] s=0 -> 8:(s'=3) + 1:(s'=1) + 1:(s'=4);
+[east] s=1 -> 10:(s'=2);
+[stuck] s=2 -> 10:(s'=2);
+[stuck] s=3 -> 10:(s'=3);
+[east] s=4 -> 10:(s'=5);
+[north] s=5 -> 9:(s'=2) + 1:(s'=5);
+
+endmodule
+
+label "hazard" = s=1;
+label "goal1" = s=5;
+label "goal2" = s=2|s=3;
+
+rewards "time" true : 1; endrewards

@@ -1,0 +1,16 @@
+// test case, check if reward expressions are evaluated exactly in exact / parametric mode
+
+mdp
+
+const double x;  // dummy for parametric
+
+module M1
+  s: [0..2] init 0;
+
+  [a] s=0 -> 1/2:(s'=1) + 1/2:(s'=2);
+  [] s>=1 -> true;
+endmodule
+
+rewards "r"
+  [a] true : (1/3 = 0.333333333333333333333333 ? 1 : 2);
+endrewards

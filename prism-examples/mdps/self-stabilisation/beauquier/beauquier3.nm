@@ -1,0 +1,33 @@
+// self stabilisation algorithm Beauquier, Gradinariu and Johnen
+// gxn/dxp 18/07/02
+
+mdp
+
+// module of process 1
+module process1
+	
+	d1 : bool; // probabilistic variable
+	p1 : bool; // deterministic variable
+	
+	[] d1=d3 &  p1=p3 -> 0.5 : (d1'=!d1) & (p1'=p1) + 0.5 : (d1'=!d1) & (p1'=!p1);
+	[] d1=d3 & !p1=p3 -> (d1'=!d1);
+	
+endmodule
+
+// add further processes through renaming
+module process2 = process1 [ p1=p2, p3=p1, d1=d2, d3=d1 ] endmodule
+module process3 = process1 [ p1=p3, p3=p2, d1=d3, d3=d2 ] endmodule
+
+// cost - 1 in each state (expected steps)
+rewards "steps"
+	true : 1;
+endrewards
+
+// initial states - any state with more than 1 token, that is all states
+init
+	true
+endinit
+
+// formula, for use in properties: number of tokens
+formula num_tokens = (p1=p2?1:0)+(p2=p3?1:0)+(p3=p1?1:0);
+

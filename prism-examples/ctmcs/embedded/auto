@@ -1,0 +1,25 @@
+#!/bin/csh
+
+prism embedded.sm embedded.csl -prop 1 -const MAX_COUNT=2,T=12 -s
+prism embedded.sm embedded.csl -prop 2 -const MAX_COUNT=2,T=12 -s
+prism embedded.sm embedded.csl -prop 3 -const MAX_COUNT=2,T=12 -s
+prism embedded.sm embedded.csl -prop 4 -const MAX_COUNT=2,T=12 -s
+prism embedded.sm embedded.csl -prop 5 -const MAX_COUNT=2,T=12 -s
+
+prism embedded.sm embedded.csl -prop 6 -const MAX_COUNT=2,T=14 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 7 -const MAX_COUNT=2,T=14 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 8 -const MAX_COUNT=2,T=14 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 9 -const MAX_COUNT=2,T=14 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 10 -const MAX_COUNT=2,T=14 -s -epsilon 1e-8
+
+prism embedded.sm embedded.csl -prop 11 -const MAX_COUNT=2,T=0 -s
+prism embedded.sm embedded.csl -prop 12 -const MAX_COUNT=2,T=0 -s
+prism embedded.sm embedded.csl -prop 13 -const MAX_COUNT=2,T=0 -s
+prism embedded.sm embedded.csl -prop 14 -const MAX_COUNT=2,T=0 -s
+
+prism embedded.sm embedded.csl -prop 15 -const MAX_COUNT=2,T=12 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 16 -const MAX_COUNT=2,T=12 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 17 -const MAX_COUNT=2,T=12 -s -epsilon 1e-8
+
+prism embedded.sm embedded.csl -prop 18 -const MAX_COUNT=2,T=12 -s -epsilon 1e-8
+prism embedded.sm embedded.csl -prop 19 -const MAX_COUNT=2,T=12 -s -epsilon 1e-8

@@ -1,0 +1,46 @@
+// Israeli-Jalfon self stabilising algorithm
+// dxp/gxn 10/06/02
+
+mdp
+
+// variables to represent whether a process has a token or not
+// note they are global because they can be updated by other processes
+global q1  : [0..1];
+global q2  : [0..1];
+global q3  : [0..1];
+global q4  : [0..1];
+global q5  : [0..1];
+global q6  : [0..1];
+global q7  : [0..1];
+
+// module of process 1
+module process1
+	
+	[] (q1=1) -> 0.5 : (q1'=0) & (q7'=1) + 0.5 : (q1'=0) & (q2'=1);
+	
+endmodule
+
+// add further processes through renaming
+module process2 = process1 [ q1=q2, q2=q3, q7=q1 ] endmodule
+module process3 = process1 [ q1=q3, q2=q4, q7=q2 ] endmodule
+module process4 = process1 [ q1=q4, q2=q5, q7=q3 ] endmodule
+module process5 = process1 [ q1=q5, q2=q6, q7=q4 ] endmodule
+module process6 = process1 [ q1=q6, q2=q7, q7=q5 ] endmodule
+module process7 = process1 [ q1=q7, q2=q1, q7=q6 ] endmodule
+
+// cost - 1 in each state (expected steps)
+rewards "steps"
+	true : 1;
+endrewards
+
+// formula, for use here and in properties: number of tokens
+formula num_tokens = q1+q2+q3+q4+q5+q6+q7;
+
+// label - stable configurations (1 token)
+label "stable" = num_tokens=1;
+
+// initial states (at least one token)
+init
+	num_tokens >= 1
+endinit
+

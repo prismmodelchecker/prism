@@ -1,0 +1,78 @@
+// Mg + 2Cl <--> Mg+2 + 2Cl-
+// dxp/gxn 04/10/04
+
+// ctmc model
+ctmc
+
+// constants
+const int N1; // number of Mg molecules
+const int N2; // number of Cl molecules
+
+
+// Cl and Cl- module
+module cl
+	
+	cl : [0..N2] init N2;
+	// total number of Cl and Cl- molecules is fixed at N2
+	// cl is the number of Cl molecules 
+	// therefore N2-cl is the number of Cl- molecules
+	
+	// reactions with Cl
+	[e1] cl>0  ->     cl  : (cl'=cl-1);
+	[e2] cl>0  ->     cl  : (cl'=cl-1);
+	// reactions with CL-
+	[e3] cl<N2 -> (N2-cl) : (cl'=cl+1);
+	[e4] cl<N2 -> (N2-cl) : (cl'=cl+1);
+	
+endmodule
+
+// Mg, Mg+ and Mg+2 module
+module mg
+	
+	mg   : [0..N1] init N1;
+	mg_p : [0..N1] init 0;
+	// total number of Mg and Mg+ and Mg+2 molecules is fixed at N1
+	// mg is the number of Mg molecules 
+	// mg_p is the number of Mg molecules 
+	// therefore N1-(mg+mg+) gives the number of Mg+2 molecules
+	
+	[e1] mg>0 & mg_p<N1 -> mg   : (mg'=mg-1) & (mg_p'=mg_p+1);
+	[e2] mg_p>0         -> mg_p : (mg_p'=mg_p-1);
+	[e3] mg_p>0 & mg<N1 -> mg_p : (mg'=mg+1) & (mg_p'=mg_p-1);
+	[e4] mg_p+mg<N1     -> N1-(mg_p+mg) : (mg_p'=mg_p+1);
+	
+endmodule
+
+
+// base rates
+const double e1rate = 10;  // Mg   + Cl  --> Mg+ + Cl-
+const double e2rate = 100; // Mg+  + Cl  --> Mg+2 + Cl-
+const double e3rate = 50;  // Mg+  + Cl- --> Mg + Cl
+const double e4rate = 5;   // Mg+2 + Cl- --> Mg+ + Cl-
+
+// module representing the base rates of reactions
+module base_rates
+	
+	dummy : bool; // dummy variable
+	
+	[e1] true -> e1rate : true;
+	[e2] true -> e2rate : true;
+	[e3] true -> e3rate : true;
+	[e4] true -> e4rate : true;
+	
+endmodule
+
+// reward structur: percentage of Mg molecules
+rewards "percentage_mg"
+	true : 100*mg/N1;
+endrewards
+
+// reward structur: percentage of Mg+ molecules
+rewards "percentage_mgplus"
+	true : 100*mg_p/N1;
+endrewards
+
+// reward structur: percentage of Mg+2 molecules
+rewards "percentage_mgplus2"
+	true : max(100*(N1-(mg_p+mg))/N1,0);
+endrewards

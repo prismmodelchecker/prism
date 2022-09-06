@@ -1,0 +1,34 @@
+// Fix for the handling of strict/non-strict in simulation based bounded until fixed in revision 9163
+
+// RESULT: Error
+P=?[ G<0 s<2]
+
+// RESULT: 1.0
+P=?[ G<1 s<2]
+
+// RESULT: 1.0
+P=?[ G<2 s<2]
+
+// RESULT: 0.0
+P=?[ G<3 s<2]
+
+// RESULT: 0.0
+P=?[ G<4 s<2]
+
+
+
+// RESULT: 1.0
+P=?[ G<=0 s<2]
+
+// RESULT: 1.0
+P=?[ G<=1 s<2]
+
+// RESULT: 0.0
+P=?[ G<=2 s<2]
+
+// RESULT: 0.0
+P=?[ G<=3 s<2]
+
+// RESULT: 0.0
+P=?[ G<=4 s<2]
+

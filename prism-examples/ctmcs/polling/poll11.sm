@@ -1,0 +1,96 @@
+// polling example [IT90]
+// gxn/dxp 26/01/00
+
+ctmc
+
+const int N = 11;
+
+const double mu		= 1;
+const double gamma	= 200;
+const double lambda	= mu/N;
+
+module server
+	
+	s : [1..11]; // station
+	a : [0..1]; // action: 0=polling, 1=serving
+	
+	[loop1a] (s=1)&(a=0) -> gamma	: (s'=s+1);
+	[loop1b] (s=1)&(a=0) -> gamma	: (a'=1);
+	[serve1] (s=1)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop2a] (s=2)&(a=0) -> gamma	: (s'=s+1);
+	[loop2b] (s=2)&(a=0) -> gamma	: (a'=1);
+	[serve2] (s=2)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop3a] (s=3)&(a=0) -> gamma	: (s'=s+1);
+	[loop3b] (s=3)&(a=0) -> gamma	: (a'=1);
+	[serve3] (s=3)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop4a] (s=4)&(a=0) -> gamma	: (s'=s+1);
+	[loop4b] (s=4)&(a=0) -> gamma	: (a'=1);
+	[serve4] (s=4)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop5a] (s=5)&(a=0) -> gamma	: (s'=s+1);
+	[loop5b] (s=5)&(a=0) -> gamma	: (a'=1);
+	[serve5] (s=5)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop6a] (s=6)&(a=0) -> gamma	: (s'=s+1);
+	[loop6b] (s=6)&(a=0) -> gamma	: (a'=1);
+	[serve6] (s=6)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop7a] (s=7)&(a=0) -> gamma	: (s'=s+1);
+	[loop7b] (s=7)&(a=0) -> gamma	: (a'=1);
+	[serve7] (s=7)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop8a] (s=8)&(a=0) -> gamma	: (s'=s+1);
+	[loop8b] (s=8)&(a=0) -> gamma	: (a'=1);
+	[serve8] (s=8)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop9a] (s=9)&(a=0) -> gamma	: (s'=s+1);
+	[loop9b] (s=9)&(a=0) -> gamma	: (a'=1);
+	[serve9] (s=9)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop10a] (s=10)&(a=0) -> gamma	: (s'=s+1);
+	[loop10b] (s=10)&(a=0) -> gamma	: (a'=1);
+	[serve10] (s=10)&(a=1) -> mu		: (s'=s+1)&(a'=0);
+	
+	[loop11a] (s=11)&(a=0) -> gamma	: (s'=1);
+	[loop11b] (s=11)&(a=0) -> gamma	: (a'=1);
+	[serve11] (s=11)&(a=1) -> mu		: (s'=1)&(a'=0);
+	
+endmodule
+
+module station1
+	
+	s1 : [0..1]; // state of station: 0=empty, 1=full
+	
+	[loop1a] (s1=0) -> 1 : (s1'=0);
+	[]       (s1=0) -> lambda : (s1'=1);
+	[loop1b] (s1=1) -> 1 : (s1'=1);
+	[serve1] (s1=1) -> 1 : (s1'=0);
+	
+endmodule
+
+// construct further stations through renaming
+
+module station2 = station1 [ s1=s2, loop1a=loop2a, loop1b=loop2b, serve1=serve2 ] endmodule
+module station3 = station1 [ s1=s3, loop1a=loop3a, loop1b=loop3b, serve1=serve3 ] endmodule
+module station4 = station1 [ s1=s4, loop1a=loop4a, loop1b=loop4b, serve1=serve4 ] endmodule
+module station5 = station1 [ s1=s5, loop1a=loop5a, loop1b=loop5b, serve1=serve5 ] endmodule
+module station6 = station1 [ s1=s6, loop1a=loop6a, loop1b=loop6b, serve1=serve6 ] endmodule
+module station7 = station1 [ s1=s7, loop1a=loop7a, loop1b=loop7b, serve1=serve7 ] endmodule
+module station8 = station1 [ s1=s8, loop1a=loop8a, loop1b=loop8b, serve1=serve8 ] endmodule
+module station9 = station1 [ s1=s9, loop1a=loop9a, loop1b=loop9b, serve1=serve9 ] endmodule
+module station10 = station1 [ s1=s10, loop1a=loop10a, loop1b=loop10b, serve1=serve10 ] endmodule
+module station11 = station1 [ s1=s11, loop1a=loop11a, loop1b=loop11b, serve1=serve11 ] endmodule
+// (cumulative) rewards
+
+// expected time station 1 is waiting to be served
+rewards "waiting"
+	s1=1 & !(s=1 & a=1) : 1;
+endrewards
+
+// expected number of times station 1 is served
+rewards "served"
+	[serve1] true : 1;
+endrewards

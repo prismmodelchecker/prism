@@ -1,0 +1,10 @@
+// Bug in handling of implication in explicit engine (from Philipp Chrszon) (fixed in rev 9374)
+
+dtmc
+
+module test
+    s : bool init false;
+
+    [] s => false -> (s' = true);
+    [] s          -> true;
+endmodule

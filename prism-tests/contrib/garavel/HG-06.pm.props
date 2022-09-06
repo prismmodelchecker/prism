@@ -1,0 +1,4 @@
+const int x = 3;
+
+// RESULT : 1/6
+P=? [ F s=7 & value=x ]

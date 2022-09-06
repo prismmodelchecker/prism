@@ -1,0 +1,7 @@
+// Correctness for the case where the master pays
+// (final parity of number of number of "agrees"s matches that of N)
+filter(forall, (pay=0) => P>=1 [ F "done" & parity=func(mod, N, 2) ])
+
+// Correctness for the case where a cryptographer pays
+// (final parity of number of number of "agrees"s does not match that of N)
+filter(forall, (pay>0) => P>=1 [ F "done" & parity!=func(mod, N, 2) ])

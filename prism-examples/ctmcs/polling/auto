@@ -1,0 +1,21 @@
+#!/bin/csh
+
+prism poll2.sm  poll.csl -const T=50
+prism poll3.sm  poll.csl -const T=50
+prism poll4.sm  poll.csl -const T=50
+prism poll5.sm  poll.csl -const T=50
+prism poll6.sm  poll.csl -const T=50
+prism poll7.sm  poll.csl -const T=50
+prism poll8.sm  poll.csl -const T=50
+prism poll9.sm  poll.csl -const T=50
+#prism poll10.sm poll.csl -const T=50
+#prism poll11.sm poll.csl -const T=50
+#prism poll12.sm poll.csl -const T=50
+#prism poll13.sm poll.csl -const T=50
+#prism poll14.sm poll.csl -const T=50
+#prism poll15.sm poll.csl -const T=50
+#prism poll16.sm poll.csl -const T=50
+#prism poll17.sm poll.csl -const T=50
+#prism poll18.sm poll.csl -const T=50
+#prism poll19.sm poll.csl -const T=50
+#prism poll20.sm poll.csl -const T=50

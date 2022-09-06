@@ -1,0 +1,5 @@
+#!/bin/csh
+
+prism -importpepa badge.pepa -ss
+prism -importpepa PC-LAN4.pepa -ss
+prism -importpepa PC-LAN6.pepa -ss

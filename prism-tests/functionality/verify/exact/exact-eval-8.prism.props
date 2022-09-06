@@ -1,0 +1,6 @@
+// RESULT: 2
+Rmax=?[ F s>0 ]
+
+// test case to check that arithmetic in the property is done exactly
+// RESULT: false
+(1/3 = 0.3333333333333333333333333333)

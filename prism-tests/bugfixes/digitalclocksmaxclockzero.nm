@@ -1,0 +1,26 @@
+// Bug fixed in trunk rev 3520 : GCD computation when max clock constraint is 0
+
+pta
+
+module M
+
+	s : [0..3];
+	x : clock;
+	
+	invariant
+		  (s=0 => x=0)
+		//& (s=3 => x>=1)
+	endinvariant
+	
+	[] s=0 -> (s'=1);
+	[] s=1 & x<=0 -> (s'=3);
+	[] s=3 -> (s'=3);
+
+endmodule
+
+label "target" = s=3;
+
+rewards "time"
+	true : 1;
+endrewards
+
