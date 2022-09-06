@@ -1,0 +1,147 @@
+
+This file contains the version history of the lp_solve Java wrapper.
+The wrapper has no version numbering of its own but follows the
+version scheme of lp_solve.
+
+5.5.0.14
+--------
+- The build scripts now also generate 64 bit versions in win64 or ux64 directories.
+- build scripts added for unix and tested on unix
+- lpsolve5j.cpp gave some warning about delete on void pointer. Modified.
+
+5.5.0.11
+--------
+- New API resizeLp for lp_solve 5.5.0.11 added
+
+5.5.0.9 (07.09.2006)
+--------------------
+- Revised unittest program because it gave some errors and warnings that it shouldn't give.
+
+
+5.5.0.8 (27.08.2006)
+--------------------
+- New API guessBasis for lp_solve 5.5.0.8 added
+
+
+5.5.0.2 beta (26.06.2005)
+--------------------
+- New API constants for lp_solve 5.5.0.2 added
+- New test cases
+
+
+5.5.0.0 beta (23.05.2005)
+--------------------
+- API changes for lp_solve 5.5.0.0 implemented
+- lp_solve 5.5.0.0 is still beta, so there are known bugs that also
+  show up in the Java wrapper
+- Some unit tests are missing for new API functions so the wrapper code
+  is to some extent untested.
+
+
+5.1.1.3 (17.03.2005)
+--------------------
+- API changes for lp_solve 5.1.1.3 implemented (read_basis, write_basis)
+- Relaxed JNI Version requirement to 1.2 in order to support also JDK 1.3
+- Tested also with JDK 1.5 (5.0): runs without changes on new Java version
+- Java classes are now precompiled with JDK 1.5, but with 1.4 as target
+  platform to ensure backward compatibility
+
+
+5.1.1.2 (05.01.2005)
+--------------------
+- API changes for lp_solve 5.1.1.1 implemented (no changes for 5.1.1.2).
+- Removed some constants which are only internally used from LpSolve class.
+
+
+5.1.1.0 (01.12.2004)
+--------------------
+- API changes for lp_solve 5.1.1.0 implemented (only two constants added).
+- Class files in demo directory are now packed in jar archives.
+- Updated build file for Mac OS X from Sean P. Kane.
+
+
+5.1.0.2 (21.09.2004)
+--------------------
+- Added a build file to compile the stub library on Mac OS X.
+  Thanks to Sean P. Kane who provided this script.
+
+
+5.1.0.1 (12.09.2004)
+--------------------
+- API changes for lp_solve 5.1.0.1 implemented (only two constants added).
+- Added a description how to call lp_solve functions from Python/Jython
+  to README.html and a Python demo program to the demo directory.
+- Tests for set_column(ex) and set_row enabled again
+
+
+5.1.0.0 (08.09.2004)
+--------------------
+- API changes for lp_solve 5.1.0.0 implemented.
+- Wrapper libraries renamed to lpsolve51j.dll (liblpsolve51.so for Linux)
+  and lpsolve51.jar to keep in sync with the naming conventions of
+  the core lp_solve distribution.
+- Tests for set_row(ex) and set_column(ex) temporarily disabled until
+  issue is resolved in lp_solve
+- Demo program now shows the use of callback functions.
+- writeLp, writeMps, writeFreeMps and writeXLI and their read* equivalents
+  now accept filenames with native (non UTF-8) characters.
+- Resetting the callback functions to default values did not work
+  correctly. Fixed.
+
+
+5.0.10.0 (24.07.2004)
+--------------------
+- API changes for lp_solve 5.0.10.0 implemented.
+- Added more test cases.
+- Some changes in doc file README.html
+
+
+5.0.9.0 (22.06.2004)
+--------------------
+- API changes for lp_solve 5.0.9.0 implemented, including new XLI functions.
+- getUpbo and getLowbo were not implemented correctly. Fixed.
+- The methods in the listener interfaces for the lp_solve callback functions
+  are now declared to throw an LpSolveException to allow implementing classes
+  to throw such an exception.
+- Added more test cases.
+- Added junit.jar and batch/shell scripts to run the JUnit testcases on
+  Windows and Linux.
+
+
+5.0.8.1 (14.06.2004)
+--------------------
+- Moved lpsolve5j.dll from lib to lib\win32 and added a build script for
+  Microsoft Visual C++ compiler.
+- Added a Linux shared library and gcc build script to lib\linux.
+- Minor C source modifications to make it compile on Linux.
+- Documentation modifications for Linux lib.
+- The following lp_solve functions were not implemented in the wrapper:
+  get_ptr_dual_solution, get_ptr_sensitivity_obj, get_ptr_sensitivity_rhs,
+  is_constr_type, is_piv_rule, print_str. Fixed.
+- Changed setPreferduals (Java) parameter type from int to boolean.
+- The names of the methods getLambda and getPtrLambda were reversed. Fixed.
+- Changed getRow and getColumn which now exctly follow the lp_solve API
+  and return their results in an array which must be allocated by the caller.
+- Added the methods getPtrRow and getPtrColumn (which are not in lp_solve) for
+  convenience. Their return value is an array allocated by the method.
+- Added more test cases.
+
+
+5.0.8.0 (06.06.2004)
+--------------------
+- To avoid confusion with the lp_solve version numbering and in order to be
+  consistent with the naming conventions of the other interface libraries,
+  the lpsolve4j software has been renamed. The distribution archive is now
+  called lp_solve_5.0_java.zip. The libraries have been renamed to lpsolve5j.dll
+  and lpsolve5j.jar. The package name of the LpSolve class has been renamed
+  from lpsolve4j to lpsolve. Documentation has been updated to avoid the usage
+  of lpsolve4j completely.
+- Implementation of API changes from lp_solve 5.0.7.0 and 5.0.8.0
+- Added file CHANGES.txt in docs directory for version history
+- Source files are now compiled with the header files from lp_solve5.zip
+  instead of using the sources.
+
+
+5.0.6.0 (27.05.2004)
+--------------------
+- Implementation of API changes from lp_solve 5.0.6.0

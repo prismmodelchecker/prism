@@ -1,0 +1,39 @@
+// self stabilisation algorithm Beauquier, Gradinariu and Johnen
+// gxn/dxp 18/07/02
+
+mdp
+
+// module of process 1
+module process1
+	
+	d1 : bool; // probabilistic variable
+	p1 : bool; // deterministic variable
+	
+	[] d1=d9 &  p1=p9 -> 0.5 : (d1'=!d1) & (p1'=p1) + 0.5 : (d1'=!d1) & (p1'=!p1);
+	[] d1=d9 & !p1=p9 -> (d1'=!d1);
+	
+endmodule
+
+// add further processes through renaming
+module process2 = process1 [ p1=p2, p9=p1, d1=d2, d9=d1 ] endmodule
+module process3 = process1 [ p1=p3, p9=p2, d1=d3, d9=d2 ] endmodule
+module process4 = process1 [ p1=p4, p9=p3, d1=d4, d9=d3 ] endmodule
+module process5 = process1 [ p1=p5, p9=p4, d1=d5, d9=d4 ] endmodule
+module process6 = process1 [ p1=p6, p9=p5, d1=d6, d9=d5 ] endmodule
+module process7 = process1 [ p1=p7, p9=p6, d1=d7, d9=d6 ] endmodule
+module process8 = process1 [ p1=p8, p9=p7, d1=d8, d9=d7 ] endmodule
+module process9 = process1 [ p1=p9, p9=p8, d1=d9, d9=d8 ] endmodule
+
+// cost - 1 in each state (expected steps)
+rewards "steps"
+	true : 1;
+endrewards
+
+// initial states - any state with more than 1 token, that is all states
+init
+	true
+endinit
+
+// formula, for use in properties: number of tokens
+formula num_tokens = (p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)+(p7=p8?1:0)+(p8=p9?1:0)+(p9=p1?1:0);
+

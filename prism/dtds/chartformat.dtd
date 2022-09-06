@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Document   : chartformat.dtd
+    Created on : 26 October 2004, 19:23
+    Author     : Andrew Hinton
+    Description:
+        Describes the structure of XML files used by PRISM's
+        chart package.
+
+    PUBLIC ID  : -//vendor//vocabulary//EN
+    SYSTEM ID  : http://server/path/chartformat.dtd
+-->
+
+<!ELEMENT chartFormat (layout, axis, axis, (graph)*)>
+
+<!ATTLIST chartFormat
+    versionString CDATA #IMPLIED
+    graphTitle CDATA #IMPLIED
+    titleFontName CDATA #IMPLIED
+    titleFontSize CDATA #IMPLIED
+    titleFontStyle CDATA #IMPLIED
+    titleFontColourR CDATA #IMPLIED
+    titleFontColourG CDATA #IMPLIED
+    titleFontColourB CDATA #IMPLIED
+    legendVisible (true|false) #IMPLIED
+    legendPosition (left|bottom|right|manual) #IMPLIED
+    legendPositionX CDATA #IMPLIED
+    legendPositionY CDATA #IMPLIED
+    legendFontName CDATA #IMPLIED
+    legendFontSize CDATA #IMPLIED
+    legendFontStyle CDATA #IMPLIED
+    legendFontColourR CDATA #IMPLIED
+    legendFontColourG CDATA #IMPLIED
+    legendFontColourB CDATA #IMPLIED
+    autoborder (true|false) #IMPLIED
+    >
+
+<!ELEMENT layout (#PCDATA)>
+
+<!ATTLIST layout
+    topOffset CDATA #IMPLIED
+    bottomOffset CDATA #IMPLIED
+    leftOffset CDATA #IMPLIED
+    rightOffset CDATA #IMPLIED
+    >
+
+<!ELEMENT axis (#PCDATA)>
+
+<!ATTLIST axis
+    heading CDATA #IMPLIED
+    headingFontName CDATA #IMPLIED
+    headingFontSize CDATA #IMPLIED
+    headingFontStyle CDATA #IMPLIED
+    headingFontColourR CDATA #IMPLIED
+    headingFontColourG CDATA #IMPLIED
+    headingFontColourB CDATA #IMPLIED
+    numberFontName CDATA #IMPLIED
+    numberFontSize CDATA #IMPLIED
+    numberFontStyle CDATA #IMPLIED
+    numberFontColourR CDATA #IMPLIED
+    numberFontColourG CDATA #IMPLIED
+    numberFontColourB CDATA #IMPLIED
+    showMajor (true|false) #IMPLIED
+    showMinor (true|false) #IMPLIED
+    majorColourR CDATA #IMPLIED
+    majorColourG CDATA #IMPLIED
+    majorColourB CDATA #IMPLIED
+    minorColourR CDATA #IMPLIED
+    minorColourG CDATA #IMPLIED
+    minorColourB CDATA #IMPLIED
+    logarithmic (true|false) #IMPLIED
+    autoscale (true|false) #IMPLIED
+    minValue CDATA #IMPLIED
+    maxValue CDATA #IMPLIED
+    majorGridInterval CDATA #IMPLIED
+    minorGridInterval CDATA #IMPLIED
+    maximumPower CDATA #IMPLIED
+    logBase CDATA #IMPLIED
+    logStyle CDATA #IMPLIED
+    minimumPower CDATA #IMPLIED>
+
+<!ELEMENT graph (point)*>
+
+<!ATTLIST graph
+    seriesHeading CDATA #IMPLIED
+    seriesColourR CDATA #IMPLIED
+    seriesColourG CDATA #IMPLIED
+    seriesColourB CDATA #IMPLIED
+    showPoints (true|false) #IMPLIED
+    seriesShape (circle|square|triangle|rectangle_h|rectangle_v|none) #IMPLIED
+    showLines (true|false) #IMPLIED
+    lineWidth CDATA #IMPLIED
+    lineStyle (normal|dashed|dotDashed) #IMPLIED>
+
+<!ELEMENT point (#PCDATA)>
+
+<!ATTLIST point
+    x CDATA #REQUIRED
+    y CDATA #REQUIRED>

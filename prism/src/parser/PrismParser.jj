@@ -1,0 +1,1962 @@
+//==============================================================================
+//	
+//	Copyright (c) 2002-
+//	Authors:
+//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
+//	
+//------------------------------------------------------------------------------
+//	
+//	This file is part of PRISM.
+//	
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
+//	
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
+//	
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+//	
+//==============================================================================
+
+options {
+	LOOKAHEAD = 1;
+	UNICODE_INPUT = true;
+}
+
+PARSER_BEGIN(PrismParser)
+
+package parser;
+
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
+
+import jltl2ba.SimpleLTL;
+import parser.BooleanUtils;
+import parser.ast.*;
+import parser.type.*;
+import prism.ModelInfo;
+import parser.visitor.*;
+import prism.ModelType;
+import prism.PrismLangException;
+
+@SuppressWarnings({"unused", "static-access", "serial"})
+public class PrismParser
+{
+	// The model associated with the properties file being parsed
+	private static ModelInfo modelInfo;
+	
+	// List of keyword strings
+	private static ArrayList<String> keywordList = new ArrayList<String>();
+	static {
+		keywordList.clear();
+		for (int i = PrismParserConstants.COMMENT+1; i < PrismParserConstants.NOT; i++) {
+			keywordList.add(PrismParserConstants.tokenImage[i].replaceAll("\"", ""));
+		}
+	}
+	
+	//-----------------------------------------------------------------------------------
+	// Main method for testing purposes
+	//-----------------------------------------------------------------------------------
+
+	public static void main(String[] args)
+	{
+		PrismParser p = null;
+		InputStream str = null;
+		String src = null;
+		
+		try {
+			if (args.length == 0) {
+				System.out.println("Usage: java parser.PrismParser <switch> [<file>]");
+				System.out.println("Where: <switch> = -modulesfile or -mf");
+				System.out.println("                  -propertiesfile or -pf");
+				System.out.println("                  -expression or -e");
+				System.out.println("                  -ltl or -l");
+				System.exit(1);
+			}
+			
+			p = new PrismParser();
+			str = (args.length > 1) ? new FileInputStream(args[1]) : System.in;
+			src = (args.length > 1) ? "file "+args[1] : "stdin";
+			System.out.println("Reading from "+src+"...\n");
+			
+			if (args[0].equals("-modulesfile") || args[0].equals("-mf")) {
+				ModulesFile mf = p.parseModulesFile(str);
+				System.out.print("Modules file:\n=============\n\n" + mf);
+				System.out.print("\nTree:\n=====\n" + mf.toTreeString());
+				mf.tidyUp();
+				System.out.print("\nAnd after expansion:\n====================\n\n" +mf);
+			}
+			else if (args[0].equals("-propertiesfile") || args[0].equals("-pf")) {
+				PropertiesFile pf = p.parsePropertiesFile(new ModulesFile(), str);
+				System.out.print("Properties file:\n================\n\n" + pf);
+				System.out.print("\nTree:\n=====\n" + pf.toTreeString());
+				pf.tidyUp();
+				System.out.print("\nAnd after expansion:\n====================\n\n" + pf);
+			}
+			else if (args[0].equals("-expression") || args[0].equals("-e")) {
+				Expression expr = p.parseSingleExpression(str);
+				System.out.println("Expression: " + expr.toString());
+				System.out.print("Tree:\n=====\n" + expr.toTreeString());
+				expr.typeCheck();
+				expr.semanticCheck();
+				System.out.println("Type: " + expr.getType().getTypeString());
+				System.out.println("Eval: " + expr.evaluate());
+			}
+			else if (args[0].equals("-ltl") || args[0].equals("-l")) {
+				Expression expr = p.parseSingleLTLFormula(str);
+				expr = (Expression) expr.accept(new ASTTraverseModify() {
+					public Object visit(ExpressionIdent e) throws PrismLangException
+					{
+						return new parser.ast.ExpressionVar(e.getName(), TypeBool.getInstance());
+					}
+				});
+				System.out.println("LTL formula: " + expr.toString());
+				System.out.print("Tree:\n=====\n" + expr.toTreeString());
+				expr.typeCheck();
+				//expr.semanticCheck();
+				System.out.println("Type: " + expr.getType().getTypeString());
+				boolean pnf = Expression.isPositiveNormalFormLTL(expr);
+				System.out.println("Positive normal form: " + pnf);
+				System.out.println("Syntactically co-safe: " + Expression.isCoSafeLTLSyntactic(expr));
+				if (!pnf) {
+					Expression exprPnf = BooleanUtils.convertLTLToPositiveNormalForm(expr.deepCopy());
+					System.out.println("Positive normal form conversion: " + exprPnf);
+					System.out.println("Syntactically co-safe: " + Expression.isCoSafeLTLSyntactic(exprPnf));
+				}
+				Expression expr2 = (Expression) expr.deepCopy().accept(new ASTTraverseModify() {
+					public Object visit(ExpressionVar e) throws PrismLangException
+					{
+							return new parser.ast.ExpressionLabel(e.getName());
+					}
+				});
+				SimpleLTL sltl = expr2.convertForJltl2ba();
+				System.out.println("LBT: " + sltl.toStringLBT());
+				System.out.println("Spot: " + sltl.toStringSpot());
+				System.out.println("Spin: " + sltl.toStringSpin());
+			} else {
+				System.out.println("Unknown switch"); System.exit(1);
+			}
+		}
+		catch (PrismLangException e) {
+			System.out.println("Error in "+src+": " + e.getMessage()+"."); System.exit(1);
+		}
+		catch (FileNotFoundException e) {
+			System.out.println(e); System.exit(1);
+		}
+	}
+
+	//-----------------------------------------------------------------------------------
+	// Methods called by Prism
+	//-----------------------------------------------------------------------------------
+
+	// Constructor
+
+	public PrismParser()
+	{
+		// Call default constructor
+		this(System.in);
+	}
+	
+	// Parse modules file
+	
+	public ModulesFile parseModulesFile(InputStream str) throws PrismLangException { return parseModulesFile(str, null); }
+	
+	public ModulesFile parseModulesFile(InputStream str, ModelType typeOverride) throws PrismLangException
+	{
+		ModulesFile mf = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		// Parse
+		try {
+			mf = ModulesFile();
+		}
+		catch (ParseException e) {
+			throw generateSyntaxError(e);
+		}
+		// Override type of model if requested
+		if (typeOverride != null) {
+			mf.setModelType(typeOverride);
+		}
+		
+		return mf;
+	}
+	
+	// Parse properties file (pass ModulesFile in to get at its constants)
+	
+	public PropertiesFile parsePropertiesFile(ModelInfo modelInfo, InputStream str) throws PrismLangException
+	{ return parsePropertiesFile(modelInfo, str, false); }
+	
+	public PropertiesFile parsePropertiesFile(ModelInfo modelInfo, InputStream str, boolean strict) throws PrismLangException
+	{
+		PropertiesFile pf = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		this.modelInfo = modelInfo;
+		// Parse
+		try {
+			pf = strict ? PropertiesFile() : PropertiesFileSemicolonless();
+		}
+		catch (ParseException e) {
+			throw generateSyntaxError(e);
+		}
+
+		return pf;
+	}
+	
+	// Parse a single expression
+	
+	public Expression parseSingleExpression(InputStream str) throws PrismLangException
+	{
+		Expression expr = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		// Parse
+		try {
+			expr = SingleExpression();
+		}
+		catch (ParseException e) {
+			throw generateSyntaxError(e);
+		}
+		return expr;
+	}
+	
+	// Parse a single LTL formula
+	
+	public Expression parseSingleLTLFormula(InputStream str) throws PrismLangException
+	{
+		Expression expr = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		// Parse
+		try {
+			expr = SingleLTLFormula();
+		}
+		catch (ParseException e) {
+			throw generateSyntaxError(e);
+		}
+		return expr;
+	}
+	
+	// Parse a for loop
+	
+	public ForLoop parseForLoop(InputStream str) throws PrismLangException
+	{
+		ForLoop fl = null;
+		
+		// (Re)start parser
+		ReInit(str);
+		// Parse
+		try {
+			fl = ForLoop();
+		}
+		catch (ParseException e) {
+			throw generateSyntaxError(e);
+		}
+		return fl;
+	}
+	
+	//-----------------------------------------------------------------------------------
+	// Some utility methods
+	//-----------------------------------------------------------------------------------
+	
+	/**
+	 * Get comment block directly preceding a token and remove "//" characters
+	 */
+	public static String getPrecedingCommentBlock(Token firstToken)
+	{
+		String comment = "", s;
+		Token t = firstToken;
+		
+		// extract any comment from the previous lines of the file
+		if (t.specialToken != null && !(t.specialToken.kind == PrismParserConstants.WHITESPACE && t.specialToken.image.matches("[\\n\\r]*"))) {
+			// trace back thru special tokens that are comments
+			t = t.specialToken;
+			while (t.specialToken != null && !(t.specialToken.kind == PrismParserConstants.WHITESPACE && t.specialToken.image.matches("[\\n\\r]*")))
+				t = t.specialToken;
+			// concatenate comment special tokens
+			while (t != null) {
+				s = t.image;
+				// strip any nasty carriage returns
+				s = s.replaceAll("\r", "");
+				// remove "//" and preceding/subsequent spaces/tabs from comments
+				if (t.kind == PrismParserConstants.COMMENT) {
+					while (comment.length() > 0 && (""+comment.charAt(comment.length()-1)).matches("[ \t]"))
+						comment = comment.substring(0,comment.length()-1);
+					s = s.substring(2);
+					s = s.replaceFirst("[ \t]*", "");
+				}
+				comment += s;
+				t = t.next;
+			}
+		}
+		// remove final new line (if present)
+		if (comment.length() > 0 && (comment.charAt(comment.length()-1) == '\n'))
+			comment = comment.substring(0,comment.length()-1);
+		
+		return comment;
+	}
+	
+	// Add "//"s into comment block
+	
+	public static String slashCommentBlock(String comment)
+	{
+		int i;
+		String s, res = "";
+		// break into lines
+		while ((i = comment.indexOf("\n")) != -1) {
+			s = comment.substring(0, i);
+			comment = comment.substring(i+1);
+			// add "//" to non-empty lines
+			if (s.trim().length()>0) res += "// " + s;
+			res += "\n";
+		}
+		// deal with any trailing characters (with no new line ending them)
+		if (comment.trim().length()>0) res += "// " + comment + "\n";
+		return res;
+	}
+	
+	/**
+	 * Test a string to see if it is a PRISM language keyword.
+	 */
+	public static boolean isKeyword(String s)
+	{
+		return keywordList.contains(s);
+	}
+	
+	/**
+	 * Get access to the list of all PRISM language keywords.
+	 */
+	public static List<String> getListOfKeywords()
+	{
+		return keywordList;
+	}
+	
+	/**
+	 * Set the tab size used by the lexer/parser.
+	 */
+	public void setTabSize(int size) 
+	{
+		SimpleCharStream.setTabSize(size);   
+	}
+	
+	/**
+	 * Get the tab size used by the lexer/parser.
+	 */
+	public int getTabSize()
+	{
+		return SimpleCharStream.getTabSize();
+	}
+	
+	/**
+	 * Generate a syntax error (PrismLangException) from a ParseException.
+	 */
+	protected PrismLangException generateSyntaxError(ParseException e)
+	{
+		if (e == null) return new PrismLangException("Syntax error");
+		// No token: was prob created manually so use message if present
+		if (e.currentToken == null) {
+			String msg = e.getMessage();
+			String exMsg = "Syntax error";
+			if (msg != null && msg.length() > 0)
+				exMsg += ": " + msg;
+			return new PrismLangException(exMsg);
+		}
+		// Use current/next token to find location of error
+		// But don't use error message if too long (esp if generated by JavaCC)
+		else {
+			ExpressionIdent tmp;
+			if (e.currentToken.next == null) {
+				tmp = new ExpressionIdent(e.currentToken.image);
+				tmp.setPosition(e.currentToken);
+			} else {
+				tmp = new ExpressionIdent(e.currentToken.next.image);
+				tmp.setPosition(e.currentToken.next);
+			}
+			String msg = e.getMessage();
+			String exMsg = "Syntax error";
+			if (msg != null && msg.length() > 0 && msg.length() < 20)
+				exMsg += ": " + msg;
+			return new PrismLangException(exMsg, tmp);
+		}
+	}
+	
+	//-----------------------------------------------------------------------------------
+	// A few classes for temporary storage of bits of the AST
+	//-----------------------------------------------------------------------------------
+	
+	static class ExpressionPair { public Expression expr1 = null; public Expression expr2 = null; }
+}
+
+//-----------------------------------------------------------------------------------
+
+PARSER_END(PrismParser)
+
+// Token definitions follow
+// Note that PrismSyntaxHighlighter makes assumptions about the ordering of these
+
+// Skip (but store) all other white space
+
+SPECIAL_TOKEN :
+{
+	<WHITESPACE: (" "|"\t"|"\n"|"\r")>
+}
+
+// Skip (but store) comments
+
+SPECIAL_TOKEN :
+{
+	<COMMENT: "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")?>
+}
+
+// Tokens
+
+TOKEN :
+{
+	// Keywords
+	< A:				"A" >
+//|	< ARRAY:			"array" >
+|	< BOOL:				"bool" >
+|	< CLOCK:			"clock" >
+|	< CONST:			"const" >
+|	< CTMC:				"ctmc" >
+|	< C:				"C" >
+|	< DOUBLE:			"double" >
+|	< DTMC:				"dtmc" >
+|	< E:				"E" >
+|	< ENDINIT:			"endinit" >
+|	< ENDINVARIANT:		"endinvariant" >
+|	< ENDMODULE:		"endmodule" >
+|	< ENDREWARDS:		"endrewards" >
+|	< ENDSYSTEM:		"endsystem" >
+|	< FALSE:			"false" >
+|	< FORMULA:			"formula" >
+|	< FILTER:			"filter" >
+|	< FUNC:				"func" >
+|	< F:				"F" >
+|	< GLOBAL:			"global" >
+|	< G:				"G" >
+|	< INIT:				"init" >
+|	< INVARIANT:		"invariant" >
+|	< I:				"I" >
+|	< INT:				"int" >
+|	< LABEL:			"label" >
+|	< MAX:				"max" >
+|	< MDP:				"mdp" >
+|	< MIN:				"min" >
+|	< MODULE:			"module" >
+|	< X:				"X" >
+|	< NONDETERMINISTIC:	"nondeterministic" >
+//|	< OF:				"of" >
+|	< PMAX:				"Pmax" >
+|	< PMIN:				"Pmin" >
+|	< P:				"P" >
+|	< PROBABILISTIC:	"probabilistic" >
+|	< PROB:				"prob" >
+|	< PTA:				"pta" >
+|	< RATE:				"rate" >
+|	< REWARDS:			"rewards" >
+|	< RMAX:				"Rmax" >
+|	< RMIN:				"Rmin" >
+|	< R:				"R" >
+|	< S:				"S" >
+|	< STOCHASTIC:		"stochastic" >
+|	< SYSTEM:			"system" >
+|	< TRUE:				"true" >
+|	< U:				"U" >
+|	< W:				"W" >
+	// Punctuation, etc.
+	// Note that "NOT" must be the first item of punctuation in this list
+	// (PrismSyntaxHighlighter relies on this fact)
+|	< NOT:			"!" >
+|	< AND:			"&" >
+|	< OR:			"|" >
+|	< IMPLIES:		"=>" >
+|	< IFF:			"<=>" >
+|	< RARROW:		"->" >
+|	< COLON:		":" >
+|	< SEMICOLON:	";" >
+|	< COMMA:		"," >
+|	< DOTS:			".." >
+|	< LPARENTH:		"(" >
+|	< RPARENTH:		")" >
+|	< LBRACKET: 	"[" >
+|	< RBRACKET:		"]" >
+|	< DLBRACKET: 	"[[" >
+|	< DRBRACKET:	"]]" >
+|	< LBRACE:		"{" >
+|	< RBRACE:		"}" >
+|	< EQ:			"=" >
+|	< NE:			"!=" >
+|	< LT:			"<" >
+|	< GT:			">" >
+|	< DLT:			"<<" >
+|	< DGT:			">>" >
+|	< LE:			"<=" >
+|	< GE:			">=" >
+|	< PLUS:			"+" >
+|	< MINUS:		"-" >
+|	< TIMES:		"*" >
+|	< DIVIDE:		"/" >
+|	< PRIME:		"'" >
+|	< RENAME:		"<-" >
+|	< QMARK:		"?" >
+|	< DQUOTE:		"\"" >
+	// Regular expressions
+|	< REG_INT:			(["1"-"9"](["0"-"9"])*)|("0") >
+|	< REG_DOUBLE:		(["0"-"9"])*(".")?(["0"-"9"])+(["e","E"](["-","+"])?(["0"-"9"])+)? >
+|	< REG_IDENTPRIME:	["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])*"'" >
+|	< REG_IDENT:		["_","a"-"z","A"-"Z"](["_","a"-"z","A"-"Z","0"-"9"])* >
+|	< PREPROC:			"#"(~["#"])*"#" >
+	// Special catch-all token for lexical errors
+	// (this allows us to throw our usual exceptions in this case)
+|	< LEXICAL_ERROR: ~[] >
+}
+
+//-----------------------------------------------------------------------------------
+// Top-level productions
+//-----------------------------------------------------------------------------------
+
+// Modules file
+
+ModulesFile ModulesFile() throws PrismLangException :
+{
+	ModelType type = ModelType.MDP;
+	int typeCount = 0;
+	Token typeDupe = null;
+	Declaration global;
+	parser.ast.Module m = null;
+	RenamedModule rm = null;
+	RewardStruct rs = null;
+	Expression init = null;
+	int initCount = 0;
+	Expression initDupe = null;
+	ModulesFile mf = new ModulesFile();
+	Token begin = null;
+}
+{
+	( { begin = getToken(1); }
+	// Model type
+	( type=ModulesFileType() { typeCount++; if (typeCount == 2) typeDupe = getToken(0); } ) |
+	// Formula/label/constant definition
+	FormulaDef(mf.getFormulaList()) | LabelDef(mf.getLabelList()) | ConstantDef(mf.getConstantList()) |
+	// Global variable
+	global = GlobalDecl() { mf.addGlobal(global); } |
+	// Renamed module (lookahead to distinguish from normal module)
+	LOOKAHEAD(<MODULE> Identifier() <EQ>) rm = RenamedModule() { mf.addRenamedModule(rm); } |
+	// Module
+	m = Module() { mf.addModule(m); } | 
+	// Reward structure
+	rs = RewardStruct() { mf.addRewardStruct(rs); } |
+	// Initial states ("init...endinit" construct)
+	init = Init() { mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init; } |
+	// System definition ("system...endsystem" construct)
+	SystemEndsystem(mf)
+	)* <EOF>
+	{
+		// Check for multiple instances of some items
+		if (typeDupe != null) {
+			ExpressionIdent tmp = new ExpressionIdent(typeDupe.image);
+			tmp.setPosition(typeDupe);
+			throw new PrismLangException("There were multiple model type declarations", tmp);
+		}
+		if (initDupe != null) {
+			throw new PrismLangException("There were multiple init...endinit constructs", initDupe);
+		}
+		
+		// Set model type (note default is MDP)
+		mf.setModelType(type);
+		
+		// Return completed ModulesFile object
+		mf.setPosition(begin != null? begin: getToken(0), getToken(0));
+		return mf;
+	}
+}
+
+// Properties file
+
+PropertiesFile PropertiesFile() throws PrismLangException :
+{
+	PropertiesFile pf = new PropertiesFile(modelInfo);
+	Property prop;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); }
+	(
+		// Semi-colon terminated property
+		( prop = Property() { pf.addProperty(prop); } (<SEMICOLON>)+ )
+	|
+		// Label/constant definition
+		( LabelDef(pf.getLabelList()) ) | ( ConstantDef(pf.getConstantList()) )
+	)* <EOF>
+	{ pf.setPosition(begin, getToken(0)); return pf; }
+}
+
+// Properties file with optional semicolons - beware of potential ambiguities
+
+PropertiesFile PropertiesFileSemicolonless() throws PrismLangException :
+{
+	PropertiesFile pf = new PropertiesFile(modelInfo);
+	Property prop;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); }
+	(
+		// Semi-colon terminated property
+		( prop = Property() (<SEMICOLON>)* { pf.addProperty(prop); } )
+	|
+		// Label/constant definition
+		( LabelDef(pf.getLabelList()) ) | ( ConstantDef(pf.getConstantList()) )
+	)* <EOF>
+	{ pf.setPosition(begin, getToken(0)); return pf; }
+}
+
+// Property - expression, with optional name/comment
+
+Property Property() :
+{
+	String name = null;
+	Expression expr;
+	Property prop;
+	Token begin = null;
+}
+{
+	// Note that we jump in a few levels down in the Expression hierarchy
+	// (more precisely, we skip the temporal operators, which can't occur at the top-level)
+	// (this avoids some common parsing errors for semicolon-less files)
+	// Note also use of lookahead (to colon) to distinguish (optional) name from label reference
+	( { begin = getToken(1); }
+	( LOOKAHEAD(<DQUOTE> Identifier() <DQUOTE> <COLON>) <DQUOTE> name = Identifier() <DQUOTE> <COLON> )?
+	expr = ExpressionITE(true, false)
+	{ prop = new Property(expr, name, getPrecedingCommentBlock(begin)); }
+	)
+	{ prop.setPosition(begin, getToken(0)); return prop; }
+}
+
+// A single expression
+
+Expression SingleExpression() :
+{
+	Expression ret;
+}
+{
+	( ret = Expression(false, false) <EOF> ) { return ret; }
+}
+
+// A single LTL formula
+
+Expression SingleLTLFormula() :
+{
+	Expression ret;
+}
+{
+	( ret = Expression(true, true) <EOF> ) { return ret; }
+}
+
+//-----------------------------------------------------------------------------------
+// Modules file stuff (a few bits of which are reused for property files)
+//-----------------------------------------------------------------------------------
+
+// Keyword denoting model type
+
+ModelType ModulesFileType() :
+{
+	ModelType modelType = null;
+}
+{
+	( (<DTMC>|<PROBABILISTIC>) { modelType=ModelType.DTMC; }
+	| (<MDP>|<NONDETERMINISTIC>) { modelType=ModelType.MDP; }
+	| (<CTMC>|<STOCHASTIC>) { modelType=ModelType.CTMC; }
+	| <PTA> { modelType=ModelType.PTA; }
+	)
+	{ return modelType; }
+}
+
+// Formula definition
+
+void FormulaDef(FormulaList formulaList) :
+{
+	ExpressionIdent name = null;
+	Expression expr = null;
+}
+{
+	( <FORMULA> name = IdentifierExpression() <EQ> expr = Expression(false, false) <SEMICOLON> )
+	{ formulaList.addFormula(name, expr); }
+}
+
+// Label definition
+
+void LabelDef(LabelList labelList) throws PrismLangException :
+{
+	ExpressionIdent name = null;
+	Expression expr = null;
+}
+{
+	// Lookahead required because of the error handling clause below
+	LOOKAHEAD(<LABEL> <DQUOTE>) <LABEL> ( <DQUOTE> name = IdentifierExpression() <DQUOTE> <EQ> expr = Expression(false, false) <SEMICOLON> )
+	{ labelList.addLabel(name, expr); }
+	// Error handling
+	| LOOKAHEAD(<LABEL>) ( <LABEL> name = IdentifierExpression() ) { throw new PrismLangException("Label names must be enclosed in double-quotes", name); }
+}
+
+// Constant definition
+
+void ConstantDef(ConstantList constantList) :
+{
+	Type type = TypeInt.getInstance();
+	ExpressionIdent name = null;
+	Expression expr = null;
+}
+{
+	// Constant (allow omission of "int" and use of "rate"/"prob" for backwards compatability)
+	(( <CONST> ( <INT> { type=TypeInt.getInstance(); } | <DOUBLE> { type=TypeDouble.getInstance(); } | <BOOL> { type=TypeBool.getInstance(); } )? )
+	| (<RATE> | <PROB> ) { type=TypeDouble.getInstance(); } )
+	// Name and (optional) initial value
+	name = IdentifierExpression()
+	( <EQ> expr = Expression(false, false) )? <SEMICOLON>
+	{ constantList.addConstant(name, expr, type); }
+}
+
+// Global variable declaration
+
+Declaration GlobalDecl() :
+{
+	Declaration decl = null;
+}
+{
+	( <GLOBAL> decl = Declaration() )
+	{ return decl; }
+}
+
+// Variable declaration
+
+Declaration Declaration() :
+{
+	Declaration decl;
+	String name = null;
+	DeclarationType declType;
+	Expression init = null;
+	Token begin = null;
+}
+{
+	// Name, colon, type
+	( { begin = getToken(1); } name = Identifier() <COLON> declType = DeclarationVarType()
+		{ decl = new Declaration(name, declType); }
+	// Optional inital value
+	( <INIT> init = Expression(false, false)
+	{ decl.setStart(init); } )?
+	// Terminating ;
+	<SEMICOLON> )
+	{ decl.setPosition(begin, getToken(0)); return decl; }
+}
+
+// Type part of a declaration
+
+DeclarationType DeclarationVarType() :
+{
+	Expression low = null, high = null;
+	DeclarationType declType, subtype;
+	Token begin = null;
+}
+{
+	( { begin = getToken(1); } (
+	// Integer-range declaration
+	( <LBRACKET> low = Expression(false, false) <DOTS> high = Expression(false, false) <RBRACKET>
+		{ declType = new DeclarationInt(low, high); } )
+	// Integer (unbounded) declaration
+	| ( <INT> { declType = new DeclarationIntUnbounded(); } )
+	// Boolean variable declaration
+	| ( <BOOL> { declType = new DeclarationBool(); } )
+	// Array variable declaration
+	/* | ( <ARRAY> <LBRACKET> low = Expression(false, false) <DOTS> high = Expression(false, false) <RBRACKET> 
+		<OF> subtype = DeclarationVarType()
+		{ declType = new DeclarationArray(low, high, subtype); } )
+		// TODO: sort initial values */
+	| ( <CLOCK> { declType = new DeclarationClock(); } )
+	))
+	{ declType.setPosition(begin, getToken(0)); return declType; }
+}
+
+// Module
+
+parser.ast.Module Module() :
+{
+	ExpressionIdent name = null;
+	Declaration var = null;
+	Expression invar;
+	Command comm = null;
+	parser.ast.Module module = null;
+	Token begin = null;
+}
+{
+	begin = <MODULE> name = IdentifierExpression() { module = new parser.ast.Module(name.getName()); }
+	( var = Declaration() { module.addDeclaration(var); } )*
+	( <INVARIANT> invar = Expression(false, false) <ENDINVARIANT> { module.setInvariant(invar); } )?
+	( comm = Command() { module.addCommand(comm); } )*
+	<ENDMODULE>
+	{ module.setPosition(begin, getToken(0)); module.setNameASTElement(name); return module; }
+}
+
+// Command
+
+Command Command() :
+{
+	String synch = null;
+	Expression guard = null;
+	Updates updates = null;
+	Command comm = new Command();
+	Token begin = null;
+}
+{
+	// Synchronisation action-label
+	begin = <LBRACKET> ( synch = Identifier() { comm.setSynch(synch); } )? <RBRACKET>
+	// Guard/updates
+	guard = Expression(false, false) { comm.setGuard(guard); } <RARROW> updates = Updates() { comm.setUpdates(updates); } <SEMICOLON>
+	{ comm.setPosition(begin, getToken(0)); return comm; }
+}
+
+// Updates
+
+Updates Updates() :
+{
+	Expression prob;
+	Update update;
+	Updates updates = new Updates();
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); }
+	(
+		// Single update with probability 1
+		// (lookahead required because update and probability can both start with "(")
+		LOOKAHEAD(Update()) update = Update()
+		{ updates.addUpdate(null, update); }
+	|
+		// Several probabilistic updates
+		( prob = Expression(false, false) <COLON> update = Update() { updates.addUpdate(prob, update); }
+		( <PLUS> prob = Expression(false, false) <COLON> update = Update() { updates.addUpdate(prob, update); } )* )
+	)
+	{ updates.setPosition(begin, getToken(0)); return updates; }
+}
+
+Update Update() :
+{
+	Update update = new Update();
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); }
+	// Conjunction of update elements
+	(( UpdateElement(update) ( <AND> UpdateElement(update) )* )
+	// Empty conjunction: true
+	| <TRUE> )
+	{ update.setPosition(begin, getToken(0)); return update; }
+}
+
+void UpdateElement(Update update) :
+{
+	ExpressionIdent var = null;
+	Expression expr = null;
+}
+{
+	<LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH> { update.addElement(var, expr); }
+}
+
+// Module renaming
+
+RenamedModule RenamedModule() :
+{
+	ExpressionIdent name = null, base = null;
+	RenamedModule rm = null;
+	Token begin = null;
+}
+{
+	begin = <MODULE> name = IdentifierExpression() <EQ> base = IdentifierExpression() { rm = new RenamedModule(name.getName(), base.getName()); }
+	<LBRACKET> Rename(rm) ( <COMMA> Rename(rm) )* <RBRACKET> <ENDMODULE>
+	{ rm.setPosition(begin, getToken(0)); rm.setNameASTElement(name); rm.setBaseModuleASTElement(base); return rm; }
+}
+
+void Rename(RenamedModule rm) :
+{
+	ExpressionIdent id1 = null, id2 = null;
+}
+{
+	// NB: have to explicitly include keywords for functions because they can be renamed
+	id1=IdentifierExpressionMinMax()
+	<EQ>
+	id2=IdentifierExpressionMinMax()
+	{
+		rm.addRename(id1.getName(), id2.getName(), id1, id2);
+	}
+}
+
+// Reward structure
+
+RewardStruct RewardStruct() :
+{
+	String name = null, s = null;
+	Expression guard = null, value = null;
+	RewardStruct rs = new RewardStruct();
+	RewardStructItem rsi;
+	Token begin = null, begin2 = null;
+}
+{
+	begin = <REWARDS>
+	// Optional name
+	// (lookahead required so not misdetected as an ExpressionLabel)
+	// (which would not be allowed to appear here anyway)
+	( LOOKAHEAD(<DQUOTE>) <DQUOTE> name = Identifier() <DQUOTE> { rs.setName(name); } )?
+	// Reward structure items
+	( { begin2 = getToken(1); s = null; } ( <LBRACKET> { s = ""; } ( s=Identifier() )? <RBRACKET> )?
+	guard = Expression(false, false) <COLON> value = Expression(false, false) <SEMICOLON>
+	{ rsi = new RewardStructItem(s, guard, value); rsi.setPosition(begin2, getToken(0)); rs.addItem(rsi); } )*
+	<ENDREWARDS>
+	{ rs.setPosition(begin, getToken(0)); return rs; }
+}
+	
+// Initial states ("init...endinit" construct)
+
+Expression Init() :
+{
+	Expression expr = null;
+}
+{
+	<INIT> expr = Expression(false, false) <ENDINIT> { return expr; }
+}
+
+// System definition ("system...endsystem" construct)
+
+void SystemEndsystem(ModulesFile mf) :
+{
+	String name = null;
+	SystemDefn sysdef;
+}
+{
+	<SYSTEM>
+	// Optional name
+	// (need lookahead because names look like references)
+	( LOOKAHEAD(<DQUOTE> name = Identifier() <DQUOTE> SystemDefn()) <DQUOTE> name = Identifier() <DQUOTE> )?
+	// The rest
+	( sysdef = SystemDefn() )
+	<ENDSYSTEM>
+	{
+		mf.addSystemDefn(sysdef, name);
+	}
+}
+
+// System definition component
+
+SystemDefn SystemDefn() :
+{
+	SystemDefn ret;
+}
+{
+	ret = SystemFullParallel()
+	{ return ret; }
+}
+
+// System definition component (full parallel)
+
+SystemDefn SystemFullParallel() :
+{
+	SystemDefn sys1 = null, sys2 = null;
+	SystemFullParallel par = null;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	sys1 = SystemInterleaved()
+	( { par = new SystemFullParallel(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR>) <OR> <OR> sys2 = SystemParallel() { par.addOperand(sys2); } )* )
+	{
+		if (par==null || par.getNumOperands() == 1) {
+			return sys1;
+		}
+		else {
+			par.setPosition(begin, getToken(0));
+			return par;
+		}
+	}
+}
+
+// System definition component (interleaved parallel)
+
+SystemDefn SystemInterleaved() :
+{
+	SystemDefn sys1 = null, sys2 = null;
+	SystemInterleaved par = null;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	sys1 = SystemParallel()
+	( { par = new SystemInterleaved(); par.addOperand(sys1); } ( LOOKAHEAD(<OR> <OR> <OR>) <OR> <OR> <OR>  sys2 = SystemFullParallel() { par.addOperand(sys2); } )* )
+	{
+		if (par==null || par.getNumOperands() == 1) {
+			return sys1;
+		}
+		else {
+			par.setPosition(begin, getToken(0));
+			return par;
+		}
+	}
+}
+
+// System definition component (parallel over set of actions)
+
+SystemDefn SystemParallel() :
+{
+	SystemDefn sys1 = null, sys2 = null;
+	SystemParallel par = null;
+	String s;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	sys1 = SystemHideRename()
+	( LOOKAHEAD(<OR> <LBRACKET>) { par = new SystemParallel(); par.setOperand1(sys1); } <OR> 
+	  <LBRACKET> ( s = Identifier() { par.addAction(s); } ( <COMMA> s = Identifier() { par.addAction(s); } )* ) <RBRACKET>
+	  <OR> sys2 = SystemHideRename() { par.setOperand2(sys2); }
+	)?
+	{
+		if (par==null) {
+			return sys1;
+		}
+		else {
+			par.setPosition(begin, getToken(0));
+			return par;
+		}
+	}
+}
+
+// System definition component (hiding and renaming)
+
+SystemDefn SystemHideRename() :
+{
+	SystemDefn sys = null;
+	SystemHide hide = null;
+	SystemRename rename = null;
+	String s1 = null, s2 = null;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	( sys = SystemAtomic() (
+	// Hiding
+	(
+		{ hide = new SystemHide(sys); }
+		<DIVIDE> <LBRACE> ( s1 = Identifier() { hide.addAction(s1); } ( <COMMA> s1 = Identifier() { hide.addAction(s1); } )* ) <RBRACE>
+		{ sys = hide; }
+	)
+	// Renaming
+	| (
+		{ rename = new SystemRename(sys); }
+		<LBRACE> s1 = Identifier() <RENAME> s2 = Identifier() { rename.addRename(s1, s2); }
+		( <COMMA> s1 = Identifier() <RENAME> s2 = Identifier() { rename.addRename(s1, s2); } )* <RBRACE>
+		{ sys = rename; }
+	)
+	)* )
+	{ sys.setPosition(begin, getToken(0)); return sys; }
+}
+
+// System definition component (bottom level)
+
+SystemDefn SystemAtomic() :
+{
+	String name = null;
+	SystemDefn sys = null;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	(
+	// Module name
+	( name = Identifier() { sys = new SystemModule(name); } )
+	// SystemDefn reference
+	|( <DQUOTE> name = Identifier() <DQUOTE> { sys = new SystemReference(name); } )
+	// Parentheses
+	|( <LPARENTH> sys = SystemDefn() <RPARENTH> { sys = new SystemBrackets(sys); } )
+	)
+	{ sys.setPosition(begin, getToken(0)); return sys; }
+}
+
+//-----------------------------------------------------------------------------------
+// Expressions.
+// This includes PRISM properties (if the "prop" parameter is true)
+// and (within this) path formulas (if the "pathprop" parameter is true).
+// Which allows us to use the same productions for the grammars for
+// all three cases (they are very similar).
+//-----------------------------------------------------------------------------------
+
+// Expression
+
+Expression Expression(boolean prop, boolean pathprop) :
+{
+	Expression ret;
+}
+{
+	ret = ExpressionTemporalBinary(prop, pathprop)
+	{ return ret; }
+}
+
+// Expression: temporal operators, binary (U, W, R) and unary (X, F, G)
+
+// Note: the potential occurrence of two successive (unseparated) expressions
+// (e.g. "a" and "b" in "F<=a b") is a grammar flaw because the function and
+// minus operators can cause ambiguities, for example:
+// "F<=a(b)+c(d)" = "F<=a" "(b)+c(d)" = "F<=a(b)+c" "(d)" ?
+// "F<=-a-b-c" = "F<=-a" "-b-c" = "F<=-a-b" "-c" ?
+// In many cases, these could be distinguished by type checking but
+// that does not really help since this is done post-parsing.
+// To prevent (very common) cases such as "F<=t (b)", "F<=t (b)&(c)", etc.
+// being mis-parsed ("t(b)" would always be taken over "t"), we catch this case
+// separately (see TimeBound() production below for details).
+// This means that more complex time-bounds, especially those that
+// start/end with an identifier should be parenthesised, e.g. "F<=(t1+t2)".
+
+// In fact, JavaCC also warns about lookahead for this function.
+// This is because (like unary minus), R can appear on the left of a unary
+// operator (reward R operator) or in the middle of a binary operator (release).
+
+Expression ExpressionTemporalBinary(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	ExpressionTemporal exprTemp;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionTemporalUnary(prop, pathprop)
+	[
+		// This production is only allowed in expressions if the "pathprop" parameter is true
+		{ if (!pathprop) throw generateParseException(); }
+		{ exprTemp = new ExpressionTemporal(); exprTemp.setOperand1(ret); }
+		( <U> { exprTemp.setOperator(ExpressionTemporal.P_U); }
+		| <W> { exprTemp.setOperator(ExpressionTemporal.P_W); }
+		| <R> { exprTemp.setOperator(ExpressionTemporal.P_R); } )
+		( TimeBound(exprTemp) )?
+		expr = ExpressionTemporalUnary(prop, pathprop)
+		{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); ret = exprTemp; }
+	]
+	{ return ret; }
+}
+
+Expression ExpressionTemporalUnary(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	ExpressionTemporal exprTemp;
+	Token begin = null;
+}
+{
+	(
+		// This production is only allowed in expressions if the "pathprop" parameter is true
+		{ if (!pathprop) throw generateParseException(); }
+		{ begin = getToken(1); exprTemp = new ExpressionTemporal(); }
+		( <X> { exprTemp.setOperator(ExpressionTemporal.P_X); }
+		| <F> { exprTemp.setOperator(ExpressionTemporal.P_F); }
+		| <G> { exprTemp.setOperator(ExpressionTemporal.P_G); } )
+		( TimeBound(exprTemp) )?
+		expr = ExpressionTemporalUnary(prop, pathprop)
+		{ exprTemp.setOperand2(expr); exprTemp.setPosition(begin, getToken(0)); ret = exprTemp; }
+	|
+		ret = ExpressionITE(prop, pathprop)
+	)
+	{ return ret; }
+}
+
+// Time bound for temporal operators
+// (see ExpressionTemporal production for lookahead explanation)
+
+void TimeBound(ExpressionTemporal exprTemp) :
+{
+	Expression lBound, uBound;
+}
+{
+	( ( <LE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) uBound = IdentifierExpression() | uBound = Expression(false, false) ) { exprTemp.setUpperBound(uBound, false); } )
+	| ( <LT> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) uBound = IdentifierExpression() | uBound = Expression(false, false) ) { exprTemp.setUpperBound(uBound, true); } )
+	| ( <GE> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) lBound = IdentifierExpression() | lBound = Expression(false, false) ) { exprTemp.setLowerBound(lBound, false); } )
+	| ( <GT> ( LOOKAHEAD(IdentifierExpression() <LPARENTH>) lBound = IdentifierExpression() | lBound = Expression(false, false) ) { exprTemp.setLowerBound(lBound, true); } )
+	| ( <LBRACKET> lBound = Expression(false, false) <COMMA> uBound = Expression(false, false) <RBRACKET> { exprTemp.setLowerBound(lBound, false); exprTemp.setUpperBound(uBound, false); } )
+	| ( <EQ> lBound = Expression(false, false) { exprTemp.setEqualBounds(lBound); } )
+	)
+}
+
+// Expression: if-then-else, i.e. "cond ? then : else"
+
+Expression ExpressionITE(boolean prop, boolean pathprop) :
+{
+	Expression ret, left, right;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionImplies(prop, pathprop) 
+	[
+		<QMARK> left = ExpressionImplies(prop, pathprop) <COLON> right = ExpressionITE(prop, pathprop)
+		{ ret = new ExpressionITE(ret, left, right); ret.setPosition(begin, getToken(0)); }
+	]
+	{ return ret; }
+}
+
+// Expression: implies
+
+Expression ExpressionImplies(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionIff(prop, pathprop)
+	( <IMPLIES> expr = ExpressionIff(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: if-and-only-iff
+
+Expression ExpressionIff(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionOr(prop, pathprop)
+	( <IFF> expr = ExpressionOr(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IFF, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: or
+
+Expression ExpressionOr(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionAnd(prop, pathprop)
+	( <OR> expr = ExpressionAnd(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.OR, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: and
+
+Expression ExpressionAnd(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionNot(prop, pathprop)
+	( <AND> expr = ExpressionNot(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.AND, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: not
+
+Expression ExpressionNot(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	(
+		begin = <NOT> expr = ExpressionNot(prop, pathprop) { ret = new ExpressionUnaryOp(ExpressionUnaryOp.NOT, expr); ret.setPosition(begin, getToken(0)); }
+	|
+		ret = ExpressionEquality(prop, pathprop)
+	)
+	{ return ret; }
+}
+
+// Expression: equality operators: =, !=
+
+Expression ExpressionEquality(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	int op;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionRelop(prop, pathprop)
+	( op = EqNeq() expr = ExpressionRelop(prop, pathprop) { ret = new ExpressionBinaryOp(op, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: relational operators: >, <, >=, <=
+
+Expression ExpressionRelop(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	int op;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionPlusMinus(prop, pathprop)
+	( op = LtGt() expr = ExpressionPlusMinus(prop, pathprop) { ret = new ExpressionBinaryOp(op, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	{ return ret; }
+}
+
+// Expression: plus/minus
+
+// JavaCC warns about lookahead for this function. This is because in a few places
+// (bounded temporal operators and semicolon-less properties files)
+// (see the relevant productions for details)
+// we allow two or more successive expressions resulting in potential ambiguities
+// e.g. "-a-b" = "(-a)-b" = "-a" "-b"
+// Ignoring the warning results in the largest match being taken.
+
+Expression ExpressionPlusMinus(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	int op;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionTimesDivide(prop, pathprop) 
+	(
+		( <PLUS> { op = ExpressionBinaryOp.PLUS; } | <MINUS> { op = ExpressionBinaryOp.MINUS; } )
+		expr = ExpressionTimesDivide(prop, pathprop) { ret = new ExpressionBinaryOp(op, ret, expr); ret.setPosition(begin, getToken(0)); }
+	)*
+	{ return ret; }
+}
+
+// Expression: times/divide
+
+Expression ExpressionTimesDivide(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	int op;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionUnaryMinus(prop, pathprop)
+	(
+		( <TIMES> { op = ExpressionBinaryOp.TIMES; } | <DIVIDE> { op = ExpressionBinaryOp.DIVIDE; } )
+		expr = ExpressionUnaryMinus(prop, pathprop) { ret = new ExpressionBinaryOp(op, ret, expr); ret.setPosition(begin, getToken(0)); }
+	)*
+	{ return ret; }
+}
+
+// Expression: unary minus
+
+Expression ExpressionUnaryMinus(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	Token begin = null;
+}
+{
+	(
+		begin = <MINUS> expr = ExpressionUnaryMinus(prop, pathprop)
+		{ ret = new ExpressionUnaryOp(ExpressionUnaryOp.MINUS, expr); ret.setPosition(begin, getToken(0)); }
+	|
+		ret = ExpressionBasic(prop, pathprop)
+	)
+	{ return ret; }
+}
+
+// Basic expression (top of operator precedence ordering)
+
+Expression ExpressionBasic(boolean prop, boolean pathprop) :
+{
+	Expression ret;
+}
+{
+	(
+		ret = ExpressionLiteral(prop, pathprop)
+	|
+		ret = ExpressionFuncOrIdent(prop, pathprop)
+	|
+		ret = ExpressionFuncMinMax(prop, pathprop)
+	|
+		ret = ExpressionFuncOldStyle(prop, pathprop)
+	|
+		ret = ExpressionParenth(prop, pathprop)
+	|
+		// Remaining options are only applicable for properties
+		ret = ExpressionProb(prop, pathprop)
+	|
+		ret = ExpressionSS(prop, pathprop)
+	|
+		ret = ExpressionReward(prop, pathprop)
+	|
+		ret = ExpressionExists(prop, pathprop)
+	|
+		ret = ExpressionForAll(prop, pathprop)
+	|
+		ret = ExpressionStrategy(prop, pathprop)
+	|
+		ret = ExpressionLabel(prop, pathprop)
+	|
+		ret = ExpressionFilter(prop, pathprop)
+	)
+	{ return ret; }
+}
+
+// Expression: function or identifier
+
+// JavaCC warns about lookahead for this function. This is because in a few places
+// (bounded temporal operators and semicolon-less properties files)
+// (see the relevant productions for details)
+// we allow two or more successive expressions resulting in potential ambiguities
+// e.g. "a(b)" = "a" "(b)"
+// Ignoring the warning results in the largest match being taken.
+
+Expression ExpressionFuncOrIdent(boolean prop, boolean pathprop) :
+{
+	String s = null;
+	Expression ret = null;
+	Token begin = null;
+}
+{
+	// If there is no "(...)", this is an identifier
+	s = Identifier() { ret = new ExpressionIdent(s); begin = getToken(0); }
+	// If there is, it's a function
+	( <LPARENTH> { ret = new ExpressionFunc(s); } ExpressionFuncArgs(prop, pathprop, (ExpressionFunc)ret) <RPARENTH> )?
+	{ ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// Expression: min/max function (treated differently because min/max are keywords)
+
+Expression ExpressionFuncMinMax(boolean prop, boolean pathprop) :
+{
+	String s = null;
+	ExpressionFunc func = null;
+	Token begin = null;
+}
+{
+	( begin = <MIN> { s = "min"; } | begin = <MAX> { s = "max"; } ) 
+	{ func = new ExpressionFunc(s); } <LPARENTH>  ExpressionFuncArgs(prop, pathprop, func) <RPARENTH>
+	{ func.setPosition(begin, getToken(0)); return func; }
+}
+
+// Expression: old-style function, i.e. "func(name, ...)"
+
+Expression ExpressionFuncOldStyle(boolean prop, boolean pathprop) :
+{
+	String s = null;
+	ExpressionFunc func = null;
+	Token begin = null;
+}
+{
+	begin = <FUNC> <LPARENTH> ( <MIN> { s = "min"; } | <MAX> { s = "max"; } | s = Identifier() )
+	<COMMA> { func = new ExpressionFunc(s); func.setOldStyle(true); } ExpressionFuncArgs(prop, pathprop, func) <RPARENTH>
+	{ func.setPosition(begin, getToken(0)); return func; }
+}
+
+// Arguments for a function in an expression
+
+void ExpressionFuncArgs(boolean prop, boolean pathprop, ExpressionFunc func) :
+{
+	Expression expr;
+}
+{
+	expr = Expression(prop, pathprop) { func.addOperand(expr); } ( <COMMA> expr = Expression(prop, pathprop) { func.addOperand(expr); })*
+}
+
+// Expression: literal
+
+Expression ExpressionLiteral(boolean prop, boolean pathprop) :
+{
+	Expression ret = null;
+}
+{
+	(
+	<REG_INT> {
+		try {
+			int i = Integer.parseInt(getToken(0).image);
+			ret = new ExpressionLiteral(TypeInt.getInstance(), new Integer(i));
+		} catch (NumberFormatException e) {
+			// Need to catch this because some matches for regexp REG_INT
+			// are not valid integers (e.g. too big).
+			ParseException ex = new ParseException("Invalid integer literal");
+			ex.currentToken = getToken(0);
+			throw ex;
+			// NB: can't call generateParseException() here; it crashes
+		}}
+	|
+	<REG_DOUBLE> {
+		try {
+			double d = Double.parseDouble(getToken(0).image);
+			ret = new ExpressionLiteral(TypeDouble.getInstance(), new Double(d), getToken(0).image);
+		} catch (NumberFormatException e) {
+			// Need to catch this because some matches for regexp REG_DOUBLE
+			// may not be valid doubles.
+			ParseException ex = new ParseException("Invalid double literal");
+			// NB: can't call generateParseException() here; it crashes
+		}}
+	|
+	<TRUE> { ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(true)); }
+	|
+	<FALSE> { ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(false)); }
+	)
+	{ ret.setPosition(getToken(0)); return ret; }
+}
+
+// Expression: parentheses
+
+Expression ExpressionParenth(boolean prop, boolean pathprop) : 
+{
+	Expression expr, ret;
+	Token begin = null;
+}
+{
+	begin = <LPARENTH> expr = Expression(prop, pathprop) <RPARENTH>
+	{ ret = new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr); ret.setPosition(begin, getToken(0)); return ret;}
+}
+
+//-----------------------------------------------------------------------------------
+// Property stuff
+//-----------------------------------------------------------------------------------
+
+// (Property) expression: probabilistic operator P
+
+Expression ExpressionProb(boolean prop, boolean pathprop) :
+{
+	ExpressionIdent modifier = null;
+	int r;
+	String relOp = null;
+	Expression prob = null;
+	Expression expr;
+	Filter filter = null;
+	ExpressionProb ret = new ExpressionProb();
+	Token begin = null;
+	boolean isBool;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	// Various options for "P" keyword and attached symbols
+	(( begin = <P> ( <LPARENTH> modifier = IdentifierExpression() <RPARENTH> )? (
+			( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } )
+	       |( <EQ> <QMARK> { relOp = "="; isBool = false; } )
+	       |( <MIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	       |( <MAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } )))
+	// These two are dupes of above but allow space to be omitted
+	|( begin = <PMIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	|( begin = <PMAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } ))
+	// Path formula, optional filter
+	<LBRACKET> expr = Expression(prop, true) (filter = Filter())? <RBRACKET>
+	{
+		ret.setModifier(modifier == null ? null : modifier.getName());
+		ret.setRelOp(relOp);
+		ret.setProb(prob);
+		ret.setExpression(expr);
+		ret.setFilter(filter);
+		ret.setPosition(begin, getToken(0));
+		// Filter is actually dealt with by wrapping this expression in
+		// an (invisible) ExpressionFilter expression
+		if (filter != null) {
+			String filterOp = isBool ? "&" : filter.getFilterOpString();
+			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
+			ef.setInvisible(true);
+			return ef;
+		}
+		else return ret;
+	}
+}
+
+// Filter for a P/S/R operator
+
+Filter Filter() :
+{
+	Filter filter;
+	Expression expr;
+	Token begin = null;
+}
+{
+	begin = <LBRACE> expr = Expression(true, false) { filter = new Filter(expr); } <RBRACE>
+	( <LBRACE>
+		( <MIN> { filter.setMinRequested(true); }
+		| <MAX> { filter.setMaxRequested(true); } )
+	<RBRACE> )*
+	{ filter.setPosition(begin, getToken(0)); return filter; }
+}
+
+// (Property) expression: steady-state operator S
+
+Expression ExpressionSS(boolean prop, boolean pathprop) :
+{
+	ExpressionIdent modifier = null;
+	int r;
+	String relOp = null;
+	Expression prob = null;
+	Expression expr;
+	Filter filter = null;
+	ExpressionSS ret = new ExpressionSS();
+	Token begin;
+	boolean isBool;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	// Various options for "S" keyword and attached symbols
+	begin = <S> (
+		( <LPARENTH> modifier = IdentifierExpression() <RPARENTH> )?
+		( r = LtGt() prob = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } ) |
+		( <EQ> <QMARK> { relOp = "="; isBool = false; } )
+	)
+	// Expression, optional filter
+	<LBRACKET> expr = Expression(prop, pathprop) (filter = Filter())? <RBRACKET>
+	{
+		ret.setModifier(modifier == null ? null : modifier.getName());
+		ret.setRelOp(relOp);
+		ret.setProb(prob);
+		ret.setExpression(expr);
+		ret.setFilter(filter);
+		ret.setPosition(begin, getToken(0));
+		// Filter is actually dealt with by wrapping this expression in
+		// an (invisible) ExpressionFilter expression
+		if (filter != null) {
+			String filterOp = isBool ? "&" : filter.getFilterOpString();
+			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
+			ef.setInvisible(true);
+			return ef;
+		}
+		else return ret;
+	}
+}
+
+// (Property) expression: expected reward operator R
+
+Expression ExpressionReward(boolean prop, boolean pathprop) :
+{
+	ExpressionIdent modifier = null;
+	int r;
+	String relOp = null;
+	Expression rew = null;
+	Expression expr;
+	Filter filter = null;
+	ExpressionReward ret = new ExpressionReward();
+	Token begin;
+	boolean isBool;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	// Various options for "R" keyword and attached symbols
+	(( begin = <R>
+		( <LPARENTH> modifier = IdentifierExpression() <RPARENTH> )?
+		(RewardIndex(ret))?
+		(( r = LtGt() rew = Expression(false, false) { relOp = ExpressionBinaryOp.opSymbols[r]; isBool = true; } )
+	   |( <EQ> <QMARK> { relOp = "="; isBool = false; } )
+	   |( <MIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	   |( <MAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } )))
+	// These two are dupes of above but allow space to be omitted
+	|( begin = <RMIN> <EQ> <QMARK> { relOp = "min="; isBool = false; } )
+	|( begin = <RMAX> <EQ> <QMARK> { relOp = "max="; isBool = false; } ))
+	// Path formula, optional filter
+	<LBRACKET> expr = ExpressionRewardContents(prop, pathprop) (filter = Filter())? <RBRACKET>
+	{
+		ret.setModifier(modifier == null ? null : modifier.getName());
+		ret.setRelOp(relOp);
+		ret.setReward(rew);
+		ret.setExpression(expr);
+		ret.setFilter(filter);
+		ret.setPosition(begin, getToken(0));
+		// Filter is actually dealt with by wrapping this expression in
+		// an (invisible) ExpressionFilter expression
+		if (filter != null) {
+			String filterOp = isBool ? "&" : filter.getFilterOpString();
+			ExpressionFilter ef = new ExpressionFilter(filterOp, ret, filter.getExpression());
+			ef.setInvisible(true);
+			return ef;
+		}
+		else return ret;
+	}
+}
+
+// Reward struct index for R operator
+
+void RewardIndex(ExpressionReward exprRew) :
+{
+	Object index = null;
+	Object indexDiv = null;
+}
+{
+	// Lookahead here is to ensure that "id" is not misdetected as an ExpressionLabel
+	( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> index = Identifier() <DQUOTE> ) | index = Expression(false, false) ) <RBRACE> )
+	// Optional second reward structure index (for ratio objectives)
+	( <DIVIDE> ( <LBRACE> ( LOOKAHEAD(<DQUOTE>) ( <DQUOTE> indexDiv = Identifier() <DQUOTE> ) | indexDiv = Expression(false, false) ) <RBRACE> ))?
+	{
+		exprRew.setRewardStructIndex(index);
+		if (indexDiv != null) {
+			exprRew.setRewardStructIndexDiv(indexDiv);
+		}
+	}
+}
+
+// Contents of an R operator
+
+// JavaCC warns about lookahead for this function. This is because there is a possible conflict between
+// R [ S ], where "S" is the long-run reward operator, and R [ S [ ] ], where "S [ ]" is an LTL formula
+// comprising a single atomic proposition. We use lookahead to resolve the ambiguity.
+
+Expression ExpressionRewardContents(boolean prop, boolean pathprop) :
+{
+	Expression expr = null;
+	ExpressionTemporal exprTemp = null;
+	Expression ret = null;
+	Token begin;
+}
+{
+	{ begin = getToken(1); }
+	(
+	// First look for cases where it starts with "S" (see above)
+	LOOKAHEAD(ExpressionSS(prop, pathprop)) expr = ExpressionSS(prop, true) { ret = expr; }
+	| <S> { ret = new ExpressionTemporal(ExpressionTemporal.R_S, null, null); }
+	
+	// Normal reward operators (excluding S; see above)
+	| LOOKAHEAD(<C> <LE>) begin = <C> <LE> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
+	| <C> { ret = new ExpressionTemporal(ExpressionTemporal.R_C, null, null); }
+	| <I> <EQ> expr = Expression(false, false) { exprTemp = new ExpressionTemporal(ExpressionTemporal.R_I, null, null); exprTemp.setUpperBound(expr); ret = exprTemp; }
+	
+	// Path formula (including F "target")
+	| expr = Expression(prop, true) { ret = expr; }
+	)
+	{ ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// (Property) expression: CTL existential operator E
+
+Expression ExpressionExists(boolean prop, boolean pathprop) :
+{
+	ExpressionExists ret = new ExpressionExists();
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	( begin = <E> <LBRACKET> expr = Expression(prop, true) <RBRACKET> )
+	{
+		ret.setExpression(expr);
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
+}
+
+// (Property) expression: CTL universal operator A
+
+Expression ExpressionForAll(boolean prop, boolean pathprop) :
+{
+	ExpressionForAll ret = new ExpressionForAll();
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	( begin = <A> <LBRACKET> expr = Expression(prop, true) <RBRACKET> )
+	{
+		ret.setExpression(expr);
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
+}
+
+// (Property) expression: ATL strategy operators <<>> and [[]]
+
+Expression ExpressionStrategy(boolean prop, boolean pathprop) :
+{
+	ExpressionStrategy ret;
+	Expression expr;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	(
+	// <<...>> or [[...]]
+	(( begin = <DLT> { ret = new ExpressionStrategy(true); } ExpressionStrategyCoalition(ret) <DGT> )
+	| (begin = <DLBRACKET> { ret = new ExpressionStrategy(false); } ExpressionStrategyCoalition(ret) <DRBRACKET> ))
+	// Child expression
+	(
+	( expr = ExpressionProb(prop, pathprop) | expr = ExpressionReward(prop, pathprop) )
+	{ ret.setSingleOperand(expr); }
+	| expr = ExpressionParenth(prop, pathprop)
+	{ ret.addOperand(expr); }
+	))
+	{
+		ret.setPosition(begin, getToken(0));
+		return ret;
+	}
+}
+
+// Coalition (player list) for a strategy (<<>> or [[]]) operator
+
+void ExpressionStrategyCoalition(ExpressionStrategy exprStrat) :
+{
+	List<String> coalition = new ArrayList<String>();
+	String s;
+}
+{
+	( <TIMES> ) { exprStrat.setCoalitionAllPlayers();}
+	|
+	( s = ExpressionStrategyCoalitionPlayer() { coalition.add(s); }
+	( <COMMA> s = ExpressionStrategyCoalitionPlayer()  { coalition.add(s); } )* )?
+	{ exprStrat.setCoalition(coalition); }
+}
+
+// Single player in a coalition for a strategy (<<>> or [[]]) operator
+
+String ExpressionStrategyCoalitionPlayer() :
+{
+	String s;
+}
+{
+	( <REG_INT> | <REG_IDENT> ) { s = getToken(0).image; }
+	{ return s; }
+}
+
+// (Property) expression: label (including "init")
+
+Expression ExpressionLabel(boolean prop, boolean pathprop) :
+{
+	String s;
+	ExpressionLabel ret = null;
+	Token begin;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	// Label can be arbitary string or the "init" keyword
+	( begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE> )
+	{ ret = new ExpressionLabel(s); ret.setPosition(begin, getToken(0)); return ret; }
+}
+
+// (Property) expression: filter (using "filter" keyword)
+
+Expression ExpressionFilter(boolean prop, boolean pathprop) :
+{
+	ExpressionFilter expr = null;
+	String op = null;
+	Expression filter = null;
+	Expression expr2 = null;
+	Token begin = null;
+}
+{
+	// This production is only allowed in expressions if the "prop" parameter is true
+	{ if (!prop) throw generateParseException(); }
+	
+	// filter(
+	begin = <FILTER> <LPARENTH>
+	// filter type
+	( <MIN> { op = "min"; } | <MAX> { op = "max"; }
+	| <PLUS> { op = "+"; } | <AND> { op = "&"; } | <OR> { op = "|"; }
+	| op = Identifier() )
+	// operand
+	<COMMA> expr2 = Expression(prop, pathprop)
+	// (optional filter expression)
+	[ <COMMA> filter = Expression(prop, pathprop) ]
+	// )
+	<RPARENTH>
+	{ expr = new ExpressionFilter(op, expr2, filter); expr.setPosition(begin, getToken(0)); return expr; }
+}
+
+//-----------------------------------------------------------------------------------
+// Miscellaneous stuff
+//-----------------------------------------------------------------------------------
+
+// Identifier (returns String)
+
+String Identifier() :
+{
+}
+{
+	<REG_IDENT> { return getToken(0).image; }
+}
+
+// Identifier (returns ExpressionIdent, storing position info)
+
+ExpressionIdent IdentifierExpression() :
+{
+	String ident;
+	ExpressionIdent ret;
+}
+{
+	ident = Identifier()
+	{ ret = new ExpressionIdent(ident); ret.setPosition(getToken(0)); return ret; }
+}
+
+// Identifier or min/max keyword (returns ExpressionIdent, storing position info)
+
+ExpressionIdent IdentifierExpressionMinMax() :
+{
+	String ident;
+	ExpressionIdent ret;
+}
+{
+	( ident = Identifier() | <MIN> { ident="min"; } | <MAX> { ident="max"; } )
+	{ ret = new ExpressionIdent(ident); ret.setPosition(getToken(0)); return ret; }
+}
+
+// Primed identifier
+
+ExpressionIdent IdentifierPrime() :
+{
+}
+{
+	<REG_IDENTPRIME>
+	{
+		// Remove prime, create new ident and return
+		String s = getToken(0).image;
+		s = s.substring(0, s.length()-1);
+		ExpressionIdent expr = new ExpressionIdent(s);
+		expr.setPosition(token);
+		expr.setEndColumn(expr.getEndColumn() - 1);
+		return expr;
+	}
+}
+
+// Equality operators: =, !=
+
+int EqNeq() :
+{
+}
+{
+	<EQ> {return ExpressionBinaryOp.EQ; } |
+	<NE> {return ExpressionBinaryOp.NE; }
+}
+
+// Relational operators: >, <, >=, <=
+
+int LtGt() :
+{
+}
+{
+	<GT> {return ExpressionBinaryOp.GT; } |
+	<LT> {return ExpressionBinaryOp.LT; } |
+	<GE>  {return ExpressionBinaryOp.GE; }|
+	<LE> {return ExpressionBinaryOp.LE; }
+}
+
+// For loop
+
+ForLoop ForLoop() :
+{
+	String s;
+	Expression from = null, to = null, step = null;
+	ForLoop fl = new ForLoop();
+	Token begin;
+}
+{
+	( { begin = getToken(1); } s=Identifier() <EQ> from = Expression(false, false) <COLON> to = Expression(false, false)
+	( <COLON> step = Expression(false, false) )? <EOF> )
+	{
+		fl.setLHS(s);
+		fl.setFrom(from);
+		fl.setTo(to);
+		if (step != null) fl.setStep(step);
+		fl.setPosition(begin, getToken(0));
+		return fl;
+	}
+}
+
+//------------------------------------------------------------------------------

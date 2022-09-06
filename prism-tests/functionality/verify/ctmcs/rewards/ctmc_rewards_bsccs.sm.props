@@ -1,0 +1,31 @@
+// RESULT: 0.2
+R{"a"}=? [ F s>0 ];
+// RESULT: Infinity
+R{"a"}=? [ F s=1|s=2 ];
+// RESULT: Infinity
+R{"a"}=? [ F s=3|s=4 ];
+
+// RESULT: 0.2
+R{"a"}=? [ C ];
+// RESULT: Infinity
+R{"b"}=? [ C ];
+// RESULT: Infinity
+R{"c"}=? [ C ];
+
+// RESULT: Infinity
+filter(state, R{"b"}=? [ C ], s=0);
+// RESULT: Infinity
+filter(state, R{"b"}=? [ C ], s=1);
+// RESULT: Infinity
+filter(state, R{"b"}=? [ C ], s=2);
+// RESULT: 0.0
+filter(state, R{"b"}=? [ C ], s=3);
+// RESULT: 0.0
+filter(state, R{"b"}=? [ C ], s=4);
+
+// RESULT: 0.0
+R{"a"}=? [ S ];
+// RESULT: 1.0
+R{"b"}=? [ S ];
+// RESULT: 15
+R{"c"}=? [ S ];

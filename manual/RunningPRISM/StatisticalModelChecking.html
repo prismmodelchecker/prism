@@ -1,0 +1,243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | RunningPRISM / StatisticalModelChecking 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Running PRISM</a> /
+</p><h1>Statistical Model Checking</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>The discrete-event simulator built into PRISM (see the section "<a class='wikilink' href='DebuggingModelsWithTheSimulator.html'>Debugging Models With The Simulator</a>") can also be used to generate <em>approximate</em> results for PRISM properties, a technique often called <em>statistical model checking</em>. Essentially, this is achieved by <em>sampling</em>: generating a large number of random paths through the model, evaluating the result of the given properties on each run, and using this information to generate an approximately correct result. This approach is particularly useful on very large models when normal model checking is infeasible. This is because discrete-event simulation is performed using the PRISM language model description, without explicitly constructing the corresponding probabilistic model.
+</p>
+<p class='vspace'>Currently, statistical model checking can only be applied to <code><strong>P</strong></code> or <code><strong>R</strong></code> operators
+and does not support LTL-style path properties or <a class='wikilink' href='../PropertySpecification/Filters.html'>filters</a>.
+There are also a few restrictions on the modelling language features that can be used; see below for details.
+</p>
+<p class='vspace'>To use this functionality, load a model and some properties into PRISM, as described in the previous sections. To generate an approximate value for one or more properties, select them in the list, right-click and select "Simulate" (as opposed to "Verify"). As usual, it is first necessary to provide values for any undefined constants. Subsequently, a dialog appears. Here, the state from which approximate values are to be computed (i.e. from which the paths will be generated) can be selected. By default, this is the initial state of the model. The other settings in the dialog concern the methods used for simulation.
+</p>
+<p class='vspace'>PRISM supports four different methods for performing statistical model checking:
+</p>
+<div class='vspace'></div><ul><li>CI (Confidence Interval)
+</li><li>ACI (Asymptotic Confidence Interval)
+</li><li>APMC (Approximate Probabilistic Model Checking)
+</li><li>SPRT (Sequential Probability Ratio Test)
+</li></ul><p class='vspace'>The first three of these are intended primarily for "<a class='wikilink' href='../PropertySpecification/ThePOperator.html'>quantitative</a>" properties (e.g. of the form <code><strong>P</strong>=?[...]</code>), but can also be used for "bounded" properties (e.g. of the form <code><strong>P</strong>&lt;p[...]</code>). The SPRT method is only applicable to "bounded" properties.
+</p>
+<p class='vspace'>Each method has several parameters that control its execution, i.e. the number of samples that are generated and the accuracy of the computed approximation. In most cases, these parameters are inter-related so one of them must be left unspecified and its value computed automatically based on the others. In some cases, this is done before simulation; in others, it must be done afterwards.
+</p>
+<p class='vspace'>Below, we describe each method in more detail.
+For simplicity, we describe the case of checking a <code><strong>P</strong></code> operator.
+Details for the case of an <code><strong>R</strong></code> operator can be found in [<a class='wikilink' href='../Main/References.html#Nim10'>Nim10</a>].
+</p>
+<div class='vspace'></div><h3>CI (Confidence Interval) Method</h3>
+<p>The CI method gives a <em>confidence interval</em> for the approximate value generated for a <code><strong>P</strong>=?</code> property, based on a given <em>confidence level</em> and the number of samples generated.
+The parameters of the method are:
+</p>
+<div class='vspace'></div><ul><li>"Width" (<em>w</em>)
+</li><li>"Confidence" (<em>alpha</em>)
+</li><li>"Number of samples" (<em>N</em>)
+</li></ul><p class='vspace'>Let <em>X</em> denote the true result of the query <code><strong>P</strong>=?[...]</code> and <em>Y</em> the approximation generated.
+The confidence interval is [<em>Y-w</em>,<em>Y+w</em>], i.e. <em>w</em> gives the half-width of the interval.
+The confidence level, which is usually stated as a percentage, is 100(1-<em>alpha</em>)%.
+This means that the actual value <em>X</em> should fall into the confidence interval [<em>Y-w</em>,<em>Y+w</em>] 100(1-<em>alpha</em>)% of the time.
+</p>
+<p class='vspace'>To determine, for example, the width <em>w</em> for given <em>alpha</em> and <em>N</em>,
+we use <em>w</em> = <em>q</em> * sqrt(<em>v</em> / <em>N</em>) where
+<em>q</em> is a quantile, for probability 1-<em>alpha</em>/2, from the Student's t-distribution with <em>N</em>-1 degrees of freedom and <em>v</em> is (an estimation of) the variance for <em>X</em>.
+Similarly, we can determine the required number of iterations, from <em>w</em> and <em>alpha</em>,
+as N = (<em>v</em> * <em>q</em><sup>2</sup>)/<em>w</em><sup>2</sup>, where <em>q</em> and <em>v</em> are as before.
+</p>
+<p class='vspace'>For a bounded property  <code><strong>P</strong>~p[...]</code>, the (Boolean) result is determined according to the generated approximation for the probability. This is not the case, however, if the threshold <em>p</em> falls within the confidence interval [<em>Y-w</em>,<em>Y+w</em>], in which case no value is returned.
+</p>
+<div class='vspace'></div><h3>ACI (Asymptotic Confidence Interval) Method</h3>
+<p>The ACI method works in exactly same fashion as the CI method, except that it uses the Normal distribution to approximate the Student's t-distribution when determining the confidence interval. This is appropriate when the number of samples is large (because we can get a reliable estimation of the variance from the samples) but may be less accurate for small numbers of samples.
+</p>
+<div class='vspace'></div><h3>APMC (Approximate Probabilistic Model Checking) Method</h3>
+<p>The APMC method, based on [<a class='wikilink' href='../Main/References.html#HLMP04'>HLMP04</a>], offers a probabilistic guarantee on the accuracy of the  approximate value generated for a <code><strong>P</strong>=?</code> property, based on the Chernoff-Hoeffding bound.
+The parameters of the method are:
+</p>
+<div class='vspace'></div><ul><li>"Approximation" (<em>epsilon</em>)
+</li><li>"Confidence" (<em>delta</em>)
+</li><li>"Number of samples" (<em>N</em>)
+</li></ul><p class='vspace'>Letting <em>X</em> denote the true result of the query <code><strong>P</strong>=?[...]</code> and <em>Y</em> the approximation generated, we have:
+</p>
+<div class='vspace'></div><ul><li>Prob(|<em>Y</em>-<em>X</em>| &gt; <em>epsilon</em>) &lt; <em>delta</em>
+</li></ul><p class='vspace'>where the parameters are related as follows:
+<em>N</em> = ln(2/<em>delta</em>) / 2<em>epsilon</em><sup>2</sup>.
+This imposes certain restrictions on the parameters,
+namely that <em>N</em>(<em>epsilon</em><sup>2</sup>) &#8805; ln(2)/2.
+</p>
+<p class='vspace'>In similar fashion to the CI/ACI methods, the APMC method can be also be used for bounded properties such as <code><strong>P</strong>~p[...]</code>, as long as the threshold <em>p</em> falls outside the interval [<em>Y-epsilon</em>,<em>Y+epsilon</em>].
+</p>
+<div class='vspace'></div><h3>SPRT (Sequential Probability Ratio Test) Method</h3>
+<p>The SPRT method is specifically for bounded properties, such as <code><strong>P</strong>~p[...]</code> and is based on <em>acceptance sampling</em> techniques [<a class='wikilink' href='../Main/References.html#YS02'>YS02</a>]. It uses Wald's sequential probability ratio test (SPRT), which generates a succession of samples, deciding on-the-fly when an answer can be given with a sufficiently high confidence.
+</p>
+<p class='vspace'>The parameters of the method are:
+</p>
+<div class='vspace'></div><ul><li>"Indifference" (<em>delta</em>)
+</li><li>"Type I/II error" (<em>alpha</em>/<em>beta</em>)
+</li></ul><p class='vspace'>Consider a property of the form <code><strong>P</strong>&#8805;p[...]</code>. The parameter <em>delta</em> is used as the half-width of an <em>indifference region</em> [p-delta,p+delta]. PRISM will attempt to determine whether either the hypothesis <code><strong>P</strong>&#8805;(p+delta)[...]</code> or <code><strong>P</strong>&#8804;(p-delta)[...]</code> is true, based on which it will return either <code>true</code> or <code>false</code>, respectively. The parameters <em>alpha</em> and <em>beta</em> represent the probability of the occurrence of a <em>type I error</em> (wrongly accepting the first hypothesis) and a <em>type II error</em> (wrongly accepting the second hypothesis), respectively. For simplicity, PRISM assigns the same value to both <em>alpha</em> and <em>beta</em>.
+</p>
+<div class='vspace'></div><h3>Maximum Path Length</h3>
+<p>Another setting that can be configured from the "Simulation Parameters" dialog is the maximum length of paths generated by PRISM during statistical model checking. In order to perform statistical model checking, PRISM needs to evaluate the property being checked along every generated path. For example, when checking <code>P=? [ F&lt;=10 "end" ]</code>, PRISM must check whether <code>F&lt;=10 "end"</code> is true for each path. On this example (assuming a discrete-time model), this can always be done within the first 10 steps. For a property such as <code>P=? [ F "end" ]</code>, however, there may be paths along which no finite fragment can show <code>F "end"</code> to be true or false. So, PRISM imposes a maximum path length to avoid the need to generate excessively long (or infinite) paths.
+The default maximum length is 10,000 steps.
+If, for a given property, statistical model checking results in one or more paths on which the property can be evaluated, an error is reported.
+</p>
+<div class='vspace'></div><h3>Command-line Statistical Model Checking</h3>
+<p>Statistical model checking can also be enabled from the command-line version of PRISM, by including the <code>-sim</code> switch. The default methods used are CI (Confidence Interval) for "quantitative" properties and SPRT (Sequential Probability Ratio Test) for "bounded" properties. To select a particular method, use switch <code>-simmethod &lt;method&gt;</code> where <code>&lt;method&gt;</code> is one of <code>ci</code>, <code>aci</code>, <code>apmc</code> and <code>sprt</code>. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm model.pctl -prop 1 -sim -simmethod aci</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/StatisticalModelChecking?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>PRISM has default values for the various simulation method parameters, but these can also be specified using the switches <code>-simsamples</code>, <code>-simconf</code>, <code>-simwidth</code> and <code>-simapprox</code>. The exact meaning of these switches for each simulation method is given in the table below.
+</p>
+<div class='vspace'></div>
+<table border='1' cellpadding='5' ><tr ><td >&nbsp;</td><td  align='center'><strong>CI</strong></td><td  align='center'><strong>ACI</strong></td><td  align='center'><strong>APMC</strong></td><td  align='right'><strong>SPRT</strong></td></tr>
+<tr ><td  align='center'><code>-simsamples</code></td><td  align='center'>"Num. samples"</td><td  align='center'>"Num. samples"</td><td  align='center'>"Num. samples"</td><td  align='right'>n/a</td></tr>
+<tr ><td  align='center'><code>-simconf</code></td><td  align='center'>"Confidence"</td><td  align='center'>"Confidence"</td><td  align='center'>"Confidence"</td><td  align='right'>"Type I/II error"</td></tr>
+<tr ><td  align='center'><code>-simwidth</code></td><td  align='center'>"Width"</td><td  align='center'>"Width"</td><td  align='center'>n/a</td><td  align='right'>"Indifference"</td></tr>
+<tr ><td  align='center'><code>-simapprox</code></td><td  align='center'>n/a</td><td  align='center'>n/a</td><td  align='center'>"Approximation"</td><td  align='right'>n/a</td></tr>
+</table>
+<p class='vspace'>The maximum length of simulation paths is set with switch <code>-simpathlen</code>.
+</p>
+<div class='vspace'></div><h3>Limitations</h3>
+<p>Currently, the simulator does not support every part of the PRISM modelling languages. For example, it does not handle models with multiple initial states or with <code><strong>system</strong>...<strong>endsystem</strong></code> definitions.
+</p>
+<p class='vspace'>It is also worth pointing out that statistical model checking techniques are not well suited to models that exhibit nondeterminism, such as MDPs. This because the techniques rely on generation of <em>random</em> paths, which are not well defined for a MDP. PRISM does allow statistical model checking to be performed on an MDP, but does so by simply resolving nondeterministic choices in a (uniformly) random fashion (and displaying a warning message). Currently PTAs are not supported by the simulator.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Running PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Starting PRISM</a>
+</li><li><a class='wikilink' href='LoadingAndBuildingAModel.html'>Loading And Building a Model</a>
+</li><li><a class='wikilink' href='DebuggingModelsWithTheSimulator.html'>Debugging Models With The Simulator</a>
+</li><li><a class='wikilink' href='ExportingTheModel.html'>Exporting The Model</a>
+</li><li><a class='wikilink' href='ModelChecking.html'>Model Checking</a>
+</li><li><a class='selflink' href='ApproximateModelChecking.html'>Statistical Model Checking</a>
+</li><li><a class='wikilink' href='ComputingSteady-stateAndTransientProbabilities.html'>Computing Steady-state And Transient Probabilities</a>
+</li><li><a class='wikilink' href='Experiments.html'>Experiments</a>
+</li><li><a class='wikilink' href='Adversaries.html'>Adversaries</a>
+</li><li><a class='wikilink' href='SupportForPEPAModels.html'>Support For PEPA Models</a>
+</li><li><a class='wikilink' href='SupportForSBML.html'>Support For SBML</a>
+</li><li><a class='wikilink' href='ExplicitModelImport.html'>Explicit Model Import</a>
+</li><li><a class='wikilink' href='ParametricModelChecking.html'>Parametric Model Checking</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

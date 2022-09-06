@@ -1,0 +1,41 @@
+// self stabilisation algorithm Beauquier, Gradinariu and Johnen
+// gxn/dxp 18/07/02
+
+mdp
+
+// module of process 1
+module process1
+	
+	d1 : bool; // probabilistic variable
+	p1 : bool; // deterministic variable
+	
+	[] d1=d11 &  p1=p11 -> 0.5 : (d1'=!d1) & (p1'=p1) + 0.5 : (d1'=!d1) & (p1'=!p1);
+	[] d1=d11 & !p1=p11 -> (d1'=!d1);
+	
+endmodule
+
+// add further processes through renaming
+module process2 = process1 [ p1=p2, p11=p1, d1=d2, d11=d1 ] endmodule
+module process3 = process1 [ p1=p3, p11=p2, d1=d3, d11=d2 ] endmodule
+module process4 = process1 [ p1=p4, p11=p3, d1=d4, d11=d3 ] endmodule
+module process5 = process1 [ p1=p5, p11=p4, d1=d5, d11=d4 ] endmodule
+module process6 = process1 [ p1=p6, p11=p5, d1=d6, d11=d5 ] endmodule
+module process7 = process1 [ p1=p7, p11=p6, d1=d7, d11=d6 ] endmodule
+module process8 = process1 [ p1=p8, p11=p7, d1=d8, d11=d7 ] endmodule
+module process9 = process1 [ p1=p9, p11=p8, d1=d9, d11=d8 ] endmodule
+module process10 = process1 [ p1=p10, p11=p9, d1=d10, d11=d9 ] endmodule
+module process11 = process1 [ p1=p11, p11=p10, d1=d11, d11=d10 ] endmodule
+
+// cost - 1 in each state (expected steps)
+rewards "steps"
+	true : 1;
+endrewards
+
+// initial states - any state with more than 1 token, that is all states
+init
+	true
+endinit
+
+// formula, for use in properties: number of tokens
+formula num_tokens = (p1=p2?1:0)+(p2=p3?1:0)+(p3=p4?1:0)+(p4=p5?1:0)+(p5=p6?1:0)+(p6=p7?1:0)+(p7=p8?1:0)+(p8=p9?1:0)+(p9=p10?1:0)+(p10=p11?1:0)+(p11=p1?1:0);
+

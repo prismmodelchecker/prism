@@ -1,0 +1,22 @@
+const int k;
+
+// C1 (with probability 1, all N processes finish the protocol)
+P>=1 [ F "finished" ]
+
+// C2 (minimum probability that the protocol finishes with all coins equal to v) (v=1,2)
+// Results are same for v=1 and v=2 by symmetry
+// Analytic bound is (K-1)/(2*K)
+Pmin=? [ F "finished"&"all_coins_equal_0" ]
+Pmin=? [ F "finished"&"all_coins_equal_1" ]
+
+// Max probability of finishing protocol with coins not all equal
+Pmax=? [ F "finished"&!"agree" ]
+
+// Min/max probability of finishing within k steps
+Pmin=? [ F<=k "finished" ]
+Pmax=? [ F<=k "finished" ]
+
+// Min/max expected steps to finish
+R{"steps"}min=? [ F "finished" ]
+R{"steps"}max=? [ F "finished" ]
+

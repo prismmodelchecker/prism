@@ -1,0 +1,5 @@
+	// RESULT: 0.7
+	Pmax=? [ (G !(s=3)) & (G F (s=6)) ];
+	
+	// RESULT: 0.0
+	Pmin=? [ (G !(s=3)) & (G F (s=6)) ];

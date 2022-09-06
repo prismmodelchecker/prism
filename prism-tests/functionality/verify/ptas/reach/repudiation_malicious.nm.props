@@ -1,0 +1,3 @@
+// Maximum probability that the malicious recipient eventually gains information
+// RESULT: 0.105658
+"eventually": Pmax=? [ F "gains_information" ];

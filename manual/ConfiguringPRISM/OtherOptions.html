@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | ConfiguringPRISM / OtherOptions 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Configuring PRISM</a> /
+</p><h1>Other Options</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<h3>Output options</h3>
+<p>To increase the amount of information displayed by PRISM (in particular, to display lists of states and probability vectors), you can use the "Verbose output" option (activated with comand-line switch <code>-verbose</code> or <code>-v</code>). To display additional statistics about MTBDDs after model construction, use the "Extra MTBDD information" option (switch <code>-extraddinfo</code>) and, to view MTBDD sizes during the process of reachability, use option "Extra reachability information" (switch <code>-extrareachinfo</code>).
+</p>
+<div class='vspace'></div><h3>Fairness</h3>
+<p>Sometimes, model checking of properties for MDPs requires fairness constraints to be taken into account.
+See e.g. [<a class='wikilink' href='../Main/References.html#BK98'>BK98</a>],[<a class='wikilink' href='../Main/References.html#Bai98'>Bai98</a>] for more information.
+To enable the use of fairness constraints (for <code><strong>P</strong></code> operator properties), use the <code>-fair</code> switch.
+</p>
+<div class='vspace'></div><h3>Probability/rate checks</h3>
+<p>By default, when constructing a model, PRISM checks that all probabilities and rates are within acceptable ranges (i.e. are between 0 and 1, or are non-negative, respectively). For DTMCs and MDPs, it also checks that the probabilities sum up to one for each command. These checks are often very useful for highlighting user modelling errors and it is strongly recommended that you keep them enabled, however if you need to disable them you can do so via option "do prob checks?" in the GUI or command-line switch <code>-noprobchecks</code>.
+You can also change the level of precision used to check that probabilities sum to 1 using the option "Probability sum threshold" (or command-line switch <code>-sumroundoff</code>.
+</p>
+<div class='vspace'></div><h3>CUDD memory</h3>
+<p>CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit. By default, this limit is 1 GB. If you are working on a machine with significantly more memory this and PRISM runs out of memory when model checking, it may help to change this. To set the limit, from the command-line, use the <code>-cuddmaxmem</code> switch. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -cuddmaxmem 2g big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Above, <code>g</code> denotes GB. You can also use <code>m</code> for MB.
+You can also the CUDD maximum memory setting from the options panel in the GUI, but you will need to close and restart the GUI (saving the settings as you do) for this to take effect.
+</p>
+<p class='vspace'><a name='javamaxmem' id='javamaxmem'></a>
+</p><h3>Java memory</h3>
+<p>The Java virtual machine (JVM) used to execute PRISM also has upper memory limits. Sometimes this limit will be exceeded and you will see an error of the form <code>java.lang.OutOfMemory</code>. To resolve this problem, you can increase this memory limit. On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javamaxmem</code> switch, passed either to the command-line script <code>prism</code> or the GUI launcher <code>xprism</code>. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javamaxmem 4g big_model.pm</span><br/>
+<span style="font-weight:bold;">xprism -javamaxmem 4g big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>each set the limit to 4GB. Alternatively, you set the environment variable PRISM_JAVAMAXMEM before running PRISM. For example, under a <code>bash</code> shell:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVAMAXMEM=4g</span><br/>
+<span style="font-weight:bold;">export PRISM_JAVAMAXMEM</span><br/>
+<span style="font-weight:bold;">prism big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>If you get an error of the form <code>java.lang.StackOverflowError</code>, then you can try increasing the stack size of the JVM.
+On Unix, Linux or Mac OS X platforms, this can done by using the <code>-javastack</code> switch or the <code>PRISM_JAVASTACKSIZE</code> environment variable.
+Examples are:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -javastack 1g big_model.pm</span><br/>
+<span style="font-weight:bold;">xprism -javastack 1g big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVASTACKSIZE=1g</span><br/>
+<span style="font-weight:bold;">export PRISM_JAVASTACKSIZE</span><br/>
+<span style="font-weight:bold;">prism big_model.pm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/OtherOptions?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>If you are running PRISM on Windows you will have to do make adjustments to Java memory manually, by modifying the <code>prism.bat</code> or <code>xprism.bat</code> scripts.
+To set the memory to 4GB, for example, add <code> -Xmx4g</code> to the list of arguments in the call to <code>java</code> or <code>javaw</code> at the end of the file.
+To change the stack size to 1GB, add <code>-Xss1g</code>.
+</p>
+<div class='vspace'></div><h3>Precomputation</h3>
+<p>By default, PRISM's probabilistic model checking algorithms use an initial <em>precomputation</em> step which uses graph-based techniques to efficient detect trivial cases where probabilities are 0 or 1. This can often result in improved performance and also reduce round-off errors. Occasionally, though, you may want to disable this step for efficiency (e.g. if you know that there are no/few such states and the precomputation process is slow). This can be done with the <code>-nopre</code> switch. You can also disable the individual algorithms for probability 0/1 using switches <code>-noprob0</code> and <code>-noprob1</code>.
+</p>
+<div class='vspace'></div><h3>Time-outs</h3>
+<p>The command-line version of PRISM has a time-out option, specified using the switch <code>-timeout &lt;n&gt;</code>.
+This causes the program to exit after <code>&lt;n&gt;</code> seconds if it has not already terminated by that point.
+This is particularly useful for benchmarking scenarios where you wish to ignore runs of PRISM that exceed a certain length of time.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Configuring PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Introduction</a>
+</li><li><a class='wikilink' href='ComputationEngines.html'>Computation Engines</a>
+</li><li><a class='wikilink' href='SolutionMethodsAndOptions.html'>Solution Methods And Options</a>
+</li><li><a class='wikilink' href='AutomataGeneration.html'>Automata Generation</a>
+</li><li><a class='selflink' href='OtherOptions.html'>Other Options</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

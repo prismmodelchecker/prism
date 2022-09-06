@@ -1,0 +1,14 @@
+// minimal model
+// showing bug inadvertently fixed in svn rev 10846
+// [from Joachim/Linda]
+
+mdp
+
+module a
+
+s: [0..2] init 0;
+
+[b] (s = 0) -> 0.4: (s' = 1) + 0.6: (s' = 2);
+[c] (s > 0) -> true;
+
+endmodule 

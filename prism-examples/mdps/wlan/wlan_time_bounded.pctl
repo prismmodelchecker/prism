@@ -1,0 +1,5 @@
+// A STATION SEND THEIR PACKET EVENTUALLY
+// minimum probability
+Pmin=? [ true U s1=12 & s2=12 ]
+Pmin=? [ true U s1=12 | s2=12 ]
+Pmin=? [ true U s1=12 ]

@@ -1,0 +1,33 @@
+# Export all model info in different formats
+
+-exportmodel robot.prism.all
+-exportmodel robot.prism.mrmc.all:mrmc
+-exportmodel robot.prism.matlab.all:matlab
+-exportmodel robot.prism.rows.all:rows
+
+# Export model info separately (for a few formats)
+
+-exportmodel robot.prism.tra
+-exportmodel robot.prism.lab
+-exportmodel robot.prism.sta
+-exportmodel robot.prism.srew
+-exportmodel robot.prism.trew
+-exportmodel robot.prism.mrmc.tra:mrmc
+-exportmodel robot.prism.mrmc.lab:mrmc
+-exportmodel robot.prism.mrmc.sta:mrmc
+-exportmodel robot.prism.mrmc.srew:mrmc
+-exportmodel robot.prism.mrmc.trew:mrmc
+
+# Export model info separately (for a few formats) -explicit
+
+# -exportmodel robot.prism.tra -ex # order different
+-exportmodel robot.prism.sta -ex
+-exportmodel robot.prism.lab -ex
+-exportmodel robot.prism.srew -ex
+#-exportmodel robot.prism.trew -ex
+#-exportmodel robot.prism.mrmc.tra:mrmc -ex
+#-exportmodel robot.prism.mrmc.sta:mrmc -ex
+-exportmodel robot.prism.mrmc.lab:mrmc -ex
+#-exportmodel robot.prism.matlab.tra:matlab -ex
+#-exportmodel robot.prism.matlab.sta:matlab -ex
+-exportmodel robot.prism.matlab.lab:matlab -ex

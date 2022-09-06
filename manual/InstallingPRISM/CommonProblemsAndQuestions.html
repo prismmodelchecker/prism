@@ -1,0 +1,275 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | InstallingPRISM / CommonProblemsAndQuestions 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Installing PRISM</a> /
+</p><h1>Common Problems And Questions</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>This section describes some of the most common problems and questions related to the installation and running of PRISM. These are grouped into the following categories:
+</p>
+<div class='vspace'></div><ul><li>Running PRISM on Windows
+</li><li>Running PRISM on non-Windows platforms
+</li><li>Compiling PRISM
+</li><li>Other issues
+</li></ul><div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Running PRISM on Windows</h2>
+<p><strong>When I try to run PRISM on Windows, I double-click the PRISM shortcut but nothing happens.</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>The most common cause of this is that you either do not have Java installed or the <code>java</code> executable is not in your path. In any case, to determine the exact problem, launch a command shell and navigate to the <code>bin</code> directory inside the directory where you installed PRISM (you can use the "PRISM (console)" shortcut installed in the start menu to do this). Then, type <code>xprism.bat</code> and see what error message is displayed.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM on Windows, I get an error of the form:<br /><code>Can't load IA 32-bit .dll on a AMD 64-bit platform</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>You are probably running a 32-bit Windows binary using a 64-bit version of Java. The version of PRISM (32- or 64-bit) needs to match Java. Either download the 64-bit binary for PRISM, or use a 32-bit version of Java. For the latter case, either make sure the right version of Java is first in your path or update the <code>bin\xprism.bat</code> (or <code>bin\prism.bat</code>) script, giving the full path to <code>javaw</code> at the end of the file.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Running PRISM on non-Windows platforms</h2>
+<p><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.NoClassDefFoundError: ...</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Check:
+</p><ul><li>Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
+</li><li>If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then re-compile, checking the output (especially at the end) carefully for any error messages.
+</li></ul></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>java.lang.UnsatisfiedLinkError: no prism in java.library.path</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Check:
+</p><ul><li>Did you run <code>install.sh</code> from the PRISM directory? (non-Windows platforms)
+</li><li>If you compiled PRISM from source code, are you sure no errors occurred during the process? To check, go into the PRISM directory, type <code>make clean_all</code> and then re-compile, checking the output (especially at the end) carefully for any error messages.
+</li></ul><p class='vspace'>Are you on a 64-bit machine? If so, make sure that you are running 64-bit versions of <code>java</code> and <code>javac</code>. (Look for "<code>64-Bit Server VM</code>" in the output of <code>java -version</code>).
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>java.lang.UnsatisfiedLinkError: ...<br />Library not loaded: ../../lib/libdd.dylib</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you running a new version of Mac OS X (notably El Capitan)?
+This seems to have some problems.
+A workaround is to change the path to the 'java' executable that runs PRISM.
+You should find an installation of Java somewhere like this:
+</p>
+<p class='vspace'><code>/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk</code>
+</p>
+<p class='vspace'>(obviously the precise name will depend on the version you have)
+Try running PRISM with the java executable to be found there, e.g. by running:
+</p>
+<p class='vspace'><code>PRISM_JAVA=/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home/bin/java prism</code>
+</p>
+<p class='vspace'>or by replacing the value of PRISM_JAVA directly in the prism script
+directly.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.UnsupportedClassVersionError: Bad version number in .class file</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Your version of Java is too old. Update or install a newer version of <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a>  Java and then try again.
+</p></div>
+<p class='vspace'><strong>When I try to run a (Linux) binary version of PRISM, I get an error saying that <code>libstdc++.so.5 cannot be found</code> or <code>libstdc++.so.6 cannot be found</code>.</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>This is usually due to a discrepancy between the version of Linux that was used to build the binary distribution and the version that you are using to run it.
+</p>
+<p class='vspace'>If the error message is about <code>libstdc++.so.5</code>, you will just need to install an old version of the <code>libstdc++</code> library. This should be quite easy to find for most Linux distributions. On Fedora Core, for example, just type: <code>yum install compat-libstdc++-33</code> as root.
+</p>
+<p class='vspace'>If the error message is about <code>libstdc++.so.6</code>, you are running an older version of Linux than the binary release was compiled for. The easiest solution is to compile PRISM yourself from the source code version instead.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>Exception in thread "main" java.lang.ExceptionInInitializerError<br />   at java.lang.Class.initializeClass(libgcj.so.7)<br />   at prism.PrismSettings.&lt;init&gt;(PrismSettings.java:297)</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>You are not running the <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a> version of Java. You will need to install it.
+</p></div>
+<p class='vspace'><strong>When I try to run PRISM, I get an error of the form:<br /><code>java.lang.UnsatisfiedLinkError: libprism: ... cannot restore segment prot after reloc: Permission denied</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>This is likely to be caused by the default settings of <a class='urllink' href='http://www.nsa.gov/selinux/'>SELinux</a> on newer versions of Linux. Open up the "Security Level Configuration" (on Fedora, for example, this is found under "Administration | Security Level and Firewall" under the main menu or by running <code>system-config-securitylevel</code>). Look in the "Compatibility" section of the SELinux Policy settings and make sure "Allow the use of shared libraries with Text Relocation" is ticked. You may need to reboot for changes to take effect.
+</p></div>
+<p class='vspace'><strong>Do I have to use <a class='urllink' href='http://www.oracle.com/technetwork/java/javase/downloads/index.html'>Oracle</a>'s version of Java to build/run PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Currently, this seems to be the case. We will aim to address this in the future.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Compiling PRISM</h2>
+<p><strong>When I try to compile PRISM, <code>make</code> seems to get stuck in an infinite loop</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>This is probably due to the detection of Java failing. Specify the location of your Java directory by hand, e.g. <code>make JAVA_DIR=/usr/java/jdk1.6.0</code>. See the <a class='wikilink' href='Main.html'>Instructions</a> page for more on this.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>/usr/bin/libtool: for architecture: cputype (16777234) cpusubtype (0) file: -lSystem is not an object file (not allowed in a library)</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you compiling PRISM on Max OS X? If so, the likely explanation is that you have upgraded to a new version of Mac OS X but have not upgraded the developer tools (eg. XCode). Upgrade and try again.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, nothing seems to happen</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Perhaps you are not using the GNU version of <code>make</code>. Try typing <code>make -v</code> to find out. On some systems, GNU make is called <code>gmake</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>Unexpected end of line seen...</code><br />or:<br /><code>make: Fatal error in reader: Makefile, line 58: Unexpected end of line seen...</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Perhaps you are not using the GNU version of <code>make</code>. Try typing <code>make -v</code> to find out. On some systems, GNU make is called <code>gmake</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>./setup.sh: line 33: syntax error: unexpected end of file</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Are you building on Cygwin? And did you unpack PRISM using WinZip? If so, unpack from Cygwin, using <code>tar xfz</code> (or similar) instead.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>Assembler messages:  Fatal error: can't create ../../obj/dd/dd_abstr.o: No such file or directory</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Did you unpack PRISM using a graphical tool or file manager? If so, unpack using <code>tar xfz</code> (or similar) instead.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get errors of the form:<br /><code>dirname: extra operand `Files/Java/jdk1.6.0_09/bin/javac' Try `dirname --help' for more information.</code></strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>This error occurs if the path to your Java distribution contains a space (a common example is when it is somewhere in "<code>Program Files</code>" on Windows). Hopefully, this will be fixed soon. A workaround is to move the java installation to e.g. <code>C:\java</code>.
+</p></div>
+<p class='vspace'><strong>When I try to compile PRISM, I get an error of the form:<br /><code>/bin/sh: line 43: [: :/cygdrive/c/Program: binary operator expected</code>...</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>See answer to previous question.
+</p></div>
+<p class='vspace'><strong>Do I have to use GNU <code>make</code> to build PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Strictly speaking, no, but you will have to modify the various PRISM Makefiles manually to overcome this.
+</p></div>
+<p class='vspace'><strong>Can I build PRISM on operating systems other than those currently supported?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>PRISM should be suitable for any Unix/Linux variant.
+</p>
+<p class='vspace'>The first thing you will need to do is compile CUDD (the BDD library used by and included in PRISM) on that platform.
+Fortunately, CUDD has already been successfully built on a large number of
+operating systems. Have a look at the sample Makefiles we provide (i.e. the
+files <code>cudd/Makefile.*</code>) which are slight variants of the original Makefile
+provided with CUDD (found here: <code>cudd/modified/orig/Makefile</code>). They contain
+instructions on how to modify it for various platforms. You can then call
+your new modified makefile something appropriate (<code>cudd/Makefile.$OSTYPE</code>) and
+proceed to build PRISM as usual. To just build CUDD, not PRISM, type
+<code>make cuddpackage</code> instead of <code>make</code>.
+</p>
+<p class='vspace'>Next, look at the main PRISM Makefile, in particular, each place where the
+variable <code>$OSTYPE</code> is referred to. Most lines include comments and further
+instructions. Once you have done this, proceed as usual.
+</p>
+<p class='vspace'>If you do successfully build PRISM on other platforms, please let us know
+so we can include this information in future releases. Thanks.
+</p></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h2>Other issues</h2>
+<p><strong>How do I uninstall PRISM?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>If you installed PRISM on Windows using the self-extracting installer, you can uninstall it using the option on the start menu. If you didn't add these shortcuts, just run <code>uninstall.exe</code> from the directory where you installed PRISM.
+</p>
+<p class='vspace'>For older versions of PRISM on Windows or on any other platform, simply delete the directory containing it.
+</p>
+<p class='vspace'>The only thing that is not removed via either of these methods is the <code>.prism</code> file containing your PRISM settings which is in your home directory (see the section "<a class='wikilink' href='../ConfiguringPRISM/Main.html'>Configuring PRISM</a>"). You may wish to retain this when upgrading.
+</p></div>
+<p class='vspace'><strong>I still have a problem installing/running PRISM. What can I do?</strong>
+</p>
+<div class='vspace'></div><div class='answer' > 
+<p>Please post a message in the discussion group (see the <a class='urllink' href='http://www.prismmodelchecker.org/support.php'>support</a> section of the PRISM website).
+</p></div>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Installing PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Instructions</a>
+</li><li><a class='selflink' href='CommonProblemsAndQuestions.html'>Common Problems And Questions</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

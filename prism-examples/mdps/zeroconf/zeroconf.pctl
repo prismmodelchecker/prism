@@ -1,0 +1,8 @@
+// min/max probability of configuring correctly
+Pmin=?[ true U (l=4 & ip=1) ]
+Pmax=?[ true U (l=4 & ip=1) ]
+
+// min/max expected cost of configuring
+Rmin=?[ F l=4 ]
+Rmax=?[ F l=4 ]
+

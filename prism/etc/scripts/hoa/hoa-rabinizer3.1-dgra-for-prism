@@ -1,0 +1,17 @@
+#! /bin/bash
+
+# Interface wrapper for calling Rabinizer3.1 (state-based DGRA)
+# Invoke from PRISM with
+#  -ltl2datool hoa-rabinizer3.1-dra-for-prism -ltl2dasyntax rabinizer
+#
+# Expects the rabinizer.jar file of Rabinizer3.1 in the current directory, otherwise
+# specify its location using
+#  export RABINIZER31=path/to/rabinizer.jar
+
+# Take location of the jar file from RABINIZER3 environment variable
+# Otherwise, default to current directory
+RABINIZER31_JAR=${RABINIZER31-./rabinizer.jar}
+
+# -format=hoa = output HOA
+# -auto=sgr = output state-based generalized Rabin
+java -jar $RABINIZER31_JAR -format=hoa -auto=sgr -in=file -out=file "$1"   &&  mv "$1.hoa" "$2"

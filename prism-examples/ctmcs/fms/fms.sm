@@ -1,0 +1,126 @@
+// flexible manufacturing system [CT93]
+// gxn/dxp 11/06/01
+
+ctmc // model is a ctmc
+
+const int n; // number of tokens
+
+// rates from Pi equal #(Pi) * min(1, np/r)
+// where np = (3n)/2 and r = P1+P2+P3+P12
+const int np=floor((3*n)/2);
+formula r = P1+P2+P3+P12;
+
+module machine1
+	
+	P1 : [0..n] init n;
+	P1wM1 : [0..n];
+	P1M1 : [0..3];
+	P1d : [0..n];
+	P1s : [0..n];
+	P1wP2 : [0..n];
+	M1 : [0..3] init 3;   
+	
+	[t1] (P1>0) & (M1>0) & (P1M1<3)  -> P1*min(1,np/r) : (P1'=P1-1) & (P1M1'=P1M1+1) & (M1'=M1-1);
+	[t1] (P1>0) & (M1=0) & (P1wM1<n) -> P1*min(1,np/r) : (P1'=P1-1) & (P1wM1'=P1wM1+1);
+	
+	[] (P1M1>0) & (P1wM1=0) & (M1<3) & (P1s<n) -> 0.2*P1M1 : (P1M1'=P1M1-1) & (M1'=M1+1) & (P1s'=P1s+1);
+	[] (P1M1>0) & (P1wM1>0) & (P1s<n) -> 0.2*P1M1 : (P1wM1'=P1wM1-1) & (P1s'=P1s+1);
+	
+	[] (P1M1>0) & (P2wP1=0) & (P1wM1=0) & (M1<3) & (P1wP2<n) -> 0.05*P1M1 : (P1M1'=P1M1-1) & (M1'=M1+1) & (P1wP2'=P1wP2+1);
+	[] (P1M1>0) & (P2wP1=0) & (P1wM1>0) & (P1wP2<n) -> 0.05*P1M1 : (P1wM1'=P1wM1-1) & (P1wP2'=P1wP2+1);
+	
+	[p1p2] (P1M1>0) & (P2wP1>0) & (P1wM1=0) & (M1<3) -> 0.05*P1M1 : (P1M1'=P1M1-1) & (M1'=M1+1);
+	[p1p2] (P1M1>0) & (P2wP1>0) & (P1wM1>0) -> 0.05*P1M1 : (P1wM1'=P1wM1-1);
+	
+	[p1p2] (P1wP2>0)  -> 1: (P1wP2'=P1wP2-1);
+	[]     (P1s>0) & (P1+P1s<=n) -> 1/60 : (P1s'=0) & (P1'=P1+P1s);
+	[fp12] (P1+P12s<=n) -> 1: (P1'=P1+P12s);
+	
+endmodule
+
+module machine2
+	
+	P2 : [0..n] init n;
+	P2wM2 : [0..n];
+	P2M2 : [0..1];
+	P2s : [0..n];
+	P2wP1 : [0..n];
+	M2 : [0..1] init 1;
+	
+	[t2] (P2>0) & (M2>0) & (P2M2<1)  -> P2*min(1,np/r) : (P2'=P2-1) & (P2M2'=P2M2+1) & (M2'=M2-1);
+	[t2] (P2>0) & (M2=0) & (P2wM2<n) -> P2*min(1,np/r) : (P2'=P2-1) & (P2wM2'=P2wM2+1);
+	
+	[] (P2M2>0) & (P2wM2=0) & (M2<1) & (P2s<n) -> 0.1 : (P2M2'=P2M2-1) & (M2'=M2+1) & (P2s'=P2s+1);
+	[] (P2M2>0) & (P2wM2>0) & (P2s<n) -> 0.1 : (P2wM2'=P2wM2-1) & (P2s'=P2s+1);
+	
+	[] (P2M2>0) & (P1wP2=0) & (P2wM2=0) & (M2<1) & (P2wP1<n) -> 1/15: (P2M2'=P2M2-1) & (M2'=M2+1) & (P2wP1'=P2wP1+1);
+	[] (P2M2>0) & (P1wP2=0) & (P2wM2>0) & (P2wP1<n) -> 1/15: (P2wM2'=P2wM2-1) & (P2wP1'=P2wP1+1);
+	
+	[p1p2] (P2M2>0) & (P1wP2>0) & (P2wM2=0) & (M2<1) -> 1/15: (P2M2'=P2M2-1) & (M2'=M2+1);
+	[p1p2] (P2M2>0) & (P1wP2>0) & (P2wM2>0) -> 1/15: (P2wM2'=P2wM2-1);
+	
+	[p1p2] (P2wP1>0) -> 1 : (P2wP1'=P2wP1-1);
+	[]     (P2s>0) & (P2+P2s<=n) -> 1/60 : (P2s'=0) & (P2'=P2+P2s);
+	[fp12] (P2+P12s<=n) -> 1 : (P2'=P2+P12s);
+	[p2p3] (M2>0) -> 1 : (M2'=M2);
+	
+endmodule
+
+module machine3 
+	
+	P3 : [0..n] init n;
+	P3M2 : [0..n];
+	P3s : [0..n];
+	
+	[t3] (P3>0) & (P3M2<n) -> P3*min(1,np/r) : (P3'=P3-1) & (P3M2'=P3M2+1);
+	
+	[p2p3] (P3M2>0) & (P3s<n) -> 1/2 : (P3M2'=P3M2-1) & (P3s'=P3s+1);
+	[]     (P3s>0) & (P3+P3s<=n) -> 1/60 : (P3s'=0) & (P3'=P3+P3s);
+	
+endmodule
+
+module machine12
+	
+	P12 : [0..n];
+	P12wM3 : [0..n];
+	P12M3 : [0..2];
+	P12s : [0..n];
+	M3 : [0..2] init 2;
+	
+	[p1p2] (P12<n) -> 1: (P12'=P12+1);
+	
+	[t12] (P12>0) & (M3>0) & (P12M3<2) -> P12*min(1,np/r) : (P12'=P12-1) & (P12M3'=P12M3+1) & (M3'=M3-1);
+	[t12] (P12>0) & (M3=0) & (P12wM3<n) -> P12*min(1,np/r) : (P12'=P12-1) & (P12wM3'=P12wM3+1);
+	
+	[] (P12M3>0) & (P12wM3=0) & (P12s<n) & (M3<2) -> P12M3 : (P12M3'=P12M3-1) & (P12s'=P12s+1) & (M3'=M3+1);
+	[] (P12M3>0) & (P12wM3>0) & (P12s<n) -> P12M3 : (P12wM3'=P12wM3-1) & (P12s'=P12s+1);
+	
+	[fp12] (P12s>0) -> 1/60 : (P12s'=0);
+	
+endmodule
+
+// reward structures
+
+// throughput of machine1
+rewards "throughput_m1"
+	[t1]  true : 1;	
+endrewards
+// throughput of machine2
+rewards "throughput_m2"
+	[t2]  true : 1;	
+endrewards
+// throughput of machine3
+rewards "throughput_m3"
+	[t3]  true : 1;	
+endrewards
+// throughput of machine12
+rewards "throughput_m12"
+	[t12]  true : 1;	
+endrewards
+// productivity of the system
+rewards "productivity"
+	[t1]  true : 400;
+	[t2]  true : 600;
+	[t3]  true : 100;
+	[t12] true : 1100;
+endrewards

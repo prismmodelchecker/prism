@@ -1,0 +1,136 @@
+ctmc
+
+// constants
+const int MAX_COUNT;
+const int MIN_SENSORS = 2;
+const int MIN_ACTUATORS = 1;
+
+// rates
+const double lambda_p = 1/(365*24*60*60); // 1 year
+const double lambda_s = 1/(30*24*60*60); // 1 month
+const double lambda_a = 1/(2*30*24*60*60); // 2 months
+const double tau = 1/60; // 1 min
+const double delta_f = 1/(24*60*60); // 1 day
+const double delta_r = 1/30; // 30 secs
+
+// sensors
+module sensors
+	
+	s : [0..3] init 3; // number of sensors working
+	
+	[] s>1 -> s*lambda_s : (s'=s-1); // failure of a single sensor
+	
+endmodule
+
+// input processor
+// (takes data from sensors and passes onto main processor)
+module proci
+	
+	i : [0..2] init 2; // 2=ok, 1=transient fault, 0=failed
+	
+	[] i>0 & s>=MIN_SENSORS -> lambda_p : (i'=0); // failure of processor
+	[] i=2 & s>=MIN_SENSORS -> delta_f : (i'=1); // transient fault
+	[input_reboot] i=1 & s>=MIN_SENSORS -> delta_r : (i'=2); // reboot after transient fault
+	
+endmodule
+
+// actuators
+module actuators
+	
+	a : [0..2] init 2; // number of actuators working
+	
+	[] a>0 -> a*lambda_a : (a'=a-1); // failure of a single actuator
+	
+endmodule
+
+// output processor
+// (receives instructions from main processor and passes onto actuators)
+module proco = proci [ i=o, s=a, input_reboot=output_reboot, MIN_SENSORS=MIN_ACTUATORS ] endmodule
+
+// main processor
+// (takes data from proci, processes it, and passes instructions to proco)
+module procm
+	
+	m : [0..1] init 1; // 1=ok, 0=failed
+	count : [0..MAX_COUNT+1] init 0; // number of consecutive skipped cycles
+	
+	// failure of processor
+	[] m=1 -> lambda_p : (m'=0);
+	// processing completed before timer expires - reset skipped cycle counter
+	[timeout]  comp -> tau : (count'=0);
+	// processing not completed before timer expires - increment skipped cycle counter
+	[timeout] !comp -> tau : (count'=min(count+1, MAX_COUNT+1));
+	
+endmodule
+
+// connecting bus
+module bus
+	
+	// flags
+	// main processor has processed data from input processor
+	// and sent corresponding instructions to output processor (since last timeout)
+	comp : bool init true; 
+	// input processor has data ready to send
+	reqi : bool init true; 
+	// output processor has instructions ready to be processed
+	reqo : bool init false;
+	
+	// input processor reboots
+	[input_reboot]  true -> 1 :
+	// performs a computation if has already done so or
+	// it is up and ouput clear (i.e. nothing waiting)
+	(comp'=(comp | (m=1 & !reqo))) 
+	// up therefore something to process
+	& (reqi'=true)
+	// something to process if not functioning and either
+	// there is something already pending
+	// or the main processor sends a request
+	& (reqo'=!(o=2 & a>=1) & (reqo | m=1));
+	
+	// output processor reboots
+	[output_reboot] true -> 1 :
+	// performs a computation if it has already or
+	// something waiting and is up
+	// (can be processes as the output has come up and cleared pending requests)
+	(comp'=(comp | (reqi & m=1)))
+	// something to process it they are up or
+	// there was already something and the main processor acts
+	// (output now up must be due to main processor being down)
+	& (reqi'=(i=2 & s>=2) | (reqi & m=0))
+	// output and actuators up therefore nothing can be pending
+	& (reqo'=false);
+	
+	// main processor times out
+	[timeout] true -> 1 :
+	// performs a computation if it is up something was pending
+	// and nothing is waiting for the output
+	(comp'=(reqi & !reqo & m=1))
+	// something to process if up or
+	// already something and main process cannot act 
+	// (down or outputs pending)
+	& (reqi'=(i=2 & s>=2) | (reqi & (reqo | m=0)))
+	// something to process if they are not functioning and 
+	// either something is already pending
+	// or the main processor acts
+	& (reqo'=!(o=2 & a>=1) & (reqo | (reqi & m=1)));
+	
+endmodule
+
+// the system is down
+formula down = (i=2&s<MIN_SENSORS)|(count=MAX_COUNT+1)|(o=2&a<MIN_ACTUATORS)|(m=0);
+// transient failure has occured but the system is not down
+formula danger = !down & (i=1 | o=1);
+// the system is operational
+formula up = !down & !danger;
+
+// reward structures
+
+rewards "up"
+	up : 1/3600;
+endrewards
+rewards "danger"
+	danger : 1/3600;
+endrewards
+rewards "down"
+	down : 1/3600;
+endrewards

@@ -1,0 +1,16 @@
+// Test file from Carlos
+
+// RESULT: 0.5
+Pmax=? [ F (s=2) ]
+
+// RESULT: 0.2
+Pmin=? [ F (s=2) ]
+
+// RESULT: 0.8
+Pmax=? [ !(F (s=2)) ]
+
+// RESULT: 0.8
+Pmax=? [ G (s=2 | (F s=3)) ]
+
+// RESULT: 0.8
+Pmax=? [ (X s=2) => (G s=3) ]

@@ -1,0 +1,8 @@
+// expected number of tokens in each cell
+R{"tokens_cell1"}=? [ S ]
+R{"tokens_cell2"}=? [ S ]
+R{"tokens_cell3"}=? [ S ]
+R{"tokens_cell4"}=? [ S ]
+
+// expected throughput of the system
+R{"throughput"}=? [ S ]

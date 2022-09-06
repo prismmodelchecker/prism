@@ -1,0 +1,11 @@
+// bugfix: -exportstrat for MDP using -sparse, missing restriction
+// to reachable state space when initializing strategy storage vector
+
+mdp
+
+module m 
+  s: [0..2] init 0;
+
+  [a] s=0 -> 1/2:(s'=0) + 1/2:(s'=1);
+  [b] s=0 -> 1/3:(s'=2) + 2/3:(s'=1);
+endmodule

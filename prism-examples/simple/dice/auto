@@ -1,0 +1,11 @@
+#!/bin/csh
+
+prism dice.pm dice.pctl -const x=3 
+
+prism two_dice.nm two_dice.pctl -prop 1 -const x=2:12
+prism two_dice.nm two_dice.pctl -prop 2 -const x=2:12
+prism two_dice.nm two_dice.pctl -prop 3 -const x=0 -m
+prism two_dice.nm two_dice.pctl -prop 4 -const x=0 -m
+
+prism two_dice_knuth.pm two_dice_knuth.pctl -prop 1 -const x=2:12
+prism two_dice_knuth.pm two_dice_knuth.pctl -prop 2 -const x=0

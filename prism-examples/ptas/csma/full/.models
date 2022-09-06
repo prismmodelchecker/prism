@@ -1,0 +1,5 @@
+csma.nm -const bmax=2,K=4
+csma.nm -const bmax=2,K=8
+csma.nm -const bmax=4,K=4
+csma.nm -const bmax=4,K=8
+

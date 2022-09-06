@@ -1,0 +1,9 @@
+#!/bin/csh
+
+prism firewire.nm eventually.pctl -const delay=360 -aroptions nopre,refine=all,opt
+
+prism firewire.nm deadline.pctl -const delay=360,T=5000 -aroptions nopre,refine=all,opt
+prism firewire.nm deadline.pctl -const delay=360,T=10000 -aroptions nopre,refine=all,opt
+prism firewire.nm deadline.pctl -const delay=360,T=20000 -aroptions nopre,refine=all,opt
+
+#prism firewire.nm time.pctl -const delay=360 -aroptions nopre,refine=all,opt

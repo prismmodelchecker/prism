@@ -1,0 +1,53 @@
+// RESULT: 17/6
+R{"r"}=? [ F s>2 ]
+
+// RESULT: 175/60
+R{"r2"}=? [ F s>2 ]
+
+// RESULT: 13/60
+R{"time"}=? [ F s>2 ]
+
+// RESULT: 1
+R{"time"}=? [ S ]
+
+
+// RESULT: Infinity
+R{"r"}=? [ F s>3 ]
+
+// RESULT: 0.39912
+R{"r"}=? [ I=0.4 ]
+
+// RESULT: 143.46388878967119
+R{"r"}=? [ C<=10 ]
+
+// RESULT: Infinity
+R{"r"}=? [ C ]
+
+// RESULT: 44/3
+R{"r"}=? [ S ]
+
+
+// RESULT: 1/15
+R{"s"}=? [ F s>=2 ]
+
+// RESULT: Infinity
+R{"s"}=? [ F s>=5 ]
+
+// RESULT: Infinity
+R{"s"}=? [ C ]
+
+// RESULT: 3.25
+R{"s"}=? [ S ]
+
+
+// RESULT: 0
+R{"s3"}=? [ F s>=2 ]
+
+// RESULT: Infinity
+R{"s3"}=? [ F s>=5 ]
+
+// RESULT: Infinity
+R{"s3"}=? [ C ]
+
+// RESULT: 37/12
+R{"s3"}=? [ S ]

@@ -1,0 +1,190 @@
+// non-probabilistic CTL*/LTL properties
+
+// --------------- non-probabilistic variants of lec17dtmc.pm.props -----
+// RESULT: true
+E [ G F "a" ];
+// RESULT: false
+A [ G F "a" ];
+
+// RESULT: true
+E [ (G !"b")&(G F "a") ];
+// RESULT: false
+A [ (G !"b")&(G F "a") ];
+
+// RESULT: true
+E [ F G "a" ];
+// RESULT: false
+A [ F G "a" ];
+
+// RESULT: true
+E [ (G ("b"=>(F (!"b"&"a"))))&(F G !"b") ];
+// RESULT: true
+A [ (G ("b"=>(F (!"b"&"a"))))&(F G !"b") ];
+
+// -------------- some basic tests ---------------------------------
+
+// RESULT: false
+A [ F (s=4 | s=5) ];
+// RESULT: true
+E [ F (s=4 | s=5) ];
+// RESULT: false
+A [ (F s=4) & (F s=5) ];
+// RESULT: false
+E [ (F s=4) & (F s=5) ];
+
+// RESULT: true
+A [ (G F (s=0 => s!=0)) => (F (s=4 | s=5)) ];
+// RESULT: true
+A [ (G F (s=0 => s!=0)) => ((F s=4) | (F s=5)) ];
+// RESULT: false
+A [ (G F (s=0 => s!=0)) => ((F s=4) & (F s=5)) ];
+
+// each state can reach s=2 or s=4 in one or two steps
+// RESULT: true
+filter(forall, E[ X (s=2 | s=4 | (X (s=2 | s=4))) ], true);
+
+// variant not yet supported:
+// RESULT: Error:not supported
+filter(forall, E[ F[1,2] (s=2 | s=4) ], true);
+
+// each state reaches s=2 or s=4 in one or two steps on every path
+// RESULT: false
+filter(forall, A[ X (s=2 | s=4 | (X (s=2 | s=4))) ], true);
+
+// variant not yet supported:
+// RESULT: Error:not supported
+filter(forall, A[ F[1,2] (s=2 | s=4) ], true);
+
+// RESULT: true
+filter(exists, E[ F G s=0 ], true);
+// RESULT: false
+filter(exists, A[ F G s=0 ], true);
+
+// ---- checking that product is correctly in sync -----
+// RESULT: true
+filter(forall, E[ s=0 ], s=0);
+// RESULT: true
+filter(forall, E[ s=1 ], s=1);
+// RESULT: true
+filter(forall, E[ s=2 ], s=2);
+// RESULT: true
+filter(forall, E[ s=3 ], s=3);
+// RESULT: true
+filter(forall, E[ s=4 ], s=4);
+// RESULT: true
+filter(forall, E[ s=5 ], s=5);
+
+// RESULT: true
+filter(forall, A[ s=0 ], s=0);
+// RESULT: true
+filter(forall, A[ s=1 ], s=1);
+// RESULT: true
+filter(forall, A[ s=2 ], s=2);
+// RESULT: true
+filter(forall, A[ s=3 ], s=3);
+// RESULT: true
+filter(forall, A[ s=4 ], s=4);
+// RESULT: true
+filter(forall, A[ s=5 ], s=5);
+
+// RESULT: true
+filter(forall, A[ (X s=0) | (X s=1) | (X s=3)], s=0);
+// RESULT: true
+filter(forall, A[ (X s=2) | (X s=3) | (X s=4) ], s=1);
+// RESULT: true
+filter(forall, A[ (X s=5) ], s=2);
+// RESULT: true
+filter(forall, A[ (X s=4) ], s=3);
+// RESULT: true
+filter(forall, A[ (X s=3) ], s=4);
+// RESULT: true
+filter(forall, A[ (X s=5) | (X s=2) ], s=5);
+
+// ----- nested ----------------------------
+
+// a path where there's always a path to go to s=4
+// does not necessarily end up there
+// RESULT: false
+A[ (G E[ F s=4 ]) => (F s=4) ]
+
+// however, there is such a path ...
+// RESULT: true
+E[ (G E[ F s=4 ]) => (F s=4) ]
+
+// and both can be satisfied simultaneously
+// RESULT: true
+E[ (G E[ F s=4 ]) & (F s=4) ]
+
+// on all paths that always have a chance to reach
+// s=4 either s=4 is seen infinitely often or
+// we always stay in s=0
+// RESULT: true
+A[ (G E[ F s=4 ]) => ((G F s=4) | (F G s=0)) ]
+
+// ---- does the product work with LTL simplification? --------
+
+// will be simplified to true, removing AP s=0
+// RESULT: true
+E[ true | (X s=0) ]
+
+// will be simplified to (s<4 & s=0) U s=4, reordering APs
+// RESULT: false
+E[ (s<4 U s=4) & (s=0 U s=4) ]
+
+// ---- trivial cases (true, false) --------
+
+// RESULT: true
+E[ true ];
+// RESULT: true
+A[ true ];
+
+// RESULT: false
+E[ false ];
+// RESULT: false
+A[ false ];
+
+// RESULT: true
+filter(exists, E[ true ], true);
+// RESULT: true
+filter(exists, A[ true ], true);
+// RESULT: true
+filter(forall, E[ true ], true);
+// RESULT: true
+filter(forall, A[ true ], true);
+
+// RESULT: false
+filter(exists, E[ false ], true);
+// RESULT: false
+filter(exists, A[ false ], true);
+// RESULT: false
+filter(forall, E[ false ], true);
+// RESULT: false
+filter(forall, A[ false ], true);
+
+// RESULT: true
+E[ G F true ];
+// RESULT: true
+A[ G F true ];
+
+// RESULT: false
+E[ G F false ];
+// RESULT: false
+A[ G F false ];
+
+// RESULT: true
+filter(exists, E[ G F true ], true);
+// RESULT: true
+filter(exists, A[ G F true ], true);
+// RESULT: true
+filter(forall, E[ G F true ], true);
+// RESULT: true
+filter(forall, A[ G F true ], true);
+
+// RESULT: false
+filter(exists, E[ G F false ], true);
+// RESULT: false
+filter(exists, A[ G F false ], true);
+// RESULT: false
+filter(forall, E[ G F false ], true);
+// RESULT: false
+filter(forall, A[ G F false ], true);

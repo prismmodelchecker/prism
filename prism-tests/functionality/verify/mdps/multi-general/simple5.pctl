@@ -1,0 +1,4 @@
+multi(P>=0.4 [ G F s=1], P>=0.6 [ G F s=2 ])
+multi(P>=0.4 [ G F s=2], P>=0.6 [ G F s=1 ])
+multi(P>=0.4 [ F s=2], P>=0.6 [ G F s=1 ])
+multi(Pmax=? [ F s=2], P>=0.6 [ G F s=1 ])

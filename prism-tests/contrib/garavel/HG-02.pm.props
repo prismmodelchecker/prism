@@ -1,0 +1,37 @@
+const int x; // unused (Hubert Garavel)
+
+// RESULT : 1/6
+P=? [ F s=7 & d=1 ]
+
+// RESULT : 1/6
+P=? [ F s=7 & d=2 ]
+
+// RESULT : 1/6
+P=? [ F s=7 & d=3 ]
+
+// RESULT : 1/6
+P=? [ F s=7 & d=4 ]
+
+// RESULT : 1/6
+P=? [ F s=7 & d=5 ]
+
+// RESULT : 1/6
+P=? [ F s=7 & d=6 ]
+
+// RESULT : 1/6
+S=? [ s=7 & d=1 ]
+
+// RESULT : 1/6
+S=? [ s=7 & d=2 ]
+
+// RESULT : 1/6
+S=? [ s=7 & d=3 ]
+
+// RESULT : 1/6
+S=? [ s=7 & d=4 ]
+
+// RESULT : 1/6
+S=? [ s=7 & d=5 ]
+
+// RESULT : 1/6
+S=? [ s=7 & d=6 ]

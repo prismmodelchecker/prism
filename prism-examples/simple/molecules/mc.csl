@@ -1,0 +1,18 @@
+// Constants:
+const double T; // time instant
+const int i; // number of molecules
+
+// Probability of there being i Mg/Mg+/Mg+2 molecules at time T?
+P=? [ true U[T,T] mg=i ]
+P=? [ true U[T,T] mg_p=i ]
+P=? [ true U[T,T] N1-(mg_p+mg)=i ]
+
+// Expected percentage of Mg/Mg+/Mg+2 molecules at time T?
+R{"percentage_mg"}=? [ I=T ]
+R{"percentage_mgplus"}=? [ I=T ]
+R{"percentage_mgplus2"}=? [ I=T ]
+
+// Expected long-run percentage of Mg/Mg+/Mg+2 molecules?
+R{"percentage_mg"}=? [ S ]
+R{"percentage_mgplus"}=? [ S ]
+R{"percentage_mgplus2"}=? [ S ]

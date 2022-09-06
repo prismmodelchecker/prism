@@ -1,0 +1,13 @@
+// This should result in error
+// But we don't have a way to specify that in the test suite yet...
+
+dtmc
+
+module M
+
+	s : [0..7] init 0;
+	
+	[] s=0 -> 0.5 : (s'=1)&(s'=0) + 0.5 : (s'=2);
+	[] s>0 -> true;
+	
+endmodule

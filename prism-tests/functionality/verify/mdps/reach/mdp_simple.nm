@@ -1,0 +1,32 @@
+// Simple MDP tests cases, used during development of stochastic game model checking
+
+mdp
+
+module m1
+	s : [0..5];
+	t : [0..2];
+
+	[] s=0 & t=0 -> (s'=1);
+	[] s=0 & t=0 -> 0.1 : (t'=1)&(s'=0) + 0.9 : (t'=2)&(s'=0);
+
+	[] s=1 & t=0 -> (s'=2);
+	[] s=1 & t=0 -> 0.2 : (t'=1)&(s'=0) + 0.8 : (t'=2)&(s'=0);
+
+	[] s=2 & t=0 -> (s'=3);
+	[] s=2 & t=0 -> 0.3 : (t'=1)&(s'=1) + 0.7 : (t'=2)&(s'=1);
+
+	[] s=3 & t=0 -> (s'=4);
+	[] s=3 & t=0 -> 0.4 : (t'=1)&(s'=0)+ 0.6 : (t'=2)&(s'=0);
+
+	[] s=4 & t=0 -> (s'=5);
+	[] s=4 & t=0 -> 0.5 : (t'=1)&(s'=0) + 0.5 : (t'=2)&(s'=0);
+
+	[] s=5 & t=0 -> (t'=1)&(s'=0);
+
+	[] t>0 -> true;
+
+endmodule
+
+rewards 
+    mod(s,2)=0 : 1;
+endrewards

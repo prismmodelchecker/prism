@@ -1,0 +1,12 @@
+// Bug fixed in SVN rev 11214
+// Previously, the if-then-else (ITE) guard was not simplified,
+// leading to an invalid clock constraint
+
+pta
+
+module M
+    s : [0..1] init 0;
+    x : clock;
+
+    [a] (s=0?true:false) & (x<=1) -> (s'=1);
+endmodule

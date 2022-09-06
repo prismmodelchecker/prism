@@ -1,0 +1,11 @@
+#!/bin/csh
+
+prism csma.nm collisions.pctl -const K=2,COL=4 -aroptions refine=all,nopre,opt
+prism csma.nm collisions.pctl -const K=2,COL=8 -aroptions refine=all,nopre,opt
+prism csma.nm collisions.pctl -const K=4,COL=4 -aroptions refine=all,nopre,opt
+prism csma.nm collisions.pctl -const K=4,COL=8 -aroptions refine=all,nopre,opt
+
+#prism csma.nm time.pctl -const K=1,COL=0 -aroptions refine=all,nopre,opt
+#prism csma.nm time.pctl -const K=2,COL=0 -aroptions refine=all,nopre,opt
+#prism csma.nm time.pctl -const K=3,COL=0 -aroptions refine=all,nopre,opt
+#prism csma.nm time.pctl -const K=4,COL=0 -aroptions refine=all,nopre,opt

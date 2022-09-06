@@ -1,0 +1,5 @@
+const int x = 4;
+
+// RESULT : 1/3
+Pmin=? [ F s=x ]
+

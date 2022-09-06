@@ -1,0 +1,6 @@
+// RESULT: ~0.6213837
+P=? [ !"down" U "fail_sensors" ]
+
+// test case for lower bound until problem (explicit engine, fixed in SVN 11768)
+// RESULT: ~0.6213837
+P=? [ !"down" U>=0 "fail_sensors" ]

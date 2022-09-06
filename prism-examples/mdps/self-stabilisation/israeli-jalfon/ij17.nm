@@ -1,0 +1,66 @@
+// Israeli-Jalfon self stabilising algorithm
+// dxp/gxn 10/06/02
+
+mdp
+
+// variables to represent whether a process has a token or not
+// note they are global because they can be updated by other processes
+global q1  : [0..1];
+global q2  : [0..1];
+global q3  : [0..1];
+global q4  : [0..1];
+global q5  : [0..1];
+global q6  : [0..1];
+global q7  : [0..1];
+global q8  : [0..1];
+global q9  : [0..1];
+global q10  : [0..1];
+global q11  : [0..1];
+global q12  : [0..1];
+global q13  : [0..1];
+global q14  : [0..1];
+global q15  : [0..1];
+global q16  : [0..1];
+global q17  : [0..1];
+
+// module of process 1
+module process1
+	
+	[] (q1=1) -> 0.5 : (q1'=0) & (q17'=1) + 0.5 : (q1'=0) & (q2'=1);
+	
+endmodule
+
+// add further processes through renaming
+module process2 = process1 [ q1=q2, q2=q3, q17=q1 ] endmodule
+module process3 = process1 [ q1=q3, q2=q4, q17=q2 ] endmodule
+module process4 = process1 [ q1=q4, q2=q5, q17=q3 ] endmodule
+module process5 = process1 [ q1=q5, q2=q6, q17=q4 ] endmodule
+module process6 = process1 [ q1=q6, q2=q7, q17=q5 ] endmodule
+module process7 = process1 [ q1=q7, q2=q8, q17=q6 ] endmodule
+module process8 = process1 [ q1=q8, q2=q9, q17=q7 ] endmodule
+module process9 = process1 [ q1=q9, q2=q10, q17=q8 ] endmodule
+module process10 = process1 [ q1=q10, q2=q11, q17=q9 ] endmodule
+module process11 = process1 [ q1=q11, q2=q12, q17=q10 ] endmodule
+module process12 = process1 [ q1=q12, q2=q13, q17=q11 ] endmodule
+module process13 = process1 [ q1=q13, q2=q14, q17=q12 ] endmodule
+module process14 = process1 [ q1=q14, q2=q15, q17=q13 ] endmodule
+module process15 = process1 [ q1=q15, q2=q16, q17=q14 ] endmodule
+module process16 = process1 [ q1=q16, q2=q17, q17=q15 ] endmodule
+module process17 = process1 [ q1=q17, q2=q1, q17=q16 ] endmodule
+
+// cost - 1 in each state (expected steps)
+rewards "steps"
+	true : 1;
+endrewards
+
+// formula, for use here and in properties: number of tokens
+formula num_tokens = q1+q2+q3+q4+q5+q6+q7+q8+q9+q10+q11+q12+q13+q14+q15+q16+q17;
+
+// label - stable configurations (1 token)
+label "stable" = num_tokens=1;
+
+// initial states (at least one token)
+init
+	num_tokens >= 1
+endinit
+

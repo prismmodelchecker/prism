@@ -1,0 +1,21 @@
+// properties taken from [D'AJJL01]
+
+// property A
+P=? [ true U srep=1 & rrep=3 & recv ];
+
+// property B
+P=? [ true U srep=3 & !(rrep=3) & recv ];
+
+// property 1
+P=? [ true U s=5 ];
+
+// property 2
+P=? [ true U s=5 & srep=2 ];
+
+// property 3
+P=? [ true U s=5 & srep=1 & i>8 ];
+
+// property 4
+P=? [ true U !(srep=0) & !recv ];
+// rewards
+R=? [ F "deadlock" ];

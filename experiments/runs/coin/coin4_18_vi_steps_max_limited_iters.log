@@ -1,0 +1,104 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Mon Feb 15 11:22:07 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=3.9g
+Command line: prism ../../examples/mdps/consensus/coin4.nm ../../examples/mdps/consensus/steps_max.pctl -s -improvedbk -maxiters 54004 -const K=18 -javamaxmem 4500m -epsilon 1e-10
+
+Parsing model file "../../examples/mdps/consensus/coin4.nm"...
+
+Parsing properties file "../../examples/mdps/consensus/steps_max.pctl"...
+
+1 property:
+(1) "steps_max": R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 
+
+---------------------------------------------------------------------
+
+Model checking: "steps_max": R{"steps"}max=? [ F "finished" ]
+Model constants: K=18
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: K=18
+
+Computing reachable states...
+
+Reachability (BFS): 867 iterations in 0.10 seconds (average 0.000119, setup 0.00)
+
+Time for model construction: 0.184 seconds.
+
+Type:        MDP
+States:      186496 (1 initial)
+Transitions: 628192
+Choices:     502912
+
+Transition matrix: 2432 nodes (3 terminal), 628192 minterms, vars: 20r/20c/4nd
+
+Prob0E: 234 iterations in 0.17 seconds (average 0.000748, setup 0.00)
+
+Prob1A: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+goal = 64, inf = 0, maybe = 186432
+
+Computing remaining rewards...
+
+Building sparse matrix (transitions)... [n=186496, nc=502848, nnz=628128, k=4] [9.8 MB]
+Building sparse matrix (transition rewards)... [n=186496, nc=502848, nnz=0, k=4] [2.6 MB]
+Creating vector for state rewards... [1.4 MB]
+Creating vector for inf... [1.4 MB]
+Creating vector for lower bounds... [1.4 MB]
+Creating vector for upper bounds... [1.4 MB]
+Allocating iteration vectors... [4 x 1.4 MB]
+TOTAL: [23.8 MB]
+
+Starting iterations (interval iteration)...
+
+ Time for pre-computation: 0.177000 Iteration 1906: max relative diff=3.291624, 4.83 sec so far
+Iteration 3787: max relative diff=1.443060, 9.83 sec so far
+Iteration 5373: max relative diff=0.719773, 14.83 sec so far
+Iteration 7198: max relative diff=0.323284, 19.83 sec so far
+Iteration 9218: max relative diff=0.133300, 24.83 sec so far
+Iteration 11159: max relative diff=0.056901, 29.83 sec so far
+Iteration 13163: max relative diff=0.023627, 34.83 sec so far
+Iteration 14866: max relative diff=0.011195, 39.84 sec so far
+Iteration 16527: max relative diff=0.005403, 44.84 sec so far
+Iteration 18453: max relative diff=0.002322, 49.84 sec so far
+Iteration 20458: max relative diff=0.000964, 54.84 sec so far
+Iteration 22442: max relative diff=0.000404, 59.84 sec so far
+Iteration 24392: max relative diff=0.000172, 64.84 sec so far
+Iteration 26422: max relative diff=0.000070, 69.85 sec so far
+Iteration 28202: max relative diff=0.000032, 74.85 sec so far
+Iteration 29833: max relative diff=0.000016, 79.85 sec so far
+Iteration 31697: max relative diff=0.000007, 84.85 sec so far
+Iteration 33720: max relative diff=0.000003, 89.86 sec so far
+Iteration 35686: max relative diff=0.000001, 94.86 sec so far
+Iteration 37669: max relative diff=0.000001, 99.86 sec so far
+Iteration 39682: max relative diff=0.000000, 104.86 sec so far
+Iteration 41543: max relative diff=0.000000, 109.87 sec so far
+Iteration 43134: max relative diff=0.000000, 114.87 sec so far
+Iteration 44960: max relative diff=0.000000, 119.87 sec so far
+Iteration 46983: max relative diff=0.000000, 124.87 sec so far
+Iteration 48923: max relative diff=0.000000, 129.87 sec so far
+Iteration 50928: max relative diff=0.000000, 134.88 sec so far
+Iteration 52923: max relative diff=0.000000, 139.88 sec so far
+
+First round (updates from below) finished after 54003 iters.
+Iterative method: 54003 iterations in 142.62 seconds (average 0.002641, setup 0.12)
+
+Value in the initial state: 16874.999999104097
+
+Time for model checking: 143.468 seconds.
+
+Result: 16874.999999104097 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

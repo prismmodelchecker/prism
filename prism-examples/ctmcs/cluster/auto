@@ -1,0 +1,5 @@
+#!/bin/csh
+
+foreach N (4 8 16 32) #64 128 256 512)
+	prism cluster.sm cluster.csl -const N=$N,T=10 -jor
+end

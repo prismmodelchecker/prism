@@ -1,0 +1,4 @@
+// probability of using fresh ip address within time T
+const int bound;
+Pmin=?[ !(l=4 & ip=2) U t>bound ]
+Pmax=?[ !(l=4 & ip=2) U t>bound ]

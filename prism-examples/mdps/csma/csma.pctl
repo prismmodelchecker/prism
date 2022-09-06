@@ -1,0 +1,22 @@
+const int k;
+
+// expected time for all messages to be sent
+R{"time"}min=?[ F "all_delivered" ]
+R{"time"}max=?[ F "all_delivered" ]
+
+// expected time for one message to be sent
+Rmin=?[ F "one_delivered" ]
+Rmax=?[ F "one_delivered" ]
+
+// message of some station eventually delivered before k backoffs
+Pmin=?[ F min_backoff_after_success<=k ]
+Pmax=?[ F min_backoff_after_success<=k ]
+
+// probability all sent successfully before a collision with max backoff 
+Pmin=?[ !"collision_max_backoff" U "all_delivered" ]
+Pmax=?[ !"collision_max_backoff" U "all_delivered" ]
+
+// probability some station suffers at least k collisions
+Pmin=?[ F max_collisions>=k ]
+Pmax=?[ F max_collisions>=k ]
+

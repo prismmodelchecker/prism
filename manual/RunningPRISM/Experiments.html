@@ -1,0 +1,331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+
+<title>
+PRISM Manual | RunningPRISM / Experiments 
+</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
+
+<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+
+<!--HTMLHeader--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: nowrap; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+   
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for text
+ * CSS class: , CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2014 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.text .de1, .text .de2 {font-family: monospace; font-weight: normal;}
+.text  {font-family:monospace;}
+.text .imp {font-weight: bold; color: red;}
+.text li, .text .li1 {font-family: monospace; color: black; font-weight: normal;}
+.text .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.text .li2 {font-weight: bold;}
+.text .ln-xtra, .text li.ln-xtra, .text div.ln-xtra {background-color: #ffc;}
+.text span.xtra { display:block; }
+
+--></style>  <meta name='robots' content='index,follow' />
+
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
+<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+
+</head>
+
+<body text="#000000" bgcolor="#ffffff">
+
+<div id="layout-maincontainer">
+<div id="layout-main">
+
+<div id="prism-mainbox">
+
+<!-- ============================================================================= -->
+
+<!--PageHeaderFmt-->
+<!--/PageHeaderFmt-->
+
+<!--PageTitleFmt-->
+  <div id="prism-man-title">
+    <p><a class='wikilink' href='Main.html'>Running PRISM</a> /
+</p><h1>Experiments</h1>
+
+  </div>
+<!--PageText-->
+<div id='wikitext'>
+<p>PRISM supports <em>experiments</em>, which is a way of automating multiple instances of model checking.
+This is done by leaving one or more <a class='wikilink' href='../ThePRISMLanguage/Constants.html'>constants</a> undefined, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">N</span>;<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span>;<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>This can be done for constants in the model file, the properties file, or both.
+Before any verification can be performed, values must be provided for any such constants. In the GUI, a dialog appears in which the user is required to enter values. From the command line, the <code>-const</code> switch must be used, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4,T=85.9</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>To run an experiment, provide a <em>range</em> of values for one or more of the constants. Model checking will be performed for all combinations of the constant values provided. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4:6,T=60:10:100</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>where <code>N=4:6</code> means that values of 4,5 and 6 are used for <code>N</code>,
+and <code>T=60:10:100</code> means that values of 60, 70, 80, 90 and 100 (i.e. steps of 10) are used for <code>T</code>.
+</p>
+<p class='vspace'>For convenience, constant specifications can be split across separate instances of the <code>-const</code> switch, if desired.
+You can also specify double-valued constants as fractions rather than decimals. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4,T=85.9 -const p=1/3</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>From the GUI, the same thing can be achieved by selecting a single property,
+right clicking on it and selecting "New experiment"
+(or alternatively using the popup menu in the "Experiments" panel).
+Values or ranges for each undefined constant can then be supplied in the resulting dialog.
+Details of the new experiment and its progress are shown in the panel.
+To stop the experiment before it has completed, click the red "Stop" button and it will
+halt after finishing the current iteration of model checking.
+Once the experiment has finished, right clicking on the experiment produces a pop-up menu,
+from which you can view the results of the experiment or export them to a file.
+</p>
+<p class='vspace'>For experiments based on properties which return numerical results, you can also use the GUI to plot graphs of the results.
+This can be done either before the experiment starts, by selecting the "Create graph" tick-box in the dialog used to create the experiment
+(in fact this box is ticked by default), or after the experiment's completion, by choosing "Plot results" from the pop-up menu on the experiment.
+A dialog appears, where you can choose which constant (if there are more than one) to use for the x-axis of the graph,
+and for which values of any other constants the results should be plotted.
+The graph will appear in the panel below the list of experiments.
+Right clicking on a graph and selecting "Graph options" brings up a dialog from which many properties of the graph can be configured.
+From the pop-up menu of a graph, you can also choose to print the graph (to a printer or Postscript file)
+or export it in a variety of formats:
+as an image (PNG or JPEG),
+as an encapsulated Postscript file (EPS),
+in an XML-based format (for reloading back into PRISM),
+or as code which can be used to generate the graph in Matlab.
+</p>
+<p class='vspace'>Approximate computation of quantitive results obtained with the <a class='wikilink' href='ApproximateModelChecking.html'>simulator</a> can also be used on experiments. In the GUI, select the "Use Simulation" option when defining the parameters for the experiment. From the command-line, just add the <code>-sim</code> switch as usual.
+</p>
+<p class='vspace'><a name='exportresults' id='exportresults'></a>
+</p><h3>Exporting results</h3>
+<p>You can export all the results from an experiment to a file or to the screen. From the command-line, use the <code>-exportresults</code> switch, for example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>to send to output file <code>res.txt</code>, or:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults stdout</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>to send the results straight to the screen. From the GUI, right click on the experiment and select "Export results".
+</p>
+<p class='vspace'>The default behaviour is to export a <em>list</em> of results in <em>text</em> form, using tabs to separate items. The above examples produce:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="text">N &nbsp; &nbsp; &nbsp; T &nbsp; &nbsp; &nbsp; Result<br />
+4 &nbsp; &nbsp; &nbsp; 0 &nbsp; &nbsp; &nbsp; 0.0<br />
+4 &nbsp; &nbsp; &nbsp; 10&nbsp; &nbsp; &nbsp; 4.707364688019771E-6<br />
+4 &nbsp; &nbsp; &nbsp; 20&nbsp; &nbsp; &nbsp; 1.3126420636755292E-5<br />
+5 &nbsp; &nbsp; &nbsp; 0 &nbsp; &nbsp; &nbsp; 0.0<br />
+5 &nbsp; &nbsp; &nbsp; 10&nbsp; &nbsp; &nbsp; 3.267731327728599E-6<br />
+5 &nbsp; &nbsp; &nbsp; 20&nbsp; &nbsp; &nbsp; 8.343575060356386E-6</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>You can change the format in which the results are exported by appending one or more comma-separated options to the end of the <code>-exportresults</code> switch, for example to export in CSV (comma-separated values) format:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="text">N, T, Result<br />
+4, 0, 0.0<br />
+4, 10, 4.707364688019771E-6<br />
+4, 20, 1.3126420636755292E-5<br />
+5, 0, 0.0<br />
+5, 10, 3.267731327728599E-6<br />
+5, 20, 8.343575060356386E-6</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>You can also add the <code>matrix</code> option, to export the results as one or more 2D matrices, rather than a list.
+This is particularly useful if you want to create a surface plot from results that vary over two constants.
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock10'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv,matrix</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock11'>
+  <div class='sourceblocktext'><div class="text">&quot;N\T&quot;<br />
+, 0.0, 10.0, 20.0<br />
+4, 0.0, 4.707364688019771E-6, 1.3126420636755292E-5<br />
+5, 0.0, 3.267731327728599E-6, 8.343575060356386E-6</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The <code>matrix</code> option is also available in normal (non-CSV) mode.
+</p>
+<p class='vspace'>Finally, you can export results in the form of comments, used by PRISM's  functionality:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock12'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:comment</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock13'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// RESULT (N=4,T=0): 0.0</span><br/>
+<span class="prismcomment">// RESULT (N=4,T=10): 4.707364688019771E-6</span><br/>
+<span class="prismcomment">// RESULT (N=4,T=20): 1.3126420636755292E-5</span><br/>
+<span class="prismcomment">// RESULT (N=5,T=0): 0.0</span><br/>
+<span class="prismcomment">// RESULT (N=5,T=10): 3.267731327728599E-6</span><br/>
+<span class="prismcomment">// RESULT (N=5,T=20): 8.343575060356386E-6</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/Experiments?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>A related option is the <code>-exportvector &lt;file&gt;</code> switch, useful in general contexts, not for experiments.
+This exports the results for all states of the model
+(typically, the log just displays the result for the initial state, unless a <a class='wikilink' href='../PropertySpecification/Filters.html'>filter</a> has been used)
+to the the file <code>file</code>.
+</p>
+</div>
+
+
+<!--PageFooterFmt-->
+  <div id='prism-man-footer'>
+  </div>
+<!--/PageFooterFmt-->
+
+
+<!-- ============================================================================= -->
+
+</div> <!-- id="prism-mainbox" -->
+
+</div> <!-- id="layout-main" -->
+</div> <!-- id="layout-maincontainer" -->
+
+<div id="layout-leftcol">
+<div id="prism-navbar2">
+
+<h3><a class='wikilink' href='../Main/Main.html'>PRISM Manual</a></h3>
+<p><strong><a class='wikilink' href='Main.html'>Running PRISM</a></strong>
+</p><ul><li><a class='wikilink' href='Main.html'>Starting PRISM</a>
+</li><li><a class='wikilink' href='LoadingAndBuildingAModel.html'>Loading And Building a Model</a>
+</li><li><a class='wikilink' href='DebuggingModelsWithTheSimulator.html'>Debugging Models With The Simulator</a>
+</li><li><a class='wikilink' href='ExportingTheModel.html'>Exporting The Model</a>
+</li><li><a class='wikilink' href='ModelChecking.html'>Model Checking</a>
+</li><li><a class='wikilink' href='ApproximateModelChecking.html'>Statistical Model Checking</a>
+</li><li><a class='wikilink' href='ComputingSteady-stateAndTransientProbabilities.html'>Computing Steady-state And Transient Probabilities</a>
+</li><li><a class='selflink' href='Experiments.html'>Experiments</a>
+</li><li><a class='wikilink' href='Adversaries.html'>Adversaries</a>
+</li><li><a class='wikilink' href='SupportForPEPAModels.html'>Support For PEPA Models</a>
+</li><li><a class='wikilink' href='SupportForSBML.html'>Support For SBML</a>
+</li><li><a class='wikilink' href='ExplicitModelImport.html'>Explicit Model Import</a>
+</li><li><a class='wikilink' href='ParametricModelChecking.html'>Parametric Model Checking</a>
+</li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
+</p>
+
+
+</div>  <!-- id="prism-navbar2" -->
+</div> <!-- id="layout-leftcol" -->
+
+</body>
+</html>

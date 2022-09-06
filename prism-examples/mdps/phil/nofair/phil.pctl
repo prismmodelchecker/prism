@@ -1,0 +1,17 @@
+const int K;
+
+// Liveness (if a philosopher is hungry then eventually some philosopher eats)
+
+filter(forall, "hungry" => P>=1 [ F "eat"])
+
+
+// Bounded until (minimum probability, from a state where someone
+// is hungry, that a philosopher will eat within K steps)
+
+Pmin=? [ F<=K "eat" {"hungry"}{min} ]
+
+
+// Expected time (from a state where someone is hungry, the maximum
+// expected number of steps until a philosopher eats)
+
+R{"num_steps"}max=? [ F "eat" {"hungry"}{max} ]

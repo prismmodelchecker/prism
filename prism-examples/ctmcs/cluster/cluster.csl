@@ -1,0 +1,44 @@
+// Properties based on those from [HHK00]
+
+const double T;
+
+// In the long run, the probability that premium QoS will be delivered
+S=? [ "premium" ]
+
+// In the long run, the chance that QoS is below minimum
+S=? [ !"minimum" ]
+
+// The system will always be able to offer premium QoS at some point in the future
+P>=1 [ true U "premium" ]
+
+// The chance that QoS drops below minimum quality within T time units
+// (from the initial state)
+P=? [ true U<=T !"minimum" ]
+
+// If facing insufficient QoS, the maximum probability of facing
+// the same problem after T time units
+P=? [ true U[T,T] !"minimum"  {!"minimum"}{max} ]
+
+// The minimum probability of going from minimum QoS to premium QoS
+// within T time units
+P=? [ true U<=T "premium" {"minimum"}{min} ]
+
+// The minimum probability of going from minimum QoS to premium QoS
+// within T time units without violating the minimum QoS constraint along the way
+P=? [ "minimum" U<=T "premium" {"minimum"}{min} ]
+
+// The maximum probability that it takes more than T time units
+// to recover from insufficient QoS
+P=? [ !"minimum" U>=T "minimum" {!"minimum"}{max} ]
+
+// The minimum percentage of operational workstations at time T
+// when starting from below minimum QoS
+R{"percent_op"}=?[ I=T {!"minimum"}{min} ]
+
+// The expected time (from the initial state)
+// that the system spends below minimum QoS until time T
+R{"time_not_min"}=?[ C<=T ]
+
+// The expected number of repairs by time T (starting in the initial state)
+R{"num_repairs"}=?[ C<=T ]
+

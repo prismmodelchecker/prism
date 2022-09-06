@@ -1,0 +1,21 @@
+ctmc
+
+module M
+
+	x : [0..3];
+	
+	[arrive] x<3 -> 1.5 : (x'=x+1);
+	[serve] x>0 -> 3 : (x'=x-1);
+
+endmodule
+
+label "empty" = x=0;
+label "full" = x=3;
+
+rewards "serve"
+	[serve] true : 1;
+endrewards
+
+rewards "queue"
+	true : x;
+endrewards

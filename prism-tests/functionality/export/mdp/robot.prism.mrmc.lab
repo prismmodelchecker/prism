@@ -1,0 +1,8 @@
+#DECLARATION
+init deadlock hazard goal1 goal2
+#END
+1 init
+2 hazard
+3 goal2
+4 goal2
+6 goal1

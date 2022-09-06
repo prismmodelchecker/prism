@@ -1,0 +1,52 @@
+// Na + Cl <--> Na+ + Cl- 
+// dxp/gxn 09/06/04
+
+// ctmc model
+ctmc
+
+// constants
+const int N1; // number of Na molecules
+const int N2; // number of Cl molecules
+
+// Na and Na+ module
+module na
+	
+	na : [0..N1] init N1;
+	// total number of Na and Na+ molecules is fixed at N1
+	// na is the number of Na molecules 
+	// therefore N1-na gives the number of Na+ molecules
+	
+	[e1] na>0  ->     na  : (na'=na-1);
+	[e2] na<N1 -> (N1-na) : (na'=na+1);
+	
+endmodule
+
+// Cl and Cl- module
+module cl
+	
+	cl : [0..N2] init N2;
+	// total number of Cl and Cl- molecules is fixed at N2
+	// cl is the number of Cl molecules 
+	// therefore N2-cl is the number of Cl- molecules
+	
+	[e1] cl>0  ->     cl  : (cl'=cl-1);
+	[e2] cl<N2 -> (N2-cl) : (cl'=cl+1);
+	
+endmodule
+
+// base rates
+const double e1rate = 100; // Na + Cl -> Na+ + Cl-
+const double e2rate = 10; // Na+ + Cl- -> Na + Cl
+
+// module representing the base rates of reactions
+module base_rates
+	
+	[e1] true -> e1rate : true;
+	[e2] true -> e2rate : true;
+	
+endmodule
+
+// rewards: "percentage of Na molecules present (out of all Na/Na+ molecules)"
+rewards "percentage_na"
+	true : 100*na/N1;
+endrewards

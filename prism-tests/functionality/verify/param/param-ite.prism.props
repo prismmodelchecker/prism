@@ -1,0 +1,7 @@
+// test case: support for if-then-else and formulas in expressions (exact / parametric)
+
+// RESULT: 1/4
+P=?[F outcome=2]
+
+// RESULT: 0
+P=?[G outcome=-1]

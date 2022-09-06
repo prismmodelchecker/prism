@@ -1,0 +1,12 @@
+ctmc
+
+module M
+
+x:[0..1];
+
+[] x=0 -> 3: (x'=1);
+[] x=1 -> 2: (x'=0);
+
+endmodule
+
+// No tests yet - used for simple transient probs illustration

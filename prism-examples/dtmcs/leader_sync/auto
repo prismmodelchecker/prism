@@ -1,0 +1,8 @@
+#!/bin/csh
+
+foreach N ( 3 4 5 ) # 6 )
+  foreach K ( 2 3 4 ) # 5 6 8 )
+    prism leader"$N"_"$K".pm leader.pctl -const L=1
+  end
+end
+

@@ -1,0 +1,4 @@
+// maximum expected time
+R{"time"}min=?[F (s=9) ]
+// maximum expected rounds
+R{"rounds"}max=?[F (s=9) ]

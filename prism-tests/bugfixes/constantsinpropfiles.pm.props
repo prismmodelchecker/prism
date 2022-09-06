@@ -1,0 +1,6 @@
+const int x;
+const int y = x;
+const int z = y;
+
+// RESULT (x=3): 1/6
+P=? [ F d=z ];

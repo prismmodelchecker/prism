@@ -1,0 +1,22 @@
+#!/bin/csh
+
+prism dining_crypt3.nm  correctness.pctl
+prism dining_crypt4.nm  correctness.pctl
+prism dining_crypt5.nm  correctness.pctl
+prism dining_crypt6.nm  correctness.pctl
+prism dining_crypt7.nm  correctness.pctl
+#prism dining_crypt8.nm  correctness.pctl
+#prism dining_crypt9.nm  correctness.pctl
+#prism dining_crypt10.nm correctness.pctl
+#prism dining_crypt15.nm correctness.pctl
+
+prism dining_crypt3.nm  anonymity.pctl -const k=0:7 -m -nopre -exportresults stdout
+prism dining_crypt4.nm  anonymity.pctl -const k=0:15 -m -nopre -exportresults stdout
+
+prism dining_crypt5.nm  anonymity.pctl -const k=0 -m -nopre
+prism dining_crypt6.nm  anonymity.pctl -const k=1 -m -nopre
+prism dining_crypt7.nm  anonymity.pctl -const k=0 -m -nopre
+#prism dining_crypt8.nm  anonymity.pctl -const k=1 -m -nopre
+#prism dining_crypt9.nm  anonymity.pctl -const k=0 -m -nopre
+#prism dining_crypt10.nm anonymity.pctl -const k=1 -m -nopre
+#prism dining_crypt15.nm anonymity.pctl -const k=0 -m -nopre

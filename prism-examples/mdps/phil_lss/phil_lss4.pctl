@@ -1,0 +1,13 @@
+const int L; // discrete time bound
+
+label "trying" = ((p1>0) & (p1<8))  | ((p2>0) & (p2<8)) | ((p3>0) & (p3<8)) | ((p4>0) & (p4<8)); // philosopher in its trying region
+label "entered" = ((p1>7) & (p1<13)) | ((p2>7) & (p2<13)) | ((p3>7) & (p3<13)) | ((p4>7) & (p4<13)); // philosopher in its critical section
+
+// lockout free
+filter(forall, "trying" =>  P>=1 [ true U "entered" ])
+
+// bounded until: minimum probability (from a state where a process is in its trying region) that some process enters its critical section within k steps
+Pmin=? [ F<=L "entered" {"trying"}{min} ]
+
+// expected time: maximum expected time (from a state where a process is in its trying region) that some process enters its critical section
+Rmax=? [ F "entered" {"trying"}{max} ]

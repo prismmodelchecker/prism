@@ -1,0 +1,7 @@
+#!/bin/csh
+
+prism ij3.nm ij.pctl -prop 1 -const k=0,K=0
+prism ij3.nm ij.pctl -prop 2 -const k=0,K=0 -m
+prism ij3.nm ij.pctl -prop 3 -const k=1:1:3,K=0 -m
+prism ij3.nm ij.pctl -prop 4 -const k=1:1:3,K=0 -m
+prism ij3.nm ij.pctl -prop 5 -const k=0,K=1:1:100 -m

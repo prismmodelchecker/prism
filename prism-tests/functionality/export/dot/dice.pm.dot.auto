@@ -1,0 +1,2 @@
+-exporttransdot dice.pm.dot
+-exporttransdotstates dice.pm.sta.dot

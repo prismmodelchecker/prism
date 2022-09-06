@@ -1,0 +1,18 @@
+
+// RESULT: 1/6
+S=? [ s=7 & value=1 ]
+
+// RESULT: 1/6
+S=? [ s=7 & value=2 ]
+
+// RESULT: 1/6
+S=? [ s=7 & value=3 ]
+
+// RESULT: 1/6
+S=? [ s=7 & value=4 ]
+
+// RESULT: 1/6
+S=? [ s=7 & value=5 ]
+
+// RESULT: 1/6
+S=? [ s=7 & value=6 ]

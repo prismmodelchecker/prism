@@ -1,0 +1,12 @@
+label "target2" = s=3 & x<=y;
+
+label "target3" = x=y;
+
+// RESULT: Error:diagonal
+Pmax=? [ F "target" & x>=y ];
+
+// RESULT: Error:diagonal
+Pmax=? [ F "target2" ];
+
+// RESULT: Error:diagonal
+Pmax=? [ F "target3" ];

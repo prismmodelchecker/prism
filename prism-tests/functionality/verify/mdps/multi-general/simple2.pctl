@@ -1,0 +1,14 @@
+//Pmax=? [ F s=1 & p=1 ]
+//Pmax=? [ F s=1 & p=2 ]
+
+//Pmax=? [ s=1 & p=1 U s=1 & p=2 ]
+
+//multi(Pmax=? [ F s=1 & p=1 ], P>=0.4 [ F s=1 & p=2 ])
+
+//multi(P>=0.5 [ F s=1 & p=1 ], P>=0.5 [ F s=1 & p=2 ])
+
+multi(R{"R1"}min=? [F s=1], P>=0.4 [ F s=1 & p=2 ])
+multi(R{"R1"}max=? [F s=1], P>=0.4 [ F s=1 & p=2 ])
+multi(Rmax=? [ F s=1 ], P>=0.52 [ F s=1 & p=1 ], P>=0.4 [ F s=1 & p=2 ])
+
+

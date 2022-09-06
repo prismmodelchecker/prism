@@ -1,0 +1,7 @@
+#!/bin/csh
+
+foreach N ( 3 4 5 8 10 )
+  echo "Generating for N=$N"
+  prismpp .mutualN.nm.pp $N >! mutual"$N".nm
+  unix2dos mutual"$N".nm
+end

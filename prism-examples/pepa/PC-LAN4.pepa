@@ -1,0 +1,32 @@
+% a PC-LAN as described in lecture notes from the University of Edinburgh lecture course `Modelling and Simulation'
+	   
+lambda = 0.01;                            
+mu = 0.1;
+omega = 1.0;
+
+#PC10 = (arrive,lambda).PC11 + (walkon2,infty).PC10;
+#PC11 = (serve1,infty).PC10;
+
+#PC20 = (arrive,lambda).PC21 + (walkon3,infty).PC20;
+#PC21 = (serve2,infty).PC20;
+
+#PC30 = (arrive,lambda).PC31 + (walkon4,infty).PC30;
+#PC31 = (serve3,infty).PC30;
+
+#PC40 = (arrive,lambda).PC41 + (walkon1,infty).PC40;
+#PC41 = (serve4,infty).PC40;
+
+#S1 = (walkon2,omega).S2 + (serve1,mu).T2;
+#S2 = (walkon3,omega).S3 + (serve2,mu).T3;
+#S3 = (walkon4,omega).S4 + (serve3,mu).T4;
+#S4 = (walkon1,omega).S1 + (serve4,mu).T1;
+
+#T1 = (walk1,omega).S1;
+#T2 = (walk2,omega).S2;
+#T3 = (walk3,omega).S3;
+#T4 = (walk4,omega).S4;
+
+
+(PC10 <> PC20 <> PC30 <> PC40) <walkon1,walkon2,walkon3,walkon4,serve1,serve2,serve3,serve4> S1
+
+

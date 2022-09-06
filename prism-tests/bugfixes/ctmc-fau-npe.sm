@@ -1,0 +1,13 @@
+// test for null-pointer exception fix in fast adaptive uniformisation (cumulative reward operator)
+
+ctmc
+
+module m1
+  s: [0..1] init 0;
+
+  [] s=0 -> 2:(s'=1);
+endmodule
+
+rewards "steps"
+  [] true : 1;
+endrewards

@@ -1,0 +1,36 @@
+// LTL-to-DRA bug fix (svn rev XX)
+// Bug reported by Brian Logan
+
+dtmc
+
+module bug
+
+  r : bool init true;
+  v : bool init false;
+  d : bool init false;
+  f : bool init false;
+  h : bool init false;
+
+  // Transitions for all tracks
+  [] r -> 0.104:(r'=true) + 
+       	  0.279:(r'=false) & (h'=true) + 
+	  0.403:(r'=false) & (v'=true) + 
+	  0.060:(r'=false) & (f'=true) + 
+	  0.154:(r'=false) & (d'=true);
+
+  // reduced to 0.395 to workaround rounding error summing to >1
+  [] v -> 0.395:(v'=true) + 
+       	  0.187:(v'=false) & (r'=true) + 
+	  0.284:(v'=false) & (h'=true) + 
+	  0.052:(v'=false) & (f'=true) + 
+	  0.082:(v'=false) & (d'=true);
+
+  [] d -> 0.344:(d'=true) + 
+       	  0.625:(d'=false) & (h'=true) + 
+	  0.031:(d'=false) & (f'=true);
+
+  [] f -> 1.0:(f'=false) & (h'=true);
+
+  [] h -> 1.0:(h'=true);
+
+endmodule

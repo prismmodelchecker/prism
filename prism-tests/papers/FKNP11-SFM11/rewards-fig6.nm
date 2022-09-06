@@ -1,0 +1,24 @@
+// MDP illustrating non-memoryless optimal rewards (see Figure 6)
+
+mdp
+
+module M
+
+	// s=i for state s_i
+	s : [0..2];
+	
+	[b0] s=0 -> (s'=0);
+	[a0] s=0 -> (s'=1);
+	[a1] s=1 -> (s'=2);
+	[a2] s=2 -> (s'=2);
+
+endmodule
+
+rewards
+	// state rewards
+	s=0 : 1;
+	s=1 : 2;
+	// transition rewards
+	[b0] s=0 : 1;
+	[a2] s=2 : 3;
+endrewards

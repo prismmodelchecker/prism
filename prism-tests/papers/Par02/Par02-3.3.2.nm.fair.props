@@ -1,0 +1,13 @@
+	// RESULT: 0.6
+	Pmax=? [ !"b" U "a" ];
+	// RESULT: ?
+	"ex1f": P<=0.5 [ !"b" U "a" ];
+	// RESULT: true
+	filter(forall, "ex1f" <=> (x=3));
+
+	// RESULT: 0.6
+	Pmin=? [ !"b" U "a" ];
+	// RESULT: ?
+	"ex2f": P>=0.5 [ !"b" U "a" ];
+	// RESULT: true
+	filter(forall, "ex2f" <=> (x=0|x=1|x=2));

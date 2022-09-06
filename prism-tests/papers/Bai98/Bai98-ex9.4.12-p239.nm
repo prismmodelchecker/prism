@@ -1,0 +1,24 @@
+// simple LTL/fairness example from Christel's thesis (p.239-240)
+
+// note that the product MDP in fig 9.15 is incorrect:
+// s_3,q_0 should be s_3,q_1
+// s_5,q_1 should be s_5,q_2
+// (and thus state s_5,q_1 disappears)
+
+mdp
+
+module M
+
+	s : [1..5];
+
+	[] (s=1) -> (s'=2);
+	[] (s=2) -> (s'=2);
+	[] (s=2) -> 0.5:(s'=3) + 0.5:(s'=4);
+	[] (s=3) -> (s'=5);
+	[] (s=4) -> (s'=5);
+	[] (s=5) -> (s'=5);
+	
+endmodule
+
+label "a" = s=3;
+label "b" = s=2 | s=5;

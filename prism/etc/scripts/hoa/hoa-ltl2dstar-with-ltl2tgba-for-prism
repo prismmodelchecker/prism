@@ -1,0 +1,25 @@
+#! /bin/bash
+
+# Interface wrapper for calling ltl2dstar with Spot's ltl2tgba as the LTL->NBA tool
+# Invoke from PRISM with
+#  -ltl2datool hoa-ltl2dstar-with-ltl2tgba-for-prism -ltl2dasyntax lbt
+#
+# Expects ltl2dstar and ltl2tgba executables on the PATH, otherwise
+# specify their location using
+#  export LTL2DSTAR=path/to/ltl2dstar
+#  export LTL2TGBA=path/to/ltl2tgba
+
+
+# Take ltl2dstar executable from the LTL2DSTAR environment variable
+# Otherwise, default to "ltl2dstar", which will search the PATH
+LTL2DSTAR_BIN=${LTL2DSTAR-ltl2dstar}
+
+# Take the ltl2tgba executable from the LTL2TGBA environment variable
+# Otherwise, default to "ltl2tgba", which will search the PATH
+LTL2TGBA_BIN=${LTL2TGBA-ltl2tgba}
+
+# --output=automaton = we want the automaton
+# --output-format=hoa = ... in HOA
+# --ltl2nba = with ltl2tgba as LTL->NBA
+#              -s -B = as Spin neverclaim, NBA output
+$LTL2DSTAR_BIN --output=automaton --output-format=hoa "--ltl2nba=spin:${LTL2TGBA_BIN}@-s -B" "$@"

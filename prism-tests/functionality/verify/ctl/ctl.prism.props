@@ -1,0 +1,119 @@
+// RESULT: true
+filter(exists, E [ F s=7 & d=6 ], s>0)
+
+// RESULT: false
+E [ F s=7 & d=7 ]
+
+// RESULT: true
+E [ s<4 U d=1 ]
+
+// RESULT: false
+E [ s<4 U (s=7 & d!=1) ]
+
+// RESULT: false
+E [ s<4 U d=6 ]
+
+// RESULT: true
+A [ G s<=7 ]
+
+// RESULT: false
+A [ G s<=6 ]
+
+// RESULT: true
+E [ G s<=7 ]
+
+// RESULT: true
+E [ G s<=6 ]
+
+// RESULT: false
+E [ G s=0 ]
+
+// RESULT: true
+E [ G s<=3 ]
+
+// RESULT: false
+E [ G s!=0 ]
+
+// RESULT: true
+E [ X E [ G s!=0 ] ]
+
+// RESULT: true
+E [ X A [ G s!=0 ] ]
+
+// RESULT: true
+A [ X A [ G s!=0 ] ]
+
+// RESULT: true
+A [ X E [ G s!=0 ] ]
+
+
+// RESULT: true
+E [ F E [ G s=7 ] ]
+
+// RESULT: true
+E [ F A [ G s=7 ] ]
+
+// RESULT: false
+A [ F A [ G s=7 ] ]
+
+// RESULT: false
+A [ F E [ G s=7 ] ]
+
+// RESULT: false
+A [ s<7 U s=7 ]
+
+// RESULT: true
+E [ s<7 U s=7 ]
+
+// RESULT: true
+A [ s<7 W s=7 ]
+
+// RESULT: false
+A [ s<6 W s=7 ]
+
+// RESULT: true
+E [ s<6 W s=7 ]
+
+// RESULT: false
+A [ s<=1 W s=2 ]
+
+// RESULT: true
+A [ s=0 W (s=1 | s=2) ]
+
+// can stay globally below 7
+// RESULT: true
+E [ s=7 R s<7 ]
+
+// RESULT: false
+A [ s=7 R s<7 ]
+
+// RESULT: true
+E [ s=7 R s<=7 ]
+
+// RESULT: true
+A [ s=7 R s<=7 ]
+
+// RESULT: true
+E [ A [ X s=7 ] R s<6]
+
+// can not reach s=7 from anywhere in 2 steps
+// RESULT: false
+A [ G E [ X E [X A [ G s=7 ] ] ] ]
+
+// can reach s=7 from anywhere in 3 steps
+// RESULT: true
+A [ G E [ X E [X E [ X A [ G s=7 ] ] ] ] ]
+
+
+// computation of bounded temporal operators for
+// CTL path formulas currently unsupported
+// RESULT: ?
+E [ F<3 A [ G s=7 ] ]
+// RESULT: ?
+E [ G<3 s=0 ]
+// RESULT: ?
+E [ s=0 U<3 s=1 ]
+// RESULT: ?
+E [ s=0 R<3 s=1 ]
+// RESULT: ?
+E [ s=0 W<3 s=1 ]

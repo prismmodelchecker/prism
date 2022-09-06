@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Script for installation of PRISM on a clean install of RHEL/CentOS/etc Linux.
+
+set -e # Abort if one of the commands fail
+set -x # Print commands as they are executed
+
+# Install dependencies: make/gcc/Java/git
+sudo yum -y update
+sudo yum -y install make gcc gcc-c++ java-1.8.0-openjdk-devel git
+
+# Install Python (only needed for testing (prism-auto) currently)
+sudo yum -y install python
+
+# Download the latest development version from GitHub
+git clone https://github.com/prismmodelchecker/prism.git
+
+# Compile PRISM and run a single test
+# (should ultimately display: "Testing result: PASS")
+(cd prism/prism && make && make test)
