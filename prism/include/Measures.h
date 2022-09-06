@@ -61,7 +61,7 @@ public:
 
 	/**
 	 * Do the measurement for a single pair of values.
-	 * For relative mode, the first value is used as the divisor.
+	 * For relative mode, the second value is used as the divisor.
 	 */
 	inline void measure(double v1, double v2) {
 		double x;
@@ -70,14 +70,14 @@ public:
 		x = fabs(v2 - v1);
 		if (relative) {
 			// for relative mode: divide by second value
-			// We take the absolute value of v1 to ensure that
-			// x remains non-negative. v1 can become negative e.g.
+			// We take the absolute value of v2 to ensure that
+			// x remains non-negative. v2 can become negative e.g.
 			// during iterations with over-relaxation with large
 			// omega values.
-			// Note: if v1 is 0, then x will become +inf for x>0 and NaN for x=0, i.e., v1=v2=0
+			// Note: if v2 is 0, then x will become +inf for x>0 and NaN for x=0, i.e., v1=v2=0
 			// In the later case, the max computation below will ignore the NaN,
 			// as NaN > y is false for all y
-			x /= fabs(v1);
+			x /= fabs(v2);
 		}
 
 		// sup_norm = max { x, sup_norm }
@@ -88,7 +88,7 @@ public:
 
 	/**
 	 * Do the measurement for two value arrays of size n.
-	 * For relative mode, the values of the first array are used as the divisors.
+	 * For relative mode, the values of the second array are used as the divisors.
 	 */
 	inline void measure(const double *soln, const double *soln2, std::size_t n) {
 		for (std::size_t i = 0; i < n; i++) {

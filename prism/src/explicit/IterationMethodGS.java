@@ -58,12 +58,12 @@ public class IterationMethodGS extends IterationMethod {
 			public boolean iterateAndCheckConvergence(IntSet states)
 			{
 				// Matrix-vector multiply
-				error = dtmc.mvMultGS(soln,
+				double maxDiff = dtmc.mvMultGS(soln,
 				                               backwards ? states.reversedIterator() : states.iterator(),
 				                               absolute);
 
 				// Check termination
-				return (error < termCritParam);
+				return (maxDiff < termCritParam);
 			}
 		};
 	}
@@ -93,13 +93,13 @@ public class IterationMethodGS extends IterationMethod {
 			public boolean iterateAndCheckConvergence(IntSet states)
 			{
 				// Matrix-vector multiply
-				error = dtmc.mvMultRewGS(soln,
+				double maxDiff = dtmc.mvMultRewGS(soln,
 				                                  rew,
 				                                  backwards ? states.reversedIterator() : states.iterator(),
 				                                  absolute);
 
 				// Check termination
-				return (error < termCritParam);
+				return (maxDiff < termCritParam);
 			}
 		};
 	}
@@ -130,14 +130,14 @@ public class IterationMethodGS extends IterationMethod {
 			public boolean iterateAndCheckConvergence(IntSet states)
 			{
 				// Matrix-vector multiply
-				error = mdp.mvMultGSMinMax(soln,
+				double maxDiff = mdp.mvMultGSMinMax(soln,
 				                                    min,
 				                                    backwards ? states.reversedIterator() : states.iterator(),
 				                                    absolute,
 				                                    strat);
 
 				// Check termination
-				return (error < termCritParam);
+				return (maxDiff < termCritParam);
 			}
 		};
 	}
@@ -171,7 +171,7 @@ public class IterationMethodGS extends IterationMethod {
 			public boolean iterateAndCheckConvergence(IntSet states)
 			{
 				// Matrix-vector multiply
-				error = mdp.mvMultRewGSMinMax(soln,
+				double maxDiff = mdp.mvMultRewGSMinMax(soln,
 				                                       rewards,
 				                                       min,
 				                                       backwards ? states.reversedIterator() : states.iterator(),
@@ -179,7 +179,7 @@ public class IterationMethodGS extends IterationMethod {
 				                                       strat);
 
 				// Check termination
-				return (error < termCritParam);
+				return (maxDiff < termCritParam);
 			}
 		};
 	}

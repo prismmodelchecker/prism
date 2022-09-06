@@ -353,11 +353,9 @@ public class ConstantList extends ASTElement
 		allValues = new Values();
 		for (i = 0; i < numToEvaluate; i++) {
 			Expression constant = cl.getConstant(i);
-			// NB: We use otherValues when evaluating here, but that shouldn't be needed
-			// since these values have already been plugged in by expandConstants above
 			if (constant != null) {
 				if (exact) {
-					BigRational r = constant.evaluateExact(otherValues);
+					BigRational r = constant.evaluateExact(null, otherValues);
 					// handle differently, depending on constant type
 					if (constant.getType() instanceof TypeDouble) {
 						// we keep as BigRational for TypeDouble
@@ -369,7 +367,7 @@ public class ConstantList extends ASTElement
 						val = constant.getType().castFromBigRational(r);
 					}
 				} else {
-					val = constant.evaluate(otherValues);
+					val = constant.evaluate(null, otherValues);
 				}
 				allValues.addValue(cl.getConstantName(i), val);
 			}

@@ -123,78 +123,31 @@ public class Modules2MTBDD
 	// hidden option - do we also store action info for the transition matrix? (supersedes the above)
 	private boolean storeTransActions = true; 
 	
+	// data structure used to store mtbdds and related info
+	// for some component of the whole model
 
-	/** Flag, tracking whether the model was already constructed (to know how much cleanup we have to do) */
-	private boolean modelWasBuilt = false;
-
-	/** Data structure to store mtbdds for a command */
-	private static class CommandDDs
-	{
-		/** BDD for the guard of a command */
-		public JDDNode guard;
-		/** MTBDD for the updates of a command */
-		public JDDNode up;
-
-		/** Constructor, assigning ZERO to guard and up */
-		public CommandDDs()
-		{
-			guard = JDD.Constant(0.0);
-			up = JDD.Constant(0.0);
-		}
-
-		/** Constructor */
-		public CommandDDs(JDDNode guardDD, JDDNode upDD)
-		{
-			this.guard = guardDD;
-			this.up = upDD;
-		}
-
-		/** Deref the dds (if not null) */
-		public void clear()
-		{
-			JDD.DerefNonNull(guard);
-			JDD.DerefNonNull(up);
-		}
-	}
-
-	/**
-	 * Data structure used to store mtbdds and related info
-	 * for some component of the whole model
-	 */
 	private class ComponentDDs
 	{
-		/** BDD for guards */
-		public JDDNode guards;
-		/** MTBDD for transitions */
-		public JDDNode trans;
-		/** MTBDD for each reward structure */
-		public JDDNode rewards[];
-		/** minimal index of dd vars used for local nondeterminism */
-		public int min;
-		/** max index of dd vars used for local nondeterminism */
-		public int max;
-
+		public JDDNode guards;		// bdd for guards
+		public JDDNode trans;		// mtbdd for transitions
+		public JDDNode rewards[];	// mtbdd for rewards
+		public int min; 			// min index of dd vars used for local nondeterminism
+		public int max; 			// max index of dd vars used for local nondeterminism
 		public ComponentDDs()
 		{
 			rewards = new JDDNode[modulesFile.getNumRewardStructs()];
 		}
 	}
+	
+	// data structure used to store mtbdds and related info
+	// for some part of the system definition
 
-	/**
-	 * Data structure used to store mtbdds and related info
-	 * for some part of the system definition
-	 */
-	private static class SystemDDs
+	private class SystemDDs
 	{
-		/** The information for independent bit (i.e. tau action) */
-		public ComponentDDs ind;
-		/** The information for each synchronising action */
-		public ComponentDDs[] synchs;
-		/** MTBDD for identity matrix */
-		public JDDNode id;
-		/** Set of all synchs used (syntactic) */
-		public HashSet<String> allSynchs;
-
+		public ComponentDDs ind;		// for independent bit (i.e. tau action)
+		public ComponentDDs[] synchs;	// for each synchronising action
+		public JDDNode id;	 			// mtbdd for identity matrix
+		public HashSet<String> allSynchs;		// set of all synchs used (syntactic)
 		public SystemDDs(int n)
 		{
 			synchs = new ComponentDDs[n];
@@ -238,40 +191,34 @@ public class Modules2MTBDD
 		synchs = modulesFile.getSynchs();
 		numSynchs = synchs.size();
 		
-		// check model type is supported
-		if (!(modelType == ModelType.DTMC || modelType == ModelType.MDP || modelType == ModelType.CTMC)) {
-			throw new PrismException("Symbolic construction of " + modelType + "s not supported");
+		// allocate dd variables
+		allocateDDVars();
+		sortDDVars();
+		sortIdentities();
+		sortRanges();
+		
+		// create stripped-down StateModelChecker for expression to MTBDD conversions
+		expr2mtbdd = new StateModelChecker(prism, varList, allDDRowVars, varDDRowVars, constantValues);
+		
+		// translate modules file into dd
+		translateModules();
+		
+		// get rid of any nondet dd variables not needed
+		if (modelType == ModelType.MDP) {
+			tmp = JDD.GetSupport(trans);
+			tmp = JDD.ThereExists(tmp, allDDRowVars);
+			tmp = JDD.ThereExists(tmp, allDDColVars);
+			tmp2 = tmp;
+			ddv = new JDDVars();
+			while (!tmp2.equals(JDD.ONE)) {
+				ddv.addVar(JDD.Var(tmp2.getIndex()));
+				tmp2 = tmp2.getThen();
+			}
+			JDD.Deref(tmp);
+			allDDNondetVars.derefAll();
+			allDDNondetVars = ddv;
 		}
 		
-		try {
-			// allocate dd variables
-			allocateDDVars();
-			sortDDVars();
-			sortIdentities();
-			sortRanges();
-			
-			// create stripped-down StateModelChecker for expression to MTBDD conversions
-			expr2mtbdd = new StateModelChecker(prism, varList, allDDRowVars, varDDRowVars, constantValues);
-			
-			// translate modules file into dd
-			translateModules();
-			
-			// get rid of any nondet dd variables not needed
-			if (modelType == ModelType.MDP) {
-				tmp = JDD.GetSupport(trans);
-				tmp = JDD.ThereExists(tmp, allDDRowVars);
-				tmp = JDD.ThereExists(tmp, allDDColVars);
-				tmp2 = tmp;
-				ddv = new JDDVars();
-				while (!tmp2.equals(JDD.ONE)) {
-					ddv.addVar(JDD.Var(tmp2.getIndex()));
-					tmp2 = tmp2.getThen();
-				}
-				JDD.Deref(tmp);
-				allDDNondetVars.derefAll();
-				allDDNondetVars = ddv;
-			}
-
 // 		// print dd variables actually used (support of trans)
 // 		mainLog.print("\nMTBDD variables used (" + allDDRowVars.n() + "r, " + allDDRowVars.n() + "c");
 // 		if (type == ModulesFile.NONDETERMINISTIC) mainLog.print(", " + allDDNondetVars.n() + "nd");
@@ -285,161 +232,106 @@ public class Modules2MTBDD
 // 		}
 // 		mainLog.println();
 // 		JDD.Deref(tmp);
-
-			// Print some info (if extraddinfo flag on)
-			if (prism.getExtraDDInfo()) {
-				mainLog.print("Transition matrix (pre-reachability): ");
-				mainLog.print(JDD.GetNumNodes(trans) + " nodes (");
-				mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
-			}
-
-			// build bdd for initial state(s)
-			buildInitialStates();
-
-			// store reward struct names
-			rewardStructNames = new String[numRewardStructs];
-			for (i = 0; i < numRewardStructs; i++) {
-				rewardStructNames[i] = modulesFile.getRewardStruct(i).getName();
-			}
-
-			// create new Model object to be returned
-			if (modelType == ModelType.DTMC) {
-				model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
-				                      numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
-				                      numVars, varList, varDDRowVars, varDDColVars, constantValues);
-			}
-			else if (modelType == ModelType.MDP) {
-				model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
-				                        allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
-				                        numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
-				                        numVars, varList, varDDRowVars, varDDColVars, constantValues);
-			}
-			else if (modelType == ModelType.CTMC) {
-				model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
-				                       numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
-				                       numVars, varList, varDDRowVars, varDDColVars, constantValues);
-			}
-			modelWasBuilt = true;
-
-			// We also store a copy of the list of action label names
-			model.setSynchs((Vector<String>)synchs.clone());
 		
-			// For MDPs, we also store the DDs used to construct the part
-			// of the transition matrix that corresponds to each action
-			if (modelType == ModelType.MDP && storeTransParts) {
-				((NondetModel)model).setTransInd(transInd);
-				((NondetModel)model).setTransSynch(transSynch);
-			}
-
-			// If required, we also store info about action labels
-			if (storeTransActions) {
-				// Note: one of these will be null, depending on model type
-				// but this is fine: null = none stored.
-				model.setTransActions(transActions);
-				model.setTransPerAction(transPerAction);
-			}
-
-			// do reachability (or not)
-			if (prism.getDoReach()) {
-				mainLog.print("\nComputing reachable states...\n");
-				model.doReachability();
-				model.filterReachableStates();
-			}
-			else {
-				mainLog.print("\nSkipping reachable state computation.\n");
-				model.skipReachability();
-				model.filterReachableStates();
-			}
-
-			// Print some info (if extraddinfo flag on)
-			if (prism.getExtraDDInfo()) {
-				mainLog.print("Reach: " + JDD.GetNumNodes(model.getReach()) + " nodes\n");
-			}
-
-			// symmetrification
-			if (doSymmetry) doSymmetry(model);
-
-			// find/fix any deadlocks
-			model.findDeadlocks(prism.getFixDeadlocks());
-
-		} catch (Exception e) {
-			// if the model was already built when the exception occurred, clear it.
-			if (model != null)
-				model.clear();
-			throw e;
-		} finally {
-			// always clean up the Modules2MTBDD variables
-			cleanup();
+		// Print some info (if extraddinfo flag on)
+		if (prism.getExtraDDInfo()) {
+			mainLog.print("Transition matrix (pre-reachability): ");
+			mainLog.print(JDD.GetNumNodes(trans) + " nodes (");
+			mainLog.print(JDD.GetNumTerminals(trans) + " terminal)\n");
 		}
-
-		return model;
-	}
-
-	/**
-	 * Perform dd cleanup after translate call. 
-	 */
-	private void cleanup()
-	{
+		
+		// build bdd for initial state(s)
+		buildInitialStates();
+		
+		// store reward struct names
+		rewardStructNames = new String[numRewardStructs];
+		for (i = 0; i < numRewardStructs; i++) {
+			rewardStructNames[i] = modulesFile.getRewardStruct(i).getName();
+		}
+		
+		// create new Model object to be returned
+		if (modelType == ModelType.DTMC) {
+			model = new ProbModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+						   numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
+						   numVars, varList, varDDRowVars, varDDColVars, constantValues);
+		}
+		else if (modelType == ModelType.MDP) {
+			model = new NondetModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars,
+						     allDDSynchVars, allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables,
+						     numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
+						     numVars, varList, varDDRowVars, varDDColVars, constantValues);
+		}
+		else if (modelType == ModelType.CTMC) {
+			model = new StochModel(trans, start, stateRewards, transRewards, rewardStructNames, allDDRowVars, allDDColVars, modelVariables,
+						    numModules, moduleNames, moduleDDRowVars, moduleDDColVars,
+						    numVars, varList, varDDRowVars, varDDColVars, constantValues);
+		}
+		
+		// We also store a copy of the list of action label names
+		model.setSynchs((Vector<String>)synchs.clone());
+		
+		// For MDPs, we also store the DDs used to construct the part
+		// of the transition matrix that corresponds to each action
+		if (modelType == ModelType.MDP && storeTransParts) {
+			((NondetModel)model).setTransInd(transInd);
+			((NondetModel)model).setTransSynch(transSynch);
+		}
+		
+		// If required, we also store info about action labels
+		if (storeTransActions) {
+			// Note: one of these will be null, depending on model type
+			// but this is fine: null = none stored.
+			model.setTransActions(transActions);
+			model.setTransPerAction(transPerAction);
+		}
+		
+		// do reachability (or not)
+		if (prism.getDoReach()) {
+			mainLog.print("\nComputing reachable states...\n");
+			model.doReachability();
+			model.filterReachableStates();
+		}
+		else {
+			mainLog.print("\nSkipping reachable state computation.\n");
+			model.skipReachability();
+			model.filterReachableStates();
+		}
+		
+		// Print some info (if extraddinfo flag on)
+		if (prism.getExtraDDInfo()) {
+			mainLog.print("Reach: " + JDD.GetNumNodes(model.getReach()) + " nodes\n");
+		}
+		
+		// symmetrification
+		if (doSymmetry) doSymmetry(model);
+		
+		// find/fix any deadlocks
+		model.findDeadlocks(prism.getFixDeadlocks());
+		
 		// deref spare dds
-		if (globalDDRowVars != null)
-			globalDDRowVars.derefAll();
-		if (globalDDColVars != null)
-			globalDDColVars.derefAll();
-		JDD.DerefArrayNonNull(moduleIdentities, numModules);
-		JDD.DerefArrayNonNull(moduleRangeDDs, numModules);
-		JDD.DerefArrayNonNull(varIdentities, numVars);
-		JDD.DerefArrayNonNull(varRangeDDs, numVars);
-		JDD.DerefArrayNonNull(varColRangeDDs, numVars);
-		JDD.DerefNonNull(range);
-		JDD.DerefArrayNonNull(ddSynchVars);
-		JDD.DerefArrayNonNull(ddSchedVars);
-		JDD.DerefArrayNonNull(ddChoiceVars);
-
+		globalDDRowVars.derefAll();
+		globalDDColVars.derefAll();
+		JDD.DerefArray(moduleIdentities, numModules);
+		JDD.DerefArray(moduleRangeDDs, numModules);
+		JDD.DerefArray(varIdentities, numVars);
+		JDD.DerefArray(varRangeDDs, numVars);
+		JDD.DerefArray(varColRangeDDs, numVars);
+		JDD.Deref(range);
+		if (modelType == ModelType.MDP) {
+			JDD.DerefArray(ddSynchVars, ddSynchVars.length);
+			JDD.DerefArray(ddSchedVars, ddSchedVars.length);
+			JDD.DerefArray(ddChoiceVars, ddChoiceVars.length);
+		}
 		if (doSymmetry) {
 			JDD.Deref(symm);
-			JDD.DerefArray(nonSymms, numSymmModules - 1);
+			JDD.DerefArray(nonSymms, numSymmModules-1);
 		}
-
-		if (!modelWasBuilt) {
-			// if the Model object was not yet constructed, we have to do more cleanup
-			JDD.DerefNonNull(trans);
-			JDD.DerefNonNull(start);
-			JDD.DerefArrayNonNull(stateRewards, numRewardStructs);
-			JDD.DerefArrayNonNull(transRewards, numRewardStructs);
-			JDD.DerefNonNull(transActions);
-			JDD.DerefArrayNonNull(transPerAction);
-			JDD.DerefNonNull(transInd);
-			JDD.DerefArrayNonNull(transSynch);
-
-			if (allDDRowVars != null)
-				allDDRowVars.derefAll();
-			if (allDDColVars != null)
-				allDDColVars.derefAll();
-			if (allDDSynchVars != null)
-				allDDSynchVars.derefAll();
-			if (allDDSchedVars != null)
-				allDDSchedVars.derefAll();
-			if (allDDChoiceVars != null)
-				allDDChoiceVars.derefAll();
-			if (allDDNondetVars != null)
-				allDDNondetVars.derefAll();
-
-			if (moduleDDRowVars != null)
-				JDDVars.derefAllArray(moduleDDRowVars);
-			if (moduleDDColVars != null)
-				JDDVars.derefAllArray(moduleDDColVars);
-
-			JDDVars.derefAllArray(varDDRowVars);
-			JDDVars.derefAllArray(varDDColVars);
-
-			if (modelVariables != null)
-				modelVariables.clear();
-		}
-
-		if (expr2mtbdd != null)
-			expr2mtbdd.clearDummyModel();
+		
+		expr2mtbdd.clearDummyModel();
+		
+		return model;
 	}
-
+	
 	// allocate DD vars for system
 	// i.e. decide on variable ordering and request variables from CUDD
 			
@@ -829,6 +721,8 @@ public class Modules2MTBDD
 					tmp = JDD.And(tmp, JDD.Not(v));
 				}
 				sysDDs.ind.trans = JDD.Apply(JDD.TIMES, sysDDs.ind.trans, tmp);
+				//JDD.Ref(tmp);
+				//sysDDs.ind.rewards = JDD.Apply(JDD.TIMES, sysDDs.ind.rewards, tmp);
 				sysDDs.ind.max = max;
 			}
 			// check each synchronous bit has this many variables
@@ -841,6 +735,8 @@ public class Modules2MTBDD
 						tmp = JDD.And(tmp, JDD.Not(v));
 					}
 					sysDDs.synchs[i].trans = JDD.Apply(JDD.TIMES, sysDDs.synchs[i].trans, tmp);
+					//JDD.Ref(tmp);
+					//sysDDs.synchs[i].rewards = JDD.Apply(JDD.TIMES, sysDDs.synchs[i].rewards, tmp);
 					sysDDs.synchs[i].max = max;
 				}
 			}
@@ -851,6 +747,8 @@ public class Modules2MTBDD
 				tmp = JDD.And(tmp, JDD.Not(ddSynchVars[i].copy()));
 			}
 			sysDDs.ind.trans = JDD.Apply(JDD.TIMES, tmp, sysDDs.ind.trans);
+			//JDD.Ref(tmp);
+			//transRewards = JDD.Apply(JDD.TIMES, tmp, sysDDs.ind.rewards);
 			// synchronous bits
 			for (i = 0; i < numSynchs; i++) {
 				tmp = JDD.Constant(1);
@@ -863,6 +761,8 @@ public class Modules2MTBDD
 					}
 				}
 				sysDDs.synchs[i].trans = JDD.Apply(JDD.TIMES, tmp, sysDDs.synchs[i].trans);
+				//JDD.Ref(tmp);
+				//transRewards = JDD.Apply(JDD.PLUS, transRewards, JDD.Apply(JDD.TIMES, tmp, sysDDs.synchs[i].rewards));
 			}
 		}
 		
@@ -1230,6 +1130,7 @@ public class Modules2MTBDD
 				sysDDs.synchs[i] = new ComponentDDs();
 				sysDDs.synchs[i].guards = JDD.Constant(0);
 				sysDDs.synchs[i].trans = JDD.Constant(0);
+				//sysDDs.synchs[i].rewards = JDD.Constant(0);
 				sysDDs.synchs[i].min = 0;
 				sysDDs.synchs[i].max = 0;
 			}
@@ -1289,6 +1190,7 @@ public class Modules2MTBDD
 			sysDDs.synchs[i] = new ComponentDDs();
 			sysDDs.synchs[i].guards = JDD.Constant(0);
 			sysDDs.synchs[i].trans = JDD.Constant(0);
+			//sysDDs.synchs[i].rewards = JDD.Constant(0);
 			sysDDs.synchs[i].min = 0;
 			sysDDs.synchs[i].max = 0;
 		}
@@ -1335,6 +1237,14 @@ public class Modules2MTBDD
 		JDD.Ref(compDDs1.trans);
 		JDD.Ref(compDDs2.trans);
 		compDDs.trans = JDD.Apply(JDD.TIMES, compDDs1.trans, compDDs2.trans);
+		// then transition rewards
+		//JDD.Ref(compDDs2.trans);
+		//compDDs1.rewards = JDD.Apply(JDD.TIMES, compDDs1.rewards, JDD.GreaterThan(compDDs2.trans, 0));
+		//JDD.Ref(compDDs1.trans);
+		//compDDs2.rewards = JDD.Apply(JDD.TIMES, compDDs2.rewards, JDD.GreaterThan(compDDs1.trans, 0));
+		//JDD.Ref(compDDs1.rewards);
+		//JDD.Ref(compDDs2.rewards);
+		//compDDs.rewards = JDD.Apply(JDD.PLUS, compDDs1.rewards, compDDs2.rewards);
 		// compute new min/max
 		compDDs.min = (compDDs1.min < compDDs2.min) ? compDDs1.min : compDDs2.min;
 		compDDs.max = (compDDs1.max > compDDs2.max) ? compDDs1.max : compDDs2.max;
@@ -1344,6 +1254,8 @@ public class Modules2MTBDD
 		JDD.Deref(compDDs2.guards);
 		JDD.Deref(compDDs1.trans);
 		JDD.Deref(compDDs2.trans);
+		//JDD.Deref(compDDs1.rewards);
+		//JDD.Deref(compDDs2.rewards);
 		
 		return compDDs;
 	}
@@ -1357,7 +1269,13 @@ public class Modules2MTBDD
 		compDDs1.trans = JDD.Apply(JDD.TIMES, compDDs1.trans, id2);
 		JDD.Ref(id1);
 		compDDs2.trans = JDD.Apply(JDD.TIMES, compDDs2.trans, id1);
+		// add identities to mtbdds for transition rewards
+		//JDD.Ref(id2);
+		//compDDs1.rewards = JDD.Apply(JDD.TIMES, compDDs1.rewards, id2);
+		//JDD.Ref(id1);
+		//compDDs2.rewards = JDD.Apply(JDD.TIMES, compDDs2.rewards, id1);
 		
+		// then combine...
 		compDDs = combineComponentDDs(compDDs1, compDDs2);
 		
 		return compDDs;
@@ -1376,6 +1294,7 @@ public class Modules2MTBDD
 		if (modelType != ModelType.MDP) {
 			compDDs.guards = JDD.Or(compDDs1.guards, compDDs2.guards);
 			compDDs.trans = JDD.Apply(JDD.PLUS, compDDs1.trans, compDDs2.trans);
+			//compDDs.rewards = JDD.Apply(JDD.PLUS, compDDs1.rewards, compDDs2.rewards);
 			compDDs.min = 0;
 			compDDs.max = 0;
 		}
@@ -1385,6 +1304,8 @@ public class Modules2MTBDD
 			compDDs.guards = compDDs2.guards;
 			JDD.Deref(compDDs1.trans);
 			compDDs.trans = compDDs2.trans;
+			//JDD.Deref(compDDs1.rewards);
+			//compDDs.rewards = compDDs2.rewards;
 			compDDs.min = compDDs2.min;
 			compDDs.max = compDDs2.max;
 		}
@@ -1393,6 +1314,8 @@ public class Modules2MTBDD
 			compDDs.guards = compDDs1.guards;
 			JDD.Deref(compDDs2.trans);
 			compDDs.trans = compDDs1.trans;
+			//JDD.Deref(compDDs2.rewards);
+			//compDDs.rewards = compDDs1.rewards;
 			compDDs.min = compDDs1.min;
 			compDDs.max = compDDs1.max;
 		}
@@ -1408,6 +1331,8 @@ public class Modules2MTBDD
 					tmp = JDD.And(tmp, JDD.Not(v));
 				}
 				compDDs2.trans = JDD.Apply(JDD.TIMES, compDDs2.trans, tmp);
+				//JDD.Ref(tmp);
+				//compDDs2.rewards = JDD.Apply(JDD.TIMES, compDDs2.rewards, tmp);
 				compDDs2.max = compDDs1.max;
 			}
 			else if (compDDs2.max > compDDs1.max) {
@@ -1418,6 +1343,8 @@ public class Modules2MTBDD
 					tmp = JDD.And(tmp, JDD.Not(v));
 				}
 				compDDs1.trans = JDD.Apply(JDD.TIMES, compDDs1.trans, tmp);
+				//JDD.Ref(tmp);
+				//compDDs1.rewards = JDD.Apply(JDD.TIMES, compDDs1.rewards, tmp);
 				compDDs1.max = compDDs2.max;
 			}
 			// and then combine
@@ -1427,6 +1354,8 @@ public class Modules2MTBDD
 			compDDs.guards = JDD.Or(compDDs1.guards, compDDs2.guards);
 			JDD.Ref(v);
 			compDDs.trans = JDD.ITE(v, compDDs2.trans, compDDs1.trans);
+			//JDD.Ref(v);
+			//compDDs.rewards = JDD.ITE(v, compDDs2.rewards, compDDs1.rewards);
 			compDDs.min = compDDs1.min;
 			compDDs.max = compDDs1.max+1;
 		}
@@ -1440,15 +1369,18 @@ public class Modules2MTBDD
 	private ComponentDDs translateModule(int m, parser.ast.Module module, String synch, int synchMin) throws PrismException
 	{
 		ComponentDDs compDDs;
-		CommandDDs[] commandsDDs;
+		JDDNode guardDDs[], upDDs[], tmp;
 		Command command;
 		int l, numCommands;
+		double dmin = 0, dmax = 0;
 		boolean match;
 		
-		// get number of commands and set up array accordingly
+		// get number of commands and set up arrays accordingly
 		numCommands = module.getNumCommands();
-		commandsDDs = new CommandDDs[numCommands];
-
+		guardDDs = new JDDNode[numCommands];
+		upDDs = new JDDNode[numCommands];
+		//rewDDs = new JDDNode[numCommands];
+		
 		// translate guard/updates for each command of the module
 		for (l = 0; l < numCommands; l++) {
 			command = module.getCommand(l);
@@ -1462,178 +1394,166 @@ public class Modules2MTBDD
 			}
 			// if so translate
 			if (match) {
-				// store in array
-				commandsDDs[l] = translateCommand(m, module, l, command);
+				// translate guard
+				guardDDs[l] = translateExpression(command.getGuard());
+				JDD.Ref(range);
+				guardDDs[l] = JDD.Apply(JDD.TIMES, guardDDs[l], range);
+				// check for false guard
+				if (guardDDs[l].equals(JDD.ZERO)) {
+					// display a warning (unless guard is "false", in which case was probably intentional
+					if (!Expression.isFalse(command.getGuard())) {
+						String s = "Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.";
+						mainLog.printWarning(s);
+					}
+					// no point bothering to compute the mtbdds for the update
+					// if the guard is never satisfied
+					upDDs[l] = JDD.Constant(0);
+					//rewDDs[l] = JDD.Constant(0);
+				}
+				else {
+					// translate updates and do some checks on probs/rates
+					upDDs[l] = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDDs[l]);
+					JDD.Ref(guardDDs[l]);
+					upDDs[l] = JDD.Apply(JDD.TIMES, upDDs[l], guardDDs[l]);
+					// are all probs/rates non-negative?
+					dmin = JDD.FindMin(upDDs[l]);
+					if (dmin < 0) {
+						String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
+						s += " in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
+						s += " (" + dmin + ") for some states.\n";
+						s += "Perhaps the guard needs to be strengthened";
+						throw new PrismLangException(s, command);
+					}
+					// only do remaining checks if 'doprobchecks' flag is set
+					if (prism.getDoProbChecks()) {
+						// sum probs/rates in updates
+						JDD.Ref(upDDs[l]);
+						tmp = JDD.SumAbstract(upDDs[l], moduleDDColVars[m]);
+						tmp = JDD.SumAbstract(tmp, globalDDColVars);
+						// put 1s in for sums which are not covered by this guard
+						JDD.Ref(guardDDs[l]);
+						tmp = JDD.ITE(guardDDs[l], tmp, JDD.Constant(1));
+						// compute min/max sums
+						dmin = JDD.FindMin(tmp);
+						dmax = JDD.FindMax(tmp);
+						// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
+						if (dmin != dmin || dmax != dmax) {
+							JDD.Deref(tmp);
+							String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
+							s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
+							s += "Check for zeros in divide or modulo operations. ";
+							s += "Perhaps the guard needs to be strengthened";
+							throw new PrismLangException(s, command);
+						}
+						// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
+						if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
+							JDD.Deref(tmp);
+							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
+							s += " (e.g. " + dmin + ") for some states. ";
+							s += "Perhaps some of the updates give out-of-range values. ";
+							s += "One possible solution is to strengthen the guard";
+							throw new PrismLangException(s, command);
+						}
+						if (modelType == ModelType.CTMC && dmin <= 0) {
+							JDD.Deref(tmp);
+							// note can't sum to less than zero - already checked for negative rates above
+							String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to zero for some states. ";
+							s += "Perhaps some of the updates give out-of-range values. ";
+							s += "One possible solution is to strengthen the guard";
+							throw new PrismLangException(s, command);
+						}
+						// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
+						if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
+							JDD.Deref(tmp);
+							String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
+							s += " (e.g. " + dmax + ") for some states. ";
+							s += "Perhaps the guard needs to be strengthened";
+							throw new PrismLangException(s, command);
+						}
+						if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
+							JDD.Deref(tmp);
+							String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
+							s += "Perhaps the guard needs to be strengthened";
+							throw new PrismLangException(s, command);
+						}
+						JDD.Deref(tmp);
+					}
+					// translate reward, if present
+					// if (command.getReward() != null) {
+					// 	tmp = translateExpression(command.getReward());
+					// 	JDD.Ref(upDDs[l]);
+					// 	rewDDs[l] = JDD.Apply(JDD.TIMES, tmp, JDD.GreaterThan(upDDs[l], 0));
+					// 	// are all rewards non-negative?
+					// if ((d = JDD.FindMin(rewDDs[l])) < 0) {
+					// 	String s = "Rewards in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
+					// 	s += " (" + d + ") for some states. ";
+					// 	s += "Perhaps the guard needs to be strengthened";
+					// 	throw new PrismException(s);
+					// }
+					// } else {
+					// 	rewDDs[l] = JDD.Constant(0);
+					// }
+				}
 			}
 			// otherwise use 0
 			else {
-				commandsDDs[l] = new CommandDDs();
+				guardDDs[l] = JDD.Constant(0);
+				upDDs[l] = JDD.Constant(0);
+				//rewDDs[l] = JDD.Constant(0);
 			}
 		}
-
+		
 		// combine guard/updates dds for each command
 		if (modelType == ModelType.DTMC) {
-			compDDs = combineCommandsProb(m, commandsDDs);
-		} else if (modelType == ModelType.MDP) {
-			compDDs = combineCommandsNondet(m, commandsDDs, synchMin);
-		} else if (modelType == ModelType.CTMC) {
-			compDDs = combineCommandsStoch(m, commandsDDs);
-		} else {
-			throw new PrismException("Unknown model type");
+			compDDs = combineCommandsProb(m, numCommands, guardDDs, upDDs);
 		}
-
-		// deref guards/updates
-		for (CommandDDs c : commandsDDs) {
-			c.clear();
+		else if (modelType == ModelType.MDP) {
+			compDDs = combineCommandsNondet(m, numCommands, guardDDs, upDDs, synchMin);
 		}
-
-		return compDDs;
-	}
-
-	/**
-	 * Translate a command to a CommandDDs.
-	 * <br>[ REFs: <i>result</i> ]
-	 */
-	private CommandDDs translateCommand(int m, parser.ast.Module module, int l, Command command) throws PrismException
-	{
-		JDDNode guardDD, upDD;
-		// translate guard
-		guardDD = translateExpression(command.getGuard());
-		guardDD = JDD.Times(guardDD, range.copy());
-		// check for false guard
-		if (guardDD.equals(JDD.ZERO)) {
-			// display a warning (unless guard is "false", in which case was probably intentional
-			if (!Expression.isFalse(command.getGuard())) {
-				String s = "Guard for command " + (l+1) + " of module \"" + module.getName() + "\" is never satisfied.";
-				mainLog.printWarning(s);
-			}
-			// no point bothering to compute the mtbdds for the update
-			// if the guard is never satisfied
-			upDD = JDD.Constant(0);
+		else if (modelType == ModelType.CTMC) {
+			compDDs = combineCommandsStoch(m, numCommands, guardDDs, upDDs);
 		}
 		else {
-			// translate updates and do some checks on probs/rates
-			upDD = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDD);
-			upDD = JDD.Times(upDD, guardDD.copy());
-
-			try {
-				checkCommandProbRates(m, module, l, command, guardDD, upDD);
-			} catch (Throwable e) {
-				JDD.Deref(guardDD, upDD);
-				throw e;
-			}
+			 throw new PrismException("Unknown model type");
 		}
-
-		return new CommandDDs(guardDD, upDD);
+		
+		// deref guards/updates
+		JDD.DerefArray(guardDDs, numCommands);
+		JDD.DerefArray(upDDs, numCommands);
+		//JDD.DerefArray(rewDDs, numCommands);
+		
+		return compDDs;
 	}
-
-	/**
-	 * Check the probabilities/rate of a command for errors (in which case an exception is thrown).
-	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param module the Module AST element
-	 * @param l the command index (inside the module)
-	 * @param command the Command AST element
-	 * @param guardDD the guard dd
-	 * @param upDD the update dd
-	 */
-	private void checkCommandProbRates(int m, parser.ast.Module module, int l, Command command, JDDNode guardDD, JDDNode upDD) throws PrismLangException
-	{
-		// are all probs/rates non-negative?
-		double dmin = JDD.FindMin(upDD);
-		if (dmin < 0) {
-			String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
-			s += " in command " + (l+1) + " of module \"" + module.getName() + "\" are negative";
-			s += " (" + dmin + ") for some states.\n";
-			s += "Perhaps the guard needs to be strengthened";
-			throw new PrismLangException(s, command);
-		}
-		// only do remaining checks if 'doprobchecks' flag is set
-		if (prism.getDoProbChecks()) {
-			// sum probs/rates in updates
-			JDDNode tmp = JDD.SumAbstract(upDD.copy(), moduleDDColVars[m]);
-			tmp = JDD.SumAbstract(tmp, globalDDColVars);
-			// put 1s in for sums which are not covered by this guard
-			tmp = JDD.ITE(guardDD.copy(), tmp, JDD.Constant(1));
-			// compute min/max sums
-			dmin = JDD.FindMin(tmp);
-			double dmax = JDD.FindMax(tmp);
-			// check sums for NaNs (note how to check if x=NaN i.e. x!=x)
-			if (dmin != dmin || dmax != dmax) {
-				JDD.Deref(tmp);
-				String s = (modelType == ModelType.CTMC) ? "Rates" : "Probabilities";
-				s += " in command " + (l+1) + " of module \"" + module.getName() + "\" have errors (NaN) for some states. ";
-				s += "Check for zeros in divide or modulo operations. ";
-				s += "Perhaps the guard needs to be strengthened";
-				throw new PrismLangException(s, command);
-			}
-			// check min sums - 1 (ish) for dtmcs/mdps, 0 for ctmcs
-			if (modelType != ModelType.CTMC && dmin < 1-prism.getSumRoundOff()) {
-				JDD.Deref(tmp);
-				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to less than one";
-				s += " (e.g. " + dmin + ") for some states. ";
-				s += "Perhaps some of the updates give out-of-range values. ";
-				s += "One possible solution is to strengthen the guard";
-				throw new PrismLangException(s, command);
-			}
-			if (modelType == ModelType.CTMC && dmin <= 0) {
-				JDD.Deref(tmp);
-				// note can't sum to less than zero - already checked for negative rates above
-				String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to zero for some states. ";
-				s += "Perhaps some of the updates give out-of-range values. ";
-				s += "One possible solution is to strengthen the guard";
-				throw new PrismLangException(s, command);
-			}
-			// check max sums - 1 (ish) for dtmcs/mdps, infinity for ctmcs
-			if (modelType != ModelType.CTMC && dmax > 1+prism.getSumRoundOff()) {
-				JDD.Deref(tmp);
-				String s = "Probabilities in command " + (l+1) + " of module \"" + module.getName() + "\" sum to more than one";
-				s += " (e.g. " + dmax + ") for some states. ";
-				s += "Perhaps the guard needs to be strengthened";
-				throw new PrismLangException(s, command);
-			}
-			if (modelType == ModelType.CTMC && dmax == Double.POSITIVE_INFINITY) {
-				JDD.Deref(tmp);
-				String s = "Rates in command " + (l+1) + " of module \"" + module.getName() + "\" sum to infinity for some states. ";
-				s += "Perhaps the guard needs to be strengthened";
-				throw new PrismLangException(s, command);
-			}
-			JDD.Deref(tmp);
-		}
-	}
-
-	/**
-	 * Go thru guard/updates dds for all commands of a prob. module and combine.
-	 * Also check for any guard overlaps, etc...
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param commandsDDs array of command dds (guard and updates)
-	 */
-	private ComponentDDs combineCommandsProb(int m, CommandDDs[] commandsDDs)
+	
+	// go thru guard/updates dds for all commands of a prob. module and combine
+	// also check for any guard overlaps, etc...
+	
+	private ComponentDDs combineCommandsProb(int m, int numCommands, JDDNode guardDDs[], JDDNode upDDs[])
 	{
 		ComponentDDs compDDs;
 		int i;
 		JDDNode covered, transDD, tmp;
+		//JDDNode rewardsDD;
 		
 		// create object to return result
 		compDDs = new ComponentDDs();
 		
 		// use 'transDD' to build up MTBDD for transitions
 		transDD = JDD.Constant(0);
+		// use 'transDD' to build up MTBDD for rewards
+		//rewardsDD = JDD.Constant(0);
 		// use 'covered' to track states covered by guards
 		covered = JDD.Constant(0);
 		// loop thru commands...
-		int numCommands = commandsDDs.length;
 		for (i = 0; i < numCommands; i++) {
-			JDDNode guardDD = commandsDDs[i].guard;
-			JDDNode upDD = commandsDDs[i].up;
-
 			// do nothing if guard is empty
-			if (guardDD.equals(JDD.ZERO)) {
+			if (guardDDs[i].equals(JDD.ZERO)) {
 				continue;
 			}
 			// check if command overlaps with previous ones
-			tmp = JDD.And(guardDD.copy(), covered.copy());
+			JDD.Ref(guardDDs[i]);
+			JDD.Ref(covered);
+			tmp = JDD.And(guardDDs[i], covered);
 			if (!(tmp.equals(JDD.ZERO))) {
 				// if so, output a warning (but carry on regardless)
 				mainLog.printWarning("Guard for command " + (i+1) + " of module \""
@@ -1641,80 +1561,88 @@ public class Modules2MTBDD
 			}
 			JDD.Deref(tmp);
 			// add this command's guard to 'covered'
-			covered = JDD.Or(covered, guardDD.copy());
+			JDD.Ref(guardDDs[i]);
+			covered = JDD.Or(covered, guardDDs[i]);
 			// add transitions
-			transDD = JDD.Plus(transDD, JDD.Times(guardDD.copy(), upDD.copy()));
+			JDD.Ref(guardDDs[i]);
+			JDD.Ref(upDDs[i]);
+			transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, guardDDs[i], upDDs[i]));
+			// add rewards
+			//JDD.Ref(guardDDs[i]);
+			//JDD.Ref(rewDDs[i]);
+			//rewardsDD = JDD.Apply(JDD.PLUS, rewardsDD, JDD.Apply(JDD.TIMES, guardDDs[i], rewDDs[i]));
 		}
 		
 		// store result
 		compDDs.guards = covered;
 		compDDs.trans = transDD;
+		//compDDs.rewards = rewardsDD;
 		compDDs.min = 0;
 		compDDs.max = 0;
 		
 		return compDDs;
 	}
 
-	/**
-	 * Go thru guard/updates dds for all commands of a stoch. module and combine.
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param commandsDDs array of command dds (guard and updates)
-	 */
-	private ComponentDDs combineCommandsStoch(int m, CommandDDs[] commandsDDs)
+	// go thru guard/updates dds for all commands of a stoch. module and combine
+	
+	private ComponentDDs combineCommandsStoch(int m, int numCommands, JDDNode guardDDs[], JDDNode upDDs[])
 	{
 		ComponentDDs compDDs;
 		int i;
 		JDDNode covered, transDD;
+		//JDDNode rewardsDD;
 		
 		// create object to return result
 		compDDs = new ComponentDDs();
 		
 		// use 'transDD 'to build up MTBDD for transitions
 		transDD = JDD.Constant(0);
+		// use 'transDD 'to build up MTBDD for rewards
+		//rewardsDD = JDD.Constant(0);
 		// use 'covered' to track states covered by guards
 		covered = JDD.Constant(0);
 		
 		// loop thru commands...
-		int numCommands = commandsDDs.length;
 		for (i = 0; i < numCommands; i++) {
-			JDDNode guardDD = commandsDDs[i].guard;
-			JDDNode upDD = commandsDDs[i].up;
-
 			// do nothing if guard is empty
-			if (guardDD.equals(JDD.ZERO)) {
+			if (guardDDs[i].equals(JDD.ZERO)) {
 				continue;
 			}
 			// add this command's guard to 'covered'
-			covered = JDD.Or(covered, guardDD.copy());
+			JDD.Ref(guardDDs[i]);
+			covered = JDD.Or(covered, guardDDs[i]);
 			// add transitions
-			transDD = JDD.Plus(transDD, JDD.Times(guardDD.copy(), upDD.copy()));
+			JDD.Ref(guardDDs[i]);
+			JDD.Ref(upDDs[i]);
+			transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, guardDDs[i], upDDs[i]));
+			// add rewards
+			//JDD.Ref(guardDDs[i]);
+			//JDD.Ref(rewDDs[i]);
+			//rewardsDD = JDD.Apply(JDD.PLUS, rewardsDD, JDD.Apply(JDD.TIMES, guardDDs[i], rewDDs[i]));
 		}
 		
 		// store result
 		compDDs.guards = covered;
 		compDDs.trans = transDD;
+		//compDDs.rewards = rewardsDD;
 		compDDs.min = 0;
 		compDDs.max = 0;
 		
 		return compDDs;
 	}
 
-	/**
-	 * Go thru guard/updates dds for all commands of a non-det. module,
-	 * work out guard overlaps and sort out non determinism accordingly.
-	 * (non recursive version)
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param commandsDDs array of command dds (guard and updates)
-	 * @param synchMin the minimal synch variable that can be used for this module
-	 */
-	private ComponentDDs combineCommandsNondet(int m, CommandDDs[] commandsDDs, int synchMin) throws PrismException
+	// go thru guard/updates dds for all commands of a non-det. module,
+	// work out guard overlaps and sort out non determinism accordingly
+	// (non recursive version)
+	
+	private ComponentDDs combineCommandsNondet(int m, int numCommands, JDDNode guardDDs[], JDDNode upDDs[], int synchMin) throws PrismException
 	{
 		ComponentDDs compDDs;
 		int i, j, k, maxChoices, numDDChoiceVarsUsed;
 		JDDNode covered, transDD, overlaps, equalsi, tmp, tmp2, tmp3;
+		//JDDNode rewardsDD;
 		JDDNode[] transDDbits, frees;
+		//JDDNode[] rewardsDDbits;
 		JDDVars ddChoiceVarsUsed;
 		
 		// create object to return result
@@ -1722,18 +1650,19 @@ public class Modules2MTBDD
 		
 		// use 'transDD' to build up MTBDD for transitions
 		transDD = JDD.Constant(0);
+		// use 'transDD' to build up MTBDD for rewards
+		//rewardsDD = JDD.Constant(0);
 		// use 'covered' to track states covered by guards
 		covered = JDD.Constant(0);
-
-		int numCommands = commandsDDs.length;
-
+		
 		// find overlaps in guards by adding them all up
 		overlaps = JDD.Constant(0);
 		for (i = 0; i < numCommands; i++) {
-			JDDNode guardDD = commandsDDs[i].guard;
-			overlaps = JDD.Plus(overlaps, guardDD.copy());
+			JDD.Ref(guardDDs[i]);
+			overlaps = JDD.Apply(JDD.PLUS, overlaps, guardDDs[i]);
 			// compute bdd of all guards at same time
-			covered = JDD.Or(covered, guardDD.copy());
+			JDD.Ref(guardDDs[i]);
+			covered = JDD.Or(covered, guardDDs[i]);
 		}
 		
 		// find the max number of overlaps
@@ -1744,6 +1673,7 @@ public class Modules2MTBDD
 		if (maxChoices == 0) {
 			compDDs.guards = covered;
 			compDDs.trans = transDD;
+			//compDDs.rewards = rewardsDD;
 			compDDs.min = synchMin;
 			compDDs.max = synchMin;
 			JDD.Deref(overlaps);
@@ -1754,13 +1684,18 @@ public class Modules2MTBDD
 		if (maxChoices == 1) {
 			// add up dds for all commands
 			for (i = 0; i < numCommands; i++) {
-				JDDNode guardDD = commandsDDs[i].guard;
-				JDDNode upDD = commandsDDs[i].up;
 				// add up transitions
-				transDD = JDD.Plus(transDD, JDD.Times(guardDD.copy(), upDD.copy()));
+				JDD.Ref(guardDDs[i]);
+				JDD.Ref(upDDs[i]);
+				transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, guardDDs[i], upDDs[i]));
+				// add up rewards
+				//JDD.Ref(guardDDs[i]);
+				//JDD.Ref(rewDDs[i]);
+				//rewardsDD = JDD.Apply(JDD.PLUS, rewardsDD, JDD.Apply(JDD.TIMES, guardDDs[i], rewDDs[i]));
 			}
 			compDDs.guards = covered;
 			compDDs.trans = transDD;
+			//compDDs.rewards = rewardsDD;
 			compDDs.min = synchMin;
 			compDDs.max = synchMin;
 			JDD.Deref(overlaps);	
@@ -1785,7 +1720,8 @@ public class Modules2MTBDD
 			
 			// find sections of state space
 			// which have exactly i nondet. choices in this module
-			equalsi = JDD.Equals(overlaps.copy(), (double)i);
+			JDD.Ref(overlaps);
+			equalsi = JDD.Equals(overlaps, (double)i);
 			// if there aren't any for this i, skip the iteration
 			if (equalsi.equals(JDD.ZERO)) {
 				JDD.Deref(equalsi);
@@ -1794,34 +1730,46 @@ public class Modules2MTBDD
 			
 			// create arrays of size i to store dds
 			transDDbits = new JDDNode[i];
+			//rewardsDDbits = new JDDNode[i];
 			frees = new JDDNode[i];
 			for (j = 0; j < i; j++) {
 				transDDbits[j] = JDD.Constant(0);
-				frees[j] = equalsi.copy();
+				//rewardsDDbits[j] = JDD.Constant(0);
+				frees[j] = equalsi;
+				JDD.Ref(equalsi);
 			}
 			
 			// go thru each command of the module...
 			for (j = 0; j < numCommands; j++) {
-				JDDNode guardDD = commandsDDs[j].guard;
-				JDDNode upDD = commandsDDs[j].up;
 				
 				// see if this command's guard overlaps with 'equalsi'
-				tmp = JDD.And(guardDD.copy(), equalsi.copy());
+				JDD.Ref(guardDDs[j]);
+				JDD.Ref(equalsi);
+				tmp = JDD.And(guardDDs[j], equalsi);
 				// if it does...
 				if (!tmp.equals(JDD.ZERO)) {
 					
 					// split it up into nondet. choices as necessary
 					
-					tmp2 = tmp.copy();
+					JDD.Ref(tmp);
+					tmp2 = tmp;
 					
 					// for each possible nondet. choice (1...i) involved...
 					for (k = 0; k < i; k ++) {
 						// see how much of the command can go in nondet. choice k
-						tmp3 = JDD.And(tmp2.copy(), frees[k].copy());
+						JDD.Ref(tmp2);
+						JDD.Ref(frees[k]);
+						tmp3 = JDD.And(tmp2, frees[k]);
 						// if some will fit in...
 						if (!tmp3.equals(JDD.ZERO)) {
-							frees[k] = JDD.And(frees[k], JDD.Not(tmp3.copy()));
-							transDDbits[k] = JDD.Plus(transDDbits[k], JDD.Times(tmp3.copy(), upDD.copy()));
+							JDD.Ref(tmp3);
+							frees[k] = JDD.And(frees[k], JDD.Not(tmp3));
+							JDD.Ref(tmp3);
+							JDD.Ref(upDDs[j]);
+							transDDbits[k] = JDD.Apply(JDD.PLUS, transDDbits[k], JDD.Apply(JDD.TIMES, tmp3, upDDs[j]));
+							//JDD.Ref(tmp3);
+							//JDD.Ref(rewDDs[j]);
+							//rewardsDDbits[k] = JDD.Apply(JDD.PLUS, rewardsDDbits[k], JDD.Apply(JDD.TIMES, tmp3, rewDDs[j]));
 						}
 						// take out the bit just put in this choice
 						tmp2 = JDD.And(tmp2, JDD.Not(tmp3));
@@ -1837,33 +1785,29 @@ public class Modules2MTBDD
 			// now add the nondet. choices for this value of i
 			for (j = 0; j < i; j++) {
 				tmp = JDD.SetVectorElement(JDD.Constant(0), ddChoiceVarsUsed, j, 1);
-				transDD = JDD.Plus(transDD, JDD.Times(tmp, transDDbits[j]));
+				transDD = JDD.Apply(JDD.PLUS, transDD, JDD.Apply(JDD.TIMES, tmp, transDDbits[j]));
+				//JDD.Ref(tmp);
+				//rewardsDD = JDD.Apply(JDD.PLUS, rewardsDD, JDD.Apply(JDD.TIMES, tmp, rewardsDDbits[j]));
 				JDD.Deref(frees[j]);
 			}
 			
 			// take the i bits out of 'overlaps'
-			overlaps = JDD.Times(overlaps, JDD.Not(equalsi));
+			overlaps = JDD.Apply(JDD.TIMES, overlaps, JDD.Not(equalsi));
 		}
 		JDD.Deref(overlaps);
 		
 		// store result
 		compDDs.guards = covered;
 		compDDs.trans = transDD;
+		//compDDs.rewards = rewardsDD;
 		compDDs.min = synchMin;
 		compDDs.max = synchMin + numDDChoiceVarsUsed;
 		
 		return compDDs;
 	}
 
-	/**
-	 * Translate the updates part of a command.
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param l the command index inside the module
-	 * @param u the updates AST element
-	 * @param synch true if this command is synchronising (named action)
-	 * @param guard the guard
-	 */
+	// translate the updates part of a command
+
 	private JDDNode translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
 	{
 		int i, n;
@@ -1891,7 +1835,7 @@ public class Modules2MTBDD
 			p = u.getProbability(i);
 			if (p == null) p = Expression.Double(1.0);
 			pdd = translateExpression(p);
-			udd = JDD.Times(udd, pdd);
+			udd = JDD.Apply(JDD.TIMES, udd, pdd);
 			// check (again) for zero update
 			if (!warned && udd.equals(JDD.ZERO)) {
 				// Use a PrismLangException to get line numbers displayed
@@ -1899,99 +1843,82 @@ public class Modules2MTBDD
 				msg += " of module \"" + moduleNames[m] + "\" doesn't do anything";
 				mainLog.printWarning(new PrismLangException(msg, u.getUpdate(i)).getMessage());
 			}
-			dd = JDD.Plus(dd, udd);
+			dd = JDD.Apply(JDD.PLUS, dd, udd);
 		}
 		
 		return dd;
 	}
 
-	/**
-	 * Translate an update.
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param c the update AST element
-	 * @param synch true if this command is synchronising (named action)
-	 * @param guard the guard
-	 */
+	// translate an update
+	
 	private JDDNode translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
 	{
-		int n;
+		int i, j, n, v, l, h;
+		String s;
+		JDDNode dd, tmp1, tmp2, cl;
 		
 		// clear varsUsed flag array to indicate no vars used yet
-		for (int i = 0; i < numVars; i++) {
+		for (i = 0; i < numVars; i++) {	
 			varsUsed[i] = false;
 		}
 		// take product of clauses
-		JDDNode dd = JDD.Constant(1);
+		dd = JDD.Constant(1);
 		n = c.getNumElements();
-		for (int i = 0; i < n; i++) {
-			JDDNode cl = translateUpdateElement(m, c, i, synch, guard);
-			dd = JDD.Times(dd, cl);
+		for (i = 0; i < n; i++) {
+		
+			// get variable
+			s = c.getVar(i);
+			v = varList.getIndex(s);
+			if (v == -1) {
+				throw new PrismLangException("Unknown variable \"" + s + "\" in update", c.getVarIdent(i));
+			}
+			varsUsed[v] = true;
+			// check if the variable to be modified is valid
+			// (i.e. belongs to this module or is global)
+			if (varList.getModule(v) != -1 && varList.getModule(v) != m) {
+				throw new PrismLangException("Cannot modify variable \""+s+"\" from module \""+moduleNames[m]+"\"", c.getVarIdent(i));
+			}
+			// print out a warning if this update is in a command with a synchronising
+			// action AND it modifies a global variable
+			if (varList.getModule(v) == -1 && synch) {
+				throw new PrismLangException("Synchronous command cannot modify global variable", c.getVarIdent(i));
+			}
+			// get some info on the variable
+			l = varList.getLow(v);
+			h = varList.getHigh(v);
+			// create dd
+			tmp1 = JDD.Constant(0);
+			for (j = l; j <= h; j++) {
+				tmp1 = JDD.SetVectorElement(tmp1, varDDColVars[v], j-l, j);
+			}
+			tmp2 = translateExpression(c.getExpression(i));
+			JDD.Ref(guard);
+			tmp2 = JDD.Apply(JDD.TIMES, tmp2, guard);
+			cl = JDD.Apply(JDD.EQUALS, tmp1, tmp2);
+			JDD.Ref(guard);
+			cl = JDD.Apply(JDD.TIMES, cl, guard);
+			// filter out bits not in range
+			JDD.Ref(varColRangeDDs[v]);
+			cl = JDD.Apply(JDD.TIMES, cl, varColRangeDDs[v]);
+			JDD.Ref(range);
+			cl = JDD.Apply(JDD.TIMES, cl, range);
+			dd = JDD.Apply(JDD.TIMES, dd, cl);
 		}
 		// if a variable from this module or a global variable
 		// does not appear in this update assume it does not change value
 		// so multiply by its identity matrix
-		for (int i = 0; i < numVars; i++) {
+		for (i = 0; i < numVars; i++) {	
 			if ((varList.getModule(i) == m || varList.getModule(i) == -1) && !varsUsed[i]) {
-				dd = JDD.Times(dd, varIdentities[i].copy());
+				JDD.Ref(varIdentities[i]);
+				dd = JDD.Apply(JDD.TIMES, dd, varIdentities[i]);
 			}
 		}
 		
 		return dd;
 	}
 
-	/**
-	 * Translate a single update element, i.e., (x'=...) in an update.
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param m the module index
-	 * @param c the Update AST element
-	 * @param i the element index for the update element in c
-	 * @param synch true if this command is synchronising (named action)
-	 * @param guard the guard for this command
-	 */
-	private JDDNode translateUpdateElement(int m, Update c, int i, boolean synch, JDDNode guard) throws PrismException
-	{
-		// get variable
-		String s = c.getVar(i);
-		int v = varList.getIndex(s);
-		if (v == -1) {
-			throw new PrismLangException("Unknown variable \"" + s + "\" in update", c.getVarIdent(i));
-		}
-		varsUsed[v] = true;
-		// check if the variable to be modified is valid
-		// (i.e. belongs to this module or is global)
-		if (varList.getModule(v) != -1 && varList.getModule(v) != m) {
-			throw new PrismLangException("Cannot modify variable \"" + s + "\" from module \"" + moduleNames[m] + "\"", c.getVarIdent(i));
-		}
-		// print out a warning if this update is in a command with a synchronising
-		// action AND it modifies a global variable
-		if (varList.getModule(v) == -1 && synch) {
-			throw new PrismLangException("Synchronous command cannot modify global variable", c.getVarIdent(i));
-		}
-		// get some info on the variable
-		int l = varList.getLow(v);
-		int h = varList.getHigh(v);
-		// create dd
-		JDDNode tmp1 = JDD.Constant(0);
-		for (int j = l; j <= h; j++) {
-			tmp1 = JDD.SetVectorElement(tmp1, varDDColVars[v], j - l, j);
-		}
-		JDDNode tmp2 = translateExpression(c.getExpression(i));
-		tmp2 = JDD.Times(tmp2, guard.copy());
-		JDDNode cl = JDD.Apply(JDD.EQUALS, tmp1, tmp2);
-		cl = JDD.Times(cl, guard.copy());
-		// filter out bits not in range
-		cl = JDD.Times(cl, varColRangeDDs[v].copy());
-		cl = JDD.Times(cl, range.copy());
-
-		return cl;
-	}
-
-	/**
-	 * Translate an arbitrary expression.
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 * @param e the expression (AST element)
-	 */
+	// translate an arbitrary expression
+	
 	private JDDNode translateExpression(Expression e) throws PrismException
 	{
 		// pass this work onto the Expression2MTBDD object
@@ -2040,30 +1967,16 @@ public class Modules2MTBDD
 				synch = rs.getSynch(i);
 				if (synch == null) {
 					// restrict rewards to relevant states
-					item = JDD.Times(states, rewards);
-					// check for infinite/NaN/negative rewards
-					double dmin = JDD.FindMin(item);
-					double dmax = JDD.FindMax(item);
-					if (!Double.isFinite(dmin)) {
-						s = "Reward structure item contains non-finite rewards (" + dmin + ").";
-						s += "\nNote that these may correspond to states which are unreachable.";
-						s += "\nIf this is the case, try strengthening the predicate.";
-						throw new PrismLangException(s, rs.getRewardStructItem(i));
-					}
-					if (!Double.isFinite(dmax)) {
-						s = "Reward structure item contains non-finite rewards (" + dmax + ").";
-						s += "\nNote that these may correspond to states which are unreachable.";
-						s += "\nIf this is the case, try strengthening the predicate.";
-						throw new PrismLangException(s, rs.getRewardStructItem(i));
-					}
-					if (dmin < 0) {
-						s = "Reward structure item contains negative rewards (" + dmin + ").";
+					item = JDD.Apply(JDD.TIMES, states, rewards);
+					// check for negative rewards
+					if ((d = JDD.FindMin(item)) < 0) {
+						s = "Reward structure item contains negative rewards (" + d + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
 					// add to state rewards
-					stateRewards[j] = JDD.Plus(stateRewards[j], item);
+					stateRewards[j] = JDD.Apply(JDD.PLUS, stateRewards[j], item);
 				}
 				
 				// second case: item corresponds to transition rewards
@@ -2078,38 +1991,25 @@ public class Modules2MTBDD
 					}
 					// identify corresponding transitions
 					// (for dtmcs/ctmcs, keep actual values - need to weight rewards; for mdps just store 0/1)
+					JDD.Ref(compDDs.trans);
 					if (modelType == ModelType.MDP) {
-						item = JDD.GreaterThan(compDDs.trans.copy(), 0);
+						item = JDD.GreaterThan(compDDs.trans, 0);
 					} else {
-						item = compDDs.trans.copy();
+						item = compDDs.trans;
 					}
 					// restrict to relevant states
-					item = JDD.Times(item, states);
+					item = JDD.Apply(JDD.TIMES, item, states);
 					// multiply by reward values
-					item = JDD.Times(item, rewards);
-					// check for infinite/NaN/negative rewards
-					double dmin = JDD.FindMin(item);
-					double dmax = JDD.FindMax(item);
-					if (!Double.isFinite(dmin)) {
-						s = "Reward structure item contains non-finite rewards (" + dmin + ").";
-						s += "\nNote that these may correspond to states which are unreachable.";
-						s += "\nIf this is the case, try strengthening the predicate.";
-						throw new PrismLangException(s, rs.getRewardStructItem(i));
-					}
-					if (!Double.isFinite(dmax)) {
-						s = "Reward structure item contains non-finite rewards (" + dmax + ").";
-						s += "\nNote that these may correspond to states which are unreachable.";
-						s += "\nIf this is the case, try strengthening the predicate.";
-						throw new PrismLangException(s, rs.getRewardStructItem(i));
-					}
-					if (dmin < 0) {
-						s = "Reward structure item contains negative rewards (" + dmin + ").";
+					item = JDD.Apply(JDD.TIMES, item, rewards);
+					// check for negative rewards
+					if ((d = JDD.FindMin(item)) < 0) {
+						s = "Reward structure item contains negative rewards (" + d + ").";
 						s += "\nNote that these may correspond to states which are unreachable.";
 						s += "\nIf this is the case, try strengthening the predicate.";
 						throw new PrismLangException(s, rs.getRewardStructItem(i));
 					}
 					// add result to rewards
-					compDDs.rewards[j] = JDD.Plus(compDDs.rewards[j], item);
+					compDDs.rewards[j] = JDD.Apply(JDD.PLUS, compDDs.rewards[j], item);
 				}
 			}
 		}
@@ -2133,16 +2033,8 @@ public class Modules2MTBDD
 		else {
 			start = JDD.Constant(1);
 			for (i = 0; i < numVars; i++) {
-				Object startObj = modulesFile.getVarDeclaration(i).getStartOrDefault().evaluate(constantValues);
-				try {
-					int startInt = varList.encodeToInt(i, startObj);
-					tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], startInt, 1);
-					start = JDD.And(start, tmp);
-				} catch (PrismLangException e) {
-					// attach initial value spec for better error reporting
-					e.setASTElement(modulesFile.getVarDeclaration(i).getStart());
-					throw e;
-				}
+				tmp = JDD.SetVectorElement(JDD.Constant(0), varDDRowVars[i], varList.getStart(i)-varList.getLow(i), 1);
+				start = JDD.And(start, tmp);
 			}
 		}
 	}

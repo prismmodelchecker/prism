@@ -1,0 +1,87 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Thu Feb 18 02:06:55 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/consensus/coin4.nm ../../examples/mdps/consensus/steps_max.pctl -s -ii -const K=2 -maxiters 90005000 -improvedbk
+
+Parsing model file "../../examples/mdps/consensus/coin4.nm"...
+
+Parsing properties file "../../examples/mdps/consensus/steps_max.pctl"...
+
+1 property:
+(1) "steps_max": R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 
+
+---------------------------------------------------------------------
+
+Model checking: "steps_max": R{"steps"}max=? [ F "finished" ]
+Model constants: K=2
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: K=2
+
+Computing reachable states...
+
+Reachability (BFS): 99 iterations in 0.01 seconds (average 0.000152, setup 0.00)
+
+Time for model construction: 0.035 seconds.
+
+Type:        MDP
+States:      22656 (1 initial)
+Transitions: 75232
+Choices:     60544
+
+Transition matrix: 2288 nodes (3 terminal), 75232 minterms, vars: 17r/17c/4nd
+
+Prob0E: 42 iterations in 0.06 seconds (average 0.001405, setup 0.00)
+
+Prob1A: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+goal = 64, inf = 0, maybe = 22592
+Time for computing an upper bound for expected reward: 0.719 seconds.
+Upper bound for max expectation (variant 2): 3175534.0
+
+Computing remaining rewards...
+ 7
+Building sparse matrix (transitions)... [n=22656, nc=60480, nnz=75168, k=4] [1.2 MB]
+Building sparse matrix (transition rewards)... [n=22656, nc=60480, nnz=0, k=4] [324.8 KB]
+Creating vector for state rewards... [177.0 KB]
+Creating vector for inf... [177.0 KB]
+Creating vector for lower bounds... [177.0 KB]
+Creating vector for upper bounds... [177.0 KB]
+Allocating iteration vectors... [4 x 177.0 KB]
+TOTAL: [2.9 MB]
+
+Starting iterations (interval iteration)...
+
+ Time for pre-computation: 0.003000 
+First round (updates from below) finished after 828 iters.
+Correctness of the approximated above vector satisfied after 1 iterations.
+
+Second round (updates from above) finished after 1706 iters.
+Update from both sides... 
+Max relative diff between upper and lower bound on convergence: 0
+
+Number of iterations for the lower bound = 1121
+
+Iterative method: 1999 iterations in 0.57 seconds (average 0.000285, setup 0.03)
+Maximum finite value in solution vector at end of interval iteration: 371.0000002990047
+
+Value in the initial state: 363.0000002990047
+
+Time for model checking: 1.383 seconds.
+
+Result: 363.0000002990047 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There was 1 warning during computation.
+

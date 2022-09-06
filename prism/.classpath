@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="unit-tests"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
 	<classpathentry kind="lib" path="lib/epsgraphics.jar"/>
 	<classpathentry kind="lib" path="lib/jcommon.jar"/>
 	<classpathentry kind="lib" path="lib/jfreechart.jar" sourcepath="/jfreechart/source"/>
@@ -12,8 +10,7 @@
 	<classpathentry kind="lib" path="lib/pepa.zip"/>
 	<classpathentry kind="lib" path="lib/lpsolve55j.jar"/>
 	<classpathentry kind="lib" path="lib/jas.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-core.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-api.jar"/>
+	<classpathentry kind="lib" path="lib/log4j.jar"/>
 	<classpathentry kind="lib" path="lib/nailgun-server.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

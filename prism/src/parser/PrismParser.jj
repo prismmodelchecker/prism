@@ -162,7 +162,6 @@ public class PrismParser
 	{
 		// Call default constructor
 		this(System.in);
-		setTabSize(8);
 	}
 	
 	// Parse modules file
@@ -184,7 +183,7 @@ public class PrismParser
 		}
 		// Override type of model if requested
 		if (typeOverride != null) {
-			mf.setModelTypeInFile(typeOverride);
+			mf.setModelType(typeOverride);
 		}
 		
 		return mf;
@@ -438,7 +437,6 @@ TOKEN :
 |	< ENDINIT:			"endinit" >
 |	< ENDINVARIANT:		"endinvariant" >
 |	< ENDMODULE:		"endmodule" >
-|	< ENDOBSERVABLES:	"endobservables" >
 |	< ENDREWARDS:		"endrewards" >
 |	< ENDSYSTEM:		"endsystem" >
 |	< FALSE:			"false" >
@@ -459,14 +457,10 @@ TOKEN :
 |	< MODULE:			"module" >
 |	< X:				"X" >
 |	< NONDETERMINISTIC:	"nondeterministic" >
-|	< OBSERVABLE:		"observable" >
-|	< OBSERVABLES:		"observables" >
 //|	< OF:				"of" >
 |	< PMAX:				"Pmax" >
 |	< PMIN:				"Pmin" >
 |	< P:				"P" >
-|	< POMDP:			"pomdp" >
-|	< POPTA:			"popta" >
 |	< PROBABILISTIC:	"probabilistic" >
 |	< PROB:				"prob" >
 |	< PTA:				"pta" >
@@ -537,7 +531,7 @@ TOKEN :
 
 ModulesFile ModulesFile() throws PrismLangException :
 {
-	ModelType type = null;
+	ModelType type = ModelType.MDP;
 	int typeCount = 0;
 	Token typeDupe = null;
 	Declaration global;
@@ -545,8 +539,6 @@ ModulesFile ModulesFile() throws PrismLangException :
 	RenamedModule rm = null;
 	RewardStruct rs = null;
 	Expression init = null;
-	ObservableVars obsVars = null;
-	Observable obs = null;
 	int initCount = 0;
 	Expression initDupe = null;
 	ModulesFile mf = new ModulesFile();
@@ -568,9 +560,6 @@ ModulesFile ModulesFile() throws PrismLangException :
 	rs = RewardStruct() { mf.addRewardStruct(rs); } |
 	// Initial states ("init...endinit" construct)
 	init = Init() { mf.setInitialStates(init); initCount++; if (initCount == 2) initDupe = init; } |
-	// Observables
-	obsVars = ObservableVars() { mf.addObservableVarList(obsVars); } |
-	obs = Observable() {mf.addObservableDefinition(obs); } |
 	// System definition ("system...endsystem" construct)
 	SystemEndsystem(mf)
 	)* <EOF>
@@ -585,8 +574,8 @@ ModulesFile ModulesFile() throws PrismLangException :
 			throw new PrismLangException("There were multiple init...endinit constructs", initDupe);
 		}
 		
-		// Set model type (might be null, i.e., unspecified)
-		mf.setModelTypeInFile(type);
+		// Set model type (note default is MDP)
+		mf.setModelType(type);
 		
 		// Return completed ModulesFile object
 		mf.setPosition(begin != null? begin: getToken(0), getToken(0));
@@ -691,8 +680,6 @@ ModelType ModulesFileType() :
 	| (<MDP>|<NONDETERMINISTIC>) { modelType=ModelType.MDP; }
 	| (<CTMC>|<STOCHASTIC>) { modelType=ModelType.CTMC; }
 	| <PTA> { modelType=ModelType.PTA; }
-	| <POMDP> { modelType=ModelType.POMDP; }
-	| <POPTA> { modelType=ModelType.POPTA; }
 	)
 	{ return modelType; }
 }
@@ -882,11 +869,9 @@ void UpdateElement(Update update) :
 {
 	ExpressionIdent var = null;
 	Expression expr = null;
-	Token begin = null;
 }
 {
-	begin = <LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH>
-	{ UpdateElement ue = new UpdateElement(var, expr); ue.setPosition(begin, getToken(0)); update.addElement(ue); }
+	<LPARENTH> var = IdentifierPrime() <EQ> expr = Expression(false, false) <RPARENTH> { update.addElement(var, expr); }
 }
 
 // Module renaming
@@ -949,37 +934,6 @@ Expression Init() :
 }
 {
 	<INIT> expr = Expression(false, false) <ENDINIT> { return expr; }
-}
-
-// Observable variables list (for partially observable models)
-
-ObservableVars ObservableVars() :
-{
-	Token begin = null;
-	ObservableVars obsVars = null;
-	Expression exprVar = null;
-}
-{
-	{ begin = getToken(1); }
-	<OBSERVABLES> { obsVars = new ObservableVars(); }
-	exprVar = IdentifierExpression() { obsVars.addVar(exprVar); }
-	( <COMMA> exprVar = IdentifierExpression() { obsVars.addVar(exprVar); } )*
-	<ENDOBSERVABLES>
-	{ obsVars.setPosition(begin, getToken(0)); return obsVars; }	
-}
-
-// Individual observable (for partially observable models)
-
-Observable Observable() :
-{
-	Token begin = null;
-	String name = null;
-	Expression defn = null;
-}
-{
-	{ begin = getToken(1); }
-	( <OBSERVABLE> <DQUOTE> name = Identifier() <DQUOTE> <EQ> defn = Expression(false, false) <SEMICOLON> )
-	{ Observable obs = new Observable(name, defn); obs.setPosition(begin, getToken(0)); return obs; }
 }
 
 // System definition ("system...endsystem" construct)
@@ -1517,7 +1471,7 @@ Expression ExpressionLiteral(boolean prop, boolean pathprop) :
 	<REG_INT> {
 		try {
 			int i = Integer.parseInt(getToken(0).image);
-			ret = new ExpressionLiteral(TypeInt.getInstance(), Integer.valueOf(i));
+			ret = new ExpressionLiteral(TypeInt.getInstance(), new Integer(i));
 		} catch (NumberFormatException e) {
 			// Need to catch this because some matches for regexp REG_INT
 			// are not valid integers (e.g. too big).
@@ -1530,7 +1484,7 @@ Expression ExpressionLiteral(boolean prop, boolean pathprop) :
 	<REG_DOUBLE> {
 		try {
 			double d = Double.parseDouble(getToken(0).image);
-			ret = new ExpressionLiteral(TypeDouble.getInstance(), Double.valueOf(d), getToken(0).image);
+			ret = new ExpressionLiteral(TypeDouble.getInstance(), new Double(d), getToken(0).image);
 		} catch (NumberFormatException e) {
 			// Need to catch this because some matches for regexp REG_DOUBLE
 			// may not be valid doubles.
@@ -1538,9 +1492,9 @@ Expression ExpressionLiteral(boolean prop, boolean pathprop) :
 			// NB: can't call generateParseException() here; it crashes
 		}}
 	|
-	<TRUE> { ret = new ExpressionLiteral(TypeBool.getInstance(), Boolean.valueOf(true)); }
+	<TRUE> { ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(true)); }
 	|
-	<FALSE> { ret = new ExpressionLiteral(TypeBool.getInstance(), Boolean.valueOf(false)); }
+	<FALSE> { ret = new ExpressionLiteral(TypeBool.getInstance(), new Boolean(false)); }
 	)
 	{ ret.setPosition(getToken(0)); return ret; }
 }

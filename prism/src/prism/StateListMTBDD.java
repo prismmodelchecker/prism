@@ -33,6 +33,7 @@ import odd.*;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import parser.type.*;
 
 /**
  * Stores a list of states as a BDD (or as a 0-1 MTBDD).
@@ -266,10 +267,15 @@ public class StateListMTBDD implements StateList
 			j = varList.getNumVars();
 			varsString = "";
 			for (i = 0; i < j; i++) {
-				varsString += varList.decodeFromInt(i, varValues[i]).toString();
-				if (i < j-1) {
-					varsString += ",";
+				// integer variable
+				if (varList.getType(i) instanceof TypeInt) {
+					varsString += varValues[i]+varList.getLow(i);
 				}
+				// boolean variable
+				else {
+					varsString += (varValues[i] == 1);
+				}
+				if (i < j-1) varsString += ",";
 			}
 			switch (outputFormat) {
 			case NORMAL: outputLog.println(varsString + ")"); break;
@@ -370,7 +376,12 @@ public class StateListMTBDD implements StateList
 				}
 				level++;
 			}
-			o = varList.decodeFromInt(i, v);
+			v += varList.getLow(i);
+			if (varList.getType(i) instanceof TypeInt) {
+				o = new Integer(v);
+			} else {
+				o = new Boolean(v == 1);
+			}
 			values.addValue(varList.getName(i), o);
 		}
 		

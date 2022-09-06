@@ -94,7 +94,7 @@ public class Declaration extends ASTElement
 	
 	/**
 	 * Get the specified initial value of this variable,
-	 * using the default value for its type if not specified.
+	* using the default value for its type if not specified.
 	 */
 	public Expression getStartOrDefault()
 	{

@@ -1,0 +1,597 @@
+PRISM
+=====
+
+Version: 4.6
+Date: Mon Feb 15 21:46:36 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/consensus/coin4.nm ../../examples/mdps/consensus/steps_max.pctl -s '-ii:upper=1.2e+12' -const K=30 -maxiters 9000300 -backward
+
+Parsing model file "../../examples/mdps/consensus/coin4.nm"...
+
+Parsing properties file "../../examples/mdps/consensus/steps_max.pctl"...
+
+1 property:
+(1) "steps_max": R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 
+
+---------------------------------------------------------------------
+
+Model checking: "steps_max": R{"steps"}max=? [ F "finished" ]
+Model constants: K=30
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: K=30
+
+Computing reachable states...
+
+Reachability (BFS): 1443 iterations in 0.15 seconds (average 0.000102, setup 0.00)
+
+Time for model construction: 0.283 seconds.
+
+Type:        MDP
+States:      309376 (1 initial)
+Transitions: 1042912
+Choices:     834688
+
+Transition matrix: 2436 nodes (3 terminal), 1042912 minterms, vars: 20r/20c/4nd
+
+Prob0E: 378 iterations in 0.22 seconds (average 0.000577, setup 0.00)
+
+Prob1A: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+goal = 64, inf = 0, maybe = 309312
+
+Warning: Upper bound for interval iteration manually set to 1.2E12
+
+Computing remaining rewards...
+ 6
+Building sparse matrix (transitions)... [n=309376, nc=834624, nnz=1042848, k=4] [16.3 MB]
+Building sparse matrix (transition rewards)... [n=309376, nc=834624, nnz=0, k=4] [4.4 MB]
+Creating vector for state rewards... [2.4 MB]
+Creating vector for inf... [2.4 MB]
+Creating vector for lower bounds... [2.4 MB]
+Creating vector for upper bounds... [2.4 MB]
+Allocating iteration vectors... [4 x 2.4 MB]
+TOTAL: [39.5 MB]
+
+Starting iterations (interval iteration)...
+
+Time for state ordering: 0.015000
+
+
+Iters: 500 , Maximum difference of values of bel_vec: 6.07285 & Maximum difference of values of abov_vec: 5.86702E+08 
+Iters: 1000 , Maximum difference of values of bel_vec: 5.96253 & Maximum difference of values of abov_vec: 2.90457E+08 
+Iters: 1500 , Maximum difference of values of bel_vec: 5.7112 & Maximum difference of values of abov_vec: 1.95561E+08 
+Iters: 2000 , Maximum difference of values of bel_vec: 5.37322 & Maximum difference of values of abov_vec: 1.59986E+08 
+Iters: 2500 , Maximum difference of values of bel_vec: 5.00567 & Maximum difference of values of abov_vec: 1.53724E+08 
+Iters: 3000 , Maximum difference of values of bel_vec: 4.63934 & Maximum difference of values of abov_vec: 1.47994E+08 
+Iters: 3500 , Maximum difference of values of bel_vec: 4.28837 & Maximum difference of values of abov_vec: 1.39036E+08 
+Iters: 4000 , Maximum difference of values of bel_vec: 3.95848 & Maximum difference of values of abov_vec: 1.29097E+08 
+Iters: 4500 , Maximum difference of values of bel_vec: 3.65135 & Maximum difference of values of abov_vec: 1.1918E+08 
+Iters: 5000 , Maximum difference of values of bel_vec: 3.36679 & Maximum difference of values of abov_vec: 1.0971E+08 
+Iters: 5500 , Maximum difference of values of bel_vec: 3.1038 & Maximum difference of values of abov_vec: 1.00848E+08 
+Iters: 6000 , Maximum difference of values of bel_vec: 2.86106 & Maximum difference of values of abov_vec: 9.29681E+07 
+Iters: 6500 , Maximum difference of values of bel_vec: 2.63717 & Maximum difference of values of abov_vec: 8.57373E+07 
+Iters: 7000 , Maximum difference of values of bel_vec: 2.43073 & Maximum difference of values of abov_vec: 7.90478E+07 
+Iters: 7500 , Maximum difference of values of bel_vec: 2.24043 & Maximum difference of values of abov_vec: 7.28703E+07 
+Iters: 8000 , Maximum difference of values of bel_vec: 2.065 & Maximum difference of values of abov_vec: 6.71706E+07 
+Iters: 8500 , Maximum difference of values of bel_vec: 1.9033 & Maximum difference of values of abov_vec: 6.19145E+07 
+Iters: 9000 , Maximum difference of values of bel_vec: 1.75427 & Maximum difference of values of abov_vec: 5.70685E+07 
+Iters: 9500 , Maximum difference of values of bel_vec: 1.6169 & Maximum difference of values of abov_vec: 5.26012E+07 
+Iters: 10000 , Maximum difference of values of bel_vec: 1.49028 & Maximum difference of values of abov_vec: 4.84834E+07 
+Iters: 10500 , Maximum difference of values of bel_vec: 1.37358 & Maximum difference of values of abov_vec: 4.46878E+07 
+Iters: 11000 , Maximum difference of values of bel_vec: 1.26602 & Maximum difference of values of abov_vec: 4.11894E+07 
+Iters: 11500 , Maximum difference of values of bel_vec: 1.16688 & Maximum difference of values of abov_vec: 3.79647E+07 
+Iters: 12000 , Maximum difference of values of bel_vec: 1.07551 & Maximum difference of values of abov_vec: 3.49925E+07 
+Iters: 12500 , Maximum difference of values of bel_vec: 0.991288 & Maximum difference of values of abov_vec: 3.2253E+07 
+Iters: 13000 , Maximum difference of values of bel_vec: 0.913663 & Maximum difference of values of abov_vec: 2.9728E+07 
+Iters: 13500 , Maximum difference of values of bel_vec: 0.842116 & Maximum difference of values of abov_vec: 2.74006E+07 
+Iters: 14000 , Maximum difference of values of bel_vec: 0.776173 & Maximum difference of values of abov_vec: 2.52554E+07 
+Iters: 14500 , Maximum difference of values of bel_vec: 0.715393 & Maximum difference of values of abov_vec: 2.32782E+07 
+Iters: 15000 , Maximum difference of values of bel_vec: 0.659372 & Maximum difference of values of abov_vec: 2.14558E+07 
+Iters: 15500 , Maximum difference of values of bel_vec: 0.607739 & Maximum difference of values of abov_vec: 1.9776E+07 
+Iters: 16000 , Maximum difference of values of bel_vec: 0.560148 & Maximum difference of values of abov_vec: 1.82278E+07 
+Iters: 16500 , Maximum difference of values of bel_vec: 0.516285 & Maximum difference of values of abov_vec: 1.68008E+07 
+Iters: 17000 , Maximum difference of values of bel_vec: 0.475856 & Maximum difference of values of abov_vec: 1.54855E+07 
+Iters: 17500 , Maximum difference of values of bel_vec: 0.438593 & Maximum difference of values of abov_vec: 1.42731E+07 
+Iters: 18000 , Maximum difference of values of bel_vec: 0.404248 & Maximum difference of values of abov_vec: 1.31557E+07 
+Iters: 18500 , Maximum difference of values of bel_vec: 0.372592 & Maximum difference of values of abov_vec: 1.21257E+07 
+Iters: 19000 , Maximum difference of values of bel_vec: 0.343416 & Maximum difference of values of abov_vec: 1.11764E+07 
+Iters: 19500 , Maximum difference of values of bel_vec: 0.316524 & Maximum difference of values of abov_vec: 1.03014E+07 
+Iters: 20000 , Maximum difference of values of bel_vec: 0.291738 & Maximum difference of values of abov_vec: 9.49496E+06 
+Iters: 20500 , Maximum difference of values of bel_vec: 0.268893 & Maximum difference of values of abov_vec: 8.75161E+06 
+Iters: 21000 , Maximum difference of values of bel_vec: 0.247836 & Maximum difference of values of abov_vec: 8.06645E+06 
+Iters: 21500 , Maximum difference of values of bel_vec: 0.228429 & Maximum difference of values of abov_vec: 7.43494E+06 
+Iters: 22000 , Maximum difference of values of bel_vec: 0.210541 & Maximum difference of values of abov_vec: 6.85287E+06 
+Iters: 22500 , Maximum difference of values of bel_vec: 0.194054 & Maximum difference of values of abov_vec: 6.31636E+06 
+Iters: 23000 , Maximum difference of values of bel_vec: 0.178859 & Maximum difference of values of abov_vec: 5.82186E+06 
+Iters: 23500 , Maximum difference of values of bel_vec: 0.164853 & Maximum difference of values of abov_vec: 5.36608E+06 
+Iters: 24000 , Maximum difference of values of bel_vec: 0.151944 & Maximum difference of values of abov_vec: 4.94597E+06 
+Iters: 24500 , Maximum difference of values of bel_vec: 0.140045 & Maximum difference of values of abov_vec: 4.55876E+06 
+Iters: 25000 , Maximum difference of values of bel_vec: 0.129079 & Maximum difference of values of abov_vec: 4.20186E+06 
+Iters: 25500 , Maximum difference of values of bel_vec: 0.118971 & Maximum difference of values of abov_vec: 3.8729E+06 
+Iters: 26000 , Maximum difference of values of bel_vec: 0.109655 & Maximum difference of values of abov_vec: 3.56969E+06 
+Iters: 26500 , Maximum difference of values of bel_vec: 0.101068 & Maximum difference of values of abov_vec: 3.29023E+06 
+Iters: 27000 , Maximum difference of values of bel_vec: 0.0931535 & Maximum difference of values of abov_vec: 3.03264E+06 
+Iters: 27500 , Maximum difference of values of bel_vec: 0.0858589 & Maximum difference of values of abov_vec: 2.79522E+06 
+Iters: 28000 , Maximum difference of values of bel_vec: 0.0791356 & Maximum difference of values of abov_vec: 2.57638E+06 
+Iters: 28500 , Maximum difference of values of bel_vec: 0.0729387 & Maximum difference of values of abov_vec: 2.37468E+06 
+Iters: 29000 , Maximum difference of values of bel_vec: 0.0672271 & Maximum difference of values of abov_vec: 2.18877E+06 
+Iters: 29500 , Maximum difference of values of bel_vec: 0.0619627 & Maximum difference of values of abov_vec: 2.01741E+06 
+Iters: 30000 , Maximum difference of values of bel_vec: 0.0571106 & Maximum difference of values of abov_vec: 1.85947E+06 
+Iters: 30500 , Maximum difference of values of bel_vec: 0.0526384 & Maximum difference of values of abov_vec: 1.7139E+06 
+Iters: 31000 , Maximum difference of values of bel_vec: 0.0485164 & Maximum difference of values of abov_vec: 1.57972E+06 
+Iters: 31500 , Maximum difference of values of bel_vec: 0.0447172 & Maximum difference of values of abov_vec: 1.45604E+06 
+Iters: 32000 , Maximum difference of values of bel_vec: 0.0412156 & Maximum difference of values of abov_vec: 1.34205E+06 
+Iters: 32500 , Maximum difference of values of bel_vec: 0.0379881 & Maximum difference of values of abov_vec: 1.23698E+06 
+Iters: 33000 , Maximum difference of values of bel_vec: 0.0350133 & Maximum difference of values of abov_vec: 1.14014E+06 
+Iters: 33500 , Maximum difference of values of bel_vec: 0.0322716 & Maximum difference of values of abov_vec: 1.05088E+06 
+Iters: 34000 , Maximum difference of values of bel_vec: 0.0297445 & Maximum difference of values of abov_vec: 968609 
+Iters: 34500 , Maximum difference of values of bel_vec: 0.0274153 & Maximum difference of values of abov_vec: 892778 
+Iters: 35000 , Maximum difference of values of bel_vec: 0.0252684 & Maximum difference of values of abov_vec: 822883 
+Iters: 35500 , Maximum difference of values of bel_vec: 0.0232897 & Maximum difference of values of abov_vec: 758461 
+Iters: 36000 , Maximum difference of values of bel_vec: 0.021466 & Maximum difference of values of abov_vec: 699082 
+Iters: 36500 , Maximum difference of values of bel_vec: 0.019785 & Maximum difference of values of abov_vec: 644352 
+Iters: 37000 , Maximum difference of values of bel_vec: 0.0182357 & Maximum difference of values of abov_vec: 593906 
+Iters: 37500 , Maximum difference of values of bel_vec: 0.0168077 & Maximum difference of values of abov_vec: 547410 
+Iters: 38000 , Maximum difference of values of bel_vec: 0.0154916 & Maximum difference of values of abov_vec: 504554 
+Iters: 38500 , Maximum difference of values of bel_vec: 0.0142785 & Maximum difference of values of abov_vec: 465053 
+Iters: 39000 , Maximum difference of values of bel_vec: 0.0131604 & Maximum difference of values of abov_vec: 428644 
+Iters: 39500 , Maximum difference of values of bel_vec: 0.0121298 & Maximum difference of values of abov_vec: 395086 
+Iters: 40000 , Maximum difference of values of bel_vec: 0.01118 & Maximum difference of values of abov_vec: 364155 
+Iters: 40500 , Maximum difference of values of bel_vec: 0.0103045 & Maximum difference of values of abov_vec: 335646 
+Iters: 41000 , Maximum difference of values of bel_vec: 0.00949758 & Maximum difference of values of abov_vec: 309369 
+Iters: 41500 , Maximum difference of values of bel_vec: 0.00875385 & Maximum difference of values of abov_vec: 285149 
+Iters: 42000 , Maximum difference of values of bel_vec: 0.00806836 & Maximum difference of values of abov_vec: 262825 
+Iters: 42500 , Maximum difference of values of bel_vec: 0.00743655 & Maximum difference of values of abov_vec: 242248 
+Iters: 43000 , Maximum difference of values of bel_vec: 0.00685421 & Maximum difference of values of abov_vec: 223283 
+Iters: 43500 , Maximum difference of values of bel_vec: 0.00631748 & Maximum difference of values of abov_vec: 205803 
+Iters: 44000 , Maximum difference of values of bel_vec: 0.00582277 & Maximum difference of values of abov_vec: 189690 
+Iters: 44500 , Maximum difference of values of bel_vec: 0.00536681 & Maximum difference of values of abov_vec: 174840 
+Iters: 45000 , Maximum difference of values of bel_vec: 0.00494655 & Maximum difference of values of abov_vec: 161152 
+Iters: 45500 , Maximum difference of values of bel_vec: 0.0045592 & Maximum difference of values of abov_vec: 148535 
+Iters: 46000 , Maximum difference of values of bel_vec: 0.00420218 & Maximum difference of values of abov_vec: 136907 
+Iters: 46500 , Maximum difference of values of bel_vec: 0.00387312 & Maximum difference of values of abov_vec: 126188 
+Iters: 47000 , Maximum difference of values of bel_vec: 0.00356983 & Maximum difference of values of abov_vec: 116309 
+Iters: 47500 , Maximum difference of values of bel_vec: 0.00329028 & Maximum difference of values of abov_vec: 107204 
+Iters: 48000 , Maximum difference of values of bel_vec: 0.00303263 & Maximum difference of values of abov_vec: 98810.8 
+Iters: 48500 , Maximum difference of values of bel_vec: 0.00279515 & Maximum difference of values of abov_vec: 91075 
+Iters: 49000 , Maximum difference of values of bel_vec: 0.00257627 & Maximum difference of values of abov_vec: 83944.8 
+Iters: 49500 , Maximum difference of values of bel_vec: 0.00237453 & Maximum difference of values of abov_vec: 77372.9 
+Iters: 50000 , Maximum difference of values of bel_vec: 0.00218859 & Maximum difference of values of abov_vec: 71315.5 
+Iters: 50500 , Maximum difference of values of bel_vec: 0.00201721 & Maximum difference of values of abov_vec: 65732.3 
+Iters: 51000 , Maximum difference of values of bel_vec: 0.00185924 & Maximum difference of values of abov_vec: 60586.2 
+Iters: 51500 , Maximum difference of values of bel_vec: 0.00171365 & Maximum difference of values of abov_vec: 55842.9 Iteration 51613: max relative diff=336216537.817912, 499.99 sec so far
+
+Iters: 52000 , Maximum difference of values of bel_vec: 0.00157946 & Maximum difference of values of abov_vec: 51471.1 
+Iters: 52500 , Maximum difference of values of bel_vec: 0.00145578 & Maximum difference of values of abov_vec: 47441.4 
+Iters: 53000 , Maximum difference of values of bel_vec: 0.00134178 & Maximum difference of values of abov_vec: 43727.3 
+Iters: 53500 , Maximum difference of values of bel_vec: 0.00123671 & Maximum difference of values of abov_vec: 40303.9 
+Iters: 54000 , Maximum difference of values of bel_vec: 0.00113987 & Maximum difference of values of abov_vec: 37148.6 
+Iters: 54500 , Maximum difference of values of bel_vec: 0.00105061 & Maximum difference of values of abov_vec: 34240.3 
+Iters: 55000 , Maximum difference of values of bel_vec: 0.000968336 & Maximum difference of values of abov_vec: 31559.6 
+Iters: 55500 , Maximum difference of values of bel_vec: 0.000892509 & Maximum difference of values of abov_vec: 29088.9 
+Iters: 56000 , Maximum difference of values of bel_vec: 0.000822619 & Maximum difference of values of abov_vec: 26811.5 
+Iters: 56500 , Maximum difference of values of bel_vec: 0.000758202 & Maximum difference of values of abov_vec: 24712.5 
+Iters: 57000 , Maximum difference of values of bel_vec: 0.000698829 & Maximum difference of values of abov_vec: 22777.8 
+Iters: 57500 , Maximum difference of values of bel_vec: 0.000644106 & Maximum difference of values of abov_vec: 20994.5 
+Iters: 58000 , Maximum difference of values of bel_vec: 0.000593668 & Maximum difference of values of abov_vec: 19350.9 
+Iters: 58500 , Maximum difference of values of bel_vec: 0.000547179 & Maximum difference of values of abov_vec: 17835.9 
+Iters: 59000 , Maximum difference of values of bel_vec: 0.000504331 & Maximum difference of values of abov_vec: 16439.6 
+Iters: 59500 , Maximum difference of values of bel_vec: 0.000464838 & Maximum difference of values of abov_vec: 15152.6 
+Iters: 60000 , Maximum difference of values of bel_vec: 0.000428438 & Maximum difference of values of abov_vec: 13966.3 
+Iters: 60500 , Maximum difference of values of bel_vec: 0.000394888 & Maximum difference of values of abov_vec: 12872.9 
+Iters: 61000 , Maximum difference of values of bel_vec: 0.000363966 & Maximum difference of values of abov_vec: 11865.1 
+Iters: 61500 , Maximum difference of values of bel_vec: 0.000335465 & Maximum difference of values of abov_vec: 10936.2 
+Iters: 62000 , Maximum difference of values of bel_vec: 0.000309195 & Maximum difference of values of abov_vec: 10080 
+Iters: 62500 , Maximum difference of values of bel_vec: 0.000284983 & Maximum difference of values of abov_vec: 9290.84 
+Iters: 63000 , Maximum difference of values of bel_vec: 0.000262667 & Maximum difference of values of abov_vec: 8563.47 
+Iters: 63500 , Maximum difference of values of bel_vec: 0.000242098 & Maximum difference of values of abov_vec: 7893.04 
+Iters: 64000 , Maximum difference of values of bel_vec: 0.00022314 & Maximum difference of values of abov_vec: 7275.11 
+Iters: 64500 , Maximum difference of values of bel_vec: 0.000205667 & Maximum difference of values of abov_vec: 6705.55 
+Iters: 65000 , Maximum difference of values of bel_vec: 0.000189561 & Maximum difference of values of abov_vec: 6180.58 
+Iters: 65500 , Maximum difference of values of bel_vec: 0.000174717 & Maximum difference of values of abov_vec: 5696.71 
+Iters: 66000 , Maximum difference of values of bel_vec: 0.000161036 & Maximum difference of values of abov_vec: 5250.72 
+Iters: 66500 , Maximum difference of values of bel_vec: 0.000148426 & Maximum difference of values of abov_vec: 4839.65 
+Iters: 67000 , Maximum difference of values of bel_vec: 0.000136803 & Maximum difference of values of abov_vec: 4460.76 
+Iters: 67500 , Maximum difference of values of bel_vec: 0.00012609 & Maximum difference of values of abov_vec: 4111.53 
+Iters: 68000 , Maximum difference of values of bel_vec: 0.000116216 & Maximum difference of values of abov_vec: 3789.64 
+Iters: 68500 , Maximum difference of values of bel_vec: 0.000107116 & Maximum difference of values of abov_vec: 3492.95 
+Iters: 69000 , Maximum difference of values of bel_vec: 9.87278E-05 & Maximum difference of values of abov_vec: 3219.5 
+Iters: 69500 , Maximum difference of values of bel_vec: 9.09967E-05 & Maximum difference of values of abov_vec: 2967.44 
+Iters: 70000 , Maximum difference of values of bel_vec: 8.3871E-05 & Maximum difference of values of abov_vec: 2735.13 
+Iters: 70500 , Maximum difference of values of bel_vec: 7.73033E-05 & Maximum difference of values of abov_vec: 2521 
+Iters: 71000 , Maximum difference of values of bel_vec: 7.12499E-05 & Maximum difference of values of abov_vec: 2323.63 
+Iters: 71500 , Maximum difference of values of bel_vec: 6.56705E-05 & Maximum difference of values of abov_vec: 2141.72 
+Iters: 72000 , Maximum difference of values of bel_vec: 6.05281E-05 & Maximum difference of values of abov_vec: 1974.04 
+Iters: 72500 , Maximum difference of values of bel_vec: 5.57883E-05 & Maximum difference of values of abov_vec: 1819.5 
+Iters: 73000 , Maximum difference of values of bel_vec: 5.14197E-05 & Maximum difference of values of abov_vec: 1677.05 
+Iters: 73500 , Maximum difference of values of bel_vec: 4.73931E-05 & Maximum difference of values of abov_vec: 1545.76 
+Iters: 74000 , Maximum difference of values of bel_vec: 4.36819E-05 & Maximum difference of values of abov_vec: 1424.74 
+Iters: 74500 , Maximum difference of values of bel_vec: 4.02613E-05 & Maximum difference of values of abov_vec: 1313.2 
+Iters: 75000 , Maximum difference of values of bel_vec: 3.71085E-05 & Maximum difference of values of abov_vec: 1210.39 
+Iters: 75500 , Maximum difference of values of bel_vec: 3.42027E-05 & Maximum difference of values of abov_vec: 1115.63 
+Iters: 76000 , Maximum difference of values of bel_vec: 3.15244E-05 & Maximum difference of values of abov_vec: 1028.29 
+Iters: 76500 , Maximum difference of values of bel_vec: 2.90558E-05 & Maximum difference of values of abov_vec: 947.786 
+Iters: 77000 , Maximum difference of values of bel_vec: 2.67805E-05 & Maximum difference of values of abov_vec: 873.585 
+Iters: 77500 , Maximum difference of values of bel_vec: 2.46834E-05 & Maximum difference of values of abov_vec: 805.193 
+Iters: 78000 , Maximum difference of values of bel_vec: 2.27505E-05 & Maximum difference of values of abov_vec: 742.156 
+Iters: 78500 , Maximum difference of values of bel_vec: 2.0969E-05 & Maximum difference of values of abov_vec: 684.053 
+Iters: 79000 , Maximum difference of values of bel_vec: 1.9327E-05 & Maximum difference of values of abov_vec: 630.499 
+Iters: 79500 , Maximum difference of values of bel_vec: 1.78135E-05 & Maximum difference of values of abov_vec: 581.138 
+Iters: 80000 , Maximum difference of values of bel_vec: 1.64186E-05 & Maximum difference of values of abov_vec: 535.642 
+Iters: 80500 , Maximum difference of values of bel_vec: 1.51329E-05 & Maximum difference of values of abov_vec: 493.707 
+Iters: 81000 , Maximum difference of values of bel_vec: 1.39479E-05 & Maximum difference of values of abov_vec: 455.055 
+Iters: 81500 , Maximum difference of values of bel_vec: 1.28557E-05 & Maximum difference of values of abov_vec: 419.429 
+Iters: 82000 , Maximum difference of values of bel_vec: 1.1849E-05 & Maximum difference of values of abov_vec: 386.593 
+Iters: 82500 , Maximum difference of values of bel_vec: 1.09211E-05 & Maximum difference of values of abov_vec: 356.327 
+Iters: 83000 , Maximum difference of values of bel_vec: 1.00659E-05 & Maximum difference of values of abov_vec: 328.43 
+Iters: 83500 , Maximum difference of values of bel_vec: 9.27768E-06 & Maximum difference of values of abov_vec: 302.718 
+Iters: 84000 , Maximum difference of values of bel_vec: 8.55116E-06 & Maximum difference of values of abov_vec: 279.019 
+Iters: 84500 , Maximum difference of values of bel_vec: 7.88155E-06 & Maximum difference of values of abov_vec: 257.175 
+Iters: 85000 , Maximum difference of values of bel_vec: 7.26437E-06 & Maximum difference of values of abov_vec: 237.041 
+Iters: 85500 , Maximum difference of values of bel_vec: 6.69551E-06 & Maximum difference of values of abov_vec: 218.483 
+Iters: 86000 , Maximum difference of values of bel_vec: 6.17121E-06 & Maximum difference of values of abov_vec: 201.378 
+Iters: 86500 , Maximum difference of values of bel_vec: 5.68796E-06 & Maximum difference of values of abov_vec: 185.613 
+Iters: 87000 , Maximum difference of values of bel_vec: 5.24255E-06 & Maximum difference of values of abov_vec: 171.081 
+Iters: 87500 , Maximum difference of values of bel_vec: 4.83202E-06 & Maximum difference of values of abov_vec: 157.687 
+Iters: 88000 , Maximum difference of values of bel_vec: 4.45364E-06 & Maximum difference of values of abov_vec: 145.342 
+Iters: 88500 , Maximum difference of values of bel_vec: 4.10488E-06 & Maximum difference of values of abov_vec: 133.964 
+Iters: 89000 , Maximum difference of values of bel_vec: 3.78345E-06 & Maximum difference of values of abov_vec: 123.476 
+Iters: 89500 , Maximum difference of values of bel_vec: 3.48718E-06 & Maximum difference of values of abov_vec: 113.809 
+Iters: 90000 , Maximum difference of values of bel_vec: 3.2141E-06 & Maximum difference of values of abov_vec: 104.899 
+Iters: 90500 , Maximum difference of values of bel_vec: 2.96241E-06 & Maximum difference of values of abov_vec: 96.6866 
+Iters: 91000 , Maximum difference of values of bel_vec: 2.73043E-06 & Maximum difference of values of abov_vec: 89.1171 
+Iters: 91500 , Maximum difference of values of bel_vec: 2.51662E-06 & Maximum difference of values of abov_vec: 82.1402 
+Iters: 92000 , Maximum difference of values of bel_vec: 2.31955E-06 & Maximum difference of values of abov_vec: 75.7096 
+Iters: 92500 , Maximum difference of values of bel_vec: 2.13792E-06 & Maximum difference of values of abov_vec: 69.7823 
+Iters: 93000 , Maximum difference of values of bel_vec: 1.9705E-06 & Maximum difference of values of abov_vec: 64.3192 
+Iters: 93500 , Maximum difference of values of bel_vec: 1.8162E-06 & Maximum difference of values of abov_vec: 59.2837 
+Iters: 94000 , Maximum difference of values of bel_vec: 1.67398E-06 & Maximum difference of values of abov_vec: 54.6424 
+Iters: 94500 , Maximum difference of values of bel_vec: 1.54289E-06 & Maximum difference of values of abov_vec: 50.3645 
+Iters: 95000 , Maximum difference of values of bel_vec: 1.42207E-06 & Maximum difference of values of abov_vec: 46.4216 
+Iters: 95500 , Maximum difference of values of bel_vec: 1.31071E-06 & Maximum difference of values of abov_vec: 42.7873 
+Iters: 96000 , Maximum difference of values of bel_vec: 1.20807E-06 & Maximum difference of values of abov_vec: 39.4375 
+Iters: 96500 , Maximum difference of values of bel_vec: 1.11348E-06 & Maximum difference of values of abov_vec: 36.35 
+Iters: 97000 , Maximum difference of values of bel_vec: 1.02628E-06 & Maximum difference of values of abov_vec: 33.5042 
+Iters: 97500 , Maximum difference of values of bel_vec: 9.45911E-07 & Maximum difference of values of abov_vec: 30.8812 
+Iters: 98000 , Maximum difference of values of bel_vec: 8.71842E-07 & Maximum difference of values of abov_vec: 28.4635 
+Iters: 98500 , Maximum difference of values of bel_vec: 8.03571E-07 & Maximum difference of values of abov_vec: 26.2352 
+Iters: 99000 , Maximum difference of values of bel_vec: 7.40649E-07 & Maximum difference of values of abov_vec: 24.1812 
+Iters: 99500 , Maximum difference of values of bel_vec: 6.82645E-07 & Maximum difference of values of abov_vec: 22.2881 
+Iters: 100000 , Maximum difference of values of bel_vec: 6.29196E-07 & Maximum difference of values of abov_vec: 20.5432 
+Iters: 100500 , Maximum difference of values of bel_vec: 5.79923E-07 & Maximum difference of values of abov_vec: 18.9349 
+Iters: 101000 , Maximum difference of values of bel_vec: 5.34514E-07 & Maximum difference of values of abov_vec: 17.4525 
+Iters: 101500 , Maximum difference of values of bel_vec: 4.92655E-07 & Maximum difference of values of abov_vec: 16.0862 
+Iters: 102000 , Maximum difference of values of bel_vec: 4.54078E-07 & Maximum difference of values of abov_vec: 14.8268 
+Iters: 102500 , Maximum difference of values of bel_vec: 4.1852E-07 & Maximum difference of values of abov_vec: 13.666 
+Iters: 103000 , Maximum difference of values of bel_vec: 3.85749E-07 & Maximum difference of values of abov_vec: 12.5961 Iteration 103200: max relative diff=74770.044408, 999.99 sec so far
+
+Iters: 103500 , Maximum difference of values of bel_vec: 3.5554E-07 & Maximum difference of values of abov_vec: 11.61 
+Iters: 104000 , Maximum difference of values of bel_vec: 3.27695E-07 & Maximum difference of values of abov_vec: 10.7011 
+Iters: 104500 , Maximum difference of values of bel_vec: 3.0204E-07 & Maximum difference of values of abov_vec: 9.86329 
+Iters: 105000 , Maximum difference of values of bel_vec: 2.78385E-07 & Maximum difference of values of abov_vec: 9.0911 
+Iters: 105500 , Maximum difference of values of bel_vec: 2.56587E-07 & Maximum difference of values of abov_vec: 8.37937 
+Iters: 106000 , Maximum difference of values of bel_vec: 2.3649E-07 & Maximum difference of values of abov_vec: 7.72336 
+Iters: 106500 , Maximum difference of values of bel_vec: 2.1798E-07 & Maximum difference of values of abov_vec: 7.11871 
+Iters: 107000 , Maximum difference of values of bel_vec: 2.00904E-07 & Maximum difference of values of abov_vec: 6.56139 
+Iters: 107500 , Maximum difference of values of bel_vec: 1.85173E-07 & Maximum difference of values of abov_vec: 6.04771 
+Iters: 108000 , Maximum difference of values of bel_vec: 1.70672E-07 & Maximum difference of values of abov_vec: 5.57424 
+Iters: 108500 , Maximum difference of values of bel_vec: 1.57306E-07 & Maximum difference of values of abov_vec: 5.13784 
+Iters: 109000 , Maximum difference of values of bel_vec: 1.44995E-07 & Maximum difference of values of abov_vec: 4.7356 
+Iters: 109500 , Maximum difference of values of bel_vec: 1.33638E-07 & Maximum difference of values of abov_vec: 4.36486 
+Iters: 110000 , Maximum difference of values of bel_vec: 1.23167E-07 & Maximum difference of values of abov_vec: 4.02314 
+Iters: 110500 , Maximum difference of values of bel_vec: 1.13527E-07 & Maximum difference of values of abov_vec: 3.70817 
+Iters: 111000 , Maximum difference of values of bel_vec: 1.04636E-07 & Maximum difference of values of abov_vec: 3.41786 
+Iters: 111500 , Maximum difference of values of bel_vec: 9.64428E-08 & Maximum difference of values of abov_vec: 3.15028 
+Iters: 112000 , Maximum difference of values of bel_vec: 8.88904E-08 & Maximum difference of values of abov_vec: 2.90365 
+Iters: 112500 , Maximum difference of values of bel_vec: 8.19273E-08 & Maximum difference of values of abov_vec: 2.67633 
+Iters: 113000 , Maximum difference of values of bel_vec: 7.55099E-08 & Maximum difference of values of abov_vec: 2.4668 
+Iters: 113500 , Maximum difference of values of bel_vec: 6.96018E-08 & Maximum difference of values of abov_vec: 2.27368 
+Iters: 114000 , Maximum difference of values of bel_vec: 6.41521E-08 & Maximum difference of values of abov_vec: 2.09567 
+Iters: 114500 , Maximum difference of values of bel_vec: 5.91244E-08 & Maximum difference of values of abov_vec: 1.93161 
+Iters: 115000 , Maximum difference of values of bel_vec: 5.44896E-08 & Maximum difference of values of abov_vec: 1.78038 
+Iters: 115500 , Maximum difference of values of bel_vec: 5.02259E-08 & Maximum difference of values of abov_vec: 1.641 
+Iters: 116000 , Maximum difference of values of bel_vec: 4.62969E-08 & Maximum difference of values of abov_vec: 1.51253 
+Iters: 116500 , Maximum difference of values of bel_vec: 4.26735E-08 & Maximum difference of values of abov_vec: 1.39411 
+Iters: 117000 , Maximum difference of values of bel_vec: 3.93266E-08 & Maximum difference of values of abov_vec: 1.28497 
+Iters: 117500 , Maximum difference of values of bel_vec: 3.62488E-08 & Maximum difference of values of abov_vec: 1.18437 
+Iters: 118000 , Maximum difference of values of bel_vec: 3.34112E-08 & Maximum difference of values of abov_vec: 1.09165 
+Iters: 118500 , Maximum difference of values of bel_vec: 3.07991E-08 & Maximum difference of values of abov_vec: 1.00618 
+Iters: 119000 , Maximum difference of values of bel_vec: 2.83762E-08 & Maximum difference of values of abov_vec: 0.927411 
+Iters: 119500 , Maximum difference of values of bel_vec: 2.61571E-08 & Maximum difference of values of abov_vec: 0.854805 
+Iters: 120000 , Maximum difference of values of bel_vec: 2.41125E-08 & Maximum difference of values of abov_vec: 0.787884 
+Iters: 120500 , Maximum difference of values of bel_vec: 2.22281E-08 & Maximum difference of values of abov_vec: 0.726201 
+Iters: 121000 , Maximum difference of values of bel_vec: 2.04818E-08 & Maximum difference of values of abov_vec: 0.669348 
+Iters: 121500 , Maximum difference of values of bel_vec: 1.88811E-08 & Maximum difference of values of abov_vec: 0.616945 
+Iters: 122000 , Maximum difference of values of bel_vec: 1.74041E-08 & Maximum difference of values of abov_vec: 0.568645 
+Iters: 122500 , Maximum difference of values of bel_vec: 1.60362E-08 & Maximum difference of values of abov_vec: 0.524127 
+Iters: 123000 , Maximum difference of values of bel_vec: 1.47847E-08 & Maximum difference of values of abov_vec: 0.483093 
+Iters: 123500 , Maximum difference of values of bel_vec: 1.36279E-08 & Maximum difference of values of abov_vec: 0.445273 
+Iters: 124000 , Maximum difference of values of bel_vec: 1.25583E-08 & Maximum difference of values of abov_vec: 0.410413 
+Iters: 124500 , Maximum difference of values of bel_vec: 1.1576E-08 & Maximum difference of values of abov_vec: 0.378282 
+Iters: 125000 , Maximum difference of values of bel_vec: 1.06666E-08 & Maximum difference of values of abov_vec: 0.348667 
+Iters: 125500 , Maximum difference of values of bel_vec: 9.83709E-09 & Maximum difference of values of abov_vec: 0.32137 
+Iters: 126000 , Maximum difference of values of bel_vec: 9.06584E-09 & Maximum difference of values of abov_vec: 0.29621 
+Iters: 126500 , Maximum difference of values of bel_vec: 8.3528E-09 & Maximum difference of values of abov_vec: 0.27302 
+Iters: 127000 , Maximum difference of values of bel_vec: 7.69796E-09 & Maximum difference of values of abov_vec: 0.251646 
+Iters: 127500 , Maximum difference of values of bel_vec: 7.09406E-09 & Maximum difference of values of abov_vec: 0.231945 
+Iters: 128000 , Maximum difference of values of bel_vec: 6.54109E-09 & Maximum difference of values of abov_vec: 0.213786 
+Iters: 128500 , Maximum difference of values of bel_vec: 6.03177E-09 & Maximum difference of values of abov_vec: 0.197049 
+Iters: 129000 , Maximum difference of values of bel_vec: 5.55883E-09 & Maximum difference of values of abov_vec: 0.181622 
+Iters: 129500 , Maximum difference of values of bel_vec: 5.12227E-09 & Maximum difference of values of abov_vec: 0.167403 
+Iters: 130000 , Maximum difference of values of bel_vec: 4.7221E-09 & Maximum difference of values of abov_vec: 0.154298 
+Iters: 130500 , Maximum difference of values of bel_vec: 4.35102E-09 & Maximum difference of values of abov_vec: 0.142218 
+Iters: 131000 , Maximum difference of values of bel_vec: 4.00905E-09 & Maximum difference of values of abov_vec: 0.131084 
+Iters: 131500 , Maximum difference of values of bel_vec: 3.69619E-09 & Maximum difference of values of abov_vec: 0.120821 
+Iters: 132000 , Maximum difference of values of bel_vec: 3.40515E-09 & Maximum difference of values of abov_vec: 0.111362 
+Iters: 132500 , Maximum difference of values of bel_vec: 3.14321E-09 & Maximum difference of values of abov_vec: 0.102644 
+Iters: 133000 , Maximum difference of values of bel_vec: 2.89583E-09 & Maximum difference of values of abov_vec: 0.094608 
+Iters: 133500 , Maximum difference of values of bel_vec: 2.663E-09 & Maximum difference of values of abov_vec: 0.0872013 
+Iters: 134000 , Maximum difference of values of bel_vec: 2.45927E-09 & Maximum difference of values of abov_vec: 0.0803744 
+Iters: 134500 , Maximum difference of values of bel_vec: 2.2701E-09 & Maximum difference of values of abov_vec: 0.074082 
+Iters: 135000 , Maximum difference of values of bel_vec: 2.0882E-09 & Maximum difference of values of abov_vec: 0.0682822 
+Iters: 135500 , Maximum difference of values of bel_vec: 1.92085E-09 & Maximum difference of values of abov_vec: 0.0629364 
+Iters: 136000 , Maximum difference of values of bel_vec: 1.77533E-09 & Maximum difference of values of abov_vec: 0.0580092 
+Iters: 136500 , Maximum difference of values of bel_vec: 1.63709E-09 & Maximum difference of values of abov_vec: 0.0534677 
+Iters: 137000 , Maximum difference of values of bel_vec: 1.50612E-09 & Maximum difference of values of abov_vec: 0.0492818 
+Iters: 137500 , Maximum difference of values of bel_vec: 1.38971E-09 & Maximum difference of values of abov_vec: 0.0454236 
+Iters: 138000 , Maximum difference of values of bel_vec: 1.28057E-09 & Maximum difference of values of abov_vec: 0.0418674 
+Iters: 138500 , Maximum difference of values of bel_vec: 1.17871E-09 & Maximum difference of values of abov_vec: 0.0385897 
+Iters: 139000 , Maximum difference of values of bel_vec: 1.09139E-09 & Maximum difference of values of abov_vec: 0.0355685 
+Iters: 139500 , Maximum difference of values of bel_vec: 1.00408E-09 & Maximum difference of values of abov_vec: 0.0327839 
+Iters: 140000 , Maximum difference of values of bel_vec: 9.31323E-10 & Maximum difference of values of abov_vec: 0.0302173 
+Iters: 140500 , Maximum difference of values of bel_vec: 8.58563E-10 & Maximum difference of values of abov_vec: 0.0278516 
+Iters: 141000 , Maximum difference of values of bel_vec: 7.85803E-10 & Maximum difference of values of abov_vec: 0.0256712 
+Iters: 141500 , Maximum difference of values of bel_vec: 7.27596E-10 & Maximum difference of values of abov_vec: 0.0236614 
+Iters: 142000 , Maximum difference of values of bel_vec: 6.69388E-10 & Maximum difference of values of abov_vec: 0.021809 
+Iters: 142500 , Maximum difference of values of bel_vec: 6.1118E-10 & Maximum difference of values of abov_vec: 0.0201016 
+Iters: 143000 , Maximum difference of values of bel_vec: 5.67525E-10 & Maximum difference of values of abov_vec: 0.0185278 
+Iters: 143500 , Maximum difference of values of bel_vec: 5.23869E-10 & Maximum difference of values of abov_vec: 0.0170773 
+Iters: 144000 , Maximum difference of values of bel_vec: 4.80213E-10 & Maximum difference of values of abov_vec: 0.0157404 
+Iters: 144500 , Maximum difference of values of bel_vec: 4.43833E-10 & Maximum difference of values of abov_vec: 0.0145081 
+Iters: 145000 , Maximum difference of values of bel_vec: 4.07454E-10 & Maximum difference of values of abov_vec: 0.0133722 
+Iters: 145500 , Maximum difference of values of bel_vec: 3.7835E-10 & Maximum difference of values of abov_vec: 0.0123253 
+Iters: 146000 , Maximum difference of values of bel_vec: 3.49246E-10 & Maximum difference of values of abov_vec: 0.0113604 
+Iters: 146500 , Maximum difference of values of bel_vec: 3.20142E-10 & Maximum difference of values of abov_vec: 0.010471 
+Iters: 147000 , Maximum difference of values of bel_vec: 2.91038E-10 & Maximum difference of values of abov_vec: 0.00965125 
+Iters: 147500 , Maximum difference of values of bel_vec: 2.76486E-10 & Maximum difference of values of abov_vec: 0.00889567 
+Iters: 148000 , Maximum difference of values of bel_vec: 2.47383E-10 & Maximum difference of values of abov_vec: 0.00819924 
+Iters: 148500 , Maximum difference of values of bel_vec: 2.32831E-10 & Maximum difference of values of abov_vec: 0.00755733 
+Iters: 149000 , Maximum difference of values of bel_vec: 2.18279E-10 & Maximum difference of values of abov_vec: 0.00696567 
+Iters: 149500 , Maximum difference of values of bel_vec: 2.03727E-10 & Maximum difference of values of abov_vec: 0.00642034 
+Iters: 150000 , Maximum difference of values of bel_vec: 1.89175E-10 & Maximum difference of values of abov_vec: 0.0059177 
+Iters: 150500 , Maximum difference of values of bel_vec: 1.67347E-10 & Maximum difference of values of abov_vec: 0.00545441 
+Iters: 151000 , Maximum difference of values of bel_vec: 1.60071E-10 & Maximum difference of values of abov_vec: 0.00502739 
+Iters: 151500 , Maximum difference of values of bel_vec: 1.45519E-10 & Maximum difference of values of abov_vec: 0.0046338 
+Iters: 152000 , Maximum difference of values of bel_vec: 1.30967E-10 & Maximum difference of values of abov_vec: 0.00427102 
+Iters: 152500 , Maximum difference of values of bel_vec: 1.16415E-10 & Maximum difference of values of abov_vec: 0.00393665 
+Iters: 153000 , Maximum difference of values of bel_vec: 1.16415E-10 & Maximum difference of values of abov_vec: 0.00362846 
+Iters: 153500 , Maximum difference of values of bel_vec: 1.01863E-10 & Maximum difference of values of abov_vec: 0.00334439 
+Iters: 154000 , Maximum difference of values of bel_vec: 9.45874E-11 & Maximum difference of values of abov_vec: 0.00308256 
+Iters: 154500 , Maximum difference of values of bel_vec: 8.73115E-11 & Maximum difference of values of abov_vec: 0.00284123 Iteration 154767: max relative diff=16.682165, 1500.00 sec so far
+
+Iters: 155000 , Maximum difference of values of bel_vec: 8.73115E-11 & Maximum difference of values of abov_vec: 0.00261879 
+Iters: 155500 , Maximum difference of values of bel_vec: 7.27596E-11 & Maximum difference of values of abov_vec: 0.00241377 
+Iters: 156000 , Maximum difference of values of bel_vec: 6.54836E-11 & Maximum difference of values of abov_vec: 0.0022248 
+Iters: 156500 , Maximum difference of values of bel_vec: 5.82077E-11 & Maximum difference of values of abov_vec: 0.00205062 
+Iters: 157000 , Maximum difference of values of bel_vec: 5.82077E-11 & Maximum difference of values of abov_vec: 0.00189008 
+Iters: 157500 , Maximum difference of values of bel_vec: 5.82077E-11 & Maximum difference of values of abov_vec: 0.00174211 
+Iters: 158000 , Maximum difference of values of bel_vec: 5.09317E-11 & Maximum difference of values of abov_vec: 0.00160572 
+Iters: 158500 , Maximum difference of values of bel_vec: 4.36557E-11 & Maximum difference of values of abov_vec: 0.00148001 
+Iters: 159000 , Maximum difference of values of bel_vec: 4.36557E-11 & Maximum difference of values of abov_vec: 0.00136414 
+Iters: 159500 , Maximum difference of values of bel_vec: 4.36557E-11 & Maximum difference of values of abov_vec: 0.00125735 
+Iters: 160000 , Maximum difference of values of bel_vec: 3.63798E-11 & Maximum difference of values of abov_vec: 0.00115891 
+Iters: 160500 , Maximum difference of values of bel_vec: 2.91038E-11 & Maximum difference of values of abov_vec: 0.00106818 
+Iters: 161000 , Maximum difference of values of bel_vec: 2.91038E-11 & Maximum difference of values of abov_vec: 0.000984554 
+Iters: 161500 , Maximum difference of values of bel_vec: 2.91038E-11 & Maximum difference of values of abov_vec: 0.000907474 
+Iters: 162000 , Maximum difference of values of bel_vec: 2.91038E-11 & Maximum difference of values of abov_vec: 0.000836429 
+Iters: 162500 , Maximum difference of values of bel_vec: 2.91038E-11 & Maximum difference of values of abov_vec: 0.000770946 
+Iters: 163000 , Maximum difference of values of bel_vec: 2.91038E-11 & Maximum difference of values of abov_vec: 0.000710589 
+Iters: 163500 , Maximum difference of values of bel_vec: 2.18279E-11 & Maximum difference of values of abov_vec: 0.000654958 
+Iters: 164000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000603682 
+Iters: 164500 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000556421 
+Iters: 165000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000512859 
+Iters: 165500 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000472708 
+Iters: 166000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.0004357 
+Iters: 166500 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.00040159 
+Iters: 167000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.00037015 
+Iters: 167500 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000341171 
+Iters: 168000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000314461 
+Iters: 168500 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000289842 
+Iters: 169000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000267151 
+Iters: 169500 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000246236 
+Iters: 170000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000226959 
+Iters: 170500 , Maximum difference of values of bel_vec: 7.27596E-12 & Maximum difference of values of abov_vec: 0.00020919 
+Iters: 171000 , Maximum difference of values of bel_vec: 7.27596E-12 & Maximum difference of values of abov_vec: 0.000192813 
+Iters: 171500 , Maximum difference of values of bel_vec: 7.27596E-12 & Maximum difference of values of abov_vec: 0.000177718 
+Iters: 172000 , Maximum difference of values of bel_vec: 1.45519E-11 & Maximum difference of values of abov_vec: 0.000163805 
+Iters: 172500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 0.00015098 
+Iters: 173000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 0.00013916 
+Iters: 173500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 0.000128266 
+Iters: 174000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 0.000118224 
+Iters: 174500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 0.000108968 
+Iters: 175000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 0.000100437 
+Iters: 175500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.25742E-05 
+Iters: 176000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.53266E-05 
+Iters: 176500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.86465E-05 
+Iters: 177000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.24894E-05 
+Iters: 177500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.68143E-05 
+Iters: 178000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.15835E-05 
+Iters: 178500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.67622E-05 
+Iters: 179000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.23183E-05 
+Iters: 179500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.82224E-05 
+Iters: 180000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.44471E-05 
+Iters: 180500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.09674E-05 
+Iters: 181000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.77601E-05 
+Iters: 181500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.48039E-05 
+Iters: 182000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.20792E-05 
+Iters: 182500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.95677E-05 
+Iters: 183000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.72529E-05 
+Iters: 183500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.51193E-05 
+Iters: 184000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.31527E-05 
+Iters: 184500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.13401E-05 
+Iters: 185000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.96694E-05 
+Iters: 185500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.81295E-05 
+Iters: 186000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.67102E-05 
+Iters: 186500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.5402E-05 
+Iters: 187000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.41962E-05 
+Iters: 187500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.30848E-05 
+Iters: 188000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.20604E-05 
+Iters: 188500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.11162E-05 
+Iters: 189000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.02459E-05 
+Iters: 189500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.44377E-06 
+Iters: 190000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.70442E-06 
+Iters: 190500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.02297E-06 
+Iters: 191000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.39486E-06 
+Iters: 191500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.81593E-06 
+Iters: 192000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.28232E-06 
+Iters: 192500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.79048E-06 
+Iters: 193000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.33715E-06 
+Iters: 193500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.91931E-06 
+Iters: 194000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.53419E-06 
+Iters: 194500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.17921E-06 
+Iters: 195000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.85202E-06 
+Iters: 195500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.55045E-06 
+Iters: 196000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.27249E-06 
+Iters: 196500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.01629E-06 
+Iters: 197000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.78015E-06 
+Iters: 197500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.5625E-06 
+Iters: 198000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.36188E-06 
+Iters: 198500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.17697E-06 
+Iters: 199000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.00653E-06 
+Iters: 199500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.84945E-06 
+Iters: 200000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.70466E-06 
+Iters: 200500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.5712E-06 
+Iters: 201000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.44819E-06 
+Iters: 201500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.33482E-06 
+Iters: 202000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.23031E-06 
+Iters: 202500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.13399E-06 
+Iters: 203000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.04521E-06 
+Iters: 203500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.63388E-07 
+Iters: 204000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.87965E-07 
+Iters: 204500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.18443E-07 
+Iters: 205000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.54371E-07 
+Iters: 205500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.95312E-07 
+Iters: 206000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.40881E-07 Iteration 206351: max relative diff=0.003712, 2000.00 sec so far
+
+Iters: 206500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.90706E-07 
+Iters: 207000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.4446E-07 
+Iters: 207500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.0183E-07 
+Iters: 208000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.62547E-07 
+Iters: 208500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.26335E-07 
+Iters: 209000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.9296E-07 
+Iters: 209500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.6219E-07 
+Iters: 210000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.33835E-07 
+Iters: 210500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.077E-07 
+Iters: 211000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.8361E-07 
+Iters: 211500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.61411E-07 
+Iters: 212000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.40943E-07 
+Iters: 212500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.22084E-07 
+Iters: 213000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.04695E-07 
+Iters: 213500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.88666E-07 
+Iters: 214000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.73895E-07 
+Iters: 214500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.60282E-07 
+Iters: 215000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.47731E-07 
+Iters: 215500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.3617E-07 
+Iters: 216000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.2551E-07 
+Iters: 216500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.1568E-07 
+Iters: 217000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.06622E-07 
+Iters: 217500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.82764E-08 
+Iters: 218000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.05857E-08 
+Iters: 218500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.34916E-08 
+Iters: 219000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.69505E-08 
+Iters: 219500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.09333E-08 
+Iters: 220000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.53745E-08 
+Iters: 220500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.02595E-08 
+Iters: 221000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.55374E-08 
+Iters: 221500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.11936E-08 
+Iters: 222000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.71846E-08 
+Iters: 222500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.34884E-08 
+Iters: 223000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.00833E-08 
+Iters: 223500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.69473E-08 
+Iters: 224000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.40588E-08 
+Iters: 224500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.13885E-08 
+Iters: 225000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.89365E-08 
+Iters: 225500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.66664E-08 
+Iters: 226000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.45782E-08 
+Iters: 226500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.26573E-08 
+Iters: 227000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.0882E-08 
+Iters: 227500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.92449E-08 
+Iters: 228000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.77388E-08 
+Iters: 228500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.63491E-08 
+Iters: 229000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.50685E-08 
+Iters: 229500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.38898E-08 
+Iters: 230000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.28057E-08 
+Iters: 230500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.18016E-08 
+Iters: 231000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.08776E-08 
+Iters: 231500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.00263E-08 
+Iters: 232000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.24047E-09 
+Iters: 232500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.52015E-09 
+Iters: 233000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.85076E-09 
+Iters: 233500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.2323E-09 
+Iters: 234000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.67205E-09 
+Iters: 234500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.14818E-09 
+Iters: 235000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.66797E-09 
+Iters: 235500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.22414E-09 
+Iters: 236000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.81668E-09 
+Iters: 236500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.43833E-09 
+Iters: 237000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.08909E-09 
+Iters: 237500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.76895E-09 
+Iters: 238000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.47791E-09 
+Iters: 238500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.20142E-09 
+Iters: 239000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.95404E-09 
+Iters: 239500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.72121E-09 
+Iters: 240000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.50293E-09 
+Iters: 240500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.31375E-09 
+Iters: 241000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.13186E-09 
+Iters: 241500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.96451E-09 
+Iters: 242000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.81171E-09 
+Iters: 242500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.67347E-09 
+Iters: 243000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.5425E-09 
+Iters: 243500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.41881E-09 
+Iters: 244000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.30967E-09 
+Iters: 244500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.20781E-09 
+Iters: 245000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.10595E-09 
+Iters: 245500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.01863E-09 
+Iters: 246000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 9.45874E-10 
+Iters: 246500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.73115E-10 
+Iters: 247000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 8.00355E-10 
+Iters: 247500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 7.42148E-10 
+Iters: 248000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.8394E-10 
+Iters: 248500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 6.25732E-10 
+Iters: 249000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.82077E-10 
+Iters: 249500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 5.38421E-10 
+Iters: 250000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.94765E-10 
+Iters: 250500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.51109E-10 
+Iters: 251000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 4.22006E-10 
+Iters: 251500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.92902E-10 
+Iters: 252000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.56522E-10 
+Iters: 252500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.34694E-10 
+Iters: 253000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 3.0559E-10 
+Iters: 253500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.76486E-10 
+Iters: 254000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.54659E-10 
+Iters: 254500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.32831E-10 
+Iters: 255000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.18279E-10 
+Iters: 255500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 2.03727E-10 
+Iters: 256000 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.89175E-10 
+Iters: 256500 , Maximum difference of values of bel_vec: 0 & Maximum difference of values of abov_vec: 1.74623E-10 Max relative diff between upper and lower bound on convergence: 9.99979E-07
+Iterative method: 256977 iterations in 2490.74 seconds (average 0.009692, setup 0.18)
+Maximum finite value in solution vector at end of interval iteration: 45395.000000467975
+
+Value in the initial state: 45387.000000467975
+
+Time for model checking: 2492.766 seconds.
+
+Result: 45387.000000467975 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 2 warnings during computation.
+

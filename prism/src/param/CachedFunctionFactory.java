@@ -114,7 +114,7 @@ final class CachedFunctionFactory extends FunctionFactory {
 	 * 
 	 * @param context function factory to cache functions of
 	 */
-	public CachedFunctionFactory(FunctionFactory context) {
+	CachedFunctionFactory(FunctionFactory context) {
 		super(context.parameterNames, context.lowerBounds, context.upperBounds);
 		this.context = context;
 		functionToNumber = new HashMap<Function, Integer>();
@@ -326,22 +326,22 @@ final class CachedFunctionFactory extends FunctionFactory {
 	}
 
 	@Override
-	public Function getNaN() {
+	Function getNaN() {
 		return makeUnique(context.getNaN());
 	}
 
 	@Override
-	public Function getInf() {
+	Function getInf() {
 		return makeUnique(context.getInf());
 	}
 
 	@Override
-	public Function getMInf() {
+	Function getMInf() {
 		return makeUnique(context.getMInf());
 	}
 
 	@Override
-	public Function getVar(int var) {
+	Function getVar(int var) {
 		return makeUnique(context.getVar(var));
 	}
 }

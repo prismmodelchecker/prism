@@ -150,6 +150,12 @@ public abstract class GUIPlugin extends JPanel implements GUIEventListener, Pris
 	 */	
 	public abstract JToolBar getToolBar();
 	
+	/** Abstract access method to be implemented to provide an OptionsPanel to be
+	 * displayed as part of the OptionsDialog stored in the parent GUI.
+	 * @return An OptionsPanel for this plugin.  Returns null if no options panel is required.
+	 */	
+	public abstract OptionsPanel getOptions();
+	
 	/** Returns an XML representation of this plugin, for use in saving the state of the
 	 * system to a file
 	 * @return The XML description

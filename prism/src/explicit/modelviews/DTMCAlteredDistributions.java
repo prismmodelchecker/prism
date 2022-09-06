@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
-import common.iterable.Reducible;
+import common.iterable.FilteringIterator;
 import common.iterable.SingletonIterator;
 import parser.State;
 import parser.Values;
@@ -170,7 +170,7 @@ public class DTMCAlteredDistributions extends DTMCView
 		if (transitions == null) {
 			return model.getTransitionsIterator(state);
 		}
-		return Reducible.extend(transitions).filter(nonZero);
+		return new FilteringIterator.Of<>(transitions, nonZero);
 	}
 
 

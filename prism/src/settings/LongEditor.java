@@ -58,7 +58,7 @@ public class LongEditor implements SettingEditor, CaretListener, FocusListener
         valueGot = true;
         try
         {
-            return Long.valueOf(field.getText());
+            return new Long(field.getText());
         }
         catch(NumberFormatException e)
         {
@@ -171,7 +171,7 @@ public class LongEditor implements SettingEditor, CaretListener, FocusListener
             {
                 try
                 {
-                    value = Long.valueOf(field.getText());
+                    value = new Long(field.getText());
                 }
                 catch(NumberFormatException ex)
                 {

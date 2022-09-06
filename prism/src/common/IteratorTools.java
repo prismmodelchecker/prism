@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -28,233 +28,148 @@
 package common;
 
 import java.util.Iterator;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
+import java.util.function.DoublePredicate;
+import java.util.function.IntPredicate;
+import java.util.function.LongPredicate;
+import java.util.function.Predicate;
+
+import common.iterable.FilteringIterator;
+import common.iterable.MappingIterator;
+
 import java.util.PrimitiveIterator.OfDouble;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.PrimitiveIterator.OfLong;
-import java.util.function.Predicate;
 
-import common.iterable.Reducible;
-
-/**
- * Convenience methods for performing operations on Iterators / Iterables
- */
+/** Convenience methods for performing operations on Iterators / Iterables */
 public class IteratorTools
 {
-	/**
-	 * Boolean AND-function: Are all elements true?
-	 */
-	public static boolean and(Iterator<Boolean> booleans)
+	/** Count the number of elements */
+	public static int count(final Iterable<?> iterable)
 	{
-		while (booleans.hasNext()) {
-			if (!booleans.next()) {
-				return false;
-			}
+		return count(iterable.iterator());
+	}
+
+	/** Count the number of elements */
+	public static int count(final Iterator<?> iterator)
+	{
+		if (iterator instanceof OfInt) {
+			return count((OfInt) iterator);
 		}
-		return true;
-	}
-
-	/**
-	 * Boolean OR-function: Is at least one elements true?
-	 */
-	public static boolean or(Iterator<Boolean> booleans)
-	{
-		while (booleans.hasNext()) {
-			if (booleans.next()) {
-				return true;
-			}
+		if (iterator instanceof OfLong) {
+			return count((OfLong) iterator);
 		}
-		return false;
+		if (iterator instanceof OfDouble) {
+			return count((OfDouble) iterator);
+		}
+
+		int count=0;
+		for (; iterator.hasNext(); iterator.next()) {
+			count++;
+		}
+		return count;
 	}
 
-	/**
-	 * Count the number of elements
-	 */
-	public static long count(Iterable<?> iterable)
+	/** Count the number of elements */
+	public static int count(final OfInt iterator)
 	{
-		return Reducible.extend(iterable).count();
+		// call nextInt to avoid unnecessary boxing
+		int count=0;
+		for (; iterator.hasNext(); iterator.nextInt()) {
+			count++;
+		}
+		return count;
 	}
 
-	/**
-	 * Count the number of elements
-	 */
-	public static long count(Iterator<?> iterator)
+	/** Count the number of elements */
+	public static int count(final OfLong iterator)
 	{
-		return Reducible.extend(iterator).count();
+		// call nextLong to avoid unnecessary boxing
+		int count=0;
+		for (; iterator.hasNext(); iterator.nextLong()) {
+			count++;
+		}
+		return count;
 	}
 
-	/**
-	 * Count the number of elements
-	 */
-	public static <T> long count(Iterable<T> iterable, Predicate<? super T> predicate)
+	/** Count the number of elements */
+	public static int count(final OfDouble iterator)
 	{
-		return Reducible.extend(iterable).count(predicate);
+		// call nextDouble to avoid unnecessary boxing
+		int count=0;
+		for (; iterator.hasNext(); iterator.nextDouble()) {
+			count++;
+		}
+		return count;
 	}
 
-	/**
-	 * Count the number of elements
-	 */
-	public static <T> long count(Iterator<T> iterator, Predicate<? super T> predicate)
+	/** Count the number of elements matching the predicate */
+	public static <T> int count(final Iterable<T> iterable, final Predicate<? super T> predicate)
 	{
-		return Reducible.extend(iterator).count(predicate);
+		return count(iterable.iterator(), predicate);
 	}
 
-	/**
-	 * Maximum over iterator elements
-	 */
-	public static OptionalDouble max(OfDouble numbers)
+	/** Count the number of elements matching the predicate */
+	public static <T> int count(final Iterator<T> iterator, final Predicate<? super T> predicate)
 	{
-		return Reducible.extend(numbers).max();
+		if (iterator instanceof OfInt && predicate instanceof IntPredicate) {
+			return count(new FilteringIterator.OfInt((OfInt) iterator, (IntPredicate) predicate));
+		}
+		if (iterator instanceof OfLong && predicate instanceof LongPredicate) {
+			return count(new FilteringIterator.OfLong((OfLong) iterator, (LongPredicate) predicate));
+		}
+		if (iterator instanceof OfDouble && predicate instanceof DoublePredicate) {
+			return count(new FilteringIterator.OfDouble((OfDouble) iterator, (DoublePredicate) predicate));
+		}
+
+		return count(new FilteringIterator.Of<>(iterator, predicate));
 	}
 
-	/**
-	 * Maximum over iterator elements
-	 */
-	public static OptionalInt max(OfInt numbers)
+	/** Sum over iterator elements */
+	public static int sumInt(final Iterator<Integer> numbers)
 	{
-		return Reducible.extend(numbers).max();
+		return sum(MappingIterator.toInt(numbers));
 	}
 
-	/**
-	 * Maximum over iterator elements
-	 */
-	public static OptionalLong max(OfLong numbers)
+	/** Sum over iterator elements */
+	public static int sum(final OfInt numbers)
 	{
-		return Reducible.extend(numbers).max();
+		int sum = 0;
+		while (numbers.hasNext()) {
+			sum += numbers.nextInt();
+		}
+		return sum;
 	}
 
-	/**
-	 * Maximum over non-null iterator elements
-	 */
-	public static OptionalDouble maxDouble(Iterator<Double> numbers)
+	/** Sum over iterator elements */
+	public static long sumLong(final Iterator<Long> numbers)
 	{
-		return Reducible.unboxDouble(Reducible.extend(numbers).nonNull()).max();
+		return sum(MappingIterator.toLong(numbers));
 	}
 
-	/**
-	 * Maximum over non-null iterator elements
-	 */
-	public static OptionalInt maxInt(Iterator<Integer> numbers)
+	/** Sum over iterator elements */
+	public static long sum(final OfLong numbers)
 	{
-		return Reducible.unboxInt(Reducible.extend(numbers).nonNull()).max();
+		long sum = 0;
+		while (numbers.hasNext()) {
+			sum += numbers.nextLong();
+		}
+		return sum;
 	}
 
-	/**
-	 * Maximum over non-null iterator elements
-	 */
-	public static OptionalLong maxLong(Iterator<Long> numbers)
+	/** Sum over iterator elements */
+	public static double sumDouble(final Iterator<Double> numbers)
 	{
-		return Reducible.unboxLong(Reducible.extend(numbers).nonNull()).max();
+		return sum(MappingIterator.toDouble(numbers));
 	}
 
-	/**
-	 * Minimum over iterator elements
-	 */
-	public static OptionalDouble min(OfDouble numbers)
+	/** Sum over iterator elements */
+	public static double sum(final OfDouble numbers)
 	{
-		return Reducible.extend(numbers).min();
+		double sum = 0;
+		while (numbers.hasNext()) {
+			sum += numbers.nextDouble();
+		}
+		return sum;
 	}
 
-	/**
-	 * Minimum over iterator elements
-	 */
-	public static OptionalInt min(OfInt numbers)
-	{
-		return Reducible.extend(numbers).min();
-	}
-
-	/**
-	 * Minimum over iterator elements
-	 */
-	public static OptionalLong min(OfLong numbers)
-	{
-		return Reducible.extend(numbers).min();
-	}
-
-	/**
-	 * Minimum over non-null iterator elements
-	 */
-	public static OptionalDouble minDouble(Iterator<Double> numbers)
-	{
-		return Reducible.unboxDouble(Reducible.extend(numbers).nonNull()).min();
-	}
-
-	/**
-	 * Minimum over non-null iterator elements
-	 */
-	public static OptionalInt minInt(Iterator<Integer> numbers)
-	{
-		return Reducible.unboxInt(Reducible.extend(numbers).nonNull()).min();
-	}
-
-	/**
-	 * Minimum over non-null iterator elements
-	 */
-	public static OptionalLong minLong(Iterator<Long> numbers)
-	{
-		return Reducible.unboxLong(Reducible.extend(numbers).nonNull()).min();
-	}
-
-	/**
-	 * Sum over iterator elements
-	 */
-	public static double sum(OfDouble numbers)
-	{
-		return Reducible.extend(numbers).sum();
-	}
-
-	/**
-	 * Sum over iterator elements
-	 */
-	public static long sum(OfInt numbers)
-	{
-		return Reducible.extend(numbers).sum();
-	}
-
-	/**
-	 * Sum over iterator elements
-	 */
-	public static long sum(OfLong numbers)
-	{
-		return Reducible.extend(numbers).sum();
-	}
-
-	/**
-	 * Sum over non-null iterator elements
-	 */
-	public static double sumDouble(Iterator<Double> numbers)
-	{
-		return Reducible.unboxDouble(Reducible.extend(numbers).nonNull()).sum();
-	}
-
-	/**
-	 * Sum over non-null iterator elements
-	 */
-	public static long sumInt(Iterator<Integer> numbers)
-	{
-		return Reducible.unboxInt(Reducible.extend(numbers).nonNull()).sum();
-	}
-
-	/**
-	 * Sum over non-null iterator elements
-	 */
-	public static long sumLong(Iterator<Long> numbers)
-	{
-		return Reducible.unboxLong(Reducible.extend(numbers).nonNull()).sum();
-	}
-
-	/**
-	 * Create String "name = {e_1, e_2}".
-	 * 
-	 * @param name     name of a variable
-	 * @param iterator the iterator to be printed
-	 */
-	public static <T> void printIterator(String name, Iterator<T> iterator)
-	{
-		System.out.print(name + " = ");
-		System.out.print(Reducible.extend(iterator).asString());
-		System.out.println();
-	}
 }

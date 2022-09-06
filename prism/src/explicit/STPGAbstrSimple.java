@@ -34,7 +34,9 @@ import java.io.*;
 import common.IterableStateSet;
 
 import explicit.rewards.STPGRewards;
+import prism.ModelType;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 import prism.PrismLog;
 import prism.PrismUtils;
 import strat.MDStrategy;
@@ -273,6 +275,12 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	// Accessors (for ModelSimple)
 
 	@Override
+	public ModelType getModelType()
+	{
+		return ModelType.STPG;
+	}
+
+	@Override
 	public int getNumTransitions()
 	{
 		return numTransitions;
@@ -357,35 +365,74 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	}
 
 	@Override
-	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
+	public void exportToPrismExplicitTra(PrismLog out)
 	{
-		// Custom dot format for game abstractions
-		// We ignore decorators for the moment
-		int j = -1;
-		for (DistributionSet distrs : trans.get(i)) {
-			j++;
-			String nij = "n" + i + "_" + j;
-			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
-			out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
-			int k = -1;
-			for (Distribution distr : distrs) {
-				k++;
-				String nijk = "n" + i + "_" + j + "_" + k;
-				out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
-				out.print(nijk + " [ shape=point,label=\"\" ];\n");
-				for (Map.Entry<Integer, Double> e : distr) {
-					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + PrismUtils.formatDouble(precision, e.getValue()) + "\" ];\n");
+		int i, j, k;
+		TreeMap<Integer, Double> sorted;
+		// Output transitions to .tra file
+		out.print(numStates + " " + numDistrSets + " " + numDistrs + " " + numTransitions + "\n");
+		sorted = new TreeMap<Integer, Double>();
+		for (i = 0; i < numStates; i++) {
+			j = -1;
+			for (DistributionSet distrs : trans.get(i)) {
+				j++;
+				k = -1;
+				for (Distribution distr : distrs) {
+					k++;
+					// Extract transitions and sort by destination state index (to match PRISM-exported files)
+					for (Map.Entry<Integer, Double> e : distr) {
+						sorted.put(e.getKey(), e.getValue());
+					}
+					// Print out (sorted) transitions
+					for (Map.Entry<Integer, Double> e : distr) {
+						// Note use of PrismUtils.formatDouble to match PRISM-exported files
+						out.print(i + " " + j + " " + k + " " + e.getKey() + " " + PrismUtils.formatDouble(e.getValue()) + "\n");
+					}
+					sorted.clear();
 				}
 			}
 		}
 	}
 
 	@Override
-	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
+	public void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
+	{
+		int j, k;
+		String nij, nijk;
+		j = -1;
+
+		// we ignore decorators for the moment
+
+		for (DistributionSet distrs : trans.get(i)) {
+			j++;
+			nij = "n" + i + "_" + j;
+			out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j + "\" ];\n");
+			out.print(nij + " [ shape=circle,width=0.1,height=0.1,label=\"\" ];\n");
+			k = -1;
+			for (Distribution distr : distrs) {
+				k++;
+				nijk = "n" + i + "_" + j + "_" + k;
+				out.print(nij + " -> " + nijk + " [ arrowhead=none,label=\"" + k + "\" ];\n");
+				out.print(nijk + " [ shape=point,label=\"\" ];\n");
+				for (Map.Entry<Integer, Double> e : distr) {
+					out.print(nijk + " -> " + e.getKey() + " [ label=\"" + e.getValue() + "\" ];\n");
+				}
+			}
+		}
+	}
+
+	@Override
+	public void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[])
 	{
 		throw new RuntimeException("Not yet supported");
 	}
 	
+	@Override
+	public void exportToPrismLanguage(String filename) throws PrismException
+	{
+		throw new PrismNotSupportedException("Export to STPG PRISM models not supported");
+	}
+
 	@Override
 	public String infoString()
 	{
@@ -436,6 +483,12 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 	{
 		// No actions stored currently
 		return null;
+	}
+
+	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		throw new RuntimeException("Not implemented");
 	}
 
 	@Override
@@ -690,7 +743,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			}
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
-			if (PrismUtils.doublesAreEqual(val, minmax2)) {
+			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {
 				res.add(j);
 				//res.add(distrs.getAction());
 			}
@@ -840,7 +893,7 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 			minmax2 += rewards.getTransitionReward(s, dsIter);
 			// Store strategy info if value matches
 			//if (PrismUtils.doublesAreClose(val, d, termCritParam, termCrit == TermCrit.ABSOLUTE)) {
-			if (PrismUtils.doublesAreEqual(val, minmax2)) {
+			if (PrismUtils.doublesAreClose(val, minmax2, 1e-12, false)) {
 				res.add(dsIter);
 				//res.add(distrs.getAction());
 			}

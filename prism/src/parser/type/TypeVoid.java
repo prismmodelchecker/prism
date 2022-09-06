@@ -26,7 +26,6 @@
 
 package parser.type;
 
-import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
 public class TypeVoid extends Type 
@@ -72,12 +71,6 @@ public class TypeVoid extends Type
 	
 	@Override
 	public Object castValueTo(Object value) throws PrismLangException
-	{
-		throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
-	}
-	
-	@Override
-	public Object castValueTo(Object value, EvalMode evalMode) throws PrismLangException
 	{
 		throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
 	}

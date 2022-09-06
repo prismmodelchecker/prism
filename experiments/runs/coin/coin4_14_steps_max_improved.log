@@ -1,0 +1,111 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Mon Feb 15 10:46:18 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=910.5m
+Command line: prism ../../examples/mdps/consensus/coin4.nm ../../examples/mdps/consensus/steps_max.pctl -s '-ii:upper=1.2e+12' -const K=14 -maxiters 9000300 -improvedbk
+
+Parsing model file "../../examples/mdps/consensus/coin4.nm"...
+
+Parsing properties file "../../examples/mdps/consensus/steps_max.pctl"...
+
+1 property:
+(1) "steps_max": R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 
+
+---------------------------------------------------------------------
+
+Model checking: "steps_max": R{"steps"}max=? [ F "finished" ]
+Model constants: K=14
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: K=14
+
+Computing reachable states...
+
+Reachability (BFS): 675 iterations in 0.08 seconds (average 0.000114, setup 0.00)
+
+Time for model construction: 0.139 seconds.
+
+Type:        MDP
+States:      145536 (1 initial)
+Transitions: 489952
+Choices:     392320
+
+Transition matrix: 2388 nodes (3 terminal), 489952 minterms, vars: 19r/19c/4nd
+
+Prob0E: 186 iterations in 0.14 seconds (average 0.000774, setup 0.00)
+
+Prob1A: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+goal = 64, inf = 0, maybe = 145472
+
+Warning: Upper bound for interval iteration manually set to 1.2E12
+
+Computing remaining rewards...
+ 7
+Building sparse matrix (transitions)... [n=145536, nc=392256, nnz=489888, k=4] [7.7 MB]
+Building sparse matrix (transition rewards)... [n=145536, nc=392256, nnz=0, k=4] [2.1 MB]
+Creating vector for state rewards... [1.1 MB]
+Creating vector for inf... [1.1 MB]
+Creating vector for lower bounds... [1.1 MB]
+Creating vector for upper bounds... [1.1 MB]
+Allocating iteration vectors... [4 x 1.1 MB]
+TOTAL: [18.6 MB]
+
+Starting iterations (interval iteration)...
+
+ Time for pre-computation: 0.102000 Iteration 2341: max relative diff=1.443952, 4.90 sec so far
+Iteration 4328: max relative diff=0.353268, 9.90 sec so far
+Iteration 6614: max relative diff=0.069927, 14.90 sec so far
+Iteration 9150: max relative diff=0.011595, 19.90 sec so far
+Iteration 11610: max relative diff=0.002029, 24.91 sec so far
+Iteration 14162: max relative diff=0.000333, 29.91 sec so far
+Iteration 16663: max relative diff=0.000057, 34.91 sec so far
+Iteration 19153: max relative diff=0.000010, 39.91 sec so far
+Iteration 21714: max relative diff=0.000002, 44.91 sec so far
+
+First round (updates from below) finished after 22358 iters.
+Correctness of the approximated above vector satisfied after 1 iterations.
+Iteration 23854: max relative diff=0.262935, 49.91 sec so far
+Iteration 25905: max relative diff=0.061679, 54.91 sec so far
+Iteration 27977: max relative diff=0.014254, 59.91 sec so far
+Iteration 29988: max relative diff=0.003439, 64.92 sec so far
+Iteration 32068: max relative diff=0.000790, 69.92 sec so far
+Iteration 34121: max relative diff=0.000185, 74.92 sec so far
+Iteration 36147: max relative diff=0.000044, 79.92 sec so far
+Iteration 38233: max relative diff=0.000010, 84.92 sec so far
+Iteration 40259: max relative diff=0.000002, 89.93 sec so far
+
+Second round (updates from above) finished after 41506 iters.
+Update from both sides... 
+Iteration 42322: max relative diff=0.001585, 94.93 sec so far
+Iteration 44450: max relative diff=0.000352, 99.93 sec so far
+Iteration 46452: max relative diff=0.000085, 104.93 sec so far
+Iteration 48128: max relative diff=0.000026, 109.93 sec so far
+Iteration 50055: max relative diff=0.000007, 114.93 sec so far
+Iteration 52182: max relative diff=0.000001, 119.94 sec so far
+Max relative diff between upper and lower bound on convergence: 0
+
+Number of iterations for the lower bound = 33585
+
+Iterative method: 52733 iterations in 121.21 seconds (average 0.002299, setup 0.09)
+Maximum finite value in solution vector at end of interval iteration: 10451.000000005044
+
+Value in the initial state: 10443.000000005044
+
+Time for model checking: 121.933 seconds.
+
+Result: 10443.000000005044 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 2 warnings during computation.
+

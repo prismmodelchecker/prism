@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 
 import parser.State;
 import parser.Values;
+import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import explicit.rewards.MCRewards;
@@ -87,6 +88,11 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	}
 	
 	// Accessors (for Model)
+
+	public ModelType getModelType()
+	{
+		return ModelType.DTMC;
+	}
 
 	public int getNumStates()
 	{
@@ -158,12 +164,6 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 		return ctmc.getNumTransitions() + numExtraTransitions;
 	}
 
-	public int getNumTransitions(int s)
-	{
-		// TODO
-		throw new RuntimeException("Not implemented yet");
-	}
-
 	public SuccessorsIterator getSuccessors(final int s)
 	{
 		// TODO
@@ -210,6 +210,12 @@ public class DTMCUniformisedSimple extends DTMCExplicit
 	}
 
 	// Accessors (for DTMC)
+
+	public int getNumTransitions(int s)
+	{
+		// TODO
+		throw new RuntimeException("Not implemented yet");
+	}
 
 	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
 	{

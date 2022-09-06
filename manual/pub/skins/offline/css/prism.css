@@ -8,7 +8,7 @@ body {
 /* Basic (2 column, liquid) layout */
 
 div#layout-maincontainer {
-	margin-left:200px;
+	margin-left:180px;
 }
 div#layout-main {
 	float:right;
@@ -16,7 +16,7 @@ div#layout-main {
 	margin:0 0 0 -180px;
 }
 div#layout-leftcol {
-	width:200px;
+	width:180px;
 	margin:0 0 0 0;
 }
 div#layout-footer {
@@ -27,7 +27,7 @@ div#layout-footer {
 
 #prism-banner {
 	width:100%;
-	height:120px;
+	height:80px;
 	margin:0;
 	padding:0;
 	border:0;
@@ -39,7 +39,7 @@ div#layout-footer {
 	top:0;
 	left:0;
 	width:50%;
-	height:120px;
+	height:80px;
 	margin:0;
 	background-color:#272582; /* Left blue */
 }
@@ -48,7 +48,7 @@ div#layout-footer {
 	top:0;
 	right:0;
 	width:50%;
-	height:120px;
+	height:80px;
 	margin:0;
 	background-color:#6260c1; /* Right blue */
 }
@@ -57,9 +57,9 @@ div#layout-footer {
 	top:0;
 	left:0;
 	width:75px;
-	height:80px;
+	height:60px;
 	margin:0;
-	padding:30px 0 10px 25px;
+	padding:10px 0 10px 25px;
 	text-align:left;
 	background-color:#272582; /* Left blue */
 }
@@ -68,37 +68,31 @@ div#layout-footer {
 	top:0;
 	left:0;
 	width:100%;
-	height:120px;
+	height:80px;
 	margin:0;
 	padding:0;
 	text-align:center;
 }
 #prism-bannerurl img {
 	margin:0 100px 0 0; /* Centre URL but allow for fact RHS is wider */
-	height:120px;
-	width:auto;
 }
 #prism-bannerright {
-	height:120px;
+	height:80px;
 	background-color:#333173;
 }
 #prism-searchbox {
 	position:absolute;
-	top:40px;
+	top:28px;
 	right:20px;
-	text-align:center;
+	text-align:right;
 }
 #prism-searchbox #q {
-	display:block;
-	margin:0 0 5px 0;
 	background:#d9dbe1;
 	border:1px solid #9097a2;
 	padding:2px;
 	width:100px;
 }
 #prism-searchbox #submit {
-	display:block;
-	margin:auto;
 	background:#6A7389 none repeat scroll 0%;
 	border-color:#9097a2 #283043 #283043 #9097a2;
 	border-style:solid;
@@ -115,7 +109,7 @@ div#layout-footer {
 	border:solid #777777;
 	border-width:0 0 1px 0;
 	background:#999999 url('http://www.prismmodelchecker.org/manual/pub/skins/offline/images/nav_top.png') 0 0 repeat-x;
-/* 	font-weight:bold; */
+	font-weight:bold;
 	text-align:center;
 }
 
@@ -236,11 +230,11 @@ li.prism-navsubitemsel > a:active { color:white; text-decoration:none; }
 
 #prism-navbar2 {
 	padding:5px 20px 250px 20px;
-	background:#eeeeee url('../images/trinity.png') 0 0 no-repeat;
+	background:#eeeeee url('http://www.prismmodelchecker.org/manual/pub/skins/offline/images/trinity.png') 0 0 no-repeat;
 	color:#333333;
-	font-size:100%;
 }
 #prism-navbar2 a {
+	font-size:10pt;
 	color:#333333;
 }
 #prism-navbar2 .selflink {
@@ -249,23 +243,27 @@ li.prism-navsubitemsel > a:active { color:white; text-decoration:none; }
 }
 #prism-navbar2 h1, #prism-navbar2 h1 a {
 	margin-bottom:0.3em;
+	font-size:13pt;
 }
 #prism-navbar2 h3, #prism-navbar2 h3 a {
 	margin-bottom:0.3em;
+	font-size:11pt;
 }
 #prism-navbar2 ul {
 	margin-left:0.8em;
 	padding-left:0.8em;
 }
 #prism-navbar2 li {
-	list-style-image:url('../images/hyphen.png');
+	list-style-image:url('http://www.prismmodelchecker.org/manual/pub/skins/offline/images/hyphen.png');
 	margin-bottom:0.4em;
 }
 #prism-navbar2 .prism-newsitem {
 	margin-top:10px;
 	margin-left:5px;
+	font-size:9pt;
 }
 #prism-navbar2 .prism-newsitem a {
+	font-size:9pt;
 	color:blue;
 }
 #prism-navbar2 hr {
@@ -283,7 +281,7 @@ li.prism-navsubitemsel > a:active { color:white; text-decoration:none; }
 	/*background:#eeeeee url('../images/trinity.png') 0 0 no-repeat;*/
 	border:solid #777777 1px;
 	border-radius:7px;
-	font-size:80%;
+	font-size:9pt;
 	box-shadow:2px 2px 2px rgba(150,150,150,0.5);
 }
 
@@ -292,19 +290,22 @@ li.prism-navsubitemsel > a:active { color:white; text-decoration:none; }
 	border-radius:6px 6px 0 0;
 	color:#ffffff;
 	padding:6px;
-	font-size:110%;
+	font-size:11pt;
 	font-weight:bold;
 }
 
 #prism-advertheader a {
+	font-size:11pt;
 	color:#ffffff;
 }
 
 #prism-advertbox {
 	padding:6px;
+	font-size:9pt;
 }
 
 #prism-advertbox p, #prism-advertbox a {
+	font-size:9pt;
 }
 
 /* Footer */
@@ -393,17 +394,17 @@ img.prism-image {
 ul.prism-list0 {
 }
 ul.prism-list0 li {
-	list-style-image:url('../images/bullet0.png');
+	list-style-image:url('http://www.prismmodelchecker.org/manual/pub/skins/offline/images/bullet0.png');
 }
 ul, ul.prism-list {
 }
 ul li, ul.prism-list li {
-	list-style-image:url('../images/bullet.png');
+	list-style-image:url('http://www.prismmodelchecker.org/manual/pub/skins/offline/images/bullet.png');
 }
 ul.prism-list2, ul ul {
 }
 ul.prism-list2 li, li li {
-	list-style-image:url('../images/bullet2.png');
+	list-style-image:url('http://www.prismmodelchecker.org/manual/pub/skins/offline/images/bullet2.png');
 }
 
 ul.spacedout li {
@@ -425,7 +426,6 @@ ul.spacedout li {
 	width:90%; /* Need a width or else IE6 gets upset */
 	overflow:auto;
 	box-shadow:2px 2px 2px rgba(150,150,150,0.5);
-	font-size:90%;
 }
 .prism-citeboxheader {
 	background-color:#ffebcd;
@@ -438,11 +438,6 @@ ul.spacedout li {
 	padding:10px;
 	width:90%; /* Need a width or else IE6 gets upset */
 	overflow:auto;
-}
-.prism-code-caption {
-	margin-top:5px;
-	text-align:center;
-/* 	font-weight:bold; */
 }
 .prism-code-scroll {
 	background-color:#ffffcc;

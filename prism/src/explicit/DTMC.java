@@ -26,17 +26,14 @@
 
 package explicit;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
-import common.iterable.PrimitiveIterable;
-import common.iterable.Reducible;
-import prism.*;
-import explicit.graphviz.Decorator;
+import common.iterable.IterableInt;
+import prism.Pair;
+import prism.PrismException;
 import explicit.rewards.MCRewards;
 
 /**
@@ -44,118 +41,11 @@ import explicit.rewards.MCRewards;
  */
 public interface DTMC extends Model
 {
-	// Accessors (for Model) - default implementations
-	
-	@Override
-	default ModelType getModelType()
-	{
-		return ModelType.DTMC;
-	}
+	/**
+	 * Get the number of transitions from state s.
+	 */
+	public int getNumTransitions(int s);
 
-	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Pair<Double, Object>> sorted = new TreeMap<Integer, Pair<Double, Object>>();
-		for (int i = 0; i < numStates; i++) {
-			// Extract transitions and sort by destination state index (to match PRISM-exported files)
-			Iterator<Map.Entry<Integer,Pair<Double, Object>>> iter = getTransitionsAndActionsIterator(i);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Pair<Double, Object>> e = iter.next();
-				sorted.put(e.getKey(), e.getValue());
-			}
-			// Print out (sorted) transitions
-			for (Map.Entry<Integer, Pair<Double, Object>> e : sorted.entrySet()) {
-				// Note use of PrismUtils.formatDouble to match PRISM-exported files
-				out.print(i + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue().first));
-				Object action = e.getValue().second; 
-				if (action != null && !"".equals(action)) {
-					out.print(" " + action);
-				}
-				out.print("\n");
-			}
-			sorted.clear();
-		}
-	}
-
-	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
-	{
-		// Iterate through outgoing transitions for this state
-		Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i);
-		while (iter.hasNext()) {
-			Map.Entry<Integer, Double> e = iter.next();
-			// Print a new dot file line for the arrow for this transition
-			out.print(i + " -> " + e.getKey());
-			// Annotate this arrow with the probability 
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.setLabel(PrismUtils.formatDouble(precision, e.getValue()));
-			// Apply any other decorators requested
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateProbability(i, e.getKey(), e.getValue(), d);
-				}
-			}
-			// Append to the dot file line for this transition
-			out.println(" " + d.toString() + ";");
-		}
-	}
-
-	@Override
-	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
-	{
-		try (FileWriter out = new FileWriter(filename)) {
-			out.write(getModelType().keyword() + "\n");
-			out.write("module M\nx : [0.." + (getNumStates() - 1) + "];\n");
-			final TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
-			for (int state = 0, max = getNumStates(); state < max; state++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state); transitions.hasNext();) {
-					final Entry<Integer, Double> transition = transitions.next();
-					sorted.put(transition.getKey(), transition.getValue());
-				}
-				// Print out (sorted) transitions
-				out.write("[]x=" + state + "->");
-				boolean first = true;
-				for (Entry<Integer, Double> transition : sorted.entrySet()) {
-					if (first)
-						first = false;
-					else
-						out.write("+");
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.write(PrismUtils.formatDouble(precision, transition.getValue()) + ":(x'=" + transition.getKey() + ")");
-				}
-				out.write(";\n");
-				sorted.clear();
-			}
-			out.write("endmodule\n");
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
-	}
-
-	@Override
-	default String infoString()
-	{
-		String s = "";
-		s += getNumStates() + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		return s;
-	}
-
-	@Override
-	default String infoStringTable()
-	{
-		String s = "";
-		s += "States:      " + getNumStates() + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		return s;
-	}
-
-	// Accessors
-	
 	/**
 	 * Get an iterator over the transitions from state s.
 	 */
@@ -164,23 +54,7 @@ public interface DTMC extends Model
 	/**
 	 * Get an iterator over the transitions from state s, with their attached actions if present.
 	 */
-	public default Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
-	{
-		// Default implementation just adds null actions
-		final Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(s);
-		return Reducible.extend(transitions).map(transition -> attachAction(transition, null));
-	}
-
-	/**
-	 * Attach an action to a transition, assuming iterators as used in
-	 * {@link #getTransitionsIterator(int)} and {@link #getTransitionsAndActionsIterator(int)}
-	 */
-	public static Entry<Integer, Pair<Double, Object>> attachAction(final Entry<Integer, Double> transition, final Object action)
-	{
-		final Integer state = transition.getKey();
-		final Double probability = transition.getValue();
-		return new AbstractMap.SimpleImmutableEntry<>(state, new Pair<>(probability, action));
-	}
+	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s);
 
 	/**
 	 * Functional interface for a consumer,
@@ -235,7 +109,7 @@ public interface DTMC extends Model
 	 * Return sum_t f(s, t, P(s,t)), where t ranges over the successors of s.
 	 *
 	 * @param s the state s
-	 * @param f the consumer
+	 * @param c the consumer
 	 */
 	public default double sumOverTransitions(final int s, final TransitionToDoubleFunction f)
 	{
@@ -252,6 +126,23 @@ public interface DTMC extends Model
 		forEachTransition(s, sum::accept);
 
 		return sum.sum;
+	}
+
+	/**
+	 * Get the number of transitions leaving a set of states.
+	 * <br>
+	 * Default implementation: Iterator over the states and sum the result of getNumTransitions(s).
+	 * @param states The set of states, specified by a OfInt iterator
+	 * @return the number of transitions
+	 */
+	public default long getNumTransitions(PrimitiveIterator.OfInt states)
+	{
+		long count = 0;
+		while (states.hasNext()) {
+			int s = states.nextInt();
+			count += getNumTransitions(s);
+		}
+		return count;
 	}
 
 	/**
@@ -736,7 +627,7 @@ public interface DTMC extends Model
 	 * @param deltaT deltaT conditioning factor
 	 * @param states subset of states to consider
 	 */
-	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, PrimitiveIterable.OfInt states)
+	public default void vmMultPowerSteadyState(double vect[], double[] result, double[] diagsQ, double deltaT, IterableInt states)
 	{
 		// Recall that the generator matrix Q has entries
 		//       Q(s,s) = -sum_{t!=s} prob(s,t)

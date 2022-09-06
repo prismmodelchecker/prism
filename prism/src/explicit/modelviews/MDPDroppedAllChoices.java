@@ -147,7 +147,7 @@ public class MDPDroppedAllChoices extends MDPView
 	@Override
 	public Iterator<Integer> getSuccessorsIterator(final int state)
 	{
-		return states.get(state) ? EmptyIterator.of() : model.getSuccessorsIterator(state);
+		return states.get(state) ? EmptyIterator.Of() : model.getSuccessorsIterator(state);
 	}
 
 
@@ -167,6 +167,12 @@ public class MDPDroppedAllChoices extends MDPView
 			throw new IndexOutOfBoundsException("choice index out of bounds");
 		}
 		return model.getAction(state, choice);
+	}
+
+	@Override
+	public boolean areAllChoiceActionsUnique()
+	{
+		return model.areAllChoiceActionsUnique() ? true : super.areAllChoiceActionsUnique();
 	}
 
 	@Override

@@ -194,8 +194,8 @@ In short, to run the PRISM GUI:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">xprism example.prism</span><br/>
-<span style="font-weight:bold;">xprism example.prism example.props</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">xprism model.sm</span><br/>
+<span style="font-weight:bold;">xprism model.sm some-props.csl</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
@@ -204,20 +204,9 @@ In short, to run the PRISM GUI:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism example.prism example.props -prop 2</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.sm some-props.csl -prop 2</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>The <code>-dir</code> switch can be used to specify a directory for input (and output) files.
-So the following are equivalent:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock3'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism ~/myfiles/example.prism ~/myfiles/example.props</span><br/>
-<span style="font-weight:bold;">prism -dir ~/myfiles example.prism example.props</span><br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The remainder of this section of the manual describes the main types of functionality offered by PRISM.
@@ -236,17 +225,17 @@ the rest are in subdirectories grouped by model type.
 <p class='vspace'>The model will then be displayed in the editor in the "Model" tab of the GUI window. The file is parsed upon loading. If there are no errors, information about the modules, variables, and other components of the model is displayed in the panel to the left and a green tick will be visible. If there are errors in the file, a red cross will appear instead and the errors will be highlighted in the model editor. To view details of the error, position the mouse pointer over the source of the error (or over the red cross). Alternatively, select menu option "Model | Parse Model" and the error mIessage will be displayed in a message box. Model descriptions can, of course, also be typed from scratch into the GUI's editor.
 </p>
 <div class='vspace'></div><h3>Building the model</h3>
-<p>In order to perform model checking, PRISM will (in most cases) need to construct the corresponding probabilistic model, i.e. convert the PRISM model description to, for example, an MDP, DTMC, etc. During this process, PRISM computes the set of states in the model which are reachable from the initial states and the transition matrix which represents the model.
+<p>In order to perform model checking, PRISM will (in most cases) need to construct the corresponding probabilistic model, i.e. convert the PRISM model description to, for example, an MDP, DTMC or CTMC. During this process, PRISM computes the set of states in the model which are reachable from the initial states and the transition matrix which represents the model.
 </p>
 <p class='vspace'>Model construction is done automatically when you perform <a class='wikilink' href='ModelChecking.html'>model checking</a>. However, you may always want to explicitly ask PRISM to build the model in order to test for errors or to see how large the model is. From the GUI, you can do this by by selecting "Model | Build Model". If there are no errors during model construction, the number of states and transitions in the model will be displayed in the bottom left corner of the window.
 </p>
 <p class='vspace'>From the command-line, simply type:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock4'>
+<div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.nm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>model.nm</code> is the name of the file containing the model description.
@@ -269,10 +258,10 @@ PRISM will display a warning message in the log when deadlocks are fixed in this
 <p class='vspace'>To find out <em>how</em> deadlocks occur, i.e. which paths through the model lead to a deadlock state, there are several possibilities. Firstly, you can model check the <a class='wikilink' href='../PropertySpecification/Non-probabilisticProperties.html'>CTL</a> property <code>E[F "deadlock"]</code>. When checked from the GUI, this will provide you with the option of display a path to a deadlock in the simulator. From the command-line, for example with:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
+<div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism dice.pm -pf 'E[F "deadlock"]'</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>a path to a deadlock will be displayed in the log.
@@ -280,10 +269,10 @@ PRISM will display a warning message in the log when deadlocks are fixed in this
 <p class='vspace'>Finally, in the eventuality that the model is too large to be model checked, you can still use the <a class='wikilink' href='DebuggingModelsWithTheSimulator.html'>simulator</a> to search for deadlocks. This can be done either by manually generating random paths using the <a class='wikilink' href='DebuggingModelsWithTheSimulator.html#gui'>simulator in the GUI</a> or, <a class='wikilink' href='DebuggingModelsWithTheSimulator.html#cl'>from the command-line</a>, e.g. by running:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock6'>
+<div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism dice.pm -simpath deadlock stdout</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <hr />
@@ -329,12 +318,12 @@ state but also the time spent in that state and any rewards accumulated there. Y
 <p>It is also possible to generate random paths through a model using the command-line version of PRISM. This is achieved using the <code>-simpath</code> switch, which requires two arguments, the first describing the path to be generated and the second specifying the file to which the path should be output (as usual, specifying <code>stdout</code> sends output to the terminal). The following examples illustrate the various ways of generating paths in this way:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock7'>
+<div class='sourceblock ' id='sourceblock6'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm -simpath 10 path.txt</span><br/>
 <span style="font-weight:bold;">prism model.pm -simpath time=7.5 path.txt</span><br/>
 <span style="font-weight:bold;">prism model.pm -simpath deadlock path.txt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>These generate a path of 10 steps, a path of at least 7.5 time units and a path ending in deadlock, respectively.
@@ -342,7 +331,7 @@ state but also the time spent in that state and any rewards accumulated there. Y
 <p class='vspace'>Here's an example of the output:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock8'>
+<div class='sourceblock ' id='sourceblock7'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath 10 stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">action step time s a s1 s2</span><br/>
@@ -358,7 +347,7 @@ state but also the time spent in that state and any rewards accumulated there. Y
 <span style="font-style:italic;">[loop1a] 9 0.04934857366557349 2 0 0 0</span><br/>
 <span style="font-style:italic;">[loop2a] 10 0.055031679365844674 1 0 0 0</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This shows the sequence of states in the path, i.e. the values of the variables in each state. In the example above, there are 4 variables: <code>s</code>, <code>a</code>, <code>s1</code> and <code>s2</code>.
@@ -367,7 +356,7 @@ The first three columns show the type of transition taken to reach that state, i
 <p class='vspace'>Further options can also be appended to the first parameter. For example, option <code>probs=true</code> also displays the probability/rate associated with each transition. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock9'>
+<div class='sourceblock ' id='sourceblock8'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath '5,probs=true' stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">action probability step time s a s1 s2</span><br/>
@@ -378,7 +367,7 @@ The first three columns show the type of transition taken to reach that state, i
 <span style="font-style:italic;">[loop2a] 200.0 4 0.023258883912578403 1 0 0 0</span><br/>
 <span style="font-style:italic;">[loop1a] 200.0 5 0.027402404026254504 2 0 0 0</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In this example, the rate is 200.0 for all transitions.
@@ -387,7 +376,7 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <p class='vspace'>If you are only interested in values of certain variables of your model, use the <code>vars=(...)</code> option. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock10'>
+<div class='sourceblock ' id='sourceblock9'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath '500,probs=true,vars=(a,s1,s2)' stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">action probability step time a s1 s2</span><br/>
@@ -405,7 +394,7 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <span style="font-style:italic;">[loop2b] 200.0 251 3.637552738997181 1 0 1</span><br/>
 <span style="font-style:italic;">[serve2] 1.0 252 3.7343375346150576 0 0 0</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Note the use of single quotes around the path description argument to prevent the shell from misinterpreting special characters such as "<code>(</code>".
@@ -415,7 +404,7 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <p class='vspace'>An alternative way of viewing paths is to only display paths at certain fixed points in time. This is achieved with the <code>snapshot=x</code> option, where <code>x</code> is the time step. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock11'>
+<div class='sourceblock ' id='sourceblock10'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath 'time=5.0,snapshot=0.5' stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">step time s a s1 s2</span><br/>
@@ -431,13 +420,13 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <span style="font-style:italic;">478 4.5 1 0 0 0</span><br/>
 <span style="font-style:italic;">511 5.0 2 0 0 0</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can also use the <code>sep=...</code> option to specify the column separator. Possible values are <code>space</code> (the default), <code>tab</code> and <code>comma</code>. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock12'>
+<div class='sourceblock ' id='sourceblock11'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -simpath '10,vars=(a,b),sep=comma' stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">step,a,b,time</span><br/>
@@ -448,22 +437,22 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <span style="font-style:italic;">7,1,3,0.284062896359802</span><br/>
 <span style="font-style:italic;">8,1,4,1.1792064236954896</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>When generating paths to a deadlock state, additional <code>repeat=...</code> option is available which will construct multiple paths until a deadlock is found. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock13'>
+<div class='sourceblock ' id='sourceblock12'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.sm -simpath 'deadlock,repeat=100' stdout</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>By default, the simulator detects deterministic loops in paths (e.g. if a path reaches a state from which there is a just a single self-loop leaving that state) and stops generating the path any further. You can disable this behaviour with the <code>loopcheck=false</code> option. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock14'>
+<div class='sourceblock ' id='sourceblock13'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism dice.pm -simpath 10 stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">Warning: Deterministic loop detected after 6 steps (use loopcheck=false option to extend path).</span><br/>
@@ -474,11 +463,11 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <span style="font-style:italic;">die 3 7 3</span><br/>
 <span style="font-style:italic;">die 4 7 3</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=14' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock15'>
+<div class='sourceblock ' id='sourceblock14'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism dice.pm -simpath 10,loopcheck=false stdout</span><br/>
 <span style="font-style:italic;">...</span><br/>
 <span style="font-style:italic;">action step s d</span><br/>
@@ -494,7 +483,7 @@ To show the state/transition rewards for each step, use option <code>rewards=tru
 <span style="font-style:italic;">die 9 7 2</span><br/>
 <span style="font-style:italic;">die 10 7 2</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=15' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=14' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>One final note: the <code>-simpath</code> switch only generates paths up to the maximum path length setting of the simulator (the default is 10,000). If you want to generate longer paths, either change the
@@ -504,10 +493,10 @@ e.g. to look for a path leading to a deadlock state,
 but only within 100 steps:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock16'>
+<div class='sourceblock ' id='sourceblock15'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.sm -simpath deadlock stdout -simpathlen 100</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=16' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=15' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <hr />
@@ -538,20 +527,20 @@ but only within 100 steps:
 <p class='vspace'>The export command-line switches can be used in combination. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock17'>
+<div class='sourceblock ' id='sourceblock16'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportstates poll2.sta -exporttrans poll2.tra</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=17' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=16' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>exports both the state space and transition matrix. You can export both state and transition rewards using the <code>-exportrewards</code> switch. The following are equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock18'>
+<div class='sourceblock ' id='sourceblock17'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportrewards poll2.rews poll2.rewt</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -exportstaterewards poll2.rews -exporttransrewards poll2.rewt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=18' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=17' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>When there are multiple reward structures, a separate file is created for each one and a (1-indexed) suffix is added to distinguish them.
@@ -559,19 +548,19 @@ but only within 100 steps:
 <p class='vspace'>You can also easily perform multiple exports simultaneously using the <code>-exportmodel</code> switch, which specifies multiple files using a list of extensions. The file extensions then dictate what is exported. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock19'>
+<div class='sourceblock ' id='sourceblock18'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel out.tra,sta</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=19' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=18' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>exports the transition matrix and states list to <code>out.tra</code> and <code>out.sta</code>, respectively. If you omit the file basename (<code>out</code> in this case), then the basename of the model file (<code>poll2</code> in this case) is used. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock20'>
+<div class='sourceblock ' id='sourceblock19'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel .tra,sta</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=20' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=19' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>exports the transition matrix and states list to <code>poll2.tra</code> and <code>poll2.sta</code>.
@@ -585,11 +574,11 @@ but only within 100 steps:
 You can use the shorthand <code>.all</code> to export everything, and <code>.rew</code> to export both state and transition rewards. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock21'>
+<div class='sourceblock ' id='sourceblock20'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel out.all</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -exportmodel .all</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=21' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=20' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>creates multiple files of the form <code>out.*</code> or <code>poll2.*</code>, respectively.
@@ -597,10 +586,10 @@ You can use the shorthand <code>.all</code> to export everything, and <code>.rew
 <p class='vspace'>As mentioned above, you can always use <code>stdout</code> instead of a filename. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock22'>
+<div class='sourceblock ' id='sourceblock21'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel stdout.all</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=22' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=21' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>is a quick way to print all details (of a small model) to the terminal.
@@ -609,10 +598,10 @@ You can use the shorthand <code>.all</code> to export everything, and <code>.rew
 in <a class='urllink' href='http://www.graphviz.org'>Dot</a> format which allows easy graphical visualisation of the model:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock23'>
+<div class='sourceblock ' id='sourceblock22'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel poll2.dot</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=23' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=22' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Finally, the <code>-exportmodel</code> switch can be passed various options. The general form is <code>-exportmodel files:options</code> where <code>options</code> is a comma-separated list of options taken from the following list:
@@ -625,10 +614,10 @@ in <a class='urllink' href='http://www.graphviz.org'>Dot</a> format which allows
 </li></ul><p class='vspace'>An example is:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock24'>
+<div class='sourceblock ' id='sourceblock23'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel out.tra,out.trew:matlab,unordered</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=24' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=23' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The meaning of these options is described below.
@@ -676,10 +665,10 @@ You can optionally request that state descriptions are added to each state of gr
 </li></ul><p class='vspace'>As mentioned above, for the latter, the following is equivalent (and easier to remember):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock25'>
+<div class='sourceblock ' id='sourceblock24'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportmodel poll2.dot</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=25' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=24' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><a name='scc' id='scc'></a>
@@ -687,20 +676,20 @@ You can optionally request that state descriptions are added to each state of gr
 <p>It is also possible to export the set of (bottom) strongly connected components (SCCs or BSCCs) for a model. This can only be done from the command-line currently. Use, for example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock26'>
+<div class='sourceblock ' id='sourceblock25'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exportsccs stdout</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -exportbsccs stdout</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=26' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=25' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For an MDP, you can also export the set of maximal end components (MECs):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock27'>
+<div class='sourceblock ' id='sourceblock26'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.nm -exportmecs stdout</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=27' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=26' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
@@ -735,10 +724,10 @@ In addition, this and further information about model checking is displayed in t
 <p>From the command-line, model checking is achieved by passing both a model file and a properties file as arguments, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock28'>
+<div class='sourceblock ' id='sourceblock27'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm poll.csl</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=28' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=27' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The results of model checking are sent to the display and are as described above for the GUI version.
@@ -747,38 +736,38 @@ To model check only a single property, use the <code>-prop</code> switch.
 For example, to check only the fourth property in the file:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock29'>
+<div class='sourceblock ' id='sourceblock28'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm poll.csl -prop 4</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=29' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=28' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>or to check only the property with <a class='wikilink' href='../PropertySpecification/PropertiesFiles.html#names'>name</a> "safe" in the file:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock30'>
+<div class='sourceblock ' id='sourceblock29'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm poll.csl -prop safe</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=30' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=29' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can also provide a comma-separated list of multiple properties to check,
 using neither numerical indices or property names:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock31'>
+<div class='sourceblock ' id='sourceblock30'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm poll.csl -prop 4,5,safe</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=31' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=30' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Alternatively, the contents of a properties file can be specified directly from the command-line, using the <code>-pf</code> switch:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock32'>
+<div class='sourceblock ' id='sourceblock31'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -pf 'P&gt;=0.5 [ true U&lt;=5 (s=1 &amp; a=0) ]'</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=32' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=31' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The switches <code>-pctl</code> and <code>-csl</code> are aliases for <code>-pf</code>.
@@ -868,10 +857,10 @@ If, for a given property, statistical model checking results in one or more path
 <p>Statistical model checking can also be enabled from the command-line version of PRISM, by including the <code>-sim</code> switch. The default methods used are CI (Confidence Interval) for "quantitative" properties and SPRT (Sequential Probability Ratio Test) for "bounded" properties. To select a particular method, use switch <code>-simmethod &lt;method&gt;</code> where <code>&lt;method&gt;</code> is one of <code>ci</code>, <code>aci</code>, <code>apmc</code> and <code>sprt</code>. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock33'>
+<div class='sourceblock ' id='sourceblock32'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism model.pm model.pctl -prop 1 -sim -simmethod aci</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=33' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=32' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>PRISM has default values for the various simulation method parameters, but these can also be specified using the switches <code>-simsamples</code>, <code>-simconf</code>, <code>-simwidth</code> and <code>-simapprox</code>. The exact meaning of these switches for each simulation method is given in the table below.
@@ -900,19 +889,19 @@ time value for which you wish to compute probabilities.
 From the command-line, add the <code>-steadystate</code> (or <code>-ss</code>) switch:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock34'>
+<div class='sourceblock ' id='sourceblock33'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -ss</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=34' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=33' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>for steady-state probabilities or the <code>-transient</code> (or <code>-tr</code>) switch:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock35'>
+<div class='sourceblock ' id='sourceblock34'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 2.0</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=35' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=34' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>for transient probabilities, again specifying a time value in the latter case.
@@ -922,11 +911,11 @@ either on the screen (from the command-line) or in the log (from the GUI).
 <p class='vspace'>To instead export the vector of computed probabilities to a file, use the "Model | Compute/export" option from the GUI, or the <code>-exportsteadystate</code> (or <code>-exportss</code>) and <code>-exporttransient</code> (or <code>-exporttr</code>) switches from the command-line:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock36'>
+<div class='sourceblock ' id='sourceblock35'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -ss -exportss poll2-ss.txt</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 2.0 -exporttr poll2-tr2.txt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=36' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=35' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>From the command-line, you can request that the probability vectors exported are in Matlab format by adding the <code>-exportmatlab</code> switch.
@@ -938,30 +927,30 @@ an equiprobable choice over the set of initial states.
 You can override this and provide a specific initial distribution. This is done using the <code>-importinitdist</code> switch. The format for this imported distribution is identical to the ones exported by PRISM, i.e. simply a list of probabilities for all states separated by new lines. For example, this:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock37'>
+<div class='sourceblock ' id='sourceblock36'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 1.0 -exporttr poll2-tr1.txt</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1.0 -importinitdist poll2-tr1.txt -exporttr poll2-tr2.txt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=37' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=36' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>is (essentially) equivalent to this:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock38'>
+<div class='sourceblock ' id='sourceblock37'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 2.0 -exporttr poll2-tr2.txt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=38' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=37' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><h3>Ranges of time values</h3>
 <p>Finally, you can compute transient probabilities for a range of time values, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock39'>
+<div class='sourceblock ' id='sourceblock38'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 0.1:0.01:0.2</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=39' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=38' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which computes transient probabilities for the time points 0.1, 0.11, 0.12, .., 0.2. In this case, the computation is done incrementally, with probabilities for each time point being computed from the previous point for efficiency.
@@ -971,30 +960,30 @@ You can override this and provide a specific initial distribution. This is done 
 This is done by leaving one or more <a class='wikilink' href='../ThePRISMLanguage/Constants.html'>constants</a> undefined, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock40'>
+<div class='sourceblock ' id='sourceblock39'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">N</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=40' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=39' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This can be done for constants in the model file, the properties file, or both.
 Before any verification can be performed, values must be provided for any such constants. In the GUI, a dialog appears in which the user is required to enter values. From the command line, the <code>-const</code> switch must be used, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock41'>
+<div class='sourceblock ' id='sourceblock40'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4,T=85.9</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=41' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=40' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>To run an experiment, provide a <em>range</em> of values for one or more of the constants. Model checking will be performed for all combinations of the constant values provided. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock42'>
+<div class='sourceblock ' id='sourceblock41'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4:6,T=60:10:100</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=42' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=41' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>N=4:6</code> means that values of 4,5 and 6 are used for <code>N</code>,
@@ -1004,10 +993,10 @@ and <code>T=60:10:100</code> means that values of 60, 70, 80, 90 and 100 (i.e. s
 You can also specify double-valued constants as fractions rather than decimals. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock43'>
+<div class='sourceblock ' id='sourceblock42'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -const N=4,T=85.9 -const p=1/3</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=43' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=42' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>From the GUI, the same thing can be achieved by selecting a single property,
@@ -1041,19 +1030,19 @@ or as code which can be used to generate the graph in Matlab.
 <p>You can export all the results from an experiment to a file or to the screen. From the command-line, use the <code>-exportresults</code> switch, for example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock44'>
+<div class='sourceblock ' id='sourceblock43'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=44' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=43' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>to send to output file <code>res.txt</code>, or:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock45'>
+<div class='sourceblock ' id='sourceblock44'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults stdout</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=45' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=44' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>to send the results straight to the screen. From the GUI, right click on the experiment and select "Export results".
@@ -1061,7 +1050,7 @@ or as code which can be used to generate the graph in Matlab.
 <p class='vspace'>The default behaviour is to export a <em>list</em> of results in <em>text</em> form, using tabs to separate items. The above examples produce:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock46'>
+<div class='sourceblock ' id='sourceblock45'>
   <div class='sourceblocktext'><div class="text">N &nbsp; &nbsp; &nbsp; T &nbsp; &nbsp; &nbsp; Result<br />
 4 &nbsp; &nbsp; &nbsp; 0 &nbsp; &nbsp; &nbsp; 0.0<br />
 4 &nbsp; &nbsp; &nbsp; 10&nbsp; &nbsp; &nbsp; 4.707364688019771E-6<br />
@@ -1069,20 +1058,20 @@ or as code which can be used to generate the graph in Matlab.
 5 &nbsp; &nbsp; &nbsp; 0 &nbsp; &nbsp; &nbsp; 0.0<br />
 5 &nbsp; &nbsp; &nbsp; 10&nbsp; &nbsp; &nbsp; 3.267731327728599E-6<br />
 5 &nbsp; &nbsp; &nbsp; 20&nbsp; &nbsp; &nbsp; 8.343575060356386E-6</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=46' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=45' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can change the format in which the results are exported by appending one or more comma-separated options to the end of the <code>-exportresults</code> switch, for example to export in CSV (comma-separated values) format:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock47'>
+<div class='sourceblock ' id='sourceblock46'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=47' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=46' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock48'>
+<div class='sourceblock ' id='sourceblock47'>
   <div class='sourceblocktext'><div class="text">N, T, Result<br />
 4, 0, 0.0<br />
 4, 10, 4.707364688019771E-6<br />
@@ -1090,26 +1079,26 @@ or as code which can be used to generate the graph in Matlab.
 5, 0, 0.0<br />
 5, 10, 3.267731327728599E-6<br />
 5, 20, 8.343575060356386E-6</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=48' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=47' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can also add the <code>matrix</code> option, to export the results as one or more 2D matrices, rather than a list.
 This is particularly useful if you want to create a surface plot from results that vary over two constants.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock49'>
+<div class='sourceblock ' id='sourceblock48'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:csv,matrix</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=49' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=48' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock50'>
+<div class='sourceblock ' id='sourceblock49'>
   <div class='sourceblocktext'><div class="text">&quot;N\T&quot;<br />
 , 0.0, 10.0, 20.0<br />
 4, 0.0, 4.707364688019771E-6, 1.3126420636755292E-5<br />
 5, 0.0, 3.267731327728599E-6, 8.343575060356386E-6</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=50' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=49' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The <code>matrix</code> option is also available in normal (non-CSV) mode.
@@ -1117,14 +1106,14 @@ This is particularly useful if you want to create a surface plot from results th
 <p class='vspace'>Finally, you can export results in the form of comments, used by PRISM's  functionality:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock51'>
+<div class='sourceblock ' id='sourceblock50'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism cluster.sm cluster.csl -prop 4 -const N=4:5,T=0:10:20 -exportresults res.txt:comment</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=51' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=50' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock52'>
+<div class='sourceblock ' id='sourceblock51'>
   <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// RESULT (N=4,T=0): 0.0</span><br/>
 <span class="prismcomment">// RESULT (N=4,T=10): 4.707364688019771E-6</span><br/>
 <span class="prismcomment">// RESULT (N=4,T=20): 1.3126420636755292E-5</span><br/>
@@ -1132,7 +1121,7 @@ This is particularly useful if you want to create a surface plot from results th
 <span class="prismcomment">// RESULT (N=5,T=10): 3.267731327728599E-6</span><br/>
 <span class="prismcomment">// RESULT (N=5,T=20): 8.343575060356386E-6</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=52' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=51' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>A related option is the <code>-exportvector &lt;file&gt;</code> switch, useful in general contexts, not for experiments.
@@ -1144,10 +1133,10 @@ to the the file <code>file</code>.
 <p>When model checking some properties of MDPs, PRISM can also generate an <em>optimal adversary</em>, i.e. one which corresponds to either the minimum or maximum values of the probabilities or rewards computed during verification. Recall that, for MDPs, PRISM quantifies over all possible adversaries, i.e. all possible resolutions of nondeterminism in the model. A typical property would be:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock53'>
+<div class='sourceblock ' id='sourceblock52'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=53' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=52' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which computes the maximum probability, over all adversaries, of reaching a state satisfying the label <code>"error"</code>, from all states of the model. When under the control of a specific adversary, the behaviour of an MDP is purely probabilistic, yielding a single value (for each state) for the probability of reaching <code>"error"</code>. In addition to giving the maximum probability value(s), PRISM can produce an adversary of the MDP for which the probabilities (for each state) coincide with the maximum values.
@@ -1157,10 +1146,10 @@ to the the file <code>file</code>.
 <p class='vspace'>Currently, adversary generation is only implemented in the <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>sparse engine</a>, so you need to make sure this engine is enabled. From the command-line, you specify that an optimal adversary should be generated using the <code>-exportadv</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock54'>
+<div class='sourceblock ' id='sourceblock53'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism mdp.nm -pctl 'Pmax=? [ F "error" ]' -exportadv adv.tra -s</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=54' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=53' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>From the GUI, change the "Adversary export" option (under the "PRISM" settings) from "None" to "DTMC". You can also change the filename for the export adversary which, by default, is <code>adv.tra</code> as in the example above.
@@ -1207,7 +1196,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <p>An SBML file comprises a set of <em>species</em> and a set of <em>reactions</em> which they undergo. Below is the SBML file for the simple reversible reaction: <strong>Na + Cl &#8596; Na<sup>+</sup> + Cl<sup>-</sup></strong>, where there are initially 100 Na and Cl atoms and no ions, and the base rates for the forwards and backwards reactions are 100 and 10, respectively.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock55'>
+<div class='sourceblock ' id='sourceblock54'>
   <div class='sourceblocktext'><div class="xml"><span class="sc3"><span class="re1">&lt;?xml</span> <span class="re0">version</span>=<span class="st0">&quot;1.0&quot;</span> <span class="re0">encoding</span>=<span class="st0">&quot;UTF-8&quot;</span><span class="re2">?&gt;</span></span><br />
 <span class="sc3"><span class="re1">&lt;sbml</span> <span class="re0">xmlns</span>=<span class="st0">&quot;http://www.sbml.org/sbml/level2&quot;</span> <span class="re0">metaid</span>=<span class="st0">&quot;_000000&quot;</span> <span class="re0">level</span>=<span class="st0">&quot;2&quot;</span> <span class="re0">version</span>=<span class="st0">&quot;1&quot;</span><span class="re2">&gt;</span></span><br />
 &nbsp; <span class="sc3"><span class="re1">&lt;model</span> <span class="re0">id</span>=<span class="st0">&quot;nacl&quot;</span> <span class="re0">name</span>=<span class="st0">&quot;Na+Cl&quot;</span><span class="re2">&gt;</span></span><br />
@@ -1267,13 +1256,13 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <br />
 &nbsp; <span class="sc3"><span class="re1">&lt;/model<span class="re2">&gt;</span></span></span><br />
 <span class="sc3"><span class="re1">&lt;/sbml<span class="re2">&gt;</span></span></span></div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=55' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=54' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>And here is the resulting PRISM code:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock56'>
+<div class='sourceblock ' id='sourceblock55'>
   <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// File generated by automatic SBML-to-PRISM conversion</span><br/>
 <span class="prismcomment">// Original SBML file: nacl.xml</span><br/>
 <br/>
@@ -1360,7 +1349,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <span class="prismcomment">// 4</span><br/>
 <span class="prismkeyword">rewards</span> "<span class="prismident">cl_minus</span>" <span class="prismkeyword">true</span> : <span class="prismident">cl_minus</span>; <span class="prismkeyword">endrewards</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=56' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=55' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>From the latter, we can use PRISM to generate a simple plot of the expected amount of Na and Na+ over time (using both model checking and a single random trace from the simulator):
@@ -1371,11 +1360,11 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <p>At present, the SBML-to-PRISM translator is included in the PRISM code-base, but not integrated into the application itself.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock57'>
+<div class='sourceblock ' id='sourceblock56'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd prism</span><br/>
 <span style="font-weight:bold;">java -cp classes prism.SBML2Prism sbml_file.xml &gt; prism_file.sm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=57' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=56' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>If you are using a binary (rather than source code) distribution of PRISM, replace <code>classes</code> with <code>lib/prism.jar</code> in the above.
@@ -1383,7 +1372,7 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <p class='vspace'>Alternatively (on Linux or Mac OS X), ensure <code>prism</code> is in your path and then save the script below as an executable file called <code>sbml2prism</code>:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock58'>
+<div class='sourceblock ' id='sourceblock57'>
   <div class='sourceblocktext'><div class="bash"><span class="co0">#!/bin/sh</span><br />
 <br />
 <span class="co0"># Startup script for SBML-to-PRISM translator</span><br />
@@ -1392,28 +1381,28 @@ by selecting menu option "Model | View | Parsed PRISM model".
 <span class="re2">PRISM_MAINCLASS</span>=<span class="st0">&quot;prism.SBML2Prism&quot;</span><br />
 <span class="kw3">export</span> PRISM_MAINCLASS<br />
 prism <span class="st0">&quot;$@&quot;</span></div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=58' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=57' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Then use:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock59'>
+<div class='sourceblock ' id='sourceblock58'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">sbml2prism sbml_file.xml &gt; prism_file.sm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=59' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=58' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The following PRISM properties file will also be useful:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock60'>
+<div class='sourceblock ' id='sourceblock59'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">c</span>;<br/>
 <br/>
 <span class="prismkeyword">R</span>{<span class="prismident">c</span>}=? [<span class="prismkeyword">I</span>=<span class="prismident">T</span>]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=60' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=59' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This contains a single property which, based on the reward structures in the PRISM model generated by the translator, means "the expected amount of species <em>c</em> at time <em>T</em>". The constant <em>c</em> is an integer index which can range between 1 and <em>N</em>, where <em>N</em> is the number of species in the model. To view the expected amount of each species over time, create an <a class='wikilink' href='Experiments.html'>experiment</a> in PRISM which varies <em>c</em> from 1 to <em>N</em> and <em>T</em> over the desired time range.
@@ -1430,11 +1419,11 @@ prism <span class="st0">&quot;$@&quot;</span></div></div>
 <p class='vspace'>Furthermore, since PRISM is primarily a model checking (rather than simulation) tool, it is important that the amount of each species also has an upper bound (to ensure a finite state space). When model checking, the efficiency (or even feasibility) of the process is likely to be very sensitive to the upper bound(s) chosen. When using the discrete-event simulation functionality of PRISM, this is not the case and the bounds can can be set much higher. By default the translator uses an upper bound of 100 (which is increased if the initial amount exceeds this). A different value can specified through a second command-line argument as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock61'>
+<div class='sourceblock ' id='sourceblock60'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd prism</span><br/>
 <span style="font-weight:bold;">java -cp classes prism.SBML2Prism sbml_file.xml 1000 &gt; prism_file.sm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=61' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=60' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Alternatively, upper bounds can be modified manually after the translation process.
@@ -1454,10 +1443,10 @@ but if this does not work, the model type can be overwritten using the <code>-dt
 For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock62'>
+<div class='sourceblock ' id='sourceblock61'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=62' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=61' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Please note that this method of constructing models in PRISM is typically less efficient than using the PRISM language.
@@ -1470,20 +1459,20 @@ The following example shows how PRISM could be used to build, export and then re
 (not a good strategy in general):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock63'>
+<div class='sourceblock ' id='sourceblock62'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -exporttrans poll2.tra -exportstates poll2.sta</span><br/>
 <span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=63' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=62' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>You can also import label information using the switch <code>-importlabels</code>, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock64'>
+<div class='sourceblock ' id='sourceblock63'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=64' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=63' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where the labels file (<code>poll2.lab</code> above) is in the format generated by the <code>-exportlabels</code> <a class='wikilink' href='ExportingTheModel.html'>export option</a> of PRISM.
@@ -1496,19 +1485,19 @@ If not, the default is to assume a single initial state, in which all variables 
 <p class='vspace'>Lastly, state (but currently not transition) rewards can also be imported, using the <code>-importstaterewards</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock65'>
+<div class='sourceblock ' id='sourceblock64'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importtrans poll2.tra -importstates poll2.sta -importlabels poll2.lab -importstaterewards poll2.srew -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=65' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=64' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In a similar style to PRISM's <a class='wikilink' href='ExportingTheModel.html'><code>-exportmodel</code></a> switch, you can import several several files for a model using a single <code>-importmodel</code> switch. For example, this is equivalent to the command given above:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock66'>
+<div class='sourceblock ' id='sourceblock65'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.tra,sta,lab,srew -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=66' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=65' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The contents of each file is determined by its extension:
@@ -1521,10 +1510,10 @@ Possible file extensions are:
 <p class='vspace'>Use the extension <code>.all</code> to import from all of these files:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock67'>
+<div class='sourceblock ' id='sourceblock66'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -importmodel poll2.all -ctmc</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=67' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/AllOnOnePage?action=sourceblock&amp;num=66' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 </div>

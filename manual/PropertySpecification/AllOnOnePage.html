@@ -97,10 +97,10 @@ a.varlink { text-decoration:none; }
 it is necessary to identify one or more <em>properties</em> of the model
 which can be evaluated by the tool.
 PRISM's <em>property specification language</em> subsumes several well-known probabilistic temporal logics, including PCTL, CSL, probabilistic LTL and PCTL*.
-PCTL is used for specifying properties of discrete-time models such as DTMCs or PTAs,
-and also real-time models such as PTAs; CSL is an extension of PCTL for CTMCs;
+PCTL is used for specifying properties of DTMCs, MDPs or PTAs;
+CSL is an extension of PCTL for CTMCs;
 LTL and PCTL* can be used to specify properties of 
-discrete-time models (or untimed properties of CTMCs).
+DTMCs and MDPs (or untimed properties of CTMCs).
 PRISM also supports most of the (non-probabilistic) temporal logic CTL.
 </p>
 <p class='vspace'>In fact, PRISM also supports numerous additional customisations and extensions of these two logics.
@@ -242,7 +242,7 @@ where <code>p</code> is a PRISM language expression evaluating to a double in th
 <p class='vspace'>The types of path property supported by PRISM and their semantics will be discussed shortly.
 </p>
 <div class='vspace'></div><h3>Nondeterminism</h3>
-<p>For models that can exhibit nondeterministic behaviour, such as MDPs or PTAs, some additional clarifications are necessary. Whereas for fully probabilistic models such as DTMCs and CTMCs, probability measures over paths are well defined (see e.g. [<a class='wikilink' href='../Main/References.html#KSK76'>KSK76</a>] and [<a class='wikilink' href='../Main/References.html#BKH99'>BKH99</a>], respectively), for nondeterministic models a probability measure can only be feasibly defined once all nondeterminism has been removed.
+<p>For models that can exhibit nondeterministic behaviour (MDPs or PTAs), some additional clarifications are necessary. Whereas for fully probabilistic models such as DTMCs and CTMCs, probability measures over paths are well defined (see e.g. [<a class='wikilink' href='../Main/References.html#KSK76'>KSK76</a>] and [<a class='wikilink' href='../Main/References.html#BKH99'>BKH99</a>], respectively), for nondeterministic models a probability measure can only be feasibly defined once all nondeterminism has been removed.
 </p>
 <p class='vspace'>Hence, the actual meaning of the property <code>P bound [ pathprop ]</code> in these cases is: 
 "the probability that <code>pathprop</code> is satisfied by the paths from state <em>s</em>
@@ -424,7 +424,7 @@ as in the following example:
 
 <p class='vspace'>which refer to the probability of <code>y</code> becoming equal to 4 after 10 or more time units, and after between 10 and 20 time-units respectively.
 </p>
-<p class='vspace'>For CTMCs, the time bounds can be any (non-negative) numerical values - they are not restricted to integers, as for discrete-time models.
+<p class='vspace'>For CTMCs, the time bounds can be any (non-negative) numerical values - they are not restricted to integers, as for DTMCs and MDPs.
 For example:
 </p>
 <div class='vspace'></div>
@@ -523,6 +523,7 @@ For example:
 <h1>The S Operator</h1>
 <p>The <code><strong>S</strong></code> operator is used to reason about the <em>steady-state</em> behaviour of a model,
 i.e. its behaviour in the <em>long-run</em> or <em>equilibrium</em>.
+Although this could in principle relate to all three model types,
 PRISM currently only provides support for DTMCs and CTMCs.
 The definition of steady-state (long-run) probabilities for finite DTMCS and CTMCs is well defined (see e.g. [<a class='wikilink' href='../Main/References.html#Ste94'>Ste94</a>]).
 Informally, the property:
@@ -765,7 +766,7 @@ the rewards associated with the model correspond to power consumption, the prope
 <p class='vspace'>If you don't specify a reward structure to the <code>R</code> operator, by default, the first one in the model file is used.
 </p>
 <div class='vspace'></div><h3>Availability</h3>
-<p>There are currently a few restrictions on the model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>engines</a> that can be used for some reward properties. The following table summarises the currently availability, where S, M, H and E denote the "sparse", "MTBDD", "hybrid" and "explicit" engines, respectively, for DTMCs, CTMCs and MDPs. For PTAs, support for rewards is currently quite restrictive; see the later section on <a class='wikilink' href='Real-timeModels.html'>real-time model properties</a> for details.
+<p>There are currently a few restrictions on the model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>engines</a> that can be used for some reward properties. The following table summarises the currently availability, where S, M, H and E denote the "sparse", "MTBDD", "hybrid" and "explicit" engines, respectively, for DTMCs, CTMCs and MDPs. For PTAs, support for rewards is currently quite restrictive; see the later section on "<a class='wikilink' href='PTAProperties.html'>PTA properties</a>" for details.
 </p>
 <div class='vspace'></div>
 <table border='1' cellpadding='5' ><tr ><td >&nbsp;</td><td  align='center'><code><strong>F</strong></code></td><td  align='center'>cosafe</td><td  align='center'><code><strong>C</strong>&lt;=t</code></td><td  align='center'><code><strong>C</strong></code></td><td  align='left'><code><strong>I</strong>=t</code></td><td  align='right'><code><strong>S</strong></code></td></tr>
@@ -773,199 +774,6 @@ the rewards associated with the model correspond to power consumption, the prope
 <tr ><td  align='center'><strong>CTMCs</strong></td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='center'>SMHE</td><td  align='right'>SMHE</td></tr>
 <tr ><td  align='center'><strong>MDPs</strong></td><td  align='center'>SM-E</td><td  align='center'>SMHE</td><td  align='center'>S--E</td><td  align='center'>----</td><td  align='center'>SM-E</td><td  align='right'>----</td></tr>
 </table><hr />
-<h1>Multi-objective Properties</h1>
-<p>For MDPs, PRISM supports <em>multi-objective</em> properties. Consider a property that uses the <code><strong>P</strong></code> operator. For example:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock45'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ] <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=45' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>This states that, <em>for all adversaries</em> of the MDP, the probability of reaching an <code>"error"</code> state is less than 0.01.
-</p>
-<p class='vspace'>Multi-objective queries differ in two important ways. Firstly, (by default) they ask about the <em>existence</em> of an adversary. Secondly they refer to <em>multiple</em> properties of an adversary. For example:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock46'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error1</span>" ], <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.02</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error2</span>" ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=46' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>means: "does there exist an adversary of the MDP under which the probability of reaching an <code>"error1"</code> state is less than 0.01 <em>and</em> the probability of reaching an <code>"error2"</code> state is less than 0.02?"
-</p>
-<p class='vspace'>To use the terminology from [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>], the above is an "achievability" query (i.e. is this combination of objectives achievable by some adversary?). PRISM also supports two other kinds of multi-objective query: "numerical" and "Pareto" queries.
-</p>
-<p class='vspace'>A "numerical" query looks like:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock47'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error1</span>" ], <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.02</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error2</span>" ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=47' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>meaning "what is the minimum possible probability of reaching <code>"error1"</code>, over all adversaries of the MDP for which the probability of reaching <code>"error2"</code> is less than 0.02?".
-</p>
-<p class='vspace'>A "Pareto" queries leaves both of the objectives unbounded, e.g.:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock48'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error1</span>" ], <span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error2</span>" ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=48' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>This asks PRISM to compute (approximately), the <em>Pareto curve</em> for this pair objectives. Intuitively, this is the set of pairs of probabilities (of reaching <code>"error1"</code>/<code>"error2"</code>) such that reducing one probability any more would necessitate an increase in the other probability.
-</p>
-<div class='vspace'></div><h3>Types of Objectives</h3>
-<p>For simplicity, the examples above all refer to the probability of reaching classes of states in the model. Other types of property (objective) are also possible.
-</p>
-<p class='vspace'>Firstly, we can extend the examples above by referring to the probability of any
-<a class='wikilink' href='ThePOperator.html#ltl'>LTL</a> property. For example:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock49'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">G</span> "<span class="prismident">good1</span>" ], <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.9</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">good2</span>" ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=49' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>"What is the maximum probability of staying forever in <code>"good1"</code> states, such that the probability of visiting <code>"good2"</code> states infinitely often remains at least 0.9?".
-</p>
-<p class='vspace'>We can also use more than 2 objectives, e.g.:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock50'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">G</span> "<span class="prismident">good1</span>" ], <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.9</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">good2</span>" ], <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.95</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">good3</span>" ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=50' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>"What is the maximum probability of staying forever in <code>"good1"</code> states, such that the probability of visiting <code>"good2"</code> states infinitely often remains at least 0.9 and the probability of visiting <code>"good3"</code> states infinitely often remains at least 0.95?".
-</p>
-<p class='vspace'>Multi-objective queries can also refer to the expected total cumulative value of a reward structure. We write such properties in the form:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock51'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">R</span>{"<span class="prismident">time</span>"}<span class="prismkeyword">min</span>=?[ <span class="prismkeyword">C</span> ], <span class="prismkeyword">R</span>{"<span class="prismident">energy</span>"}&lt;=<span class="prismnum">1.45</span> [ <span class="prismkeyword">C</span> ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=51' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>"What is the minimum expected cumulative value of reward structure <code>"time"</code>, such that the expected cumulative value of reward structure <code>"energy"</code> is below 1.45.
-</p>
-<p class='vspace'>Note that this <code><strong>C</strong></code> reward operator differs from the <code><strong>F</strong> "target"</code> operator, usually used for standard (single-objective) MDP model checking. Whereas the <code><strong>F</strong> "target"</code> operator refers to the expected reward accumulated until a <code>"target"</code> state is reached the <code><strong>C</strong></code> operator refers to the expected <em>total</em> reward.
-</p>
-<p class='vspace'>A few important notes regarding rewards:
-</p>
-<div class='vspace'></div><ul><li>Currently only transition rewards are supported; state rewards are not.
-<div class='vspace'></div></li><li>Certain assumptions are made regarding the finiteness of rewards; see p.7 of [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>] for details.
-</li></ul><p class='vspace'>Finally, time-bounded variants of both probabilistic reachability and expected cumulative rewards objectives can be used. Here is an example that uses the latter:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock52'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismident">multi</span>(<span class="prismkeyword">R</span>{"<span class="prismident">power</span>"}<span class="prismkeyword">min</span>=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismident">k</span> ], <span class="prismkeyword">R</span>{"<span class="prismident">queue</span>"}&lt;=<span class="prismident">r</span> [ <span class="prismkeyword">C</span>&lt;=<span class="prismident">k</span> ]) <br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=52' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<div class='vspace'></div><h3>Solution Methods</h3>
-<p>PRISM can perform multi-objective model checking using two distinct solution methods, which are described in [<a class='wikilink' href='../Main/References.html#FKN+11'>FKN+11</a>] and [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>]. The former is based on the use of linear programming; the latter reduces multi-objective model checking to a series of simpler problems, solved using value iteration (or the Gauss-Seidel variant of value iteration). The default is "Value iteration". You can change this in the GUI using the option "MDP multi-objective solution methods", or using the command-line switches <code>-lp</code>, <code>-valiter</code>, <code>-gs</code>.
-</p>
-<p class='vspace'>There are some restrictions for the different methods, e.g.
-</p>
-<div class='vspace'></div><ul><li>Linear programming does not support time-bounded properties or Pareto queries
-</li></ul><div class='vspace'></div><hr />
-<h1>Real-time Models</h1>
-<p>The classes of property that can be checked for real-time models (PTAs and POPTAs) are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. We describe these restrictions here. The situation is also dependent on which of the PTA model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html#pta'>engines</a> is being used.
-</p>
-<p class='vspace'>For the "<strong>stochastic games</strong>" engine, we essentially only allow unbounded or time-bounded probabilistic reachability properties, i.e. properties of the form:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock53'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">target</span> ]<br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=53' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>where <code>target</code> is a Boolean-valued expression that does not include references to any clock variables and <code>T</code> is an integer-valued expression. The <code><strong>P</strong></code> operator cannot be nested and the <code><strong>S</strong></code> and <code><strong>R</strong></code> operators are not supported.
-</p>
-<p class='vspace'>The "<strong>backwards reachability</strong>" engine is similar but currently only handles maximum probabilities.
-</p>
-<p class='vspace'>For the "<strong>digital clocks</strong>" engine, there is slightly more flexibility,
-e.g. until (<code><strong>U</strong></code>) properties are allowed, as are clock variables in expressions and arithmetic expressions such as:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock54'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismnum">1</span> - <span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=54' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>This engine, like the "stochastic games" engine, does not allowed nested properties. Also, references to clocks must, like in the modelling language, not use strict comparisons
-(e.g. <code>x&lt;=5</code> is allowed, <code>x&lt;5</code> is not).
-</p>
-<p class='vspace'>The digital clocks also has support for rewards:
-it is possible to check reachability reward properties of the form:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock55'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Rmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Rmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=55' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>Reward structures specified in the model, though, must not depend on clock variables.
-Formally, the class of PTAs with this kind of reward structure is sometime called <em>linearly priced PTAs</em> (see e.g. [<a class='wikilink' href='../Main/References.html#KNPS06'>KNPS06</a>].
-</p>
-<p class='vspace'>The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch <code>-exportdigital digital.nm</code> when model checking property to export the model file to <code>digital.nm</code>.
-</p><hr />
-<h1>Partially Observable Models</h1>
-<p>For partially observable models (POMDPs and POPTAs),
-PRISM uses the same property language as the their
-fully observational equivalents (MDPs and PTAs).
-However, a more limited range of properties are available.
-For POMDPs, PRISM currently supports probabilistic reachability,
-probabilistic until, or expected reachability rewards properties, i.e.:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock56'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Pmin</span>=? [ <span class="prismident">remain</span> <span class="prismkeyword">U</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Pmax</span>=? [ <span class="prismident">remain</span> <span class="prismkeyword">U</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Rmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-<span class="prismkeyword">Rmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=56' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>or bounded variants with a probability/threshold instead
-of the <code>min=?</code> or <code>max=?</code>.
-</p>
-<p class='vspace'>For the verification methods currently implemented,
-there are a few additional restrictions.
-Firstly, the <code>target</code> (and <code>remain</code>) expression appearing
-in the property must be an observable.
-In other words, if any state of the POMDP satisfies the expression,
-then all other observationally equivalent states must also satisfy it.
-This is easily achieved by only using either observable variables
-or named observables in the expression, but that is not required.
-Secondly, probabilities and expected rewards are only computed from a single state.
-</p>
-<p class='vspace'>POPTAs are currently verified using the "digital clocks" approach to
-translate them into a POMDP, so they inherit the same
-<a class='wikilink' href='Real-timeModels.html'>restrictions</a>
-(that strict or diagonal clock comparisons are not allowed).
-However for POPTAs, time-bounded probabilistic reachability is also supported.
-</p><hr />
 <h1>Non-Probabilistic Properties</h1>
 <p>PRISM also supports model checking of the non-probabilistic temporal logics CTL (computation tree logic) and LTL (linear temporal logic).
 Properties in these logics use the <code><strong>A</strong></code> (for all) and <code><strong>E</strong></code> (there exists) operators,
@@ -974,11 +782,11 @@ instead of the probabilistic <code><strong>P</strong></code> operator used in ma
 <p class='vspace'>Properties take the form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock57'>
+<div class='sourceblock ' id='sourceblock45'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">A</span> [ <span class="prismident">pathprop</span> ]<br/>
 <span class="prismkeyword">E</span> [ <span class="prismident">pathprop</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=57' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=45' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which are true in a state <em>s</em> of a model if
@@ -991,7 +799,7 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 <p class='vspace'>Example properties include:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock58'>
+<div class='sourceblock ' id='sourceblock46'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">E</span> [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ] <span class="prismcomment">// There exists a path that reaches a state satisfying "goal"</span><br/>
 <br/>
 <span class="prismkeyword">A</span> [ <span class="prismkeyword">G</span> <span class="prismident">x</span>&lt;=<span class="prismnum">10</span> ] <span class="prismcomment">// Variable x is always at most 10 along all paths of the model</span><br/>
@@ -1000,7 +808,7 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 <br/>
 <span class="prismkeyword">A</span> [ (<span class="prismkeyword">G</span> <span class="prismkeyword">F</span> <span class="prismident">x</span>=<span class="prismnum">1</span>) | (<span class="prismkeyword">G</span> <span class="prismkeyword">F</span> <span class="prismident">x</span>=<span class="prismnum">2</span>) ] <span class="prismcomment">// Along all paths, either x=1 or x=2 is true infinitely often</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=58' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=46' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><h3>Counterexamples and Witnesses</h3>
@@ -1029,10 +837,10 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 </li></ul><p class='vspace'>This allows you to write any property expressible in logics such as PCTL and CSL. For example, CSL allows you to nest <code><strong>P</strong></code> and <code><strong>S</strong></code> operators:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock59'>
+<div class='sourceblock ' id='sourceblock47'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>&gt;<span class="prismnum">2</span> <span class="prismkeyword">S</span>&gt;<span class="prismnum">0.9</span>[ <span class="prismident">num_servers</span> &gt;= <span class="prismnum">5</span> ] ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=59' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=47' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the probability of it taking more than 2 hours to get to a state from which the long-run probability of at least 5 servers being operational is &gt;0.9"
@@ -1040,28 +848,28 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 <p class='vspace'>You can also express various arithmetic expressions such as:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock60'>
+<div class='sourceblock ' id='sourceblock48'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismnum">1</span> - <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>[<span class="prismnum">3600</span>,<span class="prismnum">7200</span>] <span class="prismident">oper</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=60' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=48' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the probability that the system is <strong>not</strong> operational at any point during the second hour of operation"
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock61'>
+<div class='sourceblock ' id='sourceblock49'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>{"<span class="prismident">oper</span>"}=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismident">t</span> ] / <span class="prismident">t</span> <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=61' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=49' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the expected fraction of time that the system is available (i.e. the expected interval availability) in the time interval [0, t]"
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock62'>
+<div class='sourceblock ' id='sourceblock50'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">fail_A</span> ] / <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">any_fail</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=62' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=50' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the (conditional) probability that component A eventually fails, given
@@ -1073,20 +881,20 @@ that at least one component fails"
 <p class='vspace'>It is worth, however, clarifying a few points specific to PRISM. A property is evaluated with respect to a particular state of a model. Depending on the type of the property, this value may either be a Boolean, an integer or a double. When performing model checking, PRISM usually has to actually compute the value for <em>all</em> states of the model but, for clarity, will by default report just a single value. Typically, this is the value for the (single) initial state of the model. For example, this:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock63'>
+<div class='sourceblock ' id='sourceblock51'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=63' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=51' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>will report the probability, from the initial state of the model, of reaching an "error" state.
 This:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock64'>
+<div class='sourceblock ' id='sourceblock52'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=64' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=52' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>will return <code>true</code> if and only if the probability, from the initial state, is greater than 0.5.
@@ -1106,10 +914,10 @@ which are described in the next section.
 <p class='vspace'>Filters are created using the <code>filter</code> keyword. They take the following form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock65'>
+<div class='sourceblock ' id='sourceblock53'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">op</span>, <span class="prismident">prop</span>, <span class="prismident">states</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=65' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=53' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>op</code> is the filter <em>operator</em> (see below), <code>prop</code> is any PRISM property and <code>states</code> is a Boolean-valued expression identifying a set of states over which to apply the filter.
@@ -1117,20 +925,20 @@ which are described in the next section.
 <p class='vspace'>In fact, the <code>states</code> argument is optional; if omitted, the filter is applied over all states. So, the following properties are equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock66'>
+<div class='sourceblock ' id='sourceblock54'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">op</span>, <span class="prismident">prop</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">op</span>, <span class="prismident">prop</span>, <span class="prismkeyword">true</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=66' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=54' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Here's a simple example of a filter:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock67'>
+<div class='sourceblock ' id='sourceblock55'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismkeyword">max</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], <span class="prismident">x</span>=<span class="prismnum">0</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=67' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=55' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This gives the <em>maximum</em> value, starting from any state satisfying <code>x=0</code>, of the probability of reaching an "error" state.
@@ -1140,20 +948,20 @@ which checks whether, <em>starting from any reachable state</em>,
 we eventually reach a "done" state with probability 1.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock68'>
+<div class='sourceblock ' id='sourceblock56'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">done</span>" ])<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=68' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=56' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>We could modify this property slightly to instead check whether, from any state that satisfies the label "ready", we eventually reach a "done" state with probability 1. This could be done with either of the following two equivalent properties:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock69'>
+<div class='sourceblock ' id='sourceblock57'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, "<span class="prismident">ready</span>" =&gt; <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">done</span>" ])<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">done</span>" ], "<span class="prismident">ready</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=69' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=57' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><strong>Note:</strong> In older versions of PRISM, the property above could be written just as <code>"ready" =&gt; P&gt;=1 [ F "done" ]</code> since the result was checked for all states by default, not just the <a class='wikilink' href='SyntaxAndSemantics.html'>initial state</a>. Now, you need to explicitly include a filter, as shown above, to achieve this.
@@ -1187,10 +995,10 @@ The full list of filter operators <code>op</code> in this category is:
 <p class='vspace'>Filters provide a quick way to <em>print</em> the results of a model checking query for several states. In most cases, for example, a <code>P=?</code> query just returns the probability from the initial state. To see the probability for all states satisfying <code>x&gt;2</code>, use:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock70'>
+<div class='sourceblock ' id='sourceblock58'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">print</span>, <span class="prismkeyword">P</span>=? [ ... ], <span class="prismident">x</span>&gt;<span class="prismnum">2</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=70' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=58' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Values are printed in the log (i.e. to the "Log" tab in the GUI or to the terminal from the command-line). For small models, you could omit the final <code>states</code> argument (<code>x&gt;2</code> here) and view the probabilities from all states. You can also use PRISM's <a class='wikilink' href='../ConfiguringPRISM/OtherOptions.html'>verbose</a> mode to view values for all states, but filters provide an easier and more flexible solution.
@@ -1199,10 +1007,10 @@ The full list of filter operators <code>op</code> in this category is:
 <p class='vspace'>You can also use <code>print</code> filters to display lists of states. For example, this property:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock71'>
+<div class='sourceblock ' id='sourceblock59'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">print</span>, <span class="prismkeyword">filter</span>(<span class="prismident">argmax</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]))<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=71' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=59' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>prints the states which have the highest probability of reaching an error state.
@@ -1211,10 +1019,10 @@ However, you should exercise caution when using <code>argmax</code> (or <code>ar
 <p class='vspace'>Another common use of filters is to display the value for a particular state of the model (rather than the initial state, which is used by default). To achieve this, use e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock72'>
+<div class='sourceblock ' id='sourceblock60'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">state</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], <span class="prismident">x</span>=<span class="prismnum">2</span>&amp;<span class="prismident">y</span>=<span class="prismnum">3</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=72' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=60' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>x=2&amp;y=3</code> is assumed to specify one particular state.
@@ -1223,20 +1031,20 @@ A <code>state</code> filter will produce an error if the filter expression is no
 <p class='vspace'>Filters can also be built up into more complex expressions. For example, the following two properties are equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock73'>
+<div class='sourceblock ' id='sourceblock61'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">avg</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">sum</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>") / <span class="prismkeyword">filter</span>(<span class="prismident">count</span>, "<span class="prismkeyword">init</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=73' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=61' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The <code>range</code> filter, unlike most PRISM expressions which are of type Boolean, integer or double, actually returns an interval: a pair of integers or doubles. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock74'>
+<div class='sourceblock ' id='sourceblock62'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">range</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">count</span>=<span class="prismnum">10</span> ], <span class="prismident">count</span>=<span class="prismnum">0</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=74' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=62' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>gives the range of all possible values for the probability of reach a state satisfying <code>count=10</code>, from all states satisfying <code>count=0</code>.
@@ -1246,34 +1054,34 @@ As will be described below, this kind of property also results from the use of o
 <p>In older versions of PRISM, filters were also available, but in a less expressive form. Previously, they were only usable on <code><strong>P</strong></code>, <code><strong>S</strong></code> or <code><strong>R</strong></code> properties and only a small set of filter operators were permitted. They were also specified in a different way, using braces (<code>{</code>...<code>}</code>). For compatibility with old properties files (and for compactness), these forms of filters are still allowed. These old-style forms of filters:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock75'>
+<div class='sourceblock ' id='sourceblock63'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>} ]<br/>
 <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>}{<span class="prismkeyword">min</span>} ]<br/>
 <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>}{<span class="prismkeyword">max</span>} ]<br/>
 <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>}{<span class="prismkeyword">min</span>}{<span class="prismkeyword">max</span>} ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=75' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=63' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>are equivalent to:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock76'>
+<div class='sourceblock ' id='sourceblock64'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">state</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismkeyword">min</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismkeyword">max</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">range</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=76' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=64' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Notice that the first of the four properties above (i.e. an old-style filter of the form <code>{states}</code> will result in an error if <code>states</code> is not satisfied by exactly one state of the model. Older versions of PRISM just gave you the value for the first state state satisfying the filter, without warning you about this. If you want to recreate the old behaviour, just use a <code>first</code> filter:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock77'>
+<div class='sourceblock ' id='sourceblock65'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">first</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=77' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=65' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><h3>Default filters</h3>
@@ -1284,42 +1092,90 @@ could have been achieved equivalently using filters.
 <p class='vspace'>Queries of the form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock78'>
+<div class='sourceblock ' id='sourceblock66'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=78' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=66' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>are the same as:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock79'>
+<div class='sourceblock ' id='sourceblock67'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=79' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=67' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and queries of the form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock80'>
+<div class='sourceblock ' id='sourceblock68'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=80' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=68' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>are the same as either:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock81'>
+<div class='sourceblock ' id='sourceblock69'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">state</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">range</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=81' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=69' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>for the cases where there the model has a single initial state
 or multiple initial states, respectively.
+</p><hr />
+<h1>PTA Properties</h1>
+<p>The classes of property that can be checked for PTAs are currently more restricted than for the other kinds of models that PRISM supports. This is because the model checking procedures are quite different for this type of model. We describe these restrictions here. The situation is also dependent on which of the PTA model checking <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html#pta'>engines</a> is being used.
+</p>
+<p class='vspace'>For the "<strong>stochastic games</strong>" engine, we essentially only allow unbounded or time-bounded probabilistic reachability properties, i.e. properties of the form:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock70'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">target</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=70' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>where <code>target</code> is a Boolean-valued expression that does not include references to any clock variables and <code>T</code> is an integer-valued expression. The <code><strong>P</strong></code> operator cannot be nested and the <code><strong>S</strong></code> and <code><strong>R</strong></code> operators are not supported.
+</p>
+<p class='vspace'>The "<strong>backwards reachability</strong>" engine is similar but currently only handles maximum probabilities.
+</p>
+<p class='vspace'>For the "<strong>digital clocks</strong>" engine, there is slightly more flexibility,
+e.g. until (<code><strong>U</strong></code>) properties are allowed, as are clock variables in expressions and arithmetic expressions such as:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock71'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismnum">1</span> - <span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=71' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>This engine, like the "stochastic games" engine, does not allowed nested properties. Also, references to clocks must, like in the modelling language, not use strict comparisons
+(e.g. <code>x&lt;=5</code> is allowed, <code>x&lt;5</code> is not).
+</p>
+<p class='vspace'>The digital clocks also has support for rewards:
+it is possible to check reachability reward properties of the form:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock72'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Rmin</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+<span class="prismkeyword">Rmax</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">target</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=72' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Reward structures specified in the model, though, must not depend on clock variables.
+Formally, the class of PTAs with this kind of reward structure is sometime called <em>linearly priced PTAs</em> (see e.g. [<a class='wikilink' href='../Main/References.html#KNPS06'>KNPS06</a>].
+</p>
+<p class='vspace'>The digital clocks method is based on a language-level translation from a PTA model to an MDP one. If you want to see the MDP PRISM model that was generated, add the switch <code>-exportdigital digital.nm</code> when model checking property to export the model file to <code>digital.nm</code>.
 </p><hr />
 <h1>Properties Files</h1>
 <h3>Constants</h3>
@@ -1327,14 +1183,14 @@ or multiple initial states, respectively.
 These are defined in identical fashion, for example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock82'>
+<div class='sourceblock ' id='sourceblock73'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">k</span> = <span class="prismnum">7</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span> = <span class="prismnum">9.5</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">p</span> = <span class="prismnum">0.01</span>;<br/>
 <br/>
 <span class="prismkeyword">P</span>&lt;<span class="prismident">p</span> [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">x</span>=<span class="prismident">k</span> ];<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=82' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=73' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>As before, these constants can actually be left undefined and then later
@@ -1352,13 +1208,13 @@ Furthermore, expressions in the properties file can also refer to constants prev
 <p class='vspace'>Labels are defined using the keyword <code><strong>label</strong></code>, followed by a name (identifier) in double quotes, and then an expression which evaluates to a Boolean. Definition and usage of labels are illustrated in the following example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock83'>
+<div class='sourceblock ' id='sourceblock74'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">label</span> "<span class="prismident">safe</span>" = <span class="prismident">temp</span>&lt;=<span class="prismnum">100</span> | <span class="prismident">alarm</span>=<span class="prismkeyword">true</span>;<br/>
 <span class="prismkeyword">label</span> "<span class="prismident">fail</span>" = <span class="prismident">temp</span>&gt;<span class="prismnum">100</span> &amp; <span class="prismident">alarm</span>=<span class="prismkeyword">false</span>;<br/>
 <br/>
 <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.99</span> [ "<span class="prismident">safe</span>" <span class="prismkeyword">U</span> "<span class="prismident">fail</span>" ];<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=83' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=74' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Two special cases are the <code>"init"</code> and <code>"deadlock"</code> labels which are always defined.
@@ -1369,19 +1225,19 @@ These are true in initial states of the model and states where deadlocks were fo
 <p>For convenience, properties can be annotated with <em>names</em>, as shown in the following example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock84'>
+<div class='sourceblock ' id='sourceblock75'>
   <div class='sourceblocktext'><div class="prism">"<span class="prismident">safe</span>": <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> <span class="prismident">temperature</span> &gt; <span class="prismident">t_max</span> ];<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=84' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=75' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which gives the name <code>"safe"</code> to the property. It is then possible to include named properties as sub-expressions of other properties, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock85'>
+<div class='sourceblock ' id='sourceblock76'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismident">num_sensors</span>&gt;<span class="prismnum">0</span> =&gt; "<span class="prismident">safe</span>");<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=85' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=76' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Notice that the syntax for referring to named properties is identical to the syntax for labels. For this reason, property names must be disjoint from those of any existing labels.
@@ -1423,12 +1279,11 @@ and extension <code>.csl</code> for properties of CTMCs, so these are still also
 </li><li><a class='wikilink' href='ThePOperator.html'>The P Operator</a>
 </li><li><a class='wikilink' href='TheSOperator.html'>The S Operator</a>
 </li><li><a class='wikilink' href='Reward-basedProperties.html'>Reward-based Properties</a>
-</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
-</li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='Non-probabilisticProperties.html'>Non-probabilistic Properties</a>
 </li><li><a class='wikilink' href='SyntaxAndSemantics.html'>Syntax And Semantics</a>
 </li><li><a class='wikilink' href='Filters.html'>Filters</a>
+</li><li><a class='wikilink' href='PTAProperties.html'>PTA Properties</a>
+</li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
 </li><li><a class='wikilink' href='PropertiesFiles.html'>Properties Files</a>
 </li></ul><p>[ <a class='selflink' href='AllOnOnePage.html'>View all</a> ]
 </p>

@@ -1,0 +1,95 @@
+PRISM
+=====
+
+Version: 4.4
+Date: Mon Feb 15 10:27:49 IRST 2021
+Hostname: sadegh-H81M-S2PH
+Memory limits: cudd=1g, java(heap)=3.9g
+Command line: prism ../../examples/mdps/consensus/coin4.nm ../../examples/mdps/consensus/steps_max.pctl -s '-ii:upper=7812' -asynchupper -maxiters 9000300 -const K=12 -javamaxmem 4500m
+
+Parsing model file "../../examples/mdps/consensus/coin4.nm"...
+
+Parsing properties file "../../examples/mdps/consensus/steps_max.pctl"...
+
+1 property:
+(1) "steps_max": R{"steps"}max=? [ F "finished" ]
+
+Type:        MDP
+Modules:     process1 process2 process3 process4 
+Variables:   counter pc1 coin1 pc2 coin2 pc3 coin3 pc4 coin4 
+
+---------------------------------------------------------------------
+
+Model checking: "steps_max": R{"steps"}max=? [ F "finished" ]
+Model constants: K=12
+
+Warning: Not Switching to explicit engine, We implemented the emthods for sparse engine.
+
+Building model...
+Model constants: K=12
+
+Computing reachable states...
+
+Reachability (BFS): 579 iterations in 0.07 seconds (average 0.000119, setup 0.00)
+
+Time for model construction: 0.129 seconds.
+
+Type:        MDP
+States:      125056 (1 initial)
+Transitions: 420832
+Choices:     337024
+
+Transition matrix: 2388 nodes (3 terminal), 420832 minterms, vars: 19r/19c/4nd
+
+Prob0E: 162 iterations in 0.13 seconds (average 0.000827, setup 0.00)
+
+Prob1A: 1 iterations in 0.00 seconds (average 0.000000, setup 0.00)
+
+goal = 64, inf = 0, maybe = 124992
+
+Warning: Upper bound for interval iteration manually set to 7812.0
+
+Computing remaining rewards...
+ 10
+Building sparse matrix (transitions)... [n=125056, nc=336960, nnz=420768, k=4] [6.6 MB]
+Building sparse matrix (transition rewards)... [n=125056, nc=336960, nnz=0, k=4] [1.8 MB]
+Creating vector for state rewards... [977.0 KB]
+Creating vector for inf... [977.0 KB]
+Creating vector for lower bounds... [977.0 KB]
+Creating vector for upper bounds... [977.0 KB]
+Allocating iteration vectors... [4 x 977.0 KB]
+TOTAL: [16.0 MB]
+
+Starting iterations (interval iteration)...
+
+Soln above finished after 15248 iterations, while flag is True.
+
+Checking for lower bound passed after 19 iterations.Iteration 1: max relative diff=1.000000, 35.60 sec so far
+Iteration 2875: max relative diff=1.000000, 40.60 sec so far
+Iteration 5746: max relative diff=1.000000, 45.60 sec so far
+Iteration 8616: max relative diff=1.000000, 50.60 sec so far
+Iteration 11356: max relative diff=1.000000, 55.60 sec so far
+Iteration 12897: max relative diff=0.004226, 60.61 sec so far
+Iteration 14140: max relative diff=0.001301, 65.61 sec so far
+Iteration 15399: max relative diff=0.000395, 70.62 sec so far
+Iteration 16675: max relative diff=0.000118, 75.62 sec so far
+Iteration 17912: max relative diff=0.000036, 80.62 sec so far
+Iteration 19190: max relative diff=0.000011, 85.62 sec so far
+Iteration 20450: max relative diff=0.000003, 90.63 sec so far
+Iteration 21698: max relative diff=0.000001, 95.63 sec so far
+Max relative diff between upper and lower bound on convergence: 9.99107E-07
+LowItr:21726 , UpItr:25124  
+
+Iterative method: 21707 iterations in 95.67 seconds (average 0.004407, setup 0.08)
+Maximum finite value in solution vector at end of interval iteration: 7810.999999594212
+
+Value in the initial state: 7802.999999594212
+
+Time for model checking: 96.042 seconds.
+
+Result: 7802.999999594212 (value in the initial state)
+
+---------------------------------------------------------------------
+
+Note: There were 2 warnings during computation.
+

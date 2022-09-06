@@ -440,13 +440,20 @@ JNIEXPORT jdoubleArray __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1Nondet
 							if (adv[i] == -1) {
 								adv[i] = j;
 							} else {
-								// normally, we extract optimal choice differently for max
-								// (only remember strictly better choices)
-								// (which resolves problems with end components)
-								// but here it's hard to know when it is max, due to the
-								// mix of objectives and some being negated
-								// so we just always only pick strictly better ones
-								if ((min&&(d1<soln[i])) || (!min&&(d1>soln[i]))) {
+								// otherwise it depends whether we're doing min or max
+								// (but sometimes min is max with negative rewards)
+								bool minAdv = min ? d1>0 : d1<0;
+								// for max, only remember strictly better choices
+								// (this resolves problems with end components)
+								// (note use of absolute values because values may be negative)
+								if (!minAdv) {
+									if (fabs(d1)>fabs(soln[i])) {
+										adv[i] = j;
+									}
+								}
+								// for min, always store the value
+								// (in fact, could do it at the end of value iteration, but we don't)
+								else {
 									adv[i] = j;
 								}
 							}

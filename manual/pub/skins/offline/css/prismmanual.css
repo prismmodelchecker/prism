@@ -40,7 +40,7 @@
 #prism-man-lastmod {
 	margin-top:30px;
 	text-align:center;
-	font-size:70%;
+	font-size:8pt;
 	color:#999999;
 }
 
@@ -58,7 +58,7 @@
 code { white-space: normal; }
 
 .big {
-  font-size:100%; /* already inside h1 */
+  font-size:28pt;
   color:#444444;
   /*border-width:8px 0 8px 0;
   border-color:#444444;
@@ -107,13 +107,11 @@ div.sourceblock {
 .sourceblocktext {
   border:none;
   white-space:nowrap;
-  font-family:monospace;
-  font-size:100%;
-  line-height:1.2;
 }
 .sourceblocktext div {
   font-family:monospace;
-  font-size:100%;
+  font-size:9pt;
+  line-height:1.2;
 }
 .sourceblocktext div.head,
 .sourceblocktext div.foot {

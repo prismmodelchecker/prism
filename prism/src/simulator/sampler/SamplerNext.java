@@ -26,11 +26,9 @@
 
 package simulator.sampler;
 
-import parser.ast.Expression;
-import parser.ast.ExpressionTemporal;
-import prism.ModelGenerator;
-import prism.PrismException;
-import simulator.Path;
+import simulator.*;
+import prism.*;
+import parser.ast.*;
 
 public class SamplerNext extends SamplerBoolean
 {
@@ -63,7 +61,7 @@ public class SamplerNext extends SamplerBoolean
 		// X "target" is true iff state 1 satisfies "target"
 		if (path.size() == 1) {
 			valueKnown = true;
-			value = path.evaluateBooleanInCurrentState(target);
+			value = target.evaluateBoolean(path.getCurrentState());
 		}
 		// Nothing else to do: if path size is 0, can't decide;
 		// if path size > 1 (should never happen), nothing changes

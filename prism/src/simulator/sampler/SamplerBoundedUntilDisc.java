@@ -27,11 +27,10 @@
 
 package simulator.sampler;
 
-import parser.ast.Expression;
-import parser.ast.ExpressionTemporal;
-import prism.ModelGenerator;
-import prism.PrismException;
-import simulator.Path;
+import simulator.*;
+import prism.*;
+import parser.*;
+import parser.ast.*;
 
 public class SamplerBoundedUntilDisc extends SamplerBoolean
 {
@@ -106,20 +105,21 @@ public class SamplerBoundedUntilDisc extends SamplerBoolean
 		// Lower bound not yet exceeded but LHS of until violated
 		// (no need to check RHS because too early)
 		else if (pathSize < lb) {
-			if (!path.evaluateBooleanInCurrentState(left)) {
+			if (!left.evaluateBoolean(path.getCurrentState())) {
 				valueKnown = true;
 				value = false;
 			}
 		}
 		// Current time is between lower/upper bounds...
 		else {
+			State currentState = path.getCurrentState();
 			// Have we reached the target (i.e. RHS of until)?
-			if (path.evaluateBooleanInCurrentState(right)) {
+			if (right.evaluateBoolean(currentState)) {
 				valueKnown = true;
 				value = true;
 			}
 			// Or, if not, have we violated the LHS of the until?
-			else if (!path.evaluateBooleanInCurrentState(left)) {
+			else if (!left.evaluateBoolean(currentState)) {
 				valueKnown = true;
 				value = false;
 			}

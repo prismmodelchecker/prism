@@ -27,21 +27,29 @@
 package parser;
 
 /**
- * Information required to evaluate an expression,
- * where the values for variables are stored in a Values object.
- * Optionally, values for constants can also be stored and used.
+ * Information required to evaluate an expression: Values objects for constants/variables.
  */
-public class EvaluateContextValues extends EvaluateContext
+public class EvaluateContextValues implements EvaluateContext
 {
+	private Values constantValues;
 	private Values varValues;
 
 	public EvaluateContextValues(Values constantValues, Values varValues)
 	{
-		setConstantValues(constantValues);
+		this.constantValues = constantValues;
 		this.varValues = varValues;
 	}
 
-	@Override
+	public Object getConstantValue(String name)
+	{
+		if (constantValues == null)
+			return null;
+		int i = constantValues.getIndexOf(name);
+		if (i == -1)
+			return null;
+		return constantValues.getValue(i);
+	}
+
 	public Object getVarValue(String name, int index)
 	{
 		if (varValues == null)

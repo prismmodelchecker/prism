@@ -100,7 +100,14 @@ a.varlink { text-decoration:none; }
 it must be specified in the PRISM language,
 a simple, state-based language,
 based on the Reactive Modules formalism of Alur and Henzinger [<a class='wikilink' href='../Main/References.html#AH99'>AH99</a>].
-This is used for <a class='wikilink' href='../Main/Introduction.html'>all of the types of model</a> that PRISM supports.
+This is used for all of the types of model that PRISM supports:
+discrete-time Markov chains (DTMCs),
+continuous-time Markov chains (CTMCs),
+Markov decision processes (MDPs)
+and probabilistic timed automata (PTAs). 
+For background material on these models, look at the pointers to
+<a class='urllink' href='http://www.prismmodelchecker.org/about.php'>resources</a>
+on the PRISM web site.
 </p>
 <p class='vspace'>In this section, we describe the PRISM language and present a number of small illustrative examples.
 A precise definition of the semantics of the language is available from the "<a class='urllink' href='http://www.prismmodelchecker.org/doc/'>Documentation</a>" section of the PRISM web site. One of the best ways to learn what can be done with the PRISM language is to look at some existing examples.
@@ -117,12 +124,12 @@ A command takes the form:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock1'>
-  <div class='sourceblocktext'><div class="prism">[<span class="prismident">action</span>] <span class="prismident">guard</span> -&gt; <span class="prismident">prob_1</span> : <span class="prismident">update_1</span> + ... + <span class="prismident">prob_n</span> : <span class="prismident">update_n</span>;<br/>
+  <div class='sourceblocktext'><div class="prism">[] <span class="prismident">guard</span> -&gt; <span class="prismident">prob_1</span> : <span class="prismident">update_1</span> + ... + <span class="prismident">prob_n</span> : <span class="prismident">update_n</span>;<br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/Introduction?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>The <em>guard</em> is a predicate over all the variables in the model (including those belonging to other modules). Each <em>update</em> describes a transition which the module can make if the guard is true. A transition is specified by giving the new values of the variables in the module, possibly as a function of other variables. Each update is assigned a probability (or in some cases a rate) which will be assigned to the corresponding transition. The command also optionally includes an <em>action</em>, either just to annotate it, or for <a class='wikilink' href='Synchronisation.html'>synchronisation</a>.
+<p class='vspace'>The <em>guard</em> is a predicate over all the variables in the model (including those belonging to other modules). Each <em>update</em> describes a transition which the module can make if the guard is true. A transition is specified by giving the new values of the variables in the module, possibly as a function of other variables. Each update is also assigned a probability (or in some cases a rate) which will be assigned to the corresponding transition.
 </p>
 </div>
 
@@ -161,9 +168,8 @@ A command takes the form:
 </li><li><a class='wikilink' href='MultipleInitialStates.html'>Multiple Initial States</a>
 </li><li><a class='wikilink' href='GlobalVariables.html'>Global Variables</a>
 </li><li><a class='wikilink' href='FormulasAndLabels.html'>Formulas And Labels</a>
+</li><li><a class='wikilink' href='PTAs.html'>PTAs</a>
 </li><li><a class='wikilink' href='CostsAndRewards.html'>Costs And Rewards</a>
-</li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
-</li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
 </li><li><a class='wikilink' href='ProcessAlgebraOperators.html'>Process Algebra Operators</a>
 </li><li><a class='wikilink' href='PRISMModelFiles.html'>PRISM Model Files</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]

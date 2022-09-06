@@ -29,11 +29,6 @@ package explicit;
 
 import prism.PrismException;
 
-/**
- * Class to efficiently and reliably compute probabilities for the Poisson distribution,
- * truncating above and below for a provided error bound. Implements the algorithm from:
- * B. Fox and P. Glynn, Computing Poisson Probabilities, Communications of the ACM 31(4):440-445, 1988.
- */
 public final class FoxGlynn
 {
 	// constructor parameters
@@ -45,18 +40,6 @@ public final class FoxGlynn
 	private double totalWeight;
 	private double[] weights;
 
-	/**
-	 * Computes the probabilities for the Poisson distribution with rate {@code qtmax}.
-	 * The {@code i}th probability is returned for {@code L<=i<=R}, where {@code L} and {@code R}
-	 * are determined according to the requested accuracy and are available from the methods
-	 * {@link #getLeftTruncationPoint()} and {@link #getRightTruncationPoint()}.
-	 * The probabilities are given in an array returned by {@link #getWeights()};
-	 * these should be normalised by dividing by {@link #getTotalWeight()}.
-	 * The sum of the probabilities will be greater than equal to {@code 1-acc}.
-	 * Furthermore, the sum of probabilities for {@code i<L} and {@code i>R} are both {@code <=acc/2}.
-	 * Thresholds for underflow ({@code uf}) and overflow ({@code ov}) should also be given.
-	 * Note that the Fox-Glynn method requires accuracy to be at least 1e-10.
-	 */
 	public FoxGlynn(double qtmax, double uf, double of, double acc) throws PrismException
 	{
 		q_tmax = qtmax;

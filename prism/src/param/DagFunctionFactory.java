@@ -139,7 +139,7 @@ class DagFunctionFactory extends FunctionFactory {
 	private HashMap<DagFunction,DagFunction> functions;
 //	private boolean negateToInner;
 	
-	public DagFunctionFactory(String[] parameterNames, BigRational[] lowerBounds, BigRational[] upperBounds, double maxProbWrong, boolean negateToInner) {
+	DagFunctionFactory(String[] parameterNames, BigRational[] lowerBounds, BigRational[] upperBounds, double maxProbWrong, boolean negateToInner) {
 		super(parameterNames, lowerBounds, upperBounds);
 		Random random = new Random();
 		BigRational[] randomPosArr = new BigRational[parameterNames.length];
@@ -177,27 +177,27 @@ class DagFunctionFactory extends FunctionFactory {
 	}
 	
 	@Override
-	public Function getZero() {
+	Function getZero() {
 		return zero;
 	}
 	
 	@Override
-	public Function getOne() {
+	Function getOne() {
 		return one;
 	}
 
 	@Override
-	public Function getNaN() {
+	Function getNaN() {
 		return nan;
 	}
 
 	@Override
-	public Function getInf() {
+	Function getInf() {
 		return inf;
 	}
 
 	@Override
-	public Function getMInf() {
+	Function getMInf() {
 		return minf;
 	}
 	
@@ -220,7 +220,7 @@ class DagFunctionFactory extends FunctionFactory {
 	}
 	
 	@Override
-	public Function fromBigRational(BigRational bigRat) {
+	Function fromBigRational(BigRational bigRat) {
 		if (bigRat.isSpecial()) {
 			if (bigRat.isNaN()) {
 				return getNaN();
@@ -243,7 +243,7 @@ class DagFunctionFactory extends FunctionFactory {
 	}
 
 	@Override
-	public Function getVar(int var) {
+	Function getVar(int var) {
 		return parameters[var];
 	}
 

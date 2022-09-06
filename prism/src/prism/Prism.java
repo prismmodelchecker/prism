@@ -63,7 +63,6 @@ import parser.ast.LabelList;
 import parser.ast.ModulesFile;
 import parser.ast.PropertiesFile;
 import parser.ast.Property;
-import prism.Accuracy.AccuracyLevel;
 import pta.DigitalClocks;
 import pta.PTAModelChecker;
 import simulator.GenerateSimulationPath;
@@ -126,6 +125,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public static final int MDP_POLITER = 3;
 	public static final int MDP_MODPOLITER = 4;
 	public static final int MDP_LP = 5;
+	public static final int MDP_BACKWARD = 6;
+	public static final int MDP_IMPROVED_BACKWARD = 7;
+	public static final int MDP_ASYNCH = 8;
+	public static final int MDP_IMPROVED_MPI = 9;
 
 	// methods for solving multi-objective queries on MDPs
 	public static final int MDP_MULTI_VALITER = 1;
@@ -285,10 +288,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
-
-	// Info about automatic engine switching
-	private int engineOld = -1;
-	private boolean engineSwitched = false;
 
 	//------------------------------------------------------------------------------
 	// Constructors + options methods
@@ -457,11 +456,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void setMaxIters(int i) throws PrismException
 	{
 		settings.set(PrismSettings.PRISM_MAX_ITERS, i);
-	}
-
-	public void setGridResolution(int i) throws PrismException
-	{
-		settings.set(PrismSettings.PRISM_GRID_RESOLUTION, i);
 	}
 
 	public void setCUDDMaxMem(String s) throws PrismException
@@ -788,11 +782,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public int getMaxIters()
 	{
 		return settings.getInteger(PrismSettings.PRISM_MAX_ITERS);
-	}
-
-	public int getGridResolution()
-	{
-		return settings.getInteger(PrismSettings.PRISM_GRID_RESOLUTION);
 	}
 
 	public boolean getVerbose()
@@ -1179,6 +1168,184 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	//------------------------------------------------------------------------------
 	// Utility methods
 	//------------------------------------------------------------------------------
+
+	/**
+	 * Compare two version numbers of PRISM (strings).
+	 * Example ordering: { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
+	 * Returns: 1 if v1&gt;v2, -1 if v1&lt;v2, 0 if v1=v2
+	 */
+	public static int compareVersions(String v1, String v2)
+	{
+		String ss1[], ss2[], tmp[];
+		int i, n, x;
+		double s1 = 0, s2 = 0;
+		boolean s1num, s2num;
+
+		// Exactly equal
+		if (v1.equals(v2))
+			return 0;
+		// Otherwise split into sections
+		ss1 = v1.split("\\.");
+		ss2 = v2.split("\\.");
+		// Pad if one is shorter
+		n = Math.max(ss1.length, ss2.length);
+		if (ss1.length < n) {
+			tmp = new String[n];
+			for (i = 0; i < ss1.length; i++)
+				tmp[i] = ss1[i];
+			for (i = ss1.length; i < n; i++)
+				tmp[i] = "";
+			ss1 = tmp;
+		}
+		if (ss2.length < n) {
+			tmp = new String[n];
+			for (i = 0; i < ss2.length; i++)
+				tmp[i] = ss2[i];
+			for (i = ss2.length; i < n; i++)
+				tmp[i] = "";
+			ss2 = tmp;
+		}
+		// Loop through sections of string
+		for (i = 0; i < n; i++) {
+			// 2.1.alpha < 2.1, etc.
+			// 2.1.alpha < 2.1.alpha2 < 2.1.alpha3, etc.
+			// so replace alphax with -10000+x
+			if (ss1[i].matches("alpha.*")) {
+				try {
+					if (ss1[i].length() == 5)
+						x = 0;
+					else
+						x = Integer.parseInt(ss1[i].substring(5));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + (-10000 + x);
+			}
+			if (ss2[i].matches("alpha.*")) {
+				try {
+					if (ss2[i].length() == 5)
+						x = 0;
+					else
+						x = Integer.parseInt(ss2[i].substring(5));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + (-10000 + x);
+			}
+			// 2.1.beta < 2.1, etc.
+			// 2.1.beta < 2.1.beta2 < 2.1.beta3, etc.
+			// so replace betax with -100+x
+			if (ss1[i].matches("beta.*")) {
+				try {
+					if (ss1[i].length() == 4)
+						x = 0;
+					else
+						x = Integer.parseInt(ss1[i].substring(4));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + (-100 + x);
+			}
+			if (ss2[i].matches("beta.*")) {
+				try {
+					if (ss2[i].length() == 4)
+						x = 0;
+					else
+						x = Integer.parseInt(ss2[i].substring(4));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + (-100 + x);
+			}
+			// 2 < 2.1, etc.
+			// so treat 2 as 2.0
+			if (ss1[i].equals(""))
+				ss1[i] = "0";
+			if (ss2[i].equals(""))
+				ss2[i] = "0";
+			// 2.1 < 2.1.dev, etc.
+			// 2.1.dev < 2.1.dev2 < 2.1.dev3, etc.
+			// so replace devx with 0.5+x/1000
+			if (ss1[i].matches("dev.*")) {
+				try {
+					if (ss1[i].length() == 3)
+						x = 0;
+					else
+						x = Integer.parseInt(ss1[i].substring(3));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + (0.5 + x / 1000.0);
+			}
+			if (ss2[i].matches("dev.*")) {
+				try {
+					if (ss2[i].length() == 3)
+						x = 0;
+					else
+						x = Integer.parseInt(ss2[i].substring(3));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + (0.5 + x / 1000.0);
+			}
+			// replace rx (e.g. as in 4.0.alpha.r5555) with x
+			if (ss1[i].matches("r.*")) {
+				try {
+					x = Integer.parseInt(ss1[i].substring(1));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss1[i] = "" + x;
+			}
+			if (ss2[i].matches("r.*")) {
+				try {
+					x = Integer.parseInt(ss2[i].substring(1));
+				} catch (NumberFormatException e) {
+					x = 0;
+				}
+				ss2[i] = "" + x;
+			}
+			// See if strings are integers
+			try {
+				s1num = true;
+				s1 = Double.parseDouble(ss1[i]);
+			} catch (NumberFormatException e) {
+				s1num = false;
+			}
+			try {
+				s2num = true;
+				s2 = Double.parseDouble(ss2[i]);
+			} catch (NumberFormatException e) {
+				s2num = false;
+			}
+			if (s1num && s2num) {
+				if (s1 < s2)
+					return -1;
+				if (s1 > s2)
+					return 1;
+				if (s1 == s2)
+					continue;
+			}
+		}
+
+		return 0;
+	}
+
+	/*// Simple test harness for compareVersions
+	public static void main(String[] args)
+	{
+		 String v[] =  { "1", "2.0", "2.1.alpha", "2.1.alpha.r5555", "2.1.alpha.r5557", "2.1.beta", "2.1.beta4", "2.1", "2.1.dev", "2.1.dev.r6666", "2.1.dev1", "2.1.dev2", "2.1.2", "2.9", "3", "3.4"};
+		 for (int i = 0; i < v.length; i++) {
+			 for (int j = 0; j < v.length; j++) {
+				 int d = compareVersions(v[i], v[j]);
+				 System.out.print(d == 1 ? ">" : d==0 ? "=" : d==-1 ? "<" : "?");
+				 if (d != compareVersions(""+i, ""+j))
+					 System.out.print("ERR(" + v[i] + "," + v[j] + ")");
+					 
+			 }
+			 System.out.println();
+		 }
+	}*/
 
 	/**
 	 * Get access to the list of all PRISM language keywords.
@@ -1619,36 +1786,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.print(currentModulesFile.getVarName(i) + " ");
 		}
 		mainLog.println();
-		if (currentModulesFile.getModelType().partiallyObservable()) {
-			mainLog.println("Observables: " + String.join(" ", currentModulesFile.getObservableNames()));
-		}
-
-		// For some models, automatically switch engine
-		switch (currentModelType) {
-		case LTS:
-		case POMDP:
-			if (!getExplicit()) {
-				mainLog.println("\nSwitching to explicit engine, which supports " + currentModelType + "s...");
-				engineOld = getEngine();
-				engineSwitched = true;
-				try {
-					setEngine(Prism.EXPLICIT);
-				} catch (PrismException e) {
-					// Won't happen
-				}
-			}
-			break;
-		// For other models, switch engine back if changed earlier
-		default:
-			if (engineSwitched) {
-				try {
-					setEngine(engineOld);
-				} catch (PrismException e) {
-					// Won't happen
-				}
-				engineSwitched = false;
-			}
-		}
 
 		// If required, export parsed PRISM model
 		if (exportPrism) {
@@ -1714,15 +1851,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void setPRISMModelConstants(Values definedMFConstants, boolean exact) throws PrismException
 	{
-		// If there is no change in constants, there is nothing to do
-		boolean currentMFNone = currentDefinedMFConstants == null || currentDefinedMFConstants.getNumValues() == 0;
-		boolean newMFNone = definedMFConstants == null || definedMFConstants.getNumValues() == 0;
-		if (currentMFNone && newMFNone && currentDefinedMFConstantsAreExact == exact) {
+		if (currentDefinedMFConstants == null && definedMFConstants == null && currentDefinedMFConstantsAreExact == exact)
 			return;
-		}
 		if (currentDefinedMFConstants != null &&
 		    currentDefinedMFConstants.equals(definedMFConstants) &&
 		    currentDefinedMFConstantsAreExact == exact) {
+			// no change in constants and evaluation mode, nothing to do
 			return;
 		}
 
@@ -1875,14 +2009,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Get the values that have been provided for undefined constants in the current model.
-	 */
-	public Values getUndefinedModelValues()
-	{
-		return currentDefinedMFConstants;
-	}
-	
-	/**
 	 * Get the currently stored built (symbolic) model.
 	 * @return
 	 */
@@ -1905,7 +2031,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public boolean modelCanBeBuilt()
 	{
-		if (currentModelType.realTime())
+		if (currentModelType == ModelType.PTA)
 			return false;
 		return true;
 	}
@@ -1955,8 +2081,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		clearBuiltModel();
 
 		try {
-			if (currentModelType.realTime()) {
-				throw new PrismException("You cannot build a " + currentModelType + " model explicitly, only perform model checking");
+			if (currentModelType == ModelType.PTA) {
+				throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
 			}
 
 			mainLog.print("\nBuilding model...\n");
@@ -2140,8 +2266,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		Model model;
 		List<State> statesList;
 
-		if (modulesFile.getModelType().realTime()) {
-			throw new PrismException("You cannot build a " + modulesFile.getModelType() + " model explicitly, only perform model checking");
+		if (modulesFile.getModelType() == ModelType.PTA) {
+			throw new PrismException("You cannot build a PTA model explicitly, only perform model checking");
 		}
 
 		mainLog.print("\nBuilding model...\n");
@@ -2298,22 +2424,21 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// do export
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		if (!getExplicit()) {
-			currentModel.exportToFile(exportType, ordered, file, precision);
+			currentModel.exportToFile(exportType, ordered, file);
 		} else {
 			PrismLog tmpLog = getPrismLogForFile(file);
 			switch (exportType) {
 			case Prism.EXPORT_PLAIN:
-				currentModelExpl.exportToPrismExplicitTra(tmpLog, precision);
+				currentModelExpl.exportToPrismExplicitTra(tmpLog);
 				break;
 			case Prism.EXPORT_MATLAB:
 				throw new PrismNotSupportedException("Export not yet supported");
 			case Prism.EXPORT_DOT:
-				currentModelExpl.exportToDotFile(tmpLog, precision);
+				currentModelExpl.exportToDotFile(tmpLog);
 				break;
 			case Prism.EXPORT_DOT_STATES:
-				currentModelExpl.exportToDotFile(tmpLog, null, true, precision);
+				currentModelExpl.exportToDotFile(tmpLog, null, true);
 				break;
 			case Prism.EXPORT_MRMC:
 			case Prism.EXPORT_ROWS:
@@ -2367,7 +2492,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Do export, writing to multiple files if necessary
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2377,15 +2501,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (!getExplicit()) {
-				currentModel.exportStateRewardsToFile(r, exportType, fileToUse, precision);
+				currentModel.exportStateRewardsToFile(r, exportType, fileToUse);
 			} else {
 				PrismLog out = getPrismLogForFile(fileToUse);
 				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
-				try {
-					((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out, precision);
-				} catch (PrismNotSupportedException e) {
-					mainLog.println("\nReward export failed: " + e.getMessage());
-				}
+				((explicit.ProbModelChecker) mcExpl).exportStateRewardsToFile(currentModelExpl, r, exportType, out);
 				out.close();
 			}
 		}
@@ -2415,7 +2535,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		
 		if (getExplicit())
-			throw new PrismNotSupportedException("Export of transition rewards not yet supported by explicit engine");
+			throw new PrismException("Export of transition rewards not yet supported by explicit engine");
 
 		// Can only do ordered version of export for MDPs
 		if (currentModelType == ModelType.MDP) {
@@ -2444,7 +2564,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Do export, writing to multiple files if necessary
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2454,7 +2573,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (!getExplicit()) {
-				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse, precision);
+				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse);
 			} else {
 				// Not implemented yet
 			}
@@ -2882,8 +3001,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Check that property is valid for the current model type
 		prop.getExpression().checkValid(currentModelType);
 
-		// PTA (and similar) model checking is handled separately
-		if (currentModelType.realTime()) {
+		// For PTAs...
+		if (currentModelType == ModelType.PTA) {
 			return modelCheckPTA(propertiesFile, prop.getExpression(), definedPFConstants);
 		}
 
@@ -2909,10 +3028,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Auto-switch engine if required
 		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && !getExplicit()) {
-				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				setEngine(Prism.EXPLICIT);
+				//mainLog.printWarning("Switching to st rather explicit engine to allow use of chosen MDP solution method.");
+				//engineSwitch = true;
+				//lastEngine = getEngine();
+				//setEngine(Prism.EXPLICIT);
 			}
 		}
 		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
@@ -2923,10 +3042,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER)) {
 			if (currentModelType == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
-				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
-				engineSwitch = true;
-				lastEngine = getEngine();
-				setEngine(Prism.EXPLICIT);
+				//mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
+				//engineSwitch = true;
+				//lastEngine = getEngine();
+				//setEngine(Prism.EXPLICIT);
 			}
 		}
 		try {
@@ -2996,7 +3115,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		expr.checkValid(currentModelType);
 
 		// Digital clocks translation
-		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks") || currentModelType == ModelType.POPTA) {
+		if (settings.getString(PrismSettings.PRISM_PTA_METHOD).equals("Digital clocks")) {
 			digital = true;
 			ModulesFile oldModulesFile = currentModulesFile;
 			try {
@@ -3043,10 +3162,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// If creation failed before, this tries again, throwing an explanatory exception.
 		try {
 			getModelGenerator();
-			// No support for real-time models yet
-			if (currentModelType.realTime()) {
-				throw new PrismException(currentModelType + "s are not currently supported");
-			}
 		} catch (PrismException e) {
 			throw new PrismException("Simulation not possible: "+ e.getMessage());
 		}
@@ -3104,6 +3219,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result modelCheckSimulator(PropertiesFile propertiesFile, Expression expr, Values definedPFConstants, State initialState, long maxPathLength,
 			SimulationMethod simMethod) throws PrismException
 	{
+		Object res = null;
+
 		// Print info
 		mainLog.printSeparator();
 		mainLog.println("\nSimulating: " + expr);
@@ -3121,9 +3238,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Do simulation
 		loadModelIntoSimulator();
-		Result res = getSimulator().modelCheckSingleProperty(propertiesFile, expr, initialState, maxPathLength, simMethod);
+		res = getSimulator().modelCheckSingleProperty(propertiesFile, expr, initialState, maxPathLength, simMethod);
 
-		return res;
+		return new Result(res);
 	}
 
 	/**
@@ -3143,6 +3260,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public Result[] modelCheckSimulatorSimultaneously(PropertiesFile propertiesFile, List<Expression> exprs, Values definedPFConstants, State initialState,
 			long maxPathLength, SimulationMethod simMethod) throws PrismException
 	{
+		Object[] res = null;
+
 		// Print info
 		mainLog.printSeparator();
 		mainLog.print("\nSimulating");
@@ -3169,8 +3288,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Do simulation
 		loadModelIntoSimulator();
-		Result[] resArray = getSimulator().modelCheckMultipleProperties(propertiesFile, exprs, initialState, maxPathLength, simMethod);
+		res = getSimulator().modelCheckMultipleProperties(propertiesFile, exprs, initialState, maxPathLength, simMethod);
 
+		Result[] resArray = new Result[res.length];
+		for (int i = 0; i < res.length; i++)
+			resArray[i] = new Result(res[i]);
 		return resArray;
 	}
 
@@ -3252,15 +3374,17 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// There should be just one region since no parameters are used
 		ParamResult paramResult = (ParamResult) result.getResult();
 		result.setResult(paramResult.getSimpleResult(prop.getType()));
-		result.setAccuracy(new Accuracy(AccuracyLevel.EXACT));
 
 		// Print result to log
 		String resultString = "Result";
-		resultString += ": " + result.getResultAndAccuracy();
-		if (result.getResult() instanceof BigRational) {
-			resultString += " (" + ((BigRational) result.getResult()).toApproximateString() + ")";
-		}
+		if (!("Result".equals(prop.getExpression().getResultName())))
+			resultString += " (" + prop.getExpression().getResultName().toLowerCase() + ")";
+		resultString += ": " + result.getResultString();
 		mainLog.println("\n" + resultString);
+
+		if (result.getResult() instanceof BigRational) {
+			mainLog.println(" As floating point: " + ((BigRational)result.getResult()).toApproximateString());
+		}
 
 		return result;
 	}
@@ -3335,7 +3459,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Export to file (or use main log)
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 		tmpLog = getPrismLogForFile(file);
 		switch (exportType) {
 		case ACTIONS:
@@ -3345,10 +3468,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			strat.exportIndices(tmpLog);
 			break;
 		case INDUCED_MODEL:
-			strat.exportInducedModel(tmpLog, precision);
+			strat.exportInducedModel(tmpLog);
 			break;
 		case DOT_FILE:
-			strat.exportDotFile(tmpLog, precision);
+			strat.exportDotFile(tmpLog);
 			break;
 		}
 		if (file != null)
@@ -3526,13 +3649,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// FAU
 		if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
-			if (fileIn != null) {
-				throw new PrismException("Fast adaptive uniformisation cannot read an initial distribution from a file");
-			}
 			ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(currentModulesFile, this);
 			FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 			fau.setConstantValues(currentModulesFile.getConstantValues());
-			probsExpl = fau.doTransient(time);
+			probsExpl = fau.doTransient(time, fileIn, currentModel);
 		}
 		// Symbolic
 		else if (!getExplicit()) {
@@ -3635,14 +3755,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// FAU
 			if (currentModelType == ModelType.CTMC && settings.getString(PrismSettings.PRISM_TRANSIENT_METHOD).equals("Fast adaptive uniformisation")) {
-				if (fileIn != null) {
-					throw new PrismException("Fast adaptive uniformisation cannot read an initial distribution from a file");
-				}
 				ModulesFileModelGenerator prismModelGen = new ModulesFileModelGenerator(currentModulesFile, this);
 				FastAdaptiveUniformisation fau = new FastAdaptiveUniformisation(this, prismModelGen);
 				fau.setConstantValues(currentModulesFile.getConstantValues());
 				if (i == 0) {
-					probsExpl = fau.doTransient(timeDouble);
+					probsExpl = fau.doTransient(timeDouble, fileIn, currentModel);
 					initTimeDouble = 0.0;
 				} else {
 					probsExpl = fau.doTransient(timeDouble - initTimeDouble, probsExpl);

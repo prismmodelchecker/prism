@@ -26,11 +26,8 @@
 
 package parser.ast;
 
-import java.math.BigInteger;
-
 import param.BigRational;
 import parser.*;
-import parser.EvaluateContext.EvalMode;
 import parser.visitor.*;
 import prism.PrismLangException;
 import parser.type.*;
@@ -121,49 +118,39 @@ public class ExpressionUnaryOp extends Expression
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		Object eval = operand.evaluate(ec);
-		return apply(eval, ec.getEvaluationMode());
-	}
-
-	/**
-	 * Apply this unary operator instance to the argument provided
-	 */
-	public Object apply(Object eval, EvalMode evalMode) throws PrismLangException
-	{
 		switch (op) {
 		case NOT:
-			return !((Boolean) getType().castValueTo(eval));
+			return !operand.evaluateBoolean(ec);
 		case MINUS:
-			switch (evalMode) {
-			case FP:
+			if (type instanceof TypeInt) {
 				try {
-					if (getType() instanceof TypeInt) {
-						int i = (int) TypeInt.getInstance().castValueTo(eval);
-						return Math.negateExact(i);
-					} else {
-						double d = (double) TypeDouble.getInstance().castValueTo(eval);
-						return -d;
-					}
+					return Math.negateExact(operand.evaluateInt(ec));
 				} catch (ArithmeticException e) {
 					throw new PrismLangException(e.getMessage(), this);
 				}
-			case EXACT:
-				if (getType() instanceof TypeInt) {
-					BigInteger i = (BigInteger) TypeInt.getInstance().castValueTo(eval);
-					return i.negate();
-				} else {
-					BigRational d = (BigRational) TypeDouble.getInstance().castValueTo(eval);
-					return d.negate();
-				}
-			default:
-				throw new PrismLangException("Unknown evaluation mode " + evalMode);
+			} else {
+				return -operand.evaluateDouble(ec);
 			}
 		case PARENTH:
-			return eval;
+			return operand.evaluate(ec);
 		}
 		throw new PrismLangException("Unknown unary operator", this);
 	}
-	
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		switch (op) {
+		case NOT:
+			return BigRational.from(!operand.evaluateExact(ec).toBoolean());
+		case MINUS:
+			return operand.evaluateExact(ec).negate();
+		case PARENTH:
+			return operand.evaluateExact(ec);
+		}
+		throw new PrismLangException("Unknown unary operator", this);
+	}
+
 	@Override
 	public boolean returnsSingleValue()
 	{

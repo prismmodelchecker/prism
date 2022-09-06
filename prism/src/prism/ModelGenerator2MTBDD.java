@@ -273,7 +273,7 @@ public class ModelGenerator2MTBDD
 		// go through all vars in order (incl. global variables)
 		// so overall ordering can be specified by ordering in the input file
 		for (i = 0; i < numVars; i++) {
-			DeclarationType declType = varList.getDeclarationType(i);
+			DeclarationType declType = varList.getDeclaration(i).getDeclType();
 			if (declType instanceof DeclarationClock || declType instanceof DeclarationIntUnbounded) {
 				throw new PrismNotSupportedException("Cannot build a model that contains a variable with unbounded range (try the explicit engine instead)");
 			}

@@ -1,3 +1,0 @@
-// Maximum probability of guessing the value correctly
-// (equals the probability of the most likely value)
-Pmax=? [ F "correct" ];

@@ -371,10 +371,6 @@ jlong _strat				// strategy storage
 		}
 	}
 	
-	// the difference between vector values is not a reliable error bound
-	// but we store it anyway in case it is useful for estimating a bound
-	last_error_bound = measure.value();
-	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
 		PS_SetErrorMessage("Out of memory");

@@ -10,21 +10,7 @@
 // RESULT (AA=1,BB=2,x=1): true
 // RESULT (AA=1,BB=2,x=2): true
 // RESULT (AA=1,BB=2,x=3): false
-"Property_1": P>0.55 [ F s=7&d>x ]
-
-// RESULT (AA=0,BB=1,x=1): 0.78125
-// RESULT (AA=0,BB=1,x=2): 0.625
-// RESULT (AA=0,BB=1,x=3): 0.46875
-// RESULT (AA=0,BB=2,x=1): 0.78125
-// RESULT (AA=0,BB=2,x=2): 0.625
-// RESULT (AA=0,BB=2,x=3): 0.46875
-// RESULT (AA=1,BB=1,x=1): 0.78125
-// RESULT (AA=1,BB=1,x=2): 0.625
-// RESULT (AA=1,BB=1,x=3): 0.46875
-// RESULT (AA=1,BB=2,x=1): 0.78125
-// RESULT (AA=1,BB=2,x=2): 0.625
-// RESULT (AA=1,BB=2,x=3): 0.46875
-"Intriguing": P=? [ F<=5 s=7&d>x ]
+P>0.5 [ F s=7&d>x ]
 
 // RESULT (AA=0,BB=1,x=1): 0.78125
 // RESULT (AA=0,BB=1,x=2): 0.625
@@ -40,16 +26,30 @@
 // RESULT (AA=1,BB=2,x=3): 0.46875
 P=? [ F<=5 s=7&d>x ]
 
-// RESULT (AA=0,BB=1,x=1): 1
+// RESULT (AA=0,BB=1,x=1): 0.78125
+// RESULT (AA=0,BB=1,x=2): 0.625
+// RESULT (AA=0,BB=1,x=3): 0.46875
+// RESULT (AA=0,BB=2,x=1): 0.78125
+// RESULT (AA=0,BB=2,x=2): 0.625
+// RESULT (AA=0,BB=2,x=3): 0.46875
+// RESULT (AA=1,BB=1,x=1): 0.78125
+// RESULT (AA=1,BB=1,x=2): 0.625
+// RESULT (AA=1,BB=1,x=3): 0.46875
+// RESULT (AA=1,BB=2,x=1): 0.78125
+// RESULT (AA=1,BB=2,x=2): 0.625
+// RESULT (AA=1,BB=2,x=3): 0.46875
+P=? [ F<=5 s=7&d>x ]
+
+// RESULT (AA=0,BB=1,x=1): 1.0
 // RESULT (AA=0,BB=1,x=2): Infinity
 // RESULT (AA=0,BB=1,x=3): Infinity
-// RESULT (AA=0,BB=2,x=1): 1
+// RESULT (AA=0,BB=2,x=1): 1.0
 // RESULT (AA=0,BB=2,x=2): Infinity
 // RESULT (AA=0,BB=2,x=3): Infinity
-// RESULT (AA=1,BB=1,x=1): 1
+// RESULT (AA=1,BB=1,x=1): 1.0
 // RESULT (AA=1,BB=1,x=2): Infinity
 // RESULT (AA=1,BB=1,x=3): Infinity
-// RESULT (AA=1,BB=2,x=1): 1
+// RESULT (AA=1,BB=2,x=1): 1.0
 // RESULT (AA=1,BB=2,x=2): Infinity
 // RESULT (AA=1,BB=2,x=3): Infinity
 R=? [ F "done"&d>=x ]

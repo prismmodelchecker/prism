@@ -2,19 +2,12 @@
 src='../lp_MDO.c ../shared/commonlib.c ../shared/mmio.c ../shared/myblas.c ../ini.c ../fortify.c ../colamd/colamd.c ../lp_rlp.c ../lp_crash.c ../bfp/bfp_LUSOL/lp_LUSOL.c ../bfp/bfp_LUSOL/LUSOL/lusol.c ../lp_Hash.c ../lp_lib.c ../lp_wlp.c ../lp_matrix.c ../lp_mipbb.c ../lp_MPS.c ../lp_params.c ../lp_presolve.c ../lp_price.c ../lp_pricePSE.c ../lp_report.c ../lp_scale.c ../lp_simplex.c ../lp_SOS.c ../lp_utils.c ../yacc_read.c'
 #c=gcc-4.0
 
-if [ "$ARCH" = "x86_64" ]; then
-	CFLAGS="-arch x86_64"
-fi
-if [ "$ARCH" = "arm64" ]; then
-	CFLAGS="-arch arm64"
-fi
-
 #determine platform (32/64 bit)
 >/tmp/platform.c
 echo '#include <stdlib.h>'>>/tmp/platform.c
 echo '#include <stdio.h>'>>/tmp/platform.c
 echo 'main(){printf("osx%d", (int) (sizeof(void *)*8));}'>>/tmp/platform.c
-$c $CFLAGS /tmp/platform.c -o /tmp/platform
+$c -arch x86_64 /tmp/platform.c -o /tmp/platform
 PLATFORM=`/tmp/platform`
 rm /tmp/platform /tmp/platform.c >/dev/null 2>&1
 
@@ -26,7 +19,7 @@ echo '#include <stdio.h>'>>/tmp/isnan.c
 echo '#include <stdlib.h>'>>/tmp/isnan.c
 echo '#include <math.h>'>>/tmp/isnan.c
 echo 'main(){isnan(0.0);}'>>/tmp/isnan.c
-$c $CFLAGS /tmp/isnan.c -o /tmp/isnan $math >/dev/null 2>&1
+$c -arch x86_64 /tmp/isnan.c -o /tmp/isnan $math >/dev/null 2>&1
 if [ $? = 0 ]
 then NOISNAN=
 else NOISNAN=-DNOISNAN
@@ -39,13 +32,13 @@ so=y
 
 opts='-idirafter /usr/include/sys -O3 -DINTEGERTIME'
 
-$c $CFLAGS -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd $opts $def $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
+$c -arch x86_64 -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd $opts $def $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
 libtool -static -o bin/$PLATFORM/liblpsolve55.a `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'`
 
 if [ "$so" != "" ]
 then
-  $c $CFLAGS -fPIC -fno-common -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd -I. $opts $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
-  $c $CFLAGS -dynamiclib bin/$PLATFORM/liblpsolve55.a -compatibility_version 5.5.0 -current_version 5.5.0 -o bin/$PLATFORM/liblpsolve55.dylib `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'` -lc
+  $c -arch x86_64 -fPIC -fno-common -s -c -I.. -I../shared -I../bfp -I../bfp/bfp_LUSOL -I../bfp/bfp_LUSOL/LUSOL -I../colamd -I. $opts $NOISNAN -DYY_NEVER_INTERACTIVE -DPARSER_LP -DINVERSE_ACTIVE=INVERSE_LUSOL -DRoleIsExternalInvEngine $src
+  $c -arch x86_64 -dynamiclib bin/$PLATFORM/liblpsolve55.a -compatibility_version 5.5.0 -current_version 5.5.0 -o bin/$PLATFORM/liblpsolve55.dylib `echo $src|sed s/[.]c/.o/g|sed 's/[^ ]*\///g'` -lc
   mv bin/$PLATFORM/liblpsolve55.dylib ../../../lib
 fi
 

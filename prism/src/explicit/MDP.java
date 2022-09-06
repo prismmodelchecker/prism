@@ -26,26 +26,17 @@
 
 package explicit;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
-import java.util.TreeMap;
 import java.util.PrimitiveIterator.OfInt;
 
 import common.IterableStateSet;
-import common.IteratorTools;
-import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
-import prism.ModelType;
-import prism.PrismException;
-import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
@@ -57,188 +48,6 @@ import prism.PrismUtils;
  */
 public interface MDP extends MDPGeneric<Double>
 {
-	// Accessors (for Model) - default implementations
-	
-	@Override
-	default ModelType getModelType()
-	{
-		return ModelType.MDP;
-	}
-
-	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Output transitions to .tra file
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
-		for (int i = 0; i < numStates; i++) {
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()));
-					Object action = getAction(i, j);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-				sorted.clear();
-			}
-		}
-	}
-
-	@Override
-	default void exportTransitionsToDotFile(int i, PrismLog out, Iterable<explicit.graphviz.Decorator> decorators, int precision)
-	{
-		// Iterate through outgoing choices for this state
-		int numChoices = getNumChoices(i);
-		for (int j = 0; j < numChoices; j++) {
-			Object action = getAction(i, j);
-			// Print a new dot file line for the initial line fragment for this choice
-			String nij = "n" + i + "_" + j;
-			out.print(i + " -> " + nij + " ");
-			// Annotate this with the choice index/action 
-			explicit.graphviz.Decoration d = new explicit.graphviz.Decoration();
-			d.attributes().put("arrowhead", "none");
-			d.setLabel(j + (action != null ? ":" + action : ""));
-			// Apply any other decorators requested
-			if (decorators != null) {
-				for (Decorator decorator : decorators) {
-					d = decorator.decorateTransition(i, j, d);
-				}
-			}
-			// Append to the dot file line
-			out.println(" " + d.toString() + ";");
-			// Print a new dot file line for the point where this choice branches
-			out.print(nij + " [ shape=point,width=0.1,height=0.1,label=\"\" ];\n");
-			// Iterate through outgoing transitions for this choice
-			Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-			while (iter.hasNext()) {
-				Map.Entry<Integer, Double> e = iter.next();
-				// Print a new dot file line for the arrow for this transition
-				out.print(nij + " -> " + e.getKey() + " ");
-				// Annotate this arrow with the probability 
-				d = new explicit.graphviz.Decoration();
-				d.setLabel(PrismUtils.formatDouble(precision, e.getValue()));
-				// Apply any other decorators requested
-				if (decorators != null) {
-					for (Decorator decorator : decorators) {
-						d = decorator.decorateProbability(i, e.getKey(), j, e.getValue(), d);
-					}
-				}
-				// Append to the dot file line for this transition
-				out.println(" " + d.toString() + ";");
-			}
-		}
-	}
-
-	@Override
-	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
-	{
-		try (FileWriter out = new FileWriter(filename)) {
-			// Output transitions to PRISM language file
-			out.write(getModelType().keyword() + "\n");
-			final int numStates = getNumStates();
-			out.write("module M\nx : [0.." + (numStates - 1) + "];\n");
-			final TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
-			for (int state = 0; state < numStates; state++) {
-				for (int choice = 0, numChoices = getNumChoices(state); choice < numChoices; choice++) {
-					// Extract transitions and sort by destination state index (to match PRISM-exported files)
-					for (Iterator<Entry<Integer, Double>> transitions = getTransitionsIterator(state, choice); transitions.hasNext();) {
-						final Entry<Integer, Double> trans = transitions.next();
-						sorted.put(trans.getKey(), trans.getValue());
-					}
-					// Print out (sorted) transitions
-					final Object action = getAction(state, choice);
-					out.write(action != null ? ("[" + action + "]") : "[]");
-					out.write("x=" + state + "->");
-					boolean first = true;
-					for (Entry<Integer, Double> e : sorted.entrySet()) {
-						if (first)
-							first = false;
-						else
-							out.write("+");
-						// Note use of PrismUtils.formatDouble to match PRISM-exported files
-						out.write(PrismUtils.formatDouble(precision, e.getValue()) + ":(x'=" + e.getKey() + ")");
-					}
-					out.write(";\n");
-					sorted.clear();
-				}
-			}
-			out.write("endmodule\n");
-		} catch (IOException e) {
-			throw new PrismException("Could not export " + getModelType() + " to file \"" + filename + "\"" + e);
-		}
-	}
-
-	@Override
-	default String infoString()
-	{
-		final int numStates = getNumStates();
-		String s = "";
-		s += numStates + " states (" + getNumInitialStates() + " initial)";
-		s += ", " + getNumTransitions() + " transitions";
-		s += ", " + getNumChoices() + " choices";
-		s += ", dist max/avg = " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates);
-		return s;
-	}
-
-	@Override
-	default String infoStringTable()
-	{
-		final int numStates = getNumStates();
-		String s = "";
-		s += "States:      " + numStates + " (" + getNumInitialStates() + " initial)\n";
-		s += "Transitions: " + getNumTransitions() + "\n";
-		s += "Choices:     " + getNumChoices() + "\n";
-		s += "Max/avg:     " + getMaxNumChoices() + "/" + PrismUtils.formatDouble2dp(((double) getNumChoices()) / numStates) + "\n";
-		return s;
-	}
-
-	// Accessors (for NondetModel) - default implementations
-	
-	@Override
-	default int getNumTransitions(final int s, final int i)
-	{
-		return Math.toIntExact(IteratorTools.count(getTransitionsIterator(s, i)));
-	}
-	
-	@Override
-	default void exportToDotFileWithStrat(PrismLog out, BitSet mark, int strat[], int precision)
-	{
-		int numStates = getNumStates();
-		out.print("digraph " + getModelType() + " {\nnode [shape=box];\n");
-		for (int i = 0; i < numStates; i++) {
-			if (mark != null && mark.get(i))
-				out.print(i + " [style=filled  fillcolor=\"#cccccc\"]\n");
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				String style = (strat[i] == j) ? ",color=\"#ff0000\",fontcolor=\"#ff0000\"" : "";
-				Object action = getAction(i, j);
-				String nij = "n" + i + "_" + j;
-				out.print(i + " -> " + nij + " [ arrowhead=none,label=\"" + j);
-				if (action != null)
-					out.print(":" + action);
-				out.print("\"" + style + " ];\n");
-				out.print(nij + " [ shape=point,height=0.1,label=\"\"" + style + " ];\n");
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					out.print(nij + " -> " + e.getKey() + " [ label=\"" + PrismUtils.formatDouble(precision, e.getValue()) + "\"" + style + " ];\n");
-				}
-			}
-		}
-		out.print("}\n");
-	}
-
-	// Accessors
-	
 	/**
 	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
 	 */
@@ -408,7 +217,7 @@ public interface MDP extends MDPGeneric<Double>
 			double d = mvMultSingle(s, choice, vect);
 
 			// Store strategy info if value matches
-			if (PrismUtils.doublesAreEqual(val, d)) {
+			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
 				result.add(choice);
 			}
 		}
@@ -899,7 +708,7 @@ public interface MDP extends MDPGeneric<Double>
 		for (int choice = 0, numChoices = getNumChoices(s); choice < numChoices; choice++) {
 			double d = mvMultRewSingle(s, choice, vect, mdpRewards);
 			// Store strategy info if value matches
-			if (PrismUtils.doublesAreEqual(val, d)) {
+			if (PrismUtils.doublesAreClose(val, d, 1e-12, false)) {
 				result.add(choice);
 			}
 		}

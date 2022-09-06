@@ -143,7 +143,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// Initialise
 		this.prism = prism;
 		this.varList = varList;
-		this.allDDRowVars = allDDRowVars;
 		this.varDDRowVars = varDDRowVars;
 		this.constantValues = constantValues;
 		// Create dummy model
@@ -243,7 +242,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		resultString = "Result";
 		if (!("Result".equals(expr.getResultName())))
 			resultString += " (" + expr.getResultName().toLowerCase() + ")";
-		resultString += ": " + result.getResultAndAccuracy();
+		resultString += ": " + result.getResultString();
 		mainLog.print("\n" + resultString + "\n");
 
 		// Clean up
@@ -547,7 +546,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			s = e1.getName();
 			v = varList.getIndex(s);
 			if (v == -1) {
-				throw new PrismLangException("Unknown variable \"" + e1.getName() + "\" (no index information)", e1);
+				throw new PrismException("Unknown variable \"" + s + "\"");
 			}
 			// get some info on the variable
 			l = varList.getLow(v);
@@ -599,7 +598,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			s = e2.getName();
 			v = varList.getIndex(s);
 			if (v == -1) {
-				throw new PrismLangException("Unknown variable \"" + e2.getName() + "\" (no index information)", e2);
+				throw new PrismException("Unknown variable \"" + s + "\"");
 			}
 			// get some info on the variable
 			l = varList.getLow(v);
@@ -992,13 +991,19 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	protected StateValues checkExpressionLiteral(ExpressionLiteral expr, JDDNode statesOfInterest) throws PrismException
 	{
+		JDDNode dd;
+
 		// it's more efficient to return the constant node
 		// instead of a MTBDD function for ITE(statesOfInterest, value, 0),
 		// so we ignore statesOfInterest
 		JDD.Deref(statesOfInterest);
 
-		double d = encodeToDouble(expr.getType(), expr.evaluate());
-		return new StateValuesMTBDD(JDD.Constant(d), model);
+		try {
+			dd = JDD.Constant(expr.evaluateDouble());
+		} catch (PrismLangException e) {
+			throw new PrismException("Unknown literal type");
+		}
+		return new StateValuesMTBDD(dd, model);
 	}
 
 	/**
@@ -1008,13 +1013,24 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 */
 	protected StateValues checkExpressionConstant(ExpressionConstant expr, JDDNode statesOfInterest) throws PrismException
 	{
+		int i;
+		JDDNode dd;
+
 		// it's more efficient to return the constant node
 		// instead of a MTBDD function for ITE(statesOfInterest, value, 0),
 		// so we ignore statesOfInterest
 		JDD.Deref(statesOfInterest);
 
-		double d = encodeToDouble(expr.getType(), expr.evaluate(constantValues));
-		return new StateValuesMTBDD(JDD.Constant(d), model);
+		i = constantValues.getIndexOf(expr.getName());
+		if (i == -1)
+			throw new PrismException("Couldn't evaluate constant \"" + expr.getName() + "\"");
+		try {
+			dd = JDD.Constant(constantValues.getDoubleValue(i));
+		} catch (PrismLangException e) {
+			throw new PrismException("Unknown type for constant \"" + expr.getName() + "\"");
+		}
+
+		return new StateValuesMTBDD(dd, model);
 	}
 
 	/**
@@ -1036,7 +1052,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		// get the variable's index
 		v = varList.getIndex(s);
 		if (v == -1) {
-			throw new PrismLangException("Unknown variable \"" + expr.getName() + "\"", expr);
+			throw new PrismException("Unknown variable \"" + s + "\"");
 		}
 		// get some info on the variable
 		l = varList.getLow(v);
@@ -1176,7 +1192,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean b = false;
 		String resultExpl = null;
 		Object resObj = null;
-		Accuracy resAcc = null; 
 		switch (op) {
 		case PRINT:
 		case PRINTALL:
@@ -1218,13 +1233,13 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute min
 			d = vals.minOverBDD(ddFilter);
 			// Store as object/vector (note crazy Object cast to avoid Integer->int auto conversion)
-			resObj = decodeFromDouble(expr.getType(), d);
+			resObj = (expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d));
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			ddMatch = vals.getBDDFromCloseValue(d);
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			break;
@@ -1232,13 +1247,13 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute max
 			d = vals.maxOverBDD(ddFilter);
 			// Store as object/vector (note crazy Object cast to avoid Integer->int auto conversion)
-			resObj = decodeFromDouble(expr.getType(), d);
+			resObj = (expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d));
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			ddMatch = vals.getBDDFromCloseValue(d);
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			break;
@@ -1246,9 +1261,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute/display min
 			d = vals.minOverBDD(ddFilter);
 			mainLog.print("\nMinimum value over " + filterStatesString + ": ");
-			mainLog.println(decodeFromDouble(expr.getType(), d));
+			mainLog.println((expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d)));
 			// Find states that (are close to) selected value
-			ddMatch = vals.getBDDFromCloseValue(d);
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
@@ -1262,9 +1277,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute/display max
 			d = vals.maxOverBDD(ddFilter);
 			mainLog.print("\nMaximum value over " + filterStatesString + ": ");
-			mainLog.println(decodeFromDouble(expr.getType(), d));
+			mainLog.println((expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d)));
 			// Find states that (are close to) selected value
-			ddMatch = vals.getBDDFromCloseValue(d);
+			ddMatch = vals.getBDDFromCloseValue(d, prism.getTermCritParam(), prism.getTermCrit() == Prism.ABSOLUTE);
 			JDD.Ref(ddFilter);
 			ddMatch = JDD.And(ddMatch, ddFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
@@ -1279,7 +1294,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			vals.filter(ddFilter);
 			d = vals.getNNZ();
 			// Store as object/vector
-			resObj = Integer.valueOf((int) d);
+			resObj = new Integer((int) d);
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = filterTrue ? "Count of satisfying states" : "Count of satisfying states also in filter";
@@ -1289,7 +1304,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute sum
 			d = vals.sumOverBDD(ddFilter);
 			// Store as object/vector (note crazy Object cast to avoid Integer->int auto conversion)
-			resObj = decodeFromDouble(expr.getType(), d);
+			resObj = (expr.getType() instanceof TypeInt) ? ((Object) new Integer((int) d)) : (new Double(d));
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Sum over " + filterStatesString;
@@ -1299,7 +1314,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Compute average
 			d = vals.sumOverBDD(ddFilter) / JDD.GetNumMinterms(ddFilter, allDDRowVars.n());
 			// Store as object/vector
-			resObj = Double.valueOf(d);
+			resObj = new Double(d);
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Average over " + filterStatesString;
@@ -1309,7 +1324,13 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			// Find first value
 			d = vals.firstFromBDD(ddFilter);
 			// Store as object/vector
-			resObj = decodeFromDouble(expr.getType(), d);
+			if (expr.getType() instanceof TypeInt) {
+				resObj = new Integer((int) d);
+			} else if (expr.getType() instanceof TypeDouble) {
+				resObj = new Double(d);
+			} else {
+				resObj = new Boolean(d > 0);
+			}
 			resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
@@ -1348,7 +1369,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			states = new StateListMTBDD(dd, model);
 			b = dd.equals(ddFilter);
 			// Store as object/vector
-			resObj = Boolean.valueOf(b);
+			resObj = new Boolean(b);
 			resVals = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
 			// Set vals to null so that is not clear()-ed twice
 			vals = null;
@@ -1382,7 +1403,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			dd = JDD.And(dd, ddFilter);
 			b = !dd.equals(JDD.ZERO);
 			// Store as object/vector
-			resObj = Boolean.valueOf(b);
+			resObj = new Boolean(b);
 			resVals = new StateValuesMTBDD(JDD.Constant(b ? 1.0 : 0.0), model);
 			// Set vals to null so that is not clear()-ed twice
 			vals = null;
@@ -1410,8 +1431,15 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				// Find first (only) value
 				d = vals.firstFromBDD(ddFilter);
 				// Store as object/vector
-				resObj = decodeFromDouble(expr.getType(), d);
-				resAcc = vals.getAccuracy();
+				if (expr.getType() instanceof TypeInt) {
+					resObj = new Integer((int) d);
+				} else if (expr.getType() instanceof TypeDouble) {
+					resObj = new Double(d);
+				} else if (expr.getType() instanceof TypeBool) {
+					resObj = new Boolean(d > 0);
+				} else {
+					throw new PrismException("Don't know how to handle result of type " + expr.getType());
+				}
 				resVals = new StateValuesMTBDD(JDD.Constant(d), model);
 			}
 			// Create explanation of result and print some details to log
@@ -1445,7 +1473,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 
 		// Store result
 		result.setResult(resObj);
-		result.setAccuracy(resAcc);
 		// Set result explanation (if none or disabled, clear)
 		if (expr.getExplanationEnabled() && resultExpl != null) {
 			result.setExplanation(resultExpl.toLowerCase());
@@ -1468,48 +1495,6 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		return resVals;
 	}
 
-	// Utility functions for symbolic model checkers 
-	
-	/**
-	 * Convert a value stored as an Object to its encoding as a double (for the MTBDD). 
-	 */
-	public static double encodeToDouble(Type type, Object val) throws PrismException {
-		// Integer type
-		if (type instanceof TypeInt) {
-			return ((TypeInt) type).castValueTo(val).intValue();
-		}
-		// Double type
-		else if (type instanceof TypeDouble) {
-			return ((TypeDouble) type).castValueTo(val).doubleValue();
-		}
-		// Boolean type
-		else if (type instanceof TypeBool) {
-			return ((TypeBool) type).castValueTo(val).booleanValue() ? 1.0 : 0.0;
-		}
-		// Anything else
-		throw new PrismException("Could not encode type " + type + " into an MTBDD");
-	}
-	
-	/**
-	 * Get a value as an Object, from its encoding as a double (for the MTBDD). 
-	 */
-	public static Object decodeFromDouble(Type type, double val) {
-		// Integer type
-		if (type instanceof TypeInt) {
-			return (int) val;
-		}
-		// Double type
-		else if (type instanceof TypeDouble) {
-			return val;
-		}
-		// Boolean type
-		else if (type instanceof TypeBool) {
-			return val > 0;
-		}
-		// Anything else
-		return null;
-	}
-	
 	/**
 	 * Method for handling the recursive part of PCTL* checking, i.e.,
 	 * recursively checking maximal state subformulas and replacing them
@@ -1566,7 +1551,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			stateRewards = model.getStateRewards(0);
 		} else if (rs instanceof Expression) {
 			int i = ((Expression) rs).evaluateInt(constantValues);
-			rs = Integer.valueOf(i); // for better error reporting below
+			rs = new Integer(i); // for better error reporting below
 			stateRewards = model.getStateRewards(i - 1);
 		} else if (rs instanceof String) {
 			stateRewards = model.getStateRewards((String) rs);
@@ -1589,7 +1574,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 			transRewards = model.getTransRewards(0);
 		} else if (rs instanceof Expression) {
 			int i = ((Expression) rs).evaluateInt(constantValues);
-			rs = Integer.valueOf(i); // for better error reporting below
+			rs = new Integer(i); // for better error reporting below
 			transRewards = model.getTransRewards(i - 1);
 		} else if (rs instanceof String) {
 			transRewards = model.getTransRewards((String) rs);

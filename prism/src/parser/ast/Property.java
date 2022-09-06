@@ -28,18 +28,23 @@ package parser.ast;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import param.BigRational;
+import param.ParamResult;
 import parser.Values;
-import parser.visitor.ASTVisitor;
-import prism.DefinedConstant;
+import parser.type.*;
+import parser.visitor.*;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismNotSupportedException;
 import prism.PrismUtils;
-import prism.Result;
-import prism.ResultTesting;
+import prism.DefinedConstant;
+import prism.Point;
+import prism.Prism;
+import prism.TileList;
 
 /**
  * PRISM property, i.e. a PRISM expression plus other (optional info) such as name, comment, etc.
@@ -107,15 +112,13 @@ public class Property extends ASTElement
 	}
 
 	/**
-	 * Tests a result against the expected result for this Property, specified by an embedded "RESULT: xxx"
+	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
+	 * against the expected result for this Property, specified by an embedded "RESULT: xxx"
 	 * string in the accompanying comment (immediately preceding it in the property specification).
-	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx".
-	 * The result should ideally be passed in as a {@link prism.Result} object, but can also
-	 * be given directly as an object of the appropriate type: Boolean, Double, etc.)
 	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
 	 * Otherwise, the method successfully exits, returning a boolean value that indicates
 	 * whether or not a check was actually applied (i.e. if the result specification is of the
-	 * form "RESULT: ?") then false is returned; otherwise true.
+	 * form "RESULT: ?") then false is returned; otherwise true.   
 	 * @param result The actual result
 	 * @return Whether or not the check was performed
 	 */
@@ -125,51 +128,29 @@ public class Property extends ASTElement
 	}
 
 	/**
-	 * Tests a result against the expected result for this Property, specified by an embedded "RESULT: xxx"
+	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
+	 * against the expected result for this Property, specified by an embedded "RESULT: xxx"
 	 * string in the accompanying comment (immediately preceding it in the property specification).
-	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx".
-	 * The result should ideally be passed in as a {@link prism.Result} object, but can also
-	 * be given directly as an object of the appropriate type: Boolean, Double, etc.)
+	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx". 
 	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
 	 * Otherwise, the method successfully exits, returning a boolean value that indicates
 	 * whether or not a check was actually applied (i.e. if the result specification is of the
-	 * form "RESULT: ?") then false is returned; otherwise true.
+	 * form "RESULT: ?") then false is returned; otherwise true.   
 	 * @param result The actual result
-	 * @param constValues The values of any constants (null if none)
+	 * @param constValues The values of any undefined constants (null if none)
 	 * @return Whether or not the check was performed
 	 */
 	public boolean checkAgainstExpectedResult(Object result, Values constValues) throws PrismException
 	{
-		return checkAgainstExpectedResult(result, constValues, null);
-	}
-
-	/**
-	 * Tests a result against the expected result for this Property, specified by an embedded "RESULT: xxx"
-	 * string in the accompanying comment (immediately preceding it in the property specification).
-	 * Different results for different constant values are specified by e.g. "RESULT (x=1): xxx".
-	 * The result should ideally be passed in as a {@link prism.Result} object, but can also
-	 * be given directly as an object of the appropriate type: Boolean, Double, etc.)
-	 * If the test fails or something else goes wrong, an explanatory PrismException is thrown.
-	 * Otherwise, the method successfully exits, returning a boolean value that indicates
-	 * whether or not a check was actually applied (i.e. if the result specification is of the
-	 * form "RESULT: ?") then false is returned; otherwise true.
-	 * @param result The actual result
-	 * @param constValues The values of any constants (null if none)
-	 * @param params The names of any parameters, for "symbolic" results (null if none)
-	 * @return Whether or not the check was performed
-	 */
-	public boolean checkAgainstExpectedResult(Object result, Values constValues, List<String> params) throws PrismException
-	{
-		Result resultObj = (result instanceof Result) ? ((Result) result) : new Result(result);
 		String strExpected = getExpectedResultString(constValues);
-		return ResultTesting.checkAgainstExpectedResultString(strExpected, constValues, params, expr.getType(), resultObj);
+		return checkAgainstExpectedResultString(strExpected, constValues, result);
 	}
 
 	/**
 	 * Get the expected result by extracting from the appropriate RESULT annotation.
 	 * This is done by finding the first RESULT whose constant values (if any) all match those
 	 * provided in {@code constValues}. A PrismException is thrown if no matching RESULT is found.
-	 * @param constValues The values of any constants (null if none)
+	 * @param constValues The values of any undefined constants (null if none)
 	 */
 	private String getExpectedResultString(Values constValues) throws PrismException
 	{
@@ -209,7 +190,7 @@ public class Property extends ASTElement
 						match = false;
 					// Check doubles numerically
 					else if (constValToMatch instanceof Double)
-						match = PrismUtils.doublesAreEqual(((Double) constValToMatch).doubleValue(), DefinedConstant.parseDouble(constVal));
+						match = PrismUtils.doublesAreCloseRel(((Double) constValToMatch).doubleValue(), DefinedConstant.parseDouble(constVal), 1e-10);
 					// if constant is exact rational number, compare exactly
 					else if (constValToMatch instanceof BigRational)
 						match = BigRational.from(constVal).equals(constValToMatch);
@@ -241,7 +222,7 @@ public class Property extends ASTElement
 	 * This is done by an exact string match against the provided string of constant values.
 	 * A PrismException is thrown if no matching RESULT is found.
 	 * This method actually looks at all RESULTs and complains if there multiple matches. 
-	 * @param constValues The values of any constants (null or "" if none)
+	 * @param constValues The values of any undefined constants (null or "" if none)
 	 */
 	@SuppressWarnings("unused")
 	private String getExpectedResultString(String constValues) throws PrismException
@@ -277,6 +258,306 @@ public class Property extends ASTElement
 		}
 
 		return strExpected;
+	}
+
+	/**
+	 * Tests a result (specified as an object of the appropriate type: Boolean, Double, etc.)
+	 * against the expected result, given by a string extracted from a RESULT: specification.
+	 * (As required for {@link #checkAgainstExpectedResult(Object)} and {@link #checkAgainstExpectedResult(Object, String)}) 
+	 * @param strExpected Expected result
+	 * @param result The actual result
+	 * @return Whether or not the check was performed
+	 */
+	private boolean checkAgainstExpectedResultString(String strExpected, Values constValues, Object result) throws PrismException
+	{
+		// Check for special "don't care" case
+		if (strExpected.equals("?")) {
+			return false;
+		}
+
+		// Check for exceptions
+		if (result instanceof Exception) {
+			String errMsg = ((Exception) result).getMessage();
+			if (strExpected.startsWith("Error")) {
+				// handle expected errors
+				if (strExpected.startsWith("Error:")) {
+					String words[] = strExpected.substring(6).split(",");
+					for (String word : words) {
+						if (word.length() == 0) {
+							throw new PrismException("Invalid RESULT specification: no expected words immediately following 'Error:'");
+						}
+						if (!errMsg.toLowerCase().contains(word)) {
+							throw new PrismException("Error message should contain \"" + word + "\"");
+						}
+					}
+				}
+				return true;
+			}
+			if (result instanceof PrismNotSupportedException) {
+				// not supported -> handle in caller
+				throw (PrismNotSupportedException)result;
+			}
+			throw new PrismException("Unexpected error: " + errMsg);
+		} else if (strExpected.startsWith("Error")) {
+			throw new PrismException("Was expecting an error");
+		}
+
+		// Check expected/actual result
+		Type type = expr.getType();
+
+		if (result instanceof param.ParamResult) {
+			ParamResult paramResult = (param.ParamResult)result;
+			return paramResult.test(type, strExpected, constValues);
+		}
+
+		// Boolean-valued properties
+		if (type instanceof TypeBool) {
+			// Parse expected result
+			boolean boolExp;
+			boolean simple = true;  // is the expectation string a simple expression?
+			strExpected = strExpected.toLowerCase();
+			if (strExpected.equals("true"))
+				boolExp = true;
+			else if (strExpected.equals("false"))
+				boolExp = false;
+			else {
+				// complex expression?
+				Expression expectedExpr = null;
+				try {
+					expectedExpr = Prism.parseSingleExpressionString(strExpected);
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr.typeCheck();
+					boolExp = expectedExpr.evaluateBoolean(constValues);
+					simple = false;  // complex expression
+				} catch (PrismLangException e2) {
+					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for boolean-valued property: " + e2.getMessage());
+				}
+			}
+			// Parse actual result
+			boolean boolRes;
+			if (!(result instanceof Boolean))
+				throw new PrismException("Result is wrong type for (boolean-valued) property");
+			boolRes = ((Boolean) result).booleanValue();
+			if (boolRes != boolExp)
+				throw new PrismException("Wrong result (expected " + (simple ? "" : strExpected + " = ") + boolExp + ", got " + boolRes + ")");
+		}
+
+		// Integer-valued properties (non-exact mode)
+		else if (type instanceof TypeInt && !(result instanceof BigRational)) {
+			// Parse expected result
+			int intExp;
+			boolean simple = true;  // is the expectation string a simple expression?
+			try {
+				intExp = Integer.parseInt(strExpected);
+			} catch (NumberFormatException e) {
+				// complex expression?
+				Expression expectedExpr = null;
+				try {
+					expectedExpr = Prism.parseSingleExpressionString(strExpected);
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr.typeCheck();
+					intExp = expectedExpr.evaluateInt(constValues);
+					simple = false;  // complex expression
+				} catch (PrismLangException e2) {
+					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for integer-valued property: " + e2.getMessage());
+				}
+			}
+			// Parse actual result
+			int intRes;
+			if (!(result instanceof Integer))
+				throw new PrismException("Result is wrong type for (integer-valued) property");
+			intRes = ((Integer) result).intValue();
+			if (intRes != intExp)
+				throw new PrismException("Wrong result (expected " + (simple ? "" : strExpected + " = ") + intExp + ", got " +intRes + ")");
+		}
+
+		// Double-valued properties (non-exact mode)
+		else if (type instanceof TypeDouble && !(result instanceof BigRational)) {
+			// Parse expected result
+			double doubleExp;
+			boolean simple = true;  // is the expectation string a simple expression?
+
+			@SuppressWarnings("unused")
+			boolean approx = false;  // is this an approximate expected value, i.e., a floating point string starting with ~?
+
+			// we handle ~... expected results here
+			// in this case (non-exact mode) it does not really matter,
+			// as we currently do an approximate comparison anyways
+			String strExpectedValue;
+			if (strExpected.startsWith("~")) {
+				approx = true;
+				strExpectedValue = strExpected.substring(1);
+			} else {
+				strExpectedValue = strExpected;
+			}
+
+			try {
+				// See if it's NaN
+				if (strExpectedValue.equals("NaN")) {
+					doubleExp = Double.NaN;
+				}
+				// See if it's a fraction
+				else if (strExpectedValue.matches("-?[0-9]+/[0-9]+")) {
+					doubleExp = new BigRational(strExpectedValue).doubleValue();
+					simple = false;  // complex expression
+				}
+				// Otherwise, see if it's just a double
+				else {
+					doubleExp = Double.parseDouble(strExpectedValue);
+				}
+			} catch (NumberFormatException e) {
+				// complex expression?
+				Expression expectedExpr = null;
+				try {
+					expectedExpr = Prism.parseSingleExpressionString(strExpectedValue);
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr.typeCheck();
+					doubleExp = expectedExpr.evaluateDouble(constValues);
+					simple = false;  // complex expression
+				} catch (PrismLangException e2) {
+					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for double-valued property: " + e2.getMessage());
+				}
+			}
+			// Parse actual result
+			if (!(result instanceof Double))
+				throw new PrismException("Result is wrong type (" + result.getClass() + ") for (double-valued) property");
+
+			double doubleRes = ((Double) result).doubleValue();
+			// Compare results
+			if (Double.isNaN(doubleRes)) {
+				if (!Double.isNaN(doubleExp))
+					throw new PrismException("Wrong result (expected " + (simple ? "" : strExpected + " = ") + doubleExp + ", got NaN)");
+			} else {
+				if (!PrismUtils.doublesAreCloseRel(doubleExp, doubleRes, 1e-5))
+					throw new PrismException("Wrong result (expected " + (simple ? "" : strExpected + " = ") + doubleExp + ", got " + doubleRes + ")");
+			}
+		}
+
+		// Double- and Int-valued properties (exact mode)
+		else if ((type instanceof TypeDouble || type instanceof TypeInt) && result instanceof BigRational) {
+			// Parse expected result
+			BigRational rationalRes = (BigRational) result;
+			BigRational rationalExp = null;
+			boolean approx = false;  // is this an approximate expected value, i.e., a floating point string starting with ~?
+
+			String strExpectedValue;
+			if (strExpected.startsWith("~")) {
+				approx = true;
+				strExpectedValue = strExpected.substring(1);
+			} else {
+				strExpectedValue = strExpected;
+			}
+
+			try {
+				// See if it's NaN
+				if (strExpectedValue.equals("NaN")) {
+					if (!rationalRes.isNaN())
+						throw new PrismException("Wrong result (expected NaN, got " + rationalRes + ")");
+					rationalExp = BigRational.NAN;
+				}
+				// For integers/rationals/doubles, parse with BigRational
+				else {
+					rationalExp = new BigRational(strExpectedValue);
+				}
+			} catch (NumberFormatException e) {
+				// complex expression?
+				Expression expectedExpr = null;
+				try {
+					expectedExpr = Prism.parseSingleExpressionString(strExpectedValue);
+					expectedExpr = (Expression) expectedExpr.findAllConstants(new ConstantList(constValues));
+					expectedExpr.typeCheck();
+					rationalExp = expectedExpr.evaluateExact(constValues);
+				} catch (PrismLangException e2) {
+					throw new PrismException("Invalid RESULT specification \"" + strExpected + "\" for rational-valued property: " + e2.getMessage());
+				}
+			}
+			// Compare results
+			if (!rationalRes.equals(rationalExp)) {
+				boolean match = false;
+
+				if (type instanceof TypeDouble) {
+					// try imprecise comparison
+					try {
+						double doubleExp = Double.parseDouble(strExpectedValue);
+						boolean areClose = PrismUtils.doublesAreCloseRel(doubleExp, rationalRes.doubleValue(), 1e-5);
+						if (areClose) {
+							if (approx) {
+								// we only have an approximate value to compare to, so we are fine here
+								match = true;
+							} else {
+								throw new PrismException("Inexact, but close result (expected '" + strExpected + "' = " + rationalExp + " (" + rationalExp.toApproximateString() +"), got " + rationalRes + " (" + rationalRes.toApproximateString() + "))");
+							}
+						}
+					} catch (NumberFormatException e) {
+					}
+				}
+
+				if (!match) {
+					throw new PrismException("Wrong result (expected '" + strExpected + "' = " + rationalExp + " (" + rationalExp.toApproximateString() +"), got " + rationalRes + " (" + rationalRes.toApproximateString() + "))");
+				}
+			}
+		}
+		else if (type instanceof TypeVoid && result instanceof TileList) { //Pareto curve
+
+			//Create the list of points from the expected results
+			List<Point> liExpected = new ArrayList<Point>();
+			Pattern p = Pattern.compile("\\(([^,]*),([^)]*)\\)");
+			Matcher m = p.matcher(strExpected);
+			if (!m.find()) {
+				throw new PrismException("The expected result does not contain any points, or does not have the required format.");
+			}
+			
+			do {
+				double x = Double.parseDouble(m.group(1));
+				double y = Double.parseDouble(m.group(2));
+				Point point = new Point(new double[] {x,y});
+				liExpected.add(point);
+			} while(m.find());
+
+			List<Point> liResult = ((TileList) result).getRealPoints();
+
+			if (liResult.size() != liExpected.size())
+				throw new PrismException("The expected Pareto curve and the computed Pareto curve have a different number of points.");
+
+			//check if we can find a matching point for every point on the expected Pareto curve
+			for(Point point : liExpected) {
+				boolean foundClose = false;
+				for(Point point2 : liResult) {
+					if (point2.isCloseTo(point)) {
+						foundClose = true;
+						break;
+					}
+				}
+				if (!foundClose)
+				{
+					throw new PrismException("The point " + point + " in the expected Pareto curve has no match among the points in the computed Pareto curve.");
+				}
+			}
+
+			//check if we can find a matching point for every point on the computed Pareto curve
+			//(we did check if both lists have the same number of points, but that does
+			//not rule out the possibility of two very similar points contained in one list)
+			for(Point point : liResult) {
+				boolean foundClose = false;
+				for(Point point2 : liExpected) {
+					if (point2.isCloseTo(point)) {
+						foundClose = true;
+						break;
+					}
+				}
+				if (!foundClose)
+				{
+					throw new PrismException("The point " + point + " in the computed Pareto curve has no match among the points in the expected Pareto curve");
+				}
+			}
+		}
+		
+		// Unknown type
+		else {
+			throw new PrismException("Don't know how to test properties of type " + type);
+		}
+
+		return true;
 	}
 
 	// Methods required for ASTElement:

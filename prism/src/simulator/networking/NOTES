@@ -1,0 +1,7 @@
+Some thoughts:
+
+- binary import/output doesn't handle more recently defined functions
+
+- if stop early, should really let all current samples finish so as not to favour shorter traces
+
+- take care when generating multiple random seeds, esp. if all at same time

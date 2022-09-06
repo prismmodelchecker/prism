@@ -45,12 +45,6 @@ public interface PathFullInfo
 	public abstract State getState(int step);
 
 	/**
-	 * Get the observation at a given step of the path.
-	 * @param step Step index (0 = initial state/step of path)
-	 */
-	public abstract State getObservation(int step);
-
-	/**
 	 * Get a state reward for the state at a given step of the path.
 	 * If no reward info is stored ({@link #hasRewardInfo()} is false), returns 0.0. 
 	 * @param step Step index (0 = initial state/step of path)

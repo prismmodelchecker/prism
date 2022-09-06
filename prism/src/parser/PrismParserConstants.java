@@ -39,169 +39,159 @@ public interface PrismParserConstants {
   /** RegularExpression Id. */
   int ENDMODULE = 14;
   /** RegularExpression Id. */
-  int ENDOBSERVABLES = 15;
+  int ENDREWARDS = 15;
   /** RegularExpression Id. */
-  int ENDREWARDS = 16;
+  int ENDSYSTEM = 16;
   /** RegularExpression Id. */
-  int ENDSYSTEM = 17;
+  int FALSE = 17;
   /** RegularExpression Id. */
-  int FALSE = 18;
+  int FORMULA = 18;
   /** RegularExpression Id. */
-  int FORMULA = 19;
+  int FILTER = 19;
   /** RegularExpression Id. */
-  int FILTER = 20;
+  int FUNC = 20;
   /** RegularExpression Id. */
-  int FUNC = 21;
+  int F = 21;
   /** RegularExpression Id. */
-  int F = 22;
+  int GLOBAL = 22;
   /** RegularExpression Id. */
-  int GLOBAL = 23;
+  int G = 23;
   /** RegularExpression Id. */
-  int G = 24;
+  int INIT = 24;
   /** RegularExpression Id. */
-  int INIT = 25;
+  int INVARIANT = 25;
   /** RegularExpression Id. */
-  int INVARIANT = 26;
+  int I = 26;
   /** RegularExpression Id. */
-  int I = 27;
+  int INT = 27;
   /** RegularExpression Id. */
-  int INT = 28;
+  int LABEL = 28;
   /** RegularExpression Id. */
-  int LABEL = 29;
+  int MAX = 29;
   /** RegularExpression Id. */
-  int MAX = 30;
+  int MDP = 30;
   /** RegularExpression Id. */
-  int MDP = 31;
+  int MIN = 31;
   /** RegularExpression Id. */
-  int MIN = 32;
+  int MODULE = 32;
   /** RegularExpression Id. */
-  int MODULE = 33;
+  int X = 33;
   /** RegularExpression Id. */
-  int X = 34;
+  int NONDETERMINISTIC = 34;
   /** RegularExpression Id. */
-  int NONDETERMINISTIC = 35;
+  int PMAX = 35;
   /** RegularExpression Id. */
-  int OBSERVABLE = 36;
+  int PMIN = 36;
   /** RegularExpression Id. */
-  int OBSERVABLES = 37;
+  int P = 37;
   /** RegularExpression Id. */
-  int PMAX = 38;
+  int PROBABILISTIC = 38;
   /** RegularExpression Id. */
-  int PMIN = 39;
+  int PROB = 39;
   /** RegularExpression Id. */
-  int P = 40;
+  int PTA = 40;
   /** RegularExpression Id. */
-  int POMDP = 41;
+  int RATE = 41;
   /** RegularExpression Id. */
-  int POPTA = 42;
+  int REWARDS = 42;
   /** RegularExpression Id. */
-  int PROBABILISTIC = 43;
+  int RMAX = 43;
   /** RegularExpression Id. */
-  int PROB = 44;
+  int RMIN = 44;
   /** RegularExpression Id. */
-  int PTA = 45;
+  int R = 45;
   /** RegularExpression Id. */
-  int RATE = 46;
+  int S = 46;
   /** RegularExpression Id. */
-  int REWARDS = 47;
+  int STOCHASTIC = 47;
   /** RegularExpression Id. */
-  int RMAX = 48;
+  int SYSTEM = 48;
   /** RegularExpression Id. */
-  int RMIN = 49;
+  int TRUE = 49;
   /** RegularExpression Id. */
-  int R = 50;
+  int U = 50;
   /** RegularExpression Id. */
-  int S = 51;
+  int W = 51;
   /** RegularExpression Id. */
-  int STOCHASTIC = 52;
+  int NOT = 52;
   /** RegularExpression Id. */
-  int SYSTEM = 53;
+  int AND = 53;
   /** RegularExpression Id. */
-  int TRUE = 54;
+  int OR = 54;
   /** RegularExpression Id. */
-  int U = 55;
+  int IMPLIES = 55;
   /** RegularExpression Id. */
-  int W = 56;
+  int IFF = 56;
   /** RegularExpression Id. */
-  int NOT = 57;
+  int RARROW = 57;
   /** RegularExpression Id. */
-  int AND = 58;
+  int COLON = 58;
   /** RegularExpression Id. */
-  int OR = 59;
+  int SEMICOLON = 59;
   /** RegularExpression Id. */
-  int IMPLIES = 60;
+  int COMMA = 60;
   /** RegularExpression Id. */
-  int IFF = 61;
+  int DOTS = 61;
   /** RegularExpression Id. */
-  int RARROW = 62;
+  int LPARENTH = 62;
   /** RegularExpression Id. */
-  int COLON = 63;
+  int RPARENTH = 63;
   /** RegularExpression Id. */
-  int SEMICOLON = 64;
+  int LBRACKET = 64;
   /** RegularExpression Id. */
-  int COMMA = 65;
+  int RBRACKET = 65;
   /** RegularExpression Id. */
-  int DOTS = 66;
+  int DLBRACKET = 66;
   /** RegularExpression Id. */
-  int LPARENTH = 67;
+  int DRBRACKET = 67;
   /** RegularExpression Id. */
-  int RPARENTH = 68;
+  int LBRACE = 68;
   /** RegularExpression Id. */
-  int LBRACKET = 69;
+  int RBRACE = 69;
   /** RegularExpression Id. */
-  int RBRACKET = 70;
+  int EQ = 70;
   /** RegularExpression Id. */
-  int DLBRACKET = 71;
+  int NE = 71;
   /** RegularExpression Id. */
-  int DRBRACKET = 72;
+  int LT = 72;
   /** RegularExpression Id. */
-  int LBRACE = 73;
+  int GT = 73;
   /** RegularExpression Id. */
-  int RBRACE = 74;
+  int DLT = 74;
   /** RegularExpression Id. */
-  int EQ = 75;
+  int DGT = 75;
   /** RegularExpression Id. */
-  int NE = 76;
+  int LE = 76;
   /** RegularExpression Id. */
-  int LT = 77;
+  int GE = 77;
   /** RegularExpression Id. */
-  int GT = 78;
+  int PLUS = 78;
   /** RegularExpression Id. */
-  int DLT = 79;
+  int MINUS = 79;
   /** RegularExpression Id. */
-  int DGT = 80;
+  int TIMES = 80;
   /** RegularExpression Id. */
-  int LE = 81;
+  int DIVIDE = 81;
   /** RegularExpression Id. */
-  int GE = 82;
+  int PRIME = 82;
   /** RegularExpression Id. */
-  int PLUS = 83;
+  int RENAME = 83;
   /** RegularExpression Id. */
-  int MINUS = 84;
+  int QMARK = 84;
   /** RegularExpression Id. */
-  int TIMES = 85;
+  int DQUOTE = 85;
   /** RegularExpression Id. */
-  int DIVIDE = 86;
+  int REG_INT = 86;
   /** RegularExpression Id. */
-  int PRIME = 87;
+  int REG_DOUBLE = 87;
   /** RegularExpression Id. */
-  int RENAME = 88;
+  int REG_IDENTPRIME = 88;
   /** RegularExpression Id. */
-  int QMARK = 89;
+  int REG_IDENT = 89;
   /** RegularExpression Id. */
-  int DQUOTE = 90;
+  int PREPROC = 90;
   /** RegularExpression Id. */
-  int REG_INT = 91;
-  /** RegularExpression Id. */
-  int REG_DOUBLE = 92;
-  /** RegularExpression Id. */
-  int REG_IDENTPRIME = 93;
-  /** RegularExpression Id. */
-  int REG_IDENT = 94;
-  /** RegularExpression Id. */
-  int PREPROC = 95;
-  /** RegularExpression Id. */
-  int LEXICAL_ERROR = 96;
+  int LEXICAL_ERROR = 91;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -223,7 +213,6 @@ public interface PrismParserConstants {
     "\"endinit\"",
     "\"endinvariant\"",
     "\"endmodule\"",
-    "\"endobservables\"",
     "\"endrewards\"",
     "\"endsystem\"",
     "\"false\"",
@@ -244,13 +233,9 @@ public interface PrismParserConstants {
     "\"module\"",
     "\"X\"",
     "\"nondeterministic\"",
-    "\"observable\"",
-    "\"observables\"",
     "\"Pmax\"",
     "\"Pmin\"",
     "\"P\"",
-    "\"pomdp\"",
-    "\"popta\"",
     "\"probabilistic\"",
     "\"prob\"",
     "\"pta\"",

@@ -103,9 +103,9 @@ static void export_rec(DdNode *dd, DdNode **rvars, DdNode **cvars, int num_vars,
 	// base case - non zero terminal
 	if (level == num_vars) {
 		switch (export_type) {
-		case EXPORT_PLAIN: export_string("%" PRId64 " %" PRId64 " %.*g\n", r, c, export_model_precision, Cudd_V(dd)); break;
-		case EXPORT_MATLAB: export_string("%s(%" PRId64 ",%" PRId64 ")=%.*g;\n", export_name, r+1, c+1, export_model_precision, Cudd_V(dd)); break;
-		case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%" PRId64 " -> %" PRId64 " [ label=\"%.*g\" ];\n", r, c, export_model_precision, Cudd_V(dd)); break;
+		case EXPORT_PLAIN: export_string("%" PRId64 " %" PRId64 " %.12g\n", r, c, Cudd_V(dd)); break;
+		case EXPORT_MATLAB: export_string("%s(%" PRId64 ",%" PRId64 ")=%.12g;\n", export_name, r+1, c+1, Cudd_V(dd)); break;
+		case EXPORT_DOT: case EXPORT_DOT_STATES: export_string("%" PRId64 " -> %" PRId64 " [ label=\"%.12g\" ];\n", r, c, Cudd_V(dd)); break;
 		}
 		return;
 	}

@@ -29,43 +29,47 @@ package userinterface.properties.computation;
 
 import userinterface.properties.*;
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import javax.swing.*;
-
-import parser.ast.Property;
-import prism.ResultsCollection;
-import prism.ResultsExporter.ResultsExportShape;
 import userinterface.util.*;
 
 public class ExportResultsThread extends Thread
 {
 	private GUIMultiProperties parent;
 	private GUIExperiment exps[];
-	private File file;
-	private ResultsExportShape exportShape;
-
+	private File f;
+	private Exception saveError;
+	private boolean exportMatrix; // export in matrix form?
+	private String sep; // string separating items
+	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File file)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exp, File f)
 	{
-		this(parent, new GUIExperiment[] {exp}, file );
+		this.parent = parent;
+		this.exps = new GUIExperiment[1];
+		this.exps[0] = exp;
+		this.f = f;
+		this.exportMatrix = false;
+		this.sep = " ";
 	}
 	
 	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file)
-	{
-		this(parent, exps, file, ResultsExportShape.LIST_PLAIN);
-	}
-	
-	/** Creates a new instance of ExportResultsThread */
-	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File file, ResultsExportShape exportShape)
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f)
 	{
 		this.parent = parent;
 		this.exps = exps;
-		this.file = file;
-		this.exportShape = exportShape;
+		this.f = f;
+		this.exportMatrix = false;
+		this.sep = " ";
+	}
+	
+	/** Creates a new instance of ExportResultsThread */
+	public ExportResultsThread(GUIMultiProperties parent, GUIExperiment exps[], File f, boolean exportMatrix, String sep)
+	{
+		this.parent = parent;
+		this.exps = exps;
+		this.f = f;
+		this.exportMatrix = exportMatrix;
+		this.sep = sep;
 	}
 	
 	public void run()
@@ -79,37 +83,42 @@ public class ExportResultsThread extends Thread
 					parent.setTaskBarText("Exporting results...");
 			}
 		});
-
-		List<Property> properties = Arrays.stream(exps).map(GUIExperiment::getProperty).collect(Collectors.toList());
-		List<ResultsCollection> results = Arrays.stream(exps).map(GUIExperiment::getResults).collect(Collectors.toList());
-
-		String error = null;
+		
 		try {
-			file.createNewFile(); // create file if not already present
-			PrintWriter out = new PrintWriter(file);
-			exportShape.getExporter().printResults(results, properties, out);
-			out.close();
-			if (out.checkError()) {
-				// PrintWriter hides exceptions in print methods and close()
-				error = "Could not export results: unknown IO exception";
+			int i, n;
+			PrintWriter out = new PrintWriter(new FileWriter(f));
+			n = exps.length;
+			for (i = 0; i < n; i++) {
+				if (i > 0)
+					out.println();
+				if (n > 1) {
+					if (sep.equals(", "))
+						out.print("\"" + exps[i].getPropertyString() + ":\"\n");
+					else
+						out.print(exps[i].getPropertyString() + ":\n");
+				}
+				if (!exportMatrix) {
+					out.println(exps[i].getResults().toString(false, sep, sep));
+				} else {
+					out.println(exps[i].getResults().toStringMatrix(sep));
+				}
 			}
-		} catch (IOException e) {
-			error = "Could not export results: " + e.getMessage();
+			out.flush();
+			out.close();
 		}
-		if (error != null) {
-			final String msg = error; // Copy error message since an enclosed variable must be final
+		catch (Exception e) {
 			SwingUtilities.invokeLater(new Runnable()
 			{
 				public void run()
 				{
 					parent.stopProgress(); 
-					parent.setTaskBarText("Exporting results... error.");
 					parent.notifyEventListeners(new GUIComputationEvent(GUIComputationEvent.COMPUTATION_ERROR, parent));
-					parent.error("Could not export results: " + msg);
+					parent.setTaskBarText("Exporting results... error.");
+					parent.error("Could not export results: " + saveError.getMessage());
 				}
 			});
 		}
-
+		
 		//Computation successful, notify the user interface
 		SwingUtilities.invokeLater(new Runnable()
 		{

@@ -132,7 +132,7 @@ def getModelsInDir(dir):
             args = []
             for item in line.split(' '):
                 if first:
-                    modelFile = item
+                    modelFile = os.path.join(dir, item)
                     first = 0
                 else:
                     args.append(item)
@@ -141,16 +141,13 @@ def getModelsInDir(dir):
     else:
         for file in sortedListDir(dir):
             if os.path.isfile(os.path.join(dir, file)) and isPrismModelFile(file):
-                modelFiles.append((file, []))
+                modelFiles.append((os.path.join(dir, file), []))
     #print "Model files in " + dir + ": " + ' '.join( map(lambda pair: pair[0], modelFiles ))
     
     # If requested, filter the list of models
     if options.filterModels:
         modelFiles = filterModels(modelFiles, options.filterModels, dir)
-        
-    # Finally, append the dir name to all the model files
-    modelFiles = map(lambda pair: (os.path.join(dir, pair[0]),pair[1]), modelFiles)
-    
+                
     return modelFiles
 
 # Restrict a list of models to those satisfying a filter expressed as a string
@@ -170,62 +167,20 @@ def filterModels(modelFiles, filterString, dir):
             for row in reader:
                 # Evaluate the filter using eval()
                 # Only provide access to the model type and number of states for now
-                #filterVarsAvailable = ['model_type', 'states']
-                #filterVarsMissing = [key for key in filterVarsAvailable if key in filterString and not row[key]]
-                eval_model_type = row['model_type'] if row['model_type'] else None
-                eval_states = int(row['states']) if row['states'] else None
-                try:
-                    if eval(filterString, {"__builtins__": {}}, {'model_type': eval_model_type, 'states': eval_states}):
-                        model = row['model_file']
-                        if 'model_consts' in row and row['model_consts']:
+                # If any fields are missing, the filter evaluates to false
+                filterVarsAvailable = ['model_type', 'states']
+                filterVarsMissing = [key for key in filterVarsAvailable if key in filterString and not row[key]]
+                if not filterVarsMissing:
+                    if eval(filterString, {"__builtins__": {}}, {'model_type': row['model_type'], 'states': int(row['states'])}):
+                        model = os.path.join(dir, row['model_file'])
+                        if 'model_consts' in row:
                             model += ' -const ' + row['model_consts']
                         modelFilesFiltered.append(model)
-                # If there are any errors evaluating the exception, the filter is false
-                except (Exception):
-                    pass
         # Restrict models list to ones in the list of filter matches
         for modelFile in modelFiles:
-            if modelMatches(modelFile, modelFilesFiltered):
+            if (modelFile[0] + ' ' + ' '.join(modelFile[1])).strip() in modelFilesFiltered:
                 modelFilesNew.append(modelFile)
     return modelFilesNew;
-
-# Check if a model is contained in a list of possible matches
-# The model is given as a pairs of files and argument lists
-# (e.g. ("model.pm", ["-const", "N=2", "-const", "K=3"]))
-# The possible matches are a list of single strings
-# (e.g. "model.pm -const K=3,N=2")
-# Constant values are extracted and sorted for a more intelligent match
-
-def modelMatches(modelFile, possibleMatches):
-    # Extract constant defns from modelFile and sort them
-    consts = getSortedConsts(modelFile[1])
-    # If there are no constants, just check for an exact match in possibleMatches
-    if len(consts) == 0:
-        return modelFile[0] in possibleMatches
-    # Otherwise compare to each model in possibleMatches after first sorting its constant defns
-    for possibleMatch in possibleMatches:
-        # Extract name (there will also be a " " since there are >0 constants)
-        possibleMatchModel = possibleMatch[:possibleMatch.index(" ")]
-        # Extract/sort constants from argument list
-        possibleMatchConsts = getSortedConsts(("".join(re.findall("-const [^ ]+", possibleMatch))).split(" "))
-        # Compare
-        if modelFile[0] == possibleMatchModel and consts == possibleMatchConsts:
-            return True
-    return False;
-
-# Extract and sort constant values form an argument list specified as a string list,
-# e.g. ["-const", "N=2", "-const", "K=3"] would return ["K=3", "N=2"]
-
-def getSortedConsts(args):
-    consts = []
-    num_args = len(args)
-    i = 0;
-    while i < num_args:
-        if args[i] == "-const" and i+1 < num_args:
-            consts.extend(args[i+1].split(','))
-        i = i+1
-    consts.sort()
-    return consts
 
 # Get a list of all files in the directory that satisfy the given predicate
 
@@ -366,7 +321,7 @@ def prependToFile(prefix, option):
 
 def expandFilenames(args, dir=""):
     def isImportExportArg(arg):
-        return (arg.startswith("-export") or arg.startswith("-import")) and not arg=="-exportmodelprecision"
+        return (arg.startswith("-export") or arg.startswith("-import"))
     if args:
         return [args[0]] + [expandName(dir, args[i+1]) if isImportExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
     else:
@@ -376,7 +331,7 @@ def expandFilenames(args, dir=""):
 
 def renameExports(prefix, args):
     def isExportArg(arg):
-        return arg.startswith("-export") and not arg=="-exportmodelprecision"
+        return arg.startswith("-export")
     if args:
         return [args[0]] + [prependToFile(prefix, args[i+1]) if isExportArg(args[i]) else args[i+1] for i in range(len(args)-1)]
     else:
@@ -396,7 +351,7 @@ def hasExportSwitches(args):
 # and that multiple reward structures will result in filenames extended with a number
 
 def getExpectedOutFilesFromArgs(args):
-    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export") and not args[i]=="-exportmodelprecision"]
+    options = [args[i+1] for i in range(len(args)-1) if args[i].startswith("-export")]
     # Sometimes there are options appended, after a ":" - remove these
     files = map(lambda option: option.split(':')[0], options)
 
@@ -623,9 +578,9 @@ def runPrism(args, bmArgs, dir=""):
             os.makedirs(logDir)
         logFile = os.path.join(logDir, createLogFileName(args, dir))
         #f = open(logFile, 'w')
-        prismArgsExec = prismArgs + ['-mainlog', logFile]
-        exitCode = execute(prismArgsExec)
-        #exitCode = subprocess.Popen(prismArgsExec, cwd=dir, stdout=f).wait()
+        prismArgs = prismArgs + ['-mainlog', logFile]
+        exitCode = execute(prismArgs)
+        #exitCode = subprocess.Popen(prismArgs, cwd=dir, stdout=f).wait()
     elif options.test or options.ddWarnings:
         # create logfile
         if isWindows():
@@ -641,8 +596,8 @@ def runPrism(args, bmArgs, dir=""):
             f.close()
         # we want cleanup when we are done, as this is a real temporary file
         cleanupLogFile = True
-        prismArgsExec = prismArgs + ['-mainlog', logFile]
-        exitCode = execute(prismArgsExec)
+        prismArgs = prismArgs + ['-mainlog', logFile]
+        exitCode = execute(prismArgs)
     else:
         exitCode = execute(prismArgs)
     # Extract DD reference count warnings
@@ -681,10 +636,6 @@ def runPrism(args, bmArgs, dir=""):
                     printTestResult(line)
             print("To see log file, run:")
             print("edit " + logFile)
-            prismArgsPrint = prismArgs.copy()
-            prismArgsPrint[0] = options.prismExec
-            print("To re-run failing test:")
-            print(' '.join(prismArgsPrint))
         else:
             # in verbose test mode, print extra info and increment failure counter
             printColoured('FAILURE', "\n[Exit code: " + str(exitCode) + "]")
@@ -1081,14 +1032,7 @@ def restartNailGunServer():
     print("Starting nailgun server...")
     sys.stdout.flush()
     os.system(options.prismExec + " -ng &")
-    print("Checking nailgun server is running...")
-    exitCode = 1
-    tries = 0
-    maxTries = 5;
-    while exitCode != 0 and tries < maxTries:
-        time.sleep(0.5)
-        tries = tries + 1
-        exitCode = subprocess.Popen([options.ngprism, "-version"]).wait()
+    time.sleep(0.5)
 
 #==================================================================================================
 # Main program

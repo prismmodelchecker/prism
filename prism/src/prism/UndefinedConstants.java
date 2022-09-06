@@ -123,32 +123,6 @@ public class UndefinedConstants
 		initialise();
 	}
 
-	/**
-	 * Reconstruct information about undefined constants from a ResultCollection.
-	 * This information is necessarily incomplete.
-	 * Hence, consider the information a mockup and do not use the instance to run an experiment.
-	 * The provided property does not need to correspond to the data.
-	 * It has only a decorative function. 
-	 * @param property a property to associate with the results
-	 * @param results the ResultsCollection from which the undefined constants are extracted
-	 */
-	@SuppressWarnings("rawtypes")
-	public UndefinedConstants(Property property, ResultsCollection results)
-	{
-		setModulesFile(null);
-		setPropertiesFile(null);
-		setProperties(List.of(property));
-		// consider all constants pf constants as we do not know the model file
-		Vector<DefinedConstant> constants = results.getRangingConstants();
-		mfNumConsts = 0;
-		pfNumConsts = constants.size();
-		// create storage for info about constant definitions
-		mfConsts = new ArrayList<DefinedConstant>(mfNumConsts);
-		pfConsts = new ArrayList<DefinedConstant>(pfNumConsts);
-		// we can add constants safely as they are immutable except for the temporary value
-		pfConsts.addAll(constants);
-	}
-
 	// Setters
 
 	public void setModulesFile(ModulesFile modulesFile)
@@ -239,14 +213,12 @@ public class UndefinedConstants
 		mfConsts = new ArrayList<DefinedConstant>(mfNumConsts);
 		for (i = 0; i < mfNumConsts; i++) {
 			s = (String) mfv.elementAt(i);
-			Type type = modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s));
-			mfConsts.add(new DefinedConstant.Undefined(s, type));
+			mfConsts.add(new DefinedConstant(s, modulesFile.getConstantList().getConstantType(modulesFile.getConstantList().getConstantIndex(s))));
 		}
 		pfConsts = new ArrayList<DefinedConstant>(pfNumConsts);
 		for (i = 0; i < pfNumConsts; i++) {
 			s = (String) pfv.elementAt(i);
-			Type type = propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s));
-			pfConsts.add(new DefinedConstant.Undefined(s, type));
+			pfConsts.add(new DefinedConstant(s, propertiesFile.getConstantList().getConstantType(propertiesFile.getConstantList().getConstantIndex(s))));
 		}
 		// initialise storage just created
 		clearAllDefinitions();
@@ -359,12 +331,12 @@ public class UndefinedConstants
 
 		// constants from model file
 		for (i = 0; i < mfNumConsts; i++) {
-			mfConsts.set(i, mfConsts.get(i).clear());
+			mfConsts.get(i).clear();
 			;
 		}
 		// constants from properties file
 		for (i = 0; i < pfNumConsts; i++) {
-			pfConsts.set(i, pfConsts.get(i).clear());
+			pfConsts.get(i).clear();
 		}
 	}
 
@@ -538,13 +510,13 @@ public class UndefinedConstants
 		if (index != -1) {
 			// const is in modules file
 			overwrite = (mfConsts.get(index).isDefined());
-			mfConsts.set(index, mfConsts.get(index).define(sl, sh, ss, exact));
+			mfConsts.get(index).define(sl, sh, ss, exact);
 		} else {
 			index = getPFConstIndex(name);
 			if (index != -1) {
 				// const is in properties file
 				overwrite = (pfConsts.get(index).isDefined());
-				pfConsts.set(index, pfConsts.get(index).define(sl, sh, ss, exact));
+				pfConsts.get(index).define(sl, sh, ss, exact);
 			} else {
 				// If we are required to use all supplied const values, check for this
 				// (by default we don't care about un-needed or non-existent const values)

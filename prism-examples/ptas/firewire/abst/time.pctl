@@ -1,2 +1,2 @@
 // Maximum expected time to elect a leader
-R{"time"}max=? [ F "done" ]
+R{"time"}min=? [ F "done" ]

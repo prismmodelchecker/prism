@@ -32,9 +32,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import common.iterable.Reducible;
 import parser.State;
 import parser.Values;
+import prism.ModelType;
 import prism.Pair;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
@@ -69,6 +69,11 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	}
 
 	// Accessors (for Model)
+
+	public ModelType getModelType()
+	{
+		return ModelType.DTMC;
+	}
 
 	public int getNumStates()
 	{
@@ -110,9 +115,13 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		return mdp.getConstantValues();
 	}
 
-	public int getNumTransitions(int s)
+	public int getNumTransitions()
 	{
-		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
+		int numTransitions = 0;
+		for (int s = 0; s < numStates; s++)
+			if (adv[s] >= 0)
+				numTransitions += mdp.getNumTransitions(s, adv[s]);
+		return numTransitions;
 	}
 
 	public SuccessorsIterator getSuccessors(final int s)
@@ -145,7 +154,25 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 		// No deadlocks by definition
 	}
 
+	@Override
+	public String infoString()
+	{
+		return mdp.infoString() + " + " + "???"; // TODO
+	}
+
+	@Override
+	public String infoStringTable()
+	{
+		return mdp.infoString() + " + " + "???\n"; // TODO
+	}
+
 	// Accessors (for DTMC)
+
+	@Override
+	public int getNumTransitions(int s)
+	{
+		return adv[s] >= 0 ? mdp.getNumTransitions(s, adv[s]) : 0;
+	}
 
 	@Override
 	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s)
@@ -162,8 +189,7 @@ public class DTMCFromMDPMemorylessAdversary extends DTMCExplicit
 	public Iterator<Entry<Integer, Pair<Double, Object>>> getTransitionsAndActionsIterator(int s)
 	{
 		if (adv[s] >= 0) {
-			final Iterator<Entry<Integer, Double>> transitions = mdp.getTransitionsIterator(s, adv[s]);
-			return Reducible.extend(transitions).map(transition -> DTMC.attachAction(transition, mdp.getAction(s, adv[s])));
+			return new DTMCExplicit.AddDefaultActionToTransitionsIterator(mdp.getTransitionsIterator(s, adv[s]), mdp.getAction(s, adv[s]));
 		} else {
 			// Empty iterator
 			return Collections.<Entry<Integer,Pair<Double, Object>>>emptyIterator(); 

@@ -69,7 +69,6 @@ import prism.Prism;
 import prism.PrismException;
 import prism.PrismFileLog;
 import prism.PrismLog;
-import prism.PrismNative;
 import userinterface.util.GUIComputationEvent;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIEventHandler;
@@ -117,10 +116,10 @@ public class GUIPrism extends JFrame
 			//Show the splash screen
 			splash = new GUIPrismSplash("images/splash.png");
 			splash.display();
-			gui = new GUIPrism(args);
+			gui = new GUIPrism();
 			gui.setVisible(true);
 			EventQueue.invokeLater(new GUIPrism.SplashScreenCloser());
-			gui.passCLArgs();
+			gui.passCLArgs(args);
 		} catch (GUIException e) {
 			System.err.println("Error: Could not load the PRISM GUI: " + e.getMessage());
 			System.exit(1);
@@ -146,6 +145,7 @@ public class GUIPrism extends JFrame
 		userinterface.properties.GUIMultiProperties props;
 		userinterface.simulator.GUISimulator sim;
 		userinterface.log.GUILog log;
+		userinterface.GUINetwork nw;
 		// Create
 		fileMenu = new userinterface.GUIFileMenu(g);
 		clipboardPlugin = new GUIClipboard(g);
@@ -153,6 +153,7 @@ public class GUIPrism extends JFrame
 		sim = new userinterface.simulator.GUISimulator(g);
 		props = new userinterface.properties.GUIMultiProperties(g, sim);
 		log = new userinterface.log.GUILog(g);
+		nw = new userinterface.GUINetwork(g);
 		// Add to list
 		ArrayList<GUIPlugin> plugs = new ArrayList<GUIPlugin>();
 		plugs.add(fileMenu);
@@ -161,6 +162,7 @@ public class GUIPrism extends JFrame
 		plugs.add(props);
 		plugs.add(sim);
 		plugs.add(log);
+		plugs.add(nw);
 		// Make some plugins aware of others
 		sim.setGUIMultiModel(model);
 		// Return list
@@ -176,11 +178,6 @@ public class GUIPrism extends JFrame
 	//properties
 	private Prism prism;
 	private PrismLog theLog;
-	
-	// command-line args to be passed on to components
-	private String args[];
-	// initial directory for file chooser (optional)
-	private String chooserDir;
 
 	//gui components
 	private ArrayList<GUIPlugin> plugs;
@@ -204,17 +201,7 @@ public class GUIPrism extends JFrame
 	 */
 	public GUIPrism() throws GUIException, PrismException
 	{
-		this(new String[0]);
-	}
-
-	/** Creates a new instance of GUIPrism.  By calling setupResources(), setupPrism()
-	 * and then initComponents().
-	 * @throws GUIException Thrown if there is an error in initialising the user interface.
-	 */
-	public GUIPrism(String args[]) throws GUIException, PrismException
-	{
 		super();
-		this.args = processCLArgs(args);
 		setupResources();
 		setupPrism();
 		initComponents();
@@ -239,8 +226,7 @@ public class GUIPrism extends JFrame
 		}
 
 		// Create new file chooser which starts in current directory
-		// (or in the directory specified with command-line arg -dir)
-		File currentDir = new File(chooserDir == null ? "." : chooserDir);
+		File currentDir = new File(".");
 		// If current directory is the bin directory, go up one level (mainly for Windows version)
 		try {
 			currentDir = currentDir.getCanonicalFile();
@@ -308,6 +294,9 @@ public class GUIPrism extends JFrame
 			if (plug.getToolBar() != null) {
 				toolPanel.add(plug.getToolBar());
 			}
+			if (plug.getOptions() != null) {
+				options.addPanel(plug.getOptions());
+			}
 			if (plug instanceof userinterface.log.GUILog) {
 				logPlug = (userinterface.log.GUILog) plug;
 			}
@@ -339,7 +328,7 @@ public class GUIPrism extends JFrame
 			}
 		};
 		prismOptions.putValue(Action.LONG_DESCRIPTION, "Brings up an option dialog for setting PRISM and user interface parameters.");
-		prismOptions.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_O));
+		prismOptions.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_O));
 		prismOptions.putValue(Action.NAME, "Options");
 		prismOptions.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 
@@ -354,7 +343,7 @@ public class GUIPrism extends JFrame
 			}
 		};
 		fontIncrease.putValue(Action.LONG_DESCRIPTION, "Increase the application font size.");
-		fontIncrease.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_I));
+		fontIncrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_I));
 		fontIncrease.putValue(Action.NAME, "Increase font size");
 		fontIncrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontIncrease.png"));
 		fontIncrease.putValue(Action.ACCELERATOR_KEY,
@@ -371,7 +360,7 @@ public class GUIPrism extends JFrame
 			}
 		};
 		fontDecrease.putValue(Action.LONG_DESCRIPTION, "Decrease the application font size.");
-		fontDecrease.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_D));
+		fontDecrease.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_D));
 		fontDecrease.putValue(Action.NAME, "Decrease font size");
 		fontDecrease.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFontDecrease.png"));
 		fontDecrease.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -413,52 +402,22 @@ public class GUIPrism extends JFrame
 		}
 	}
 
-	public String[] processCLArgs(String args[])
+	public void passCLArgs(String args[])
 	{
-		// before (later) passing any command-line args to all plugins
-		// we first remove any -javamaxmem/-javastack arguments (ignored)
-		// and any -dir argument (processed here first)
+		// just before we get started, pass any command-line args to all plugins
+		// we first remove the -javamaxmem/-javastack arguments, if present
 		List<String> argsCopy = new ArrayList<String>();
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].charAt(0) == '-') {
-				String sw = args[i].substring(1);
-				// remove optional second "-" (i.e. we allow switches of the form --sw too)
-				if (sw.charAt(0) == '-')
-					sw = sw.substring(1);
-				// java max mem & java stack size & java parameters
-				if (sw.equals("javamaxmem") || sw.equals("javastack") || sw.equals("javaparams")) {
-					// ignore argument and subsequent value, this is dealt with before java is launched
-					i++;
-				} else if (sw.equals("dir")) {
-					if (i < args.length - 1) {
-						String workingDir = args[++i];
-						// set working dir natively for PRISM stuff
-						if (PrismNative.setWorkingDirectory(workingDir) != 0) {
-							System.err.println("Error: Could not change working directory to " + workingDir);
-							System.exit(1);
-						}
-						// also store locally to initialise file chooser
-						chooserDir = workingDir;
-						// NB: we avoid setting system property "user.dir"
-						// since this may break loading of shared libraries etc.
-					} else {
-						System.err.println("Error: No value specified for -" + sw + " switch");
-						System.exit(1);
-					}
-				} else {
-					argsCopy.add(args[i]);
-				}
+			if (args[i].equals("-javamaxmem") || args[i].equals("-javastack")) {
+				// ignore argument and subsequent value
+				i++;
 			} else {
 				argsCopy.add(args[i]);
 			}
 		}
-		return argsCopy.toArray(new String[0]);
-	}
-	
-	public void passCLArgs()
-	{
-		for (GUIPlugin plug : plugs) {
-			plug.takeCLArgs(args);
+		for (int i = 0; i < plugs.size(); i++) {
+			GUIPlugin plug = (GUIPlugin) plugs.get(i);
+			plug.takeCLArgs(argsCopy.toArray(new String[0]));
 		}
 	}
 

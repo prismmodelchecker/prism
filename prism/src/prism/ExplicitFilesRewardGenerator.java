@@ -121,8 +121,7 @@ public class ExplicitFilesRewardGenerator extends PrismComponent implements Rewa
 	@Override
 	public List<String> getRewardStructNames()
 	{
-		// Absence of a file implies no rewards
-		return stateRewardsFile == null ? Collections.emptyList() : Collections.singletonList("");
+		return Collections.singletonList("");
 	}
 	
 	@Override

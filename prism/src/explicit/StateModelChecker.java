@@ -40,12 +40,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import parser.EvaluateContext.EvalMode;
 import parser.State;
 import parser.Values;
-import parser.VarList;
-import parser.ast.Declaration;
-import parser.ast.DeclarationIntUnbounded;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
 import parser.ast.ExpressionConstant;
@@ -57,7 +53,6 @@ import parser.ast.ExpressionITE;
 import parser.ast.ExpressionIdent;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
-import parser.ast.ExpressionObs;
 import parser.ast.ExpressionProp;
 import parser.ast.ExpressionUnaryOp;
 import parser.ast.ExpressionVar;
@@ -70,21 +65,17 @@ import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTTraverseModify;
 import parser.visitor.ReplaceLabels;
-import prism.Accuracy;
 import prism.Filter;
 import prism.ModelInfo;
 import prism.ModelType;
-import prism.OpRelOpBound;
 import prism.Prism;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismFileLog;
 import prism.PrismLangException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.Result;
-import prism.ResultTesting;
 import prism.RewardGenerator;
 
 /**
@@ -199,17 +190,11 @@ public class StateModelChecker extends PrismComponent
 		case CTMC:
 			mc = new CTMCModelChecker(parent);
 			break;
-		case POMDP:
-			mc = new POMDPModelChecker(parent);
-			break;
 		case CTMDP:
 			mc = new CTMDPModelChecker(parent);
 			break;
 		case STPG:
 			mc = new STPGModelChecker(parent);
-			break;
-		case LTS:
-			mc = new NonProbModelChecker(parent);
 			break;
 		default:
 			throw new PrismException("Cannot create model checker for model type " + modelType);
@@ -533,8 +518,8 @@ public class StateModelChecker extends PrismComponent
 	/**
 	 * Model check an expression, process and return the result.
 	 * Information about states and model constants should be attached to the model.
-	 * For other required info (labels, reward structures, etc.), use the method
-	 * {@link #setModelCheckingInfo(ModelInfo, PropertiesFile, RewardGenerator)}.
+	 * For other required info (labels, reward structures, etc.), use the methods
+	 * {@link #setModulesFile} and {@link #setPropertiesFile}
 	 * to attach the original model/properties files.
 	 */
 	public Result check(Model model, Expression expr) throws PrismException
@@ -583,7 +568,7 @@ public class StateModelChecker extends PrismComponent
 		resultString = "Result";
 		if (!("Result".equals(expr.getResultName())))
 			resultString += " (" + expr.getResultName().toLowerCase() + ")";
-		resultString += ": " + result.getResultAndAccuracy();
+		resultString += ": " + result.getResultString();
 		mainLog.print("\n" + resultString + "\n");
 
 		// Clean up
@@ -596,8 +581,9 @@ public class StateModelChecker extends PrismComponent
 	/**
 	 * Model check an expression and return a vector result values over all states.
 	 * Information about states and model constants should be attached to the model.
-	 * For other required info (labels, reward structures, etc.), use the method
-	 * {@link #setModelCheckingInfo(ModelInfo, PropertiesFile, RewardGenerator)}.
+	 * For other required info (labels, reward structures, etc.), use the methods
+	 * {@link #setModulesFile} and {@link #setPropertiesFile}
+	 * to attach the original model/properties files.
 	 * @param statesOfInterest a set of states for which results should be calculated (null = all states).
 	 *        The calculated values for states not of interest are arbitrary and should to be ignored.
 	 */
@@ -646,10 +632,6 @@ public class StateModelChecker extends PrismComponent
 		else if (expr instanceof ExpressionVar) {
 			res = checkExpressionVar(model, (ExpressionVar) expr, statesOfInterest);
 		}
-		// Observables
-		else if (expr instanceof ExpressionObs) {
-			res = checkExpressionObs(model, (ExpressionObs) expr, statesOfInterest);
-		}
 		// Labels
 		else if (expr instanceof ExpressionLabel) {
 			res = checkExpressionLabel(model, (ExpressionLabel) expr, statesOfInterest);
@@ -692,11 +674,11 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Apply operation
-		res1.applyFunction(expr.getType(), (v1, v2, v3) -> expr.apply(v1, v2, v3, EvalMode.FP), res2, res3);
+		res3.applyITE(res1, res2);
+		res1.clear();
 		res2.clear();
-		res3.clear();
 
-		return res1;
+		return res3;
 	}
 
 	/**
@@ -706,6 +688,7 @@ public class StateModelChecker extends PrismComponent
 	protected StateValues checkExpressionBinaryOp(Model model, ExpressionBinaryOp expr, BitSet statesOfInterest) throws PrismException
 	{
 		StateValues res1 = null, res2 = null;
+		int op = expr.getOperator();
 
 		// Check operands recursively
 		try {
@@ -718,7 +701,7 @@ public class StateModelChecker extends PrismComponent
 		}
 
 		// Apply operation
-		res1.applyFunction(expr.getType(), (v1, v2) -> expr.apply(v1, v2, EvalMode.FP), res2);
+		res1.applyBinaryOp(op, res2);
 		res2.clear();
 
 		return res1;
@@ -741,7 +724,7 @@ public class StateModelChecker extends PrismComponent
 			return res1;
 
 		// Apply operation
-		res1.applyFunction(expr.getType(), v -> expr.apply(v, EvalMode.FP));
+		res1.applyUnaryOp(op);
 
 		return res1;
 	}
@@ -773,12 +756,15 @@ public class StateModelChecker extends PrismComponent
 
 	protected StateValues checkExpressionFuncUnary(Model model, ExpressionFunc expr, BitSet statesOfInterest) throws PrismException
 	{
+		StateValues res1 = null;
+		int op = expr.getNameCode();
+
 		// Check operand recursively
-		StateValues res1 = checkExpression(model, expr.getOperand(0), statesOfInterest);
+		res1 = checkExpression(model, expr.getOperand(0), statesOfInterest);
 
 		// Apply operation
 		try {
-			res1.applyFunction(expr.getType(), v -> expr.applyUnary(v, EvalMode.FP));
+			res1.applyFunctionUnary(op);
 		} catch (PrismException e) {
 			if (res1 != null)
 				res1.clear();
@@ -792,8 +778,10 @@ public class StateModelChecker extends PrismComponent
 
 	protected StateValues checkExpressionFuncBinary(Model model, ExpressionFunc expr, BitSet statesOfInterest) throws PrismException
 	{
-		// Check operands recursively
 		StateValues res1 = null, res2 = null;
+		int op = expr.getNameCode();
+
+		// Check operands recursively
 		try {
 			res1 = checkExpression(model, expr.getOperand(0), statesOfInterest);
 			res2 = checkExpression(model, expr.getOperand(1), statesOfInterest);
@@ -805,7 +793,7 @@ public class StateModelChecker extends PrismComponent
 
 		// Apply operation
 		try {
-			res1.applyFunction(expr.getType(), (v1, v2) -> expr.applyBinary(v1, v2, EvalMode.FP), res2);
+			res1.applyFunctionBinary(op, res2);
 			res2.clear();
 		} catch (PrismException e) {
 			if (res1 != null)
@@ -822,12 +810,14 @@ public class StateModelChecker extends PrismComponent
 
 	protected StateValues checkExpressionFuncNary(Model model, ExpressionFunc expr, BitSet statesOfInterest) throws PrismException
 	{
-		// Check first operand recursively
 		StateValues res1 = null, res2 = null;
+		int i, n, op = expr.getNameCode();
+
+		// Check first operand recursively
 		res1 = checkExpression(model, expr.getOperand(0), statesOfInterest);
 		// Go through remaining operands
-		int n = expr.getNumOperands();
-		for (int i = 1; i < n; i++) {
+		n = expr.getNumOperands();
+		for (i = 1; i < n; i++) {
 			// Check next operand recursively
 			try {
 				res2 = checkExpression(model, expr.getOperand(i), statesOfInterest);
@@ -838,7 +828,7 @@ public class StateModelChecker extends PrismComponent
 			}
 			// Apply operation
 			try {
-				res1.applyFunction(expr.getType(), (v1, v2) -> expr.applyBinary(v1, v2, EvalMode.FP), res2);
+				res1.applyFunctionBinary(op, res2);
 				res2.clear();
 			} catch (PrismException e) {
 				if (res1 != null)
@@ -859,7 +849,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	protected StateValues checkExpressionLiteral(Model model, ExpressionLiteral expr) throws PrismException
 	{
-		return StateValues.createFromSingleValue(expr.getType(), expr.evaluate(), model);
+		return new StateValues(expr.getType(), expr.evaluate(), model);
 	}
 
 	/**
@@ -867,7 +857,7 @@ public class StateModelChecker extends PrismComponent
 	 */
 	protected StateValues checkExpressionConstant(Model model, ExpressionConstant expr) throws PrismException
 	{
-		return StateValues.createFromSingleValue(expr.getType(), expr.evaluate(constantValues), model);
+		return new StateValues(expr.getType(), expr.evaluate(constantValues), model);
 	}
 
 	/**
@@ -877,21 +867,26 @@ public class StateModelChecker extends PrismComponent
 	protected StateValues checkExpressionVar(Model model, ExpressionVar expr, BitSet statesOfInterest) throws PrismException
 	{
 		// TODO (JK): optimize evaluation using statesOfInterest
+
+		int numStates = model.getNumStates();
+		StateValues res = new StateValues(expr.getType(), model);
 		List<State> statesList = model.getStatesList();
-		return StateValues.create(expr.getType(), i -> expr.evaluate(statesList.get(i)), model);
+		if (expr.getType() instanceof TypeBool) {
+			for (int i = 0; i < numStates; i++) {
+				res.setBooleanValue(i, expr.evaluateBoolean(statesList.get(i)));
+			}
+		} else if (expr.getType() instanceof TypeInt) {
+			for (int i = 0; i < numStates; i++) {
+				res.setIntValue(i, expr.evaluateInt(statesList.get(i)));
+			}
+		} else if (expr.getType() instanceof TypeDouble) {
+			for (int i = 0; i < numStates; i++) {
+				res.setDoubleValue(i, expr.evaluateDouble(statesList.get(i)));
+			}
+		}
+		return res;
 	}
 
-	/**
-	 * Model check an observable reference.
-	 * @param statesOfInterest the states of interest, see checkExpression()
-	 */
-	protected StateValues checkExpressionObs(Model model, ExpressionObs expr, BitSet statesOfInterest) throws PrismException
-	{
-		PartiallyObservableModel poModel = (PartiallyObservableModel) model;
-		int iObservable = modelInfo.getObservableIndex(expr.getName());
-		return StateValues.create(expr.getType(), i -> poModel.getObservationAsState(i).varValues[iObservable], model);
-	}
-	
 	/**
 	 * Model check a label.
 	 * @param statesOfInterest the states of interest, see checkExpression()
@@ -1010,7 +1005,6 @@ public class StateModelChecker extends PrismComponent
 		boolean b = false;
 		String resultExpl = null;
 		Object resObj = null;
-		Accuracy resAcc = null; 
 		switch (op) {
 		case PRINT:
 		case PRINTALL:
@@ -1046,33 +1040,36 @@ public class StateModelChecker extends PrismComponent
 		case MIN:
 			// Compute min
 			// Store as object/vector
-			resObj = expr.apply(vals.filtered(bsFilter));
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = vals.minOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Minimum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			bsMatch = vals.getBitSetFromCloseValue(resObj);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			break;
 		case MAX:
 			// Compute max
 			// Store as object/vector
-			resObj = expr.apply(vals.filtered(bsFilter));
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = vals.maxOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Maximum value over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
 			// Also find states that (are close to) selected value for display to log
-			bsMatch = vals.getBitSetFromCloseValue(resObj);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			break;
 		case ARGMIN:
 			// Compute/display min
-			resObj = ExpressionFilter.applyMin(vals.filtered(bsFilter), vals.getType());
+			resObj = vals.minOverBitSet(bsFilter);
 			mainLog.print("\nMinimum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			bsMatch = vals.getBitSetFromCloseValue(resObj);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMIN, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
@@ -1083,10 +1080,11 @@ public class StateModelChecker extends PrismComponent
 			break;
 		case ARGMAX:
 			// Compute/display max
-			resObj = ExpressionFilter.applyMax(vals.filtered(bsFilter), vals.getType());
+			resObj = vals.maxOverBitSet(bsFilter);
 			mainLog.print("\nMaximum value over " + filterStatesString + ": " + resObj);
 			// Find states that (are close to) selected value
-			bsMatch = vals.getBitSetFromCloseValue(resObj);
+			// TODO: un-hard-code precision once StateValues knows hoe precise it is
+			bsMatch = vals.getBitSetFromCloseValue(resObj, 1e-5, false);
 			bsMatch.and(bsFilter);
 			// Store states in vector; for ARGMAX, don't store a single value (in resObj)
 			// Also, don't bother with explanation string
@@ -1097,9 +1095,10 @@ public class StateModelChecker extends PrismComponent
 			break;
 		case COUNT:
 			// Compute count
+			int count = vals.countOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = expr.apply(vals.filtered(bsFilter));
-			resVals =  StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = new Integer(count);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = filterTrue ? "Count of satisfying states" : "Count of satisfying states also in filter";
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1107,8 +1106,8 @@ public class StateModelChecker extends PrismComponent
 		case SUM:
 			// Compute sum
 			// Store as object/vector
-			resObj = expr.apply(vals.filtered(bsFilter));
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = vals.sumOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Sum over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1116,8 +1115,8 @@ public class StateModelChecker extends PrismComponent
 		case AVG:
 			// Compute average
 			// Store as object/vector
-			resObj = expr.apply(vals.filtered(bsFilter));
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = vals.averageOverBitSet(bsFilter);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Average over " + filterStatesString;
 			mainLog.println("\n" + resultExpl + ": " + resObj);
@@ -1125,7 +1124,7 @@ public class StateModelChecker extends PrismComponent
 		case FIRST:
 			// Find first value
 			resObj = vals.firstFromBitSet(bsFilter);
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
 			if (filterInit) {
@@ -1137,7 +1136,7 @@ public class StateModelChecker extends PrismComponent
 			break;
 		case RANGE:
 			// Find range of values
-			resObj = expr.apply(vals.filtered(bsFilter));
+			resObj = new prism.Interval(vals.minOverBitSet(bsFilter), vals.maxOverBitSet(bsFilter));
 			// Leave result vector unchanged: for a range, result is only available from Result object
 			resVals = vals;
 			// Set vals to null to stop it being cleared below
@@ -1151,13 +1150,13 @@ public class StateModelChecker extends PrismComponent
 			// Get access to BitSet for this
 			bs = vals.getBitSet();
 			// Check "for all" over filter
-			b = (boolean) expr.apply(vals.filtered(bsFilter));
+			b = vals.forallOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = b;
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = new Boolean(b);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Property " + (b ? "" : "not ") + "satisfied in ";
-			mainLog.print("\nProperty satisfied in " + ExpressionFilter.applyCount(vals.filtered(bsFilter), vals.getType()));
+			mainLog.print("\nProperty satisfied in " + vals.countOverBitSet(bsFilter));
 			if (filterInit) {
 				if (filterInitSingle) {
 					resultExpl += "the initial state";
@@ -1179,10 +1178,10 @@ public class StateModelChecker extends PrismComponent
 			// Get access to BitSet for this
 			bs = vals.getBitSet();
 			// Check "there exists" over filter
-			b = (boolean) expr.apply(vals.filtered(bsFilter));
+			b = vals.existsOverBitSet(bsFilter);
 			// Store as object/vector
-			resObj = b;
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resObj = new Boolean(b);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Property satisfied in ";
 			if (filterTrue) {
@@ -1196,8 +1195,7 @@ public class StateModelChecker extends PrismComponent
 			// Find first (only) value
 			// Store as object/vector
 			resObj = vals.firstFromBitSet(bsFilter);
-			resAcc = vals.accuracy;
-			resVals = StateValues.createFromSingleValue(expr.getType(), resObj, model);
+			resVals = new StateValues(expr.getType(), resObj, model);
 			// Create explanation of result and print some details to log
 			resultExpl = "Value in ";
 			if (filterInit) {
@@ -1228,7 +1226,6 @@ public class StateModelChecker extends PrismComponent
 
 		// Store result
 		result.setResult(resObj);
-		result.setAccuracy(resAcc);
 		// Set result explanation (if none or disabled, clear)
 		if (expr.getExplanationEnabled() && resultExpl != null) {
 			result.setExplanation(resultExpl.toLowerCase());
@@ -1584,30 +1581,6 @@ public class StateModelChecker extends PrismComponent
 			if (!first && exportType != Prism.EXPORT_MATLAB) {
 				out.println();
 			}
-		}
-	}
-	
-	/**
-	 * Do any exports after a model-automaton product construction, if requested
-	 */
-	public void doProductExports(Product<? extends Model> product) throws PrismException
-	{
-		if (getExportProductTrans()) {
-			mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");
-			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-			product.getProductModel().exportToPrismExplicitTra(getExportProductTransFilename(), precision);
-		}
-		if (getExportProductStates()) {
-			mainLog.println("\nExporting product state space to file \"" + getExportProductStatesFilename() + "\"...");
-			PrismFileLog out = new PrismFileLog(getExportProductStatesFilename());
-			VarList newVarList = (VarList) modulesFile.createVarList().clone();
-			String daVar = "_da";
-			while (newVarList.getIndex(daVar) != -1) {
-				daVar = "_" + daVar;
-			}
-			newVarList.addVar(0, new Declaration(daVar, new DeclarationIntUnbounded()), 1, null);
-			product.getProductModel().exportStates(Prism.EXPORT_PLAIN, newVarList, out);
-			out.close();
 		}
 	}
 }

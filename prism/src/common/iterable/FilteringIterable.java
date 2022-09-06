@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Steffen Maercker <steffen.maercker@tu-dresden.de> (TU Dresden)
+//	* Steffen Maercker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -27,162 +27,138 @@
 
 package common.iterable;
 
-import java.util.Objects;
+import java.util.Iterator;
+import java.util.PrimitiveIterator;
 import java.util.function.DoublePredicate;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
 /**
- * Abstract base class for Iterables that filter elements by a predicate.
- * Returns only those elements for which the filter predicate evaluates to {@code true}.
- *
- * @param <E> type of the Iterable's elements
- * @param <I> type of the underlying Iterable
- */
-public abstract class FilteringIterable<E, I extends Iterable<E>> implements FunctionalIterable<E>
+ * Base class for Iterables around FilteringIterators,
+ * static constructors for deduplicating entries. */
+public abstract class FilteringIterable<T> implements Iterable<T>
 {
-	/** The Iterable which elements are filtered */
-	protected final I iterable;
+	protected final Iterable<T> iterable;
 
-	/**
-	 * Constructor for a filtering Iterable without a predicate.
-	 *
-	 * @param iterable an Iterable to be filtered
-	 */
-	public FilteringIterable(I iterable)
+	public FilteringIterable(final Iterable<T> iterable)
 	{
-		Objects.requireNonNull(iterable);
 		this.iterable = iterable;
 	}
 
-
-
-	/**
-	 * Generic implementation of a filtering Iterable.
-	 *
-	 * @param <E> type of the Iterable's elements
-	 */
-	public static class Of<E> extends FilteringIterable<E, Iterable<E>>
+	public static class Of<T> extends FilteringIterable<T>
 	{
-		/** The predicate the Iterable uses to filter the elements */
-		protected final Predicate<? super E> filter;
+		private Predicate<? super T> predicate;
 
-		/**
-		 * Constructor for an Iterable that filters elements by a predicate.
-		 * <p>
-		 * Attention! If the predicate is <em>stateful</em>, subsequent iterations may yield different elements.
-		 *
-		 * @param iterable an Iterable to be filtered
-		 * @param predicate a predicate used to filter the elements
-		 */
-		public Of(Iterable<E> iterable, Predicate<? super E> predicate)
+		public Of(Iterable<T> iterable, Predicate<? super T> predicate)
 		{
 			super(iterable);
-			Objects.requireNonNull(predicate);
-			this.filter = predicate;
+			this.predicate = predicate;
 		}
 
 		@Override
-		public FunctionalIterator<E> iterator()
+		public Iterator<T> iterator()
 		{
-			return new FilteringIterator.Of<>(iterable.iterator(), filter);
+			return new FilteringIterator.Of<>(iterable, predicate);
 		}
 	}
 
-
-
-	/**
-	 * Primitive specialisation for {@code double} of a filtering Iterable.
-	 */
-	public static class OfDouble extends FilteringIterable<Double, PrimitiveIterable.OfDouble> implements FunctionalPrimitiveIterable.OfDouble
+	public static class OfInt extends FilteringIterable<Integer> implements IterableInt
 	{
-		/** The predicate the Iterable uses to filter the elements */
-		protected final DoublePredicate filter;
+		private IntPredicate predicate;
 
-		/**
-		 * Constructor for an Iterable that filters elements by a predicate.
-		 * <p>
-		 * Attention! If the predicate is <em>stateful</em>, subsequent iterations may yield different elements.
-		 *
-		 * @param iterable an Iterable to be filtered
-		 * @param predicate a predicate used to filter the elements
-		 */
-		public OfDouble(PrimitiveIterable.OfDouble iterable, DoublePredicate predicate)
+		public OfInt(IterableInt iterable, IntPredicate predicate)
 		{
 			super(iterable);
-			Objects.requireNonNull(predicate);
-			this.filter = predicate;
+			this.predicate = predicate;
 		}
 
 		@Override
-		public FunctionalPrimitiveIterator.OfDouble iterator()
+		public PrimitiveIterator.OfInt iterator()
 		{
-			return new FilteringIterator.OfDouble(iterable.iterator(), filter);
+			return new FilteringIterator.OfInt((IterableInt) iterable, predicate);
 		}
 	}
 
-
-
-	/**
-	 * Primitive specialisation for {@code int} of a filtering Iterable.
-	 */
-	public static class OfInt extends FilteringIterable<Integer, PrimitiveIterable.OfInt> implements FunctionalPrimitiveIterable.OfInt
+	public static class OfLong extends FilteringIterable<Long> implements IterableLong
 	{
-		/** The predicate the Iterable uses to filter the elements */
-		protected final IntPredicate filter;
+		private LongPredicate predicate;
 
-		/**
-		 * Constructor for an Iterable that filters elements by a predicate.
-		 * <p>
-		 * Attention! If the predicate is <em>stateful</em>, subsequent iterations may yield different elements.
-		 *
-		 * @param iterable an Iterable to be filtered
-		 * @param predicate a predicate used to filter the elements
-		 */
-		public OfInt(PrimitiveIterable.OfInt iterable, IntPredicate predicate)
+		public OfLong(IterableLong iterable, LongPredicate predicate)
 		{
 			super(iterable);
-			Objects.requireNonNull(predicate);
-			this.filter = predicate;
+			this.predicate = predicate;
 		}
 
 		@Override
-		public FunctionalPrimitiveIterator.OfInt iterator()
+		public PrimitiveIterator.OfLong iterator()
 		{
-			return new FilteringIterator.OfInt(iterable.iterator(), filter);
+			return new FilteringIterator.OfLong((IterableLong) iterable, predicate);
 		}
 	}
 
-
-
-	/**
-	 * Primitive specialisation for {@code long} of a filtering Iterable.
-	 */
-	public static class OfLong extends FilteringIterable<Long, PrimitiveIterable.OfLong> implements FunctionalPrimitiveIterable.OfLong
+	public static class OfDouble extends FilteringIterable<Double> implements IterableDouble
 	{
-		/** The predicate the Iterable uses to filter the elements */
-		protected final LongPredicate filter;
+		private DoublePredicate predicate;
 
-		/**
-		 * Constructor for an Iterable that filters elements by a predicate.
-		 * <p>
-		 * Attention! If the predicate is <em>stateful</em>, subsequent iterations may yield different elements.
-		 *
-		 * @param iterable an Iterable to be filtered
-		 * @param predicate a predicate used to filter the elements
-		 */
-		public OfLong(PrimitiveIterable.OfLong iterable, LongPredicate predicate)
+		public OfDouble(IterableDouble iterable, DoublePredicate predicate)
 		{
 			super(iterable);
-			Objects.requireNonNull(predicate);
-			this.filter = predicate;
+			this.predicate = predicate;
 		}
 
 		@Override
-		public FunctionalPrimitiveIterator.OfLong iterator()
+		public PrimitiveIterator.OfDouble iterator()
 		{
-			return new FilteringIterator.OfLong(iterable.iterator(), filter);
+			return new FilteringIterator.OfDouble((IterableDouble) iterable, predicate);
 		}
+	}
+
+	public static IterableInt dedupe(IterableInt iterable)
+	{
+		return new IterableInt()
+		{
+			@Override
+			public PrimitiveIterator.OfInt iterator()
+			{
+				return FilteringIterator.dedupe(iterable.iterator());
+			}
+		};
+	}
+
+	public static IterableLong dedupe(IterableLong iterable)
+	{
+		return new IterableLong()
+		{
+			@Override
+			public PrimitiveIterator.OfLong iterator()
+			{
+				return FilteringIterator.dedupe(iterable.iterator());
+			}
+		};
+	}
+
+	public static IterableDouble dedupe(IterableDouble iterable)
+	{
+		return new IterableDouble()
+		{
+			@Override
+			public PrimitiveIterator.OfDouble iterator()
+			{
+				return FilteringIterator.dedupe(iterable.iterator());
+			}
+		};
+	}
+
+	public static <T> Iterable<T> dedupe(Iterable<T> iterable)
+	{
+		return new Iterable<T>()
+		{
+			@Override
+			public Iterator<T> iterator()
+			{
+				return FilteringIterator.dedupe(iterable.iterator());
+			}
+		};
 	}
 }

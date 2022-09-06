@@ -3,7 +3,7 @@
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
-//	* Steffen Märcker <steffen.maercker@tu-dresden.de> (TU Dresden)
+//	* Steffen Märcker <maercker@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -25,23 +25,22 @@
 //	
 //==============================================================================
 
+
 package common;
 
 import java.util.BitSet;
+import java.util.PrimitiveIterator.OfInt;
 
-import common.iterable.EmptyIterable;
-import common.iterable.FunctionalPrimitiveIterable;
-import common.iterable.FunctionalPrimitiveIterator;
-import common.iterable.Range;
+import common.iterable.*;
 
 /**
  * A convenience wrapper around IterableBitSet that handles the three cases of
  * iterating over the set or cleared bits of a BitSet representing a set of states
  * as well as iterating over all states if the BitSet is {@code null}.
  */
-public class IterableStateSet implements FunctionalPrimitiveIterable.OfInt
+public class IterableStateSet implements IterableInt
 {
-	protected final FunctionalPrimitiveIterable.OfInt setOfStates;
+	private final IterableInt setOfStates;
 
 	/**
 	 * Constructor (iterate over all states 0..numStates-1)
@@ -92,16 +91,16 @@ public class IterableStateSet implements FunctionalPrimitiveIterable.OfInt
 		if (setOfStates == null || (setOfStates.length() == numStates && setOfStates.cardinality() == numStates)) {
 			// all states
 			if (complement) {
-				this.setOfStates = EmptyIterable.ofInt();
+				this.setOfStates = EmptyIterable.OfInt();
 			} else {
-				this.setOfStates = reversed ? new Range(numStates).reversed() : new Range(numStates);
+				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
 			}
 		} else if (setOfStates.isEmpty()) {
 			// no states
 			if (complement) {
-				this.setOfStates = reversed ? new Range(numStates).reversed() : new Range(numStates);
+				this.setOfStates = reversed ? new RangeIntIterable(numStates-1, 0) : new RangeIntIterable(0, numStates-1);
 			} else {
-				this.setOfStates = EmptyIterable.ofInt();
+				this.setOfStates = EmptyIterable.OfInt();
 			}
 		} else {
 			// build appropriate IterableBitSet with maxIndex = numStates-1
@@ -110,7 +109,7 @@ public class IterableStateSet implements FunctionalPrimitiveIterable.OfInt
 	}
 
 	@Override
-	public FunctionalPrimitiveIterator.OfInt iterator()
+	public OfInt iterator()
 	{
 		return setOfStates.iterator();
 	}

@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
 
-import common.functions.PairPredicateInt;
+import common.functions.primitive.PairPredicateInt;
 import common.IterableBitSet;
 import explicit.graphviz.Decorator;
 import explicit.graphviz.ShowRewardDecorator;

@@ -1,55 +1,25 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Version 4.7 (first released 19/3/2021)
------------------------------------------------------------------------------
-
-* New model checking functionality
-  - support for POMDP/POPTA model checking
-  - support for LTS model checking
-  - reporting of model checking accuracy
-
-* Features/enhancements:
-  - bounded properties (e.g. P<p) raise error if results are too inaccurate
-  - improved model type auto-detection (MDP/PTA/LTS/POMDP/POPTA)
-  - new -dir switch to set current working dir in command line and GUI
-  - support HOA input (HOAF2DA) without a number-of-states header
-
-* Fixes
-  - fixed to compile on Java 14
-  - fixed to compile on 64-bit Arm Linux/Mac
-  - consistent treatment of negative/infinite/NaN rewards in symbolic/explicit engines
-  - disable tree of model info in GUI
-  
-* Development and code-level changes
-  - code base now allows/assumes Java 9
-  - testing RESULT specifications can be intervals [a,b]
-  - prism-log-extract: new (meta)fields: prog_name, prog_version, prog
-  - ModelGenerator improvements: auto-generates VarList; stores module info
-  - explicit model refactoring: more default implementations in interfaces
-  - bugfixes & refactoring
-
------------------------------------------------------------------------------
 Version 4.6 (first released 21/4/2020)
 -----------------------------------------------------------------------------
   
-* New model checking features/enhancements:
+New model checking features/enhancements:
   - digital clocks engine now supports time-bounded reachability
   - explicit engine support for steady-state computation (and S, R[S] properties)
   - improved support in MTBDD engine for very large (>2^63) state spaces
   - the -heuristic switch triggers automatic selection of some engines/settings
   - the -prop switch accepts multiple (comma-separated) property indices/names
   - MTBDD engine support for non-sparse vector printing (printall filter)
+  - examples directory tidied up and now grouped by model type
   - many minor bugfixes
   
-* New import/export features:
+New import/export features:
   - export of result values for all states of a model (-exportvector)
   - basic auto-detection of model type for explicit file import
   - simulation (path generation and statistical model checking) for explicit model imports
   - explicit engine support for state reward import from files
   - MTBDD engine support for export of transient/steady-state probabilities
-
-* Examples directory tidied up and now grouped by model type
 
 * Development changes and enhancements:
   - extended/improved ModelGenerator interface, including methods to support simulation

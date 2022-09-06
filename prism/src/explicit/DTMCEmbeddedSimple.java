@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
+import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 
@@ -74,6 +75,11 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 	
 	// Accessors (for Model)
+
+	public ModelType getModelType()
+	{
+		return ModelType.DTMC;
+	}
 
 	public int getNumStates()
 	{
@@ -118,15 +124,6 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	public int getNumTransitions()
 	{
 		return ctmc.getNumTransitions() + numExtraTransitions;
-	}
-
-	public int getNumTransitions(int s)
-	{
-		if (exitRates[s] == 0) {
-			return 1;
-		} else {
-			return ctmc.getNumTransitions(s);
-		}
 	}
 
 	@Override
@@ -203,6 +200,15 @@ public class DTMCEmbeddedSimple extends DTMCExplicit
 	}
 
 	// Accessors (for DTMC)
+
+	public int getNumTransitions(int s)
+	{
+		if (exitRates[s] == 0) {
+			return 1;
+		} else {
+			return ctmc.getNumTransitions(s);
+		}
+	}
 
 	public Iterator<Entry<Integer,Double>> getTransitionsIterator(int s)
 	{

@@ -315,10 +315,6 @@ jdouble omega		// omega (over-relaxation parameter)
 	// if the iterative method didn't terminate, this is an error
 	if (!done) { delete[] soln; soln = NULL; PS_SetErrorMessage("Iterative method did not converge within %d iterations.\nConsider using a different numerical method or increasing the maximum number of iterations", iters); }
 	
-	// the difference between vector values is not a reliable error bound
-	// but we store it anyway in case it is useful for estimating a bound
-	last_error_bound = measure.value();
-	
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
 		PS_SetErrorMessage("Out of memory");

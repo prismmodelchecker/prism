@@ -152,11 +152,11 @@ public class SeriesSettings extends Observable implements SettingOwner
 		
 		seriesHeading = new SingleLineStringSetting("heading", "heading", "The heading for this series, as displayed in the legend.", this, true);
         seriesColour = new ColorSetting("colour", Color.black, "The colour for all lines and points in this series.", this, true);
-        showPoints = new BooleanSetting("show points", Boolean.valueOf(true), "Should points be displayed for this series?", this, true);
+        showPoints = new BooleanSetting("show points", new Boolean(true), "Should points be displayed for this series?", this, true);
         String[] choices = { "Circle", "Square", "Triangle", "Horizontal Rectangle", "Vertical Rectangle", "None" };
         seriesShape = new ChoiceSetting("point shape", choices, choices[0], "The shape of points for this series.", this, true);
-        showLines = new BooleanSetting("show lines", Boolean.valueOf(true), "Should lines be displayed for this series?", this, true);
-        lineWidth = new DoubleSetting("line width",  Double.valueOf(1.0), "The line width for this series.", this, true, new RangeConstraint("0.0,"));
+        showLines = new BooleanSetting("show lines", new Boolean(true), "Should lines be displayed for this series?", this, true);
+        lineWidth = new DoubleSetting("line width",  new Double(1.0), "The line width for this series.", this, true, new RangeConstraint("0.0,"));
         String [] styles = { "---------", "- - - - -", "- -- - --" };
         lineStyle = new ChoiceSetting("line style", styles, styles[0], "The line style for this series.", this, true);
         
@@ -192,7 +192,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 				{ 
 					// just do it.
 					Boolean pointsVisibleFlag = true;
-					showPoints.setValue(Boolean.valueOf(pointsVisibleFlag == null || pointsVisibleFlag.booleanValue())); 
+					showPoints.setValue(new Boolean(pointsVisibleFlag == null || pointsVisibleFlag.booleanValue())); 
 				}
 				catch (SettingException e)
 				{					
@@ -227,7 +227,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 				try
 				{ 
 					Boolean linesVisibleFlag = true;
-					showLines.setValue(Boolean.valueOf(linesVisibleFlag == null || linesVisibleFlag.booleanValue())); 
+					showLines.setValue(new Boolean(linesVisibleFlag == null || linesVisibleFlag.booleanValue())); 
 				}
 				catch (SettingException e)
 				{					
@@ -371,7 +371,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			showPoints.setValue(Boolean.valueOf(value));
+			showPoints.setValue(new Boolean(value));
 			updateSeries();
 			setChanged();
 			notifyObservers(this);
@@ -397,7 +397,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	 */
 	public void setSeriesShape(int value) throws SettingException
 	{
-		seriesShape.setSelectedIndex(Integer.valueOf(value));
+		seriesShape.setSelectedIndex(new Integer(value));
 		updateSeries();
 		setChanged();
 		notifyObservers(this);		
@@ -420,7 +420,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	{
 		try
 		{
-			showLines.setValue(Boolean.valueOf(value));
+			showLines.setValue(new Boolean(value));
 			updateSeries();
 			setChanged();
 			notifyObservers(this);
@@ -446,7 +446,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	 */
 	public void setLineWidth(double value) throws SettingException
 	{
-		lineWidth.setValue(Double.valueOf(value));
+		lineWidth.setValue(new Double(value));
 		updateSeries();
 		setChanged();
 		notifyObservers();					
@@ -467,7 +467,7 @@ public class SeriesSettings extends Observable implements SettingOwner
 	 */
 	public void setLineStyle(int value) throws SettingException
 	{
-		lineStyle.setSelectedIndex(Integer.valueOf(value));
+		lineStyle.setSelectedIndex(new Integer(value));
 		updateSeries();
 		setChanged();
 		notifyObservers(this);		

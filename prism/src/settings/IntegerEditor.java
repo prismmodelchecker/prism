@@ -58,7 +58,7 @@ public class IntegerEditor implements SettingEditor, CaretListener, FocusListene
         valueGot = true;
         try
         {
-            return Integer.valueOf(field.getText());
+            return new Integer(field.getText());
         }
         catch(NumberFormatException e)
         {
@@ -171,7 +171,7 @@ public class IntegerEditor implements SettingEditor, CaretListener, FocusListene
             {
                 try
                 {
-                    value = Integer.valueOf(field.getText());
+                    value = new Integer(field.getText());
                 }
                 catch(NumberFormatException ex)
                 {

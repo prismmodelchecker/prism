@@ -40,8 +40,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 import javax.swing.AbstractAction;
@@ -74,9 +72,11 @@ import prism.PrismUtils;
 import prism.UndefinedConstants;
 import simulator.PathFullInfo;
 import simulator.SimulatorEngine;
+import simulator.networking.SimulatorNetworkHandler;
 import userinterface.GUIConstantsPicker;
 import userinterface.GUIPlugin;
 import userinterface.GUIPrism;
+import userinterface.OptionsPanel;
 import userinterface.graph.Graph;
 import userinterface.model.GUIModelEvent;
 import userinterface.model.GUIMultiModel;
@@ -84,6 +84,7 @@ import userinterface.properties.GUIMultiProperties;
 import userinterface.properties.GUIPropertiesEvent;
 import userinterface.properties.GUIPropertiesList;
 import userinterface.properties.GUIProperty;
+import userinterface.simulator.networking.GUINetworkEditor;
 import userinterface.util.GUIComputationEvent;
 import userinterface.util.GUIEvent;
 import userinterface.util.GUIExitEvent;
@@ -117,7 +118,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	private boolean newPathAfterReceiveParseNotification, newPathPlotAfterReceiveParseNotification;
 	private boolean chooseInitialState;
 
-	private Values lastPropertyConstants, lastInitialState;
+	private Values lastConstants, lastPropertyConstants, lastInitialState;
 	private boolean computing;
 
 	// Config/options
@@ -202,6 +203,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		pathTable.setModel(pathTableModel);
 
+		lastConstants = null;
+
 		lastPropertyConstants = null;
 
 		lastInitialState = null;
@@ -228,6 +231,10 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		displayStyleFast = true;
 		displayPathLoops = true;
+
+		GUINetworkEditor netEdit = new GUINetworkEditor(getGUI(), new SimulatorNetworkHandler());
+
+		getPrism().getSettings().setFileSelector(PrismSettings.SIMULATOR_NETWORK_FILE, netEdit);
 
 		autoTimeCheck.setSelected(true);
 		currentUpdatesTable.requestFocus();
@@ -392,15 +399,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			//       (for path formulae display)
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, pf, true);
 			if (uCon.getMFNumUndefined() + uCon.getPFNumUndefined() > 0) {
-				Values lastModelConstants = getPrism().getUndefinedModelValues();
-				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastModelConstants, lastPropertyConstants);
+				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
 			// remember constant values for next time
+			lastConstants = uCon.getMFConstantValues();
 			lastPropertyConstants = uCon.getPFConstantValues();
 			// store constants (currently, compute non-exact for simulation)
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
+			getPrism().setPRISMModelConstants(lastConstants, false);
 			pf.setSomeUndefinedConstants(lastPropertyConstants, false);
 
 			// check here for possibility of multiple initial states
@@ -431,14 +438,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// Create a new path in the simulator and add labels/properties
 			getPrism().loadModelIntoSimulator();
 			engine.createNewPath();
-			setPathActive(true);
-			repopulateFormulae(pf);
 			engine.initialisePath(initialState == null ? null : new parser.State(initialState, parsedModel));
 			// Update model/path/tables/lists
+			setPathActive(true);
 			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
 			pathTable.getSelectionModel().setSelectionInterval(0, 0);
 			updateTableModel.restartUpdatesTable();
+			repopulateFormulae(pf);
 			// Update display
 			repaintLists();
 			updatePathInfoAll(uCon);
@@ -733,16 +740,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 			// Load new path into the simulator
 			getPrism().loadModelIntoSimulator();
-			engine.createNewPath();
-			setPathActive(true);
-			repopulateFormulae(pf);
 			engine.loadPath(pathNew);
 			// Update model/path/tables/lists
+			setPathActive(true);
 			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
 			int last = pathTable.getRowCount() - 1;
 			pathTable.getSelectionModel().setSelectionInterval(last, last);
 			updateTableModel.restartUpdatesTable();
+			repopulateFormulae(pf);
 			// Update display
 			repaintLists();
 			updatePathInfoAll(null);
@@ -809,13 +815,14 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			// if necessary, get values for undefined constants from user
 			UndefinedConstants uCon = new UndefinedConstants(parsedModel, null);
 			if (uCon.getMFNumUndefined() > 0) {
-				Values lastModelConstants = getPrism().getUndefinedModelValues();
-				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastModelConstants, lastPropertyConstants);
+				int result = GUIConstantsPicker.defineConstantsWithDialog(getGUI(), uCon, lastConstants, lastPropertyConstants);
 				if (result != GUIConstantsPicker.VALUES_DONE)
 					return;
 			}
+			// remember constant values for next time
+			lastConstants = uCon.getMFConstantValues();
 			// store constants (currently, compute non-exact for simulation)
-			getPrism().setPRISMModelConstants(uCon.getMFConstantValues(), false);
+			getPrism().setPRISMModelConstants(lastConstants, false);
 
 			// do we need to ask for an initial state for simulation?
 			// no: just use default/random
@@ -943,6 +950,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public javax.swing.JMenu getMenu()
 	{
 		return simulatorMenu;
+	}
+
+	public OptionsPanel getOptions()
+	{
+		return null;
 	}
 
 	public String getTabText()
@@ -1631,7 +1643,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		newPath.putValue(Action.LONG_DESCRIPTION, "Creates a new path.");
-		newPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
+		newPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newPath.putValue(Action.NAME, "New path");
 		newPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 		newPath.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
@@ -1646,7 +1658,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		newPathFromState.putValue(Action.LONG_DESCRIPTION, "Creates a new path from a chosen state.");
-		//newPathFromState.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
+		//newPathFromState.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newPathFromState.putValue(Action.NAME, "New path from state");
 		newPathFromState.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallStates.png"));
 
@@ -1658,7 +1670,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		newPathPlot.putValue(Action.LONG_DESCRIPTION, "Creates and plots a new path.");
-		//newPathPlot.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
+		//newPathPlot.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newPathPlot.putValue(Action.NAME, "Plot new path");
 		newPathPlot.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 		newPathPlot.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -1671,7 +1683,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		newPathPlotFromState.putValue(Action.LONG_DESCRIPTION, "Creates and plots a new path from a chosen state.");
-		//newPathPlotFromState.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_N));
+		//newPathPlotFromState.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_N));
 		newPathPlotFromState.putValue(Action.NAME, "Plot new path from state");
 		newPathPlotFromState.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
@@ -1684,7 +1696,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		resetPath.putValue(Action.LONG_DESCRIPTION, "Resets the path.");
-		resetPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
+		resetPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		resetPath.putValue(Action.NAME, "Reset path");
 		resetPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerStart.png"));
 		resetPath.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F8, InputEvent.SHIFT_DOWN_MASK));
@@ -1698,7 +1710,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		};
 
 		exportPath.putValue(Action.LONG_DESCRIPTION, "Exports the path.");
-		exportPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_X));
+		exportPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_X));
 		exportPath.putValue(Action.NAME, "Export path");
 		exportPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallExport.png"));
 
@@ -1710,7 +1722,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		plotPath.putValue(Action.LONG_DESCRIPTION, "Plots the path on a graph.");
-		plotPath.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_P));
+		plotPath.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_P));
 		plotPath.putValue(Action.NAME, "Plot path");
 		plotPath.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallFileGraph.png"));
 
@@ -1722,7 +1734,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		randomExploration.putValue(Action.LONG_DESCRIPTION, "Extends the path by simulating.");
-		randomExploration.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_S));
+		randomExploration.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_S));
 		randomExploration.putValue(Action.NAME, "Simulate");
 		randomExploration.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerFwd.png"));
 		randomExploration.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0));
@@ -1735,7 +1747,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		backtrack.putValue(Action.LONG_DESCRIPTION, "Backtracks the path.");
-		backtrack.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_K));
+		backtrack.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_K));
 		backtrack.putValue(Action.NAME, "Backtrack");
 		backtrack.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
 		backtrack.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F9, InputEvent.SHIFT_DOWN_MASK));
@@ -1748,7 +1760,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		backtrackToHere.putValue(Action.LONG_DESCRIPTION, "Backtracks the path to the selected state.");
-		backtrackToHere.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_B));
+		backtrackToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_B));
 		backtrackToHere.putValue(Action.NAME, "Backtrack to here");
 		backtrackToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallPlayerRew.png"));
 
@@ -1765,7 +1777,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		removeToHere.putValue(Action.LONG_DESCRIPTION, "Removes states preceding the selected state from the path.");
-		removeToHere.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_R));
+		removeToHere.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_R));
 		removeToHere.putValue(Action.NAME, "Remove preceding steps");
 		removeToHere.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallRemove.png"));
 
@@ -1777,7 +1789,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		};
 		configureView.putValue(Action.LONG_DESCRIPTION, "Configures the view.");
-		configureView.putValue(Action.MNEMONIC_KEY, Integer.valueOf(KeyEvent.VK_C));
+		configureView.putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_C));
 		configureView.putValue(Action.NAME, "Configure view");
 		configureView.putValue(Action.SMALL_ICON, GUIPrism.getIconFromImage("smallOptions.png"));
 
@@ -2058,7 +2070,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void setDisplayStyle(boolean displayStyle) throws PrismException
 	{
 
-		getPrism().getSettings().set(PrismSettings.SIMULATOR_RENDER_ALL_VALUES, Integer.valueOf(displayStyle ? 0 : 1));
+		getPrism().getSettings().set(PrismSettings.SIMULATOR_RENDER_ALL_VALUES, new Integer(displayStyle ? 0 : 1));
 
 	}
 
@@ -2078,7 +2090,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	public void setDisplayPathLoops(boolean b) throws PrismException
 	{
 		displayPathLoops = b;
-		//getPrism().getSettings().set(PrismSettings.SIMULATOR_????, Boolean.valueOf(b));
+		//getPrism().getSettings().set(PrismSettings.SIMULATOR_????, new Boolean(b));
 	}
 
 	public ModulesFile getModulesFile()
@@ -2221,13 +2233,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		repaint();
 	}
 
-	enum UpdateTableModelColumn {
-		ACTION, PROB, UPDATE
-	};
-	
 	class UpdateTableModel extends AbstractTableModel
 	{
-		private List<UpdateTableModelColumn> visibleColumns = new ArrayList<>();
 		public boolean oldUpdate;
 		private int oldStep;
 
@@ -2240,7 +2247,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 
 		public int getColumnCount()
 		{
-			return visibleColumns.size();
+			return pathActive ? 3 : 0;
 		}
 
 		public int getRowCount()
@@ -2256,12 +2263,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			if (pathActive) {
 				try {
-					switch (visibleColumns.get(columnIndex)) {
-					case ACTION:
+					switch (columnIndex) {
+					case 0:
 						return engine.getTransitionActionString(rowIndex);
-					case PROB:
+					case 1:
 						return "" + engine.getTransitionProbability(rowIndex);
-					case UPDATE:
+					case 2:
 						return engine.getTransitionUpdateString(rowIndex);
 					default:
 						return "";
@@ -2273,21 +2280,21 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			return "";
 		}
 
-		public String getColumnName(int columnIndex)
+		public String getColumnName(int column)
 		{
 			if (pathActive) {
-				switch (visibleColumns.get(columnIndex)) {
-				case ACTION:
+				switch (column) {
+				case 0:
 					return engine.getModel().getActionStringDescription();
-				case PROB:
+				case 1:
 					return parsedModel == null ? "Probability" : parsedModel.getModelType().probabilityOrRate();
-				case UPDATE:
+				case 2:
 					return "Update";
 				default:
 					return "";
 				}
-			}
-			return "";
+			} else
+				return "";
 		}
 
 		/**
@@ -2300,11 +2307,12 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 			oldUpdate = false;
 			oldStep = -1;
-			setVisibleColumns();
 			doEnables();
 			fireTableDataChanged();
+
 			currentUpdatesTable.setEnabled(true);
 			currentUpdatesTable.setToolTipText("Double click on an update to manually execute it");
+
 			if (getRowCount() > 0) {
 				currentUpdatesTable.getSelectionModel().setSelectionInterval(0, 0);
 			}
@@ -2315,18 +2323,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		 */
 		public void updateUpdatesTable(int oldStep) throws PrismException
 		{
-			if (oldStep == pathTable.getRowCount() - 1) {
-				// if current state selected
+			if (oldStep == pathTable.getRowCount() - 1) // if current state selected
+			{
 				updateUpdatesTable();
 			} else {
 				this.oldStep = oldStep;
 				oldUpdate = true;
-				setVisibleColumns();
 				doEnables();
 				engine.computeTransitionsForStep(oldStep);
 				fireTableDataChanged();
+
 				currentUpdatesTable.setEnabled(false);
 				currentUpdatesTable.setToolTipText(null);
+
 				if (getRowCount() > 0) {
 					int selectThis = engine.getChoiceOfPathStep(oldStep);
 					currentUpdatesTable.getSelectionModel().setSelectionInterval(selectThis, selectThis);
@@ -2334,16 +2343,6 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 		}
 
-		public void setVisibleColumns()
-		{
-			visibleColumns.clear();
-			visibleColumns.add(UpdateTableModelColumn.ACTION);
-			if (parsedModel != null && parsedModel.getModelType().isProbabilistic()) {
-				visibleColumns.add(UpdateTableModelColumn.PROB);
-			}
-			visibleColumns.add(UpdateTableModelColumn.UPDATE);
-		}
-		
 		public void restartUpdatesTable()
 		{
 			fireTableStructureChanged();
@@ -2378,10 +2377,11 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	}
 
 	/**
-	 * Utility function to format floating point numbers with a precision of 6 decimal places.
+	 * Utility function to format floating point numbers.
 	 */
 	public String formatDouble(double d)
 	{
+		// getPrism().getSettings().
 		return PrismUtils.formatDouble(6, d);
 	}
 }

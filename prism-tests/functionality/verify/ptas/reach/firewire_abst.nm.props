@@ -3,7 +3,7 @@
 "eventually": Pmin=? [ F "done" ];
 
 // Minimum probability that a leader has been elected by time T
-// RESULT (delay=30): 0.8515625
+// RESULT (delay=30): 0.851563
 "deadline_min": Pmin=? [ F<=5000 "done" ];
 
 // Maximum probability that a leader has been elected by time T

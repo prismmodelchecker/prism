@@ -26,6 +26,7 @@
 
 package simulator.sampler;
 
+import parser.State;
 import parser.ast.Expression;
 import parser.ast.ExpressionTemporal;
 import prism.ModelGenerator;
@@ -62,13 +63,14 @@ public class SamplerUntil extends SamplerBoolean
 		if (valueKnown)
 			return true;
 
+		State currentState = path.getCurrentState();
 		// Have we reached the target (i.e. RHS of until)?
-		if (path.evaluateBooleanInCurrentState(right)) {
+		if (right.evaluateBoolean(currentState)) {
 			valueKnown = true;
 			value = true;
 		}
 		// Or, if not, have we violated the LHS of the until?
-		else if (!path.evaluateBooleanInCurrentState(left)) {
+		else if (!left.evaluateBoolean(currentState)) {
 			valueKnown = true;
 			value = false;
 		}

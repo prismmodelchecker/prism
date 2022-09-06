@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
 import prism.PrismLangException;
@@ -248,6 +249,12 @@ public class ExpressionTemporal extends Expression
 	
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate a temporal operator without a path");
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate a temporal operator without a path");
 	}

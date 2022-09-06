@@ -44,7 +44,6 @@ EXPORT double lin_eq_method_param;
 EXPORT int term_crit;
 EXPORT double term_crit_param;
 EXPORT int max_iters;
-EXPORT int export_model_precision;
 // use "compact modified" sparse matrix storage?
 EXPORT bool compact;
 // sparse bits info
@@ -61,9 +60,6 @@ EXPORT int export_adv;
 EXPORT const char *export_adv_filename;
 // export iterations filename
 EXPORT const char *export_iterations_filename = "iterations.html";
-
-// details from numerical computation which may be queried
-EXPORT double last_error_bound;
 
 //------------------------------------------------------------------------------
 // Prism object
@@ -131,13 +127,6 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetTermCritParam(JNIEnv *env, 
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetMaxIters(JNIEnv *env, jclass cls, jint i)
 {
 	max_iters = i;
-}
-
-//------------------------------------------------------------------------------
-
-JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetExportModelPrecision(JNIEnv *env, jclass cls, jint prec)
-{
-	export_model_precision = prec;
 }
 
 //------------------------------------------------------------------------------
@@ -281,25 +270,6 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1CloseFile(JNIEnv *env, jclass 
 {
 	fclose(jlong_to_FILE(fp));
 }
-
-
-
-
-
-JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetLastErrorBound(JNIEnv *env, jclass cls,jdouble d)
-{
-	last_error_bound = d;
-}
-
-JNIEXPORT jdouble JNICALL Java_prism_PrismNative_PN_1GetLastErrorBound(JNIEnv *env, jclass cls)
-{
-	return last_error_bound;
-}
-
-
-
-
-
 
 //------------------------------------------------------------------------------
 // tidy up

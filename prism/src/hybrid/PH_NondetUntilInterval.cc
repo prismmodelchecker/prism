@@ -363,7 +363,6 @@ jint flags
 	}
 
 	if (helper.flag_select_midpoint() && soln_below) { // we did converge, select midpoint
-		last_error_bound = measure.value();
 		helper.selectMidpoint(soln_below, soln_above, n);
 
 		if (iterationExport) {

@@ -3,7 +3,6 @@
 //	Copyright (c) 2016-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -34,7 +33,6 @@ import common.IntSet;
 import common.PeriodicTimer;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
-import prism.AccuracyFactory;
 import prism.OptionsIntervalIteration;
 import prism.PrismException;
 import prism.PrismUtils;
@@ -47,8 +45,6 @@ import prism.PrismUtils;
  */
 public abstract class IterationMethod {
 
-	public static final int LOGGING_PRECISION = 12;
-
 	/**
 	 * Interface for an object that provides the basic steps for a value iteration.
 	 */
@@ -57,8 +53,6 @@ public abstract class IterationMethod {
 		public void init(double[] soln);
 		/** Get the current solution vector */
 		public double[] getSolnVector();
-		/** Get the error for the solution, or an estimate of it */
-		public double getError();
 
 		/** Perform one iteration (over the set of states) and return true if convergence has been detected. */
 		public boolean iterateAndCheckConvergence(IntSet states) throws PrismException;
@@ -158,15 +152,6 @@ public abstract class IterationMethod {
 	/** Abstract base class for an IterationValIter with a single solution vector */
 	protected abstract class SingleVectorIterationValIter extends IterationBasic implements IterationValIter
 	{
-		/** Store error for accuracy info; unknown (infinite) initially */
-		protected double error = Double.POSITIVE_INFINITY;
-		
-		@Override
-		public double getError()
-		{
-			return error;
-		}
-
 		public SingleVectorIterationValIter(Model model)
 		{
 			super(model);
@@ -264,12 +249,6 @@ public abstract class IterationMethod {
 			return done;
 		}
 
-		@Override
-		public double getError()
-		{
-			return PrismUtils.measureSupNorm(soln, soln2, absolute);
-		}
-		
 		@Override
 		public void doneWith(IntSet states)
 		{
@@ -444,7 +423,7 @@ public abstract class IterationMethod {
 		}
 
 		// Finished value iteration
-		long mvCount = iters * iteration.getModel().getNumTransitions(unknownStates.iterator());
+		long mvCount = iters * countTransitions(iteration.getModel(), unknownStates);
 		long timer = System.currentTimeMillis() - startTime;
 		mc.getLog().print("Value iteration (" + description + ")");
 		mc.getLog().print(" took " + iters + " iterations, ");
@@ -464,7 +443,6 @@ public abstract class IterationMethod {
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = iteration.getSolnVector();
-		res.accuracy = AccuracyFactory.valueIteration(termCritParam, iteration.getError(), absolute);
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;
@@ -489,7 +467,6 @@ public abstract class IterationMethod {
 		int iters = 0;
 		long mvCount = 0;
 		final int maxIters = mc.maxIters;
-		double error = 0.0;
 
 		int numSCCs = sccs.getNumSCCs();
 		int numNonSingletonSCCs = sccs.countNonSingletonSCCs();
@@ -510,7 +487,7 @@ public abstract class IterationMethod {
 				// no need to call doneWith(...), as solveSingletonSCC updates
 				// both vectors for two-iteration methods
 
-				mvCount += iterator.getModel().getNumTransitions(state);
+				mvCount += countTransitions(iterator.getModel(), IntSet.asIntSet(state));
 
 				iters++;
 				if (iterationsExport != null)
@@ -537,18 +514,15 @@ public abstract class IterationMethod {
 						mc.getLog().print("Iteration " + itersInSCC + " in SCC " + (finishedNonSingletonSCCs+1) + " of " + numNonSingletonSCCs);
 						mc.getLog().println(", " + PrismUtils.formatDouble2dp(updatesTimer.elapsedMillisTotal() / 1000.0) + " sec so far");
 					}
+
 				}
 
-				// keep track of the max error so far (because calling doneWith() below
-				// makes parts of the two vectors equal and the error is lost)
-				error = Math.max(error, iterator.getError());
-				
 				// notify the iterator that the states are done so that
 				// their values can be copied to the second vector in a two-vector
 				// iterator
 				iterator.doneWith(statesForSCC);
 
-				mvCount += itersInSCC * iterator.getModel().getNumTransitions(statesForSCC.iterator());
+				mvCount += itersInSCC * countTransitions(iterator.getModel(), statesForSCC);
 			}
 
 			if (!doneSCC) {
@@ -577,7 +551,6 @@ public abstract class IterationMethod {
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
 		res.soln = iterator.getSolnVector();
-		res.accuracy = AccuracyFactory.valueIteration(termCritParam, error, absolute);
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
 		return res;
@@ -602,7 +575,6 @@ public abstract class IterationMethod {
 			int iters = 0;
 			final int maxIters = mc.maxIters;
 			boolean done = false;
-			double maxError = Double.POSITIVE_INFINITY;
 
 			PeriodicTimer updatesTimer = new PeriodicTimer(ProbModelChecker.UPDATE_DELAY);
 			updatesTimer.start();
@@ -624,22 +596,22 @@ public abstract class IterationMethod {
 				done = PrismUtils.doublesAreClose(below.getSolnVector(), above.getSolnVector(), termCritParam, absolute);
 
 				if (done) {
-					maxError = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
+					double diff = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
 					mc.getLog().println("Max " + (!absolute ? "relative ": "") +
-							"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(LOGGING_PRECISION, maxError));
+							"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(diff));
 					done = true;
 				}
 
 				if (!done && updatesTimer.triggered()) {
 					double diff = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
 					mc.getLog().print("Iteration " + iters + ": ");
-					mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff=" + PrismUtils.formatDouble(LOGGING_PRECISION, diff));
+					mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff=" + PrismUtils.formatDouble(diff));
 					mc.getLog().println(", " + PrismUtils.formatDouble2dp(updatesTimer.elapsedMillisTotal() / 1000.0) + " sec so far");
 				}
 			}
 
 			// Finished value iteration
-			long mvCount = 2 * iters * below.getModel().getNumTransitions(unknownStates.iterator());
+			long mvCount = 2 * iters * countTransitions(below.getModel(), unknownStates);
 			timer = System.currentTimeMillis() - timer;
 			mc.getLog().print("Interval iteration (" + description + ")");
 			mc.getLog().print(" took " + iters + " iterations, ");
@@ -666,7 +638,6 @@ public abstract class IterationMethod {
 			// Return results
 			ModelCheckerResult res = new ModelCheckerResult();
 			res.soln = below.getSolnVector();
-			res.accuracy = AccuracyFactory.guaranteedNumericalIterative(maxError, absolute);
 			res.numIters = iters;
 			res.timeTaken = timer / 1000.0;
 			return res;
@@ -696,7 +667,6 @@ public abstract class IterationMethod {
 			int iters = 0;
 			long mvCount = 0;
 			final int maxIters = mc.maxIters;
-			double maxError = Double.POSITIVE_INFINITY;
 
 			PeriodicTimer updatesTimer = new PeriodicTimer(ProbModelChecker.UPDATE_DELAY);
 			updatesTimer.start();
@@ -719,7 +689,7 @@ public abstract class IterationMethod {
 					// both vectors for two-iteration methods
 
 					iters++;
-					mvCount += 2 * below.getModel().getNumTransitions(state);
+					mvCount += 2 * countTransitions(below.getModel(), IntSet.asIntSet(state));
 
 					if (iterationsExport != null) {
 						iterationsExport.exportVector(below.getSolnVector(), 0);
@@ -768,7 +738,7 @@ public abstract class IterationMethod {
 						if (!doneSCC && updatesTimer.triggered()) {
 							double diff = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute, statesForSCC.iterator());
 							mc.getLog().print("Iteration " + iters + ": ");
-							mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff (for iteration " + itersInSCC + " in current SCC " + (finishedNonSingletonSCCs+1) + " of " + numNonSingletonSCCs + ") = " + PrismUtils.formatDouble(LOGGING_PRECISION, diff));
+							mc.getLog().print("max " + (absolute ? "" : "relative ") + "diff (for iteration " + itersInSCC + " in current SCC " + (finishedNonSingletonSCCs+1) + " of " + numNonSingletonSCCs + ") = " + PrismUtils.formatDouble(diff));
 							mc.getLog().println(", " + PrismUtils.formatDouble2dp(updatesTimer.elapsedMillisTotal() / 1000.0) + " sec so far");
 						}
 					}
@@ -779,7 +749,7 @@ public abstract class IterationMethod {
 					below.doneWith(statesForSCC);
 					above.doneWith(statesForSCC);
 
-					mvCount += 2 * itersInSCC * below.getModel().getNumTransitions(statesForSCC.iterator());
+					mvCount += 2 * itersInSCC * countTransitions(below.getModel(), statesForSCC);
 					finishedNonSingletonSCCs++;
 				}
 
@@ -790,9 +760,9 @@ public abstract class IterationMethod {
 			}
 
 			if (done) {
-				maxError = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
+				double diff = PrismUtils.measureSupNormInterval(below.getSolnVector(), above.getSolnVector(), absolute);
 				mc.getLog().println("Max " + (absolute ? "" : "relative ") +
-						"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(LOGGING_PRECISION, maxError));
+						"diff between upper and lower bound on convergence: " + PrismUtils.formatDouble(diff));
 				done = true;
 			}
 
@@ -826,7 +796,6 @@ public abstract class IterationMethod {
 			// Return results
 			ModelCheckerResult res = new ModelCheckerResult();
 			res.soln = below.getSolnVector();
-			res.accuracy = AccuracyFactory.guaranteedNumericalIterative(maxError, absolute);
 			res.numIters = iters;
 			res.timeTaken = timer / 1000.0;
 			return res;
@@ -878,4 +847,16 @@ public abstract class IterationMethod {
 			PrismUtils.checkMonotonicity(solnOld, solnNew, !fromBelow);
 		}
 	}
+
+	protected long countTransitions(Model model, IntSet unknownStates)
+	{
+		if (model instanceof DTMC) {
+			return ((DTMC)model).getNumTransitions(unknownStates.iterator());
+		} else if (model instanceof MDP) {
+			return ((MDP)model).getNumTransitions(unknownStates.iterator());
+		} else {
+			throw new IllegalArgumentException("Can only count transitions for DTMCs and MDPs, not for " + model.getModelType());
+		}
+	}
+
 }

@@ -26,23 +26,11 @@
 
 package explicit;
 
-import prism.ModelType;
-
 /**
  * Interface for classes that provide (read) access to an explicit-state CTMDP.
  */
 public interface CTMDP extends MDP
 {
-	// Accessors (for Model) - default implementations
-	
-	@Override
-	default ModelType getModelType()
-	{
-		return ModelType.CTMDP;
-	}
-
-	// Accessors
-	
 	// TODO: copy/modify functions from CTMC
 	
 	/**

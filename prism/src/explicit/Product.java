@@ -29,7 +29,11 @@ package explicit;
 
 import java.util.BitSet;
 
+import parser.type.TypeBool;
+import parser.type.TypeDouble;
+import parser.type.TypeInt;
 import prism.PrismException;
+import prism.PrismNotSupportedException;
 
 /**
  * Base class for the results of a product operation between a model and
@@ -148,8 +152,28 @@ public abstract class Product<M extends Model> implements ModelTransformation<M,
 	 * @throws PrismException
 	 */
 	@Override
-	public StateValues projectToOriginalModel(final StateValues sv) throws PrismException
+	public StateValues projectToOriginalModel(StateValues sv) throws PrismException
 	{
-		return sv.projectToOriginalModel(this);
+		// the resulting state values have one value per state in the original model
+		StateValues result = new StateValues(sv.type, getOriginalModel().getNumStates());
+
+		// iterate over all the initial states in the product
+		for (Integer productState : productModel.getInitialStates()) {
+			// get the state index of the corresponding state in the original model
+			int modelState = getModelState(productState);
+
+			if (sv.type instanceof TypeBool) {
+				result.setBooleanValue(modelState, (Boolean) sv.getValue(productState));
+			} else if (sv.type instanceof TypeInt) {
+				result.setIntValue(modelState, (Integer) sv.getValue(productState));
+			} else if (sv.type instanceof TypeDouble) {
+				result.setDoubleValue(modelState, (Double) sv.getValue(productState));
+			} else {
+				throw new PrismNotSupportedException("Handling for type "+sv.type+" not implemented.");
+			}
+		}
+
+		return result;
 	}
+
 }

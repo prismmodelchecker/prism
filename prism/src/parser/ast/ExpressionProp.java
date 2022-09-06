@@ -26,8 +26,9 @@
 
 package parser.ast;
 
-import parser.EvaluateContext;
-import parser.visitor.ASTVisitor;
+import param.BigRational;
+import parser.*;
+import parser.visitor.*;
 import prism.PrismLangException;
 
 /**
@@ -69,6 +70,12 @@ public class ExpressionProp extends Expression
 	
 	@Override
 	public Object evaluate(EvaluateContext ec) throws PrismLangException
+	{
+		throw new PrismLangException("Cannot evaluate property references", this);
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
 	{
 		throw new PrismLangException("Cannot evaluate property references", this);
 	}

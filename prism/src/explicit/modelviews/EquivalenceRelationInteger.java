@@ -31,7 +31,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
-import common.functions.PairPredicateInt;
+import common.functions.primitive.PairPredicateInt;
 import common.IterableBitSet;
 
 /**

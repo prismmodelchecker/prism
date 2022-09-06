@@ -1,3 +1,0 @@
-// Minimum expected number of steps to reach the target
-// RESULT: 4.3
-Rmin=? [ F "target" ]

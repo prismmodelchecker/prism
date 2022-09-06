@@ -208,9 +208,9 @@ public final class ModelBuilder extends PrismComponent
 	 */
 	public ParamModel constructModel(ModelGeneratorSymbolic modelGenSym, String[] paramNames, String[] lowerStr, String[] upperStr) throws PrismException
 	{
-		// No model construction for real-time, models
-		if (modelGenSym.getModelType().realTime()) {
-			throw new PrismNotSupportedException("For " + mode.engine() + ", you cannot build a " + modelGenSym.getModelType() + " model explicitly, only perform model checking");
+		// No model construction for PTAs
+		if (modelGenSym.getModelType() == ModelType.PTA) {
+			throw new PrismNotSupportedException("For " + mode.engine() + ", you cannot build a PTA model explicitly, only perform model checking");
 		}
 
 		// Store model generator and parameter info

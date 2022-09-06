@@ -28,7 +28,6 @@ package parser;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import prism.ModelInfo;
 import prism.PrismLangException;
@@ -84,22 +83,9 @@ public class State implements Comparable<State>
 	 */
 	public State(Values v, ModelInfo modelInfo) throws PrismLangException
 	{
-		this(v, modelInfo, true);
-	}
-
-	/**
-	 * Construct by copying existing Values object.
-	 * Need access to model info in case variables are not ordered correctly.
-	 * If requested, throws an exception if any variables are undefined. 
-	 * @param v Values object to copy.
-	 * @param modelInfo Model info (for variable info/ordering)
-	 * @param checkAllDef If true, check all variables are present
-	 */
-	public State(Values v, ModelInfo modelInfo, boolean checkAllDef) throws PrismLangException
-	{
 		int i, j, n;
 		n = v.getNumValues();
-		if (checkAllDef && n != modelInfo.getNumVars()) {
+		if (n != modelInfo.getNumVars()) {
 			throw new PrismLangException("Wrong number of variables in state");
 		}
 		varValues = new Object[n];
@@ -190,7 +176,7 @@ public class State implements Comparable<State>
 	public int compareTo(State s, int j)
 	{
 		int i, c, n;
-		Object svv[];
+		Object svv[], o1, o2;
 		
 		// Can't compare to null
 		if (s == null)
@@ -207,20 +193,44 @@ public class State implements Comparable<State>
 		
 		// Go through variables j...n-1
 		for (i = j; i < n; i++) {
-			c = compareObjects(varValues[i], svv[i]);
-			if (c != 0)
-				return c;
-			else
-				continue;
+			o1 = varValues[i];
+			o2 = svv[i];
+			if (o1 instanceof Integer && o2 instanceof Integer) {
+				c = ((Integer) o1).compareTo((Integer) o2);
+				if (c != 0)
+					return c;
+				else
+					continue;
+			} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
+				c = ((Boolean) o1).compareTo((Boolean) o2);
+				if (c != 0)
+					return c;
+				else
+					continue;
+			} else {
+				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
+			}
 		}
 		
 		// Go through variables 0...j
 		for (i = 0; i < j; i++) {
-			c = compareObjects(varValues[i], svv[i]);
-			if (c != 0)
-				return c;
-			else
-				continue;
+			o1 = varValues[i];
+			o2 = svv[i];
+			if (o1 instanceof Integer && o2 instanceof Integer) {
+				c = ((Integer) o1).compareTo((Integer) o2);
+				if (c != 0)
+					return c;
+				else
+					continue;
+			} else if (o1 instanceof Boolean && o2 instanceof Boolean) {
+				c = ((Boolean) o1).compareTo((Boolean) o2);
+				if (c != 0)
+					return c;
+				else
+					continue;
+			} else {
+				throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
+			}
 		}
 		
 		return 0;
@@ -238,7 +248,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += valueToString(varValues[i]);
+			s += varValues[i];
 		}
 		s += ")";
 		return s;
@@ -255,7 +265,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += valueToString(varValues[i]);
+			s += varValues[i];
 		}
 		return s;
 	}
@@ -272,7 +282,7 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += varNames.get(i) + "=" + valueToString(varValues[i]);
+			s += varNames.get(i) + "=" + varValues[i];
 		}
 		s += ")";
 		return s;
@@ -290,63 +300,9 @@ public class State implements Comparable<State>
 		for (i = 0; i < n; i++) {
 			if (i > 0)
 				s += ",";
-			s += modelInfo.getVarName(i) + "=" + valueToString(varValues[i]);
+			s += modelInfo.getVarName(i) + "=" + varValues[i];
 		}
 		s += ")";
 		return s;
-	}
-
-	/**
-	 * Convert a value, represented as an Object, to a string for display.
-	 * Like {@code Object.toString}, except that null is presented as "?"
-	 * and we remove spaces separating list elements.
-	 */
-	public static String valueToString(Object value)
-	{
-		if (value == null) {
-			return "?";
-		} else if (value instanceof List) {
-			return "[" + ((List<?>) value).stream().map(State::valueToString).collect(Collectors.joining(",")) + "]";
-		} else {
-			return value.toString();
-		}
-	}
-
-	/**
-	 * Utility method for comparing values stored as Objects.
-	 * Return values are as for the standard Comparable.compareTo method.
-	 */
-	@SuppressWarnings("unchecked")
-	public static int compareObjects(Object o1, Object o2)
-	{
-		// Deal with nulls
-		if (o1 == null) {
-			return (o2 == null) ? 0 : -1;
-		} else if (o2 == null) {
-			return 1; // (we know o1 is non-null here)
-		}
-		// Things that already implement Comparable (Integer, Double)
-		if (o1 instanceof Comparable && o2 instanceof Comparable && o1.getClass().equals(o2.getClass())) {
-			return ((Comparable<Object>) o1).compareTo((Comparable<Object>) o2);
-		}
-		// Two lists of comparable objects
-		else if (o1 instanceof List && o2 instanceof List) {
-			List<?> l1 = (List<?>) o1;
-			List<?> l2 = (List<?>) o2;
-			int size = l1.size();
-			if (l2.size() != size) {
-				throw new ClassCastException("Can't compare " + o1 + " and " + o2 + " since their sizes differ");
-			}
-			for (int i = 0; i < size; i++) {
-				int c = compareObjects(l1.get(i), l2.get(i));
-				if (c != 0)
-					return c;
-				else
-					continue;
-			}
-			return 0;
-		} else {
-			throw new ClassCastException("Can't compare " + o1.getClass() + " and " + o2.getClass());
-		}
 	}
 }

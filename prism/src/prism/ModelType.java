@@ -112,53 +112,9 @@ public enum ModelType
 			return DTMC;
 		}
 	},
-	POMDP("partially observable Markov decision process") {
-		@Override
-		public boolean partiallyObservable()
-		{
-			return true;
-		}
-		
-		@Override
-		public ModelType removeNondeterminism()
-		{
-			return DTMC;
-		}
-	},
-	POPTA("partially observable probabilistic timed automaton") {
-		@Override
-		public boolean continuousTime()
-		{
-			return true;
-		}
-		
-		@Override
-		public boolean realTime()
-		{
-			return true;
-		}
-		
-		@Override
-		public boolean partiallyObservable()
-		{
-			return true;
-		}
-		
-		@Override
-		public ModelType removeNondeterminism()
-		{
-			return DTMC;
-		}
-	},
 	PTA("probabilistic timed automaton") {
 		@Override
 		public boolean continuousTime()
-		{
-			return true;
-		}
-		
-		@Override
-		public boolean realTime()
 		{
 			return true;
 		}
@@ -234,14 +190,6 @@ public enum ModelType
 	}
 
 	/**
-	 * Is this a "real time" (timed automata like) model type?
-	 */
-	public boolean realTime()
-	{
-		return false;
-	}
-
-	/**
 	 * Does this model allow nondeterministic choices?
 	 */
 	public boolean nondeterministic()
@@ -274,14 +222,6 @@ public enum ModelType
 		return PROBABILITY;
 	}
 
-	/**
-	 * Does the model feature partial observability? 
-	 */
-	public boolean partiallyObservable()
-	{
-		return false;
-	}
-	
 	/**
 	 * Return the model type that results from removing the nondeterminism
 	 * in this model type.

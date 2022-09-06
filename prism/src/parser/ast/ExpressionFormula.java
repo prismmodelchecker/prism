@@ -26,8 +26,9 @@
 
 package parser.ast;
 
-import parser.EvaluateContext;
-import parser.visitor.ASTVisitor;
+import param.BigRational;
+import parser.*;
+import parser.visitor.*;
 import prism.PrismLangException;
 
 public class ExpressionFormula extends Expression
@@ -95,6 +96,16 @@ public class ExpressionFormula extends Expression
 			throw new PrismLangException("Could not evaluate formula", this);
 		else
 			return definition.evaluate(ec);
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		// Should only be called (if at all) after definition has been set
+		if (definition == null)
+			throw new PrismLangException("Could not evaluate formula", this);
+		else
+			return definition.evaluateExact(ec);
 	}
 
 	@Override

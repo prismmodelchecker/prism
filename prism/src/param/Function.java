@@ -74,14 +74,14 @@ public abstract class Function extends StateValue
 	 * @param other function to add to this function
 	 * @return sum of {@code} this and {@other}
 	 */
-	public abstract Function add(Function other);
+	abstract Function add(Function other);
 
 	/**
 	 * Negates this rational function.
 	 * 
 	 * @return negated rational function.
 	 */
-	public abstract Function negate();
+	abstract Function negate();
 
 	/**
 	 * Multiplies {@code other} with this function.
@@ -89,7 +89,7 @@ public abstract class Function extends StateValue
 	 * @param other function to multiply with this function
 	 * @return product of {@code} this and {@other}
 	 */
-	public abstract Function multiply(Function other);
+	abstract Function multiply(Function other);
 
 	/**
 	 * Divides this function by {@code other}.
@@ -97,7 +97,7 @@ public abstract class Function extends StateValue
 	 * @param other function to divide this function by
 	 * @return {@code this} divided by {@other}
 	 */
-	public abstract Function divide(Function other);
+	abstract Function divide(Function other);
 
 	/**
 	 * Performs the {@code star} operation with this function.
@@ -108,7 +108,7 @@ public abstract class Function extends StateValue
 	 * 
 	 * @return result of star operation
 	 */
-	public abstract Function star();
+	abstract Function star();
 
 	/**
 	 * Returns a simplified version for constraint checking.
@@ -121,7 +121,7 @@ public abstract class Function extends StateValue
 	 * 
 	 * @return simplified form for constraint checking
 	 */
-	public abstract Function toConstraint();
+	abstract Function toConstraint();
 
 	/**
 	 * Evaluate this function at a given point.
@@ -133,7 +133,7 @@ public abstract class Function extends StateValue
 	 * @param cancel whether result shall be enforced to be coprime
 	 * @return value at the given parameter evaluation
 	 */
-	public abstract BigRational evaluate(Point point, boolean cancel);
+	abstract BigRational evaluate(Point point, boolean cancel);
 
 	/**
 	 * Returns a BigRational representing the same number as this object.
@@ -142,43 +142,43 @@ public abstract class Function extends StateValue
 	 * 
 	 * @return BigRational representation of this function
 	 */
-	public abstract BigRational asBigRational();
+	abstract BigRational asBigRational();
 
 	/**
 	 * Returns true iff this function represents not-a-number.
 	 * @return true iff this function represents not-a-number
 	 */
-	public abstract boolean isNaN();
+	abstract boolean isNaN();
 
 	/**
 	 * Returns true iff this function represents positive infinity.
 	 * @return true iff this function represents positive infinity
 	 */
-	public abstract boolean isInf();
+	abstract boolean isInf();
 
 	/**
 	 * Returns true iff this function represents negative infinity.
 	 * @return true iff this function represents negative infinity
 	 */
-	public abstract boolean isMInf();
+	abstract boolean isMInf();
 
 	/**
 	 * Returns true iff this function represents the number one.
 	 * @return true iff this function represents the number one 
 	 */
-	public abstract boolean isOne();
+	abstract boolean isOne();
 
 	/**
 	 * Returns true iff this function represents the number zero.
 	 * @return true iff this function represents the number zero
 	 */
-	public abstract boolean isZero();
+	abstract boolean isZero();
 
 	/**
 	 * Returns true iff this function is guaranteed to return a constant value.
 	 * @return true iff this function is guaranteed to return a constant value
 	 */
-	public abstract boolean isConstant();
+	abstract public boolean isConstant();
 
 	/**
 	 * Multiplies {@code byNumber} with this function.

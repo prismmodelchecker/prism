@@ -99,27 +99,12 @@ void release_string_array_from_java(JNIEnv *env, jstring *strings_jstrings, cons
 
 //------------------------------------------------------------------------------
 
-// Compute probabilities for the Poisson distribution efficiently and reliably,
-// truncating above and below for a provided error bound. Implements the algorithm from:
-// B. Fox and P. Glynn, Computing Poisson Probabilities,
-// Communications of the ACM 31(4):440-445, 1988.
-
-// Computes the probabilities for the Poisson distribution with rate q_tmax.
-// The ith probability is returned for L<=i<=R, where L and R
-// are determined according to the requested accuracy.
-// The sum of the probabilities will be greater than equal to 1-accuracy.
-// Furthermore, the sum of probabilities for i<L and i>R are both <=accuracy/2.
-// Thresholds for underflow and overflow should also be given.
-// Note that the Fox-Glynn method requires accuracy to be at least 1e-10.
-
-// The probabilities are given in an array in the form of weights;
-// these should be normalised by dividing by the sum of the weights.
-// These, and the left/right truncation points are all contained in
-// the returned FoxGlynnWeights struct.
-
-// On error, the member 'right' of the returned object is set to -1 and the
-// member array 'weights' is not allocated (does not need to be freed).
-
+// Compute poisson probabilities for uniformisation. If q_tmax<400, then a naive implementation
+// is used, otherwise the Fox-Glynn method is used.
+// Note that Fox-Glynn method requires accuracy to be at least 1e-10.
+//
+// On error, the member 'right' of the returned object is set to -1 and the member array 'weights'
+// is not allocated (does not need to be freed).
 EXPORT FoxGlynnWeights fox_glynn(double q_tmax, double underflow, double overflow, double accuracy)
 {
 	// construct result struct and zero-initialise

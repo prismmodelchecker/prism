@@ -28,7 +28,6 @@
 package simulator.method;
 
 import parser.ast.Expression;
-import prism.Accuracy;
 import prism.PrismException;
 import simulator.sampler.Sampler;
 
@@ -126,13 +125,6 @@ public abstract class SimulationMethod implements Cloneable
 	 * @throws PrismException if we can't get a result for some reason.
 	 */
 	public abstract Object getResult(Sampler sampler) throws PrismException;
-	
-	/**
-	 * Get the accuracy of the (approximate) result for the property that simulation is being used to approximate.
-	 * @param sampler The Sampler object for this simulation
-	 * @throws PrismException if we can't get a result for some reason.
-	 */
-	public abstract Accuracy getResultAccuracy(Sampler sampler) throws PrismException;
 	
 	/**
 	 * Get an explanation for the result of the simulation as a string.

@@ -6,8 +6,9 @@ dist: xenial
 sudo: required
 language: java
 
-# we test for JDK 10,11
+# we test for JDK 8,10,11
 jdk:
+  - openjdk8
   - openjdk10
   - openjdk11
   
