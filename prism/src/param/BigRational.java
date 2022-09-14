@@ -614,11 +614,11 @@ public final class BigRational extends Number implements Comparable<BigRational>
 		}
 		BigInteger shiftedNum;
 		int signum = num.signum() * den.signum();
-		BigInteger posNum = (num.signum() == 1) ? num : num.negate();
-		BigInteger posDen = (den.signum() == 1) ? den : den.negate();
+		BigInteger posNum = num.abs();
+		BigInteger posDen = den.abs();
 		shiftedNum = posNum.shiftLeft(55);
 		BigInteger div = shiftedNum.divide(posDen);
-		if (shiftedNum.mod(posDen).multiply(BITWO).compareTo(posDen) == 1) {
+		if (shiftedNum.remainder(posDen).multiply(BITWO).compareTo(posDen) == 1) {
 			div = div.add(BigInteger.ONE);
 		}
 		return signum * div.doubleValue() / Math.pow(2.0, 55);
