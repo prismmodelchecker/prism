@@ -72,11 +72,11 @@ http://www.prismmodelchecker.org/other-downloads.php
 
 PRISM was created and is still actively maintained by:
 
- * Dave Parker (University of Birmingham)
+ * Dave Parker (University of Oxford)
  * Gethin Norman (University of Glasgow)
  * Marta Kwiatkowska (University of Oxford) 
 
-Development of the tool is currently led from Birmingham by Dave Parker. Other current key developers are:
+Development of the tool is currently led from Oxford by Dave Parker. Other current key developers are:
 
  * Joachim Klein (formerly Technische Universität Dresden)
 
@@ -119,10 +119,9 @@ If you have problems or questions regarding PRISM, please use the help forum pro
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 
   Dave Parker  
-  (d.a.parker@cs.bham.ac.uk)  
-  School of Computer Science  
-  University of Birmingham  
-  Edgbaston  
-  Birmingham  
-  B15 2TT  
-  ENGLAND
+  (david.parker@cs.ox.ac.uk)  
+  Department of Computer Science  
+  University of Oxford  
+  Oxford  
+  OX1 3QG
+  UK
