@@ -31,6 +31,11 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+
 import parser.ast.*;
 
 /**
@@ -284,7 +289,160 @@ public class PrismRapportTalker
 		}
 		
 	}
-	
+
+	/**
+	 * Function gets a PRISM top-level method given its name
+	 * @param method_name A String holding the method name to find
+	 * @returns method m
+	 */
+	public Method getPRISMMethodByName(String method_name) {
+		Class<?> c = prism.getClass();
+		Method[] allMethods = c.getDeclaredMethods();
+		for (Method m : allMethods) {
+			if (m.getName().equals(method_name)) {
+				return m;
+			}
+		}
+		System.out.format("No match for method %s%n", method_name);
+		return null;
+	}
+
+	/**
+	 * Function gets a PRISM top-level method given its name
+	 * @param constant_name A String holding the constant name to find
+	 * @returns Integer value of constant
+	 */
+	public Integer getPRISMConstantValueByName(String constant_name) {
+		Class<?> c = prism.getClass();
+		Field[] fields = c.getFields();
+		for (Field f : fields) {
+			if (f.getName().equals(constant_name)) {
+
+				Class field_type = f.getType();
+				Object field_value;
+
+				try {
+					field_value = f.get(prism);
+				} catch (IllegalAccessException x) {
+					System.out.format("Error: Access to %s not allowed%n", constant_name);
+					return null;
+				}
+
+				if (!(field_type == int.class)) {
+					System.out.format("Error: Unsupported type %s%n", field_type);
+					return null;
+				}
+
+				return (Integer) field_value;
+			}
+		}
+		System.out.format("Error: No match for field %s%n", constant_name);
+		return null;
+	}
+
+	/**
+	 * Called when command is "configure". Finds and uses setters in PRISM's public
+	 * interface.
+	 * @param in The inward socket communications
+	 * @param out The outward socket communications
+	 */
+	public void configurePrism(BufferedReader in, PrintWriter out) {
+
+		String parameter, parameter_type, value;
+
+		try {
+			parameter = in.readLine();
+			parameter_type = in.readLine();
+			value = in.readLine();
+		} catch (IOException e) {
+			System.out.println("Error: " + e.getMessage());
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
+
+		// Try to find a setter for the parameter given
+		String setter_name = "set".concat(parameter);
+		Method setter = getPRISMMethodByName(setter_name);
+		if (setter == null) {
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
+		// Assert that the setter takes one argument and returns void
+		Type[] pType = setter.getGenericParameterTypes();
+		if (!(setter.getReturnType().equals(Void.TYPE))
+	        || (pType.length != 1)) {
+			System.out.format("Error: Setter %s must return void and have one argument%n", setter_name);
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
+
+		// Assert that the type is string, int or double
+		List<String> valid_types = Arrays.asList(new String[] {"string", "int", "double"});
+		if (!valid_types.contains(parameter_type)) {
+			System.out.format("Error: Invalid type %s%n", parameter_type);
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
+
+		try {
+
+			// Handle different types of argument for setters
+			if (pType[0] == String.class) {
+				if (!parameter_type.equals("string")) {
+					System.out.format("Error: Setter expects string, %s given%n", parameter_type);
+					out.println(PrismRapportTalker.FAILURE);
+					return;
+				}
+				setter.invoke(prism, value);
+				System.out.format("%s(%s) called%n", setter_name, value);
+
+			} else if (pType[0] == double.class) {
+				if (!parameter_type.equals("double")) {
+					System.out.format("Error: Setter expects double, %s given%n", parameter_type);
+					out.println(PrismRapportTalker.FAILURE);
+					return;
+				}
+				double double_value = Double.parseDouble(value);
+				setter.invoke(prism, double_value);
+				System.out.format("%s(%f) called%n", setter_name, double_value);
+
+			} else if (pType[0] == int.class) {
+				// Ints can also be specified by PRISM constants, so strings are valid
+				// types here too
+				Integer int_value;
+				if (parameter_type.equals("int")) {
+					int_value = Integer.parseInt(value);
+
+				} else if (parameter_type.equals("string")) {
+
+					int_value = getPRISMConstantValueByName(value);
+					if (int_value == null) {
+						out.println(PrismRapportTalker.FAILURE);
+						return;
+					}
+					System.out.format("Constant value for %s is %d%n", value, int_value);
+
+				} else {
+					System.out.format("Error: Setter expects int or string, %s given%n", parameter_type);
+					out.println(PrismRapportTalker.FAILURE);
+					return;
+				}
+
+				setter.invoke(prism, int_value);
+				System.out.format("%s(%d) called%n", setter_name, int_value);
+
+			}
+		} catch (InvocationTargetException|IllegalAccessException x) {
+			Throwable cause = x.getCause();
+			System.out.format("Error: invocation of %s failed: %s%n",
+				   setter_name, cause.getMessage());
+		}
+
+		out.println("ack");
+		return;
+	}
+
+
 	/**
 	 * Main function runs main loop of PRISM server.
 	 * @param args as standard
@@ -315,6 +473,12 @@ public class PrismRapportTalker
 				client = talker.server.accept();
 				System.out.println("got connection on port" + talker.getSocketPort());
 			} else {
+
+				if (command.equals("configure")) {
+					talker.configurePrism(in, out);
+					continue;
+				}
+
 				if (!commands.contains(command)) {
 					System.out.println("Socket comm is unsynchronised! Trying to recover...");
 					continue;
