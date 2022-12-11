@@ -341,8 +341,7 @@ public class PrismRapportTalker
 	}
 
 	/**
-	 * Called when command is "configure". Finds and uses setters in PRISM's public
-	 * interface.
+	 * Called when command is "configure". Exposes the PRISM Settings object.
 	 * @param in The inward socket communications
 	 * @param out The outward socket communications
 	 */
@@ -360,85 +359,34 @@ public class PrismRapportTalker
 			return;
 		}
 
-		// Try to find a setter for the parameter given
-		String setter_name = "set".concat(parameter);
-		Method setter = getPRISMMethodByName(setter_name);
-		if (setter == null) {
-			out.println(PrismRapportTalker.FAILURE);
-			return;
-		}
-		// Assert that the setter takes one argument and returns void
-		Type[] pType = setter.getGenericParameterTypes();
-		if (!(setter.getReturnType().equals(Void.TYPE))
-	        || (pType.length != 1)) {
-			System.out.format("Error: Setter %s must return void and have one argument%n", setter_name);
-			out.println(PrismRapportTalker.FAILURE);
-			return;
-		}
-
-		// Assert that the type is string, int or double
-		List<String> valid_types = Arrays.asList(new String[] {"string", "int", "double"});
-		if (!valid_types.contains(parameter_type)) {
-			System.out.format("Error: Invalid type %s%n", parameter_type);
-			out.println(PrismRapportTalker.FAILURE);
-			return;
-		}
-
 		try {
 
-			// Handle different types of argument for setters
-			if (pType[0] == String.class) {
-				if (!parameter_type.equals("string")) {
-					System.out.format("Error: Setter expects string, %s given%n", parameter_type);
-					out.println(PrismRapportTalker.FAILURE);
-					return;
-				}
-				setter.invoke(prism, value);
-				System.out.format("%s(%s) called%n", setter_name, value);
+			if (parameter_type.equals("int")) {
+				prism.getSettings().set(parameter, Integer.parseInt(value));
+				out.println(Integer.toString(prism.getSettings().getInteger(parameter)));
 
-			} else if (pType[0] == double.class) {
-				if (!parameter_type.equals("double")) {
-					System.out.format("Error: Setter expects double, %s given%n", parameter_type);
-					out.println(PrismRapportTalker.FAILURE);
-					return;
-				}
-				double double_value = Double.parseDouble(value);
-				setter.invoke(prism, double_value);
-				System.out.format("%s(%f) called%n", setter_name, double_value);
+			} else if (parameter_type.equals("double")) {
+				prism.getSettings().set(parameter, Double.parseDouble(value));
+				out.println(Double.toString(prism.getSettings().getDouble(parameter)));
 
-			} else if (pType[0] == int.class) {
-				// Ints can also be specified by PRISM constants, so strings are valid
-				// types here too
-				Integer int_value;
-				if (parameter_type.equals("int")) {
-					int_value = Integer.parseInt(value);
+			} else if (parameter_type.equals("string")) {
+				prism.getSettings().set(parameter, value);
+				out.println(prism.getSettings().getString(parameter));
 
-				} else if (parameter_type.equals("string")) {
+			} else if (parameter_type.equals("boolean")) {
+				prism.getSettings().set(parameter, Boolean.parseBoolean(value));
+				out.println(Boolean.toString(prism.getSettings().getBoolean(parameter)));
 
-					int_value = getPRISMConstantValueByName(value);
-					if (int_value == null) {
-						out.println(PrismRapportTalker.FAILURE);
-						return;
-					}
-					System.out.format("Constant value for %s is %d%n", value, int_value);
-
-				} else {
-					System.out.format("Error: Setter expects int or string, %s given%n", parameter_type);
-					out.println(PrismRapportTalker.FAILURE);
-					return;
-				}
-
-				setter.invoke(prism, int_value);
-				System.out.format("%s(%d) called%n", setter_name, int_value);
-
+			} else {
+				System.out.format("Error: Unsupported type %s%n", parameter_type);
+				out.println(PrismRapportTalker.FAILURE);
 			}
-		} catch (InvocationTargetException|IllegalAccessException x) {
-			Throwable cause = x.getCause();
-			System.out.format("Error: invocation of %s failed: %s%n",
-				   setter_name, cause.getMessage());
-		}
 
-		out.println("ack");
+		} catch (PrismException e) {
+			System.out.format("PRISM settings error: %s%n", e.getMessage());
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
 		return;
 	}
 
