@@ -347,7 +347,7 @@ public class PrismRapportTalker
 	 */
 	public void configurePrism(BufferedReader in, PrintWriter out) {
 
-		String parameter, parameter_type, value;
+		String parameter, parameter_type, value, new_value_str;
 
 		try {
 			parameter = in.readLine();
@@ -363,27 +363,31 @@ public class PrismRapportTalker
 
 			if (parameter_type.equals("int")) {
 				prism.getSettings().set(parameter, Integer.parseInt(value));
-				out.println(Integer.toString(prism.getSettings().getInteger(parameter)));
+				new_value_str = Integer.toString(prism.getSettings().getInteger(parameter));
 
 			} else if (parameter_type.equals("double")) {
 				prism.getSettings().set(parameter, Double.parseDouble(value));
-				out.println(Double.toString(prism.getSettings().getDouble(parameter)));
+				new_value_str = Double.toString(prism.getSettings().getDouble(parameter));
 
 			} else if (parameter_type.equals("string")) {
 				prism.getSettings().set(parameter, value);
-				out.println(prism.getSettings().getString(parameter));
+				new_value_str = prism.getSettings().getString(parameter);
 
 			} else if (parameter_type.equals("boolean")) {
 				prism.getSettings().set(parameter, Boolean.parseBoolean(value));
-				out.println(Boolean.toString(prism.getSettings().getBoolean(parameter)));
+				new_value_str = Boolean.toString(prism.getSettings().getBoolean(parameter));
 
 			} else {
 				System.out.format("Error: Unsupported type %s%n", parameter_type);
 				out.println(PrismRapportTalker.FAILURE);
+				return;
 			}
 
+			out.println(new_value_str);
+			System.out.format("Set %s to %s%n", parameter, new_value_str);
+
 		} catch (PrismException e) {
-			System.out.format("PRISM settings error: %s%n", e.getMessage());
+			System.out.format("Failed to set %s to %s: %s%n", parameter, value, e.getMessage());
 			out.println(PrismRapportTalker.FAILURE);
 			return;
 		}
