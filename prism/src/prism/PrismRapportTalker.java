@@ -31,6 +31,11 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+
 import parser.ast.*;
 
 /**
@@ -284,7 +289,112 @@ public class PrismRapportTalker
 		}
 		
 	}
-	
+
+	/**
+	 * Function gets a PRISM top-level method given its name
+	 * @param method_name A String holding the method name to find
+	 * @returns method m
+	 */
+	public Method getPRISMMethodByName(String method_name) {
+		Class<?> c = prism.getClass();
+		Method[] allMethods = c.getDeclaredMethods();
+		for (Method m : allMethods) {
+			if (m.getName().equals(method_name)) {
+				return m;
+			}
+		}
+		System.out.format("No match for method %s%n", method_name);
+		return null;
+	}
+
+	/**
+	 * Function gets a PRISM top-level method given its name
+	 * @param constant_name A String holding the constant name to find
+	 * @returns Integer value of constant
+	 */
+	public Integer getPRISMConstantValueByName(String constant_name) {
+		Class<?> c = prism.getClass();
+		Field[] fields = c.getFields();
+		for (Field f : fields) {
+			if (f.getName().equals(constant_name)) {
+
+				Class field_type = f.getType();
+				Object field_value;
+
+				try {
+					field_value = f.get(prism);
+				} catch (IllegalAccessException x) {
+					System.out.format("Error: Access to %s not allowed%n", constant_name);
+					return null;
+				}
+
+				if (!(field_type == int.class)) {
+					System.out.format("Error: Unsupported type %s%n", field_type);
+					return null;
+				}
+
+				return (Integer) field_value;
+			}
+		}
+		System.out.format("Error: No match for field %s%n", constant_name);
+		return null;
+	}
+
+	/**
+	 * Called when command is "configure". Exposes the PRISM Settings object.
+	 * @param in The inward socket communications
+	 * @param out The outward socket communications
+	 */
+	public void configurePrism(BufferedReader in, PrintWriter out) {
+
+		String parameter, parameter_type, value, new_value_str;
+
+		try {
+			parameter = in.readLine();
+			parameter_type = in.readLine();
+			value = in.readLine();
+		} catch (IOException e) {
+			System.out.println("Error: " + e.getMessage());
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
+
+		try {
+
+			if (parameter_type.equals("int")) {
+				prism.getSettings().set(parameter, Integer.parseInt(value));
+				new_value_str = Integer.toString(prism.getSettings().getInteger(parameter));
+
+			} else if (parameter_type.equals("double")) {
+				prism.getSettings().set(parameter, Double.parseDouble(value));
+				new_value_str = Double.toString(prism.getSettings().getDouble(parameter));
+
+			} else if (parameter_type.equals("string")) {
+				prism.getSettings().set(parameter, value);
+				new_value_str = prism.getSettings().getString(parameter);
+
+			} else if (parameter_type.equals("boolean")) {
+				prism.getSettings().set(parameter, Boolean.parseBoolean(value));
+				new_value_str = Boolean.toString(prism.getSettings().getBoolean(parameter));
+
+			} else {
+				System.out.format("Error: Unsupported type %s%n", parameter_type);
+				out.println(PrismRapportTalker.FAILURE);
+				return;
+			}
+
+			out.println(new_value_str);
+			System.out.format("Set %s to %s%n", parameter, new_value_str);
+
+		} catch (PrismException e) {
+			System.out.format("Failed to set %s to %s: %s%n", parameter, value, e.getMessage());
+			out.println(PrismRapportTalker.FAILURE);
+			return;
+		}
+		return;
+	}
+
+
 	/**
 	 * Main function runs main loop of PRISM server.
 	 * @param args as standard
@@ -315,6 +425,12 @@ public class PrismRapportTalker
 				client = talker.server.accept();
 				System.out.println("got connection on port" + talker.getSocketPort());
 			} else {
+
+				if (command.equals("configure")) {
+					talker.configurePrism(in, out);
+					continue;
+				}
+
 				if (!commands.contains(command)) {
 					System.out.println("Socket comm is unsynchronised! Trying to recover...");
 					continue;
