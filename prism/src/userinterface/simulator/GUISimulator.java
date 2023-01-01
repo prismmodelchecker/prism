@@ -446,7 +446,9 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			repopulateFormulae(pf);
 			engine.initialisePath(initialState == null ? null : new parser.State(initialState, parsedModel));
 			// Update model/path/tables/lists
-			stratCombo.setSelectedItem("Enforce");
+			if (engine.hasStrategyInfo()) {
+				stratCombo.setSelectedItem("Enforce");
+			}
 			pathTableModel.setPath(engine.getPathFull());
 			pathTableModel.restartPathTable();
 			pathTable.getSelectionModel().setSelectionInterval(0, 0);

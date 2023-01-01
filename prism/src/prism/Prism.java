@@ -3094,15 +3094,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Load the current strategy (if any) into the simulator.
+	 * Does nothing if there is no strategy to load, or is not able to be simulated.
 	 */
 	public void loadStrategyIntoSimulator() throws PrismException
 	{
-		if (getStrategy() != null) {
-			if (getStrategy() instanceof StrategyGenerator) {
-				getSimulator().loadStrategy((StrategyGenerator) getStrategy());
-			} else {
-				throw new PrismException("The current strategy cannot be simulated");
-			}
+		if (getStrategy() != null && getStrategy() instanceof StrategyGenerator) {
+			getSimulator().loadStrategy((StrategyGenerator) getStrategy());
 		}
 	}
 
