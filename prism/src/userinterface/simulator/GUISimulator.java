@@ -447,6 +447,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			setPathActive(true);
 			repopulateFormulae(pf);
 			engine.initialisePath(initialState);
+			// Query transitions, just to trigger any errors
+			engine.getNumTransitions();
 			// Update model/path/tables/lists
 			if (engine.hasStrategyInfo()) {
 				stratCombo.setSelectedItem("Enforce");
@@ -469,6 +471,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 			}
 
 		} catch (PrismException e) {
+			setPathActive(false);
 			this.error(e.getMessage());
 			if (e instanceof PrismLangException) {
 				guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
