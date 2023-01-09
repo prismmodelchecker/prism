@@ -50,6 +50,12 @@ public class PrismLangException extends PrismException
 		this.e =e ;
 	}
 	
+	@Override
+	public PrismLangException prepend(String prefix)
+	{
+		return new PrismLangException(prefix + getMessage(), e);
+	}
+	
 	public boolean hasASTElement()
 	{
 		return e != null ;

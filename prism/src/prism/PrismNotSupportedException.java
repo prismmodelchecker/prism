@@ -36,4 +36,10 @@ public class PrismNotSupportedException extends PrismException
 	{
 		super(s);
 	}
+	
+	@Override
+	public PrismNotSupportedException prepend(String prefix)
+	{
+		return new PrismNotSupportedException(prefix + getMessage());
+	}
 }

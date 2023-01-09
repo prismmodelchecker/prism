@@ -2069,7 +2069,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					try {
 						getModelGenerator();
 					} catch (PrismException e){
-						throw new PrismException("Explicit engine: " + e.getMessage());
+						throw e.prepend("Explicit engine: ");
 					}
 					ConstructModel constructModel = new ConstructModel(this);
 					constructModel.setFixDeadlocks(getFixDeadlocks());
@@ -3187,7 +3187,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				throw new PrismException(currentModelType + "s are not currently supported");
 			}
 		} catch (PrismException e) {
-			throw new PrismException("Simulation not possible: "+ e.getMessage());
+			throw e.prepend("Simulation not possible: ");
 		}
 	}
 
@@ -3202,7 +3202,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		try {
 			modelGenForSim = getModelGenerator();
 		} catch (PrismException e) {
-			throw new PrismException("Simulation not possible: "+ e.getMessage());
+			throw e.prepend("Simulation not possible: ");
 		}
 		// Load into simulator
 		getSimulator().loadModel((ModelGenerator<Double>) modelGenForSim, (RewardGenerator<Double>) currentRewardGenerator);
