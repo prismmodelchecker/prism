@@ -161,6 +161,25 @@ public class Modules2MTBDD
 
 	/**
 	 * Data structure used to store mtbdds and related info
+	 * for an update
+	 */
+	private static class UpdateDDs
+	{
+		/** MTBDD for the updates */
+		public JDDNode up;
+
+		public UpdateDDs(JDDNode up)
+		{
+			this.up = up;
+		}
+
+		public void clear() {
+			JDD.DerefNonNull(up);
+		}
+	}
+
+	/**
+	 * Data structure used to store mtbdds and related info
 	 * for some component of the whole model
 	 */
 	private class ComponentDDs
@@ -1498,7 +1517,7 @@ public class Modules2MTBDD
 	 */
 	private CommandDDs translateCommand(int m, parser.ast.Module module, int l, Command command) throws PrismException
 	{
-		JDDNode guardDD, upDD;
+		JDDNode guardDD, upDD = null;
 		// translate guard
 		guardDD = translateExpression(command.getGuard());
 		guardDD = JDD.Times(guardDD, range.copy());
@@ -1515,14 +1534,19 @@ public class Modules2MTBDD
 		}
 		else {
 			// translate updates and do some checks on probs/rates
-			upDD = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDD);
-			upDD = JDD.Times(upDD, guardDD.copy());
-
+			UpdateDDs up = null;
 			try {
+				up = translateUpdates(m, l, command.getUpdates(), (command.getSynch()=="")?false:true, guardDD);
+				up.up = JDD.Times(up.up, guardDD.copy());
+				upDD = up.up.copy();
 				checkCommandProbRates(m, module, l, command, guardDD, upDD);
 			} catch (Throwable e) {
-				JDD.Deref(guardDD, upDD);
+				JDD.DerefNonNull(guardDD, upDD);
 				throw e;
+			} finally {
+				if (up != null) {
+					up.clear();
+				}
 			}
 		}
 
@@ -1866,11 +1890,12 @@ public class Modules2MTBDD
 	 * @param synch true if this command is synchronising (named action)
 	 * @param guard the guard
 	 */
-	private JDDNode translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
+	private UpdateDDs translateUpdates(int m, int l, Updates u, boolean synch, JDDNode guard) throws PrismException
 	{
 		int i, n;
 		Expression p;
-		JDDNode dd, udd, pdd;
+		JDDNode dd, udd, pdd = null;
+		UpdateDDs updateDDs;
 		boolean warned;
 		String msg;
 		
@@ -1879,7 +1904,13 @@ public class Modules2MTBDD
 		n = u.getNumUpdates();
 		for (i = 0; i < n; i++) {
 			// translate a single update
-			udd = translateUpdate(m, u.getUpdate(i), synch, guard);
+			try {
+				updateDDs = translateUpdate(m, u.getUpdate(i), synch, guard);
+				udd = updateDDs.up;
+			} catch (Exception|StackOverflowError e) {
+				JDD.Deref(dd);
+				throw e;
+			}
 			// check for zero update
 			warned = false;
 			if (udd.equals(JDD.ZERO)) {
@@ -1892,7 +1923,13 @@ public class Modules2MTBDD
 			// multiply by probability/rate
 			p = u.getProbability(i);
 			if (p == null) p = Expression.Double(1.0);
-			pdd = translateExpression(p);
+			try {
+				pdd = translateExpression(p);
+			} catch (Exception|StackOverflowError e) {
+				JDD.Deref(dd, udd);
+				JDD.DerefNonNull(pdd);
+				throw e;
+			}
 			udd = JDD.Times(udd, pdd);
 			// check (again) for zero update
 			if (!warned && udd.equals(JDD.ZERO)) {
@@ -1904,7 +1941,7 @@ public class Modules2MTBDD
 			dd = JDD.Plus(dd, udd);
 		}
 		
-		return dd;
+		return new UpdateDDs(dd);
 	}
 
 	/**
@@ -1915,7 +1952,7 @@ public class Modules2MTBDD
 	 * @param synch true if this command is synchronising (named action)
 	 * @param guard the guard
 	 */
-	private JDDNode translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
+	private UpdateDDs translateUpdate(int m, Update c, boolean synch, JDDNode guard) throws PrismException
 	{
 		int n;
 		
@@ -1927,8 +1964,13 @@ public class Modules2MTBDD
 		JDDNode dd = JDD.Constant(1);
 		n = c.getNumElements();
 		for (int i = 0; i < n; i++) {
-			JDDNode cl = translateUpdateElement(m, c, i, synch, guard);
-			dd = JDD.Times(dd, cl);
+			try {
+				UpdateDDs udd = translateUpdateElement(m, c, i, synch, guard);
+				dd = JDD.Times(dd, udd.up);
+			} catch (Exception|StackOverflowError e) {
+				JDD.Deref(dd);
+				throw e;
+			}
 		}
 		// if a variable from this module or a global variable
 		// does not appear in this update assume it does not change value
@@ -1939,7 +1981,7 @@ public class Modules2MTBDD
 			}
 		}
 		
-		return dd;
+		return new UpdateDDs(dd);
 	}
 
 	/**
@@ -1951,7 +1993,7 @@ public class Modules2MTBDD
 	 * @param synch true if this command is synchronising (named action)
 	 * @param guard the guard for this command
 	 */
-	private JDDNode translateUpdateElement(int m, Update c, int i, boolean synch, JDDNode guard) throws PrismException
+	private UpdateDDs translateUpdateElement(int m, Update c, int i, boolean synch, JDDNode guard) throws PrismException
 	{
 		// get variable
 		String s = c.getVar(i);
@@ -1986,7 +2028,7 @@ public class Modules2MTBDD
 		cl = JDD.Times(cl, varColRangeDDs[v].copy());
 		cl = JDD.Times(cl, range.copy());
 
-		return cl;
+		return new UpdateDDs(cl);
 	}
 
 	/**
