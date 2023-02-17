@@ -47,6 +47,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -63,6 +64,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.MetalTheme;
+import javax.swing.text.DefaultEditorKit;
 
 import prism.Prism;
 //Prism Packages
@@ -222,6 +224,44 @@ public class GUIPrism extends JFrame
 	}
 
 	/**
+	 * On Mac, add the standard Cmd/Alt key bindings (clipboard, select all, arrow navigation)
+	 * to all text components.
+	 * These are absent from the (cross-platform) Metal look and feel,
+	 * so must be added after it is set and before any components are created.
+	 */
+	private static void addMacTextKeyBindings()
+	{
+		if (System.getProperty("os.name").toLowerCase().indexOf("mac") < 0) {
+			return;
+		}
+		int cmd = InputEvent.META_DOWN_MASK, alt = InputEvent.ALT_DOWN_MASK, shift = InputEvent.SHIFT_DOWN_MASK;
+		String[] maps = { "TextField.focusInputMap", "FormattedTextField.focusInputMap", "PasswordField.focusInputMap",
+				"TextArea.focusInputMap", "TextPane.focusInputMap", "EditorPane.focusInputMap" };
+		for (String mapName : maps) {
+			InputMap inputMap = (InputMap) UIManager.get(mapName);
+			if (inputMap == null) {
+				continue;
+			}
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, cmd), DefaultEditorKit.beginLineAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, cmd), DefaultEditorKit.endLineAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, cmd | shift), DefaultEditorKit.selectionBeginLineAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, cmd | shift), DefaultEditorKit.selectionEndLineAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, cmd), DefaultEditorKit.beginAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, cmd), DefaultEditorKit.endAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, cmd | shift), DefaultEditorKit.selectionBeginAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, cmd | shift), DefaultEditorKit.selectionEndAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, alt), DefaultEditorKit.previousWordAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, alt), DefaultEditorKit.nextWordAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, alt | shift), DefaultEditorKit.selectionPreviousWordAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, alt | shift), DefaultEditorKit.selectionNextWordAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, cmd), DefaultEditorKit.copyAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, cmd), DefaultEditorKit.cutAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, cmd), DefaultEditorKit.pasteAction);
+			inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, cmd), DefaultEditorKit.selectAllAction);
+		}
+	}
+
+	/**
 	 *  Sets the URL for images properly, so that they are loaded from the
 	 *  correct directory.  This also loads in all of the resouces for
 	 *  internationalization support.  Also sets up the file chooser and event handler.
@@ -237,6 +277,7 @@ public class GUIPrism extends JFrame
 		} catch (Exception e) {
 			throw new GUIException("Failed to Initialise:\nLook and Feel Invalid");
 		}
+		addMacTextKeyBindings();
 
 		// Create new file chooser which starts in current directory
 		// (or in the directory specified with command-line arg -dir)
