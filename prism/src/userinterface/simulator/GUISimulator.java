@@ -488,223 +488,192 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	/** Explore a number of steps. */
 	public void a_autoStep(int noSteps)
 	{
+		// Check if we should stop because the path is looping
+		if (stopBecausePathLooping()) {
+			return;
+		}
+
+		// Execute the steps, first updating the available transitions if needed
 		try {
-			if (displayPathLoops && pathTableModel.isPathLooping()) {
-				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
-					displayPathLoops = false;
-					pathTable.repaint();
-				} else
-					return;
-			}
-
 			setComputing(true);
-
-			try {
-				if (isOldUpdate()) {
-					engine.computeTransitionsForCurrentState();
-				}
-				engine.automaticTransitions(noSteps, displayPathLoops);
-			} catch (PrismException e) {
-				this.error(e.getMessage());
-				guiMultiModel.getHandler().modelParseFailed(e, false);
-				guiMultiModel.tabToFront();
-
-				// Even if there was an exception, we continue and try
-				// to update the path display, as there may be intermediate steps
-				// that have succeeded
+			if (isOldUpdate()) {
+				engine.computeTransitionsForCurrentState();
 			}
-
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			int height = (int) pathTable.getPreferredSize().getHeight();
-			int width = (int) pathTable.getPreferredSize().getWidth();
-			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
+			engine.automaticTransitions(noSteps, displayPathLoops);
 		} catch (PrismException e) {
-			this.error(e.getMessage());
-			guiMultiModel.getHandler().modelParseFailed(e, false);
-			guiMultiModel.tabToFront();
+			// If there is an error, report it, update displays and stop
+			// (otherwise error might get reported for a second time below)
+			updatePathDisplay(true);
+			updateTableModel.updateUpdatesTable();
+			reportErrorDuringSimulation(e);
+			return;
 		} finally {
 			setComputing(false);
 		}
+
+		// Update the displays and report any errors in the new current state
+		updatePathDisplay(true);
+		updateTableModel.updateUpdatesTable();
+		checkForErrorsInTransitions();
 	}
 
 	/** Explore an amount of time. */
 	public void a_autoStep(double time)
 	{
-		try {
-			if (displayPathLoops && pathTableModel.isPathLooping()) {
-				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
-					displayPathLoops = false;
-					pathTable.repaint();
-				} else
-					return;
-			}
-
-			setComputing(true);
-
-			try {
-				if (isOldUpdate()) {
-					engine.computeTransitionsForCurrentState();
-				}
-				engine.automaticTransitions(time, displayPathLoops);
-			} catch (PrismException e) {
-				this.error(e.getMessage());
-				guiMultiModel.getHandler().modelParseFailed(e, false);
-				guiMultiModel.tabToFront();
-
-				// Even if there was an exception, we continue and try
-				// to update the path display, as there may be intermediate steps
-				// that have succeeded
-			}
-
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			int height = (int) pathTable.getPreferredSize().getHeight();
-			int width = (int) pathTable.getPreferredSize().getWidth();
-			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
-
-		} catch (PrismException e) {
-			this.error(e.getMessage());
+		// Check if we should stop because the path is looping
+		if (stopBecausePathLooping()) {
+			return;
 		}
-		finally {
-			setComputing(false);
-		}
-	}
 
-	/** Backtrack to a certain time. */
-	public void a_backTrack(double time) throws PrismException
-	{
+		// Execute the steps, first updating the available transitions if needed
 		try {
 			setComputing(true);
-			engine.backtrackTo(time);
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
+			if (isOldUpdate()) {
+				engine.computeTransitionsForCurrentState();
+			}
+			engine.automaticTransitions(time, displayPathLoops);
 		} catch (PrismException e) {
-			this.error(e.getMessage());
+			// If there is an error, report it, update displays and stop
+			// (otherwise error might get reported for a second time below)
+			updatePathDisplay(true);
+			updateTableModel.updateUpdatesTable();
+			reportErrorDuringSimulation(e);
+			return;
 		} finally {
 			setComputing(false);
 		}
+
+		// Update the displays and report any errors in the new current state
+		updatePathDisplay(true);
+		updateTableModel.updateUpdatesTable();
+		checkForErrorsInTransitions();
+	}
+
+	/** Backtrack to a certain time. */
+	public void a_backTrack(double time)
+	{
+		// Do the backtracking
+		try {
+			setComputing(true);
+			engine.backtrackTo(time);
+		} catch (PrismException e) {
+			// If there is an error, report it (and then carry on updating display etc.)
+			reportErrorDuringSimulation(e);
+		} finally {
+			setComputing(false);
+		}
+		// Update the displays
+		updatePathDisplay(false);
+		updateTableModel.updateUpdatesTable();
 	}
 
 	/** Backtrack to a certain step. */
 	public void a_backTrack(int step)
 	{
+		// Do the backtracking
 		try {
 			setComputing(true);
 			engine.backtrackTo(step);
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
 		} catch (PrismException e) {
-			this.error(e.getMessage());
+			// If there is an error, report it (and then carry on updating display etc.)
+			reportErrorDuringSimulation(e);
 		} finally {
 			setComputing(false);
 		}
+		// Update the displays
+		updatePathDisplay(false);
+		updateTableModel.updateUpdatesTable();
 	}
 
 	/** Backtrack to the start of the path. */
 	public void a_restartPath()
 	{
+		// Do the restart
 		try {
 			setComputing(true);
 			engine.backtrackTo(0);
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
 		} catch (PrismException e) {
-			this.error(e.getMessage());
+			// If there is an error, report it (and then carry on updating display etc.)
+			reportErrorDuringSimulation(e);
 		} finally {
 			setComputing(false);
 		}
+		// Update the displays
+		updatePathDisplay(false);
+		updateTableModel.updateUpdatesTable();
 	}
 
 	/** Remove the prefix of the current path up to the given path step. */
-	public void a_removePreceding(int step) throws PrismException
+	public void a_removePreceding(int step)
 	{
+		// Do the prefix removal
 		try {
 			setComputing(true);
 			engine.removePrecedingStates(step);
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
+		} catch (PrismException e) {
+			// If there is an error, report it (and then carry on updating display etc.)
+			reportErrorDuringSimulation(e);
 		} finally {
 			setComputing(false);
 		}
+		// Update the displays
+		updatePathDisplay(false);
+		updateTableModel.updateUpdatesTable();
 	}
 
+	/** Execute a user specified transition. */
 	public void a_manualUpdate()
 	{
-		try {
-			if (currentUpdatesTable.getSelectedRow() == -1)
-				throw new PrismException("No current update is selected");
-			if (engine.hasStrategyInfo() && engine.isStrategyEnforced()) {
+		// Check that we need to continue
+		if (currentUpdatesTable.getSelectedRow() == -1) {
+			reportErrorDuringSimulation(new PrismException("No current update is selected"));
+			return;
+		}
+		if (engine.hasStrategyInfo() && engine.isStrategyEnforced()) {
+			try {
 				if (!engine.isTransitionEnabledByStrategy(currentUpdatesTable.getSelectedRow())) {
 					if (questionYesNo("This update is not selected by the current strategy. Execute it anyway?") != 0) {
 						return;
 					}
 				}
+			} catch (PrismException e) {
+				reportErrorDuringSimulation(e);
+				return;
 			}
-			if (displayPathLoops && pathTableModel.isPathLooping()) {
-				if (questionYesNo("The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
-					displayPathLoops = false;
-					pathTable.repaint();
-				} else
+		}
+		if (stopBecausePathLooping()) {
+			return;
+		}
+		
+		// Get time
+		double time = -1;
+		if (parsedModel.getModelType().continuousTime()) {
+			if (!autoTimeCheck.isSelected()) {
+				time = GUITimeDialog.askTime(this.getGUI(), this);
+				if (time < 0.0d) // dialog cancelled
 					return;
 			}
+		}
 
-			double time = -1;
-			if (parsedModel.getModelType().continuousTime()) {
-				if (!autoTimeCheck.isSelected()) {
-					time = GUITimeDialog.askTime(this.getGUI(), this);
-					if (time < 0.0d) // dialog cancelled
-						return;
-				}
-			}
-
+		// Execute the transition
+		try {
 			setComputing(true);
 			if (parsedModel.getModelType().continuousTime() && time != -1) {
 				engine.manualTransition(currentUpdatesTable.getSelectedRow(), time);
 			} else {
 				engine.manualTransition(currentUpdatesTable.getSelectedRow());
 			}
-			// Update model/path/tables/lists
-			pathTableModel.updatePathTable();
-			int height = (int) pathTable.getPreferredSize().getHeight();
-			int width = (int) pathTable.getPreferredSize().getWidth();
-			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
-			updateTableModel.updateUpdatesTable();
-			// Update display
-			repaintLists();
-			updatePathInfo();
-
-		} catch (NumberFormatException e) {
-			this.error("The Auto update \'no. steps\' parameter is invalid.\nIt must be a positive integer representing a step in the path table");
 		} catch (PrismException e) {
-			this.error(e.getMessage());
+			// If there is an error, report it (and then carry on updating display etc.)
+			reportErrorDuringSimulation(e);
 		} finally {
 			setComputing(false);
 		}
+
+		// Update the displays and report any errors in the new current state
+		updatePathDisplay(true);
+		updateTableModel.updateUpdatesTable();
+		checkForErrorsInTransitions();
 	}
 
 	public void a_loadPath(PathFullInfo pathNew)
@@ -865,6 +834,70 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		new GUIViewDialog(getGUI(), pathTableModel.getView(), pathTableModel);
 	}
 
+	/**
+	 * Should we stop simulating because the path is showing a loop?
+	 * Also check with the user if they want to continue regardless.
+	 */
+	private boolean stopBecausePathLooping()
+	{
+		if (displayPathLoops && pathTableModel.isPathLooping()) {
+			if (questionYesNo(
+					"The current path contains a deterministic loop. \nDo you wish to disable detection of such loops and extend the path anyway?") == 0) {
+				displayPathLoops = false;
+				pathTable.repaint();
+				return false;
+			} else {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Update the path display after an update
+	 */
+	private void updatePathDisplay(boolean scrollToVisible)
+	{
+		// Update the main path table
+		pathTableModel.updatePathTable();
+		if (scrollToVisible) {
+			int height = (int) pathTable.getPreferredSize().getHeight();
+			int width = (int) pathTable.getPreferredSize().getWidth();
+			pathTable.scrollRectToVisible(new Rectangle(0, height - 10, width, height));
+		}
+		// Update other path info displays
+		repaintLists();
+		updatePathInfo();
+	}
+	
+	/**
+	 * Check for any problems with the transitions in the current state.
+	 * and report the error to the user if there is one.
+	 */
+	private void checkForErrorsInTransitions()
+	{
+		try {
+			// Query transitions, as a way to trigger any errors
+			engine.getNumTransitions();
+		} catch (PrismException e) {
+			reportErrorDuringSimulation(e);
+		}
+	}
+	
+	/**
+	 * Report an error if it occurs during simulation.
+	 */
+	private void reportErrorDuringSimulation(PrismException e)
+	{
+		// Error popup
+		this.error(e.getMessage());
+		// For model errors, also show in model editor
+		if (e instanceof PrismLangException && ((PrismLangException) e).getASTElement().hasPosition()) {
+			guiMultiModel.getHandler().modelParseFailed((PrismLangException) e, false);
+			guiMultiModel.tabToFront();
+		}
+	}
+	
 	/**
 	 * Re-populate lists of labels and path formulas.
 	 * Labels are taken from current model and passed in properties file. 
@@ -1483,12 +1516,8 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 						break;
 					}
 				}
-				try {
-					updateTableModel.updateUpdatesTable(pathTable);
-					pathTableModel.updatePathTable();
-				} catch (PrismException ex) {
-					GUISimulator.this.error(ex.getMessage());
-				}
+				updateTableModel.updateUpdatesTable(pathTable);
+				pathTableModel.updatePathTable();
 			}
 		});
 		
@@ -1796,12 +1825,7 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-
-				try {
-					a_removePreceding(pathTable.getSelectedRow());
-				} catch (PrismException ex) {
-					error(ex.getMessage());
-				}
+				a_removePreceding(pathTable.getSelectedRow());
 			}
 		};
 		removeToHere.putValue(Action.LONG_DESCRIPTION, "Removes states preceding the selected state from the path.");
@@ -2131,19 +2155,15 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 	 */
 	public void valueChanged(ListSelectionEvent e)
 	{
-		try {
-			// If no rows are selected, make the last (current) state selected and proceed
-			if (pathTable.getSelectedRowCount() == 0) {
-				int last = pathTable.getRowCount() - 1;
-				pathTable.getSelectionModel().setSelectionInterval(last, last);
-			}
-			// Update transition table according to reflect currently selected step
-			updateTableModel.updateUpdatesTable(pathTable);
-			stateLabelList.repaint();
-			pathFormulaeList.repaint();
-		} catch (PrismException ex) {
-			this.error(ex.getMessage());
+		// If no rows are selected, make the last (current) state selected and proceed
+		if (pathTable.getSelectedRowCount() == 0) {
+			int last = pathTable.getRowCount() - 1;
+			pathTable.getSelectionModel().setSelectionInterval(last, last);
 		}
+		// Update transition table according to reflect currently selected step
+		updateTableModel.updateUpdatesTable(pathTable);
+		stateLabelList.repaint();
+		pathFormulaeList.repaint();
 	}
 
 	// Variables declaration - do not modify//GEN-BEGIN:variables
@@ -2352,13 +2372,19 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		/**
 		 * Update the updates table to display the available transitions in the current path step.
 		 */
-		public void updateUpdatesTable() throws PrismException
+		public void updateUpdatesTable()
 		{
+			// Re-compute the transitions if the table was showing old choices
 			if (isOldUpdate()) {
-				engine.computeTransitionsForCurrentState();
+				try {
+					oldUpdate = false;
+					oldStep = -1;
+					engine.computeTransitionsForCurrentState();
+				} catch (PrismException e) {
+					// Silently ignore errors - would have been reported
+					// when the state was first arrived at
+				}
 			}
-			oldUpdate = false;
-			oldStep = -1;
 			setVisibleColumns();
 			doEnables();
 			fireTableStructureChanged();
@@ -2373,18 +2399,24 @@ public class GUISimulator extends GUIPlugin implements MouseListener, ListSelect
 		/**
 		 * Update the updates table to display the available transitions in the currently selected path step.
 		 */
-		public void updateUpdatesTable(JTable pathTable) throws PrismException
+		public void updateUpdatesTable(JTable pathTable)
 		{
+			// If current (or no) state selected, do update for current path state
 			int step = pathTable.getSelectedRow();
 			if (step == -1 || step == pathTable.getRowCount() - 1) {
-				// if current (or no) state selected
 				updateUpdatesTable();
 			} else {
-				this.oldStep = step;
+				// Otherwise, compute transitions for the requested step
 				oldUpdate = true;
+				oldStep = step;
+				try {
+					engine.computeTransitionsForStep(oldStep);
+				} catch (PrismException e) {
+					// Silently ignore errors - would have been reported
+					// when the state was first arrived at
+				}
 				setVisibleColumns();
 				doEnables();
-				engine.computeTransitionsForStep(oldStep);
 				fireTableStructureChanged();
 				fireTableDataChanged();
 				currentUpdatesTable.setEnabled(false);
