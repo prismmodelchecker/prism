@@ -1,6 +1,43 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Recent changes (up to commit 6c1d28cc)
+-----------------------------------------------------------------------------
+
+* Model checking functionality:
+  - strategy (policy) generation, export and simulation from GUI
+  - PTA model checking supports global/non-local variables
+
+* Features/enhancements:
+  - ModelGenerator interface now supports real-time models (e.g., PTAs)
+  - new -javaparams switch to pass command-line arguments to JVM
+  - prism-log-extract: new field 'dd_nodes' for model MTBDD size
+
+* Import/export enhancements:
+  - new setting for model export precision (-exportmodelprecision)
+  - new "proplabels" option for -exportmodel and -exportlabels
+  - new -exportproplabels switch to export (just) properties file labels
+  - explicit model import without -importmodel: prism model.all
+  - results export to new formats: PRISM comment, dataframe
+  - results import from dataframe format (-importresults or GUI)
+
+* Fixes / upgrades
+  - compile fix for newer MacOS
+  - library updates: JAS (2.7.90), Log4j (2.16.0), jhoafparser (1.1.1)
+  - various bugfixes
+
+* Development and code-level changes
+  - automated testing via GitHub Actions
+  - unit testing via JUnit
+  - JavaCC upgraded from version 6.0 to 7.0
+  - major refactoring:
+    > Expression evaluation
+    > explicit.StateValues
+    > Strategy and related classes
+    > Modules2MTBDD
+    > common.iterable, ResultsExporter, DefinedConstant
+
+-----------------------------------------------------------------------------
 Version 4.7 (first released 19/3/2021)
 -----------------------------------------------------------------------------
 
