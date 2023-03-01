@@ -681,7 +681,7 @@ def runPrism(args, bmArgs, dir=""):
                     printTestResult(line)
             print("To see log file, run:")
             print("edit " + logFile)
-            prismArgsPrint = prismArgs.copy()
+            prismArgsPrint = list(prismArgs)
             prismArgsPrint[0] = options.prismExec
             print("To re-run failing test:")
             print(' '.join(prismArgsPrint))
