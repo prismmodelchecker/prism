@@ -1271,7 +1271,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	 */
 	public void exportStateRewardsToFile(Model model, int r, int exportType, PrismLog out) throws PrismException
 	{
-		exportStateRewardsToFile(model, r, exportType, out, true, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportStateRewardsToFile(model, r, exportType, out, false, DEFAULT_EXPORT_MODEL_PRECISION);
 	}
 
 	/**

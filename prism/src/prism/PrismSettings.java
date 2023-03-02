@@ -102,6 +102,7 @@ public class PrismSettings implements Observer
 	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
 	public static final	String PRISM_GRID_RESOLUTION				= "prism.gridResolution";
 	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportModelPrecision";
+	public static final String PRISM_EXPORT_MODEL_HEADERS           = "prism.exportModelHeaders";
 
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
@@ -279,6 +280,8 @@ public class PrismSettings implements Observer
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
 			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
 																			"Export model probabilities/rewards to n significant decimal places."},
+			{ BOOLEAN_TYPE,		PRISM_EXPORT_MODEL_HEADERS,				"Include headers in model exports",		"4.7",			Boolean.valueOf(true),															"",
+																			"Whether to include #-commented header lines when exporting model data to explicit files."},
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			Boolean.valueOf(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1217,6 +1220,10 @@ public class PrismSettings implements Observer
 			} else {
 				throw new PrismException("No value specified for -" + sw + " switch");
 			}
+		}
+		// export headers off
+		else if (sw.equals("noexportheaders")) {
+			set(PRISM_EXPORT_MODEL_HEADERS, false);
 		}
 
 		// MODEL CHECKING OPTIONS:

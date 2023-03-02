@@ -223,7 +223,7 @@ public interface Model
 	 */
 	default void exportStateRewardsToFile(int r, int exportType, File file) throws FileNotFoundException, PrismException
 	{
-		exportStateRewardsToFile(r, exportType, file, DEFAULT_EXPORT_MODEL_PRECISION, true);
+		exportStateRewardsToFile(r, exportType, file, DEFAULT_EXPORT_MODEL_PRECISION, false);
 	}
 
 	/**
