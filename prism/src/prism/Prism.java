@@ -287,7 +287,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	boolean digital = false;
 
 	// The last strategy that was generated
-	private Strategy strategy = null;
+	private Strategy<?> strategy = null;
 	
 	// Info for explicit files load
 	private File explicitFilesStatesFile = null;
@@ -1977,7 +1977,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Get the currently stored strategy (null if none)
 	 */
-	public Strategy getStrategy()
+	public Strategy<?> getStrategy()
 	{
 		return strategy;
 	}
@@ -3510,7 +3510,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param exportType The type of output
 	 * @param file File to output the path to (stdout if null)
 	 */
-	public void exportStrategy(Strategy strat, StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
+	public void exportStrategy(Strategy<?> strat, StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
 	{
 		PrismLog tmpLog;
 

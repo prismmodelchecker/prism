@@ -50,7 +50,7 @@ public class ModelCheckerResult
 	// Time taken for Prob0-type precomputation (secs)
 	public double timeProb0 = 0.0;
 	// Strategy
-	public Strategy strat = null;
+	public Strategy<?> strat = null;
 
 	/**
 	 * Clear all stored data, including setting of array pointers to null

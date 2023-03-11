@@ -119,7 +119,7 @@ public class SimulatorEngine extends PrismComponent
 	private Values mfConstants;
 
 	// Loaded strategy
-	private StrategyGenerator stratGen;
+	private StrategyGenerator<Double> stratGen;
 	// Whether the strategy should be enforced
 	private boolean stratEnforced;
 
@@ -271,7 +271,7 @@ public class SimulatorEngine extends PrismComponent
 	 * This will be enforced (during automated exploration or path generation)
 	 * by default; call {@code setStrategyEnforced(false)} to disable.
 	 */
-	public void loadStrategy(StrategyGenerator stratGen)
+	public void loadStrategy(StrategyGenerator<Double> stratGen)
 	{
 		this.stratGen = stratGen;
 		setStrategyEnforced(true);
@@ -298,7 +298,7 @@ public class SimulatorEngine extends PrismComponent
 	 * Get the strategy currently loaded into the simulator, if present.
 	 * Returns null if none loaded.
 	 */
-	public StrategyGenerator getStrategy()
+	public StrategyGenerator<Double> getStrategy()
 	{
 		return stratGen;
 	}

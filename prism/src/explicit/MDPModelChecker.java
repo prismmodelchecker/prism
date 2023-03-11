@@ -132,7 +132,7 @@ public class MDPModelChecker extends ProbModelChecker
 		
 		// If a strategy was generated, lift it to the product and store
 		if (res.strat != null) {
-			Strategy stratProduct = new FMDStrategyProduct(product, (MDStrategy) res.strat);
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
 			result.setStrategy(stratProduct);
 		}
 		
@@ -174,7 +174,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// If a strategy was generated, lift it to the product and store
 		if (res.strat != null) {
-			Strategy stratProduct = new FMDStrategyProduct(product, (MDStrategy) res.strat);
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
 			result.setStrategy(stratProduct);
 		}
 		
@@ -482,7 +482,7 @@ public class MDPModelChecker extends ProbModelChecker
 
 		// Store strategy
 		if (genStrat) {
-			res.strat = new MDStrategyArray(mdp, strat);
+			res.strat = new MDStrategyArray<Double>(mdp, strat);
 		}
 		// Export adversary
 		if (exportAdv) {
@@ -1248,7 +1248,7 @@ public class MDPModelChecker extends ProbModelChecker
 		double soln[], soln2[], tmpsoln[];
 		long timer;
 		int strat[] = null;
-		FMDStrategyStep fmdStrat = null;
+		FMDStrategyStep<Double> fmdStrat = null;
 
 		// Start bounded probabilistic reachability
 		timer = System.currentTimeMillis();
@@ -1269,7 +1269,7 @@ public class MDPModelChecker extends ProbModelChecker
 			for (int i = 0; i < n; i++) {
 				strat[i] = target.get(i) ? -2 : -1;
 			}
-			fmdStrat = new FMDStrategyStep(mdp, k);
+			fmdStrat = new FMDStrategyStep<Double>(mdp, k);
 		}
 		
 		// Initialise solution vectors. Use passed in initial vector, if present
@@ -2192,7 +2192,7 @@ public class MDPModelChecker extends ProbModelChecker
 		
 		// Store strategy
 		if (genStrat) {
-			res.strat = new MDStrategyArray(mdp, strat);
+			res.strat = new MDStrategyArray<Double>(mdp, strat);
 		}
 		// Export adversary
 		if (exportAdv) {
