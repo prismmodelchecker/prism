@@ -858,10 +858,19 @@ Updates Updates() :
 		{ updates.addUpdate(null, update); }
 	|
 		// Several probabilistic updates
-		( prob = Expression(false, false) <COLON> update = Update() { updates.addUpdate(prob, update); }
-		( <PLUS> prob = Expression(false, false) <COLON> update = Update() { updates.addUpdate(prob, update); } )* )
+		( prob = ProbOrRateOrInterval() <COLON> update = Update() { updates.addUpdate(prob, update); }
+		( <PLUS> prob = ProbOrRateOrInterval() <COLON> update = Update() { updates.addUpdate(prob, update); } )* )
 	)
 	{ updates.setPosition(begin, getToken(0)); return updates; }
+}
+
+Expression ProbOrRateOrInterval() :
+{
+	Expression prob;
+}
+{
+	( prob = Expression(false, false) | prob = ExpressionInterval(false, false) )
+	{ return prob; }
 }
 
 Update Update() :
@@ -1555,6 +1564,23 @@ Expression ExpressionParenth(boolean prop, boolean pathprop) :
 {
 	begin = <LPARENTH> expr = Expression(prop, pathprop) <RPARENTH>
 	{ ret = new ExpressionUnaryOp(ExpressionUnaryOp.PARENTH, expr); ret.setPosition(begin, getToken(0)); return ret;}
+}
+
+// Expression: interval
+
+Expression ExpressionInterval(boolean prop, boolean pathprop) :
+{
+	ExpressionInterval expr = null;
+	Expression expr1 = null, expr2 = null;
+	Token begin = null;
+}
+{
+	begin = <LBRACKET>
+	expr1 = Expression(prop, pathprop)
+ 	<COMMA>
+ 	expr2 = Expression(prop, pathprop)
+	<RBRACKET>
+	{ expr = new ExpressionInterval(expr1, expr2); expr.setPosition(begin, getToken(0)); return expr; }
 }
 
 //-----------------------------------------------------------------------------------

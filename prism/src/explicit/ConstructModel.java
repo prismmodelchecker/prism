@@ -33,6 +33,7 @@ import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import common.Interval;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -166,14 +167,17 @@ public class ConstructModel extends PrismComponent
 		LinkedList<State> explore;
 		State state, stateNew;
 		// Explicit model storage
-		ModelSimple<Value> modelSimple = null;
+		ModelSimple<?> modelSimple = null;
 		DTMCSimple<Value> dtmc = null;
 		CTMCSimple<Value> ctmc = null;
 		MDPSimple<Value> mdp = null;
 		POMDPSimple<Value> pomdp = null;
 		CTMDPSimple<Value> ctmdp = null;
+		IDTMCSimple<Value> idtmc = null;
+		IMDPSimple<Value> imdp = null;
 		LTSSimple<Value> lts = null;
 		Distribution<Value> distr = null;
+		Distribution<Interval<Value>> distrUnc = null;
 		// Misc
 		int i, j, nc, nt, src, dest;
 		long timer;
@@ -212,6 +216,12 @@ public class ConstructModel extends PrismComponent
 			case CTMDP:
 				modelSimple = ctmdp = new CTMDPSimple<>();
 				break;
+			case IDTMC:
+				modelSimple = idtmc = new IDTMCSimple<>();
+				break;
+			case IMDP:
+				modelSimple = imdp = new IMDPSimple<>();
+				break;
 			case LTS:
 				modelSimple = lts = new LTSSimple<>();
 				break;
@@ -222,7 +232,11 @@ public class ConstructModel extends PrismComponent
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			// Attach evaluator and variable info
-	        ((ModelExplicit<Value>) modelSimple).setEvaluator(modelGen.getEvaluator());
+			if (!modelType.uncertain()) {
+				((ModelExplicit<Value>) modelSimple).setEvaluator(modelGen.getEvaluator());
+			} else {
+				((ModelExplicit<Interval<Value>>) modelSimple).setEvaluator(modelGen.getIntervalEvaluator());
+			}
 	        ((ModelExplicit<Value>) modelSimple).setVarList(varList);
 		}
 
@@ -261,7 +275,11 @@ public class ConstructModel extends PrismComponent
 				}
 				// For nondet models, collect transitions in a Distribution
 				if (!justReach && modelType.nondeterministic()) {
-					distr = new Distribution<>(modelGen.getEvaluator());
+					if (!modelType.uncertain()) {
+						distr = new Distribution<>(modelGen.getEvaluator());
+					} else {
+						distrUnc = new Distribution<>(modelGen.getIntervalEvaluator());
+					}
 				}
 				// Look at each transition in the choice
 				nt = modelGen.getNumTransitions(i);
@@ -287,10 +305,16 @@ public class ConstructModel extends PrismComponent
 						case CTMC:
 							ctmc.addToProbability(src, dest, modelGen.getTransitionProbability(i, j));
 							break;
+						case IDTMC:
+							idtmc.addToProbability(src, dest, modelGen.getTransitionProbabilityInterval(i, j));
+							break;
 						case MDP:
 						case POMDP:
 						case CTMDP:
 							distr.add(dest, modelGen.getTransitionProbability(i, j));
+							break;
+						case IMDP:
+							distrUnc.add(dest, modelGen.getTransitionProbabilityInterval(i, j));
 							break;
 						case LTS:
 							if (distinguishActions) {
@@ -307,7 +331,8 @@ public class ConstructModel extends PrismComponent
 						}
 					}
 				}
-				// For nondet models, add collated transition to model 
+				// For nondet models, add collated transition to model
+				int ch = -1;
 				if (!justReach) {
 					if (modelType == ModelType.MDP) {
 						if (distinguishActions) {
@@ -327,7 +352,19 @@ public class ConstructModel extends PrismComponent
 						} else {
 							ctmdp.addChoice(src, distr);
 						}
+					} else if (modelType == ModelType.IMDP) {
+						if (distinguishActions) {
+							ch = imdp.addActionLabelledChoice(src, distrUnc, modelGen.getChoiceAction(i));
+						} else {
+							ch = imdp.addChoice(src, distrUnc);
+						}
 					}
+				}
+				// For interval models, we delimit the constructed distributions
+				if (modelType == ModelType.IDTMC) {
+					((IDTMCSimple<Value>) idtmc).delimit(src, modelGen.getEvaluator());
+				} else if (modelType == ModelType.IMDP) {
+					((IMDPSimple<Value>) imdp).delimit(src, ch, modelGen.getEvaluator());
 				}
 			}
 			// For partially observable models, add observation info to state
@@ -395,6 +432,12 @@ public class ConstructModel extends PrismComponent
 				break;
 			case CTMDP:
 				model = sortStates ? new CTMDPSimple<>(ctmdp, permut) : ctmdp;
+				break;
+			case IDTMC:
+				model = (ModelExplicit<Value>) (sortStates ? new IDTMCSimple<>(idtmc, permut) : idtmc);
+				break;
+			case IMDP:
+				model = (ModelExplicit<Value>) (sortStates ? new IMDPSimple<>(imdp, permut) : imdp);
 				break;
 			case LTS:
 				model = sortStates ? new LTSSimple<>(lts, permut) : lts;

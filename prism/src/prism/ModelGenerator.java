@@ -30,6 +30,7 @@ package prism;
 import java.util.Collections;
 import java.util.List;
 
+import common.Interval;
 import parser.State;
 import parser.ast.Expression;
 
@@ -50,6 +51,16 @@ public interface ModelGenerator<Value> extends ModelInfo
 	public default Evaluator<Value> getEvaluator()
 	{
 		return (Evaluator<Value>) Evaluator.createForDoubles();
+	}
+	
+	/**
+	 * Get an Evaluator for intervals of Value (needed for models with interval probabilities)
+	 * A default implementation provides an evaluator for the (usual) case when Value is Double.
+	 */
+	public default Evaluator<Interval<Value>> getIntervalEvaluator()
+	{
+		return getEvaluator().createIntervalEvaluator();
+		//return (Evaluator<Interval<Value>>) (Evaluator<? extends Interval<?>>) Evaluator.createForDoubleIntervals();
 	}
 	
 	/**
@@ -310,14 +321,64 @@ public interface ModelGenerator<Value> extends ModelInfo
 	}
 	
 	/**
+	 * Get the interval of probability/rates for a transition within a choice,
+	 * specified by its index/offset, for an interval model.
+	 * Returns null for non-interval models.
+	 * @param i Index of the nondeterministic choice
+	 * @param offset Index of the transition within the choice
+	 */
+	public default Interval<Value> getTransitionProbabilityInterval(int i, int offset) throws PrismException
+	{
+		// Not supported by default (but must be for interval models)
+		return null;
+	}
+
+	/**
+	 * Get the probability/rate of a transition within a choice, specified by its index/offset,
+	 * as an Object (which may be either a {@code Value} or an {@code Interval<Value>}, depending on the model type.
+	 * This method works regardless of whether transition probabilities are intervals.
+	 * @param i Index of the nondeterministic choice
+	 * @param offset Index of the transition within the choice
+	 */
+	public default Object getTransitionProbabilityObject(int i, int offset) throws PrismException
+	{
+		if (!getModelType().uncertain()) {
+			return getTransitionProbability(i, offset);
+		} else {
+			return getTransitionProbabilityInterval(i, offset);
+		}
+	}
+
+	/**
+	 * Get a string for the probability/rate of a transition within a choice, specified by its index/offset.
+	 * This method works regardless of whether transition probabilities are intervals.
+	 * @param i Index of the nondeterministic choice
+	 * @param offset Index of the transition within the choice
+	 */
+	public default String getTransitionProbabilityString(int i, int offset) throws PrismException
+	{
+		if (!getModelType().uncertain()) {
+			return getTransitionProbability(i, offset).toString();
+		} else {
+			return getTransitionProbabilityInterval(i, offset).toString();
+		}
+	}
+
+	/**
 	 * Are the choices deterministic? (i.e. a single probability 1.0 transition)
 	 * (will also return true for a continuous-time model matching this
 	 * definition, since TransitionList does not know about model type)
 	 */
 	public default boolean isDeterministic() throws PrismException
 	{
-		Evaluator<Value> eval = getEvaluator();
-		return getNumChoices() == 1 && getNumTransitions(0) == 1 && eval.isOne(getTransitionProbability(0, 0));
+		if (getNumChoices() == 1 && getNumTransitions(0) == 1) {
+			if (!getModelType().uncertain()) {
+				return getEvaluator().isOne(getTransitionProbability(0, 0));
+			} else {
+				return getIntervalEvaluator().isOne(getTransitionProbabilityInterval(0, 0));
+			}
+		}
+		return false;
 	}
 
 	/**

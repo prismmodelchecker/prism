@@ -37,6 +37,7 @@ import parser.State;
 import parser.Values;
 import parser.VarList;
 import parser.type.Type;
+import parser.type.TypeInterval;
 import parser.visitor.ASTTraverse;
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
@@ -1445,7 +1446,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Determine the actual model type
 	 */
-	private void finaliseModelType()
+	private void finaliseModelType() throws PrismLangException
 	{
 		// First, fix a "base" model type
 		// If unspecified, auto-detect
@@ -1461,6 +1462,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// based on the existence of certain features
 		boolean isRealTime = containsClockVariables();
 		boolean isPartObs = hasObservables();
+		boolean isInterval = probabilitiesContainIntervals();
 		if (isRealTime) {
 			if (modelType == ModelType.MDP || modelType == ModelType.LTS) {
 				modelType = ModelType.PTA;
@@ -1473,6 +1475,49 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 				modelType = ModelType.POPTA;
 			}
 		}
+		if (isInterval) {
+			if (modelType == ModelType.DTMC) {
+				modelType = ModelType.IDTMC;
+			} else if (modelType == ModelType.MDP) {
+				modelType = ModelType.IMDP;
+			} else {
+				throw new PrismLangException("Intervals only allowed in DTMCs and MDPs currently");
+			}
+		}
+	}
+	
+	/**
+	 * Returns true if one or more of the probabilities in a guarded command contains an interval.
+	 */
+	public boolean probabilitiesContainIntervals()
+	{
+		return findIntervalInProbabilities() != null;
+	}
+	
+	/**
+	 * If one or more of the probabilities in a guarded command contains an interval,
+	 * return it; otherwise return null.
+	 */
+	public ASTElement findIntervalInProbabilities()
+	{
+		try {
+			ASTTraverse astt = new ASTTraverse()
+			{
+				public void visitPost(Updates e) throws PrismLangException
+				{
+					int n = e.getNumUpdates();
+					for (int i = 0; i < n; i++) {
+						if (e.getProbability(i) != null && e.getProbability(i).getType() instanceof TypeInterval) {
+							throw new PrismLangException("Found one", e);
+						}
+					}
+				}
+			};
+			accept(astt);
+		} catch (PrismLangException e) {
+			return e.getASTElement();
+		}
+		return null;
 	}
 	
 	/**

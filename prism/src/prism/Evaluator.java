@@ -26,6 +26,7 @@
 
 package prism;
 
+import common.Interval;
 import param.BigRational;
 import param.Function;
 import param.FunctionFactory;
@@ -35,6 +36,7 @@ import parser.State;
 import parser.Values;
 import parser.ast.Expression;
 import parser.type.TypeDouble;
+import parser.type.TypeInterval;
 
 /**
  * Interface specifying operations that need to be supported for classes used to
@@ -69,6 +71,11 @@ public interface Evaluator<Value>
 		return new EvaluatorFunction(functionFactory);
 	}
 	
+	public static Evaluator<Interval<Double>> createForDoubleIntervals()
+	{
+		return evalDblInterval;
+	}
+
 	// Methods in the Evaluator interface
 	
 	/**
@@ -225,6 +232,15 @@ public interface Evaluator<Value>
 	 * Get the evaluation model used by this Evaluator.
 	 */
 	public EvalMode evalMode();
+	
+	/**
+	 * Create an evaluator for intervals of the {@code Value} object.
+	 */
+	public default Evaluator<Interval<Value>> createIntervalEvaluator()
+	{
+		// Not supported by default
+		throw new UnsupportedOperationException("Intervals not supported for " + evalMode());
+	}
 
 	// Static Evaluator instances for common types
 	
@@ -363,6 +379,12 @@ public interface Evaluator<Value>
 		public EvalMode evalMode()
 		{
 			return EvalMode.FP;
+		}
+		
+		@Override
+		public Evaluator<Interval<Double>> createIntervalEvaluator()
+		{
+			return evalDblInterval;
 		}
 	};
 
@@ -623,6 +645,176 @@ public interface Evaluator<Value>
 		{
 			// Return EXACT for now since exact computation uses this
 			return EvalMode.EXACT;
+		}
+	}
+	
+	// Evaluator for intervals (of doubles)
+	
+	static Evaluator<Interval<Double>> evalDblInterval = new EvaluatorDoubleInterval();
+	
+	class EvaluatorDoubleInterval implements Evaluator<Interval<Double>>
+	{
+		@Override
+		public Interval<Double> zero()
+		{
+			return new Interval<Double>(0.0, 0.0);
+		}
+
+		@Override
+		public Interval<Double> one()
+		{
+			return new Interval<Double>(1.0, 1.0);
+		}
+
+		@Override
+		public boolean isZero(Interval<Double> x)
+		{
+			return x.getLower() == 0.0 && x.getUpper() == 0.0;
+		}
+
+		@Override
+		public boolean isOne(Interval<Double> x)
+		{
+			// We allow round-off error here
+			return PrismUtils.doublesAreEqual(x.getLower(), 1.0) && PrismUtils.doublesAreEqual(x.getUpper(), 1.0);
+		}
+
+		@Override
+		public boolean isFinite(Interval<Double> x)
+		{
+			return Double.isFinite(x.getLower()) && Double.isFinite(x.getUpper());
+		}
+
+		@Override
+		public Interval<Double> add(Interval<Double> x, Interval<Double> y)
+		{
+			double lo = x.getLower() + y.getLower();
+			double up = x.getUpper() + y.getUpper();
+			return new Interval<Double>(lo, up);
+		}
+
+		@Override
+		public Interval<Double> subtract(Interval<Double> x, Interval<Double> y)
+		{
+			double lo = x.getLower() - y.getLower();
+			double up = x.getUpper() - y.getUpper();
+			return new Interval<Double>(lo, up);
+		}
+
+		@Override
+		public Interval<Double> multiply(Interval<Double> x, Interval<Double> y)
+		{
+			double x1y1 = x.getLower() * y.getLower();
+			double x1y2 = x.getLower() * y.getUpper();
+			double x2y1 = x.getUpper() * y.getLower();
+			double x2y2 = x.getUpper() * y.getUpper();
+			double lo = Math.min(x1y1, Math.min(x1y2, Math.min(x2y1, x2y2)));
+			double up = Math.max(x1y1, Math.max(x1y2, Math.max(x2y1, x2y2)));
+			return new Interval<Double>(lo, up);
+		}
+
+		@Override
+		public Interval<Double> divide(Interval<Double> x, Interval<Double> y)
+		{
+			// TODO
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean gt(Interval<Double> x, Interval<Double> y)
+		{
+			return x.getLower() > y.getUpper();
+		}
+
+		@Override
+		public boolean geq(Interval<Double> x, Interval<Double> y)
+		{
+			return x.getLower() >= y.getUpper();
+		}
+
+		@Override
+		public boolean equals(Interval<Double> x, Interval<Double> y)
+		{
+			// We allow round-off error here
+			boolean loClose = PrismUtils.doublesAreEqual(x.getLower(), y.getLower());
+			boolean upClose = PrismUtils.doublesAreEqual(x.getUpper(), y.getUpper());
+			return loClose && upClose;
+		}
+		
+		@Override
+		public void checkProbabilitySum(Interval<Double> sum) throws PrismException
+		{
+			// For intervals, we need the sum of lower bounds to be <=1
+			// and the sum of upper bounds to be >=1
+			// We allow round-off error here (as for the normal case of doubles)
+			if (sum.getLower() > 1.0 + PrismUtils.epsilonDouble) {
+				throw new PrismException("Probability lower bounds sum to " + sum.getLower() + " which is greater than 1");
+			}
+			if (sum.getUpper() < 1.0 - PrismUtils.epsilonDouble) {
+				throw new PrismException("Probability upper bounds sum to " + sum.getUpper() + " which is less than 1");
+			}
+		}
+		
+		@Override
+		@SuppressWarnings("unchecked")
+		public Interval<Double> evaluate(Expression expr, Values constantValues, State state) throws PrismLangException
+		{
+			Object value = expr.evaluate(constantValues, state);
+			return (Interval<Double>) TypeInterval.getInstance(TypeDouble.getInstance()).castValueTo(value);
+		}
+
+		@Override
+		public double toDouble(Interval<Double> x)
+		{
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String toStringExport(Interval<Double> x)
+		{
+			String l = PrismUtils.formatDouble(x.getLower()); 
+			String u = PrismUtils.formatDouble(x.getUpper()); 
+			return "[" + l + "," + u + "]";
+		}
+		
+		@Override
+		public String toStringExport(Interval<Double> x, int precision)
+		{
+			String l = PrismUtils.formatDouble(precision, x.getLower()); 
+			String u = PrismUtils.formatDouble(precision, x.getUpper()); 
+			return "[" + l + "," + u + "]";
+		}
+		
+		@Override
+		public Interval<Double> fromString(String s) throws NumberFormatException
+		{
+			if (!(s.charAt(0) == '[' && s.charAt(s.length() - 1) == ']')) {
+				throw new NumberFormatException("Illegal interval " + s);
+			}
+			s = s.substring(1, s.length() - 1);
+			String ss[] = s.split(",");
+			if (ss.length != 2) {
+				throw new NumberFormatException("Illegal interval " + s);
+			}
+			return new Interval<Double>(Double.parseDouble(ss[0]), Double.parseDouble(ss[1]));
+		}
+		
+		@Override
+		public boolean exact()
+		{
+			return false;
+		}
+		
+		@Override
+		public boolean isSymbolic()
+		{
+			return false;
+		}
+		
+		@Override
+		public EvalMode evalMode()
+		{
+			return EvalMode.FP;
 		}
 	}
 }

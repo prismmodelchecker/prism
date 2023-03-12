@@ -45,6 +45,7 @@ import parser.ast.ExpressionFormula;
 import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionITE;
 import parser.ast.ExpressionIdent;
+import parser.ast.ExpressionInterval;
 import parser.ast.ExpressionLabel;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionObs;
@@ -364,6 +365,12 @@ public class DeepCopy implements ASTVisitor
 
 	@Override
 	public Object visit(ExpressionVar e) throws PrismLangException
+	{
+		return e.clone().deepCopy(this);
+	}
+
+	@Override
+	public Object visit(ExpressionInterval e) throws PrismLangException
 	{
 		return e.clone().deepCopy(this);
 	}

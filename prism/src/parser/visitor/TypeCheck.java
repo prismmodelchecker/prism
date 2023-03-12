@@ -127,10 +127,14 @@ public class TypeCheck extends ASTTraverse
 		int i, n;
 		n = e.getNumUpdates();
 		for (i = 0; i < n; i++) {
-			if (e.getProbability(i) != null)
-				if (!TypeDouble.getInstance().canAssign(e.getProbability(i).getType())) {
-					throw new PrismLangException("Type error: Update probability/rate must evaluate to a double", e.getProbability(i));
+			if (e.getProbability(i) != null) {
+				Type typeProb = e.getProbability(i).getType();
+				boolean typeOK = TypeDouble.getInstance().canAssign(typeProb);
+				typeOK |= typeProb instanceof TypeInterval && TypeDouble.getInstance().canAssign(((TypeInterval) typeProb).getSubType());
+				if (!typeOK) {
+					throw new PrismLangException("Type error: Update probability/rate cannot have type " + typeProb, e.getProbability(i));
 				}
+			}
 		}
 	}
 
@@ -428,6 +432,7 @@ public class TypeCheck extends ASTTraverse
 			else
 				e.setType(TypeVoid.getInstance());
 			break;
+
 		}
 	}
 
@@ -460,6 +465,22 @@ public class TypeCheck extends ASTTraverse
 	public void visitPost(ExpressionVar e) throws PrismLangException
 	{
 		// Type already known
+	}
+
+	public void visitPost(ExpressionInterval e) throws PrismLangException
+	{
+		Type t1 = e.getOperand1().getType();
+		Type t2 = e.getOperand2().getType();
+		// Only intervals of intervals or doubles allowed
+		if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
+			throw new PrismLangException("Type error: intervals can only of ints or doubles", e.getOperand1());
+		}
+		if (!(t2 instanceof TypeInt || t2 instanceof TypeDouble)) {
+			throw new PrismLangException("Type error: intervals can only of ints or doubles", e.getOperand1());
+		}
+		// Interval of int only if both ints
+		Type subType = t1 instanceof TypeDouble || t2 instanceof TypeDouble ? TypeDouble.getInstance() : TypeInt.getInstance();
+		e.setType(TypeInterval.getInstance(subType));
 	}
 
 	public void visitPost(ExpressionProb e) throws PrismLangException
