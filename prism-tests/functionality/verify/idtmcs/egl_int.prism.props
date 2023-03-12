@@ -1,0 +1,31 @@
+// Expected number of messages from B that A needs to knows a pair once B knows a pair
+// RESULT (N=4,L=4,err=0.1): ?
+"messagesA_min": R{"messages_A_needs"}min=? [ F phase=4 ];
+
+// Expected number of messages from B that A needs to knows a pair once B knows a pair
+// RESULT (N=4,L=4,err=0.1): ?
+"messagesA_max": R{"messages_A_needs"}max=? [ F phase=4 ];
+
+// Expected number of messages from A that B needs to knows a pair once A knows a pair
+// RESULT (N=4,L=4,err=0.1): ?
+"messagesB_min": R{"messages_B_needs"}min=? [ F phase=4 ];
+
+// Expected number of messages from A that B needs to knows a pair once A knows a pair
+// RESULT (N=4,L=4,err=0.1): ?
+"messagesB_max": R{"messages_B_needs"}max=? [ F phase=4 ];
+
+// Probability that party A is unfairly disadvantaged
+// RESULT (N=4,L=4,err=0.1): 0.4725534375
+"unfairA_min": Pmin=? [ F !"knowA" & "knowB" ];
+
+// Probability that party A is unfairly disadvantaged
+// RESULT (N=4,L=4,err=0.1): 0.5911778125
+"unfairA_max": Pmax=? [ F !"knowA" & "knowB" ];
+
+// Probability that party B is unfairly disadvantaged
+// RESULT (N=4,L=4,err=0.1): 0.4088221875
+"unfairB_min": Pmin=? [ F !"knowB" & "knowA" ];
+
+// Probability that party B is unfairly disadvantaged
+// RESULT (N=4,L=4,err=0.1): 0.5274465625
+"unfairB_max": Pmax=? [ F !"knowB" & "knowA" ];

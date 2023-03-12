@@ -28,7 +28,6 @@ package prism;
 
 import explicit.MinMax;
 import parser.ast.RelOp;
-import parser.type.Type;
 
 /**
  * Class to represent info (operator, relational operator, bound, etc.) found in a P/R/S operator.
@@ -113,20 +112,42 @@ public class OpRelOpBound
 	public MinMax getMinMax(ModelType modelType, boolean forAll) throws PrismLangException
 	{
 		MinMax minMax = MinMax.blank();
-		if (modelType.nondeterministic()) {
-			if (!(modelType == ModelType.MDP || modelType == ModelType.POMDP || modelType == ModelType.CTMDP)) {
-				throw new PrismLangException("Don't know how to model check " + getTypeOfOperator() + " properties for " + modelType + "s");
-			}
+		int nondetSources = modelType.nondeterministic() ? 1 : 0;
+		nondetSources += modelType.uncertain() ? 1 : 0;
+		if (nondetSources > 0) {
 			if (isNumeric()) {
 				if (relOp == RelOp.EQ) {
 					throw new PrismLangException("Can't use \"" + op + "=?\" for nondeterministic models; use e.g. \"" + op + "min=?\" or \"" + op + "max=?\"");
 				}
-				minMax = relOp.isMin() ? MinMax.min() : MinMax.max();
-			} else {
-				if (forAll) {
-					minMax = (relOp.isLowerBound() ) ? MinMax.min() : MinMax.max();
+				if (nondetSources == 1) {
+					if (relOp == RelOp.MINMIN || relOp == RelOp.MINMAX || relOp == RelOp.MAXMIN || relOp == RelOp.MAXMAX) {
+						throw new PrismLangException("Can't use \"" + toString() + " for " + modelType + "s");
+					}
+					if (modelType.uncertain()) {
+						// IDTMC
+						minMax = MinMax.blank().setMinUnc(relOp.isMin());
+					} else {
+						// MDP etc.
+						minMax = relOp.isMin() ? MinMax.min() : MinMax.max();
+					}
 				} else {
-					minMax = (relOp.isLowerBound() ) ? MinMax.max() : MinMax.min();
+					// IMDP
+					if (relOp == RelOp.MIN || relOp == RelOp.MINMIN || relOp == RelOp.MINMAX) {
+						minMax = MinMax.min();
+					} else {
+						minMax = MinMax.max();
+					}
+					minMax.setMinUnc(relOp == RelOp.MIN || relOp == RelOp.MINMIN || relOp == RelOp.MAXMIN);
+				}
+			} else {
+				boolean min = forAll ? relOp.isLowerBound() : relOp.isUpperBound();
+				if (!modelType.nondeterministic()) {
+					minMax = MinMax.blank();
+				} else {
+					minMax = min ? MinMax.min() : MinMax.max();
+				}
+				if (modelType.uncertain()) {
+					minMax.setMinUnc(min);
 				}
 			}
 		}

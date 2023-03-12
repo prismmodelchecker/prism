@@ -1,0 +1,3 @@
+-const K=2 -epsilon 1e-8
+# -const K=2 -convprog Gurobi
+# -const K=2 -convprog lpsolve

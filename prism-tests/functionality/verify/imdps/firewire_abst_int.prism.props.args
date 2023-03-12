@@ -1,0 +1,3 @@
+-const err=0.2 -const delay=10 -epsilon 1e-8
+# -const err=0.2 -const delay=10 -convprog Gurobi
+# -const err=0.2 -const delay=10 -convprog lpsolve

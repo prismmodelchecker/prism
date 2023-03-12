@@ -1,0 +1,3 @@
+-ex -const CrowdSize=4 -const TotalRuns=5 -const err=0.1 -epsilon 1e-8
+# -ex -const CrowdSize=4 -const TotalRuns=5 -const err=0.1 -convprog Gurobi
+# -ex -const CrowdSize=4 -const TotalRuns=5 -const err=0.1 -convprog lpsolve

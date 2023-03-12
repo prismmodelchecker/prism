@@ -1,0 +1,11 @@
+// Max probability of reaching goal1 (worst-case)
+Pmaxmin=? [ F "goal1" ];
+
+// Max probability of reaching goal1 (best-case)
+Pmaxmax=? [ F "goal1" ];
+
+// Min expected time to reach a goal (worst-case)
+Rminmax=? [ F "goal1"|"goal2" ];
+
+// Min expected time to reach a goal (best-case)
+Rminmin=? [ F "goal1"|"goal2" ];

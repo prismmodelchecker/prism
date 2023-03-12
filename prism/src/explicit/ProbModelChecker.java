@@ -26,6 +26,8 @@
 
 package explicit;
 
+import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
+
 import java.io.File;
 import java.util.BitSet;
 import java.util.List;
@@ -59,8 +61,6 @@ import prism.PrismNotSupportedException;
 import prism.PrismSettings;
 import prism.RewardGenerator;
 
-import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
-
 /**
  * Super class for explicit-state probabilistic model checkers.
  */
@@ -73,6 +73,8 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected LinEqMethod linEqMethod = LinEqMethod.GAUSS_SEIDEL;
 	// Method used to solve MDPs
 	protected MDPSolnMethod mdpSolnMethod = MDPSolnMethod.GAUSS_SEIDEL;
+	// Method used to solve IMDPs (and IDTMCs)
+	protected IMDPSolnMethod imdpSolnMethod = IMDPSolnMethod.GAUSS_SEIDEL;
 	// Iterative numerical method termination criteria
 	protected TermCrit termCrit = TermCrit.RELATIVE;
 	// Parameter for iterative numerical method termination criteria
@@ -153,6 +155,22 @@ public class ProbModelChecker extends NonProbModelChecker
 		}
 	};
 
+	// Method used for solving IMDPs (and IDTMCs)
+	public enum IMDPSolnMethod {
+		VALUE_ITERATION, GAUSS_SEIDEL;
+		public String fullName()
+		{
+			switch (this) {
+			case VALUE_ITERATION:
+				return "Value iteration";
+			case GAUSS_SEIDEL:
+				return "Gauss-Seidel";
+			default:
+				return this.toString();
+			}
+		}
+	};
+
 	// Iterative numerical method termination criteria
 	public enum TermCrit {
 		ABSOLUTE, RELATIVE
@@ -212,6 +230,15 @@ public class ProbModelChecker extends NonProbModelChecker
 			} else {
 				throw new PrismNotSupportedException("Explicit engine does not support MDP solution method \"" + s + "\"");
 			}
+			// PRISM_IMDP_SOLN_METHOD
+			s = settings.getString(PrismSettings.PRISM_IMDP_SOLN_METHOD);
+			if (s.equals("Value iteration")) {
+				setIMDPSolnMethod(IMDPSolnMethod.VALUE_ITERATION);
+			} else if (s.equals("Gauss-Seidel")) {
+				setIMDPSolnMethod(IMDPSolnMethod.GAUSS_SEIDEL);
+			} else {
+				throw new PrismNotSupportedException("Explicit engine does not support IMDP solution method \"" + s + "\"");
+			}
 			// PRISM_TERM_CRIT
 			s = settings.getString(PrismSettings.PRISM_TERM_CRIT);
 			if (s.equals("Absolute")) {
@@ -261,6 +288,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		super.inheritSettings(other);
 		setLinEqMethod(other.getLinEqMethod());
 		setMDPSolnMethod(other.getMDPSolnMethod());
+		setIMDPSolnMethod(other.getIMDPSolnMethod());
 		setTermCrit(other.getTermCrit());
 		setTermCritParam(other.getTermCritParam());
 		setMaxIters(other.getMaxIters());
@@ -281,6 +309,7 @@ public class ProbModelChecker extends NonProbModelChecker
 		super.printSettings();
 		mainLog.print("linEqMethod = " + linEqMethod + " ");
 		mainLog.print("mdpSolnMethod = " + mdpSolnMethod + " ");
+		mainLog.print("imdpSolnMethod = " + imdpSolnMethod + " ");
 		mainLog.print("termCrit = " + termCrit + " ");
 		mainLog.print("termCritParam = " + termCritParam + " ");
 		mainLog.print("maxIters = " + maxIters + " ");
@@ -329,6 +358,14 @@ public class ProbModelChecker extends NonProbModelChecker
 	public void setMDPSolnMethod(MDPSolnMethod mdpSolnMethod)
 	{
 		this.mdpSolnMethod = mdpSolnMethod;
+	}
+
+	/**
+	 * Set method used to solve IMDPs (and IDTMCs).
+	 */
+	public void setIMDPSolnMethod(IMDPSolnMethod imdpSolnMethod)
+	{
+		this.imdpSolnMethod = imdpSolnMethod;
 	}
 
 	/**
@@ -444,6 +481,11 @@ public class ProbModelChecker extends NonProbModelChecker
 	public MDPSolnMethod getMDPSolnMethod()
 	{
 		return mdpSolnMethod;
+	}
+
+	public IMDPSolnMethod getIMDPSolnMethod()
+	{
+		return imdpSolnMethod;
 	}
 
 	public TermCrit getTermCrit()
@@ -721,6 +763,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		case STPG:
 			res = ((STPGModelChecker) this).computeNextProbs((STPG<Double>) model, target, minMax.isMin1(), minMax.isMin2());
 			break;
+		case IDTMC:
+			res = ((IDTMCModelChecker) this).computeNextProbs((IDTMC<Double>) model, target, minMax);
+			break;
+		case IMDP:
+			res = ((IMDPModelChecker) this).computeNextProbs((IMDP<Double>) model, target, minMax);
+			break;
 		default:
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
@@ -777,6 +825,12 @@ public class ProbModelChecker extends NonProbModelChecker
 			case STPG:
 				res = ((STPGModelChecker) this).computeUntilProbs((STPG<Double>) model, remain, target, minMax.isMin1(), minMax.isMin2());
 				break;
+			case IDTMC:
+				res = ((IDTMCModelChecker) this).computeUntilProbs((IDTMC<Double>) model, remain, target, minMax);
+				break;
+			case IMDP:
+				res = ((IMDPModelChecker) this).computeUntilProbs((IMDP<Double>) model, remain, target, minMax);
+				break;
 			default:
 				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
@@ -798,6 +852,12 @@ public class ProbModelChecker extends NonProbModelChecker
 				break;
 			case STPG:
 				res = ((STPGModelChecker) this).computeBoundedUntilProbs((STPG<Double>) model, remain, target, windowSize, minMax.isMin1(), minMax.isMin2());
+				break;
+			case IDTMC:
+				res = ((IDTMCModelChecker) this).computeBoundedUntilProbs((IDTMC<Double>) model, remain, target, windowSize, minMax);
+				break;
+			case IMDP:
+				res = ((IMDPModelChecker) this).computeBoundedUntilProbs((IMDP<Double>) model, remain, target, windowSize, minMax);
 				break;
 			default:
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
@@ -861,6 +921,12 @@ public class ProbModelChecker extends NonProbModelChecker
 			break;
 		case STPG:
 			res = ((STPGModelChecker) this).computeUntilProbs((STPG<Double>) model, remain, target, minMax.isMin1(), minMax.isMin2());
+			break;
+		case IDTMC:
+			res = ((IDTMCModelChecker) this).computeUntilProbs((IDTMC<Double>) model, remain, target, minMax);
+			break;
+		case IMDP:
+			res = ((IMDPModelChecker) this).computeUntilProbs((IMDP<Double>) model, remain, target, minMax);
 			break;
 		default:
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
@@ -1175,6 +1241,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		case STPG:
 			res = ((STPGModelChecker) this).computeReachRewards((STPG<Double>) model, (STPGRewards<Double>) modelRewards, target, minMax.isMin1(), minMax.isMin2());
 			break;
+		case IDTMC:
+			res = ((IDTMCModelChecker) this).computeReachRewards((IDTMC<Double>) model, (MCRewards<Double>) modelRewards, target, minMax);
+			break;
+		case IMDP:
+			res = ((IMDPModelChecker) this).computeReachRewards((IMDP<Double>) model, (MDPRewards<Double>) modelRewards, target, minMax);
+			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");
@@ -1304,10 +1376,12 @@ public class ProbModelChecker extends NonProbModelChecker
 		switch (model.getModelType()) {
 		case DTMC:
 		case CTMC:
+		case IDTMC:
 			exportMCStateRewardsToFile(model, (MCRewards<Value>) modelRewards, r, exportType, out, noexportheaders, precision);
 			break;
 		case MDP:
 		case STPG:
+		case IMDP:
 			exportMDPStateRewardsToFile(model, (MDPRewards<Value>) modelRewards, r, exportType, out, noexportheaders, precision);
 			break;
 		default:

@@ -1,0 +1,7 @@
+// Probability that the adversary observes the real sender more than once
+// RESULT (TotalRuns=5,CrowdSize=4): 0.15670416461
+"positive_min": Pmin=? [ F observe0 > 1  ];
+
+// Probability that the adversary observes the real sender more than once
+// RESULT (TotalRuns=5,CrowdSize=4): 0.17915896132
+"positive_max": Pmax=? [ F observe0 > 1  ];

@@ -1,0 +1,5 @@
+// C2 (minimum probability that the protocol finishes with all coins equal to v) (v=1,2)
+// Results are same for v=1 and v=2 by symmetry
+// Analytic bound is (K-1)/(2*K)
+Pminmin=? [ F "finished"&"all_coins_equal_1" ];
+Pminmax=? [ F "finished"&"all_coins_equal_1" ];

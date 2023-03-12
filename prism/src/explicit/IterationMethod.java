@@ -398,7 +398,44 @@ public abstract class IterationMethod {
 	 */
 	public abstract IterationIntervalIter forMvMultRewMinMaxInterval(MDP<Double> mdp, MDPRewards<Double> rewards, boolean min, int[] strat, boolean fromBelow, boolean enforceMonotonicity, boolean checkMonotonicity) throws PrismException;
 
+	// ------------ Abstract IDTMC/MDP methods ----------------------------
 
+	/**
+	 * Obtain an Iteration object using mvMultUnc (matrix-vector multiplication, followed by min/max)
+	 * in an IDTMC.
+	 * @param idtmc the IDTMC
+	 * @param minMax min/max info
+	 */
+	public abstract IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax) throws PrismException;
+	
+	/**
+	 * Obtain an Iteration object using mvMultRewUnc (matrix-vector multiplication with rewards, followed by min/max)
+	 * in an IDTMC.
+	 * @param idtmc the IDTMC
+	 * @param mcRewards the reward structure
+	 * @param minMax min/max info
+	 */
+	public abstract IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax) throws PrismException;
+	
+	/**
+	 * Obtain an Iteration object using mvMultUnc (matrix-vector multiplication, followed by min/max)
+	 * in an IMDP.
+	 * @param imdp the IMDP
+	 * @param minMax min/max info
+	 * @param strat optional, storage for strategy, ignored if null
+	 */
+	public abstract IterationValIter forMvMultMinMaxUnc(IMDP<Double> imdp, MinMax minMax, int[] strat) throws PrismException;
+	
+	/**
+	 * Obtain an Iteration object using mvMultRewUnc (matrix-vector multiplication with rewards, followed by min/max)
+	 * in an IMDP.
+	 * @param imdp the IMDP
+	 * @param mdpRewards the reward structure
+	 * @param minMax min/max info
+	 * @param strat optional, storage for strategy, ignored if null
+	 */
+	public abstract IterationValIter forMvMultRewMinMaxUnc(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat) throws PrismException;
+	
 	// ------------ Abstract generic methods ----------------------------
 
 	/**

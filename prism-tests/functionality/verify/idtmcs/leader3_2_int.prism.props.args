@@ -1,0 +1,3 @@
+-const unc=0.1 -ex -epsilon 1e-8
+# -const unc=0.1 -ex -convprog Gurobi
+# -const unc=0.1 -ex -convprog lpsolve

@@ -207,6 +207,66 @@ public class IterationMethodGS extends IterationMethod {
 	}
 
 	@Override
+	public IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax)
+	{
+		return new SingleVectorIterationValIter(idtmc) {
+			@Override
+			public boolean iterateAndCheckConvergence(IntSet states)
+			{
+				// Matrix-vector multiply
+				error = idtmc.mvMultUncGS(soln, minMax, states.iterator(), absolute);
+				// Check termination
+				return (error < termCritParam);
+			}
+		};
+	}
+	
+	@Override
+	public IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax)
+	{
+		return new SingleVectorIterationValIter(idtmc) {
+			@Override
+			public boolean iterateAndCheckConvergence(IntSet states)
+			{
+				// Matrix-vector multiply
+				error = idtmc.mvMultRewUncGS(soln, mcRewards, minMax, states.iterator(), absolute);
+				// Check termination
+				return (error < termCritParam);
+			}
+		};
+	}
+	
+	@Override
+	public IterationValIter forMvMultMinMaxUnc(IMDP<Double> imdp, MinMax minMax, int[] strat)
+	{
+		return new SingleVectorIterationValIter(imdp) {
+			@Override
+			public boolean iterateAndCheckConvergence(IntSet states)
+			{
+				// Matrix-vector multiply
+				error = imdp.mvMultUncGS(soln, minMax, states.iterator(), absolute, strat);
+				// Check termination
+				return (error < termCritParam);
+			}
+		};
+	}
+	
+	@Override
+	public IterationValIter forMvMultRewMinMaxUnc(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat)
+	{
+		return new SingleVectorIterationValIter(imdp) {
+			@Override
+			public boolean iterateAndCheckConvergence(IntSet states)
+			{
+				// Matrix-vector multiply
+				error = imdp.mvMultRewUncGS(soln, mdpRewards, minMax, states.iterator(), absolute, strat);
+				// Check termination
+				return (error < termCritParam);
+			}
+		};
+	}
+	
+	@Override
 	public String getDescriptionShort()
 	{
 		return (backwards ? "Backwards " : "") + "Gauss-Seidel";

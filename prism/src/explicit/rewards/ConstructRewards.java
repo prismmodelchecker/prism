@@ -77,10 +77,12 @@ public class ConstructRewards extends PrismComponent
 		switch (model.getModelType()) {
 		case DTMC:
 		case CTMC:
+		case IDTMC:
 			rewards = buildMCRewardStructure((DTMC<Value>) model, rewardGen, r);
 			break;
 		case MDP:
 		case POMDP:
+		case IMDP:
 			rewards = buildMDPRewardStructure((MDP<Value>) model, rewardGen, r);
 			break;
 		default:

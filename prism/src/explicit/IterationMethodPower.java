@@ -166,4 +166,51 @@ public class IterationMethodPower extends IterationMethod {
 		};
 	}
 
+	@Override
+	public IterationValIter forMvMultMinMaxUnc(IDTMC<Double> idtmc, MinMax minMax)
+	{
+		return new TwoVectorIteration(idtmc, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				idtmc.mvMultUnc(soln, minMax, soln2, states.iterator());
+			}
+		};
+	}
+
+	@Override
+	public IterationValIter forMvMultRewMinMaxUnc(IDTMC<Double> idtmc, MCRewards<Double> mcRewards, MinMax minMax)
+	{
+		return new TwoVectorIteration(idtmc, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				idtmc.mvMultRewUnc(soln, mcRewards, minMax, soln2, states.iterator());
+			}
+		};
+	}
+
+	@Override
+	public IterationValIter forMvMultMinMaxUnc(IMDP<Double> imdp, MinMax minMax, int[] strat)
+	{
+		return new TwoVectorIteration(imdp, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				imdp.mvMultUnc(soln, minMax, soln2, states.iterator(), strat);
+			}
+		};
+	}
+	
+	@Override
+	public IterationValIter forMvMultRewMinMaxUnc(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat)
+	{
+		return new TwoVectorIteration(imdp, null) {
+			@Override
+			public void doIterate(IntSet states)
+			{
+				imdp.mvMultRewUnc(soln, mdpRewards, minMax, soln2, states.iterator(), strat);
+			}
+		};
+	}
 }
