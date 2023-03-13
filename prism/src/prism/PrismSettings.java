@@ -101,7 +101,7 @@ public class PrismSettings implements Observer
 	public static final	String PRISM_MAX_ITERS						= "prism.maxIters";//"prism.maxIterations";
 	public static final String PRISM_EXPORT_ITERATIONS				= "prism.exportIterations";
 	public static final	String PRISM_GRID_RESOLUTION				= "prism.gridResolution";
-	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportmodelprecision";
+	public static final String PRISM_EXPORT_MODEL_PRECISION         = "prism.exportModelPrecision";
 
 	public static final	String PRISM_CUDD_MAX_MEM					= "prism.cuddMaxMem";
 	public static final	String PRISM_CUDD_EPSILON					= "prism.cuddEpsilon";
@@ -277,8 +277,8 @@ public class PrismSettings implements Observer
 																			"Export solution vectors for iteration algorithms to iterations.html"},
 			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			Integer.valueOf(10),															"1,",																						
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
-			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7dev",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
-																			"Export probabilities/rewards with n significant decimal places"},
+			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
+																			"Export model probabilities/rewards to n significant decimal places."},
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			Boolean.valueOf(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
