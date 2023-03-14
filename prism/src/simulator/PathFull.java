@@ -109,14 +109,14 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public void addStep(int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards,
+	public void addStep(int choice, Object action, String actionString, Object probability, double[] transitionRewards, State newState, State newObs, double[] newStateRewards,
 			ModelGenerator modelGen)
 	{
 		addStep(1.0, choice, action, actionString, probability, transitionRewards, newState, newObs, newStateRewards, modelGen);
 	}
 
 	@Override
-	public void addStep(double time, int choice, Object action, String actionString, double probability, double[] transitionRewards, State newState,
+	public void addStep(double time, int choice, Object action, String actionString, Object probability, double[] transitionRewards, State newState,
 			State newObs, double[] newStateRewards, ModelGenerator modelGen)
 	{
 		Step stepOld, stepNew;
@@ -281,7 +281,7 @@ public class PathFull extends Path implements PathFullInfo
 	}
 
 	@Override
-	public double getPreviousProbability()
+	public Object getPreviousProbability()
 	{
 		return steps.get(steps.size() - 2).probability;
 	}
@@ -451,7 +451,7 @@ public class PathFull extends Path implements PathFullInfo
 	 * Get the probability or rate associated with a given step.
 	 * @param step Step index (0 = initial state/step of path)
 	 */
-	public double getProbability(int step)
+	public Object getProbability(int step)
 	{
 		return steps.get(steps.size() - 2).probability;
 	}
@@ -637,7 +637,7 @@ public class PathFull extends Path implements PathFullInfo
 		// String describing the action taken
 		public String actionString;
 		// Probability or rate of step
-		public double probability;
+		public Object probability;
 		// Transition rewards associated with step
 		public double transitionRewards[];
 	}

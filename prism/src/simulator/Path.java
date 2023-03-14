@@ -51,13 +51,13 @@ public abstract class Path
 	 * Add a step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
+	public abstract void addStep(int choice, Object action, String actionString, Object probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
 
 	/**
 	 * Add a timed step to the path.
 	 * Note: State object and arrays will be copied, not stored directly.
 	 */
-	public abstract void addStep(double time, int choice, Object action, String actionString, double probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
+	public abstract void addStep(double time, int choice, Object action, String actionString, Object probability, double[] transRewards, State newState, State newObs, double[] newStateRewards, ModelGenerator modelGen);
 
 	/**
 	 * Set the strategy info (mode and next decision) for the current state.
@@ -114,7 +114,7 @@ public abstract class Path
 	/**
 	 * Get the probability or rate associated wuth the previous step.
 	 */
-	public abstract double getPreviousProbability();
+	public abstract Object getPreviousProbability();
 	
 	/**
 	 * Get the total time elapsed so far (where zero time has been spent in the current (final) state).

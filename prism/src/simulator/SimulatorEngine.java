@@ -455,7 +455,7 @@ public class SimulatorEngine extends PrismComponent
 			executeTransition(i, 0, -1);
 			break;
 		default:
-			throw new PrismNotSupportedException(modelType + " not supported");
+			throw new PrismNotSupportedException("Automatic exploration not supported for " + modelType + "s");
 		}
 
 		return true;
@@ -957,7 +957,7 @@ public class SimulatorEngine extends PrismComponent
 			index = modelGen.getTotalIndexOfTransition(i, offset);
 		}
 		// Get probability and action for transition
-		double p = modelGen.getTransitionProbability(i, offset);
+		Object p = modelGen.getTransitionProbabilityObject(i, offset);
 		Object action = modelGen.getChoiceAction(i);
 		String actionString = modelGen.getChoiceActionString(i);
 		// Compute its transition rewards
@@ -997,7 +997,7 @@ public class SimulatorEngine extends PrismComponent
 			index = modelGen.getTotalIndexOfTransition(i, offset);
 		}
 		// Get probability and action for transition
-		double p = modelGen.getTransitionProbability(i, offset);
+		Object p = modelGen.getTransitionProbabilityObject(i, offset);
 		Object action = modelGen.getChoiceAction(i);
 		String actionString = modelGen.getChoiceActionString(i);
 		// Compute its transition rewards
@@ -1259,6 +1259,26 @@ public class SimulatorEngine extends PrismComponent
 		int i = modelGen.getChoiceIndexOfTransition(index);
 		int offset = modelGen.getChoiceOffsetOfTransition(index);
 		return getTransitionProbability(i, offset);
+	}
+
+	/**
+	 * Get a string for the probability/rate of a transition within a choice, specified by its index/offset.
+	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
+	 */
+	public String getTransitionProbabilityString(int i, int offset) throws PrismException
+	{
+		return modelGen.getTransitionProbabilityString(i, offset);
+	}
+
+	/**
+	 * Get a string for the probability/rate of a transition, specified by its index.
+	 * Usually, this is for the current (final) state of the path but, if you called {@link #computeTransitionsForStep(int step)}, it will be for this state instead.
+	 */
+	public String getTransitionProbabilityString(int index) throws PrismException
+	{
+		int i = modelGen.getChoiceIndexOfTransition(index);
+		int offset = modelGen.getChoiceOffsetOfTransition(index);
+		return getTransitionProbabilityString(i, offset);
 	}
 
 	/**

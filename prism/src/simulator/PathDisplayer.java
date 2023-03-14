@@ -159,7 +159,7 @@ public abstract class PathDisplayer
 		}
 	}
 
-	public void step(double timeSpent, double timeCumul, String actionString, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
+	public void step(double timeSpent, double timeCumul, String actionString, Object probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
 	{
 		if (showSnapshots) {
 			if (timeCumul < nextTime) {
@@ -190,7 +190,7 @@ public abstract class PathDisplayer
 	/**
 	 * Displaying a step of a path.
 	 */
-	public abstract void displayStep(double timeSpent, double timeCumul, String actionString, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards);
+	public abstract void displayStep(double timeSpent, double timeCumul, String actionString, Object probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards);
 
 	/**
 	 * Displaying a snapshot of a path at a particular time instant.

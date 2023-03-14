@@ -119,7 +119,7 @@ public class PathToGraph extends PathDisplayer
 	}
 
 	@Override
-	public void displayStep(double timeSpent, double timeCumul, String actionString, double probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
+	public void displayStep(double timeSpent, double timeCumul, String actionString, Object probability, double[] transitionRewards, long newStateIndex, State newState, double[] newStateRewards)
 	{
 		displayState(timeCumul, newState, newStateRewards, !showChangesOnly);
 	}
