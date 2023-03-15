@@ -1029,7 +1029,7 @@ public class PrismSettings implements Observer
 				else if (s.equals("backwards") || s.equals("bw"))
 					set(PRISM_PTA_METHOD, "Backwards reachability");
 				else
-					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games)");
+					throw new PrismException("Unrecognised option for -" + sw + " switch (options are: digital, games, backwards)");
 			} else {
 				throw new PrismException("No parameter specified for -" + sw + " switch");
 			}
