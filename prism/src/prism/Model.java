@@ -254,7 +254,7 @@ public interface Model
 	 */
 	default void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file) throws FileNotFoundException, PrismException
 	{
-		exportTransRewardsToFile(r, exportType, ordered, file, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportTransRewardsToFile(r, exportType, ordered, file, DEFAULT_EXPORT_MODEL_PRECISION, false);
 	}
 
 	/**
@@ -264,8 +264,9 @@ public interface Model
 	 * @param ordered Do the entries need to be printed in order?
 	 * @param file File to export to (if null, print to the log instead)
 	 * @param precision number of significant digits >= 1
+	 * @param noexportheaders disables export headers for trew files
 	 */
-	void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision) throws FileNotFoundException, PrismException;
+	void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException;
 
 	@Deprecated
 	default String exportTransRewardsToFile(int exportType, boolean explicit, File file) throws FileNotFoundException, PrismException

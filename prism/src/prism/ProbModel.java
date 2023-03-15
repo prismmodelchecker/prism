@@ -817,9 +817,9 @@ public class ProbModel implements Model
 	public void exportToFile(int exportType, boolean explicit, File file, int precision) throws FileNotFoundException, PrismException
 	{
 		if (!explicit) {
-			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision);
+			PrismMTBDD.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision, null, true);
 		} else {
-			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision);
+			PrismSparse.ExportMatrix(trans, getTransSymbol(), allDDRowVars, allDDColVars, odd, exportType, (file != null) ? file.getPath() : null, precision, null, true);
 		}
 	}
 
@@ -854,12 +854,12 @@ public class ProbModel implements Model
 	}
 
 	@Override
-	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision) throws FileNotFoundException, PrismException
+	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		if (!ordered) {
-			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision);
+			PrismMTBDD.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
 		} else {
-			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision);
+			PrismSparse.ExportMatrix(transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
 		}
 	}
 
@@ -880,9 +880,9 @@ public class ProbModel implements Model
 				allFilenames += ((i > 0) ? ", " : "") + filename;
 			}
 			if (!explicit) {
-				PrismMTBDD.ExportMatrix(transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, odd, exportType, filename, precision);
+				PrismMTBDD.ExportMatrix(transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, odd, exportType, filename, precision, rewardStructNames[i], false);
 			} else {
-				PrismSparse.ExportMatrix(transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, odd, exportType, filename, precision);
+				PrismSparse.ExportMatrix(transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, odd, exportType, filename, precision, rewardStructNames[i], false);
 			}
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;

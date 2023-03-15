@@ -2478,6 +2478,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 		// Do export, writing to multiple files if necessary
 		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+		boolean noexportheaders = !settings.getBoolean(PrismSettings.PRISM_EXPORT_MODEL_HEADERS);
 		List <String> files = new ArrayList<>();
 		for (int r = 0; r < numRewardStructs; r++) {
 			String filename = (file != null) ? file.getPath() : null;
@@ -2487,7 +2488,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 			File fileToUse = (filename == null) ? null : new File(filename);
 			if (!getExplicit()) {
-				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse, precision);
+				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse, precision, noexportheaders);
 			} else {
 				// Not implemented yet
 			}

@@ -11,7 +11,7 @@
 -exportmodel dice.pm.lab
 -exportmodel dice.pm.sta
 -exportmodel dice.pm.srew -noexportheaders
--exportmodel dice.pm.trew
+-exportmodel dice.pm.trew -noexportheaders
 -exportmodel dice.pm.mrmc.tra:mrmc
 -exportmodel dice.pm.mrmc.lab:mrmc
 -exportmodel dice.pm.mrmc.sta:mrmc

@@ -423,12 +423,12 @@ public class NondetModel extends ProbModel
 	}
 
 	@Override
-	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision) throws FileNotFoundException, PrismException
+	public void exportTransRewardsToFile(int r, int exportType, boolean ordered, File file, int precision, boolean noexportheaders) throws FileNotFoundException, PrismException
 	{
 		if (!ordered) {
 			// can only do explicit (sparse matrix based) export for mdps
 		} else {
-			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), precision);
+			PrismSparse.ExportSubMDP(trans, transRewards[r], "C" + (r + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, (file == null) ? null : file.getPath(), precision, rewardStructNames[r], noexportheaders);
 		}
 	}
 
@@ -451,7 +451,7 @@ public class NondetModel extends ProbModel
 			if (!explicit) {
 				// can only do explicit (sparse matrix based) export for mdps
 			} else {
-				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename, precision);
+				PrismSparse.ExportSubMDP(trans, transRewards[i], "C" + (i + 1), allDDRowVars, allDDColVars, allDDNondetVars, odd, exportType, filename, precision, rewardStructNames[i], false);
 			}
 		}
 		return (allFilenames.length() > 0) ? allFilenames : null;

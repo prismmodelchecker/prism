@@ -13,12 +13,12 @@
 -exportmodel cluster.sm.lab
 -exportmodel cluster.sm.sta
 -exportmodel cluster.sm.srew -noexportheaders
--exportmodel cluster.sm.trew
+-exportmodel cluster.sm.trew -noexportheaders
 -exportmodelprecision 16 -exportmodel cluster.sm.mrmc.tra:mrmc
 -exportmodel cluster.sm.mrmc.lab:mrmc
 -exportmodel cluster.sm.mrmc.sta:mrmc
 -exportmodel cluster.sm.mrmc.srew:mrmc -noexportheaders
--exportmodel cluster.sm.mrmc.trew:mrmc
+-exportmodel cluster.sm.mrmc.trew:mrmc -noexportheaders
 
 # Export model info separately (for a few formats) - explicit
 

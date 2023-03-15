@@ -13,7 +13,7 @@
 -exportmodel robot.prism.lab
 -exportmodel robot.prism.sta
 -exportmodelprecision 16 -exportmodel robot.prism.srew  -noexportheaders
--exportmodel robot.prism.trew
+-exportmodel robot.prism.trew  -noexportheaders
 -exportmodel robot.prism.mrmc.tra:mrmc
 -exportmodel robot.prism.mrmc.lab:mrmc
 -exportmodel robot.prism.mrmc.sta:mrmc
@@ -28,6 +28,7 @@
 -exportmodelprecision 16 -exportmodel robot.prism.srew -ex -noexportheaders
 -exportmodelprecision 16 -exportmodel robot.prism.header.srew -ex
 -exportmodelprecision 16 -exportmodel robot.prism.header.srew
+-exportmodelprecision 16 -exportmodel robot.prism.header.trew
 #-exportmodel robot.prism.trew -ex
 #-exportmodel robot.prism.mrmc.tra:mrmc -ex
 #-exportmodel robot.prism.mrmc.sta:mrmc -ex

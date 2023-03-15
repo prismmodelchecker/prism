@@ -49,7 +49,9 @@ jlong __jlongpointer cv,	// col vars
 jint num_cvars,
 jlong __jlongpointer od,	// odd
 jint et,		// export type
-jstring fn		// filename
+jstring fn,		// filename
+jstring rsn,    // reward struct name
+jboolean neh    // noexportheaders
 )
 {
 	DdNode *matrix = jlong_to_DdNode(m);		// matrix
@@ -92,6 +94,14 @@ jstring fn		// filename
 	}
 	
 	// print file header
+	if (export_type == EXPORT_PLAIN && !neh) {
+		if (env->GetStringUTFLength(rsn) > 0) {
+			const char *header = env->GetStringUTFChars(rsn,0);
+			export_string("# Reward structure: \"%s\"\n", header);
+			env->ReleaseStringUTFChars(rsn, header);
+		}
+		export_string("# Transition rewards\n");
+	}
 	switch (export_type) {
 	case EXPORT_PLAIN: export_string("%d %d\n", n, nnz); break;
 	case EXPORT_MATLAB: export_string("%s = sparse(%d,%d);\n", export_name, n, n); break;
