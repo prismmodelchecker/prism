@@ -54,17 +54,13 @@ import parser.State;
  * This abstract class implements the import and storage of state reward structures.
  *
  * It is possible to import the state rewards structure with a header.
- * Header format with reward struct name:
+ * Header format with optional reward struct name:
  * <pre>
- *   # Reward structure: "$1"
+ *   # Reward structure &lt;double-quoted-name&gt;
  *   # State rewards
  * </pre>
- * where $1 is the reward struct name.
- *
- * 	Header format without reward struct name:
- * <pre>
- *   # State rewards
- * </pre>
+ * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.<br />
+ * We do not enforce the correct format right now.
  */
 public abstract class ExplicitFilesRewardGenerator extends PrismComponent implements RewardGenerator
 {
@@ -78,7 +74,7 @@ public abstract class ExplicitFilesRewardGenerator extends PrismComponent implem
 	// Regex for comments
 	protected static final Pattern COMMENT_PATTERN = Pattern.compile("#.*");
 	// Regex for reward name
-	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure: (\"([a-zA-Z0-9]*)\")$");
+	protected static final Pattern REWARD_NAME_PATTERN = Pattern.compile("# Reward structure (\"([a-zA-Z0-9]*)\")$");
 
 	/**
 	 * Constructor
@@ -277,7 +273,8 @@ public abstract class ExplicitFilesRewardGenerator extends PrismComponent implem
 		 * @param rewardStructName reward struct name to be checked
 		 * @throws PrismException if name is null or no identifier
 		 */
-		protected static String checkRewardName(String rewardStructName) throws PrismException
+		protected static String
+		checkRewardName(String rewardStructName) throws PrismException
 		{
 			if (rewardStructName == null)
 				throw new PrismException("Expected identifier but got: null");

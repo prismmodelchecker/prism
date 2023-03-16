@@ -1337,13 +1337,12 @@ public class ProbModelChecker extends NonProbModelChecker
 	
 	/**
 	 * Print header to srew file, when not disabled.
-	 * Header format with reward struct name:
+	 * Header format with optional reward struct name:
 	 * <pre>
-	 *   # Reward structure: "$1"
+	 *   # Reward structure &lt;double-quoted-name&gt;
 	 *   # State rewards
 	 * </pre>
-	 * where $1 is the reward struct name.
-	 * If the structure is not named, that header line is omitted.
+	 * where &lt;double-quoted-name&gt; ("<name>") is omitted if the reward structure is not named.
 	 *
 	 * @param r index of the reward structure
 	 * @param out print target
@@ -1355,9 +1354,10 @@ public class ProbModelChecker extends NonProbModelChecker
 			return;
 		}
 		String rewardStructName = rewardGen.getRewardStructName(r);
+		out.print("# Reward structure");
 		if (!"".equals(rewardStructName)) {
-			out.println("# Reward structure: \"" + rewardStructName + "\"");
+			out.print(" \"" + rewardStructName + "\"");
 		}
-		out.println("# State rewards");
+		out.println("\n# State rewards");
 	}
 }
