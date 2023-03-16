@@ -71,12 +71,13 @@ jboolean neh    // noexportheaders
 	switch (export_type) {
 	case EXPORT_PLAIN:  // add header to srew file, when not disabled
                         if (!neh) {
+                            export_string("# Reward structure");
                             if (env->GetStringUTFLength(rsn) > 0) {
                                 const char *header = env->GetStringUTFChars(rsn,0);
-                                export_string("# Reward structure: \"%s\"\n", header);
+                                export_string(" \"%s\"", header);
                                 env->ReleaseStringUTFChars(rsn, header);
                             }
-                            export_string("# State rewards\n");
+                            export_string("\n# State rewards\n");
                         }
                         export_string("%" PRId64 " %.0f\n", odd->eoff+odd->toff, DD_GetNumMinterms(ddman, vector, num_vars));
                         break;
