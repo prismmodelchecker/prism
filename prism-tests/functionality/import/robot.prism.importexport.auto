@@ -1,5 +1,8 @@
 # Reduce precision for some tests due to minor differences between the engines
 
+-mdp -importmodel robot.sta,tra,lab -exportmodelprecision 16 -exportmodel robot.sta,tra,lab
+-mdp -importmodel robot.sta,tra,lab -exportmodel robot.sta,tra,lab -ex
+
 -mdp -importmodel robot.all -exportmodelprecision 16 -exportmodel robot.sta,tra,lab,srew -noexportheaders
 -mdp -importmodel robot.all -exportmodel robot.sta,tra,lab,srew -ex -noexportheaders
 -importmodel robot.all -exportmodel robot.sta,tra,lab,srew -ex -noexportheaders

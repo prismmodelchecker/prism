@@ -77,7 +77,7 @@ public class ExplicitFiles2MTBDD
 	private JDDNode range; // dd giving range for system
 	private JDDNode start; // dd for start state
 	private JDDNode stateRewards[]; // array of dds for state rewards
-	private JDDNode transRewards; // dd of transition rewards
+	private JDDNode transRewards[]; // array of dds for transition rewards
 	private JDDVars allDDRowVars; // all dd vars (rows)
 	private JDDVars allDDColVars; // all dd vars (cols)
 	private JDDVars allDDSynchVars; // all dd vars (synchronising actions)
@@ -255,13 +255,11 @@ public class ExplicitFiles2MTBDD
 
 		Values constantValues = new Values(); // no constants
 
+		// transition reward not yet supported - just make 0
 		JDDNode transRewardsArray[] = new JDDNode[rewardStructNames.length];
-
-		// init empty transition reward structures with JDD.Constant(0)
 		for (int k = 0; k < rewardStructNames.length; k++) {
 			transRewardsArray[k] = JDD.Constant(0);
 		}
-		transRewardsArray[0] = transRewards;
 
 		// create new Model object to be returned
 		// they need a module name list, so we fake that
@@ -546,7 +544,6 @@ public class ExplicitFiles2MTBDD
 
 		// initialise mtbdds
 		trans = JDD.Constant(0);
-		transRewards = JDD.Constant(0);
 		if (modelType != ModelType.MDP) {
 			transPerAction = new Vector<JDDNode>();
 			transPerAction.add(JDD.Constant(0));
