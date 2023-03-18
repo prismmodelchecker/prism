@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -1803,19 +1802,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * @param statesFile File containing a list of states (optional, can be null)
 	 * @param transFile File containing the list of transitions (required)
 	 * @param labelsFile File containing label definitions (optional, can be null)
-	 * @param stateRewardsFile File containing state reward definitions (optional, can be null)
-	 * @param typeOverride Model type (auto-detected if {@code null})
-	 */
-	public void loadModelFromExplicitFiles(File statesFile, File transFile, File labelsFile, File stateRewardsFile, ModelType typeOverride) throws PrismException
-	{
-		loadModelFromExplicitFiles(statesFile, transFile, labelsFile, Collections.singletonList(stateRewardsFile), typeOverride);
-	}
-	
-	/**
-	 * Load files containing an explicit list of transitions/etc. for subsequent model building.
-	 * @param statesFile File containing a list of states (optional, can be null)
-	 * @param transFile File containing the list of transitions (required)
-	 * @param labelsFile File containing label definitions (optional, can be null)
 	 * @param stateRewardsFiles Files containing state reward definitions (optional, can be null)
 	 * @param typeOverride Model type (auto-detected if {@code null})
 	 */
@@ -1834,7 +1820,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		explicitFilesStatesFile = statesFile;
 		explicitFilesTransFile = transFile;
 		explicitFilesLabelsFile = labelsFile;
-		explicitFilesStateRewardsFiles = new ArrayList<>(stateRewardsFiles);
+		explicitFilesStateRewardsFiles = stateRewardsFiles == null ? new ArrayList<>() : new ArrayList<>(stateRewardsFiles);
 		explicitFilesNumStates = ef2mi.getNumStates();
 		// Reset dependent info
 		currentModelType = currentModelInfo == null ? null : currentModelInfo.getModelType();
