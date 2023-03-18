@@ -115,7 +115,7 @@ public class ConstructStrategyProduct
 			break;
 		}
 		case STPG: {
-			STPGExplicit stpgProd = new STPGExplicit();
+			STPGSimple stpgProd = new STPGSimple();
 			stpgProd.setVarList(newVarList);
 			prodModel = stpgProd;
 			break;
@@ -152,7 +152,7 @@ public class ConstructStrategyProduct
 			queue.add(new Point(s_0, q_0));
 			switch (productModelType) {
 			case STPG:
-				((STPGExplicit) prodModel).addState(((STPG) model).getPlayer(s_0));
+				((STPGSimple) prodModel).addState(((STPG) model).getPlayer(s_0));
 				break;
 			default:
 				prodModel.addState();
@@ -225,7 +225,7 @@ public class ConstructStrategyProduct
 						queue.add(new Point(s_2, q_2));
 						switch (productModelType) {
 						case STPG:
-							((STPGExplicit) prodModel).addState(((STPG) model).getPlayer(s_2));
+							((STPGSimple) prodModel).addState(((STPG) model).getPlayer(s_2));
 							break;
 						default:
 							prodModel.addState();
@@ -254,7 +254,7 @@ public class ConstructStrategyProduct
 					((MDPSimple) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((MDP) model).getAction(s_1, j));
 					break;
 				case STPG:
-					((STPGExplicit) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((STPG) model).getAction(s_1, j));
+					((STPGSimple) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((STPG) model).getAction(s_1, j));
 					break;
 				default:
 					break;

@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2002-
 //	Authors:
-//	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -26,13 +26,13 @@
 
 package explicit;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import explicit.graphviz.StateOwnerDecorator;
 import explicit.rewards.STPGRewards;
 import prism.ModelType;
 import prism.PrismException;
@@ -57,7 +57,7 @@ import prism.PrismUtils;
  * Use {@link #getNumNestedChoices(s, i)}, {@link #getNestedAction(s, i)} and {@link #getNestedTransitionsIterator(s, i, j)}
  * to access the information.
  */
-public interface STPG extends NondetModel
+public interface STPG extends MDP
 {
 	// Accessors (for Model) - default implementations
 	
@@ -68,34 +68,20 @@ public interface STPG extends NondetModel
 	}
 
 	@Override
-	default void exportToPrismExplicitTra(PrismLog out, int precision)
+	default void exportToDotFile(PrismLog out, Iterable<explicit.graphviz.Decorator> decorators)
 	{
-		// Output transitions to .tra file
-		// Just use MDP format for now; no specific format for games 
-		int numStates = getNumStates();
-		out.print(numStates + " " + getNumChoices() + " " + getNumTransitions() + "\n");
-		TreeMap<Integer, Double> sorted = new TreeMap<Integer, Double>();
-		for (int i = 0; i < numStates; i++) {
-			int numChoices = getNumChoices(i);
-			for (int j = 0; j < numChoices; j++) {
-				// Extract transitions and sort by destination state index (to match PRISM-exported files)
-				Iterator<Map.Entry<Integer, Double>> iter = getTransitionsIterator(i, j);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Double> e = iter.next();
-					sorted.put(e.getKey(), e.getValue());
-				}
-				// Print out (sorted) transitions
-				for (Map.Entry<Integer, Double> e : sorted.entrySet()) {
-					// Note use of PrismUtils.formatDouble to match PRISM-exported files
-					out.print(i + " " + j + " " + e.getKey() + " " + PrismUtils.formatDouble(precision, e.getValue()));
-					Object action = getAction(i, j);
-					out.print(action == null ? "\n" : (" " + action + "\n"));
-				}
-				sorted.clear();
+		// Copy any existing decorators
+		List<explicit.graphviz.Decorator> decoratorsNew = new ArrayList<>();
+		if (decorators != null) {
+			for (explicit.graphviz.Decorator decorator : decorators) {
+				decoratorsNew.add(decorator);
 			}
 		}
+		// And add a new one that draws states according to player owner
+		decoratorsNew.add(new StateOwnerDecorator(this::getPlayer));
+		MDP.super.exportToDotFile(out, decoratorsNew);
 	}
-
+	
 	@Override
 	default void exportToPrismLanguage(final String filename, int precision) throws PrismException
 	{
@@ -129,44 +115,56 @@ public interface STPG extends NondetModel
 	// Accessors
 	
 	/**
-	 * Get the player that owns state {@code s} (1 or 2 for an STPG).
+	 * Get the player that owns state {@code s}.
+	 * Returns the index of the player (0-indexed).
+	 * @param s Index of state (0-indexed)
 	 */
 	public int getPlayer(int s);
-
-	/**
-	 * Get the number of transitions from choice {@code i} of state {@code s}.
-	 */
-	public int getNumTransitions(int s, int i);
-
-	/**
-	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
-	 */
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i);
-
+	
 	/**
 	 * Is choice {@code i} of state {@code s} in nested form? (See {@link explicit.STPG} for details)
 	 */
-	public boolean isChoiceNested(int s, int i);
+	default boolean isChoiceNested(int s, int i)
+	{
+		// Default: No nested choices
+		return false;
+	}
 
 	/**
 	 * Get the number of (nested) choices in choice {@code i} of state {@code s}.
 	 */
-	public int getNumNestedChoices(int s, int i);
+	default int getNumNestedChoices(int s, int i)
+	{
+		// Default: No nested choices
+		return 0;
+	}
 
 	/**
 	 * Get the action label (if any) for nested choice {@code i,j} of state {@code s}.
 	 */
-	public Object getNestedAction(int s, int i, int j);
+	default Object getNestedAction(int s, int i, int j)
+	{
+		// Default: No nested choices
+		return null;
+	}
 
 	/**
 	 * Get the number of transitions from nested choice {@code i,j} of state {@code s}.
 	 */
-	public int getNumNestedTransitions(int s, int i, int j);
+	default int getNumNestedTransitions(int s, int i, int j)
+	{
+		// Default: No nested choices
+		return 0;
+	}
 
 	/**
 	 * Get an iterator over the transitions from nested choice {@code i,j} of state {@code s}.
 	 */
-	public Iterator<Entry<Integer, Double>> getNestedTransitionsIterator(int s, int i, int j);
+	default Iterator<Entry<Integer, Double>> getNestedTransitionsIterator(int s, int i, int j)
+	{
+		// Default: No nested choices
+		return null;
+	}
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
@@ -258,6 +256,7 @@ public interface STPG extends NondetModel
 	 * Do a matrix-vector multiplication and sum of action reward followed by min/max, i.e. one step of value iteration.
 	 * i.e. for all s: result[s] = min/max_{k1,k2} { rew(s) + sum_j P_{k1,k2}(s,j)*vect[j] }
 	 * @param vect Vector to multiply by
+	 * @param rewards The rewards
 	 * @param min1 Min or max for player 1 (true=min, false=max)
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param result Vector to store result in
@@ -272,6 +271,7 @@ public interface STPG extends NondetModel
 	 * i.e. return min/max_{k1,k2} { rew(s) + sum_j P_{k1,k2}(s,j)*vect[j] }
 	 * @param s Row index
 	 * @param vect Vector to multiply by
+	 * @param rewards The rewards
 	 * @param min1 Min or max for player 1 (true=min, false=max)
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param adv Storage for adversary choice indices (ignored if null)
@@ -282,11 +282,25 @@ public interface STPG extends NondetModel
 	 * Determine which choices result in min/max after a single row of matrix-vector multiplication and sum of action reward.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
+	 * @param rewards The rewards
 	 * @param min1 Min or max for player 1 (true=min, false=max)
 	 * @param min2 Min or max for player 2 (true=min, false=max)
 	 * @param val Min or max value to match
 	 */
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val);
+
+	/**
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of action reward followed by min/max.
+	 * i.e. return min/max_{k1,k2} { rew(s) + sum_j P_{k1,k2}(s,j)*vect[j] }
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param rewards The rewards
+	 * @param min1 Min or max for player 1 (true=min, false=max)
+	 * @param min2 Min or max for player 2 (true=min, false=max)
+	 * @param adv Storage for adversary choice indices (ignored if null)
+	 * @param disc Discount factor
+	 */
+	void mvMultRewMinMax(double[] vect, STPGRewards rewards, boolean min1, boolean min2, double[] result, BitSet subset, boolean complement, int[] adv, double disc);
 
 	/**
 	 * Checks  whether all successors of action c in state s are in a given set

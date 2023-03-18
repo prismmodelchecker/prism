@@ -1,245 +1,153 @@
-// ==============================================================================
+//==============================================================================
 //	
-// Copyright (c) 2002-
-// Authors:
-// * Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford)
+//	Copyright (c) 2020-
+//	Authors:
+//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
 //	
-// ------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //	
-// This file is part of PRISM.
+//	This file is part of PRISM.
 //	
-// PRISM is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
+//	PRISM is free software; you can redistribute it and/or modify
+//	it under the terms of the GNU General Public License as published by
+//	the Free Software Foundation; either version 2 of the License, or
+//	(at your option) any later version.
 //	
-// PRISM is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
+//	PRISM is distributed in the hope that it will be useful,
+//	but WITHOUT ANY WARRANTY; without even the implied warranty of
+//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//	GNU General Public License for more details.
 //	
-// You should have received a copy of the GNU General Public License
-// along with PRISM; if not, write to the Free Software Foundation,
-// Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//	You should have received a copy of the GNU General Public License
+//	along with PRISM; if not, write to the Free Software Foundation,
+//	Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //	
-// ==============================================================================
+//==============================================================================
 
 package explicit;
 
-import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import explicit.rewards.MDPRewards;
 import explicit.rewards.STPGRewards;
 import prism.ModelType;
 import prism.PrismException;
-import prism.PrismLog;
 
 /**
  * Simple explicit-state representation of a (turn-based) stochastic two-player game (STPG).
  */
-public class STPGExplicit extends MDPSimple implements STPG
+public class STPGSimple extends MDPSimple implements STPG
 {
-	/** Which player owns each state,fl i.e. stateOwners[i] is owned by player i (1 or 2) */
-	protected List<Integer> stateOwners;
-
-	// Constructors
+	/**
+	 * Which player owns each state
+	 */
+	protected StateOwnersSimple stateOwners;
+	
+	@Override
+	public ModelType getModelType()
+	{
+		return ModelType.STPG;
+	}
 
 	/**
 	 * Constructor: empty STPG.
 	 */
-	public STPGExplicit()
+	public STPGSimple()
 	{
 		super();
-		stateOwners = new ArrayList<Integer>(0);
+		stateOwners = new StateOwnersSimple();
 	}
 
 	/**
 	 * Constructor: new STPG with fixed number of states.
 	 */
-	public STPGExplicit(int numStates)
+	public STPGSimple(int numStates)
 	{
 		super(numStates);
-		stateOwners = new ArrayList<Integer>(numStates);
-	}
-
-	/**
-	 * Construct an STPG from an existing one and a state index permutation,
-	 * i.e. in which state index i becomes index permut[i].
-	 */
-	public STPGExplicit(STPGExplicit stpg, int permut[])
-	{
-		super(stpg, permut);
-		stateOwners = new ArrayList<Integer>(numStates);
-		// Create blank array of correct size
-		for (int i = 0; i < numStates; i++) {
-			stateOwners.add(0);
-		}
-		// Copy permuted player info
-		for (int i = 0; i < numStates; i++) {
-			stateOwners.set(permut[i], stpg.stateOwners.get(i));
-		}
+		stateOwners = new StateOwnersSimple(numStates);
 	}
 
 	/**
 	 * Copy constructor
 	 */
-	public STPGExplicit(STPGExplicit stpg)
+	public STPGSimple(STPGSimple stpg)
 	{
 		super(stpg);
-		stateOwners = new ArrayList<Integer>(stpg.stateOwners);
+		stateOwners = new StateOwnersSimple(stpg.stateOwners);
 	}
-
-	// Mutators (for ModelSimple)
 	
 	/**
-	 * Add a new (player 1) state and return its index.
+	 * Construct an STPG from an existing one and a state index permutation,
+	 * i.e. in which state index i becomes index permut[i].
+	 * Player and coalition info is also copied across.
 	 */
-	@Override
-	public int addState()
+	public STPGSimple(STPGSimple stpg, int permut[])
 	{
-		return addState(1);
+		super(stpg, permut);
+		stateOwners = new StateOwnersSimple(stpg.stateOwners, permut);
 	}
 
-	/**
-	 * Add multiple new (player 1) states.
-	 */
+	// Mutators
+
+	@Override
+	public void clearState(int s)
+	{
+		super.clearState(s);
+		stateOwners.clearState(s);
+	}
+
 	@Override
 	public void addStates(int numToAdd)
 	{
 		super.addStates(numToAdd);
-		for (int i = 0; i < numToAdd; i++)
-			stateOwners.add(1);
+		// Assume all player 1
+		for (int i = 0; i < numToAdd; i++) {
+			stateOwners.addState(0);
+		}
 	}
 
 	/**
-	 * Add a new (player {@code p}) state and return its index. For an STPG, {@code p} should be 1 or 2. 
-	 * @param p Player who owns the new state.
+	 * Add a new (player {@code p}) state and return its index.
+	 * @param p Player who owns the new state (0-indexed)
 	 */
 	public int addState(int p)
 	{
-		super.addStates(1);
-		stateOwners.add(p);
-		return numStates - 1;
+		int s = super.addState();
+		stateOwners.setPlayer(s, p);
+		return s;
 	}
 
 	/**
-	 * Add multiple new states, with owners as given in the list {@code p}
-	 * (the number of states to add is dictated by the length of the list).
-	 * For an STPG, player indices should be 1 or 2.
-	 * @param p List of players owning each new state
-	 */
-	public void addStates(List<Integer> p)
-	{
-		super.addStates(p.size());
-		stateOwners.addAll(p);
-	}
-
-	/**
-	 * Set player {@code p} to own state {@code s}. For an STPG, {@code} should be 1 or 2.
-	 * It is not checked whether {@code s} or {@code p} are in the correct range.
+	 * Set the player that owns state {@code s} to {@code p}.
+	 * @param s State to be modified (0-indexed)
+	 * @param p Player who owns the state (0-indexed)
 	 */
 	public void setPlayer(int s, int p)
 	{
-		stateOwners.set(s, p);
+		stateOwners.setPlayer(s, p);
 	}
 
 	// Accessors (for Model)
-
+	
 	@Override
-	public ModelType getModelType()
+	public void checkForDeadlocks(BitSet except) throws PrismException
 	{
-		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		return STPG.super.getModelType();
+		for (int i = 0; i < numStates; i++) {
+			if (trans.get(i).isEmpty() && (except == null || !except.get(i)))
+				throw new PrismException("Game has a deadlock in state " + i + (statesList == null ? "" : ": " + statesList.get(i)));
+		}
 	}
-
-	@Override
-	public void exportToPrismExplicitTra(PrismLog out, int precision)
-	{
-		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		STPG.super.exportToPrismExplicitTra(out, precision);
-	}
-
-	@Override
-	public void exportToPrismLanguage(final String filename, int precision) throws PrismException
-	{
-		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		STPG.super.exportToPrismLanguage(filename, precision);
-	}
-
-	@Override
-	public String infoString()
-	{
-		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		return STPG.super.infoString();
-	}
-
-	@Override
-	public String infoStringTable()
-	{
-		// Resolve conflict: STPG interface does not (currently) extend MDP  
-		return STPG.super.infoStringTable();
-	}
-
+	
 	// Accessors (for STPG)
-
+	
 	@Override
 	public int getPlayer(int s)
 	{
-		return stateOwners.get(s);
+		return stateOwners.getPlayer(s);
 	}
-
-	@Override
-	public int getNumTransitions(int s, int i)
-	{
-		return super.getNumTransitions(s, i);
-	}
-
-	@Override
-	public Iterator<Entry<Integer, Double>> getTransitionsIterator(int s, int i)
-	{
-		return super.getTransitionsIterator(s, i);
-	}
-
-	@Override
-	public boolean isChoiceNested(int s, int i)
-	{
-		// No nested choices
-		return false;
-	}
-
-	@Override
-	public int getNumNestedChoices(int s, int i)
-	{
-		// No nested choices
-		return 0;
-	}
-
-	@Override
-	public Object getNestedAction(int s, int i, int j)
-	{
-		// No nested choices
-		return null;
-	}
-
-	@Override
-	public int getNumNestedTransitions(int s, int i, int j)
-	{
-		// No nested choices
-		return 0;
-	}
-
-	@Override
-	public Iterator<Entry<Integer, Double>> getNestedTransitionsIterator(int s, int i, int j)
-	{
-		// No nested choices
-		return null;
-	}
-
+	
 	@Override
 	public void prob0step(BitSet subset, BitSet u, boolean forall1, boolean forall2, BitSet result)
 	{
@@ -249,7 +157,7 @@ public class STPGExplicit extends MDPSimple implements STPG
 
 		for (i = 0; i < numStates; i++) {
 			if (subset.get(i)) {
-				forall = (getPlayer(i) == 1) ? forall1 : forall2;
+				forall = (getPlayer(i) == 0) ? forall1 : forall2;
 				b1 = forall; // there exists or for all
 				for (Distribution distr : trans.get(i)) {
 					b2 = distr.containsOneOf(u);
@@ -269,7 +177,7 @@ public class STPGExplicit extends MDPSimple implements STPG
 			}
 		}
 	}
-
+	
 	@Override
 	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall1, boolean forall2, BitSet result)
 	{
@@ -279,7 +187,7 @@ public class STPGExplicit extends MDPSimple implements STPG
 
 		for (i = 0; i < numStates; i++) {
 			if (subset.get(i)) {
-				forall = (getPlayer(i) == 1) ? forall1 : forall2;
+				forall = (getPlayer(i) == 0) ? forall1 : forall2;
 				b1 = forall; // there exists or for all
 				for (Distribution distr : trans.get(i)) {
 					b2 = distr.containsOneOf(v) && distr.isSubsetOf(u);
@@ -308,17 +216,17 @@ public class STPGExplicit extends MDPSimple implements STPG
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
-				min = (getPlayer(s) == 1) ? min1 : min2;
+				min = (getPlayer(s) == 0) ? min1 : min2;
 				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				min = (getPlayer(s) == 1) ? min1 : min2;
+				min = (getPlayer(s) == 0) ? min1 : min2;
 				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				min = (getPlayer(s) == 1) ? min1 : min2;
+				min = (getPlayer(s) == 0) ? min1 : min2;
 				result[s] = mvMultMinMaxSingle(s, vect, min, adv);
 			}
 		}
@@ -327,14 +235,14 @@ public class STPGExplicit extends MDPSimple implements STPG
 	@Override
 	public double mvMultMinMaxSingle(int s, double vect[], boolean min1, boolean min2)
 	{
-		boolean min = (getPlayer(s) == 1) ? min1 : min2;
+		boolean min = (getPlayer(s) == 0) ? min1 : min2;
 		return mvMultMinMaxSingle(s, vect, min, null);
 	}
 
 	@Override
 	public List<Integer> mvMultMinMaxSingleChoices(int s, double vect[], boolean min1, boolean min2, double val)
 	{
-		boolean min = (getPlayer(s) == 1) ? min1 : min2;
+		boolean min = (getPlayer(s) == 0) ? min1 : min2;
 		return mvMultMinMaxSingleChoices(s, vect, min, val);
 	}
 
@@ -372,7 +280,7 @@ public class STPGExplicit extends MDPSimple implements STPG
 	@Override
 	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min1, boolean min2)
 	{
-		boolean min = (getPlayer(s) == 1) ? min1 : min2;
+		boolean min = (getPlayer(s) == 0) ? min1 : min2;
 		return mvMultJacMinMaxSingle(s, vect, min, null);
 	}
 
@@ -385,17 +293,17 @@ public class STPGExplicit extends MDPSimple implements STPG
 		// Loop depends on subset/complement arguments
 		if (subset == null) {
 			for (s = 0; s < numStates; s++) {
-				min = (getPlayer(s) == 1) ? min1 : min2;
+				min = (getPlayer(s) == 0) ? min1 : min2;
 				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, 1.0);
 			}
 		} else if (complement) {
 			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
-				min = (getPlayer(s) == 1) ? min1 : min2;
+				min = (getPlayer(s) == 0) ? min1 : min2;
 				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, 1.0);
 			}
 		} else {
 			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
-				min = (getPlayer(s) == 1) ? min1 : min2;
+				min = (getPlayer(s) == 0) ? min1 : min2;
 				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, 1.0);
 			}
 		}
@@ -405,7 +313,7 @@ public class STPGExplicit extends MDPSimple implements STPG
 	public double mvMultRewMinMaxSingle(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, int adv[])
 	{
 		MDPRewards mdpRewards = rewards.buildMDPRewards();
-		boolean min = (getPlayer(s) == 1) ? min1 : min2;
+		boolean min = (getPlayer(s) == 0) ? min1 : min2;
 		return mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv);
 	}
 
@@ -413,48 +321,45 @@ public class STPGExplicit extends MDPSimple implements STPG
 	public List<Integer> mvMultRewMinMaxSingleChoices(int s, double vect[], STPGRewards rewards, boolean min1, boolean min2, double val)
 	{
 		MDPRewards mdpRewards = rewards.buildMDPRewards();
-		boolean min = (getPlayer(s) == 1) ? min1 : min2;
+		boolean min = (getPlayer(s) == 0) ? min1 : min2;
 		return mvMultRewMinMaxSingleChoices(s, vect, mdpRewards, min, val);
 	}
 
-	// Standard methods
-
 	@Override
-	public String toString()
+	public void mvMultRewMinMax(double vect[], STPGRewards rewards, boolean min1, boolean min2, double result[], BitSet subset, boolean complement, int adv[], double disc)
 	{
-		int i, j, n;
-		Object o;
-		String s = "";
-		s = "[ ";
-		for (i = 0; i < numStates; i++) {
-			if (i > 0)
-				s += ", ";
-			s += i + "(P-" + getPlayer(i) + "): ";
-			s += "[";
-			n = getNumChoices(i);
-			for (j = 0; j < n; j++) {
-				if (j > 0)
-					s += ",";
-				o = getAction(i, j);
-				if (o != null)
-					s += o + ":";
-				s += trans.get(i).get(j);
+		int s;
+		boolean min = false;
+		MDPRewards mdpRewards = rewards.buildMDPRewards();
+		// Loop depends on subset/complement arguments
+		if (subset == null) {
+			for (s = 0; s < numStates; s++) {
+				min = (getPlayer(s) == 0) ? min1 : min2;
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, disc);
 			}
-			s += "]";
+		} else if (complement) {
+			for (s = subset.nextClearBit(0); s < numStates; s = subset.nextClearBit(s + 1)) {
+				min = (getPlayer(s) == 0) ? min1 : min2;
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, disc);
+			}
+		} else {
+			for (s = subset.nextSetBit(0); s >= 0; s = subset.nextSetBit(s + 1)) {
+				min = (getPlayer(s) == 0) ? min1 : min2;
+				//System.out.printf("s: %s, min1: %s, min2: %s, min: %s, player: %d\n", s, min1, min2, min, getPlayer(s));
+				result[s] = mvMultRewMinMaxSingle(s, vect, mdpRewards, min, adv, disc);
+			}
 		}
-		s += " ]\n";
-		return s;
 	}
 
 	/**
-	 * Allows discounting
-	 * @param s
-	 * @param vect
-	 * @param mdpRewards
-	 * @param min
-	 * @param adv
-	 * @param disc
-	 * @return
+	 * Do a single row of (discounted) matrix-vector multiplication and sum of action reward followed by min/max.
+	 * i.e. return min/max_{k1,k2} { rew(s) + disc * sum_j P_{k1,k2}(s,j)*vect[j] }
+	 * @param s Row index
+	 * @param vect Vector to multiply by
+	 * @param mdpRewards The rewards
+	 * @param min2 Min or max (true=min, false=max)
+	 * @param adv Storage for adversary choice indices (ignored if null)
+	 * @param disc Discount factor
 	 */
 	public double mvMultRewMinMaxSingle(int s, double vect[], MDPRewards mdpRewards, boolean min, int adv[], double disc)
 	{
@@ -469,7 +374,6 @@ public class STPGExplicit extends MDPSimple implements STPG
 		step = trans.get(s);
 		for (Distribution distr : step) {
 			j++;
-
 			// Compute sum for this distribution
 			d = mdpRewards.getTransitionReward(s, j);
 
@@ -501,5 +405,37 @@ public class STPGExplicit extends MDPSimple implements STPG
 		minmax += mdpRewards.getStateReward(s);
 
 		return minmax;
+	}
+
+	// Standard methods
+
+	@Override
+	public String toString()
+	{
+		int i, j, n;
+		Object o;
+		String s = "";
+		s = "[ ";
+		for (i = 0; i < numStates; i++) {
+			if (i > 0)
+				s += ", ";
+			if (statesList.size() > i)
+				s += i + "(P-" + (stateOwners.getPlayer(i)+1) + " " + statesList.get(i) + "): ";
+			else
+				s += i + "(P-" + (stateOwners.getPlayer(i)+1) + "): ";
+			s += "[";
+			n = getNumChoices(i);
+			for (j = 0; j < n; j++) {
+				if (j > 0)
+					s += ",";
+				o = getAction(i, j);
+				if (o != null)
+					s += o + ":";
+				s += trans.get(i).get(j);
+			}
+			s += "]";
+		}
+		s += " ]\n";
+		return s;
 	}
 }

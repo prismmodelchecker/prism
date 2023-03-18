@@ -27,12 +27,19 @@
 
 package explicit;
 
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-import java.io.*;
 
 import common.IterableStateSet;
-
 import explicit.rewards.STPGRewards;
 import prism.PrismException;
 import prism.PrismLog;
@@ -849,6 +856,12 @@ public class STPGAbstrSimple extends ModelExplicit implements STPG, NondetModelS
 		return res;
 	}
 
+	@Override
+	public void mvMultRewMinMax(double[] vect, STPGRewards rewards, boolean min1, boolean min2, double[] result, BitSet subset, boolean complement, int[] adv, double disc)
+	{
+		throw new UnsupportedOperationException();
+	}
+	
 	// Accessors (other)
 
 	/**
