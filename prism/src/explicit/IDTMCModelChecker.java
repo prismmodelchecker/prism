@@ -29,6 +29,7 @@ package explicit;
 import java.util.BitSet;
 import java.util.PrimitiveIterator;
 
+import acceptance.AcceptanceReach;
 import common.IntSet;
 import common.IterableStateSet;
 import explicit.rewards.MCRewards;
@@ -37,7 +38,7 @@ import parser.ast.Expression;
 import prism.AccuracyFactory;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismNotSupportedException;
+import prism.PrismFileLog;
 
 /**
  * Explicit-state model checker for interval discrete-time Markov chains (IDTMCs).
@@ -60,15 +61,68 @@ public class IDTMCModelChecker extends ProbModelChecker
 	// Model checking functions
 	
 	@Override
-	protected StateValues checkProbPathFormulaLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	@SuppressWarnings("unchecked")
+	protected StateValues checkProbPathFormulaCosafeLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		throw new PrismNotSupportedException("LTL model checking not yet supported for " + model.getModelType() + "s");
+		// Build product of IMC and DFA for the LTL formula, and do any required exports
+		LTLModelChecker mcLtl = new LTLModelChecker(this);
+		LTLModelChecker.LTLProduct<IDTMC<Double>> product = mcLtl.constructDFAProductForCosafetyProbLTL(this, (IDTMC<Double>) model, expr, statesOfInterest);
+		doProductExports(product);
+		
+		// Find accepting states + compute reachability probabilities
+		BitSet acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		mainLog.println("\nComputing reachability probabilities...");
+		IDTMCModelChecker mcProduct = new IDTMCModelChecker(this);
+		mcProduct.inheritSettings(this);
+		ModelCheckerResult res = mcProduct.computeReachProbs(product.getProductModel(), acc, minMax);
+		StateValues probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				probsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+
+		// Mapping probabilities in the original model
+		StateValues probs = product.projectToOriginalModel(probsProduct);
+		probsProduct.clear();
+
+		return probs;
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	protected StateValues checkRewardCoSafeLTL(Model<?> model, Rewards<?> modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		throw new PrismNotSupportedException("LTL model checking not yet supported for " + model.getModelType() + "s");
+		// Build product of IMC and DFA for the LTL formula, convert rewards and do any required exports
+		LTLModelChecker mcLtl = new LTLModelChecker(this);
+		LTLModelChecker.LTLProduct<IDTMC<Double>> product = mcLtl.constructDFAProductForCosafetyReward(this, (IDTMC<Double>) model, expr, statesOfInterest);
+		MCRewards<Double> productRewards = ((MCRewards<Double>) modelRewards).liftFromModel(product);
+		doProductExports(product);
+
+		// Find accepting states + compute reachability rewards
+		BitSet acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		mainLog.println("\nComputing reachability rewards...");
+		IDTMCModelChecker mcProduct = new IDTMCModelChecker(this);
+		mcProduct.inheritSettings(this);
+		ModelCheckerResult res = mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc, minMax);
+		StateValues rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				rewardsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+
+		// Mapping rewards in the original model
+		StateValues rewards = product.projectToOriginalModel(rewardsProduct);
+		rewardsProduct.clear();
+		
+		return rewards;
 	}
 	
 	// Numerical computation functions

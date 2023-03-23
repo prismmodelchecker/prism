@@ -29,6 +29,7 @@ package explicit;
 import java.util.BitSet;
 import java.util.PrimitiveIterator;
 
+import acceptance.AcceptanceReach;
 import common.IntSet;
 import common.Interval;
 import common.IterableStateSet;
@@ -39,9 +40,12 @@ import prism.AccuracyFactory;
 import prism.Evaluator;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.PrismNotSupportedException;
 import strat.FMDStrategyStep;
+import prism.PrismFileLog;
+import strat.FMDStrategyProduct;
+import strat.MDStrategy;
 import strat.MDStrategyArray;
+import strat.Strategy;
 
 /**
  * Explicit-state model checker for interval Markov decision prcoesses (IMDPs).
@@ -64,15 +68,80 @@ public class IMDPModelChecker extends ProbModelChecker
 	// Model checking functions
 	
 	@Override
-	protected StateValues checkProbPathFormulaLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	@SuppressWarnings("unchecked")
+	protected StateValues checkProbPathFormulaCosafeLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		throw new PrismNotSupportedException("LTL model checking not yet supported for " + model.getModelType() + "s");
+		// Build product of IMDP and DFA for the LTL formula, and do any required exports
+		LTLModelChecker mcLtl = new LTLModelChecker(this);
+		LTLModelChecker.LTLProduct<IMDP<Double>> product = mcLtl.constructDFAProductForCosafetyProbLTL(this, (IMDP<Double>) model, expr, statesOfInterest);
+		doProductExports(product);
+		
+		// Find accepting states + compute reachability probabilities
+		BitSet acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		mainLog.println("\nComputing reachability probabilities...");
+		IMDPModelChecker mcProduct = new IMDPModelChecker(this);
+		mcProduct.inheritSettings(this);
+		ModelCheckerResult res = mcProduct.computeReachProbs(product.getProductModel(), acc, minMax);
+		StateValues probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				probsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+
+		// If a strategy was generated, lift it to the product and store
+		if (res.strat != null) {
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
+			result.setStrategy(stratProduct);
+		}
+		
+		// Mapping probabilities in the original model
+		StateValues probs = product.projectToOriginalModel(probsProduct);
+		probsProduct.clear();
+
+		return probs;
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	protected StateValues checkRewardCoSafeLTL(Model<?> model, Rewards<?> modelRewards, Expression expr, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
-		throw new PrismNotSupportedException("LTL model checking not yet supported for " + model.getModelType() + "s");
+		// Build product of IMDP and DFA for the LTL formula, convert rewards and do any required exports
+		LTLModelChecker mcLtl = new LTLModelChecker(this);
+		LTLModelChecker.LTLProduct<IMDP<Double>> product = mcLtl.constructDFAProductForCosafetyReward(this, (IMDP<Double>) model, expr, statesOfInterest);
+		MDPRewards<Double> productRewards = ((MDPRewards<Double>) modelRewards).liftFromModel(product);
+		doProductExports(product);
+
+		// Find accepting states + compute reachability rewards
+		BitSet acc = ((AcceptanceReach)product.getAcceptance()).getGoalStates();
+		mainLog.println("\nComputing reachability rewards...");
+		IMDPModelChecker mcProduct = new IMDPModelChecker(this);
+		mcProduct.inheritSettings(this);
+		ModelCheckerResult res = mcProduct.computeReachRewards(product.getProductModel(), productRewards, acc, minMax);
+		StateValues rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		
+		// Output vector over product, if required
+		if (getExportProductVector()) {
+				mainLog.println("\nExporting product solution vector matrix to file \"" + getExportProductVectorFilename() + "\"...");
+				PrismFileLog out = new PrismFileLog(getExportProductVectorFilename());
+				rewardsProduct.print(out, false, false, false, false);
+				out.close();
+		}
+
+		// If a strategy was generated, lift it to the product and store
+		if (res.strat != null) {
+			Strategy<Double> stratProduct = new FMDStrategyProduct<>(product, (MDStrategy<Double>) res.strat);
+			result.setStrategy(stratProduct);
+		}
+		
+		// Mapping rewards in the original model
+		StateValues rewards = product.projectToOriginalModel(rewardsProduct);
+		rewardsProduct.clear();
+		
+		return rewards;
 	}
 	
 	// Numerical computation functions
