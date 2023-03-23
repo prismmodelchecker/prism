@@ -2473,7 +2473,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				} catch (PrismNotSupportedException e1) {
 					mainLog.println("\nReward export failed: " + e1.getMessage());
 					try {
-						fileToUse.delete();
+						if (fileToUse != null) {
+							fileToUse.delete();
+						}
 					} catch (SecurityException e2) {
 						// Cannot delete File; continue
 					}
