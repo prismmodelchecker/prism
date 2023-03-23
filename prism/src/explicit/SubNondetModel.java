@@ -355,7 +355,7 @@ public class SubNondetModel<Value> implements NondetModel<Value>
 	}
 
 	@Override
-	public Model<Value> constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat)
 	{
 		throw new RuntimeException("Not implemented");
 	}

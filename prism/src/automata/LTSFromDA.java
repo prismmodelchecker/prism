@@ -189,7 +189,7 @@ public class LTSFromDA<Value> extends ModelExplicit<Value> implements LTS<Value>
 	}
 
 	@Override
-	public Model<Value> constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat)
 	{
 		throw new RuntimeException("Not implemented yet");
 	}

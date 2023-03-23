@@ -100,7 +100,7 @@ public abstract class MDPView<Value> extends ModelView<Value> implements MDP<Val
 	}
 
 	@Override
-	public Model<Value> constructInducedModel(final MDStrategy strat)
+	public Model<Value> constructInducedModel(final MDStrategy<Value> strat)
 	{
 		return new DTMCFromMDPAndMDStrategy<>(this, strat);
 	}

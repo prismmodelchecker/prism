@@ -306,7 +306,7 @@ public interface NondetModel<Value> extends Model<Value>
 	 * Note that the "new" model may be just an implicit (read-only) representation. 
 	 * @param strat (Memoryless) strategy to use
 	 */
-	public Model<Value> constructInducedModel(MDStrategy strat);
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat);
 
 	/**
 	 * Export to a dot file, highlighting states in 'mark' and choices for a (memoryless) strategy.

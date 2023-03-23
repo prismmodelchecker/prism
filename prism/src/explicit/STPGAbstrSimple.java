@@ -501,7 +501,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 	}
 
 	@Override
-	public Model<Value> constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat)
 	{
 		throw new RuntimeException("Not implemented");
 	}
@@ -856,7 +856,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 	}
 
 	@Override
-	public void mvMultRewMinMax(double[] vect, STPGRewards rewards, boolean min1, boolean min2, double[] result, BitSet subset, boolean complement, int[] adv, double disc)
+	public void mvMultRewMinMax(double[] vect, STPGRewards<Double> rewards, boolean min1, boolean min2, double[] result, BitSet subset, boolean complement, int[] adv, double disc)
 	{
 		throw new UnsupportedOperationException();
 	}

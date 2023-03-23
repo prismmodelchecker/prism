@@ -378,7 +378,7 @@ public final class ParamModel extends ModelExplicit<Function> implements MDP<Fun
 	}
 
 	@Override
-	public Model<Function> constructInducedModel(MDStrategy strat)
+	public Model<Function> constructInducedModel(MDStrategy<Function> strat)
 	{
 		throw new UnsupportedOperationException();
 	}

@@ -37,8 +37,10 @@ public abstract class MDPExplicit<Value> extends ModelExplicit<Value> implements
 	// Accessors (for MDP)
 
 	@Override
-	public Model<Value> constructInducedModel(MDStrategy strat)
+	public Model<Value> constructInducedModel(MDStrategy<Value> strat)
 	{
-		return new DTMCFromMDPAndMDStrategy<Value>(this, strat);
+		ModelExplicit<Value> dtmcInduced = new DTMCFromMDPAndMDStrategy<Value>(this, strat);
+		dtmcInduced.setEvaluator(getEvaluator());
+		return dtmcInduced;
 	}
 }
