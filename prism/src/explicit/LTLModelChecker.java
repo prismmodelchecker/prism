@@ -67,6 +67,7 @@ import automata.DA;
 import automata.LTL2DA;
 import automata.LTL2WDBA;
 import jltl2ba.SimpleLTL;
+import common.Interval;
 import common.IterableStateSet;
 import common.StopWatch;
 
@@ -527,6 +528,11 @@ public class LTLModelChecker extends PrismComponent
 			break;
 		case POMDP:
 			prodModel = new POMDPSimple<>();
+		case IDTMC:
+			prodModel = new IDTMCSimple<>();
+			break;
+		case IMDP:
+			prodModel = new IMDPSimple<>();
 			break;
 		case STPG:
 			prodModel = new STPGSimple<>();
@@ -538,10 +544,18 @@ public class LTLModelChecker extends PrismComponent
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
-        
+
 		// Now do the actual product model construction
-		// This is a separate method so that we can alter the model type if needed
-		return doConstructProductModel(modelType, prodModel, da, model, labelBS, statesOfInterest);
+		// This is a separate method so that we can alter the model type if needed,
+		// e.g. construct an IMDP<Value> product as one over an MDP<Interval<Value>>
+		switch (modelType) {
+		case IDTMC:
+			return (LTLProduct<M>) doConstructProductModel(ModelType.DTMC, prodModel, da, model, labelBS, statesOfInterest);
+		case IMDP:
+			return (LTLProduct<M>) doConstructProductModel(ModelType.MDP, prodModel, da, model, labelBS, statesOfInterest);
+		default:
+			return doConstructProductModel(modelType, prodModel, da, model, labelBS, statesOfInterest);
+		}
 	}
 	
 	/**

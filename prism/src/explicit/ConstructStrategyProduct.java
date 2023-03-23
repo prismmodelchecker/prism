@@ -86,6 +86,9 @@ public class ConstructStrategyProduct
 		case STPG:
 			productModelType = ModelType.DTMC;
 			break;
+		case IMDP:
+			productModelType = ModelType.IDTMC;
+			break;
 		default:
 			throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
 		}
@@ -102,6 +105,9 @@ public class ConstructStrategyProduct
 		case POMDP:
 			prodModel = new POMDPSimple<>();
 			break;
+		case IDTMC:
+			prodModel = (ModelSimple<Value>) new IDTMCSimple<>();
+			break;
 		case STPG:
 			prodModel = new STPGSimple<>();
 			break;
@@ -111,10 +117,16 @@ public class ConstructStrategyProduct
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
-        
+
 		// Now do the actual product model construction
-		// This is a separate method so that we can alter the model type if needed
-		return doConstructProductModel(modelType, productModelType, prodModel, model, strat);
+		// This is a separate method so that we can alter the model type if needed,
+		// e.g. construct an IMDP<Value> product as one over an MDP<Interval<Value>>
+		switch (modelType) {
+		case IMDP:
+			return doConstructProductModel(ModelType.MDP, ModelType.DTMC, prodModel, model, strat);
+		default:
+			return doConstructProductModel(modelType, productModelType, prodModel, model, strat);
+		}
 	}
 	
 	/**
