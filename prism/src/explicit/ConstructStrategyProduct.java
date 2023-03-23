@@ -49,32 +49,20 @@ import strat.StrategyInfo;
 public class ConstructStrategyProduct
 {
 	/**
-	 * Construct the model induced by a finite-memory strategy on a nondeterministic model
+	 * Construct the product model induced by a finite-memory strategy on a nondeterministic model
+	 * @param model The model
+	 * @param strat The strategy
+	 * @return The product model
 	 */
 	@SuppressWarnings("unchecked")
 	public <Value> Model<Value> constructProductModel(NondetModel<Value> model, Strategy<Value> strat) throws PrismException
 	{
-		ModelType modelType = model.getModelType();
-		int modelNumStates = model.getNumStates();
-		int memSize = strat.getMemorySize();
-		int prodNumStates;
-		int s_1, s_2, q_1, q_2;
-		List<State> prodStatesList = null, memStatesList = null;
-		Value stratChoiceProb = model.getEvaluator().one();
-
 		// This is for finite-memory strategies
 		if (!strat.hasMemory()) {
 			throw new PrismException("Product construction is for finite-memory models");
 		}
 		
-		// Check size limits for this product construction approach 
-		try {
-			prodNumStates = Math.multiplyExact(modelNumStates, memSize);
-		} catch (ArithmeticException e) {
-			throw new PrismException("Size of product state space of model and strategy is too large for explicit engine");
-		}
-
-		// If the model has a VarList, we will create a new one 
+		// If the model has a VarList, we will create a new one
 		VarList newVarList = null;
 		if (model.getVarList() != null) {
 			VarList varList = model.getVarList();
@@ -84,12 +72,13 @@ public class ConstructStrategyProduct
 				memVar = "_" + memVar;
 			}
 			newVarList = (VarList) varList.clone();
-			Declaration decl = new Declaration(memVar, new DeclarationInt(Expression.Int(0), Expression.Int(memSize)));
+			Declaration decl = new Declaration(memVar, new DeclarationInt(Expression.Int(0), Expression.Int(strat.getMemorySize())));
 			newVarList.addVar(0, decl, 1, model.getConstantValues());
 		}
 
 		// Determine type of induced model
 		// (everything reduces to a DTMC for now)
+		ModelType modelType = model.getModelType();
 		ModelType productModelType = null;
 		switch (modelType) {
 		case MDP:
@@ -104,33 +93,58 @@ public class ConstructStrategyProduct
 		// Create a (simple, mutable) model of the appropriate type
 		ModelSimple<Value> prodModel = null;
 		switch (productModelType) {
-		case DTMC: {
-			DTMCSimple<Value> dtmcProd = new DTMCSimple<>();
-			prodModel = dtmcProd;
+		case DTMC:
+			prodModel = new DTMCSimple<>();
 			break;
-		}
-		case MDP: {
-			MDPSimple<Value> mdpProd = new MDPSimple<>();
-			prodModel = mdpProd;
+		case MDP:
+			prodModel = new MDPSimple<>();
 			break;
-		}
-		case POMDP: {
-			MDPSimple<Value> pomdpProd = new POMDPSimple<>();
-			prodModel = pomdpProd;
+		case POMDP:
+			prodModel = new POMDPSimple<>();
 			break;
-		}
-		case STPG: {
-			STPGSimple<Value> stpgProd = new STPGSimple<>();
-			prodModel = stpgProd;
+		case STPG:
+			prodModel = new STPGSimple<>();
 			break;
-		}
 		default:
 			throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
 		}
 		// Attach evaluator and variable info
-        ((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
-        ((ModelExplicit<Value>) prodModel).setVarList(newVarList);
+		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
+		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
+        
+		// Now do the actual product model construction
+		// This is a separate method so that we can alter the model type if needed
+		return doConstructProductModel(modelType, productModelType, prodModel, model, strat);
+	}
+	
+	/**
+	 * Do the main part of the construction of the product model induced
+	 * by a finite-memory strategy on a nondeterministic model,
+	 * inserting states and transitions into the provided ModelSimple object.
+	 * @param modelType The type of the original model
+	 * @param productModelType The type of the product model
+	 * @param prodModel The (empty) product model
+	 * @param model The model
+	 * @param strat The strategy
+	 * @return The product model
+	 */
+	@SuppressWarnings("unchecked")
+	public <Value> Model<Value> doConstructProductModel(ModelType modelType, ModelType productModelType, ModelSimple<Value> prodModel, NondetModel<Value> model, Strategy<Value> strat) throws PrismException
+	{
+		int modelNumStates = model.getNumStates();
+		int memSize = strat.getMemorySize();
+		int prodNumStates;
+		int s_1, s_2, q_1, q_2;
+		List<State> prodStatesList = null, memStatesList = null;
+		Value stratChoiceProb = model.getEvaluator().one();
 
+		// Check size limits for this product construction approach
+		try {
+			prodNumStates = Math.multiplyExact(modelNumStates, memSize);
+		} catch (ArithmeticException e) {
+			throw new PrismException("Size of product state space of model and strategy is too large for explicit engine");
+		}
+		
 		// Encoding: 
 		// each state s' = <s, q> = s * memSize + q
 		// s(s') = s' / memSize

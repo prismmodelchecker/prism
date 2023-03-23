@@ -67,7 +67,6 @@ import automata.DA;
 import automata.LTL2DA;
 import automata.LTL2WDBA;
 import jltl2ba.SimpleLTL;
-
 import common.IterableStateSet;
 import common.StopWatch;
 
@@ -497,25 +496,11 @@ public class LTLModelChecker extends PrismComponent
 	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
 	 * @return The product model
 	 */
-	 public <Value,M extends Model<Value>> LTLProduct<M> constructProductModel(DA<BitSet,? extends AcceptanceOmega> da, M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	@SuppressWarnings("unchecked")
+	public <Value, M extends Model<Value>> LTLProduct<M> constructProductModel(DA<BitSet, ? extends AcceptanceOmega> da, M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
 	{
-		ModelType modelType = model.getModelType();
-		int daSize = da.size();
-		int numAPs = da.getAPList().size();
-		int modelNumStates = model.getNumStates();
-		int prodNumStates;
-		int s_1, s_2, q_1, q_2;
-		BitSet s_labels = new BitSet(numAPs);
-		List<State> prodStatesList = null, daStatesList = null;
-
-		try {
-			prodNumStates = Math.multiplyExact(modelNumStates, daSize);
-		} catch (ArithmeticException e) {
-			throw new PrismException("Size of product state space of model and automaton is too large for explicit engine");
-		}
-
+		// If the model has a VarList, we will create a new one
 		VarList newVarList = null;
-
 		if (model.getVarList() != null) {
 			VarList varList = model.getVarList();
 			// Create a (new, unique) name for the variable that will represent DA states
@@ -531,36 +516,63 @@ public class LTLModelChecker extends PrismComponent
 		}
 
 		// Create a (simple, mutable) model of the appropriate type
-		ModelSimple<Value> prodModel = null;
+		ModelType modelType = model.getModelType();
+		ModelSimple<?> prodModel = null;
 		switch (modelType) {
-		case DTMC: {
-			DTMCSimple<Value> dtmcProd = new DTMCSimple<>();
-			dtmcProd.setVarList(newVarList);
-			prodModel = dtmcProd;
+		case DTMC:
+			prodModel = new DTMCSimple<>();
 			break;
-		}
-		case MDP: {
-			MDPSimple<Value> mdpProd = new MDPSimple<>();
-			mdpProd.setVarList(newVarList);
-			prodModel = mdpProd;
+		case MDP:
+			prodModel = new MDPSimple<>();
 			break;
-		}
-		case POMDP: {
-			POMDPSimple pomdpProd = new POMDPSimple<>();
-			pomdpProd.setVarList(newVarList);
-			prodModel = pomdpProd;
+		case POMDP:
+			prodModel = new POMDPSimple<>();
 			break;
-		}
-		case STPG: {
-			STPGSimple<Value> stpgProd = new STPGSimple<>();
-			stpgProd.setVarList(newVarList);
-			prodModel = stpgProd;
+		case STPG:
+			prodModel = new STPGSimple<>();
 			break;
-		}
 		default:
 			throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 		}
 
+		// Attach evaluator and variable info
+		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
+		((ModelExplicit<Value>) prodModel).setVarList(newVarList);
+        
+		// Now do the actual product model construction
+		// This is a separate method so that we can alter the model type if needed
+		return doConstructProductModel(modelType, prodModel, da, model, labelBS, statesOfInterest);
+	}
+	
+	/**
+	 * Do the main part of the construction of the product of a DA and a model,
+	 * inserting states and transitions into the provided ModelSimple object.
+	 * @param modelType The type of the (original) model
+	 * @param prodModel The (empty) product model
+	 * @param da The DA
+	 * @param model The model
+	 * @param labelBS BitSets giving the set of states for each AP in the DA
+	 * @param statesOfInterest the set of states for which values should be calculated (null = all states)
+	 * @return The product model
+	 */
+	@SuppressWarnings("unchecked")
+	protected <Value, M extends Model<Value>> LTLProduct<M> doConstructProductModel(ModelType modelType, ModelSimple<?> prodModel, DA<BitSet, ? extends AcceptanceOmega> da, M model, Vector<BitSet> labelBS, BitSet statesOfInterest) throws PrismException
+	{
+		int daSize = da.size();
+		int numAPs = da.getAPList().size();
+		int modelNumStates = model.getNumStates();
+		int prodNumStates = Math.multiplyExact(modelNumStates, daSize);
+		int s_1, s_2, q_1, q_2;
+		BitSet s_labels = new BitSet(numAPs);
+		List<State> prodStatesList = null, daStatesList = null;
+
+		// Check size limits for this product construction approach
+		try {
+			prodNumStates = Math.multiplyExact(modelNumStates, daSize);
+		} catch (ArithmeticException e) {
+			throw new PrismException("Size of product state space of model and automaton is too large for explicit engine");
+		}
+		
 		// Encoding: 
 		// each state s' = <s, q> = s * daSize + q
 		// s(s') = s' / daSize
@@ -725,7 +737,6 @@ public class LTLModelChecker extends PrismComponent
 			prodModel.setStatesList(prodStatesList);
 		}
 
-		@SuppressWarnings("unchecked")
 		LTLProduct<M> product = new LTLProduct<M>((M) prodModel, model, null, daSize, invMap);
 
 		// generate acceptance for the product model by lifting
