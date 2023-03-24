@@ -1310,6 +1310,7 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 	/**
 	 * Same as {@link #setSomeUndefinedConstants(Values)}.
 	 * Note: This method no longer throws an exception if some constants are undefined.
+	 * Deprecated: Just use {@link #setSomeUndefinedConstants(Values)}.
 	 * @deprecated
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismException

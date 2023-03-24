@@ -77,8 +77,10 @@ public interface ModelInfo
 
 	/**
 	 * Set values for some undefined constants.
-	 * Deprecated. Better to use {@link #setSomeUndefinedConstants(EvaluateContext)}.
-	 * @deprecated
+	 * It is preferable to use {@link #setSomeUndefinedConstants(EvaluateContext)} instead.
+	 * By default, this method creates an {@link EvaluateContext} via {@link EvaluateContext#create(someValues)}.
+	 * If this will be called frequently, it is better to maintain your own {@link EvaluateContext}.
+	 * Also, this method can only handle the default (floating point) evaluation mode.
 	 */
 	public default void setSomeUndefinedConstants(Values someValues) throws PrismException
 	{

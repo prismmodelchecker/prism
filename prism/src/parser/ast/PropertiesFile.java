@@ -542,8 +542,10 @@ public class PropertiesFile extends ASTElement
 
 	/**
 	 * Set values for some undefined constants.
-	 * Deprecated. Better to use {@link #setSomeUndefinedConstants(EvaluateContext)}.
-	 * @deprecated
+	 * It is preferable to use {@link #setSomeUndefinedConstants(EvaluateContext)} instead.
+	 * By default, this method creates an {@link EvaluateContext} via {@link EvaluateContext#create(someValues)}.
+	 * If this will be called frequently, it is better to maintain your own {@link EvaluateContext}.
+	 * Also, this method can only handle the default (floating point) evaluation mode.
 	 */
 	public void setSomeUndefinedConstants(Values someValues) throws PrismException
 	{
@@ -563,6 +565,7 @@ public class PropertiesFile extends ASTElement
 	/**
 	 * Same as {@link #setSomeUndefinedConstants(Values)}.
 	 * Note: This method no longer throws an exception if some constants are undefined.
+	 * Deprecated: Just use {@link #setSomeUndefinedConstants(Values)}.
 	 * @deprecated
 	 */
 	public void setUndefinedConstants(Values someValues) throws PrismException
