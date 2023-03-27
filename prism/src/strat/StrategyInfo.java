@@ -147,6 +147,18 @@ public interface StrategyInfo<Value>
 	}
 	
 	/**
+	 * For a strategy with memory, get a description of a given memory value.
+	 * By default, this is a just the integer value of the memory as a string,
+	 * but some strategies will provide a more meaningful representation.
+	 * Returns "?" if memory is not applicable (or unknown).
+	 * @param m Memory value to look up
+	 */
+    public default String getMemoryString(int m)
+    {
+		return m == -1 ? "?" : Integer.toString(m);
+    }
+    
+	/**
 	 * Get an Evaluator for the probability values returned when this strategy is randomised.
 	 * By default, this is an evaluator for the (usual) case when Value is Double.
 	 */

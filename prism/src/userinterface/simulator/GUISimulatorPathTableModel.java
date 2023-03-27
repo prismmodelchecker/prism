@@ -391,7 +391,9 @@ public class GUISimulatorPathTableModel extends AbstractTableModel implements GU
 				}
 				return rewardStructureValue;
 			case MEMORY:
-				memoryValue = view.new MemoryValue(path.getStrategyMemory(rowIndex));
+				int memory = path.getStrategyMemory(rowIndex);
+				String memoryString = simulator.getSimulatorEngine().getStrategy().getMemoryString(memory);
+				memoryValue = view.new MemoryValue(memoryString);
 				memoryValue.setMemoryValueUnknown(rowIndex > path.size()); // Never unknown
 				return memoryValue;
 			default:
