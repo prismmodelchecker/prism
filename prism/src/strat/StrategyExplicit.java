@@ -40,7 +40,11 @@ public abstract class StrategyExplicit<Value> extends StrategyWithStates<Value>
 	public StrategyExplicit(NondetModel<Value> model)
 	{
 		this.model = model;
-		setStateLookUp(state -> model.getStatesList().indexOf(state));
+		if (model.getStatesList() != null) {
+			setStateLookUp(state -> model.getStatesList().indexOf(state));
+		} else {
+			setStateLookUp(state -> -1);
+		}
 	}
 	
 	@Override
