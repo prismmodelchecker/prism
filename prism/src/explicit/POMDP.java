@@ -117,6 +117,27 @@ public interface POMDP<Value> extends MDP<Value>, PartiallyObservableModel<Value
 	public Object getActionForObservation(int o, int i);
 	
 	/**
+	 * Get the index of the (first) choice of observation {@code o} with action label {@code action}.
+	 * Action labels (which are {@link Object}s) are tested for equality using {@link Object#equals()}.
+	 * Returns -1 if there is no matching action.
+	 */
+	public default int getChoiceByActionForObservation(int o, Object action)
+	{
+		int numChoices = getNumChoicesForObservation(o);
+		for (int i = 0; i < numChoices; i++) {
+			Object a = getActionForObservation(o, i);
+			if (a == null) {
+				if (action == null) {
+					return i;
+				}
+			} else if (a.equals(action)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
 	 * Get the initial belief state, as a {@link Belief} object.
 	 */
 	public Belief getInitialBelief();

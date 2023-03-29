@@ -28,6 +28,7 @@
 package explicit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,14 +43,8 @@ import explicit.graphviz.Decoration;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.StateRewardsSimple;
-import prism.Accuracy;
-import prism.AccuracyFactory;
-import prism.Pair;
-import prism.PrismComponent;
-import prism.PrismException;
-import prism.PrismNotSupportedException;
-import prism.PrismSettings;
-import prism.PrismUtils;
+import prism.*;
+import strat.FMDObsStrategyBeliefs;
 
 /**
  * Explicit-state model checker for partially observable Markov decision processes (POMDPs).
@@ -85,14 +80,17 @@ public class POMDPModelChecker extends ProbModelChecker
 	/**
 	 * A model constructed to represent a fragment of a belief MDP induced by a strategy:
 	 * (1) the model (represented as an MDP for ease of storing actions labels)
-	 * (2) optionally, a reward structure
-	 * (3) a list of the beliefs corresponding to each state of the model
+	 * (2) states of the MDP, of the form (o,m) where o is the index of an observable
+	 *     and m is the index (into unobsBeliefs) of a distribution over unobservables
+	 * (3) list of distributions over unobservables appearing in belief states
+	 * (4) optionally, a reward structure
 	 */
 	class POMDPStrategyModel
 	{
 		public MDP<Double> mdp;
+		public List<int[]> mdpStates;
+		public List<double[]> unobsBeliefs;
 		public MDPRewards<Double> mdpRewards;
-		public List<Belief> beliefs;
 	}
 	
 	/**
@@ -243,30 +241,25 @@ public class POMDPModelChecker extends ProbModelChecker
 		POMDPStrategyModel psm = buildStrategyModel(pomdp, sInit, null, targetObs, unknownObs, backup);
 		MDP<Double> mdp = psm.mdp;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
-		
-		// Export strategy if requested
-		// NB: proper storage of strategy for genStrat not yet supported,
-		// so just treat it as if -exportadv had been used, with default file (adv.tra)
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+
+		// Create/export strategy if requested
+		// (exporting in Dot format if filename extension is .dot, otherwise .tra format)
+		FMDObsStrategyBeliefs stratFmdObs = null;
 		if (genStrat || exportAdv) {
-			// Export in Dot format if filename extension is .dot
-			if (exportAdvFilename.endsWith(".dot")) {
-				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
-				{
-					@Override
-					public Decoration decorateState(int state, Decoration d)
-					{
-						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
-						return d;
-					}
-				}), precision);
-			}
-			// Otherwise use .tra format
-			else {
-				mdp.exportToPrismExplicitTra(exportAdvFilename, precision);
+			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
+		}
+		if (exportAdv) {
+			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+			try (PrismFileLog out = PrismFileLog.create(exportAdvFilename)) {
+				if (exportAdvFilename.endsWith(".dot")) {
+					stratFmdObs.exportDotFileObs(out, precision);
+				} else {
+					stratFmdObs.exportInducedModelObs(out, precision);
+				}
 			}
 		}
-		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
+
+		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one)
 		MDPModelChecker mcMDP = new MDPModelChecker(this);
 		mcMDP.setExportAdv(false);
 		mcMDP.setGenStrat(false);
@@ -302,6 +295,11 @@ public class POMDPModelChecker extends ProbModelChecker
 
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
+		
+		if (genStrat) {
+			res.strat = stratFmdObs;
+		}
+		
 		res.soln = soln;
 		res.accuracy = resultAcc;
 		res.numIters = iters;
@@ -451,26 +449,20 @@ public class POMDPModelChecker extends ProbModelChecker
 		MDPRewards<Double> mdpRewardsNew = psm.mdpRewards;
 		mainLog.print("Strategy-induced model: " + mdp.infoString());
 		
-		// Export strategy if requested
-		// NB: proper storage of strategy for genStrat not yet supported,
-		// so just treat it as if -exportadv had been used, with default file (adv.tra)
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+		// Create/export strategy if requested
+		// (exporting in Dot format if filename extension is .dot, otherwise .tra format)
+		FMDObsStrategyBeliefs stratFmdObs = null;
 		if (genStrat || exportAdv) {
-			// Export in Dot format if filename extension is .dot
-			if (exportAdvFilename.endsWith(".dot")) {
-				mdp.exportToDotFile(exportAdvFilename, Collections.singleton(new Decorator()
-				{
-					@Override
-					public Decoration decorateState(int state, Decoration d)
-					{
-						d.labelAddBelow(psm.beliefs.get(state).toString(pomdp));
-						return d;
-					}
-				}), precision);
-			}
-			// Otherwise use .tra format
-			else {
-				mdp.exportToPrismExplicitTra(exportAdvFilename, precision);
+			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
+		}
+		if (exportAdv) {
+			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
+			try (PrismFileLog out = PrismFileLog.create(exportAdvFilename)) {
+				if (exportAdvFilename.endsWith(".dot")) {
+					stratFmdObs.exportDotFileObs(out, precision);
+				} else {
+					stratFmdObs.exportInducedModelObs(out, precision);
+				}
 			}
 		}
 
@@ -509,6 +501,9 @@ public class POMDPModelChecker extends ProbModelChecker
 
 		// Return results
 		ModelCheckerResult res = new ModelCheckerResult();
+		if (genStrat) {
+			res.strat = stratFmdObs;
+		}
 		res.soln = soln;
 		res.accuracy = resultAcc;
 		res.numIters = iters;
@@ -770,13 +765,15 @@ public class POMDPModelChecker extends ProbModelChecker
 	{
 		// Initialise model/state/rewards storage
 		MDPSimple<Double> mdp = new MDPSimple<>();
-		IndexedSet<Belief> exploredBeliefs = new IndexedSet<>(true);
+		IndexedSet<double[]> unobsBeliefs = new IndexedSet<>((a, b) -> Arrays.compare(a, b));
+		IndexedSet<int[]> exploredBeliefs = new IndexedSet<>((a, b) -> Arrays.compare(a, b));
 		LinkedList<Belief> toBeExploredBeliefs = new LinkedList<>();
 		BitSet mdpTarget = new BitSet();
 		StateRewardsSimple<Double> stateRewards = new StateRewardsSimple<>();
 		// Add initial state
 		Belief initialBelief = Belief.pointDistribution(sInit, pomdp);
-		exploredBeliefs.add(initialBelief);
+		unobsBeliefs.add(initialBelief.bu);
+		exploredBeliefs.add(new int[] {initialBelief.so, unobsBeliefs.getIndexOfLastAdd()});
 		toBeExploredBeliefs.offer(initialBelief);
 		mdp.addState();
 		mdp.addInitialState(0);
@@ -801,8 +798,10 @@ public class POMDPModelChecker extends ProbModelChecker
 				for (Map.Entry<Belief, Double> entry : beliefMDPState.trans.get(chosenActionIndex).entrySet()) {
 					double nextBeliefProb = entry.getValue();
 					Belief nextBelief = entry.getKey();
+					unobsBeliefs.add(nextBelief.bu);
+					int[] next = new int[] {nextBelief.so, unobsBeliefs.getIndexOfLastAdd()};
 					// Add each successor belief to the MDP and the "to explore" set if new
-					if (exploredBeliefs.add(nextBelief)) {
+					if (exploredBeliefs.add(next)) {
 						toBeExploredBeliefs.add(nextBelief);
 						mdp.addState();
 					}
@@ -829,9 +828,11 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Return
 		POMDPStrategyModel psm = new POMDPStrategyModel();
 		psm.mdp = mdp;
+		psm.mdpStates = new ArrayList<>();
+		psm.mdpStates.addAll(exploredBeliefs.toArrayList());
+		psm.unobsBeliefs = new ArrayList<>();
+		psm.unobsBeliefs.addAll(unobsBeliefs.toArrayList());
 		psm.mdpRewards = stateRewards;
-		psm.beliefs = new ArrayList<>();
-		psm.beliefs.addAll(exploredBeliefs.toArrayList());
 		return psm;
 	}
 	
