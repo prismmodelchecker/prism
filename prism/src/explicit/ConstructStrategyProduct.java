@@ -93,6 +93,7 @@ public class ConstructStrategyProduct
 		ModelType productModelType = null;
 		switch (modelType) {
 		case MDP:
+		case POMDP:
 		case STPG:
 			productModelType = ModelType.DTMC;
 			break;
@@ -111,6 +112,11 @@ public class ConstructStrategyProduct
 		case MDP: {
 			MDPSimple<Value> mdpProd = new MDPSimple<>();
 			prodModel = mdpProd;
+			break;
+		}
+		case POMDP: {
+			MDPSimple<Value> pomdpProd = new POMDPSimple<>();
+			prodModel = pomdpProd;
 			break;
 		}
 		case STPG: {
@@ -199,6 +205,9 @@ public class ConstructStrategyProduct
 				case MDP:
 					iter = ((MDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
+				case POMDP:
+					iter = ((POMDP<Value>) model).getTransitionsIterator(s_1, j);
+					break;
 				case STPG:
 					iter = ((STPG<Value>) model).getTransitionsIterator(s_1, j);
 					break;
@@ -243,6 +252,7 @@ public class ConstructStrategyProduct
 						((DTMCSimple<Value>) prodModel).setProbability(map[s_1 * memSize + q_1], map[s_2 * memSize + q_2], prob);
 						break;
 					case MDP:
+					case POMDP:
 					case STPG:
 						prodDistr.set(map[s_2 * memSize + q_2], prob);
 						break;
@@ -253,6 +263,9 @@ public class ConstructStrategyProduct
 				switch (productModelType) {
 				case MDP:
 					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((MDP<Value>) model).getAction(s_1, j));
+					break;
+				case POMDP:
+					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
 					break;
 				case STPG:
 					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((STPG<Value>) model).getAction(s_1, j));

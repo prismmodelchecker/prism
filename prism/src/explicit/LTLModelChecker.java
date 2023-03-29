@@ -545,6 +545,12 @@ public class LTLModelChecker extends PrismComponent
 			prodModel = mdpProd;
 			break;
 		}
+		case POMDP: {
+			POMDPSimple pomdpProd = new POMDPSimple<>();
+			pomdpProd.setVarList(newVarList);
+			prodModel = pomdpProd;
+			break;
+		}
 		case STPG: {
 			STPGSimple<Value> stpgProd = new STPGSimple<>();
 			stpgProd.setVarList(newVarList);
@@ -625,6 +631,9 @@ public class LTLModelChecker extends PrismComponent
 				case MDP:
 					iter = ((MDP<Value>) model).getTransitionsIterator(s_1, j);
 					break;
+				case POMDP:
+					iter = ((POMDP<Value>) model).getTransitionsIterator(s_1, j);
+					break;
 				case STPG:
 					iter = ((STPG<Value>) model).getTransitionsIterator(s_1, j);
 					break;
@@ -670,6 +679,7 @@ public class LTLModelChecker extends PrismComponent
 						((DTMCSimple<Value>) prodModel).setProbability(map[s_1 * daSize + q_1], map[s_2 * daSize + q_2], prob);
 						break;
 					case MDP:
+					case POMDP:
 					case STPG:
 						prodDistr.set(map[s_2 * daSize + q_2], prob);
 						break;
@@ -681,12 +691,23 @@ public class LTLModelChecker extends PrismComponent
 				case MDP:
 					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((MDP<Value>) model).getAction(s_1, j));
 					break;
+				case POMDP:
+					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
+					break;
 				case STPG:
 					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((STPG<Value>) model).getAction(s_1, j));
 					break;
 				default:
 					break;
 				}
+			}
+			
+			// For partially observable models, transfer observation info
+			// (do it after transitions are added, since observation actions are checked)
+			if (modelType == ModelType.POMDP) {
+				State o = ((POMDP) model).getObservationAsState(s_1);
+				State u = ((POMDP) model).getUnobservationAsState(s_1);
+				((POMDPSimple) prodModel).setObservation(map[s_1 * daSize + q_1], o, u, null);
 			}
 		}
 
