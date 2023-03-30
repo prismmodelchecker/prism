@@ -105,9 +105,9 @@ public class StateRewardsSimple<Value> extends StateRewards<Value>
 	// Converters
 	
 	@Override
-	public StateRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
+	public StateRewards<Value> liftFromModel(Product<?> product)
 	{
-		Model<Value> modelProd = product.getProductModel();
+		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
 		StateRewardsSimple<Value> rewardsProd = new StateRewardsSimple<>();
 		for (int s = 0; s < numStatesProd; s++) {

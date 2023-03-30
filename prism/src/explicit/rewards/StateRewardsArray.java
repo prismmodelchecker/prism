@@ -87,9 +87,9 @@ public class StateRewardsArray extends StateRewards<Double>
 	// Converters
 	
 	@Override
-	public StateRewards<Double> liftFromModel(Product<? extends Model<Double>> product)
+	public StateRewards<Double> liftFromModel(Product<?> product)
 	{
-		Model<Double> modelProd = product.getProductModel();
+		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
 		StateRewardsArray rewardsProd = new StateRewardsArray(numStatesProd);
 		for (int s = 0; s < numStatesProd; s++) {

@@ -48,5 +48,5 @@ public interface STPGRewards<Value> extends MDPRewards<Value>
 	public abstract MDPRewards<Value> buildMDPRewards();
 
 	@Override
-	public STPGRewards<Value> liftFromModel(Product<? extends Model<Value>> product);
+	public STPGRewards<Value> liftFromModel(Product<?> product);
 }

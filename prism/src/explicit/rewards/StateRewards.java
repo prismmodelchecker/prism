@@ -58,7 +58,7 @@ public abstract class StateRewards<Value> extends RewardsExplicit<Value> impleme
 	}
 	
 	@Override
-	public abstract StateRewards<Value> liftFromModel(Product<? extends Model<Value>> product);
+	public abstract StateRewards<Value> liftFromModel(Product<?> product);
 	
 	/**
 	 * Perform a deep copy.

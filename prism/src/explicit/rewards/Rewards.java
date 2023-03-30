@@ -40,7 +40,7 @@ public interface Rewards<Value>
 	 * Create a new reward structure that lifts this one such that it is defined over states of a
 	 * model that is a product of the one that this reward structure is defined over. 
 	 */
-	public Rewards<Value> liftFromModel(Product<? extends Model<Value>> product);
+	public Rewards<Value> liftFromModel(Product<?> product);
 
 	/** Returns true if this reward structure has transition rewards */
 	public boolean hasTransitionRewards();

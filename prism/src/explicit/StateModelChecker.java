@@ -1619,7 +1619,7 @@ public class StateModelChecker extends PrismComponent
 	/**
 	 * Do any exports after a model-automaton product construction, if requested
 	 */
-	public void doProductExports(Product<? extends Model> product) throws PrismException
+	public void doProductExports(Product<?> product) throws PrismException
 	{
 		if (getExportProductTrans()) {
 			mainLog.println("\nExporting product transition matrix to file \"" + getExportProductTransFilename() + "\"...");

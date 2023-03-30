@@ -140,13 +140,13 @@ public class STPGRewardsSimple<Value> extends MDPRewardsSimple<Value> implements
 	// Converters
 	
 	@Override
-	public STPGRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
+	public STPGRewards<Value> liftFromModel(Product<?> product)
 	{
 		// Lift MDP part
 		MDPRewardsSimple<Value> rewardsProdMDP = (MDPRewardsSimple<Value>) ((MDPRewardsSimple<Value>) this).liftFromModel(product);
 		STPGRewardsSimple<Value> rewardsProd = new STPGRewardsSimple<>(rewardsProdMDP);
 		// Lift nested transition rewards
-		Model<Value> modelProd = product.getProductModel();
+		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();		
 		if (nestedTransRewards != null) {
 			for (int s = 0; s < numStatesProd; s++) {

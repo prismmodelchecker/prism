@@ -41,16 +41,17 @@ import prism.PrismLog;
 public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 {
 	// Product model associated with the strategy
-	private Product<? extends NondetModel<?>> product;
+	private Product<?> product;
 	// Memoryless strategy over product model
 	private MDStrategy<Value> strat;
 	
 	/**
 	 * Creates an MDStrategyArray from a memoryless Strategy and an explicit engine product model.
 	 */
-	public FMDStrategyProduct(Product<? extends NondetModel<Value>> product, MDStrategy<Value> strat)
+	@SuppressWarnings("unchecked")
+	public FMDStrategyProduct(Product<?> product, MDStrategy<Value> strat)
 	{
-		super(product.getOriginalModel());
+		super((NondetModel<Value>) product.getOriginalModel());
 		this.product = product;
 		this.strat = strat;
 	}

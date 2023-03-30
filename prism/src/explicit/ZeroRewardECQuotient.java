@@ -156,7 +156,7 @@ public class ZeroRewardECQuotient<Value>
 			}
 
 			@Override
-			public MDPRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
+			public MDPRewards<Value> liftFromModel(Product<?> product)
 			{
 				throw new RuntimeException("Not implemented");
 			}

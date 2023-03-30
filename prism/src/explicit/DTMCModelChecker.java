@@ -1341,7 +1341,7 @@ public class DTMCModelChecker extends ProbModelChecker
 				}
 
 				@Override
-				public MDPRewards<Double> liftFromModel(Product<? extends Model<Double>> product)
+				public MDPRewards<Double> liftFromModel(Product<?> product)
 				{
 					throw new RuntimeException("Unsupported");
 				}

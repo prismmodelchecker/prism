@@ -60,7 +60,7 @@ public class MCRewardsFromMDPRewards<Value> extends RewardsExplicit<Value> imple
 	}
 	
 	@Override
-	public MCRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
+	public MCRewards<Value> liftFromModel(Product<?> product)
 	{
 		throw new UnsupportedOperationException();
 	}

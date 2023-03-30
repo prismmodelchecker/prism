@@ -190,9 +190,9 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	// Converters
 	
 	@Override
-	public MDPRewards<Value> liftFromModel(Product<? extends Model<Value>> product)
+	public MDPRewards<Value> liftFromModel(Product<?> product)
 	{
-		Model<Value> modelProd = product.getProductModel();
+		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();		
 		MDPRewardsSimple<Value> rewardsProd = new MDPRewardsSimple<>(numStatesProd);
 		if (stateRewards != null) {
