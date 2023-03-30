@@ -223,6 +223,278 @@ class ReducibleStaticTest
 	}
 
 	@ParameterizedTest
+	@MethodSource("getIterables")
+	void testConcatIterable(Iterable<?> iterable)
+	{
+		ArrayList<Object> expected = new ArrayList<>();
+		iterable.forEach(expected::add);
+		iterable.forEach(expected::add);
+		FunctionalIterable<Object> actual = Reducible.concat(List.of(iterable, iterable));
+		assertIterableEquals(expected, actual);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterables")
+	void testConcatIterator(Iterable<?> iterable)
+	{
+		ArrayList<Object> expected = new ArrayList<>();
+		iterable.forEach(expected::add);
+		iterable.forEach(expected::add);
+		FunctionalIterator<Object> actual = Reducible.concat(List.of(iterable.iterator(), iterable.iterator()).iterator());
+		assertIteratorEquals(expected.iterator(), actual);
+	}
+
+	@Test
+	void testConcatIterable_Empty()
+	{
+		EmptyIterable<Object> expected = EmptyIterable.of();
+		Iterable<Object> actual = Reducible.concat(EmptyIterable.of());
+		assertIterableEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatIterator_Empty()
+	{
+		EmptyIterator<Object> expected = EmptyIterator.of();
+		Iterator<Object> actual = Reducible.concat(EmptyIterator.of());
+		assertIteratorEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatIterable_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concat((Iterable<Iterable<?>>) null));
+	}
+
+	@Test
+	void testConcatIterator_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concat((Iterator<Iterator<?>>) null));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatIterable_NullValues(Iterable<Iterable<?>> iterable)
+	{
+		FunctionalIterable<Object> result = Reducible.concat(iterable);
+		assertThrows(NullPointerException.class, result::consume);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatIterator_NullValues(Iterable<Iterator<?>> iterable)
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concat(iterable.iterator()));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesDouble")
+	void testConcatDoubleIterable(Iterable<Double> iterable)
+	{
+		ArrayList<Double> expectedBoxed = new ArrayList<>();
+		iterable.forEach(expectedBoxed::add);
+		iterable.forEach(expectedBoxed::add);
+		FunctionalPrimitiveIterable.OfDouble expected = Reducible.unboxDouble(expectedBoxed);
+		FunctionalPrimitiveIterable.OfDouble unboxed = Reducible.unboxDouble(iterable);
+		FunctionalPrimitiveIterable.OfDouble actual = Reducible.concatDouble(List.of(unboxed, unboxed));
+		assertIterableEquals(expected, actual);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesDouble")
+	void testConcatDoubleIterator(Iterable<Double> iterable)
+	{
+		ArrayList<Double> expectedBoxed = new ArrayList<>();
+		iterable.forEach(expectedBoxed::add);
+		iterable.forEach(expectedBoxed::add);
+		FunctionalPrimitiveIterable.OfDouble expected = Reducible.unboxDouble(expectedBoxed);
+		FunctionalPrimitiveIterable.OfDouble unboxed = Reducible.unboxDouble(iterable);
+		FunctionalPrimitiveIterator.OfDouble actual = Reducible.concatDouble(List.of(unboxed.iterator(), unboxed.iterator()).iterator());
+		assertIteratorEquals(expected.iterator(), actual);
+	}
+
+	@Test
+	void testConcatDoubleIterable_Empty()
+	{
+		EmptyIterable.OfDouble expected = EmptyIterable.ofDouble();
+		FunctionalPrimitiveIterable.OfDouble actual = Reducible.concatDouble(EmptyIterable.of());
+		assertIterableEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatDoubleIterator_Empty()
+	{
+		EmptyIterator.OfDouble expected = EmptyIterator.ofDouble();
+		FunctionalPrimitiveIterator.OfDouble actual = Reducible.concatDouble(EmptyIterator.of());
+		assertIteratorEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatDoubleIterable_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concatDouble((Iterable<PrimitiveIterable.OfDouble>) null));
+	}
+
+	@Test
+	void testConcatDoubleIterator_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concat((Iterator<PrimitiveIterator.OfDouble>) null));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatDoubleIterable_NullValues(Iterable<PrimitiveIterable.OfDouble> iterable)
+	{
+		FunctionalPrimitiveIterable.OfDouble result = Reducible.concatDouble(iterable);
+		assertThrows(NullPointerException.class, result::consume);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatDoubleIterator_NullValues(Iterable<PrimitiveIterator.OfDouble> iterable)
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concatDouble(iterable.iterator()));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesInt")
+	void testConcatIntIterable(Iterable<Integer> iterable)
+	{
+		ArrayList<Integer> expectedBoxed = new ArrayList<>();
+		iterable.forEach(expectedBoxed::add);
+		iterable.forEach(expectedBoxed::add);
+		FunctionalPrimitiveIterable.OfInt expected = Reducible.unboxInt(expectedBoxed);
+		FunctionalPrimitiveIterable.OfInt unboxed = Reducible.unboxInt(iterable);
+		FunctionalPrimitiveIterable.OfInt actual = Reducible.concatInt(List.of(unboxed, unboxed));
+		assertIterableEquals(expected, actual);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesInt")
+	void testConcatIntIterator(Iterable<Integer> iterable)
+	{
+		ArrayList<Integer> expectedBoxed = new ArrayList<>();
+		iterable.forEach(expectedBoxed::add);
+		iterable.forEach(expectedBoxed::add);
+		FunctionalPrimitiveIterable.OfInt expected = Reducible.unboxInt(expectedBoxed);
+		FunctionalPrimitiveIterable.OfInt unboxed = Reducible.unboxInt(iterable);
+		FunctionalPrimitiveIterator.OfInt actual = Reducible.concatInt(List.of(unboxed.iterator(), unboxed.iterator()).iterator());
+		assertIteratorEquals(expected.iterator(), actual);
+	}
+
+	@Test
+	void testConcatIntIterable_Empty()
+	{
+		EmptyIterable.OfInt expected = EmptyIterable.ofInt();
+		FunctionalPrimitiveIterable.OfInt actual = Reducible.concatInt(EmptyIterable.of());
+		assertIterableEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatIntIterator_Empty()
+	{
+		EmptyIterator.OfInt expected = EmptyIterator.ofInt();
+		FunctionalPrimitiveIterator.OfInt actual = Reducible.concatInt(EmptyIterator.of());
+		assertIteratorEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatIntIterable_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concatInt((Iterable<PrimitiveIterable.OfInt>) null));
+	}
+
+	@Test
+	void testConcatIntIterator_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concat((Iterator<PrimitiveIterator.OfInt>) null));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatIntIterable_NullValues(Iterable<PrimitiveIterable.OfInt> iterable)
+	{
+		FunctionalPrimitiveIterable.OfInt result = Reducible.concatInt(iterable);
+		assertThrows(NullPointerException.class, result::consume);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatIntIterator_NullValues(Iterable<PrimitiveIterator.OfInt> iterable)
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concatInt(iterable.iterator()));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesLong")
+	void testConcatLongIterable(Iterable<Long> iterable)
+	{
+		ArrayList<Long> expectedBoxed = new ArrayList<>();
+		iterable.forEach(expectedBoxed::add);
+		iterable.forEach(expectedBoxed::add);
+		FunctionalPrimitiveIterable.OfLong expected = Reducible.unboxLong(expectedBoxed);
+		FunctionalPrimitiveIterable.OfLong unboxed = Reducible.unboxLong(iterable);
+		FunctionalPrimitiveIterable.OfLong actual = Reducible.concatLong(List.of(unboxed, unboxed));
+		assertIterableEquals(expected, actual);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesLong")
+	void testConcatLongIterator(Iterable<Long> iterable)
+	{
+		ArrayList<Long> expectedBoxed = new ArrayList<>();
+		iterable.forEach(expectedBoxed::add);
+		iterable.forEach(expectedBoxed::add);
+		FunctionalPrimitiveIterable.OfLong expected = Reducible.unboxLong(expectedBoxed);
+		FunctionalPrimitiveIterable.OfLong unboxed = Reducible.unboxLong(iterable);
+		FunctionalPrimitiveIterator.OfLong actual = Reducible.concatLong(List.of(unboxed.iterator(), unboxed.iterator()).iterator());
+		assertIteratorEquals(expected.iterator(), actual);
+	}
+
+	@Test
+	void testConcatLongIterable_Empty()
+	{
+		EmptyIterable.OfLong expected = EmptyIterable.ofLong();
+		FunctionalPrimitiveIterable.OfLong actual = Reducible.concatLong(EmptyIterable.of());
+		assertIterableEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatLongIterator_Empty()
+	{
+		EmptyIterator.OfLong expected = EmptyIterator.ofLong();
+		FunctionalPrimitiveIterator.OfLong actual = Reducible.concatLong(EmptyIterator.of());
+		assertIteratorEquals(expected, actual);
+	}
+
+	@Test
+	void testConcatLongIterable_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concatLong((Iterable<PrimitiveIterable.OfLong>) null));
+	}
+
+	@Test
+	void testConcatLongIterator_Null()
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concat((Iterator<PrimitiveIterator.OfLong>) null));
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatLongIterable_NullValues(Iterable<PrimitiveIterable.OfLong> iterable)
+	{
+		FunctionalPrimitiveIterable.OfLong result = Reducible.concatLong(iterable);
+		assertThrows(NullPointerException.class, result::consume);
+	}
+
+	@ParameterizedTest
+	@MethodSource("getIterablesNull")
+	void testConcatLongIterator_NullValues(Iterable<PrimitiveIterator.OfLong> iterable)
+	{
+		assertThrows(NullPointerException.class, () -> Reducible.concatLong(iterable.iterator()));
+	}
+
+	@ParameterizedTest
 	@MethodSource("getIterablesDouble")
 	@DisplayName("unboxDouble() yields same sequence as the underlying iterable.")
 	void testUnboxDoubleIterable(Iterable<Double> iterable)
