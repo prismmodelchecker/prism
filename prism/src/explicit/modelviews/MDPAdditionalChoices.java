@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
 
+import common.iterable.FunctionalPrimitiveIterable;
 import common.iterable.SingletonIterator;
 import explicit.MDP;
 import parser.State;
@@ -104,7 +105,7 @@ public class MDPAdditionalChoices<Value> extends MDPView<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return model.getInitialStates();
 	}
@@ -232,8 +233,7 @@ public class MDPAdditionalChoices<Value> extends MDPView<Value>
 
 	public static <Value> MDPView<Value> fixDeadlocks(final MDP<Value> model)
 	{
-		final BitSet deadlockStates = new BitSet();
-		model.getDeadlockStates().forEach(deadlockStates::set);
+		final BitSet deadlockStates = model.getDeadlockStates().collect(new BitSet());
 		final MDPView<Value> fixed = addSelfLoops(model, deadlockStates);
 		fixed.deadlockStates = deadlockStates;
 		fixed.fixedDeadlocks = true;

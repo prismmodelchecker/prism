@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import common.iterable.FunctionalPrimitiveIterable;
 import parser.State;
 import parser.Values;
 import prism.PrismException;
@@ -98,7 +99,7 @@ public class DTMCUniformisedSimple<Value> extends DTMCExplicit<Value>
 		return ctmc.getNumInitialStates();
 	}
 
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return ctmc.getInitialStates();
 	}
@@ -120,7 +121,7 @@ public class DTMCUniformisedSimple<Value> extends DTMCExplicit<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getDeadlockStates()
+	public FunctionalPrimitiveIterable.OfInt getDeadlockStates()
 	{
 		return ctmc.getDeadlockStates();
 	}

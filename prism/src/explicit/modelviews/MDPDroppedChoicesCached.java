@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import common.functions.PairPredicateInt;
+import common.iterable.FunctionalPrimitiveIterable;
 import explicit.Distribution;
 import explicit.MDP;
 import parser.State;
@@ -111,7 +112,7 @@ public class MDPDroppedChoicesCached<Value> extends MDPView<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return model.getInitialStates();
 	}

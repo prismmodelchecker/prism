@@ -31,15 +31,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 import common.IterableStateSet;
+import common.iterable.*;
 import explicit.rewards.STPGRewards;
 import prism.PrismException;
 import prism.PrismLog;
@@ -285,17 +281,12 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 	}
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	public FunctionalPrimitiveIterator.OfInt getSuccessorsIterator(final int s)
 	{
 		// Need to build set to avoid duplicates
 		// So not necessarily the fastest method to access successors
-		HashSet<Integer> succs = new HashSet<Integer>();
-		for (DistributionSet<Value> distrs : trans.get(s)) {
-			for (Distribution<Value> distr : distrs) {
-				succs.addAll(distr.getSupport());
-			}
-		}
-		return succs.iterator();
+		FunctionalIterable<Integer> support = Reducible.concat(trans.get(s)).flatMap(Distribution::getSupport).distinct();
+		return Reducible.unboxInt(support.iterator());
 	}
 
 	@Override

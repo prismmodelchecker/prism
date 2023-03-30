@@ -39,6 +39,7 @@ import java.util.function.IntUnaryOperator;
 import common.functions.PairPredicateInt;
 import common.IterableBitSet;
 import common.IterableStateSet;
+import common.iterable.FunctionalPrimitiveIterable;
 import common.iterable.Reducible;
 import explicit.BasicModelTransformation;
 import explicit.MDP;
@@ -142,7 +143,7 @@ public class MDPEquiv<Value> extends MDPView<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return model.getInitialStates();
 	}

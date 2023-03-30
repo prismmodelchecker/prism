@@ -38,6 +38,8 @@ import java.util.PrimitiveIterator.OfInt;
 import java.util.function.Function;
 
 import common.IterableStateSet;
+import common.iterable.FunctionalPrimitiveIterator;
+import common.iterable.IterableArray;
 import common.iterable.PrimitiveIterable;
 import explicit.rewards.MCRewards;
 import prism.PrismException;
@@ -151,9 +153,9 @@ public class DTMCSparse extends DTMCExplicit<Double>
 	}
 
 	@Override
-	public OfInt getSuccessorsIterator(final int state)
+	public FunctionalPrimitiveIterator.OfInt getSuccessorsIterator(final int state)
 	{
-		return Arrays.stream(columns, rows[state], rows[state+1]).iterator();
+		return new IterableArray.OfInt(columns, rows[state], rows[state+1]).iterator();
 	}
 
 	@Override

@@ -34,9 +34,7 @@ import java.util.Spliterators;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
-import common.iterable.FunctionalIterator;
-import common.iterable.Reducible;
-import common.iterable.SingletonIterator;
+import common.iterable.*;
 
 /**
  * Base class and static helpers for iterators over successor states.
@@ -46,7 +44,7 @@ import common.iterable.SingletonIterator;
  * over the set of successors or the multiset of successors. The latter
  * might have better performance, as no deduplication is needed.
   */
-public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
+public abstract class SuccessorsIterator implements FunctionalPrimitiveIterator.OfInt
 {
 	/** Is it guaranteed that every successor will occur only once? */
 	public abstract boolean successorsAreDistinct();
@@ -70,7 +68,7 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 		if (successorsAreDistinct()) {
 			return this;
 		} else {
-			return new SuccessorsIteratorFromOfInt(Reducible.extend(this).distinct(), true);
+			return new SuccessorsIteratorFromOfInt(FunctionalPrimitiveIterator.OfInt.super.distinct(), true);
 		}
 	}
 
@@ -83,9 +81,10 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 	}
 
 	/** Wrapper, underlying iterator is an OfInt iterator */
-	private static class SuccessorsIteratorFromOfInt extends SuccessorsIterator {
-		private java.util.PrimitiveIterator.OfInt it;
-		private boolean distinct;
+	private static class SuccessorsIteratorFromOfInt extends SuccessorsIterator
+	{
+		protected PrimitiveIterator.OfInt it;
+		protected boolean distinct;
 
 		public SuccessorsIteratorFromOfInt(PrimitiveIterator.OfInt it, boolean distinct)
 		{
@@ -113,9 +112,10 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 	}
 
 	/** Wrapper, underlying iterator is an Iterator<Integer> iterator */
-	private static class SuccessorsIteratorFromIterator extends SuccessorsIterator {
-		private Iterator<Integer> it;
-		private boolean distinct;
+	private static class SuccessorsIteratorFromIterator extends SuccessorsIterator
+	{
+		protected Iterator<Integer> it;
+		protected boolean distinct;
 
 		public SuccessorsIteratorFromIterator(Iterator<Integer> it, boolean distinct)
 		{
@@ -129,6 +129,7 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 			return it.hasNext();
 		}
 
+		// Override to avoid boxing and unboxing of default implementation
 		@Override
 		public Integer next()
 		{
@@ -149,7 +150,8 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 	};
 
 	/** Helper, empty iterator */
-	private static class SuccessorsIteratorEmpty extends SuccessorsIterator {
+	private static class SuccessorsIteratorEmpty extends SuccessorsIterator
+	{
 		@Override
 		public boolean hasNext()
 		{
@@ -170,20 +172,20 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 	};
 
 	/** Helper, chain multiple SuccessorsIterators */
-	private static class ChainedSuccessorsIterator extends SuccessorsIterator {
-		private Iterator<SuccessorsIterator> iterators;
-		private SuccessorsIterator current;
-		private boolean distinct;
+	private static class ChainedSuccessorsIterator extends SuccessorsIterator
+	{
+		protected FunctionalPrimitiveIterator.OfInt iterator;
+		protected boolean distinct;
 
 		public ChainedSuccessorsIterator(Iterator<SuccessorsIterator> iterators)
 		{
-			this.iterators = iterators;
-			current = iterators.hasNext() ? iterators.next() : null;
-			if (current != null && !iterators.hasNext()) {
-				// only a single successor iterator, can inherit elementsAreDistinct
-				distinct = current.successorsAreDistinct();
+			if (iterators.hasNext()) {
+				SuccessorsIterator first = iterators.next();
+				// we inherit elementsAreDistinct if we've got only one Iterator
+				this.distinct = !iterators.hasNext() && first.successorsAreDistinct();
+				iterator = new ChainedIterator.OfInt(first, iterators);
 			} else {
-				// can not guarantee that successors are distinct
+				iterator = EmptyIterator.ofInt();
 				distinct = false;
 			}
 		}
@@ -191,38 +193,13 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 		@Override
 		public boolean hasNext()
 		{
-			if (current == null) {
-				return false;
-			}
-
-			if (current.hasNext()) {
-				// the current iterator has another element
-				return true;
-			}
-
-			// the current iterator has no more elements,
-			// search for the next iterator that as an element
-			while (iterators.hasNext()) {
-				// consider the next iterator
-				current = iterators.next();
-				if (current.hasNext()) {
-					// iterator has element, keep current and return true
-					return true;
-				}
-			}
-
-			// there are no more iterators / elements
-			current = null;
-			return false;
+			return iterator.hasNext();
 		}
 
 		@Override
 		public int nextInt()
 		{
-			if (!hasNext()) {
-				throw new NoSuchElementException();
-			}
-			return current.nextInt();
+			return iterator.nextInt();
 		}
 
 		@Override
@@ -235,13 +212,10 @@ public abstract class SuccessorsIterator implements PrimitiveIterator.OfInt
 	/** Obtain a SuccessorsIterator with the given distinctness guarantee from an Iterator<Integer> */
 	public static SuccessorsIterator from(Iterator<Integer> it, boolean distinctElements)
 	{
+		if (it instanceof PrimitiveIterator.OfInt) {
+			return new SuccessorsIteratorFromOfInt((PrimitiveIterator.OfInt) it, distinctElements);
+		}
 		return new SuccessorsIteratorFromIterator(it, distinctElements);
-	}
-
-	/** Obtain a SuccessorsIterator with the given distinctness guarantee from an OfInt */
-	public static SuccessorsIterator from(PrimitiveIterator.OfInt it, boolean distinctElements)
-	{
-		return new SuccessorsIteratorFromOfInt(it, distinctElements);
 	}
 
 	/** Obtain a SuccessorsIterator for a single state */
