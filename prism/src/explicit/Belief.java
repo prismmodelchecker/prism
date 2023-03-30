@@ -66,7 +66,7 @@ public class Belief implements Comparable<Belief>
 	 * @param model The (partially observable) model
 	 * If {@code dist} is a not a valid distribution, the resulting belief will be invalid too.
 	 */
-	protected Belief(double[] dist, PartiallyObservableModel model)
+	protected Belief(double[] dist, PartiallyObservableModel<?> model)
 	{
 		so = -1;
 		bu = new double[model.getNumUnobservations()];
@@ -83,7 +83,7 @@ public class Belief implements Comparable<Belief>
 	 * @param s A model state
 	 * @param model The (partially observable) model
 	 */
-	public static Belief pointDistribution(int s, PartiallyObservableModel model)
+	public static Belief pointDistribution(int s, PartiallyObservableModel<?> model)
 	{
 		int so = model.getObservation(s);
 		double[] bu = new double[model.getNumUnobservations()];
@@ -96,7 +96,7 @@ public class Belief implements Comparable<Belief>
 	 * (represented as an array of probabilities). 
 	 * @param model The (partially observable) model
 	 */
-	public double[] toDistributionOverStates(PartiallyObservableModel model)
+	public double[] toDistributionOverStates(PartiallyObservableModel<?> model)
 	{
 		double[] distributionOverStates = new double[model.getNumStates()];
 		int n = model.getNumStates();

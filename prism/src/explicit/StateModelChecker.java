@@ -914,9 +914,9 @@ public class StateModelChecker extends PrismComponent
 	 * Model check an observable reference.
 	 * @param statesOfInterest the states of interest, see checkExpression()
 	 */
-	protected StateValues checkExpressionObs(Model model, ExpressionObs expr, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkExpressionObs(Model<?> model, ExpressionObs expr, BitSet statesOfInterest) throws PrismException
 	{
-		PartiallyObservableModel poModel = (PartiallyObservableModel) model;
+		PartiallyObservableModel<?> poModel = (PartiallyObservableModel<?>) model;
 		int iObservable = modelInfo.getObservableIndex(expr.getName());
 		return StateValues.create(expr.getType(), i -> poModel.getObservationAsState(i).varValues[iObservable], model);
 	}

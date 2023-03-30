@@ -881,7 +881,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	/**
 	 * Compute probabilities for a co-safe LTL path formula
 	 */
-	protected StateValues checkProbPathFormulaCosafeLTL(Model model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
+	protected StateValues checkProbPathFormulaCosafeLTL(Model<?> model, Expression expr, boolean qual, MinMax minMax, BitSet statesOfInterest) throws PrismException
 	{
 		// Just treat as an arbitrary LTL formula by default
 		return checkProbPathFormulaLTL(model, expr, qual, minMax, statesOfInterest);

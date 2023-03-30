@@ -116,7 +116,7 @@ public class LTSNBAProduct extends Product<Model<?>>
 	private int nbaSize;
 
 	/** Constructor for storing the product */
-	private LTSNBAProduct(LTS productModel, Model originalModel, ArrayList<ProductState> productStates, BitSet acceptingStates, int nbaSize)
+	private LTSNBAProduct(LTS<?> productModel, Model<?> originalModel, ArrayList<ProductState> productStates, BitSet acceptingStates, int nbaSize)
 	{
 		super(productModel, originalModel);
 		this.productStates = productStates;
@@ -164,7 +164,7 @@ public class LTSNBAProduct extends Product<Model<?>>
 	 * @param statesOfInterest the states in the model that serve as the starting point for the product
 	 * @param labelBS vector of state sets for the atomic propositions L0, L1, ... in the automaton
 	 */
-	public static LTSNBAProduct doProduct(Model model, NBA nba, BitSet statesOfInterest, Vector<BitSet> labelBS)
+	public static LTSNBAProduct doProduct(Model<?> model, NBA nba, BitSet statesOfInterest, Vector<BitSet> labelBS)
 	{
 		// map state index in product automaton -> ProductState
 		ArrayList<ProductState> productIdToProductState = new ArrayList<ProductState>();
@@ -172,7 +172,7 @@ public class LTSNBAProduct extends Product<Model<?>>
 		HashMap<ProductState, Integer> productStateToProductId = new HashMap<ProductState, Integer>();
 
 		// storage for the product model
-		LTSSimple productModel = new LTSSimple();
+		LTSSimple<?> productModel = new LTSSimple<>();
 		// the accepting states in the product model
 		BitSet acceptingStates = new BitSet();
 
