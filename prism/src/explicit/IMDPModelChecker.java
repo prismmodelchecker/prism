@@ -599,7 +599,7 @@ public class IMDPModelChecker extends ProbModelChecker
 	{
 		try {
 			IMDPModelChecker mc = new IMDPModelChecker(null);
-			Evaluator<Interval<Double>> eval = Evaluator.createForDoubleIntervals();
+			Evaluator<Interval<Double>> eval = Evaluator.forDoubleInterval();
 			IMDPSimple<Double> imdp = new IMDPSimple<>();
 			imdp.setEvaluator(eval);
 			imdp.addState();

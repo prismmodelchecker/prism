@@ -95,6 +95,6 @@ public class IDTMCSimple<Value> extends DTMCSimple<Interval<Value>> implements I
 	@SuppressWarnings("unchecked")
 	private void createDefaultEvaluator()
 	{
-		((IDTMCSimple<Double>) this).setEvaluator(Evaluator.createForDoubleIntervals());
+		((IDTMCSimple<Double>) this).setEvaluator(Evaluator.forDoubleInterval());
 	}
 }

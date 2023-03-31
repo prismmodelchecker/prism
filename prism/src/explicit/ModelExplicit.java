@@ -49,7 +49,7 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 {
 	/** Evaluator for manipulating values in the model (of type {@code Value}) */
 	@SuppressWarnings("unchecked")
-	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.createForDoubles();
+	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.forDouble();
 	
 	// Basic model information
 

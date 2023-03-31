@@ -35,7 +35,7 @@ public abstract class RewardsExplicit<Value> implements Rewards<Value>
 {
 	/** Evaluator for manipulating reward values stored here (of type {@code Value}) */
 	@SuppressWarnings("unchecked")
-	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.createForDoubles();
+	protected Evaluator<Value> eval = (Evaluator<Value>) Evaluator.forDouble();
 
 	// Mutators
 

@@ -53,6 +53,6 @@ public interface Rewards<Value>
 	@SuppressWarnings("unchecked")
 	public default Evaluator<Value> getEvaluator()
 	{
-		return (Evaluator<Value>) Evaluator.createForDoubles();
+		return (Evaluator<Value>) Evaluator.forDouble();
 	}
 }

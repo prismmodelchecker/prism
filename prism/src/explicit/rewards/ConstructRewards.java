@@ -542,7 +542,7 @@ public class ConstructRewards extends PrismComponent
 	 */
 	private <Value> void checkStateReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
 	{
-		checkStateReward(rew, Evaluator.createForDoubles(), stateIndex, ast);
+		checkStateReward(rew, Evaluator.forDouble(), stateIndex, ast);
 	}
 
 	/**
@@ -555,6 +555,6 @@ public class ConstructRewards extends PrismComponent
 	 */
 	private <Value> void checkTransitionReward(double rew, Object stateIndex, ASTElement ast) throws PrismException
 	{
-		checkTransitionReward(rew, Evaluator.createForDoubles(), stateIndex, ast);
+		checkTransitionReward(rew, Evaluator.forDouble(), stateIndex, ast);
 	}
 }

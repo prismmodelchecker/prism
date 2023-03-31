@@ -56,24 +56,24 @@ public interface Evaluator<Value>
 {
 	// Static methods to create Evaluator instances for common types
 	
-	public static Evaluator<Double> createForDoubles()
+	public static Evaluator<Double> forDouble()
 	{
-		return evalDbl;
+		return EvaluatorDouble.EVALUATOR_DOUBLE;
 	}
 
-	public static Evaluator<BigRational> createForBigRationals()
+	public static Evaluator<BigRational> forBigRational()
 	{
-		return evalBigRat;
+		return EvaluatorBigRational.EVALUATOR_BIG_RATIONAL;
 	}
 
-	public static Evaluator<Function> createForRationalFunctions(FunctionFactory functionFactory)
+	public static Evaluator<Function> forRationalFunction(FunctionFactory functionFactory)
 	{
 		return new EvaluatorFunction(functionFactory);
 	}
 	
-	public static Evaluator<Interval<Double>> createForDoubleIntervals()
+	public static Evaluator<Interval<Double>> forDoubleInterval()
 	{
-		return evalDblInterval;
+		return EvaluatorDoubleInterval.EVALUATOR_DOUBLE_INTERVAL;
 	}
 
 	// Methods in the Evaluator interface
@@ -146,7 +146,7 @@ public interface Evaluator<Value>
 	 * By default, this amounts to checking that it is equal to 1.
 	 * A floating-point implementation might incorporate a round-off tolerance.
 	 */
-	public void checkProbabilitySum(Value sum) throws PrismException;
+	public Value checkProbabilitySum(Value sum) throws PrismException;
 	
 	/**
 	 * Evaluate an expression in a state to type {@code Value},
@@ -242,24 +242,24 @@ public interface Evaluator<Value>
 		throw new UnsupportedOperationException("Intervals not supported for " + evalMode());
 	}
 
-	// Static Evaluator instances for common types
-	
 	// Evaluator for doubles
-	
-	static Evaluator<Double> evalDbl = new EvaluatorDouble();
-	
+
 	class EvaluatorDouble implements Evaluator<Double>
 	{
+		private static final Evaluator<Double> EVALUATOR_DOUBLE = new EvaluatorDouble();
+		private static final Double ZERO = Double.valueOf(0.0);
+		private static final Double ONE = Double.valueOf(1.0);
+
 		@Override
 		public Double zero()
 		{
-			return 0.0;
+			return ZERO;
 		}
 
 		@Override
 		public Double one()
 		{
-			return 1.0;
+			return ONE;
 		}
 
 		@Override
@@ -325,12 +325,13 @@ public interface Evaluator<Value>
 		}
 		
 		@Override
-		public void checkProbabilitySum(Double sum) throws PrismException
+		public Double checkProbabilitySum(Double sum) throws PrismException
 		{
 			// We allow round-off error here
 			if (!PrismUtils.doublesAreEqual(sum, 1.0)) {
 				throw new PrismException("Probabilities sum to " + sum);
 			}
+			return sum;
 		}
 		
 		@Override
@@ -384,16 +385,16 @@ public interface Evaluator<Value>
 		@Override
 		public Evaluator<Interval<Double>> createIntervalEvaluator()
 		{
-			return evalDblInterval;
+			return EvaluatorDoubleInterval.EVALUATOR_DOUBLE_INTERVAL;
 		}
 	};
 
 	// Evaluator for rationals (using param.BigRational)
-	
-	static Evaluator<BigRational> evalBigRat = new EvaluatorBigRational();
-	
+
 	class EvaluatorBigRational implements Evaluator<BigRational>
 	{
+		private static final Evaluator<BigRational> EVALUATOR_BIG_RATIONAL = new EvaluatorBigRational();
+
 		@Override
 		public BigRational zero()
 		{
@@ -467,11 +468,12 @@ public interface Evaluator<Value>
 		}
 		
 		@Override
-		public void checkProbabilitySum(BigRational sum) throws PrismException
+		public BigRational checkProbabilitySum(BigRational sum) throws PrismException
 		{
 			if (!isOne(sum)) {
 				throw new PrismException("Probabilities sum to " + sum);
 			}
+			return sum;
 		}
 		
 		@Override
@@ -602,7 +604,7 @@ public interface Evaluator<Value>
 		}
 		
 		@Override
-		public void checkProbabilitySum(Function sum) throws PrismException
+		public Function checkProbabilitySum(Function sum) throws PrismException
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -649,21 +651,23 @@ public interface Evaluator<Value>
 	}
 	
 	// Evaluator for intervals (of doubles)
-	
-	static Evaluator<Interval<Double>> evalDblInterval = new EvaluatorDoubleInterval();
-	
+
 	class EvaluatorDoubleInterval implements Evaluator<Interval<Double>>
 	{
+		private static final Evaluator<Interval<Double>> EVALUATOR_DOUBLE_INTERVAL = new EvaluatorDoubleInterval();
+		private static final Interval<Double> ZERO = new Interval<Double>(0.0, 0.0);
+		private static final Interval<Double> ONE = new Interval<Double>(1.0, 1.0);
+
 		@Override
 		public Interval<Double> zero()
 		{
-			return new Interval<Double>(0.0, 0.0);
+			return ZERO;
 		}
 
 		@Override
 		public Interval<Double> one()
 		{
-			return new Interval<Double>(1.0, 1.0);
+			return ONE;
 		}
 
 		@Override
@@ -742,7 +746,7 @@ public interface Evaluator<Value>
 		}
 		
 		@Override
-		public void checkProbabilitySum(Interval<Double> sum) throws PrismException
+		public Interval<Double> checkProbabilitySum(Interval<Double> sum) throws PrismException
 		{
 			// For intervals, we need the sum of lower bounds to be <=1
 			// and the sum of upper bounds to be >=1
@@ -753,6 +757,7 @@ public interface Evaluator<Value>
 			if (sum.getUpper() < 1.0 - PrismUtils.epsilonDouble) {
 				throw new PrismException("Probability upper bounds sum to " + sum.getUpper() + " which is less than 1");
 			}
+			return sum;
 		}
 		
 		@Override

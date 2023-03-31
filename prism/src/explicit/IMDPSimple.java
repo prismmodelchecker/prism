@@ -95,6 +95,6 @@ public class IMDPSimple<Value> extends MDPSimple<Interval<Value>> implements IMD
 	@SuppressWarnings("unchecked")
 	private void createDefaultEvaluator()
 	{
-		((IMDPSimple<Double>) this).setEvaluator(Evaluator.createForDoubleIntervals());
+		((IMDPSimple<Double>) this).setEvaluator(Evaluator.forDoubleInterval());
 	}
 }

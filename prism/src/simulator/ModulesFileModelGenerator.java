@@ -111,9 +111,9 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	private static Evaluator<?> createEvaluator(ModulesFile modulesFile, boolean exact) throws PrismException
 	{
 		if (!exact) {
-			return Evaluator.createForDoubles();
+			return Evaluator.forDouble();
 		} else {
-			return Evaluator.createForBigRationals();
+			return Evaluator.forBigRational();
 		}
 	}
 	
@@ -128,7 +128,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	 */
 	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, FunctionFactory functionFactory, PrismComponent parent) throws PrismException
 	{
-		Evaluator<Function> eval = Evaluator.createForRationalFunctions(functionFactory);
+		Evaluator<Function> eval = Evaluator.forRationalFunction(functionFactory);
 		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
 	}
 	
@@ -142,7 +142,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	 */
 	public static ModulesFileModelGenerator<Double> createForDoubles(ModulesFile modulesFile, PrismComponent parent) throws PrismException
 	{
-		Evaluator<Double> eval = Evaluator.createForDoubles();
+		Evaluator<Double> eval = Evaluator.forDouble();
 		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
 	}
 	
@@ -167,7 +167,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	@SuppressWarnings("unchecked")
 	public ModulesFileModelGenerator(ModulesFile modulesFile, PrismComponent parent) throws PrismException
 	{
-		this(modulesFile, (Evaluator<Value>) Evaluator.createForDoubles(), parent);
+		this(modulesFile, (Evaluator<Value>) Evaluator.forDouble(), parent);
 	}
 	
 	/**

@@ -65,7 +65,7 @@ public interface RewardGenerator<Value>
 	@SuppressWarnings("unchecked")
 	public default Evaluator<Value> getRewardEvaluator()
 	{
-		return (Evaluator<Value>) Evaluator.createForDoubles();
+		return (Evaluator<Value>) Evaluator.forDouble();
 	}
 	
 	/**
