@@ -128,7 +128,7 @@ public class CTMDPSimple<Value> extends MDPSimple<Value> implements CTMDP<Value>
 		}
 		for (i = 0; i < numStates; i++) {
 			for (Distribution distr : trans.get(i)) {
-				distrNew = new Distribution();
+				distrNew = Distribution.ofDouble();
 				sum = (Double) distr.sum();
 				d = Math.exp(-sum * tau);
 				for (Map.Entry<Integer, Double> e : (Distribution<Double>) distr) {

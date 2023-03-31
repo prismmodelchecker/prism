@@ -797,7 +797,7 @@ public class POMDPModelChecker extends ProbModelChecker
 				Pair<Double, Integer> valChoice = backup.apply(belief, beliefMDPState);
 				int chosenActionIndex = valChoice.second;
 				// Build a distribution over successor belief states and add to MDP
-				Distribution<Double> distr = new Distribution<>();
+				Distribution<Double> distr = Distribution.ofDouble();
 				for (Map.Entry<Belief, Double> entry : beliefMDPState.trans.get(chosenActionIndex).entrySet()) {
 					double nextBeliefProb = entry.getValue();
 					Belief nextBelief = entry.getKey();

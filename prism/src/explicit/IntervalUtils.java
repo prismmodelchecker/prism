@@ -107,8 +107,7 @@ public class IntervalUtils
 		DoubleIntervalDistribution did = extractDoubleIntervalDistribution(distr);
 		if (delimitDoubles(did)) {
 			// Create a new Distribution if delimiting changed it
-			Distribution<Interval<Double>> distrNew = new Distribution<>();
-			distrNew.setEvaluator(distr.getEvaluator());
+			Distribution<Interval<Double>> distrNew = new Distribution<>(distr.getEvaluator());
 			for (int i = 0; i < did.size; i++) {
 				distrNew.add(did.index[i], new Interval<Double>(did.lower[i], did.upper[i]));
 			}

@@ -1049,37 +1049,37 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 			stpg.addStates(4);
 			// State 0 (s_0)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(1, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(0, set);
 			// State 1 (s_1,s_2,s_3)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(2, 1.0);
 			set.add(distr);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(1, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(1, set);
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(2, 0.5);
 			distr.set(3, 0.5);
 			set.add(distr);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(3, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(1, set);
 			// State 2 (s_4,s_5)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(2, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(2, set);
 			// State 3 (s_6)
 			set = stpg.newDistributionSet(null);
-			distr = new Distribution<>();
+			distr = Distribution.ofDouble();
 			distr.set(3, 1.0);
 			set.add(distr);
 			stpg.addDistributionSet(3, set);

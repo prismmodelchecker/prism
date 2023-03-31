@@ -226,7 +226,7 @@ public class PTAAbstractRefine extends QuantAbstractRefine
 					// Add distribution corresponding to ith transition if
 					// it is included in the set we are considering in this iteration
 					if (bitSet.get(map[i])) {
-						distr = new Distribution();
+						distr = Distribution.ofDouble();
 						count = 0;
 						for (Edge edge : st.tr.getEdges()) {
 							dest = st.dests[count];
