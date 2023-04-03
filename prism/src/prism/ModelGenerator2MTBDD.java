@@ -27,8 +27,8 @@
 package prism;
 
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Vector;
+import java.util.function.Predicate;
 
 import jdd.JDD;
 import jdd.JDDNode;
@@ -513,9 +513,9 @@ public class ModelGenerator2MTBDD
 				// TODO progress.updateIfReady(src + 1);
 			}
 
-			Map<String, Boolean> labelValues = modelGen.getLabelValues(state);
+			Predicate<String> labelValues = modelGen.getLabelValues(state);
 			for (int l = 0; l < numLabels; l++) {
-				if (labelValues.get(modelGen.getLabelName(l))) {
+				if (labelValues.test(modelGen.getLabelName(l))) {
 					labelsArray[l] = JDD.Or(labelsArray[l], ddState.copy());
 				}
 			}

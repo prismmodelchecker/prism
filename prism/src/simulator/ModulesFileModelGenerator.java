@@ -1,8 +1,9 @@
 package simulator;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Predicate;
 
 import common.Interval;
 import param.BigRational;
@@ -78,6 +79,8 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	
 	// Global clock invariant (conjunction of per-module invariants)
 	protected Expression invariant;
+	// label value cache
+	protected LabelEvaluator labelsCache;
 	
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
@@ -191,7 +194,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		if (modulesFile.getSystemDefn() != null) {
 			throw new PrismException("The system...endsystem construct is not currently supported");
 		}
-		
+
 		// Store basic model info
 		this.modulesFile = modulesFile;
 		this.originalModulesFile = modulesFile;
@@ -253,6 +256,9 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		labelList = modulesFile.getLabelList();
 		labelNames = labelList.getLabelNames();
 		
+		// create label-cache
+		labelsCache = new LabelEvaluator(labelList);
+
 		// Create data structures for exploring model
 		if (!modelType.uncertain()) {
 			updater = new Updater<Value>(modulesFile, varList, eval, parent);
@@ -604,11 +610,17 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	}
 
 	@Override
-	public Map<String, Boolean> getLabelValues(State state) throws PrismLangException
+	public Predicate<String> getLabelValues(State state) throws PrismLangException
 	{
-		return labelList.getLabelValues(state);
+		return labelsCache.getLabelValues(state);
 	}
-	
+
+	@Override
+	public BitSet getLabel(String name, List<State> statesList) throws PrismException
+	{
+		return labelsCache.getLabel(name, statesList);
+	}
+
 	@Override
 	public Expression getClockInvariant() throws PrismException
 	{

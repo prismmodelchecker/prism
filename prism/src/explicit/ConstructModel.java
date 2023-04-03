@@ -458,7 +458,11 @@ public class ConstructModel extends PrismComponent
 		permut = null;
 
 		if (!justReach && attachLabels) {
-			attachLabels(modelGen, model);
+			// Attach labels/bitsets
+			List <State> statesList = model.getStatesList();
+			for (String label : model.getLabels()){
+				model.addLabel(label, modelGen.getLabel(label, statesList));
+			}
 		}
 
 		return model;
@@ -483,38 +487,6 @@ public class ConstructModel extends PrismComponent
 		}
 		// Set observation/unobservation
 		pomdp.setObservation(s, sObs, sUnobs, modelGen.getObservableNames());
-	}
-	
-	private <Value> void attachLabels(ModelGenerator<Value> modelGen, ModelExplicit<Value> model) throws PrismException
-	{
-		int i,j;
-		// Create storage for labels
-		int numLabels = modelGen.getNumLabels();
-		// No need to continue unless this ModelGenerator uses labels
-		if (numLabels == 0) return;
-		BitSet[] bitsets = new BitSet[numLabels];
-		for (j = 0; j < numLabels; j++) {
-			bitsets[j] = new BitSet();
-		}
-
-		// Get state info
-		List <State> statesList = model.getStatesList();
-		int numStates = statesList.size();
-
-		// Construct bitsets for labels
-		for (i = 0; i < numStates; i++) {
-			State state = statesList.get(i);
-			Map<String, Boolean> labelValues = modelGen.getLabelValues(state);
-			for (j = 0; j < numLabels; j++) {
-				if (labelValues.get(modelGen.getLabelName(j))) {
-					bitsets[j].set(i);
-				}
-			}
-		}
-		// Attach labels/bitsets
-		for (j = 0; j < numLabels; j++) {
-			model.addLabel(modelGen.getLabelName(j), bitsets[j]);
-		}
 	}
 
 	/**

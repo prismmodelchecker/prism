@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import parser.EvaluateContextState;
 import parser.State;
@@ -165,7 +166,7 @@ public class Updater<Value> extends PrismComponent
 	 * @param state State from which to explore
 	 * @param transitionList TransitionList object in which to store result
 	 */
-	public void calculateTransitions(State state, Map<String, Boolean> labelValues, TransitionList<Value> transitionList) throws PrismException
+	public void calculateTransitions(State state, Predicate<String> labelValues, TransitionList<Value> transitionList) throws PrismException
 	{
 		List<ChoiceListFlexi<Value>> chs;
 		int i, j, k, l, n, count;
@@ -284,7 +285,7 @@ public class Updater<Value> extends PrismComponent
 	 * @param m The module index
 	 * @param state State from which to explore
 	 */
-	protected void calculateUpdatesForModule(int m, State state, Map<String, Boolean> labelValues) throws PrismLangException
+	protected void calculateUpdatesForModule(int m, State state, Predicate<String> labelValues) throws PrismLangException
 	{
 		Module module = modulesFile.getModule(m);
 		int n = module.getNumCommands();

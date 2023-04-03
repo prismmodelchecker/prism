@@ -28,10 +28,7 @@ package parser.ast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
 
-import parser.State;
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
 import prism.PrismLangException;
@@ -49,7 +46,7 @@ public class LabelList extends ASTElement
 	protected ArrayList<ExpressionIdent> nameIdents;
 	
 	// Constructor
-	
+
 	public LabelList()
 	{
 		names = new ArrayList<>();
@@ -66,7 +63,23 @@ public class LabelList extends ASTElement
 	 */
 	public void findCycles() throws PrismLangException
 	{
-		// Create boolean matrix of dependencies
+		boolean[][] matrix = getLabelDependencies();
+		// Check for and report dependencies
+		int firstCycle = PrismUtils.findCycle(matrix);
+		if (firstCycle != -1) {
+			String s = "Cyclic dependency in definition of label \"" + names.get(firstCycle) + "\"";
+			throw new PrismLangException(s, labels.get(firstCycle));
+		}
+	}
+
+	/**
+	 * 	Create a boolean matrix of dependencies between labels.
+	 *
+	 * @return a matrix m such that label i depends on label j iff m[i][j]
+	 * @throws PrismLangException
+	 */
+	public boolean[][] getLabelDependencies() throws PrismLangException
+	{
 		// (matrix[i][j] is true if label i contains label j)
 		int n = size();
 		int j;
@@ -80,57 +93,8 @@ public class LabelList extends ASTElement
 				}
 			}
 		}
-		// Check for and report dependencies
-		int firstCycle = PrismUtils.findCycle(matrix);
-		if (firstCycle != -1) {
-			String s = "Cyclic dependency in definition of label \"" + names.get(firstCycle) + "\"";
-			throw new PrismLangException(s, labels.get(firstCycle));
-		}
+		return matrix;
 	}
-
-	/**
-	 * Evaluates all label with the given state. <br>
-	 *
-	 * @param currentState The state to evaluate the labels in.
-	 * @return A map of the values.
-	 * @throws PrismLangException In case an evaluation fails.
-	 */
-	public Map<String, Boolean> getLabelValues(State currentState) throws PrismLangException
-	{
-		Map<String, Boolean> labelValues = new HashMap<>(labels.size());
-
-		for (String label : names) {
-			evaluateLabel(label, labelValues, currentState);
-		}
-
-		return labelValues;
-	}
-
-	/**
-	 * Helper function to recursively evaluate label values. The value will be stored inside the given map.
-	 *
-	 * @param name The name of the label.
-	 * @param labelValues The already known values of all labels.
-	 */
-	private void evaluateLabel(String name, Map<String, Boolean> labelValues, State state) throws PrismLangException
-	{
-		// check if value is already known
-		if (labelValues.containsKey(name)) {
-			return;
-		}
-		// get expression
-		Expression label = labels.get(names.indexOf(name));
-		// check if all the (other) label dependencies are evaluated
-		for (String dependency : label.getAllLabels()){
-			if (!labelValues.containsKey(dependency)){
-				// evaluate other label first
-				evaluateLabel(dependency, labelValues, state);
-			}
-		}
-		// all dependencies are fulfilled
-		labelValues.put(name, label.evaluateBoolean(null, labelValues, state));
-	}
-
 
 	// Set methods
 	public void addLabel(ExpressionIdent n, Expression l)
@@ -139,18 +103,18 @@ public class LabelList extends ASTElement
 		labels.add(l);
 		nameIdents.add(n);
 	}
-	
+
 	public void setLabelName(int i , ExpressionIdent n)
 	{
 		names.set(i, n.getName());
 		nameIdents.set(i, n);
 	}
-	
+
 	public void setLabel(int i , Expression l)
 	{
 		labels.set(i, l);
 	}
-	
+
 	// Get methods
 
 	public int size()
@@ -162,17 +126,17 @@ public class LabelList extends ASTElement
 	{
 		return names.get(i);
 	}
-	
+
 	public List<String> getLabelNames()
 	{
 		return names;
 	}
-	
+
 	public Expression getLabel(int i)
 	{
 		return labels.get(i);
 	}
-	
+
 	public ExpressionIdent getLabelNameIdent(int i)
 	{
 		return nameIdents.get(i);
@@ -187,7 +151,7 @@ public class LabelList extends ASTElement
 	}
 
 	// Methods required for ASTElement:
-	
+
 	/**
 	 * Visitor method.
 	 */
@@ -195,7 +159,7 @@ public class LabelList extends ASTElement
 	{
 		return v.visit(this);
 	}
-	
+
 	/**
 	 * Convert to string.
 	 */
@@ -203,16 +167,16 @@ public class LabelList extends ASTElement
 	{
 		String s = "";
 		int i, n;
-		
+
 		n = size();
 		for (i = 0; i < n; i++) {
 			s += "label \"" + getLabelName(i);
 			s += "\" = " + getLabel(i) + ";\n";
 		}
-		
+
 		return s;
 	}
-	
+
 	@Override
 	public LabelList deepCopy(DeepCopy copier) throws PrismLangException
 	{

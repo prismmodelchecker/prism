@@ -29,11 +29,12 @@ package prism;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.BitSet;
+import java.util.function.Predicate;
 
 import common.Interval;
 import parser.State;
 import parser.ast.Expression;
-import java.util.Map;
 
 /**
  * Interface for classes that generate a probabilistic model:
@@ -434,18 +435,31 @@ public interface ModelGenerator<Value> extends ModelInfo
 	}
 	
 	/**
-	 * Create a Map of label names and values for the given state
+	 * Create a {@link Predicate} of all labels in the current state.
 	 *
 	 * @param state Context state for evaluation.
 	 * @throws PrismLangException If evaluation of a label fails.
 	 */
-	default Map<String, Boolean> getLabelValues(State state) throws PrismException
+	default Predicate<String> getLabelValues(State state) throws PrismException
 	{
 		// No labels by default
 		throw new PrismException("Labels not defined");
 	}
 	
 	/**
+	 * This method creates a BitSet for the given label-name containing all values in the
+	 * order of the given statesList.
+	 * @param name The name of the Label.
+	 * @param statesList The List of states in right order.
+	 * @return a {@link BitSet} of all values from the given label.
+	 * @throws PrismException If the label values aren't cached or not all states have been evaluated
+	 */
+	default BitSet getLabel(String name, List<State> statesList) throws PrismException
+	{
+		throw new PrismException("Labels are not cached");
+	}
+
+    /**
 	 * Get the observation when entering state {@code state}.
 	 * This is represented as a {@link parser.State} object, with one value per observable.
 	 * For models that are not partially observable, null can be returned.

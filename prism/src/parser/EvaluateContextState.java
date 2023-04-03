@@ -26,7 +26,7 @@
 
 package parser;
 
-import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Information required to evaluate an expression,
@@ -43,7 +43,7 @@ public class EvaluateContextState extends EvaluateContext
 	private Object[] varValues;
 
 	/** values of all labels in this state */
-	protected Map<String, Boolean> labelValues;
+	protected Predicate<String> labelValues;
 
 	public EvaluateContextState(State state)
 	{
@@ -55,7 +55,7 @@ public class EvaluateContextState extends EvaluateContext
 		this(constantValues, null, state);
 	}
 
-	public EvaluateContextState(Values constantValues, Map<String, Boolean> labelValues, State state)
+	public EvaluateContextState(Values constantValues, Predicate<String> labelValues, State state)
 	{
 		setState(state);
 		setConstantValues(constantValues);
@@ -80,7 +80,7 @@ public class EvaluateContextState extends EvaluateContext
 		return index == -1 ? null : varValues[index];
 	}
 
-	public EvaluateContextState setLabelValues(Map<String, Boolean> labelValues)
+	public EvaluateContextState setLabelValues(Predicate<String> labelValues)
 	{
 		this.labelValues = labelValues;
 		return this;
@@ -89,6 +89,6 @@ public class EvaluateContextState extends EvaluateContext
 	@Override
 	public Boolean getLabelValue(String name)
 	{
-		return labelValues.get(name);
+		return labelValues.test(name);
 	}
 }
