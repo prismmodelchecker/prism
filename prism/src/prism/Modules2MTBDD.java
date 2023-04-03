@@ -272,7 +272,7 @@ public class Modules2MTBDD
 			sortRanges();
 			
 			// create stripped-down StateModelChecker for expression to MTBDD conversions
-			expr2mtbdd = new StateModelChecker(prism, varList, allDDRowVars, varDDRowVars, constantValues);
+			expr2mtbdd = new StateModelChecker(prism, varList, modulesFile.getLabelList(), allDDRowVars, varDDRowVars, constantValues);
 			
 			// translate modules file into dd
 			translateModules();

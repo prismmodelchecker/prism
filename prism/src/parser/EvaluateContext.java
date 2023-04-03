@@ -129,6 +129,15 @@ public abstract class EvaluateContext
 	public abstract Object getVarValue(String name, int index);
 
 	/**
+	 * Return the value for a label; null if unknown.
+	 */
+	public Boolean getLabelValue(String name)
+	{
+		// no labels defined by default
+		return null;
+	}
+
+	/**
 	 * Return the value for an observable (by name or index); null if unknown.
 	 */
 	public Object getObservableValue(String name, int index)
