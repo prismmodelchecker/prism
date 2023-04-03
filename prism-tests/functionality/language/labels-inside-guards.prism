@@ -1,0 +1,16 @@
+dtmc
+
+// 1. labels should not be expanded like formulas
+// 2. label should be evaluated correctly so that
+// (s1 = true & s2 = true) is unreachable
+
+module m1
+	s1: bool init false;
+
+	[] !"foo" -> (s1'=true);
+	[] true -> (s1'=false);
+endmodule
+
+module m2=m1[s1=s2] endmodule
+
+label "foo" = s1 | s2;

@@ -1,0 +1,5 @@
+-explicit -exportmodel labels-inside-guards.tra,sta,lab
+-mtbdd -exportmodel labels-inside-guards.tra,sta,lab
+-hybrid -exportmodel labels-inside-guards.tra,sta,lab
+-sparse -exportmodel labels-inside-guards.tra,sta,lab
+-exact
