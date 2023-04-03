@@ -34,26 +34,25 @@ public class LabelEvaluator
 	public LabelEvaluator(LabelList labelList) throws PrismLangException
 	{
 		this.labelList = labelList;
-		this.evaluationOrder = fixEvaluationOrder(labelList);
+		this.evaluationOrder = fixEvaluationOrder(labelList.getLabelDependencies());
 	}
 
 	/**
 	 * Fix an order on the labels such that l1 < l2 if l2 depends on l1.
 	 *
-	 * @param labels a {@link LabelList} of labels to be evaluated
+	 * @param deps an adjacency matrix with adj[i][j] iff i->j
 	 * @return an int array of the label indices in ascending order
-	 * @throws PrismLangException In case a label dependencies could not be computed.
 	 */
-	private int[] fixEvaluationOrder(LabelList labels) throws PrismLangException
+	public int[] fixEvaluationOrder(boolean[][] deps)
 	{
-		boolean[][] deps = labels.getLabelDependencies();
-		assert PrismUtils.findCycle(deps) == -1 : "label dependencies must not contain a cylce";
+		assert deps.length == 0 || deps.length == deps[0].length : "dependency matrix must be square";
+		assert PrismUtils.findCycle(deps) == -1 : "label dependencies must not contain a cycle";
 
-		int numLabels = labels.size();
+		int numLabels = deps.length;
 		BitSet done = new BitSet(numLabels);
 		int[] order = new int[numLabels];
-		for (int l = done.nextClearBit(0); l < numLabels; l = done.nextClearBit(l)) {
-			traverseDfs(deps, l, order, -1, done);
+		for (int l = done.nextClearBit(0), last = -1; l < numLabels; l = done.nextClearBit(l)) {
+			last = traverseDfs(deps, l, order, last, done);
 		}
 		return order;
 	}
@@ -113,7 +112,7 @@ public class LabelEvaluator
 	 * This method provides all values of a certain label. They will be ordered by the given statesList. <br>
 	 * States will be evaluated if necessary.
 	 *
-	 * @param label The name of the label.
+	 * @param label      The name of the label.
 	 * @param statesList The states to evaluate against in correct order.
 	 * @return All values of the label.
 	 * @throws PrismException In case a label evaluation fails.
@@ -133,7 +132,7 @@ public class LabelEvaluator
 
 	/**
 	 * This method provides all label values of a certain state as a {@link BitSet}.
-	 * The labels are indexed in the same order as inside the {@link LabelEvaluator#labelList}
+	 * The labels are indexed in the same order as inside the {@link LabelEvaluator#labelList}.
 	 *
 	 * @param state The state to evaluate in.
 	 * @return Always returns a BitSet with the label values.
@@ -150,7 +149,7 @@ public class LabelEvaluator
 	}
 
 	/**
-	 * Evaluates all label with the given state. <br>
+	 * Evaluates all label with the given state.
 	 *
 	 * @param state The state to evaluate the labels in.
 	 * @return A {@link BitSet} of all label values in this state.
@@ -173,7 +172,7 @@ public class LabelEvaluator
 	 * Convert the label values for a state to a predicate on the label names.
 	 *
 	 * @param values the label values for some state
-	 * @return a Predicate evaluating to {@code true} for a label name if the Bit at the corresponding index in {@code values} is set
+	 * @return a Predicate evaluating to {@code true} for a label name iff the Bit at the corresponding index in {@code values} is set
 	 */
 	public Predicate<String> asPredicate(BitSet values)
 	{
