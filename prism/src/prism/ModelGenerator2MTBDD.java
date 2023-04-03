@@ -27,6 +27,7 @@
 package prism;
 
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Vector;
 
 import jdd.JDD;
@@ -511,9 +512,10 @@ public class ModelGenerator2MTBDD
 				// Print some progress info occasionally
 				// TODO progress.updateIfReady(src + 1);
 			}
-			
+
+			Map<String, Boolean> labelValues = modelGen.getLabelValues(state);
 			for (int l = 0; l < numLabels; l++) {
-				if (modelGen.isLabelTrue(l)) {
+				if (labelValues.get(modelGen.getLabelName(l))) {
 					labelsArray[l] = JDD.Or(labelsArray[l], ddState.copy());
 				}
 			}

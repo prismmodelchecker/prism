@@ -165,7 +165,7 @@ public class Updater<Value> extends PrismComponent
 	 * @param state State from which to explore
 	 * @param transitionList TransitionList object in which to store result
 	 */
-	public void calculateTransitions(State state, TransitionList<Value> transitionList) throws PrismException
+	public void calculateTransitions(State state, Map<String, Boolean> labelValues, TransitionList<Value> transitionList) throws PrismException
 	{
 		List<ChoiceListFlexi<Value>> chs;
 		int i, j, k, l, n, count;
@@ -186,7 +186,7 @@ public class Updater<Value> extends PrismComponent
 		// Calculate the available updates for each module/action
 		// (update information in updateLists, clockGuards, enabledSynchs and enabledModules)
 		for (i = 0; i < numModules; i++) {
-			calculateUpdatesForModule(i, state);
+			calculateUpdatesForModule(i, state, labelValues);
 		}
 		//System.out.println("updateLists: " + updateLists);
 
@@ -284,7 +284,7 @@ public class Updater<Value> extends PrismComponent
 	 * @param m The module index
 	 * @param state State from which to explore
 	 */
-	protected void calculateUpdatesForModule(int m, State state) throws PrismLangException
+	protected void calculateUpdatesForModule(int m, State state, Map<String, Boolean> labelValues) throws PrismLangException
 	{
 		Module module = modulesFile.getModule(m);
 		int n = module.getNumCommands();
@@ -305,7 +305,7 @@ public class Updater<Value> extends PrismComponent
 					guardSat = true;
 				}
 			} else {
-				guardSat = command.getGuard().evaluateBoolean(ec.setState(state));
+				guardSat = command.getGuard().evaluateBoolean(ec.setLabelValues(labelValues).setState(state));
 			}
 			// If the command is enabled, update stored info
 			if (guardSat) {

@@ -33,6 +33,7 @@ import java.util.List;
 import common.Interval;
 import parser.State;
 import parser.ast.Expression;
+import java.util.Map;
 
 /**
  * Interface for classes that generate a probabilistic model:
@@ -421,21 +422,6 @@ public interface ModelGenerator<Value> extends ModelInfo
 	public State computeTransitionTarget(int i, int offset) throws PrismException;
 	
 	/**
-	 * Is label {@code label} true in the state currently being explored?
-	 * @param label The name of the label to check 
-	 */
-	public default boolean isLabelTrue(String label) throws PrismException
-	{
-		// Default implementation: Look up label and then check by index
-		int i = getLabelIndex(label);
-		if (i == -1) {
-			throw new PrismException("Label \"" + label + "\" not defined");
-		} else {
-			return isLabelTrue(i);
-		}
-	}
-	
-	/**
 	 * For real-time models, get the clock invariant for the current state,
 	 * i.e., an expression over clock variables which must remain true.
 	 * If there is no invariant, this returns null;
@@ -448,13 +434,15 @@ public interface ModelGenerator<Value> extends ModelInfo
 	}
 	
 	/**
-	 * Is the {@code i}th label of the model true in the state currently being explored?
-	 * @param i The index of the label to check 
+	 * Create a Map of label names and values for the given state
+	 *
+	 * @param state Context state for evaluation.
+	 * @throws PrismLangException If evaluation of a label fails.
 	 */
-	public default boolean isLabelTrue(int i) throws PrismException
+	default Map<String, Boolean> getLabelValues(State state) throws PrismException
 	{
 		// No labels by default
-		throw new PrismException("Label number \"" + i + "\" not defined");
+		throw new PrismException("Labels not defined");
 	}
 	
 	/**

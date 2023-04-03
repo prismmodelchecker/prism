@@ -2,6 +2,7 @@ package simulator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import common.Interval;
 import param.BigRational;
@@ -603,10 +604,9 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	}
 
 	@Override
-	public boolean isLabelTrue(int i) throws PrismException
+	public Map<String, Boolean> getLabelValues(State state) throws PrismLangException
 	{
-		Expression expr = labelList.getLabel(i);
-		return expr.evaluateBoolean(ec.setState(exploreState));
+		return labelList.getLabelValues(state);
 	}
 	
 	@Override
@@ -756,7 +756,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		}
 		// Compute the current transition list, if required
 		if (!transitionListBuilt) {
-			updater.calculateTransitions(exploreState, transitionList);
+			updater.calculateTransitions(exploreState, getLabelValues(exploreState) ,transitionList);
 			transitionListBuilt = true;
 		}
 		return transitionList;
@@ -772,7 +772,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		}
 		// Compute the current transition list, if required
 		if (!transitionListBuilt) {
-			updaterInt.calculateTransitions(exploreState, transitionListInt);
+			updaterInt.calculateTransitions(exploreState, getLabelValues(exploreState),transitionListInt);
 			transitionListIntBuilt = true;
 		}
 		return transitionListInt;

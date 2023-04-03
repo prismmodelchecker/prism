@@ -28,7 +28,10 @@ package parser.ast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+import parser.State;
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
 import prism.PrismLangException;
@@ -39,11 +42,11 @@ import prism.PrismUtils;
 public class LabelList extends ASTElement
 {
 	// Name/expression pairs to define labels
-	private ArrayList<String> names;
-	private ArrayList<Expression> labels;
+	protected ArrayList<String> names;
+	protected ArrayList<Expression> labels;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private ArrayList<ExpressionIdent> nameIdents;
+	protected ArrayList<ExpressionIdent> nameIdents;
 	
 	// Constructor
 	
@@ -85,8 +88,51 @@ public class LabelList extends ASTElement
 		}
 	}
 
+	/**
+	 * Evaluates all label with the given state. <br>
+	 *
+	 * @param currentState The state to evaluate the labels in.
+	 * @return A map of the values.
+	 * @throws PrismLangException In case an evaluation fails.
+	 */
+	public Map<String, Boolean> getLabelValues(State currentState) throws PrismLangException
+	{
+		Map<String, Boolean> labelValues = new HashMap<>(labels.size());
+
+		for (String label : names) {
+			evaluateLabel(label, labelValues, currentState);
+		}
+
+		return labelValues;
+	}
+
+	/**
+	 * Helper function to recursively evaluate label values. The value will be stored inside the given map.
+	 *
+	 * @param name The name of the label.
+	 * @param labelValues The already known values of all labels.
+	 */
+	private void evaluateLabel(String name, Map<String, Boolean> labelValues, State state) throws PrismLangException
+	{
+		// check if value is already known
+		if (labelValues.containsKey(name)) {
+			return;
+		}
+		// get expression
+		Expression label = labels.get(names.indexOf(name));
+		// check if all the (other) label dependencies are evaluated
+		for (String dependency : label.getAllLabels()){
+			if (!labelValues.containsKey(dependency)){
+				// evaluate other label first
+				evaluateLabel(dependency, labelValues, state);
+			}
+		}
+		// all dependencies are fulfilled
+		labelValues.put(name, label.evaluateBoolean(null, labelValues, state));
+	}
+
+
 	// Set methods
-	
 	public void addLabel(ExpressionIdent n, Expression l)
 	{
 		names.add(n.getName());

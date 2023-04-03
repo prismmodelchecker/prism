@@ -134,16 +134,6 @@ public class TestModelGenerator implements ModelGenerator<Double>
 		}
 		return s;
 	}
-	
-	@Override
-	public boolean isLabelTrue(int i) throws PrismException
-	{
-		if (i == 0) {
-			return x == n;
-		} else {
-			throw new PrismException("Label number \"" + i + "\" not defined");
-		}
-	}
 
 	public static void main(String args[])
 	{

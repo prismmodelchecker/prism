@@ -50,6 +50,8 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 
+import java.util.Map;
+
 // Abstract class for PRISM language expressions
 
 public abstract class Expression extends ASTElement
@@ -574,6 +576,19 @@ public abstract class Expression extends ASTElement
 	public boolean evaluateBoolean(Values constantValues, State state) throws PrismLangException
 	{
 		return evaluateBoolean(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression as a boolean, based on values for labels/variables.
+	 * Any typing issues cause an exception.
+	 * Constant values are supplied as a Values object.
+	 * Label values are supplied as a Map.
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public boolean evaluateBoolean(Values constantValues, Map<String, Boolean> labelValues, State state) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextState(constantValues, labelValues, state));
 	}
 
 	/**
