@@ -894,6 +894,10 @@ public class ModulesFile extends ASTElement implements ModelInfo, RewardGenerato
 		// Check label identifiers
 		checkLabelIdents();
 
+		// Check labels for cyclic dependencies
+		// should be done after formulas were expanded
+		labelList.findCycles();
+
 		// Check module names
 		checkModuleNames();
 

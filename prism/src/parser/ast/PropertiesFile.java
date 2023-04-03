@@ -322,6 +322,10 @@ public class PropertiesFile extends ASTElement
 		// Check label identifiers
 		checkLabelIdents();
 
+		// Check label for cyclic dependencies
+		// should be done after formulas were expanded
+		combinedLabelList.findCycles();
+
 		// Check constant identifiers
 		checkConstantIdents();
 		// Find all instances of constants (i.e. locate idents which are constants).
