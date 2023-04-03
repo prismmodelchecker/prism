@@ -105,6 +105,12 @@ public abstract class Expression extends ASTElement
 			{
 				return ec.getConstantValue(name);
 			}
+
+			@Override
+			public Boolean getLabelValue(String name)
+			{
+				return ec.getLabelValue(name);
+			}
 		}));
 	}
 
@@ -672,6 +678,19 @@ public abstract class Expression extends ASTElement
 	public BigRational evaluateExact(Values constantValues, State state) throws PrismLangException
 	{
 		return evaluateExact(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for constants, variables and labels.
+	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Constant values are supplied as a Values object.
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Labels are supplied as a Map from label names to booleans.
+	 * Note: assumes that type checking has been done.
+	 */
+	public BigRational evaluateExact(Values constantValues, Map<String, Boolean> labelValues, State state) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextState(constantValues, labelValues, state));
 	}
 
 	/**
