@@ -33,7 +33,7 @@ import common.Interval;
 import parser.EvaluateContext.EvalMode;
 import prism.PrismLangException;
 
-public class TypeInterval extends Type 
+public class TypeInterval extends Type
 {
 	private static Map<Type, TypeInterval> singletons;
 	
@@ -51,22 +51,19 @@ public class TypeInterval extends Type
 
 	public static TypeInterval getInstance(Type subType)
 	{
-		if (!singletons.containsKey(subType))
-			singletons.put(subType, new TypeInterval(subType));
-			
-		return singletons.get(subType);
+		return singletons.computeIfAbsent(subType, TypeInterval::new);
 	}
-	
-	public Type getSubType() 
+
+	public Type getSubType()
 	{
 		return subType;
 	}
 
-	public void setSubType(Type subType) 
+	public void setSubType(Type subType)
 	{
 		this.subType = subType;
 	}
-	
+
 	// Methods required for Type:
 	
 	@Override
@@ -99,13 +96,13 @@ public class TypeInterval extends Type
 		// Scalar converts to singleton interval
 		if (value instanceof Double || value instanceof Integer) {
 			Object subValue = getSubType().castValueTo(value);
-			return new Interval<Object>(subValue, subValue);
+			return new Interval<>(subValue, subValue);
 		}
 		// For interval, cast low/high
 		else if (value instanceof Interval) {
 			Object lower = getSubType().castValueTo(((Interval<?>) value).getLower());
 			Object upper = getSubType().castValueTo(((Interval<?>) value).getUpper());
-			return new Interval<Object>(lower, upper);
+			return new Interval<>(lower, upper);
 		}
 		else {
 			throw new PrismLangException("Can't convert " + value.getClass() + " to type " + getTypeString());
