@@ -76,19 +76,26 @@ PRISM was created and is still actively maintained by:
  * Gethin Norman (University of Glasgow)
  * Marta Kwiatkowska (University of Oxford) 
 
-Development of the tool is currently led from Oxford by Dave Parker. Other current key developers are:
+Development of the tool is currently led from Oxford by Dave Parker.
 
+The following have made a wide range of contributions to
+PRISM covering many different aspects of the tool
+(in approximately reverse chronological order):
+
+ * Steffen Märcker (Technische Universität Dresden)
  * Joachim Klein (formerly Technische Universität Dresden)
+ * Vojtech Forejt (formerly University of Oxford)
 
-We gratefully acknowledge contributions to the PRISM code-base from various sources,
-including (in approximately reverse chronological order):
+We also gratefully acknowledge contributions to the PRISM code-base from
+(in approximately reverse chronological order):
 
+ * Max Kurze: Language parser code improvements
+ * Ludwig Pauly: Reward import/export
+ * Alberto Puggelli: First version of interval DTMC/MDP code
  * Xueyi Zou: Partially observable Markov decision processes (POMDPs)
- * Steffen Märcker: Fixes and improvements, especially in explicit engine
  * Chris Novakovic: Build infrastructure and explicit engine improvements
  * Ernst Moritz Hahn: Parametric model checking, fast adaptive uniformisation + various other features
  * Frits Dannenberg: Fast adaptive uniformisation
- * Vojtech Forejt: Various model checking code, including multi-objective + GUI enhancements
  * Hongyang Qu: Multi-objective model checking
  * Mateusz Ujma: Bug fixes and GUI improvements
  * Christian von Essen: Symbolic/explicit-state model checking
