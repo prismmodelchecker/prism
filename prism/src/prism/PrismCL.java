@@ -533,6 +533,7 @@ public class PrismCL implements PrismModelListener
 		}
 		// close down
 		closeDown();
+
 	}
 
 	/**
@@ -2624,7 +2625,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-timeout <n> ................... Exit after a time-out of <n> seconds if not already terminated");
 		mainLog.println("-ng ............................ Run PRISM in Nailgun server mode; subsequent calls are then made via \"ngprism\"");
 		mainLog.println();
-		mainLog.println("IMPORT OPTIONS:");
+		mainLog.println("IMPORTS:");
 		mainLog.println("-importpepa .................... Model description is in PEPA, not the PRISM language");
 		mainLog.println("-importmodel <files> ........... Import the model directly from text file(s)");
 		mainLog.println("-importtrans <file> ............ Import the transition matrix directly from a text file");
@@ -2637,11 +2638,10 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-mdp ........................... Force imported/built model to be an MDP");
 		mainLog.println("-importresults <file> .......... Import results from a data frame stored in CSV file");
 		mainLog.println();
-		mainLog.println("EXPORT OPTIONS:");
+		mainLog.println("EXPORTS:");
 		mainLog.println("-exportresults <file[:options]>  Export the results of model checking to a file");
 		mainLog.println("-exportvector <file>  .......... Export results of model checking for all states to a file");
 		mainLog.println("-exportmodel <files[:options]> . Export the built model to file(s)");
-		mainLog.println("-exportmodelprecision <n>....... Export probabilities/rewards with n significant decimal places");
 		mainLog.println("-exporttrans <file> ............ Export the transition matrix to a file");
 		mainLog.println("-exportstaterewards <file> ..... Export the state rewards vector to a file");
 		mainLog.println("-exporttransrewards <file> ..... Export the transition rewards matrix to a file");

@@ -1830,6 +1830,10 @@ public class PrismSettings implements Observer
 	public static void printHelp(PrismLog mainLog)
 	{
 		mainLog.println();
+		mainLog.println("EXPORT OPTIONS:");
+		mainLog.println("-exportmodelprecision <n>....... Export probabilities/rewards with n significant decimal places");
+		mainLog.println("-noexportheaders ............... Don't include headers when exporting rewards");
+		mainLog.println();
 		mainLog.println("ENGINES/METHODS:");
 		mainLog.println("-mtbdd (or -m) ................. Use the MTBDD engine");
 		mainLog.println("-sparse (or -s) ................ Use the Sparse engine");
