@@ -70,7 +70,7 @@ public class PrismSettings implements Observer
 
 	// Constraint constants
 	public static final Range RANGE_EXPORT_DOUBLE_PRECISION = Range.closed(1, 17);
-	public static final int DEFAULT_EXPORT_MODEL_PRECISION = 17;
+	public static final int DEFAULT_EXPORT_MODEL_PRECISION = 16;
 
 	//Property Constant Keys
 	//======================
@@ -281,7 +281,7 @@ public class PrismSettings implements Observer
 																			"Export solution vectors for iteration algorithms to iterations.html"},
 			{ INTEGER_TYPE,		PRISM_GRID_RESOLUTION,					"Fixed grid resolution",			    "4.5",			Integer.valueOf(10),															"1,",																						
 																			"The resolution for the fixed grid approximation algorithm for POMDPs." },
-			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7",			17,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
+			{ INTEGER_TYPE,		PRISM_EXPORT_MODEL_PRECISION,			"Precision of model export",			"4.7",			16,																		RANGE_EXPORT_DOUBLE_PRECISION.min() + "-" + RANGE_EXPORT_DOUBLE_PRECISION.max(),
 																			"Export model probabilities/rewards to n significant decimal places."},
 			{ BOOLEAN_TYPE,		PRISM_EXPORT_MODEL_HEADERS,				"Include headers in model exports",		"4.7",			Boolean.valueOf(true),															"",
 																			"Whether to include #-commented header lines when exporting model data to explicit files."},
