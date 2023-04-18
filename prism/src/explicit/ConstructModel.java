@@ -175,6 +175,7 @@ public class ConstructModel extends PrismComponent
 		CTMDPSimple<Value> ctmdp = null;
 		IDTMCSimple<Value> idtmc = null;
 		IMDPSimple<Value> imdp = null;
+		IPOMDPSimple<Value> ipomdp = null;
 		LTSSimple<Value> lts = null;
 		Distribution<Value> distr = null;
 		Distribution<Interval<Value>> distrUnc = null;
@@ -221,6 +222,9 @@ public class ConstructModel extends PrismComponent
 				break;
 			case IMDP:
 				modelSimple = imdp = new IMDPSimple<>();
+				break;
+			case IPOMDP:
+				modelSimple = ipomdp = new IPOMDPSimple<>();
 				break;
 			case LTS:
 				modelSimple = lts = new LTSSimple<>();
@@ -314,6 +318,7 @@ public class ConstructModel extends PrismComponent
 							distr.add(dest, modelGen.getTransitionProbability(i, j));
 							break;
 						case IMDP:
+						case IPOMDP:
 							distrUnc.add(dest, modelGen.getTransitionProbabilityInterval(i, j));
 							break;
 						case LTS:
@@ -358,6 +363,12 @@ public class ConstructModel extends PrismComponent
 						} else {
 							ch = imdp.addChoice(src, distrUnc);
 						}
+					} else if (modelType == ModelType.IPOMDP) {
+						if (distinguishActions) {
+							ch = ipomdp.addActionLabelledChoice(src, distrUnc, modelGen.getChoiceAction(i));
+						} else {
+							ch = ipomdp.addChoice(src, distrUnc);
+						}
 					}
 				}
 				// For interval models, we delimit the constructed distributions
@@ -365,12 +376,17 @@ public class ConstructModel extends PrismComponent
 					((IDTMCSimple<Value>) idtmc).delimit(src, modelGen.getEvaluator());
 				} else if (modelType == ModelType.IMDP) {
 					((IMDPSimple<Value>) imdp).delimit(src, ch, modelGen.getEvaluator());
+				} else if (modelType == ModelType.IPOMDP) {
+					((IPOMDPSimple<Value>) ipomdp).delimit(src, ch, modelGen.getEvaluator());
 				}
 			}
 			// For partially observable models, add observation info to state
 			// (do it after transitions are added, since observation actions are checked)
 			if (!justReach && modelType == ModelType.POMDP) {
 				setStateObservation(modelGen, (POMDPSimple<Value>) modelSimple, src, state);
+			}
+			if (!justReach && modelType == ModelType.IPOMDP) {
+				setStateObservation(modelGen, (IPOMDPSimple<Value>) modelSimple, src, state);
 			}
 			// Print some progress info occasionally
 			progress.updateIfReady(src + 1);
@@ -439,6 +455,9 @@ public class ConstructModel extends PrismComponent
 			case IMDP:
 				model = (ModelExplicit<Value>) (sortStates ? new IMDPSimple<>(imdp, permut) : imdp);
 				break;
+			case IPOMDP:
+				model = (ModelExplicit<Value>) (sortStates ? new IPOMDPSimple<>(ipomdp, permut) : ipomdp);
+				break;
 			case LTS:
 				model = sortStates ? new LTSSimple<>(lts, permut) : lts;
 				break;
@@ -462,7 +481,7 @@ public class ConstructModel extends PrismComponent
 		return model;
 	}
 
-	private <Value> void setStateObservation(ModelGenerator<Value> modelGen, POMDPSimple<Value> pomdp, int s, State state) throws PrismException
+	private void setStateObservation(ModelGenerator<?> modelGen, POMDPSimple<?> pomdp, int s, State state) throws PrismException
 	{
 		// Get observation for the current state
 		// An observation is a State containing the value for each observable
