@@ -928,6 +928,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		case IMDP:
 			res = ((IMDPModelChecker) this).computeUntilProbs((IMDP<Double>) model, remain, target, minMax);
 			break;
+		case IPOMDP:
+			res = ((IPOMDPModelChecker) this).computeUntilProbs((IPOMDP<Double>) model, remain, target, minMax);
+			break;
 		default:
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
