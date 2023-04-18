@@ -28,6 +28,7 @@ package explicit.rewards;
 
 import explicit.Model;
 import explicit.Product;
+import prism.Evaluator;
 
 
 /**
@@ -58,7 +59,13 @@ public class MCRewardsFromMDPRewards<Value> extends RewardsExplicit<Value> imple
 		// This works fine for cumulative rewards, but not instantaneous ones
 		return getEvaluator().add(mdpRewards.getStateReward(s), mdpRewards.getTransitionReward(s, strat[s]));
 	}
-	
+
+	@Override
+	public Evaluator<Value> getEvaluator()
+	{
+		return mdpRewards.getEvaluator();
+	}
+
 	@Override
 	public MCRewards<Value> liftFromModel(Product<?> product)
 	{

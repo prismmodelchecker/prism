@@ -63,6 +63,7 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	 */
 	public MDPRewardsSimple(MDPRewardsSimple<Value> rews)
 	{
+		setEvaluator(rews.getEvaluator());
 		numStates = rews.numStates;
 		if (rews.stateRewards == null) {
 			stateRewards = null;
@@ -195,6 +196,7 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();		
 		MDPRewardsSimple<Value> rewardsProd = new MDPRewardsSimple<>(numStatesProd);
+		rewardsProd.setEvaluator(getEvaluator());
 		if (stateRewards != null) {
 			for (int s = 0; s < numStatesProd; s++) {
 				rewardsProd.setStateReward(s, stateRewards.get(product.getModelState(s)));

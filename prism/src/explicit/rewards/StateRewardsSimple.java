@@ -54,6 +54,7 @@ public class StateRewardsSimple<Value> extends StateRewards<Value>
 	 */
 	public StateRewardsSimple(StateRewardsSimple<Value> rews)
 	{
+		setEvaluator(rews.getEvaluator());
 		if (rews.stateRewards == null) {
 			stateRewards = null;
 		} else {
@@ -110,6 +111,7 @@ public class StateRewardsSimple<Value> extends StateRewards<Value>
 		Model<?> modelProd = product.getProductModel();
 		int numStatesProd = modelProd.getNumStates();
 		StateRewardsSimple<Value> rewardsProd = new StateRewardsSimple<>();
+		rewardsProd.setEvaluator(getEvaluator());
 		for (int s = 0; s < numStatesProd; s++) {
 			rewardsProd.setStateReward(s, getStateReward(product.getModelState(s)));
 		}

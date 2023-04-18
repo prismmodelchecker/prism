@@ -65,6 +65,8 @@ public class StateRewardsConstant<Value> extends StateRewards<Value>
 	@Override
 	public StateRewardsConstant<Value> deepCopy()
 	{
-		return new StateRewardsConstant<>(stateReward);
+		StateRewardsConstant rews = new StateRewardsConstant<>(stateReward);
+		rews.setEvaluator(getEvaluator());
+		return rews;
 	}
 }
