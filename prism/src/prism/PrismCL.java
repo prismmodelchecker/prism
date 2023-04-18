@@ -1154,7 +1154,7 @@ public class PrismCL implements PrismModelListener
 	private void parseArguments(String[] args) throws PrismException
 	{
 		int i, j;
-		String sw, s;
+		String sw, swOptions, s;
 		PrismLog log;
 
 		constSwitch = "";
@@ -1172,8 +1172,20 @@ public class PrismCL implements PrismModelListener
 					errorAndExit("Invalid empty switch");
 				}
 				// Remove optional second "-" (i.e. we allow switches of the form --sw too)
-				if (sw.charAt(0) == '-')
+				if (sw.charAt(0) == '-') {
 					sw = sw.substring(1);
+				}
+				// Extract any options appended to the switch after a :
+				if (sw.contains(":")) {
+					String[] swSplit = sw.split(":");
+					sw = swSplit[0];
+					swOptions = swSplit[1];
+					if (swOptions.isEmpty()) {
+						errorAndExit("Empty options for switch -" + sw);
+					}
+				} else {
+					swOptions = null;
+				}
 
 				// Note: the order of these switches should match the -help output (just to help keep track of things).
 				// But: processing of "PRISM" options is done elsewhere in PrismSettings
@@ -1379,7 +1391,7 @@ public class PrismCL implements PrismModelListener
 				// import model from explicit file(s)
 				else if (sw.equals("importmodel")) {
 					if (i < args.length - 1) {
-						processImportModelSwitch(args[++i]);
+						processImportModelSwitch(swOptions, args[++i]);
 					} else {
 						errorAndExit("No file/options specified for -" + sw + " switch");
 					}
@@ -1462,7 +1474,7 @@ public class PrismCL implements PrismModelListener
 						s = args[++i];
 						// Assume use of : to split filename/options but check for , if : not found
 						// (this was the old notation)
-						String halves[] = splitFilesAndOptions(s);
+						String halves[] = splitFilesAndOptions(swOptions, s);
 						if (halves[1].length() == 0 && halves[0].indexOf(',') > -1) {
 							int comma = halves[0].indexOf(',');
 							halves[1] = halves[0].substring(comma + 1);
@@ -1510,7 +1522,7 @@ public class PrismCL implements PrismModelListener
 				// export model to explicit file(s)
 				else if (sw.equals("exportmodel")) {
 					if (i < args.length - 1) {
-						processExportModelSwitch(args[++i]);
+						processExportModelSwitch(swOptions, args[++i]);
 					} else {
 						errorAndExit("No file/options specified for -" + sw + " switch");
 					}
@@ -1567,7 +1579,7 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("exportlabels")) {
 					if (i < args.length - 1) {
 						exportmodellabels = true;
-						exportModelLabelsFilename = processExportLabelsSwitch(args[++i]);
+						exportModelLabelsFilename = processExportLabelsSwitch(swOptions, args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1576,7 +1588,7 @@ public class PrismCL implements PrismModelListener
 				else if (sw.equals("exportproplabels")) {
 					if (i < args.length - 1) {
 						exportproplabels = true;
-						exportPropLabelsFilename = processExportLabelsSwitch(args[++i]);
+						exportPropLabelsFilename = processExportLabelsSwitch(swOptions, args[++i]);
 					} else {
 						errorAndExit("No file specified for -" + sw + " switch");
 					}
@@ -1676,7 +1688,7 @@ public class PrismCL implements PrismModelListener
 				// export strategy
 				else if (sw.equals("exportstrat")) {
 					if (i < args.length - 1) {
-						processExportStratSwitch(args[++i]);
+						processExportStratSwitch(swOptions, args[++i]);
 					} else {
 						errorAndExit("No file/options specified for -" + sw + " switch");
 					}
@@ -2009,7 +2021,7 @@ public class PrismCL implements PrismModelListener
 			if (filenameArgs.size() > 0) {
 				modelFilename = filenameArgs.get(0);
 				if (modelFilename.endsWith(".all")) {
-					processImportModelSwitch(modelFilename);
+					processImportModelSwitch(null, modelFilename);
 				}
 			}
 			if (filenameArgs.size() > 1) {
@@ -2023,11 +2035,13 @@ public class PrismCL implements PrismModelListener
 	 * NB: This is done at the time of parsing switches (not later)
 	 * because other individual switches (e.g. -importXXX) can later override
 	 * parts of the configurations set up here.
+	 * @param swOptions Any options already attached to the switch with : (can be null or "")
+	 * @param filesOptionsString The filename, possibly including some options attached with :
 	 */
-	private void processImportModelSwitch(String filesOptionsString) throws PrismException
+	private void processImportModelSwitch(String swOptions, String filesOptionsString) throws PrismException
 	{
 		// Split into files/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
+		String halves[] = splitFilesAndOptions(swOptions, filesOptionsString);
 		String filesString = halves[0];
 		String optionsString = halves[1];
 		// Split files into basename/extensions
@@ -2125,14 +2139,15 @@ public class PrismCL implements PrismModelListener
 	
 	/**
 	 * Process the arguments (file, options) to the -export(prop)labels switch.
-	 * Currently, only one option is supported: proplabels, cf.
-	 * {@link #processExportModelSwitch}
+	 * Currently, only one option is supported: proplabels, cf. {@link #processExportModelSwitch}
+	 * @param swOptions Any options already attached to the switch with : (can be null or "")
+	 * @param filesOptionsString The filename, possibly including some options attached with :
 	 * @return The name of the export file
 	 */
-	private String processExportLabelsSwitch(String filesOptionsString) throws PrismException
+	private String processExportLabelsSwitch(String swOptions, String filesOptionsString) throws PrismException
 	{
 		// Split into files/options (on :)
-		String pair[] = splitFilesAndOptions(filesOptionsString);
+		String pair[] = splitFilesAndOptions(swOptions, filesOptionsString);
 		String options[] = pair[1].split(",");
 		for (String opt : options) {
 			// Ignore ""
@@ -2157,11 +2172,13 @@ public class PrismCL implements PrismModelListener
 	 * NB: This is done at the time of parsing switches (not later)
 	 * because other individual switches (e.g. -exportmatlab) can later override
 	 * parts of the configurations set up here.
+	 * @param swOptions Any options already attached to the switch with : (can be null or "")
+	 * @param filesOptionsString The filename, possibly including some options attached with :
 	 */
-	private void processExportModelSwitch(String filesOptionsString) throws PrismException
+	private void processExportModelSwitch(String swOptions, String filesOptionsString) throws PrismException
 	{
 		// Split into files/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
+		String halves[] = splitFilesAndOptions(swOptions, filesOptionsString);
 		String filesString = halves[0];
 		String optionsString = halves[1];
 		// Split files into basename/extensions
@@ -2264,11 +2281,13 @@ public class PrismCL implements PrismModelListener
 
 	/**
 	 * Process the arguments (files, options) to the -exportstrat switch
+	 * @param swOptions Any options already attached to the switch with : (can be null or "")
+	 * @param filesOptionsString The filename, possibly including some options attached with :
 	 */
-	private void processExportStratSwitch(String filesOptionsString) throws PrismException
+	private void processExportStratSwitch(String swOptions, String filesOptionsString) throws PrismException
 	{
 		// Split into files/options (on :)
-		String halves[] = splitFilesAndOptions(filesOptionsString);
+		String halves[] = splitFilesAndOptions(swOptions, filesOptionsString);
 		String fileString = halves[0];
 		String optionsString = halves[1];
 		// Store some settings (here and in PRISM)
@@ -2315,15 +2334,25 @@ public class PrismCL implements PrismModelListener
 	}
 
 	/**
-	 * Split a string of the form <files>:<options> into its two parts.
-	 * The latter can be empty, in which case the : is optional.
+	 * Separate a list of options and a file (or list of files), as provided for a switch.
+	 * If options were already attached to the switch (-sw:opts files) then we just use those.
+	 * If not (i.e., if {@code swOptions} is null or empty), we see if they are embedded in
+	 * the filename(s) (-sw files:opts).
 	 * Instances of :\ are ignored (not treated as :) in case there is a Windows filename.
-	 * @return the two parts as an array of two strings.
+	 * @param swOptions Any options already attached to the switch with : (can be null or "")
+	 * @param filesOptionsString The filename, possibly including some options attached with :
+	 * @return the two parts (files, options) as an array of two strings.
 	 */
-	private static String[] splitFilesAndOptions(String filesOptionsString)
+	private static String[] splitFilesAndOptions(String swOptions, String filesOptionsString)
 	{
 		String res[] = new String[2];
-		// Split into files/options (on :)
+		// If options already found, we are done
+		if (swOptions != null && !swOptions.isEmpty()) {
+			res[0] = filesOptionsString;
+			res[1] = swOptions;
+			return res;
+		}
+		// Otherwise, split into files/options (on :)
 		int i = filesOptionsString.indexOf(':');
 		while (filesOptionsString.length() > i + 1 && filesOptionsString.charAt(i + 1) == '\\') {
 			i = filesOptionsString.indexOf(':', i + 1);
