@@ -45,6 +45,7 @@ import explicit.ExplicitFiles2Model;
 import explicit.FastAdaptiveUniformisation;
 import explicit.FastAdaptiveUniformisationModelChecker;
 import explicit.ModelModelGenerator;
+import explicit.PartiallyObservableModel;
 import hybrid.PrismHybrid;
 import jdd.JDD;
 import jdd.JDDNode;
@@ -2939,6 +2940,47 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		} else {
 			currentModelExpl.exportStates(exportType, currentModelInfo.createVarList(), tmpLog);
 		}
+
+		// Tidy up
+		if (file != null)
+			tmpLog.close();
+	}
+
+	/**
+	 * Export the observations for the currently loaded model to a file
+	 * @param exportType Type of export; one of: <ul>
+	 * <li> {@link #EXPORT_PLAIN}
+	 * <li> {@link #EXPORT_MATLAB}
+	 * </ul>
+	 * @param file File to export to (if null, print to the log instead)
+	 */
+	public void exportObservationsToFile(int exportType, File file) throws FileNotFoundException, PrismException
+	{
+		if (!currentModelType.partiallyObservable()) {
+			mainLog.println("\nOmitting observations export as the model is not partially observable");
+			return;
+		}
+
+		// No specific states format for MRMC
+		if (exportType == EXPORT_MRMC)
+			exportType = EXPORT_PLAIN;
+		// Rows format does not apply to states output
+		if (exportType == EXPORT_ROWS)
+			exportType = EXPORT_PLAIN;
+
+		// Build model, if necessary
+		buildModelIfRequired();
+
+		// Print message
+		mainLog.print("\nExporting list of observations ");
+		mainLog.print(getStringForExportType(exportType) + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Create new file log or use main log
+		PrismLog tmpLog = getPrismLogForFile(file);
+
+		// Export (explicit engine only)
+		((PartiallyObservableModel<?>) currentModelExpl).exportObservations(exportType, currentModelInfo, tmpLog);
 
 		// Tidy up
 		if (file != null)

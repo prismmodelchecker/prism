@@ -79,6 +79,7 @@ public class GUIMultiModelHandler extends JPanel implements PrismModelListener
 	public static final int TRANS_REWARDS_EXPORT = 3;
 	public static final int STATES_EXPORT = 4;
 	public static final int LABELS_EXPORT = 5;
+	public static final int OBSERVATIONS_EXPORT = 6;
 
 	private GUIMultiModel theModel;
 	private GUIMultiModelTree tree;

@@ -98,6 +98,9 @@ public class ExportBuiltModelThread extends GUIComputationThread
 				case GUIMultiModelHandler.TRANS_EXPORT:
 					prism.exportTransToFile(true, exportType, exportFile);
 					break;
+				case GUIMultiModelHandler.OBSERVATIONS_EXPORT:
+					prism.exportObservationsToFile(exportType, exportFile);
+					break;
 				case GUIMultiModelHandler.STATE_REWARDS_EXPORT:
 					prism.exportStateRewardsToFile(exportType, exportFile);
 					break;
