@@ -195,7 +195,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToDotFile(out, null, true, options.getModelPrecision());
+		prodModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 
 	@Override

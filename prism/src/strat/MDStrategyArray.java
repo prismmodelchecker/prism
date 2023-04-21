@@ -92,8 +92,7 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	{
 		// For now, we export just the reduced (induced) model
 		Model<Value> dtmcInd = model.constructInducedModel(this);
-		dtmcInd.exportToDotFile(out, null, true, options.getModelPrecision());
-		//model.exportToDotFileWithStrat(out, null, choices, options.getModelPrecision());
+		dtmcInd.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 
 	@Override

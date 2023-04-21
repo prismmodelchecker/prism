@@ -33,6 +33,7 @@ import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -207,15 +208,19 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	public void exportDotFileObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		// Use the already constructed strategy model for export
-		mdpStrat.exportToDotFile(out, Collections.singleton(new Decorator()
-		{
-			@Override
-			public Decoration decorateState(int state, Decoration d)
+		List<Decorator> decorators = new ArrayList<>();
+		if (options.getShowStates()) {
+			decorators.add(new Decorator()
 			{
-				d.labelAddBelow(Belief.toString(mdpStates.get(state)[0], unobsBeliefs.get(mdpStates.get(state)[1]), pomdp));
-				return d;
-			}
-		}), options.getModelPrecision());
+				@Override
+				public Decoration decorateState(int state, Decoration d)
+				{
+					d.labelAddBelow(Belief.toString(mdpStates.get(state)[0], unobsBeliefs.get(mdpStates.get(state)[1]), pomdp));
+					return d;
+				}
+			});
+		}
+		mdpStrat.exportToDotFile(out, decorators, options.getModelPrecision());
 	}
 
 	public void exportDotFileNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
@@ -224,28 +229,32 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
 		Model<Value> prodModel = csp.constructProductModel(model, this);
 		List<State> stateList = prodModel.getStatesList();
-		// Export product model to dot file, with custom decorator
+		// Export product model to dot file, with (if needed) a custom decorator
 		// to extract the final value of each state and convert to a belief
-		prodModel.exportToDotFile(out, Collections.singleton(new Decorator()
-		{
-			@Override
-			public Decoration decorateState(int state, Decoration d)
+		List<Decorator> decorators = new ArrayList<>();
+		if (options.getShowStates()) {
+			decorators.add(new Decorator()
 			{
-				Object[] varValues = stateList.get(state).varValues;
-				int numVars = varValues.length;
-				String s = "(";
-				for (int i = 0; i < numVars - 1; i++) {
-					if (i > 0)
-						s += ",";
-					s += State.valueToString(varValues[i]);
+				@Override
+				public Decoration decorateState(int state, Decoration d)
+				{
+					Object[] varValues = stateList.get(state).varValues;
+					int numVars = varValues.length;
+					String s = "(";
+					for (int i = 0; i < numVars - 1; i++) {
+						if (i > 0)
+							s += ",";
+						s += State.valueToString(varValues[i]);
+					}
+					s += "),";
+					int m = (int) varValues[numVars - 1];
+					s += getMemoryString(m);
+					d.labelAddBelow(s);
+					return d;
 				}
-				s += "),";
-				int m = (int) varValues[numVars - 1];
-				s += getMemoryString(m);
-				d.labelAddBelow(s);
-				return d;
-			}
-		}), options.getModelPrecision());
+			});
+		}
+		prodModel.exportToDotFile(out, decorators, options.getModelPrecision());
 	}
 
 	@Override
