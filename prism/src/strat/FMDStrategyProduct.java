@@ -26,6 +26,7 @@
 
 package strat;
 
+import explicit.ConstructInducedModel;
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
 import explicit.NondetModel;
@@ -186,6 +187,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
@@ -194,6 +196,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
