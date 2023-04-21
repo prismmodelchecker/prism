@@ -158,7 +158,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	}
 	
 	@Override
-	public void exportActions(PrismLog out)
+	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
 		int n = product.getProductModel().getNumStates();
 		for (int i = 0; i < n; i++) {
@@ -172,7 +172,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportIndices(PrismLog out)
+	public void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		int n = product.getProductModel().getNumStates();
 		for (int i = 0; i < n; i++) {
@@ -183,19 +183,19 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, int precision) throws PrismException
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToPrismExplicitTra(out, precision);
+		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision) throws PrismException
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToDotFile(out, null, true, precision);
+		prodModel.exportToDotFile(out, null, true, options.getModelPrecision());
 	}
 
 	@Override

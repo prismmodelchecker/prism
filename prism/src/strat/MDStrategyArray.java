@@ -29,6 +29,7 @@ package strat;
 
 import explicit.Model;
 import explicit.NondetModel;
+import prism.PrismException;
 import prism.PrismLog;
 
 /**
@@ -80,19 +81,19 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, int precision)
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		Model<Value> dtmcInd = model.constructInducedModel(this);
-		dtmcInd.exportToPrismExplicitTra(out, precision);
+		dtmcInd.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision)
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		// For now, we export just the reduced (induced) model
 		Model<Value> dtmcInd = model.constructInducedModel(this);
-		dtmcInd.exportToDotFile(out, null, true, precision);
-		//model.exportToDotFileWithStrat(out, null, choices, precision);
+		dtmcInd.exportToDotFile(out, null, true, options.getModelPrecision());
+		//model.exportToDotFileWithStrat(out, null, choices, options.getModelPrecision());
 	}
 
 	@Override

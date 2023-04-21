@@ -75,6 +75,8 @@ import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import sparse.PrismSparse;
 import strat.Strategy;
+import strat.StrategyExportOptions;
+import strat.StrategyExportOptions.StrategyExportType;
 import strat.StrategyGenerator;
 
 /**
@@ -160,26 +162,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// state space cut-off to trigger MTBDD engine
 	protected static final int MTBDD_STATES_THRESHOLD = 100000000;
 	
-	// Options for type of strategy export
-	public enum StrategyExportType {
-		ACTIONS, INDICES, INDUCED_MODEL, DOT_FILE;
-		public String description()
-		{
-			switch (this) {
-			case ACTIONS:
-				return "as actions";
-			case INDICES:
-				return "as indices";
-			case INDUCED_MODEL:
-				return "as an induced model";
-			case DOT_FILE:
-				return "as a dot file";
-			default:
-				return this.toString();
-			}
-		}
-	}
-
 	//------------------------------------------------------------------------------
 	// Settings / flags / options
 	//------------------------------------------------------------------------------
@@ -3499,16 +3481,51 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Export the current strategy. The associated model should be attached to the strategy.
 	 * Strictly, speaking that does not need to be the currently loaded model,
 	 * but it would probably have been discarded if that was not the case.
-	 * @param strat The strategy
-	 * @param exportType The type of output
+	 * @param exportOptions The options for export
+	 * @param file File to output the path to (stdout if null)
+	 */
+	public void exportStrategy(StrategyExportOptions exportOptions, File file) throws FileNotFoundException, PrismException
+	{
+		if (getStrategy() != null) {
+			exportStrategy(getStrategy(), exportOptions, file);
+		} else {
+			throw new PrismException("There is no current strategy to export");
+		}
+	}
+
+	/**
+	 * Export the current strategy. The associated model should be attached to the strategy.
+	 * Strictly, speaking that does not need to be the currently loaded model,
+	 * but it would probably have been discarded if that was not the case.
+	 * @param exportType The type of export
 	 * @param file File to output the path to (stdout if null)
 	 */
 	public void exportStrategy(StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
 	{
-		if (getStrategy() != null) {
-			exportStrategy(getStrategy(), exportType, file);
-		} else {
-			throw new PrismException("There is no current strategy to export");
+		exportStrategy(new StrategyExportOptions(exportType), file);
+	}
+
+	/**
+	 * Export a strategy. The associated model should be attached to the strategy.
+	 * Strictly, speaking that does not need to be the currently loaded model,
+	 * but it would probably have been discarded if that was not the case.
+	 * @param strat The strategy
+	 * @param exportOptions The options for export
+	 * @param file File to output the path to (stdout if null)
+	 */
+	public void exportStrategy(Strategy<?> strat, StrategyExportOptions exportOptions, File file) throws FileNotFoundException, PrismException
+	{
+		// Print message
+		mainLog.print("\nExporting strategy " + exportOptions.getType().description() + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Export to file (or use main log)
+		PrismLog tmpLog = getPrismLogForFile(file);
+		exportOptions = exportOptions.clone();
+		exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
+		strat.export(tmpLog, exportOptions);
+		if (file != null) {
+			tmpLog.close();
 		}
 	}
 
@@ -3517,36 +3534,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Strictly, speaking that does not need to be the currently loaded model,
 	 * but it would probably have been discarded if that was not the case.
 	 * @param strat The strategy
-	 * @param exportType The type of output
+	 * @param exportType The type of export
 	 * @param file File to output the path to (stdout if null)
 	 */
 	public void exportStrategy(Strategy<?> strat, StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
 	{
-		PrismLog tmpLog;
-
-		// Print message
-		mainLog.print("\nExporting strategy " + exportType.description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Export to file (or use main log)
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-		tmpLog = getPrismLogForFile(file);
-		switch (exportType) {
-		case ACTIONS:
-			strat.exportActions(tmpLog);
-			break;
-		case INDICES:
-			strat.exportIndices(tmpLog);
-			break;
-		case INDUCED_MODEL:
-			strat.exportInducedModel(tmpLog, precision);
-			break;
-		case DOT_FILE:
-			strat.exportDotFile(tmpLog, precision);
-			break;
-		}
-		if (file != null)
-			tmpLog.close();
+		exportStrategy(strat, new StrategyExportOptions(exportType), file);
 	}
 
 	/**

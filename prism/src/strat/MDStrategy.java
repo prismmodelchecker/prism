@@ -66,7 +66,7 @@ public interface MDStrategy<Value> extends Strategy<Value>
 	// Methods for Strategy
 	
 	@Override
-	public default void exportActions(PrismLog out)
+	public default void exportActions(PrismLog out, StrategyExportOptions options)
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
@@ -76,7 +76,7 @@ public interface MDStrategy<Value> extends Strategy<Value>
 	}
 
 	@Override
-	public default void exportIndices(PrismLog out)
+	public default void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {

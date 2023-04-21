@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2022-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -59,7 +59,7 @@ public class ConstructStrategyProduct
 	{
 		// This is for finite-memory strategies
 		if (!strat.hasMemory()) {
-			throw new PrismException("Product construction is for finite-memory models");
+			throw new PrismException("Product construction is for finite-memory strategies");
 		}
 		
 		// If the model has a VarList, we will create a new one

@@ -27,8 +27,6 @@
 
 package strat;
 
-import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
-
 import prism.PrismException;
 import prism.PrismLog;
 import simulator.RandomNumberGenerator;
@@ -191,42 +189,65 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	public int getNumStates();
 
 	/**
-	 * Export the strategy to a PrismLog, displaying strategy choices as action names.
+	 * Export the strategy to a PrismLog, with specified export type and options.
 	 */
-	public void exportActions(PrismLog out) throws PrismException;
+	public default void export(PrismLog out, StrategyExportOptions options) throws PrismException
+	{
+		switch (options.getType()) {
+			case ACTIONS:
+				exportActions(out, options);
+				break;
+			case INDICES:
+				exportIndices(out, options);
+				break;
+			case INDUCED_MODEL:
+				exportInducedModel(out, options);
+				break;
+			case DOT_FILE:
+				exportDotFile(out, options);
+				break;
+		}
+	}
+
+	/**
+	 * Export the strategy to a PrismLog, displaying strategy choices as action names.
+	 * @param options The options for export
+	 */
+	public void exportActions(PrismLog out, StrategyExportOptions options) throws PrismException;
 	
 	/**
 	 * Export the strategy to a PrismLog, displaying strategy choices as indices.
+	 * @param options The options for export
 	 */
-	public void exportIndices(PrismLog out) throws PrismException;
+	public void exportIndices(PrismLog out, StrategyExportOptions options) throws PrismException;
 
 	/**
 	 * Export the model induced by this strategy to a PrismLog.
 	 */
 	default void exportInducedModel(PrismLog out) throws PrismException
 	{
-		exportInducedModel(out, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportInducedModel(out, new StrategyExportOptions());
 	}
 
 	/**
 	 * Export the model induced by this strategy to a PrismLog.
-	 * @param precision number of significant digits >= 1
+	 * @param options The options for export
 	 */
-	public void exportInducedModel(PrismLog out, int precision) throws PrismException;
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException;
 
 	/**
 	 * Export the strategy to a dot file (of the model showing the strategy).
 	 */
 	default void exportDotFile(PrismLog out) throws PrismException
 	{
-		exportDotFile(out, DEFAULT_EXPORT_MODEL_PRECISION);
+		exportDotFile(out, new StrategyExportOptions());
 	}
 
 	/**
 	 * Export the strategy to a dot file (of the model showing the strategy).
-	 * @param precision number of significant digits >= 1
+	 * @param options The options for export
 	 */
-	public void exportDotFile(PrismLog out, int precision) throws PrismException;
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException;
 	
 	/**
 	 * Clear storage of the strategy.

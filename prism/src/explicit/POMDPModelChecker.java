@@ -45,6 +45,7 @@ import explicit.rewards.MDPRewards;
 import explicit.rewards.StateRewardsSimple;
 import prism.*;
 import strat.FMDObsStrategyBeliefs;
+import strat.StrategyExportOptions;
 
 /**
  * Explicit-state model checker for partially observable Markov decision processes (POMDPs).
@@ -249,13 +250,11 @@ public class POMDPModelChecker extends ProbModelChecker
 			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
 		}
 		if (exportAdv) {
-			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 			try (PrismFileLog out = PrismFileLog.create(exportAdvFilename)) {
-				if (exportAdvFilename.endsWith(".dot")) {
-					stratFmdObs.exportDotFileObs(out, precision);
-				} else {
-					stratFmdObs.exportInducedModelObs(out, precision);
-				}
+				StrategyExportOptions.StrategyExportType exportType = exportAdvFilename.endsWith(".dot") ? StrategyExportOptions.StrategyExportType.DOT_FILE : StrategyExportOptions.StrategyExportType.INDUCED_MODEL;
+				StrategyExportOptions exportOptions = new StrategyExportOptions(exportType);
+				exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
+				stratFmdObs.export(out, exportOptions);
 			}
 		}
 
@@ -456,13 +455,11 @@ public class POMDPModelChecker extends ProbModelChecker
 			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
 		}
 		if (exportAdv) {
-			int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
 			try (PrismFileLog out = PrismFileLog.create(exportAdvFilename)) {
-				if (exportAdvFilename.endsWith(".dot")) {
-					stratFmdObs.exportDotFileObs(out, precision);
-				} else {
-					stratFmdObs.exportInducedModelObs(out, precision);
-				}
+				StrategyExportOptions.StrategyExportType exportType = exportAdvFilename.endsWith(".dot") ? StrategyExportOptions.StrategyExportType.DOT_FILE : StrategyExportOptions.StrategyExportType.INDUCED_MODEL;
+				StrategyExportOptions exportOptions = new StrategyExportOptions(exportType);
+				exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
+				stratFmdObs.export(out, exportOptions);
 			}
 		}
 

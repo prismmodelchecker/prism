@@ -146,7 +146,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
     }
     
 	@Override
-	public void exportActions(PrismLog out)
+	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
 		int n = mdpStrat.getNumStates();
 		for (int i = 0; i < n; i++) {
@@ -159,7 +159,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportIndices(PrismLog out)
+	public void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		int n = mdpStrat.getNumStates();
 		for (int i = 0; i < n; i++) {
@@ -173,40 +173,38 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, int precision) throws PrismException
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		boolean obs = true;
-		if (obs) {
-			exportInducedModelObs(out, precision);
+		if (options.getMergeObservations()) {
+			exportInducedModelObs(out, options);
 		} else {
-			exportInducedModelNonObs(out, precision);
+			exportInducedModelNonObs(out, options);
 		}
 	}
 
-	public void exportInducedModelObs(PrismLog out, int precision) throws PrismException
+	public void exportInducedModelObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		mdpStrat.exportToPrismExplicitTra(out, precision);
+		mdpStrat.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
-	public void exportInducedModelNonObs(PrismLog out, int precision) throws PrismException
+	public void exportInducedModelNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToPrismExplicitTra(out, precision);
+		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision) throws PrismException
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		boolean obs = true;
-		if (obs) {
-			exportDotFileObs(out, precision);
+		if (options.getMergeObservations()) {
+			exportDotFileObs(out, options);
 		} else {
-			exportDotFileNonObs(out, precision);
+			exportDotFileNonObs(out, options);
 		}
 	}
 
-	public void exportDotFileObs(PrismLog out, int precision) throws PrismException
+	public void exportDotFileObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		// Use the already constructed strategy model for export
 		mdpStrat.exportToDotFile(out, Collections.singleton(new Decorator()
@@ -217,10 +215,10 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 				d.labelAddBelow(Belief.toString(mdpStates.get(state)[0], unobsBeliefs.get(mdpStates.get(state)[1]), pomdp));
 				return d;
 			}
-		}), precision);
+		}), options.getModelPrecision());
 	}
 
-	public void exportDotFileNonObs(PrismLog out, int precision) throws PrismException
+	public void exportDotFileNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		// Construct the strategy-induced product model
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
@@ -247,7 +245,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 				d.labelAddBelow(s);
 				return d;
 			}
-		}), precision);
+		}), options.getModelPrecision());
 	}
 
 	@Override

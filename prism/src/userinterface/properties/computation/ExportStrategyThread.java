@@ -31,7 +31,7 @@ import java.io.FileNotFoundException;
 
 import javax.swing.SwingUtilities;
 
-import prism.Prism.StrategyExportType;
+import strat.StrategyExportOptions.StrategyExportType;
 import userinterface.GUIComputationThread;
 import userinterface.GUIPlugin;
 import userinterface.util.GUIComputationEvent;
