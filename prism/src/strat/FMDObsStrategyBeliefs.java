@@ -191,6 +191,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	public void exportInducedModelNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
 		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
@@ -227,6 +228,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	{
 		// Construct the strategy-induced product model
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
 		List<State> stateList = prodModel.getStatesList();
 		// Export product model to dot file, with (if needed) a custom decorator
