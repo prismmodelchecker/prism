@@ -3056,6 +3056,13 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			switchedToExplicitEngine = true;
 			setEngine(Prism.EXPLICIT);
 		}
+		if (genStrat && getCurrentEngine() == PrismEngine.SYMBOLIC) {
+			mainLog.printWarning("Switching to explicit engine to allow strategy generation.");
+			engineSwitch = true;
+			lastEngine = getEngine();
+			switchedToExplicitEngine = true;
+			setEngine(Prism.EXPLICIT);
+		}
 		try {
 			// Build model, if necessary
 			buildModelIfRequired();
