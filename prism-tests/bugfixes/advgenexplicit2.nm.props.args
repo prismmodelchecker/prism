@@ -1,3 +1,2 @@
--exportadv advgenexplicit2.nm.props.adv.tra -ex
--exportadv advgenexplicit2.nm.props.adv.tra -nopre -ex
-#-exportadv advgenexplicit2.nm.props.adv.tra -nopre
+-exportstrat advgenexplicit2.nm.props.adv.tra -ex
+-exportstrat advgenexplicit2.nm.props.adv.tra -nopre -ex

@@ -41,6 +41,7 @@ import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
 import explicit.rewards.STPGRewards;
+import strat.MDStrategyArray;
 
 /**
  * Explicit-state model checker for two-player stochastic games (STPGs).
@@ -148,15 +149,11 @@ public class STPGModelChecker extends ProbModelChecker
 		BitSet no, yes;
 		int n, numYes, numNo;
 		long timer, timerProb0, timerProb1;
-		boolean genAdv;
 
 		// Check for some unsupported combinations
 		if (solnMethod == SolnMethod.VALUE_ITERATION && valIterDir == ValIterDir.ABOVE && !(precomp && prob0)) {
 			throw new PrismException("Precomputation (Prob0) must be enabled for value iteration from above");
 		}
-
-		// Are we generating an optimal adversary?
-		genAdv = exportAdv;
 
 		// Start probabilistic reachability
 		timer = System.currentTimeMillis();
@@ -189,7 +186,7 @@ public class STPGModelChecker extends ProbModelChecker
 		}
 		timerProb0 = System.currentTimeMillis() - timerProb0;
 		timerProb1 = System.currentTimeMillis();
-		if (precomp && prob1 && !genAdv) {
+		if (precomp && prob1 && !genStrat) {
 			yes = prob1(stpg, remain, target, min1, min2);
 		} else {
 			yes = (BitSet) target.clone();
@@ -399,11 +396,8 @@ public class STPGModelChecker extends ProbModelChecker
 		int i, n, iters;
 		double soln[], soln2[], tmpsoln[], initVal;
 		int adv[] = null;
-		boolean genAdv, done;
+		boolean done;
 		long timer;
-
-		// Are we generating an optimal adversary?
-		genAdv = exportAdv;
 
 		// Start value iteration
 		timer = System.currentTimeMillis();
@@ -443,7 +437,7 @@ public class STPGModelChecker extends ProbModelChecker
 			unknown.andNot(known);
 
 		// Create/initialise adversary storage
-		if (genAdv) {
+		if (genStrat) {
 			adv = new int[n];
 			for (i = 0; i < n; i++) {
 				adv[i] = -1;
@@ -456,7 +450,7 @@ public class STPGModelChecker extends ProbModelChecker
 		while (!done && iters < maxIters) {
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			stpg.mvMultMinMax(soln, min1, min2, soln2, unknown, false, genAdv ? adv : null);
+			stpg.mvMultMinMax(soln, min1, min2, soln2, unknown, false, genStrat ? adv : null);
 			// Check termination
 			done = PrismUtils.doublesAreClose(soln, soln2, termCritParam, termCrit == TermCrit.ABSOLUTE);
 			// Swap vectors for next iter
@@ -479,21 +473,14 @@ public class STPGModelChecker extends ProbModelChecker
 			throw new PrismException(msg);
 		}
 
-		// Print adversary
-		if (genAdv) {
-			PrismLog out = new PrismFileLog(exportAdvFilename);
-			for (i = 0; i < n; i++) {
-				out.println(i + " " + (adv[i] != -1 ? stpg.getAction(i, adv[i]) : "-"));
-			}
-			out.println();
-			out.close();
-		}
-
 		// Return results
 		res = new ModelCheckerResult();
 		res.soln = soln;
 		res.numIters = iters;
 		res.timeTaken = timer / 1000.0;
+		if (genStrat) {
+			res.strat = new MDStrategyArray<>(stpg, adv);
+		}
 		return res;
 	}
 

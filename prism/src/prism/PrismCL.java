@@ -318,6 +318,14 @@ public class PrismCL implements PrismModelListener
 			errorAndExit(e.getMessage());
 		}
 
+		// If the explicit engine has been requested for MDPs, and -exportadv was requested,
+		// stop with an error message (for other models like POMDPs, -exportadv was never really supported)
+		if (prism.getModelType() == ModelType.MDP && prism.getCurrentEngine() == Prism.PrismEngine.EXPLICIT) {
+			if (prism.getSettings().getChoice(PrismSettings.PRISM_EXPORT_ADV) != Prism.EXPORT_ADV_NONE) {
+				errorAndExit("The -exportadv functionality does not work for the explicit engine; use -exportstrat instead");
+			}
+		}
+
 		// initialise storage for results
 		results = new ResultsCollection[numPropertiesToCheck];
 		for (i = 0; i < numPropertiesToCheck; i++) {

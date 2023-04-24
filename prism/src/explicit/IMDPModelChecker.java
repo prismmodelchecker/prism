@@ -353,7 +353,7 @@ public class IMDPModelChecker extends ProbModelChecker
 		// If required, create/initialise strategy storage
 		// Set choices to -1, denoting unknown
 		// (except for target states, which are -2, denoting arbitrary)
-		if (genStrat || exportAdv) {
+		if (genStrat) {
 			strat = new int[n];
 			for (int i = 0; i < n; i++) {
 				strat[i] = target.get(i) ? -2 : -1;
@@ -380,7 +380,7 @@ public class IMDPModelChecker extends ProbModelChecker
 
 		// If still required, store strategy for no/yes (0/1) states.
 		// This is just for the cases max=0 and min=1, where arbitrary choices suffice (denoted by -2)
-		if (genStrat || exportAdv) {
+		if (genStrat) {
 			if (minMax.isMin()) {
 				for (int i = yes.nextSetBit(0); i >= 0; i = yes.nextSetBit(i + 1)) {
 					if (!target.get(i))
@@ -493,7 +493,7 @@ public class IMDPModelChecker extends ProbModelChecker
 		// If required, create/initialise strategy storage
 		// Set choices to -1, denoting unknown
 		// (except for target states, which are -2, denoting arbitrary)
-		if (genStrat || exportAdv) {
+		if (genStrat) {
 			strat = new int[n];
 			for (int i = 0; i < n; i++) {
 				strat[i] = target.get(i) ? -2 : -1;
@@ -510,7 +510,7 @@ public class IMDPModelChecker extends ProbModelChecker
 		mainLog.println("target=" + numTarget + ", inf=" + numInf + ", rest=" + (n - (numTarget + numInf)));
 
 		// If required, generate strategy for "inf" states.
-		if (genStrat || exportAdv) {
+		if (genStrat) {
 			if (minMax.isMin()) {
 				// If min reward is infinite, all choices give infinity
 				// So the choice can be arbitrary, denoted by -2; 

@@ -246,21 +246,12 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Create/export strategy if requested
 		// (exporting in Dot format if filename extension is .dot, otherwise .tra format)
 		FMDObsStrategyBeliefs stratFmdObs = null;
-		if (genStrat || exportAdv) {
+		if (genStrat) {
 			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
-		}
-		if (exportAdv) {
-			try (PrismFileLog out = PrismFileLog.create(exportAdvFilename)) {
-				StrategyExportOptions.StrategyExportType exportType = exportAdvFilename.endsWith(".dot") ? StrategyExportOptions.StrategyExportType.DOT_FILE : StrategyExportOptions.StrategyExportType.INDUCED_MODEL;
-				StrategyExportOptions exportOptions = new StrategyExportOptions(exportType);
-				exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
-				stratFmdObs.export(out, exportOptions);
-			}
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one)
 		MDPModelChecker mcMDP = new MDPModelChecker(this);
-		mcMDP.setExportAdv(false);
 		mcMDP.setGenStrat(false);
 		// Solve MDP to get inner bound
 		// (just reachability: can ignore "remain" since violating states are absent)
@@ -451,21 +442,12 @@ public class POMDPModelChecker extends ProbModelChecker
 		// Create/export strategy if requested
 		// (exporting in Dot format if filename extension is .dot, otherwise .tra format)
 		FMDObsStrategyBeliefs stratFmdObs = null;
-		if (genStrat || exportAdv) {
+		if (genStrat) {
 			stratFmdObs = new FMDObsStrategyBeliefs<>(pomdp, psm.mdp, psm.mdpStates, psm.unobsBeliefs);
-		}
-		if (exportAdv) {
-			try (PrismFileLog out = PrismFileLog.create(exportAdvFilename)) {
-				StrategyExportOptions.StrategyExportType exportType = exportAdvFilename.endsWith(".dot") ? StrategyExportOptions.StrategyExportType.DOT_FILE : StrategyExportOptions.StrategyExportType.INDUCED_MODEL;
-				StrategyExportOptions exportOptions = new StrategyExportOptions(exportType);
-				exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
-				stratFmdObs.export(out, exportOptions);
-			}
 		}
 
 		// Create MDP model checker (disable strat generation - if enabled, we want the POMDP one) 
 		MDPModelChecker mcMDP = new MDPModelChecker(this);
-		mcMDP.setExportAdv(false);
 		mcMDP.setGenStrat(false);
 		// Solve MDP to get inner bound
 		ModelCheckerResult mcRes = mcMDP.computeReachRewards(mdp, mdpRewardsNew, mdp.getLabelStates("target"), true);
