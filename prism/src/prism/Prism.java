@@ -2982,7 +2982,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
-		boolean engineSwitch = false, switchToMTBDDEngine = false;
+		boolean engineSwitch = false, switchToMTBDDEngine = false, switchedToExplicitEngine = false;
 		int lastEngine = -1;
 
 		if (!digital)
@@ -3023,33 +3023,37 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
 
 		}
-		// Auto-switch engine if required
+		// Auto-switch to explicit engine if required
 		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
 				engineSwitch = true;
 				lastEngine = getEngine();
+				switchedToExplicitEngine = true;
 				setEngine(Prism.EXPLICIT);
 			}
 		}
-		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
+		if (Expression.containsNonProbLTLFormula(prop.getExpression()) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL model checking.");
 			engineSwitch = true;
 			lastEngine = getEngine();
+			switchedToExplicitEngine = true;
 			setEngine(Prism.EXPLICIT);
 		}
-		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER)) {
+		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			if (currentModelType == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
 				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
 				engineSwitch = true;
 				lastEngine = getEngine();
+				switchedToExplicitEngine = true;
 				setEngine(Prism.EXPLICIT);
 			}
 		}
-		if (currentModelType == ModelType.IDTMC || currentModelType == ModelType.IMDP) {
+		if ((currentModelType == ModelType.IDTMC || currentModelType == ModelType.IMDP) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			mainLog.printWarning("Switching to explicit engine to allow model checking of interval model.");
 			engineSwitch = true;
 			lastEngine = getEngine();
+			switchedToExplicitEngine = true;
 			setEngine(Prism.EXPLICIT);
 		}
 		try {
@@ -3065,7 +3069,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 
 			// Check if we need to switch to MTBDD engine
-			if (getCurrentEngine() == PrismEngine.SYMBOLIC && getEngine() != MTBDD) {
+			if (getCurrentEngine() == PrismEngine.SYMBOLIC && getEngine() != MTBDD && !switchedToExplicitEngine) {
 				long n = currentModel.getNumStates();
 				// Either because number of states is two big for double-valued solution vectors
 				if (n == -1 || n > Integer.MAX_VALUE) {
