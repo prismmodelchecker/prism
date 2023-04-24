@@ -210,8 +210,19 @@ public class MDPModelChecker extends ProbModelChecker
 		soln = Utils.bitsetToDoubleArray(target, n);
 		soln2 = new double[n];
 
-		// Next-step probabilities 
-		mdp.mvMultMinMax(soln, min, soln2, null, false, null);
+		// If required, create/initialise strategy storage
+		// Set choices to -1, denoting unknown
+		// (except for target states, which are -2, denoting arbitrary)
+		int strat[] = null;
+		if (genStrat || exportAdv) {
+			strat = new int[n];
+			for (int i = 0; i < n; i++) {
+				strat[i] = target.get(i) ? -2 : -1;
+			}
+		}
+
+		// Next-step probabilities
+		mdp.mvMultMinMax(soln, min, soln2, null, false, strat);
 
 		// Return results
 		res = new ModelCheckerResult();
@@ -219,6 +230,9 @@ public class MDPModelChecker extends ProbModelChecker
 		res.soln = soln2;
 		res.numIters = 1;
 		res.timeTaken = timer / 1000.0;
+		if (genStrat) {
+			res.strat = new MDStrategyArray<>(mdp, strat);
+		}
 		return res;
 	}
 
