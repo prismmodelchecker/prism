@@ -27,10 +27,12 @@
 package strat;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
 import explicit.NondetModel;
+import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 
@@ -125,10 +127,12 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	@Override
 	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
+		List<State> states = model.getStatesList();
+		boolean showStates = options.getShowStates() && states != null;
 		for (int s = 0; s < numStates; s++) {
 			for (int m = 0; m < k; m++) {
 				if (isChoiceDefined(s, m)) {
-					out.println(s + "," + m + ":" + getChoiceAction(s, m));
+					out.println((showStates ? states.get(s) : s) + "," + m + ":" + getChoiceAction(s, m));
 				}
 			}
 		}

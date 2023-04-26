@@ -154,7 +154,12 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 			Object act = getActionPickedByMDP(i);
 			if (act != UNDEFINED) {
 				int[] mdpState = mdpStates.get(i);
-				out.println(mdpState[0] + "," + mdpState[1] + ":" + (act == null ? "" : act));
+				if (options.getShowStates()) {
+					out.print(Belief.toString(mdpState[0], unobsBeliefs.get(mdpState[1]), pomdp));
+				} else {
+					out.print(mdpState[0] + "," + mdpState[1]);
+				}
+				out.println(":" + (act == null ? "" : act));
 			}
 		}
 	}

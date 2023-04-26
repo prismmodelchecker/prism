@@ -29,8 +29,11 @@ package strat;
 import explicit.ConstructInducedModel;
 import explicit.Model;
 import explicit.NondetModel;
+import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
+
+import java.util.List;
 
 /**
  * Class to store a memoryless deterministic (MD) strategy
@@ -77,6 +80,19 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 			return UndefinedReason.UNREACHABLE;
 		default:
 			return null;
+		}
+	}
+
+	@Override
+	public void exportActions(PrismLog out, StrategyExportOptions options)
+	{
+		List<State> states = model.getStatesList();
+		boolean showStates = options.getShowStates() && states != null;
+		int n = getNumStates();
+		for (int s = 0; s < n; s++) {
+			if (isChoiceDefined(s)) {
+				out.println((showStates ? states.get(s) : s) + ":" + getChoiceAction(s));
+			}
 		}
 	}
 
