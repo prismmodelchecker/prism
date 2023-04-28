@@ -66,7 +66,20 @@ public class StrategyExportOptions implements Cloneable
 	 * "restrict" (same model type but restrict to selected action choices); or
 	 * "reduce" (change mode type by removing nondeterminism)
 	 */
-	public enum InducedModelMode { RESTRICT, REDUCE };
+	public enum InducedModelMode {
+		RESTRICT, REDUCE;
+		public String description()
+		{
+			switch (this) {
+				case RESTRICT:
+					return "restricted";
+				case REDUCE:
+					return "reduced";
+				default:
+					return this.toString();
+			}
+		}
+	};
 
 	/**
 	 * Mode of construction for an induced model.
@@ -179,6 +192,15 @@ public class StrategyExportOptions implements Cloneable
 	public int getModelPrecision()
 	{
 		return modelPrecision.orElse(DEFAULT_EXPORT_MODEL_PRECISION);
+	}
+
+	public String description()
+	{
+		String s = getType().description();
+		if (getType() == StrategyExportType.INDUCED_MODEL) {
+			s += " (" + getMode().description() + ")";
+		}
+		return s;
 	}
 
 	/**

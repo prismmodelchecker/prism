@@ -3527,7 +3527,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void exportStrategy(Strategy<?> strat, StrategyExportOptions exportOptions, File file) throws FileNotFoundException, PrismException
 	{
 		// Print message
-		mainLog.print("\nExporting strategy " + exportOptions.getType().description() + " ");
+		mainLog.print("\nExporting strategy " + exportOptions.description() + " ");
 		mainLog.println(getDestinationStringForFile(file));
 
 		// Export to file (or use main log)

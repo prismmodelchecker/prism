@@ -31,7 +31,7 @@ import java.io.FileNotFoundException;
 
 import javax.swing.SwingUtilities;
 
-import strat.StrategyExportOptions.StrategyExportType;
+import strat.StrategyExportOptions;
 import userinterface.GUIComputationThread;
 import userinterface.GUIPlugin;
 import userinterface.util.GUIComputationEvent;
@@ -41,14 +41,14 @@ import userinterface.util.GUIComputationEvent;
  */
 public class ExportStrategyThread extends GUIComputationThread
 {
-	private StrategyExportType exportType;
+	private StrategyExportOptions exportOptions;
 	private File exportFile;
 
 	/** Creates a new instance of ExportStrategyThread */
-	public ExportStrategyThread(GUIPlugin plug, StrategyExportType exportType, File exportFile)
+	public ExportStrategyThread(GUIPlugin plug, StrategyExportOptions exportOptions, File exportFile)
 	{
 		super(plug);
-		this.exportType = exportType;
+		this.exportOptions = exportOptions;
 		this.exportFile = exportFile;
 	}
 
@@ -68,7 +68,7 @@ public class ExportStrategyThread extends GUIComputationThread
 
 			// Do export
 			try {
-				prism.exportStrategy(exportType, exportFile);
+				prism.exportStrategy(exportOptions, exportFile);
 			} catch (FileNotFoundException e) {
 				SwingUtilities.invokeAndWait(new Runnable()
 				{
