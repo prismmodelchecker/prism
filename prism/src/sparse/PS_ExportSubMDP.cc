@@ -88,7 +88,7 @@ jboolean neh    // noexportheaders
 	if (export_type == EXPORT_PLAIN && !neh) {
 		if (env->GetStringUTFLength(rsn) > 0) {
 			const char *header = env->GetStringUTFChars(rsn,0);
-			export_string("# Reward structure: \"%s\"\n", header);
+			export_string("# Reward structure \"%s\"\n", header);
 			env->ReleaseStringUTFChars(rsn, header);
 		}
 		export_string("# Transition rewards\n");
