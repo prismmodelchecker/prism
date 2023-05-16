@@ -26,13 +26,17 @@
 
 package strat;
 
+import explicit.ConstructInducedModel;
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
 import explicit.NondetModel;
 import explicit.Product;
 import explicit.SuccessorsIterator;
+import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
+
+import java.util.List;
 
 /**
  * Class to store finite-memory deterministic (FMD) strategies
@@ -46,7 +50,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	private MDStrategy<Value> strat;
 	
 	/**
-	 * Creates an MDStrategyArray from a memoryless Strategy and an explicit engine product model.
+	 * Creates an FMDStrategyProduct from a memoryless Strategy and an explicit engine product model.
 	 */
 	@SuppressWarnings("unchecked")
 	public FMDStrategyProduct(Product<?> product, MDStrategy<Value> strat)
@@ -65,26 +69,37 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	@Override
 	public Object getChoiceAction(int s, int m)
 	{
-		// Inefficient lookup for now, since product states not sorted
-		int n = product.getProductModel().getNumStates();
-		for (int i = 0; i < n; i++) {
-			if (product.getModelState(i) == s && product.getAutomatonState(i) == m) {
-				return strat.getChoiceAction(i);
-			}
-		}
-		return Strategy.UNDEFINED;
+		// Find a matching state in the product and look up the strategy for it
+		int i = findMatchingProductState(s, m);
+		return i == -1 ? Strategy.UNDEFINED : strat.getChoiceAction(i);
 	}
 	
 	@Override
 	public int getChoiceIndex(int s, int m)
 	{
-		// Inefficient lookup for now, since product states not sorted
+		// Find a matching state in the product and look up strategy for it
+		int i = findMatchingProductState(s, m);
+		return i == -1 ? -1 : strat.getChoiceIndex(i);
+	}
+	
+	/**
+	 * Find the index of a state (s,m) in the product, if there is one
+	 */
+	private int findMatchingProductState(int s, int m)
+	{
+		// If memory value is unknown, there are no matching states
+		if (m == -1) {
+			return -1;
+		}
+		// Look for a matching state in the product
+		// (inefficiently, since they are not sorted)
 		int n = product.getProductModel().getNumStates();
 		for (int i = 0; i < n; i++) {
 			if (product.getModelState(i) == s && product.getAutomatonState(i) == m) {
-				return strat.getChoiceIndex(i);
+				return i;
 			}
 		}
+		// No match
 		return -1;
 	}
 	
@@ -97,7 +112,9 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	@Override
 	public int getInitialMemory(int sInit)
 	{
-		// Inefficient lookup for now: extract from product
+		// We don't have access to the original automaton, so we
+		// look for an initial state in the product with this model state
+		// (inefficiently, since they are not sorted)
 		for (int i : product.getProductModel().getInitialStates()) {
 			if (product.getModelState(i) == sInit) {
 				return product.getAutomatonState(i);
@@ -109,37 +126,59 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	@Override
 	public int getUpdatedMemory(int m, Object action, int sNext)
 	{
-		// Inefficient lookup for now: extract from product
+		// If the current memory is unknown, we don't know how to update it
+		if (m == -1) {
+			return -1;
+		}
+		// We don't have access to the original automaton, so we
+		// look for a matching transition in the product and find the memory update
+		// (inefficiently, since they are not sorted)
 		int n = product.getProductModel().getNumStates();
 		for (int i = 0; i < n; i++) {
 			if (product.getAutomatonState(i) == m) {
-				for (SuccessorsIterator succ = product.getProductModel().getSuccessors(i); succ.hasNext(); ) {
-					int j = succ.nextInt();
-					if (product.getModelState(j) == sNext) {
-						return product.getAutomatonState(j);
-					}
+				int j = findMatchingMemoryUpdate(i, sNext);
+				if (j != -1) {
+					return j;
 				}
 			}
 		}
 		return -1;
 	}
 	
-	@Override
-	public void exportActions(PrismLog out)
+	/**
+	 * Find a transition in the i-th state of the product whose destination
+	 * has model state sNext, if there is one, and return the automaton state
+	 */
+	private int findMatchingMemoryUpdate(int i, int sNext)
 	{
+		for (SuccessorsIterator succ = product.getProductModel().getSuccessors(i); succ.hasNext(); ) {
+			int j = succ.nextInt();
+			if (product.getModelState(j) == sNext) {
+				return product.getAutomatonState(j);
+			}
+		}
+		// No match
+		return -1;
+	}
+	
+	@Override
+	public void exportActions(PrismLog out, StrategyExportOptions options)
+	{
+		List<State> states = model.getStatesList();
+		boolean showStates = options.getShowStates() && states != null;
 		int n = product.getProductModel().getNumStates();
 		for (int i = 0; i < n; i++) {
 			int s = product.getModelState(i);
 			int m = product.getAutomatonState(i);
 			Object act = strat.getChoiceAction(i);
 			if (act != UNDEFINED) {
-				out.println(s + "," + m + ":" + act);
+				out.println((showStates ? states.get(s) : s) + "," + m + ":" + act);
 			}
 		}
 	}
 
 	@Override
-	public void exportIndices(PrismLog out)
+	public void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		int n = product.getProductModel().getNumStates();
 		for (int i = 0; i < n; i++) {
@@ -150,19 +189,21 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, int precision) throws PrismException
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToPrismExplicitTra(out, precision);
+		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision) throws PrismException
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToDotFile(out, null, true, precision);
+		prodModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 
 	@Override

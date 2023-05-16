@@ -234,6 +234,7 @@ public class StateModelChecker extends PrismComponent
 	{
 		setModelCheckingInfo(other.modelInfo, other.propertiesFile, other.rewardGen);
 		setLog(other.getLog());
+		result = other.result;
 		setVerbosity(other.getVerbosity());
 		setExportTarget(other.getExportTarget());
 		setExportTargetFilename(other.getExportTargetFilename());

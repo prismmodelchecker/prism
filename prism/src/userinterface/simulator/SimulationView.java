@@ -710,20 +710,20 @@ public class SimulationView extends Observable
 	
 	public class MemoryValue
 	{
-		private Integer value;
+		private Object value;
 		private boolean memoryValueUnknown;
 
-		public MemoryValue(Integer value)
+		public MemoryValue(Object value)
 		{
 			this.value = value;
 		}
 
-		public Integer getValue()
+		public Object getValue()
 		{
 			return value;
 		}
 
-		public void setValue(Integer value)
+		public void setValue(Object value)
 		{
 			this.value = value;
 		}

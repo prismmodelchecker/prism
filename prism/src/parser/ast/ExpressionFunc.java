@@ -55,7 +55,7 @@ public class ExpressionFunc extends Expression
 	// Built-in function names
 	public static final String names[] = { "min", "max", "floor", "ceil", "round", "pow", "mod", "log", "multi"};
 	// Min/max function arities
-	public static final int minArities[] = { 2, 2, 1, 1, 1, 2, 2, 2, 1 };
+	public static final int minArities[] = { 1, 1, 1, 1, 1, 2, 2, 2, 1 };
 	public static final int maxArities[] = { -1, -1, 1, 1, 1, 2, 2, 2, -1 };
 
 	// Function name

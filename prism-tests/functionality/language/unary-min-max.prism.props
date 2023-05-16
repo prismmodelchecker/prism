@@ -1,0 +1,23 @@
+// Some tests of single-argument min/max, in each case:
+// (i) occurring in a constant (so Expression evaluation)
+// (ii) occurring in a constant property (so model checking)
+// (iii) occurring in a state-dependent property (so model checking)
+
+const double cMin = min(2.72);
+const double cMax = max(3.14);
+
+// RESULT: 0
+zero
+
+// RESULT: 1
+one
+
+// RESULT: 2.72
+min(2.72)
+
+// RESULT: 3.14
+max(3.14)
+
+// RESULT: true
+filter(forall, min(n,m)=0 & max(n,m)=1, true)
+

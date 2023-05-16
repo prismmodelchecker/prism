@@ -1,0 +1,15 @@
+// Some tests of single-argument min/max, in each case:
+// (i) occurring in a constant (so Expression evaluation)
+// (ii) occuring in an update (so Expression evaluation)
+
+dtmc
+
+const int zero = min(0);
+const int one  = max(1); 
+
+module test
+  n : [0..1] init zero;
+  m : [0..1] init one;
+
+  [] true -> (n' = min(m)) & (m' = max(n));
+endmodule

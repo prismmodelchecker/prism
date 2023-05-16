@@ -106,4 +106,15 @@ public interface StrategyGenerator<Value> extends StrategyInfo<Value>
 	 * Get the current value of the memory for the strategy (-1 if not applicable).
 	 */
 	public int getCurrentMemory();
+	
+	/**
+	 * Get a description of the current value of the memory for the strategy.
+	 * By default, this is a just the integer value of the memory as a string,
+	 * but some strategies will provide a more meaningful representation.
+	 * Returns "?" if memory is not applicable (or unknown).
+	 */
+	public default String getCurrentMemoryString()
+	{
+		return getMemoryString(getCurrentMemory());
+	}
 }

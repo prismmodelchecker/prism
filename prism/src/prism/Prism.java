@@ -75,6 +75,8 @@ import simulator.SimulatorEngine;
 import simulator.method.SimulationMethod;
 import sparse.PrismSparse;
 import strat.Strategy;
+import strat.StrategyExportOptions;
+import strat.StrategyExportOptions.StrategyExportType;
 import strat.StrategyGenerator;
 
 /**
@@ -160,26 +162,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// state space cut-off to trigger MTBDD engine
 	protected static final int MTBDD_STATES_THRESHOLD = 100000000;
 	
-	// Options for type of strategy export
-	public enum StrategyExportType {
-		ACTIONS, INDICES, INDUCED_MODEL, DOT_FILE;
-		public String description()
-		{
-			switch (this) {
-			case ACTIONS:
-				return "as actions";
-			case INDICES:
-				return "as indices";
-			case INDUCED_MODEL:
-				return "as an induced model";
-			case DOT_FILE:
-				return "as a dot file";
-			default:
-				return this.toString();
-			}
-		}
-	}
-
 	//------------------------------------------------------------------------------
 	// Settings / flags / options
 	//------------------------------------------------------------------------------
@@ -3000,7 +2982,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		Result res = null;
 		Values definedPFConstants = propertiesFile.getConstantValues();
-		boolean engineSwitch = false, switchToMTBDDEngine = false;
+		boolean engineSwitch = false, switchToMTBDDEngine = false, switchedToExplicitEngine = false;
 		int lastEngine = -1;
 
 		if (!digital)
@@ -3041,33 +3023,44 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			settings.set(PrismSettings.PRISM_LIN_EQ_METHOD, "Backwards Gauss-Seidel");
 
 		}
-		// Auto-switch engine if required
+		// Auto-switch to explicit engine if required
 		if (currentModelType == ModelType.MDP && !Expression.containsMultiObjective(prop.getExpression())) {
 			if (getMDPSolnMethod() != Prism.MDP_VALITER && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 				mainLog.printWarning("Switching to explicit engine to allow use of chosen MDP solution method.");
 				engineSwitch = true;
 				lastEngine = getEngine();
+				switchedToExplicitEngine = true;
 				setEngine(Prism.EXPLICIT);
 			}
 		}
-		if (Expression.containsNonProbLTLFormula(prop.getExpression())) {
+		if (Expression.containsNonProbLTLFormula(prop.getExpression()) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			mainLog.printWarning("Switching to explicit engine to allow non-probabilistic LTL model checking.");
 			engineSwitch = true;
 			lastEngine = getEngine();
+			switchedToExplicitEngine = true;
 			setEngine(Prism.EXPLICIT);
 		}
-		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER)) {
+		if (settings.getBoolean(PrismSettings.PRISM_INTERVAL_ITER) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			if (currentModelType == ModelType.MDP && Expression.containsMinReward(prop.getExpression())) {
 				mainLog.printWarning("Switching to explicit engine to allow interval iteration on Rmin operator.");
 				engineSwitch = true;
 				lastEngine = getEngine();
+				switchedToExplicitEngine = true;
 				setEngine(Prism.EXPLICIT);
 			}
 		}
-		if (currentModelType == ModelType.IDTMC || currentModelType == ModelType.IMDP) {
+		if ((currentModelType == ModelType.IDTMC || currentModelType == ModelType.IMDP) && getCurrentEngine() == PrismEngine.SYMBOLIC) {
 			mainLog.printWarning("Switching to explicit engine to allow model checking of interval model.");
 			engineSwitch = true;
 			lastEngine = getEngine();
+			switchedToExplicitEngine = true;
+			setEngine(Prism.EXPLICIT);
+		}
+		if (genStrat && getCurrentEngine() == PrismEngine.SYMBOLIC) {
+			mainLog.printWarning("Switching to explicit engine to allow strategy generation.");
+			engineSwitch = true;
+			lastEngine = getEngine();
+			switchedToExplicitEngine = true;
 			setEngine(Prism.EXPLICIT);
 		}
 		try {
@@ -3083,7 +3076,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			}
 
 			// Check if we need to switch to MTBDD engine
-			if (getCurrentEngine() == PrismEngine.SYMBOLIC && getEngine() != MTBDD) {
+			if (getCurrentEngine() == PrismEngine.SYMBOLIC && getEngine() != MTBDD && !switchedToExplicitEngine) {
 				long n = currentModel.getNumStates();
 				// Either because number of states is two big for double-valued solution vectors
 				if (n == -1 || n > Integer.MAX_VALUE) {
@@ -3499,16 +3492,51 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Export the current strategy. The associated model should be attached to the strategy.
 	 * Strictly, speaking that does not need to be the currently loaded model,
 	 * but it would probably have been discarded if that was not the case.
-	 * @param strat The strategy
-	 * @param exportType The type of output
+	 * @param exportOptions The options for export
+	 * @param file File to output the path to (stdout if null)
+	 */
+	public void exportStrategy(StrategyExportOptions exportOptions, File file) throws FileNotFoundException, PrismException
+	{
+		if (getStrategy() != null) {
+			exportStrategy(getStrategy(), exportOptions, file);
+		} else {
+			throw new PrismException("There is no current strategy to export");
+		}
+	}
+
+	/**
+	 * Export the current strategy. The associated model should be attached to the strategy.
+	 * Strictly, speaking that does not need to be the currently loaded model,
+	 * but it would probably have been discarded if that was not the case.
+	 * @param exportType The type of export
 	 * @param file File to output the path to (stdout if null)
 	 */
 	public void exportStrategy(StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
 	{
-		if (getStrategy() != null) {
-			exportStrategy(getStrategy(), exportType, file);
-		} else {
-			throw new PrismException("There is no current strategy to export");
+		exportStrategy(new StrategyExportOptions(exportType), file);
+	}
+
+	/**
+	 * Export a strategy. The associated model should be attached to the strategy.
+	 * Strictly, speaking that does not need to be the currently loaded model,
+	 * but it would probably have been discarded if that was not the case.
+	 * @param strat The strategy
+	 * @param exportOptions The options for export
+	 * @param file File to output the path to (stdout if null)
+	 */
+	public void exportStrategy(Strategy<?> strat, StrategyExportOptions exportOptions, File file) throws FileNotFoundException, PrismException
+	{
+		// Print message
+		mainLog.print("\nExporting strategy " + exportOptions.description() + " ");
+		mainLog.println(getDestinationStringForFile(file));
+
+		// Export to file (or use main log)
+		PrismLog tmpLog = getPrismLogForFile(file);
+		exportOptions = exportOptions.clone();
+		exportOptions.setModelPrecision(settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION));
+		strat.export(tmpLog, exportOptions);
+		if (file != null) {
+			tmpLog.close();
 		}
 	}
 
@@ -3517,36 +3545,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 * Strictly, speaking that does not need to be the currently loaded model,
 	 * but it would probably have been discarded if that was not the case.
 	 * @param strat The strategy
-	 * @param exportType The type of output
+	 * @param exportType The type of export
 	 * @param file File to output the path to (stdout if null)
 	 */
 	public void exportStrategy(Strategy<?> strat, StrategyExportType exportType, File file) throws FileNotFoundException, PrismException
 	{
-		PrismLog tmpLog;
-
-		// Print message
-		mainLog.print("\nExporting strategy " + exportType.description() + " ");
-		mainLog.println(getDestinationStringForFile(file));
-
-		// Export to file (or use main log)
-		int precision = settings.getInteger(PrismSettings.PRISM_EXPORT_MODEL_PRECISION);
-		tmpLog = getPrismLogForFile(file);
-		switch (exportType) {
-		case ACTIONS:
-			strat.exportActions(tmpLog);
-			break;
-		case INDICES:
-			strat.exportIndices(tmpLog);
-			break;
-		case INDUCED_MODEL:
-			strat.exportInducedModel(tmpLog, precision);
-			break;
-		case DOT_FILE:
-			strat.exportDotFile(tmpLog, precision);
-			break;
-		}
-		if (file != null)
-			tmpLog.close();
+		exportStrategy(strat, new StrategyExportOptions(exportType), file);
 	}
 
 	/**

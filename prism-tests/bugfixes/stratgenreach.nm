@@ -1,6 +1,9 @@
 // bugfix: -exportstrat for MDP using -sparse, missing restriction
 // to reachable state space when initializing strategy storage vector
 
+// NB: this test is temporarily not testing what it is supposed to,
+// since -exportstrat currently forces a switch to the explicit engine
+
 mdp
 
 module m 

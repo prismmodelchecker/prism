@@ -27,10 +27,12 @@
 package strat;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
 import explicit.NondetModel;
+import parser.State;
 import prism.PrismException;
 import prism.PrismLog;
 
@@ -123,19 +125,21 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	}
 	
 	@Override
-	public void exportActions(PrismLog out)
+	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
+		List<State> states = model.getStatesList();
+		boolean showStates = options.getShowStates() && states != null;
 		for (int s = 0; s < numStates; s++) {
 			for (int m = 0; m < k; m++) {
 				if (isChoiceDefined(s, m)) {
-					out.println(s + "," + m + ":" + getChoiceAction(s, m));
+					out.println((showStates ? states.get(s) : s) + "," + m + ":" + getChoiceAction(s, m));
 				}
 			}
 		}
 	}
 
 	@Override
-	public void exportIndices(PrismLog out)
+	public void exportIndices(PrismLog out, StrategyExportOptions options)
 	{
 		for (int s = 0; s < numStates; s++) {
 			for (int m = 0; m < k; m++) {
@@ -147,19 +151,21 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	}
 
 	@Override
-	public void exportInducedModel(PrismLog out, int precision) throws PrismException
+	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToPrismExplicitTra(out, precision);
+		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
-	public void exportDotFile(PrismLog out, int precision) throws PrismException
+	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
 		Model<Value> prodModel = csp.constructProductModel(model, this);
-		prodModel.exportToDotFile(out, null, true, precision);
+		prodModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 
 	@Override

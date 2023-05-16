@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2022-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -44,10 +44,32 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import strat.Strategy;
+import strat.StrategyExportOptions;
 import strat.StrategyInfo;
 
+/**
+ * Construct the product model induced by a finite-memory strategy on a nondeterministic model
+ */
 public class ConstructStrategyProduct
 {
+	/**
+	 * The "mode" of construction:
+	 * "restrict" (same model type but restrict to selected action choices); or
+	 * "reduce" (change mode type by removing nondeterminism)
+	 */
+	private StrategyExportOptions.InducedModelMode mode = StrategyExportOptions.InducedModelMode.RESTRICT;
+
+	/**
+	 * Set the "mode" of construction:
+	 * "restrict" (same model type but restrict to selected action choices); or
+	 * "reduce" (change mode type by removing nondeterminism)
+	 */
+	public ConstructStrategyProduct setMode(StrategyExportOptions.InducedModelMode mode)
+	{
+		this.mode = mode;
+		return this;
+	}
+
 	/**
 	 * Construct the product model induced by a finite-memory strategy on a nondeterministic model
 	 * @param model The model
@@ -59,7 +81,7 @@ public class ConstructStrategyProduct
 	{
 		// This is for finite-memory strategies
 		if (!strat.hasMemory()) {
-			throw new PrismException("Product construction is for finite-memory models");
+			throw new PrismException("Product construction is for finite-memory strategies");
 		}
 		
 		// If the model has a VarList, we will create a new one
@@ -77,22 +99,25 @@ public class ConstructStrategyProduct
 		}
 
 		// Determine type of induced model
-		// (everything reduces to a DTMC for now)
 		ModelType modelType = model.getModelType();
 		ModelType productModelType = null;
-		switch (modelType) {
-		case MDP:
-		case POMDP:
-		case STPG:
-			productModelType = ModelType.DTMC;
-			break;
-		case IMDP:
-			productModelType = ModelType.IDTMC;
-			break;
-		default:
-			throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
+		if (mode == StrategyExportOptions.InducedModelMode.REDUCE) {
+			switch (modelType) {
+				case MDP:
+				case POMDP:
+				case STPG:
+					productModelType = ModelType.DTMC;
+					break;
+				case IMDP:
+					productModelType = ModelType.IDTMC;
+					break;
+				default:
+					throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
+			}
+		} else {
+			productModelType = modelType;
 		}
-		
+
 		// Create a (simple, mutable) model of the appropriate type
 		ModelSimple<Value> prodModel = null;
 		switch (productModelType) {
@@ -107,6 +132,9 @@ public class ConstructStrategyProduct
 			break;
 		case IDTMC:
 			prodModel = (ModelSimple<Value>) new IDTMCSimple<>();
+			break;
+		case IMDP:
+			prodModel = (ModelSimple<Value>) new IMDPSimple<>();
 			break;
 		case STPG:
 			prodModel = new STPGSimple<>();
@@ -123,7 +151,8 @@ public class ConstructStrategyProduct
 		// e.g. construct an IMDP<Value> product as one over an MDP<Interval<Value>>
 		switch (modelType) {
 		case IMDP:
-			return doConstructProductModel(ModelType.MDP, ModelType.DTMC, prodModel, model, strat);
+			productModelType = (mode == StrategyExportOptions.InducedModelMode.REDUCE) ? ModelType.DTMC : ModelType.MDP;
+			return doConstructProductModel(ModelType.MDP, productModelType, prodModel, model, strat);
 		default:
 			return doConstructProductModel(modelType, productModelType, prodModel, model, strat);
 		}

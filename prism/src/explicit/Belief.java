@@ -173,14 +173,36 @@ public class Belief implements Comparable<Belief>
 	 * e.g. "(6),0.5:(8)+0.5:(9)" for an observable variable equal to 6
 	 * and an unobservable variable equally likely to be 8 or 9.
 	 */
-	public String toString(PartiallyObservableModel poModel)
+	public String toString(PartiallyObservableModel<?> poModel)
+	{
+		return toString(so, bu, poModel);
+	}
+
+	/**
+	 * Convert a belief, specified as an index to an observable and
+	 * a double array representing a distribution over unobservables,
+	 * to string representation, using observation info,
+	 * e.g. "(6),0.5:(8)+0.5:(9)" for an observable variable equal to 6
+	 * and an unobservable variable equally likely to be 8 or 9.
+	 */
+	public static String toString(int so, double bu[], PartiallyObservableModel<?> poModel)
+	{
+		return poModel.getObservationsList().get(so).toString() + "," + toStringUnobs(bu, poModel);
+	}
+
+	/**
+	 * Convert a double array representing a distribution over unobservables,
+	 * to string representation, using observation info,
+	 * e.g. "0.5:(8)+0.5:(9)" for an unobservable variable equally likely to be 8 or 9.
+	 */
+	public static String toStringUnobs(double bu[], PartiallyObservableModel<?> poModel)
 	{
 		List<State> unobs = poModel.getUnobservationsList();
-		String s = poModel.getObservationsList().get(so).toString();
+		String s = "";
 		boolean first = true;
 		for (int i = 0; i < bu.length; i++) {
 			if (bu[i] > 0) {
-				s += first ? "," : "+";
+				if (!first) s+= "+";
 				s += bu[i] + ":" + unobs.get(i).toString();
 				first = false;
 			}

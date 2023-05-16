@@ -1,1 +1,1 @@
--sparse -exportstrat stratgenreach.nm.props.strat
+-sparse -exportstrat stratgenreach.nm.props.strat:states=false
