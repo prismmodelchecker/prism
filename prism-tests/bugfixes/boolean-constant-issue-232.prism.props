@@ -1,0 +1,4 @@
+// A simple property to trigger model checking
+// RESULT (flag=true): true
+// RESULT (flag=false): false
+b
