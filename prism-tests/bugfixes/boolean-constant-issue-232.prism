@@ -1,0 +1,8 @@
+// A simple model that depends on an undefined boolean constant
+mdp
+
+const bool flag;
+
+module Boolean
+  b : bool init flag;
+endmodule
