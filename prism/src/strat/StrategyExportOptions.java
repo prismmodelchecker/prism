@@ -176,7 +176,7 @@ public class StrategyExportOptions implements Cloneable
 
 	public boolean getReachOnly()
 	{
-		return reachOnly.orElse(true);
+		return reachOnly.orElse(!getType().equals(StrategyExportType.INDUCED_MODEL));
 	}
 
 	public boolean getShowStates()
