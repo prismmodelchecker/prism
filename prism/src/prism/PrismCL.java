@@ -1192,7 +1192,7 @@ public class PrismCL implements PrismModelListener
 
 				// print help
 				if (sw.equals("help") || sw.equals("?")) {
-					// see if userg requested help for a specific switch, e.g. -help simpath
+					// see if user requested help for a specific switch, e.g. -help simpath
 					// note: this is one of the few places where a second argument is optional,
 					// which is possible here because -help should usually be the only switch provided
 					if (i < args.length - 1) {
@@ -2702,6 +2702,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println("-exportstates <file> ........... Export the list of reachable states to a file");
 		mainLog.println("-exportlabels <file[:options]> . Export the list of labels and satisfying states to a file");
 		mainLog.println("-exportproplabels <file[:opt]> . Export the list of labels and satisfying states from the properties file to a file");
+		mainLog.println("-exportstrat <file[:options]> .. Generate and export a strategy to a file");
 		mainLog.println("-exportmatlab .................. When exporting matrices/vectors/labels/etc., use Matlab format");
 		mainLog.println("-exportmrmc .................... When exporting matrices/vectors/labels, use MRMC format");
 		mainLog.println("-exportrows .................... When exporting matrices, put a whole row on one line");
@@ -2827,6 +2828,18 @@ public class PrismCL implements PrismModelListener
 			mainLog.println(" * ordered - output states indices in ascending order [default]");
 			mainLog.println(" * unordered - don't output states indices in ascending order");
 			mainLog.println(" * proplabels - export labels from a properties file into the same file, too");
+		}
+		// -exportstrat
+		else if (sw.equals("exportstrat")) {
+			mainLog.println("Switch: -exportstrat <file[:options]>\n");
+			mainLog.println("Generate and export a strategy to a file (or to the screen if <file>=\"stdout\").");
+			mainLog.println("Use file extension .tra or .dot to export as an induced model or Dot file, respectively.");
+			mainLog.println("If provided, <options> is a comma-separated list of options taken from:");
+			mainLog.println(" * type (=actions/induced/dot) - type of strategy export");
+			mainLog.println(" * mode (=restrict/reduce) - mode to use for building induced model (or Dot file)");
+			mainLog.println(" * reach (=true/false) - whether to restrict the strategy to its reachable states");
+			mainLog.println(" * states (=true/false) - whether to show states, rather than state indices, for actions lists or Dot files");
+			mainLog.println(" * obs (=true/false) - for partially observable models, whether to merge observationally equivalent states");
 		}
 		// Try PrismSettings
 		else if (PrismSettings.printHelpSwitch(mainLog, sw)) {
