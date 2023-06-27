@@ -1,0 +1,18 @@
+// IPOMDP with full observability and without non-determinism
+// i.e. DTMC with intervals
+
+pomdp
+
+observables s, h endobservables
+
+module M
+
+	s : [0..1];
+	h : [0..1];
+	[a1] s=0 & h=0 -> [0.4, 0.6]:(s'=1)&(h'=0) + [0.4, 0.6]:(s'=0)&(h'=1);
+	[a2] s=1 & h=0 -> [0.1, 0.1]:(s'=1)&(h'=1) + [0.9, 0.9]:(s'=1)&(h'=0);
+	[a3] s=0 & h=1 -> [0.1, 0.1]:(s'=1)&(h'=1) + [0.9, 0.9]:(s'=0)&(h'=1);
+
+endmodule
+
+label "correct" = s=1 & h=1;
