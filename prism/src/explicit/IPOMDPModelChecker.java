@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import acceptance.AcceptanceReach;
 import common.IntSet;
@@ -58,7 +59,7 @@ import gurobi.*;
 public class IPOMDPModelChecker extends ProbModelChecker
 {
 	/**
-	 * Helper class for defining an edge
+	 * Helper class for defining the edges.
 	 */
 	private class Edge<X, Y> {
 		public final X state;
@@ -70,10 +71,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Helper class for the complex type
-	 * This is either one of the two:
-	 * 1) Distribution found in an uncertain state
-	 * 2) Action choices found in an action state
+	 * Helper class for defining the transitions.
+	 * This data type will denote one of the two:
+	 * 1) Several pairs of form (state, interval) denoting the distribution of an uncertain state
+	 * 2) Several pairs of form (state, [-1, 1]) denoting the choices in an action state
 	 */
 	private class Distribution extends ArrayList<Edge<Integer, Interval<Double>>> {
 
@@ -111,14 +112,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		int n = 0;
-		for (int s = 0; s < ipomdp.getNumStates(); s++)
-			n = n + 2 * ipomdp.getNumChoices(s) - 1;
-
-		ArrayList<Integer> uncertainStates = new ArrayList<Integer>();
-		ArrayList<Integer> actionStates = new ArrayList<Integer>();
-		Distribution[] transitions = new Distribution[n];
-		constructSimpleIPOMDP(ipomdp, uncertainStates, actionStates, transitions);
+		List<Object> simpleIPOMDP = constructSimpleIPOMDP(ipomdp);
+		ArrayList<Integer> uncertainStates = (ArrayList<Integer>) simpleIPOMDP.get(0);
+		ArrayList<Integer> actionStates = (ArrayList<Integer>) simpleIPOMDP.get(1);
+		Distribution[] transitions = (Distribution[]) simpleIPOMDP.get(2);
 
 		// Return dummy result vector
 		ModelCheckerResult res = new ModelCheckerResult();
@@ -129,92 +126,89 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 	/**
 	 * Transform the IPOMDP into a binary/simple IPOMDP.
-	 * @param ipomdp The IPOMDP which is transformed
-	 * @param uncertainStates The uncertain states of the binary/simple IPOMDP will be stored here
-	 * @param actionStates The action states of the binary/simple IPOMDP will be stored here
-	 * @param transitions The transitions of the binary/simple IPOMDP will be stored here
+	 * @param ipomdp The IPOMDP which must be transformed
 	 */
-	public void constructSimpleIPOMDP(IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
+	public List<Object> constructSimpleIPOMDP(IPOMDP<Double> ipomdp)
 	{
 		int numStates = ipomdp.getNumStates();
 		int gadget[] = new int[numStates];
 		Arrays.fill(gadget, -1);
 
+		int numStatesTransformation = 0;
+		for (int s = 0; s < ipomdp.getNumStates(); s++)
+			numStatesTransformation = numStatesTransformation + 2 * ipomdp.getNumChoices(s) - 1;
+
+		ArrayList<Integer> uncertainStates = new ArrayList<Integer>();
+		ArrayList<Integer> actionStates = new ArrayList<Integer>();
+		Distribution[] transitions = new Distribution[numStatesTransformation];
+
 		int index = -1;
 		for (int s = 0; s < numStates; s++)
 			index = transformState(s, index, gadget, ipomdp, uncertainStates, actionStates, transitions);
+
+		return Arrays.asList(uncertainStates, actionStates, transitions);
 	}
 
 	/**
-	 * Transform each state of the initial IPODMP into a "gadget" of the binary/simple IPOMDP (binary/simple)
-	 * @param s The state which is transformed into a gadget
+	 * Transform each state of the initial IPODMP into a "gadget" of the binary/simple IPOMDP.
+	 * @param state The state which is transformed into a gadget
 	 * @param index The current index denoting the last state created in the binary/simple IPOMDP
 	 * @param gadget Array of indices showing for each state in the initial IPOMDP where is the gadget in the binary/simple IPOMDP
+	 * @param uncertainStates The uncertain states of the binary/simple IPOMDP will be stored here
+	 * @param actionStates The action states of the binary/simple IPOMDP will be stored here
+	 * @param transitions The transitions of the binary/simple IPOMDP will be stored here
 	 */
-	public int transformState(int s, int index, int[] gadget, IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
+	public int transformState(int state, int index, int[] gadget, IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
 	{
-		index = discoverState(s, index, gadget);
+		index = discoverState(state, index, gadget);
 
-		int numChoices = ipomdp.getNumChoices(s);
-		if (numChoices == 1) {
-			uncertainStates.add(gadget[s]);
+		int numChoices = ipomdp.getNumChoices(state);
+		for (int dummy = 0; dummy < numChoices - 1; dummy++) {
+			int currState = gadget[state];
+			if (dummy > 0) currState = ++index;
 
-			Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(s, 0);
+			actionStates.add(currState);
+
+			Distribution distribution = new Distribution();
+			distribution.add(new Edge(index + 1, new Interval<>(-1.0, 1.0)));
+			distribution.add(new Edge(index + numChoices, new Interval<>(-1.0, 1.0)));
+			transitions[currState] = distribution;
+		}
+
+		int index_next = index + numChoices;
+		if (numChoices == 1) index_next = index;
+		for (int dummy = 0; dummy < numChoices; dummy++) {
+			int currState = gadget[state];
+			if (numChoices > 1) currState = ++index;
+
+			uncertainStates.add(currState);
+			Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, dummy);
 			Distribution distribution = new Distribution();
 			while (iterator.hasNext()) {
 				Map.Entry<Integer, Interval<Double>> elem = iterator.next();
 				int successor = elem.getKey();
 				Interval<Double> interval = elem.getValue();
 
-				index = discoverState(successor, index, gadget);
+				index_next = discoverState(successor, index_next, gadget);
 				distribution.add(new Edge(gadget[successor], interval));
 			}
 
-			transitions[ gadget[s] ] = distribution;
-		} else {
-			for (int dummy = 0; dummy < numChoices - 1; dummy++) {
-				int currState = gadget[s];
-				if (dummy > 0) currState = ++index;
-				actionStates.add(currState);
-
-				Distribution distribution = new Distribution();
-				distribution.add(new Edge(index + 1, new Interval<>(-2.0, 2.0)));
-				distribution.add(new Edge(index + numChoices, new Interval<>(-1.0, 1.0)));
-				transitions[currState] = distribution;
-			}
-
-			for (int dummy = 0; dummy < numChoices; dummy++) {
-				int currState = ++index;
-				uncertainStates.add(currState);
-
-				Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(s, dummy);
-				Distribution distribution = new Distribution();
-				while (iterator.hasNext()) {
-					Map.Entry<Integer, Interval<Double>> elem = iterator.next();
-					int successor = elem.getKey();
-					Interval<Double> interval = elem.getValue();
-
-					index = discoverState(successor, index, gadget);
-					distribution.add(new Edge(gadget[successor], interval));
-				}
-
-				transitions[currState] = distribution;
-			}
+			transitions[currState] = distribution;
 		}
 
-		return index;
+		return index_next;
 	}
 
 	/**
-	 * Discover a state in the initial IPOMDP and assign to it an index in the binary/simple IPOMDP
-	 * @param s The state which must be discovered
+	 * Discover a state in the initial IPOMDP and assign to it an index in the binary/simple IPOMDP.
+	 * @param state The state which must be discovered
 	 * @param index The current index denoting the last state created in the binary/simple IPOMDP
 	 * @param gadget Array of indices showing for each state in the initial IPOMDP where is the gadget in the binary/simple IPOMDP
 	 */
-	public int discoverState(int s, int index, int[] gadget)
+	public int discoverState(int state, int index, int[] gadget)
 	{
 		// Verify whether the state has already been transformed or not
-		if (gadget[s] < 0) gadget[s] = ++index;
+		if (gadget[state] < 0) gadget[state] = ++index;
 		return index;
 	}
 }
