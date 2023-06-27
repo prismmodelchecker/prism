@@ -151,7 +151,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 	/**
 	 * Transform each state of the initial IPODMP into a "gadget" of the binary/simple IPOMDP.
-	 * @param state The state which is transformed into a gadget
+	 * @param state The state which must be transformed into a gadget
 	 * @param index The current index denoting the last state created in the binary/simple IPOMDP
 	 * @param gadget Array of indices showing for each state in the initial IPOMDP where is the gadget in the binary/simple IPOMDP
 	 * @param uncertainStates The uncertain states of the binary/simple IPOMDP will be stored here
@@ -164,26 +164,22 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		int numChoices = ipomdp.getNumChoices(state);
 		for (int dummy = 0; dummy < numChoices - 1; dummy++) {
-			int currState = gadget[state];
-			if (dummy > 0) currState = ++index;
+			int currState = (dummy > 0 ? ++index : gadget[state]);
 
 			actionStates.add(currState);
-
 			Distribution distribution = new Distribution();
 			distribution.add(new Edge(index + 1, new Interval<>(-1.0, 1.0)));
 			distribution.add(new Edge(index + numChoices, new Interval<>(-1.0, 1.0)));
 			transitions[currState] = distribution;
 		}
 
-		int index_next = index + numChoices;
-		if (numChoices == 1) index_next = index;
+		int index_next = (numChoices == 1 ? index : index + numChoices);
 		for (int dummy = 0; dummy < numChoices; dummy++) {
-			int currState = gadget[state];
-			if (numChoices > 1) currState = ++index;
+			int currState = (numChoices > 1 ? ++index : gadget[state]);
 
 			uncertainStates.add(currState);
-			Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, dummy);
 			Distribution distribution = new Distribution();
+			Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, dummy);
 			while (iterator.hasNext()) {
 				Map.Entry<Integer, Interval<Double>> elem = iterator.next();
 				int successor = elem.getKey();
