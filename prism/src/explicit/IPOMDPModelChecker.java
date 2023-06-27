@@ -30,6 +30,8 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.PrimitiveIterator;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import acceptance.AcceptanceReach;
 import common.IntSet;
@@ -55,6 +57,28 @@ import gurobi.*;
  */
 public class IPOMDPModelChecker extends ProbModelChecker
 {
+	/**
+	 * Helper class for defining an edge
+	 */
+	private class Edge<X, Y> {
+		public final X state;
+		public final Y interval;
+		public Edge(X state, Y interval) {
+			this.state = state;
+			this.interval= interval;
+		}
+	}
+
+	/**
+	 * Helper class for the complex type
+	 * This is either one of the two:
+	 * 1) Distribution found in an uncertain state
+	 * 2) Action choices found in an action state
+	 */
+	private class Distribution extends ArrayList<Edge<Integer, Interval<Double>>> {
+
+	}
+
 	/**
 	 * Create a new IPOMDPModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -87,64 +111,110 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		// Just iterate through model and print transitions
-		int numStates = ipomdp.getNumStates();
-		for (int s = 0; s < numStates; s++) {
-			int numChoices = ipomdp.getNumChoices(s);
-			for (int i = 0; i < numChoices; i++) {
-				Iterator<Map.Entry<Integer, Interval<Double>>> iter = ipomdp.getTransitionsIterator(s, i);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Interval<Double>> elem = iter.next();
-					mainLog.println(s + "," + i + " -> " + elem.getValue() + ":" + elem.getKey());
-				}
-			}
-		}
+		int n = 0;
+		for (int s = 0; s < ipomdp.getNumStates(); s++)
+			n = n + 2 * ipomdp.getNumChoices(s) - 1;
 
-		try {
-			GRBEnv env = new GRBEnv("IPOMDP.log");
-			GRBModel model = new GRBModel(env);
-
-			// Create variables
-			GRBVar x = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, "x");
-			GRBVar y = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, "y");
-			GRBVar z = model.addVar(0.0, 1.0, 0.0, GRB.BINARY, "z");
-
-			// Set objective: maximize x + y + 2 z
-			GRBLinExpr expr = new GRBLinExpr();
-			expr.addTerm(1.0, x); expr.addTerm(1.0, y); expr.addTerm(2.0, z);
-			model.setObjective(expr, GRB.MAXIMIZE);
-
-			// Add constraint: x + 2 y + 3 z <= 4
-			expr = new GRBLinExpr();
-			expr.addTerm(1.0, x); expr.addTerm(2.0, y); expr.addTerm(3.0, z);
-			model.addConstr(expr, GRB.LESS_EQUAL, 4.0, "c0");
-
-			// Add constraint: x + y >= 1
-			expr = new GRBLinExpr();
-			expr.addTerm(1.0, x); expr.addTerm(1.0, y);
-			model.addConstr(expr, GRB.GREATER_EQUAL, 1.0, "c1");
-
-			// Optimize model
-			model.optimize();
-
-			System.out.println(x.get(GRB.StringAttr.VarName)
-					+ " " +x.get(GRB.DoubleAttr.X));
-			System.out.println(y.get(GRB.StringAttr.VarName)
-					+ " " +y.get(GRB.DoubleAttr.X));
-			System.out.println(z.get(GRB.StringAttr.VarName)
-					+ " " +z.get(GRB.DoubleAttr.X));
-
-			System.out.println("Obj: " + model.get(GRB.DoubleAttr.ObjVal));
-
-			model.dispose();
-			env.dispose();
-		} catch (GRBException e) {
-			throw new PrismException("Error solving LP: " + e.getMessage());
-		}
+		ArrayList<Integer> uncertainStates = new ArrayList<Integer>();
+		ArrayList<Integer> actionStates = new ArrayList<Integer>();
+		Distribution[] transitions = new Distribution[n];
+		constructSimpleIPOMDP(ipomdp, uncertainStates, actionStates, transitions);
 
 		// Return dummy result vector
 		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = new double[numStates];
+		int total = ipomdp.getNumStates();
+		res.soln = new double[total];
 		return res;
+	}
+
+	/**
+	 * Transform the IPOMDP into a binary/simple IPOMDP.
+	 * @param ipomdp The IPOMDP which is transformed
+	 * @param uncertainStates The uncertain states of the binary/simple IPOMDP will be stored here
+	 * @param actionStates The action states of the binary/simple IPOMDP will be stored here
+	 * @param transitions The transitions of the binary/simple IPOMDP will be stored here
+	 */
+	public void constructSimpleIPOMDP(IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
+	{
+		int numStates = ipomdp.getNumStates();
+		int gadget[] = new int[numStates];
+		Arrays.fill(gadget, -1);
+
+		int index = -1;
+		for (int s = 0; s < numStates; s++)
+			index = transformState(s, index, gadget, ipomdp, uncertainStates, actionStates, transitions);
+	}
+
+	/**
+	 * Transform each state of the initial IPODMP into a "gadget" of the binary/simple IPOMDP (binary/simple)
+	 * @param s The state which is transformed into a gadget
+	 * @param index The current index denoting the last state created in the binary/simple IPOMDP
+	 * @param gadget Array of indices showing for each state in the initial IPOMDP where is the gadget in the binary/simple IPOMDP
+	 */
+	public int transformState(int s, int index, int[] gadget, IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
+	{
+		index = discoverState(s, index, gadget);
+
+		int numChoices = ipomdp.getNumChoices(s);
+		if (numChoices == 1) {
+			uncertainStates.add(gadget[s]);
+
+			Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(s, 0);
+			Distribution distribution = new Distribution();
+			while (iterator.hasNext()) {
+				Map.Entry<Integer, Interval<Double>> elem = iterator.next();
+				int successor = elem.getKey();
+				Interval<Double> interval = elem.getValue();
+
+				index = discoverState(successor, index, gadget);
+				distribution.add(new Edge(gadget[successor], interval));
+			}
+
+			transitions[ gadget[s] ] = distribution;
+		} else {
+			for (int dummy = 0; dummy < numChoices - 1; dummy++) {
+				int currState = gadget[s];
+				if (dummy > 0) currState = ++index;
+				actionStates.add(currState);
+
+				Distribution distribution = new Distribution();
+				distribution.add(new Edge(index + 1, new Interval<>(-2.0, 2.0)));
+				distribution.add(new Edge(index + numChoices, new Interval<>(-1.0, 1.0)));
+				transitions[currState] = distribution;
+			}
+
+			for (int dummy = 0; dummy < numChoices; dummy++) {
+				int currState = ++index;
+				uncertainStates.add(currState);
+
+				Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(s, dummy);
+				Distribution distribution = new Distribution();
+				while (iterator.hasNext()) {
+					Map.Entry<Integer, Interval<Double>> elem = iterator.next();
+					int successor = elem.getKey();
+					Interval<Double> interval = elem.getValue();
+
+					index = discoverState(successor, index, gadget);
+					distribution.add(new Edge(gadget[successor], interval));
+				}
+
+				transitions[currState] = distribution;
+			}
+		}
+
+		return index;
+	}
+
+	/**
+	 * Discover a state in the initial IPOMDP and assign to it an index in the binary/simple IPOMDP
+	 * @param s The state which must be discovered
+	 * @param index The current index denoting the last state created in the binary/simple IPOMDP
+	 * @param gadget Array of indices showing for each state in the initial IPOMDP where is the gadget in the binary/simple IPOMDP
+	 */
+	public int discoverState(int s, int index, int[] gadget)
+	{
+		// Verify whether the state has already been transformed or not
+		if (gadget[s] < 0) gadget[s] = ++index;
+		return index;
 	}
 }
