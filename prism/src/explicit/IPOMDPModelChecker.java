@@ -116,6 +116,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		ArrayList<Integer> uncertainStates = (ArrayList<Integer>) simpleIPOMDP.get(0);
 		ArrayList<Integer> actionStates = (ArrayList<Integer>) simpleIPOMDP.get(1);
 		Distribution[] transitions = (Distribution[]) simpleIPOMDP.get(2);
+		int[] observations = (int[]) simpleIPOMDP.get(3);
 
 		// Return dummy result vector
 		ModelCheckerResult res = new ModelCheckerResult();
@@ -132,21 +133,64 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	{
 		int numStates = ipomdp.getNumStates();
 		int gadget[] = new int[numStates];
+		ArrayList<Integer> traversal = new ArrayList<>();
 		Arrays.fill(gadget, -1);
 
-		int numStatesTransformation = 0;
+		int numStatesNew = 0;
 		for (int s = 0; s < ipomdp.getNumStates(); s++)
-			numStatesTransformation = numStatesTransformation + 2 * ipomdp.getNumChoices(s) - 1;
+			numStatesNew = numStatesNew + 2 * ipomdp.getNumChoices(s) - 1;
 
 		ArrayList<Integer> uncertainStates = new ArrayList<Integer>();
 		ArrayList<Integer> actionStates = new ArrayList<Integer>();
-		Distribution[] transitions = new Distribution[numStatesTransformation];
+		Distribution[] transitions = new Distribution[numStatesNew];
+		int[] observations = new int[numStatesNew];
 
 		int index = -1;
 		for (int s = 0; s < numStates; s++)
-			index = transformState(s, index, gadget, ipomdp, uncertainStates, actionStates, transitions);
+			index = transformState(s, index, traversal, gadget, ipomdp, uncertainStates, actionStates, transitions);
 
-		return Arrays.asList(uncertainStates, actionStates, transitions);
+		observations = determineObservations(ipomdp, traversal, gadget);
+		return Arrays.asList(uncertainStates, actionStates, transitions, observations);
+	}
+
+	public int[] determineObservations(IPOMDP<Double> ipomdp, ArrayList<Integer> traversal, int[] gadget)
+	{
+		int numStates = ipomdp.getNumStates();
+		int numStatesNew = traversal.size();
+
+		int[] gadget_inv = new int[numStatesNew];
+		Arrays.fill(gadget_inv, -1);
+		for (int s = 0; s < numStates; s++)
+			gadget_inv[ gadget[s] ] = s;
+
+		int[] freshObservations = new int[numStates];
+		Arrays.fill(freshObservations, -1);
+
+		int[] observations = new int[numStatesNew];
+
+		int lastObservationAdded = -1;
+		int indexObservation = -1;
+		for (int i = 0; i < traversal.size(); i++) {
+			int state = traversal.get(i);
+
+			if (gadget_inv[state] < 0) {
+				lastObservationAdded = Math.max(lastObservationAdded, indexObservation);
+				observations[state] = indexObservation++;
+				continue;
+			}
+
+			int initialState = gadget_inv[state];
+			int initialObservation = ipomdp.getObservation(initialState);
+
+			if (freshObservations[initialObservation] < 0) {
+				freshObservations[initialObservation] = ++lastObservationAdded;
+			}
+
+			indexObservation = freshObservations[initialObservation];
+			observations[state] = indexObservation++;
+		}
+
+		return observations;
 	}
 
 	/**
@@ -154,17 +198,19 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 * @param state The state which must be transformed into a gadget
 	 * @param index The current index denoting the last state created in the binary/simple IPOMDP
 	 * @param gadget Array of indices showing for each state in the initial IPOMDP where is the gadget in the binary/simple IPOMDP
-	 * @param uncertainStates The uncertain states of the binary/simple IPOMDP will be stored here
-	 * @param actionStates The action states of the binary/simple IPOMDP will be stored here
-	 * @param transitions The transitions of the binary/simple IPOMDP will be stored here
+	 * @param ipomdp The IPOMDP that is being transformed
+	 * @param uncertainStates The uncertain states of the binary/simple IPOMDP
+	 * @param actionStates The action states of the binary/simple IPOMDP
+	 * @param transitions The transitions of the binary/simple IPOMDP
 	 */
-	public int transformState(int state, int index, int[] gadget, IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
+	public int transformState(int state, int index, ArrayList<Integer> traversal, int[] gadget, IPOMDP<Double> ipomdp, ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions)
 	{
 		index = discoverState(state, index, gadget);
 
 		int numChoices = ipomdp.getNumChoices(state);
 		for (int dummy = 0; dummy < numChoices - 1; dummy++) {
 			int currState = (dummy > 0 ? ++index : gadget[state]);
+			traversal.add(currState);
 
 			actionStates.add(currState);
 			Distribution distribution = new Distribution();
@@ -176,6 +222,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		int index_next = (numChoices == 1 ? index : index + numChoices);
 		for (int dummy = 0; dummy < numChoices; dummy++) {
 			int currState = (numChoices > 1 ? ++index : gadget[state]);
+			traversal.add(currState);
 
 			uncertainStates.add(currState);
 			Distribution distribution = new Distribution();
