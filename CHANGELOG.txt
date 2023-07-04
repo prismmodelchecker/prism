@@ -1,15 +1,19 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Recent changes (up to commit 03c6c15)
+Recent changes (up to commit fefa641)
 -----------------------------------------------------------------------------
 
-* Model checking functionality:
-  - support for interval DTMC/interval MDP model checking
-  - strategy (policy) generation, export and simulation from GUI
-  - PTA model checking supports global/non-local variables
+* Support for interval DTMC (IDTMC) and interval MDP (IMDP) model checking
 
-* Features/enhancements:
+* Improved strategy (policy) generation
+  - switch -exportstrat exports to tra/dot/txt format
+  - additional export options (restrict/reduce, states, reach)
+  - strategy generation extended for bounded reachability, LTL, POMDPs
+  - GUI support for generating, exporting and simulating strategies
+
+* Other features/enhancements:
+  - PTA model checking supports global/non-local variables
   - ModelGenerator interface now supports real-time models (e.g., PTAs)
   - new -javaparams switch to pass command-line arguments to JVM
   - prism-log-extract: new field 'dd_nodes' for model MTBDD size
@@ -23,6 +27,7 @@ Recent changes (up to commit 03c6c15)
   - explicit model import without -importmodel: prism model.all
   - results export to new formats: PRISM comment, dataframe
   - results import from dataframe format (-importresults or GUI)
+  - observation export for POMDPs (-exportobs or GUI)
 
 * Fixes / upgrades
   - compile fix for newer MacOS
