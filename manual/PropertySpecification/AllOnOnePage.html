@@ -1,22 +1,25 @@
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
+
 
 <html>
 <head>
 
 <title>
-PRISM Manual | PropertySpecification / AllOnOnePage 
+PRISM Manual | Property Specification / All On One Page 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
 
-<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
-<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
+<link rel="shortcut icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
 
+<!--The following line is needed by PmWiki (for the manual) - don't delete-->
 <!--HTMLHeader--><style type='text/css'><!--
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
-  code.escaped { white-space: nowrap; }
+  code.escaped { white-space: pre; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
   .outdent { margin-left:40px; text-indent:-40px; }
@@ -38,12 +41,31 @@ PRISM Manual | PropertySpecification / AllOnOnePage
   div.faqtoc div.faq p.question 
     { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
   div.faqtoc div.faq p.question * { display:inline; }
-   
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
     .frame 
       { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
     .lfloat { float:left; margin-right:0.5em; }
     .rfloat { float:right; margin-left:0.5em; }
-a.varlink { text-decoration:none; }
+a.varlink { text-decoration:none;}
 
 .sourceblocklink {
   text-align: right;
@@ -70,22 +92,134 @@ a.varlink { text-decoration:none; }
 --></style>  <meta name='robots' content='index,follow' />
 
 
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css">
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/prism/css/prismmanual.css">
+
+
+<script type="text/javascript" src="http://www.prismmodelchecker.org/includes/prism.js"></script>
+
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-42079741-1', 'prismmodelchecker.org');
+  ga('send', 'pageview');
+</script>
 
 </head>
 
-<body text="#000000" bgcolor="#ffffff">
+<body text="#000000" bgcolor="#ffffff" onload="initialise()">
+
+<div id="prism-banner">
+	<div id="prism-bannerlefthalf"></div>
+	<div id="prism-bannerrighthalf"></div>
+	<div id="prism-bannerurl"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/url_thin.png" alt="www.prismmodelchecker.org"></a></div>
+	<div id="prism-bannerlogo"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/p_blue.png" alt="P"></a></div>
+	<form id="prism-searchbox" title="Search the PRISM site with Google" method="get" action="https://www.google.com/search">
+	<input type="hidden" name="domains" value="www.prismmodelchecker.org">
+	<input type="hidden" name="sitesearch" value="www.prismmodelchecker.org">
+	<input class="input1" id="q" name="q" type="text" size="30">
+	<input class="input2" id="submit" type="submit" value="Search">
+	</form>
+</div>
+
+<div id="prism-navbar">
+<div id="prism-navbarinner">
+
+<ul id="prism-navbarmenu">
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/" title="">Home</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/about.php" title="">About</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/about.php">About PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/people.php">People</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/sponsors.php">Sponsors</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/contact.php">Contact</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/news.php">News</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/screenshots.php">Screenshots</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-tools.php">Other tools</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/links.php">Links</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/download.php" title="">Downloads</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/download.php">PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/dev/">Development versions</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/benchmarks/">Benchmarks</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">PRISM-games</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-downloads.php">Other downloads</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/doc/" title="">Documentation</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="../InstallingPRISM.html">Installation</a>
+	<li class="prism-navsubitem">&#187; <a href="../index.html">Manual</a>
+	<li class="prism-navsubitem">&#187; <a href="../FrequentlyAskedQuestions.html">FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/tutorial/">Tutorial</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/lectures/">Lectures</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitemsel"><a href="../index.html" title="">Manual</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/publ-lists.php" title="">Publications</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-selected.php">Selected publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publications.php">PRISM publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib.php">PRISM bibliography</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib-ext.php">External publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-search.php">Search</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/casestudies/index.php" title="">Case Studies</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/support.php" title="">Support</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="../InstallingPRISM/CommonProblemsAndQuestions.html">Installation FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="../FrequentlyAskedQuestions/index.html">PRISM FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker">Forum (Google)</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="https://github.com/prismmodelchecker/prism/wiki" title="">Developers</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="https://github.com/prismmodelchecker/prism/wiki">Developer resources</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker-dev">Developer forum</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/games/" title="">PRISM-games</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">Download</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/publ.php">Publications</a>
+	</ul>
+</ul>
+<div style="clear:both;"></div>
+
+</div> <!-- id="prism-navbarinner" -->
+</div> <!-- id="prism-navbar" -->
 
 <div id="layout-maincontainer">
 <div id="layout-main">
 
 <div id="prism-mainbox">
 
+<!--<a href="http://www.ox.ac.uk/"><img id="prism-unilogo" src="/images/oxford_logo_pale.png" alt="University of Oxford"></a>-->
+
 <!-- ============================================================================= -->
 
 <!--PageHeaderFmt-->
+  <div id="prism-man-commands1">
+    <p><span class='prism-man-commands'><a class='selflink' href='AllOnOnePage.html'>View</a> - </span><a rel='nofollow'  class='wikilink' href='AllOnOnePage@action=edit.html'>Edit</a> - <a class='wikilink' href='AllOnOnePage@action=print.html'>Print</a> - <a class='wikilink' href='../Main/Search.html'>Search</a>
+</p>
+
+  </div>
 <!--/PageHeaderFmt-->
 
 <!--PageTitleFmt--><!--PageText-->
@@ -640,7 +774,7 @@ queries the expected reward accumulated until first <code>goal</code> equals 1 a
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock38'>
-  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">F</span> (<span class="prismident">goal</span>=<span class="prismnum">1</span> &amp; <span class="prismkeyword">F</span> <span class="prismident">goal2</span>) ] <br/>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>=? [ <span class="prismkeyword">F</span> (<span class="prismident">goal</span>=<span class="prismnum">1</span> &amp; <span class="prismkeyword">F</span> <span class="prismident">goal</span>=<span class="prismnum">2</span>) ] <br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=38' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
@@ -783,9 +917,9 @@ the rewards associated with the model correspond to power consumption, the prope
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=45' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>This states that, <em>for all adversaries</em> of the MDP, the probability of reaching an <code>"error"</code> state is less than 0.01.
+<p class='vspace'>This states that, <em>for all</em> strategies (or policies) of the MDP, the probability of reaching an <code>"error"</code> state is less than 0.01.
 </p>
-<p class='vspace'>Multi-objective queries differ in two important ways. Firstly, (by default) they ask about the <em>existence</em> of an adversary. Secondly they refer to <em>multiple</em> properties of an adversary. For example:
+<p class='vspace'>Multi-objective queries differ in two important ways. Firstly, (by default) they ask about the <em>existence</em> of a strategy. Secondly they refer to <em>multiple</em> properties of a strategy. For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock46'>
@@ -794,9 +928,9 @@ the rewards associated with the model correspond to power consumption, the prope
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=46' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>means: "does there exist an adversary of the MDP under which the probability of reaching an <code>"error1"</code> state is less than 0.01 <em>and</em> the probability of reaching an <code>"error2"</code> state is less than 0.02?"
+<p class='vspace'>means: "does there exist a strategy of the MDP under which the probability of reaching an <code>"error1"</code> state is less than 0.01 <em>and</em> the probability of reaching an <code>"error2"</code> state is less than 0.02?"
 </p>
-<p class='vspace'>To use the terminology from [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>], the above is an "achievability" query (i.e. is this combination of objectives achievable by some adversary?). PRISM also supports two other kinds of multi-objective query: "numerical" and "Pareto" queries.
+<p class='vspace'>To use the terminology from [<a class='wikilink' href='../Main/References.html#FKP12'>FKP12</a>], the above is an "achievability" query (i.e., is this combination of objectives achievable by some strategy?). PRISM also supports two other kinds of multi-objective query: "numerical" and "Pareto" queries.
 </p>
 <p class='vspace'>A "numerical" query looks like:
 </p>
@@ -807,7 +941,7 @@ the rewards associated with the model correspond to power consumption, the prope
   <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=47' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>meaning "what is the minimum possible probability of reaching <code>"error1"</code>, over all adversaries of the MDP for which the probability of reaching <code>"error2"</code> is less than 0.02?".
+<p class='vspace'>meaning "what is the minimum possible probability of reaching <code>"error1"</code>, over all strategies of the MDP for which the probability of reaching <code>"error2"</code> is less than 0.02?".
 </p>
 <p class='vspace'>A "Pareto" queries leaves both of the objectives unbounded, e.g.:
 </p>
@@ -966,6 +1100,45 @@ translate them into a POMDP, so they inherit the same
 (that strict or diagonal clock comparisons are not allowed).
 However for POPTAs, time-bounded probabilistic reachability is also supported.
 </p><hr />
+<h1>Uncertain Models</h1>
+<p>For uncertain models, currently interval MDPs (IMDPs) or interval DTMCs (IDTMCs), PRISM performs <em>robust</em> verification, which considers the best- or worst-case behaviour that can arise depending on the way that probabilities are selected from intervals.
+</p>
+<p class='vspace'>For example, instead of a property for a DTMC such as
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock57'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=57' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which asks for the probability to reach a state satisfying <code>"goal"</code>, IDTMCs use MDP-style queries:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock58'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ]<br/>
+<span class="prismkeyword">Pmax</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=58' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which compute the minimum or maximum possible probability that can arise.
+</p>
+<p class='vspace'>Similarly, for an IMDP, there are now two separate quantifications, firstly over strategies (policies) and secondly over the distinct ways that transition probabilities can be selected from intervals, for which <code>min</code> or <code>max</code> appear in that order in the query. For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock59'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmaxmin</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ]<br/>
+<span class="prismkeyword">Pmaxmax</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=59' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>return the minimum and maximum values, respectively, over resolutions of transition probabilities for the maximum probability of reaching <code>"goal"</code>. Similarly, <code>minmin</code> and <code>minmax</code> are used for the minimum probability of reaching <code>"goal"</code>. Model checking is supported for:
+</p>
+<div class='vspace'></div><ul><li>the <code><strong>P</strong></code> operator, for next and bounded/unbounded until/reachability properties
+</li><li>the <code><strong>R</strong></code> operator, for the expected reward to reach a target or satisfy a co-safe LTL formula
+</li></ul><div class='vspace'></div><hr />
 <h1>Non-Probabilistic Properties</h1>
 <p>PRISM also supports model checking of the non-probabilistic temporal logics CTL (computation tree logic) and LTL (linear temporal logic).
 Properties in these logics use the <code><strong>A</strong></code> (for all) and <code><strong>E</strong></code> (there exists) operators,
@@ -974,11 +1147,11 @@ instead of the probabilistic <code><strong>P</strong></code> operator used in ma
 <p class='vspace'>Properties take the form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock57'>
+<div class='sourceblock ' id='sourceblock60'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">A</span> [ <span class="prismident">pathprop</span> ]<br/>
 <span class="prismkeyword">E</span> [ <span class="prismident">pathprop</span> ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=57' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=60' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which are true in a state <em>s</em> of a model if
@@ -991,7 +1164,7 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 <p class='vspace'>Example properties include:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock58'>
+<div class='sourceblock ' id='sourceblock61'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">E</span> [ <span class="prismkeyword">F</span> "<span class="prismident">goal</span>" ] <span class="prismcomment">// There exists a path that reaches a state satisfying "goal"</span><br/>
 <br/>
 <span class="prismkeyword">A</span> [ <span class="prismkeyword">G</span> <span class="prismident">x</span>&lt;=<span class="prismnum">10</span> ] <span class="prismcomment">// Variable x is always at most 10 along all paths of the model</span><br/>
@@ -1000,7 +1173,7 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 <br/>
 <span class="prismkeyword">A</span> [ (<span class="prismkeyword">G</span> <span class="prismkeyword">F</span> <span class="prismident">x</span>=<span class="prismnum">1</span>) | (<span class="prismkeyword">G</span> <span class="prismkeyword">F</span> <span class="prismident">x</span>=<span class="prismnum">2</span>) ] <span class="prismcomment">// Along all paths, either x=1 or x=2 is true infinitely often</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=58' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=61' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><h3>Counterexamples and Witnesses</h3>
@@ -1029,10 +1202,10 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 </li></ul><p class='vspace'>This allows you to write any property expressible in logics such as PCTL and CSL. For example, CSL allows you to nest <code><strong>P</strong></code> and <code><strong>S</strong></code> operators:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock59'>
+<div class='sourceblock ' id='sourceblock62'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>&gt;<span class="prismnum">2</span> <span class="prismkeyword">S</span>&gt;<span class="prismnum">0.9</span>[ <span class="prismident">num_servers</span> &gt;= <span class="prismnum">5</span> ] ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=59' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=62' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the probability of it taking more than 2 hours to get to a state from which the long-run probability of at least 5 servers being operational is &gt;0.9"
@@ -1040,28 +1213,28 @@ The syntax for LTL formulas is the same as those allowed within the <a class='wi
 <p class='vspace'>You can also express various arithmetic expressions such as:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock60'>
+<div class='sourceblock ' id='sourceblock63'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismnum">1</span> - <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>[<span class="prismnum">3600</span>,<span class="prismnum">7200</span>] <span class="prismident">oper</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=60' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=63' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the probability that the system is <strong>not</strong> operational at any point during the second hour of operation"
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock61'>
+<div class='sourceblock ' id='sourceblock64'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">R</span>{"<span class="prismident">oper</span>"}=? [ <span class="prismkeyword">C</span>&lt;=<span class="prismident">t</span> ] / <span class="prismident">t</span> <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=61' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=64' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the expected fraction of time that the system is available (i.e. the expected interval availability) in the time interval [0, t]"
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock62'>
+<div class='sourceblock ' id='sourceblock65'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">fail_A</span> ] / <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">any_fail</span> ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=62' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=65' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>"the (conditional) probability that component A eventually fails, given
@@ -1073,20 +1246,20 @@ that at least one component fails"
 <p class='vspace'>It is worth, however, clarifying a few points specific to PRISM. A property is evaluated with respect to a particular state of a model. Depending on the type of the property, this value may either be a Boolean, an integer or a double. When performing model checking, PRISM usually has to actually compute the value for <em>all</em> states of the model but, for clarity, will by default report just a single value. Typically, this is the value for the (single) initial state of the model. For example, this:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock63'>
+<div class='sourceblock ' id='sourceblock66'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=63' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=66' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>will report the probability, from the initial state of the model, of reaching an "error" state.
 This:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock64'>
+<div class='sourceblock ' id='sourceblock67'>
   <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ] <br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=64' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=67' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>will return <code>true</code> if and only if the probability, from the initial state, is greater than 0.5.
@@ -1106,10 +1279,10 @@ which are described in the next section.
 <p class='vspace'>Filters are created using the <code>filter</code> keyword. They take the following form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock65'>
+<div class='sourceblock ' id='sourceblock68'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">op</span>, <span class="prismident">prop</span>, <span class="prismident">states</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=65' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=68' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>op</code> is the filter <em>operator</em> (see below), <code>prop</code> is any PRISM property and <code>states</code> is a Boolean-valued expression identifying a set of states over which to apply the filter.
@@ -1117,20 +1290,20 @@ which are described in the next section.
 <p class='vspace'>In fact, the <code>states</code> argument is optional; if omitted, the filter is applied over all states. So, the following properties are equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock66'>
+<div class='sourceblock ' id='sourceblock69'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">op</span>, <span class="prismident">prop</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">op</span>, <span class="prismident">prop</span>, <span class="prismkeyword">true</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=66' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=69' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Here's a simple example of a filter:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock67'>
+<div class='sourceblock ' id='sourceblock70'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismkeyword">max</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], <span class="prismident">x</span>=<span class="prismnum">0</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=67' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=70' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This gives the <em>maximum</em> value, starting from any state satisfying <code>x=0</code>, of the probability of reaching an "error" state.
@@ -1140,20 +1313,20 @@ which checks whether, <em>starting from any reachable state</em>,
 we eventually reach a "done" state with probability 1.
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock68'>
+<div class='sourceblock ' id='sourceblock71'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">done</span>" ])<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=68' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=71' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>We could modify this property slightly to instead check whether, from any state that satisfies the label "ready", we eventually reach a "done" state with probability 1. This could be done with either of the following two equivalent properties:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock69'>
+<div class='sourceblock ' id='sourceblock72'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, "<span class="prismident">ready</span>" =&gt; <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">done</span>" ])<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">done</span>" ], "<span class="prismident">ready</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=69' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=72' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'><strong>Note:</strong> In older versions of PRISM, the property above could be written just as <code>"ready" =&gt; P&gt;=1 [ F "done" ]</code> since the result was checked for all states by default, not just the <a class='wikilink' href='SyntaxAndSemantics.html'>initial state</a>. Now, you need to explicitly include a filter, as shown above, to achieve this.
@@ -1187,10 +1360,10 @@ The full list of filter operators <code>op</code> in this category is:
 <p class='vspace'>Filters provide a quick way to <em>print</em> the results of a model checking query for several states. In most cases, for example, a <code>P=?</code> query just returns the probability from the initial state. To see the probability for all states satisfying <code>x&gt;2</code>, use:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock70'>
+<div class='sourceblock ' id='sourceblock73'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">print</span>, <span class="prismkeyword">P</span>=? [ ... ], <span class="prismident">x</span>&gt;<span class="prismnum">2</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=70' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=73' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Values are printed in the log (i.e. to the "Log" tab in the GUI or to the terminal from the command-line). For small models, you could omit the final <code>states</code> argument (<code>x&gt;2</code> here) and view the probabilities from all states. You can also use PRISM's <a class='wikilink' href='../ConfiguringPRISM/OtherOptions.html'>verbose</a> mode to view values for all states, but filters provide an easier and more flexible solution.
@@ -1199,10 +1372,10 @@ The full list of filter operators <code>op</code> in this category is:
 <p class='vspace'>You can also use <code>print</code> filters to display lists of states. For example, this property:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock71'>
+<div class='sourceblock ' id='sourceblock74'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">print</span>, <span class="prismkeyword">filter</span>(<span class="prismident">argmax</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]))<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=71' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=74' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>prints the states which have the highest probability of reaching an error state.
@@ -1211,10 +1384,10 @@ However, you should exercise caution when using <code>argmax</code> (or <code>ar
 <p class='vspace'>Another common use of filters is to display the value for a particular state of the model (rather than the initial state, which is used by default). To achieve this, use e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock72'>
+<div class='sourceblock ' id='sourceblock75'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">state</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], <span class="prismident">x</span>=<span class="prismnum">2</span>&amp;<span class="prismident">y</span>=<span class="prismnum">3</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=72' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=75' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>where <code>x=2&amp;y=3</code> is assumed to specify one particular state.
@@ -1223,20 +1396,20 @@ A <code>state</code> filter will produce an error if the filter expression is no
 <p class='vspace'>Filters can also be built up into more complex expressions. For example, the following two properties are equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock73'>
+<div class='sourceblock ' id='sourceblock76'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">avg</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">sum</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>") / <span class="prismkeyword">filter</span>(<span class="prismident">count</span>, "<span class="prismkeyword">init</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=73' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=76' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The <code>range</code> filter, unlike most PRISM expressions which are of type Boolean, integer or double, actually returns an interval: a pair of integers or doubles. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock74'>
+<div class='sourceblock ' id='sourceblock77'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">range</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismident">count</span>=<span class="prismnum">10</span> ], <span class="prismident">count</span>=<span class="prismnum">0</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=74' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=77' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>gives the range of all possible values for the probability of reach a state satisfying <code>count=10</code>, from all states satisfying <code>count=0</code>.
@@ -1246,34 +1419,34 @@ As will be described below, this kind of property also results from the use of o
 <p>In older versions of PRISM, filters were also available, but in a less expressive form. Previously, they were only usable on <code><strong>P</strong></code>, <code><strong>S</strong></code> or <code><strong>R</strong></code> properties and only a small set of filter operators were permitted. They were also specified in a different way, using braces (<code>{</code>...<code>}</code>). For compatibility with old properties files (and for compactness), these forms of filters are still allowed. These old-style forms of filters:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock75'>
+<div class='sourceblock ' id='sourceblock78'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>} ]<br/>
 <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>}{<span class="prismkeyword">min</span>} ]<br/>
 <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>}{<span class="prismkeyword">max</span>} ]<br/>
 <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> {<span class="prismident">states</span>}{<span class="prismkeyword">min</span>}{<span class="prismkeyword">max</span>} ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=75' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=78' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>are equivalent to:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock76'>
+<div class='sourceblock ' id='sourceblock79'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">state</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismkeyword">min</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismkeyword">max</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">range</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=76' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=79' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Notice that the first of the four properties above (i.e. an old-style filter of the form <code>{states}</code> will result in an error if <code>states</code> is not satisfied by exactly one state of the model. Older versions of PRISM just gave you the value for the first state state satisfying the filter, without warning you about this. If you want to recreate the old behaviour, just use a <code>first</code> filter:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock77'>
+<div class='sourceblock ' id='sourceblock80'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">first</span>, <span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ], <span class="prismident">states</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=77' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=80' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><h3>Default filters</h3>
@@ -1284,38 +1457,38 @@ could have been achieved equivalently using filters.
 <p class='vspace'>Queries of the form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock78'>
+<div class='sourceblock ' id='sourceblock81'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=78' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=81' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>are the same as:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock79'>
+<div class='sourceblock ' id='sourceblock82'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=79' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=82' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>and queries of the form:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock80'>
+<div class='sourceblock ' id='sourceblock83'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ]<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=80' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=83' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>are the same as either:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock81'>
+<div class='sourceblock ' id='sourceblock84'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">state</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 <span class="prismkeyword">filter</span>(<span class="prismident">range</span>, <span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> "<span class="prismident">error</span>" ], "<span class="prismkeyword">init</span>")<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=81' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=84' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>for the cases where there the model has a single initial state
@@ -1327,14 +1500,14 @@ or multiple initial states, respectively.
 These are defined in identical fashion, for example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock82'>
+<div class='sourceblock ' id='sourceblock85'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">k</span> = <span class="prismnum">7</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span> = <span class="prismnum">9.5</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">p</span> = <span class="prismnum">0.01</span>;<br/>
 <br/>
 <span class="prismkeyword">P</span>&lt;<span class="prismident">p</span> [ <span class="prismkeyword">F</span>&lt;=<span class="prismident">T</span> <span class="prismident">x</span>=<span class="prismident">k</span> ];<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=82' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=85' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>As before, these constants can actually be left undefined and then later
@@ -1352,13 +1525,13 @@ Furthermore, expressions in the properties file can also refer to constants prev
 <p class='vspace'>Labels are defined using the keyword <code><strong>label</strong></code>, followed by a name (identifier) in double quotes, and then an expression which evaluates to a Boolean. Definition and usage of labels are illustrated in the following example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock83'>
+<div class='sourceblock ' id='sourceblock86'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">label</span> "<span class="prismident">safe</span>" = <span class="prismident">temp</span>&lt;=<span class="prismnum">100</span> | <span class="prismident">alarm</span>=<span class="prismkeyword">true</span>;<br/>
 <span class="prismkeyword">label</span> "<span class="prismident">fail</span>" = <span class="prismident">temp</span>&gt;<span class="prismnum">100</span> &amp; <span class="prismident">alarm</span>=<span class="prismkeyword">false</span>;<br/>
 <br/>
 <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.99</span> [ "<span class="prismident">safe</span>" <span class="prismkeyword">U</span> "<span class="prismident">fail</span>" ];<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=83' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=86' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Two special cases are the <code>"init"</code> and <code>"deadlock"</code> labels which are always defined.
@@ -1369,19 +1542,19 @@ These are true in initial states of the model and states where deadlocks were fo
 <p>For convenience, properties can be annotated with <em>names</em>, as shown in the following example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock84'>
+<div class='sourceblock ' id='sourceblock87'>
   <div class='sourceblocktext'><div class="prism">"<span class="prismident">safe</span>": <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">F</span> <span class="prismident">temperature</span> &gt; <span class="prismident">t_max</span> ];<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=84' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=87' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>which gives the name <code>"safe"</code> to the property. It is then possible to include named properties as sub-expressions of other properties, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock85'>
+<div class='sourceblock ' id='sourceblock88'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">filter</span>(<span class="prismident">forall</span>, <span class="prismident">num_sensors</span>&gt;<span class="prismnum">0</span> =&gt; "<span class="prismident">safe</span>");<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=85' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/AllOnOnePage?action=sourceblock&amp;num=88' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Notice that the syntax for referring to named properties is identical to the syntax for labels. For this reason, property names must be disjoint from those of any existing labels.
@@ -1402,6 +1575,12 @@ and extension <code>.csl</code> for properties of CTMCs, so these are still also
 
 <!--PageFooterFmt-->
   <div id='prism-man-footer'>
+    <div id='prism-man-commands2'>
+      <p><a class='selflink' href='AllOnOnePage.html'>View</a> - <a rel='nofollow'  class='wikilink' href='AllOnOnePage@action=edit.html'>Edit</a> - <a class='wikilink' href='AllOnOnePage@action=print.html'>Print</a> - <a class='wikilink' href='../Main/Search.html'>Search</a> - <a rel='nofollow'  class='wikilink' href='AllOnOnePage@action=login.html'>Login</a>
+</p>
+
+    </div>
+    <div id='prism-man-lastmod'>Page last modified on June 16, 2023, at 03:32 PM</div>
   </div>
 <!--/PageFooterFmt-->
 
@@ -1409,6 +1588,13 @@ and extension <code>.csl</code> for properties of CTMCs, so these are still also
 <!-- ============================================================================= -->
 
 </div> <!-- id="prism-mainbox" -->
+
+<div id="prism-footer">
+<a href="http://validator.w3.org/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_html.png" alt="Valid HTML 4.1"/></a>
+<a href="http://www.php.net/"><img border="0" src="http://www.prismmodelchecker.org/images/php_powered.png" alt="Powered by PHP"/></a>
+<a href="http://jigsaw.w3.org/css-validator/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_css.png" alt="Valid CSS"/></a>
+<span style="color:#888888; font-size:85%; margin-left:20px;">Site hosted at the Department of Computer Science, University of Oxford</span>
+</div> <!-- id="prism-footer" -->
 
 </div> <!-- id="layout-main" -->
 </div> <!-- id="layout-maincontainer" -->
@@ -1426,6 +1612,7 @@ and extension <code>.csl</code> for properties of CTMCs, so these are still also
 </li><li><a class='wikilink' href='Multi-objectiveProperties.html'>Multi-objective Properties</a>
 </li><li><a class='wikilink' href='Real-timeModels.html'>Real-time Models</a>
 </li><li><a class='wikilink' href='PartiallyObservableModels.html'>Partially Observable Models</a>
+</li><li><a class='wikilink' href='UncertainModels.html'>Uncertain Models</a>
 </li><li><a class='wikilink' href='Non-probabilisticProperties.html'>Non-probabilistic Properties</a>
 </li><li><a class='wikilink' href='SyntaxAndSemantics.html'>Syntax And Semantics</a>
 </li><li><a class='wikilink' href='Filters.html'>Filters</a>
@@ -1436,6 +1623,9 @@ and extension <code>.csl</code> for properties of CTMCs, so these are still also
 
 </div>  <!-- id="prism-navbar2" -->
 </div> <!-- id="layout-leftcol" -->
+
+<div id="layout-footer">
+</div> <!-- id="layout-footer" -->
 
 </body>
 </html>

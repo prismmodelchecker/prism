@@ -1,0 +1,140 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | PropertySpecification / IdentifyingASetOfStates </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Property Specification</a> /
+</p><h1>Identifying A Set Of States</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>One of the most fundamental tasks when specifying properties of a model
+is to identify particular sets or classes of states of the model.
+For example, to verify a property such as
+"the algorithm eventually terminates successfully with probability 1",
+it is first necessary to identify the states of the model
+which correspond to situations where "the algorithm has terminated successfully".
+In terms of the way temporal logics are usually presented,
+these correspond to <em>atomic propositions</em>.
+</p>
+<p class='vspace'>In PRISM, this is achieved simply by writing an <a class='wikilink' href='../ThePRISMLanguage/Expressions.html'>expression</a> in the PRISM language which evaluates to a Boolean value. This expression will typically contain references to variables (and constants) from the model to which it relates. The set of states corresponding to this expression is those for which it evaluates to <code>true</code>. We say that the expression is "satisfied" in these states.
+</p>
+<p class='vspace'>For example, in the property given above:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.1</span> [ <span class="prismkeyword">F</span>&lt;=<span class="prismnum">100</span> <span class="prismident">num_errors</span> &gt; <span class="prismnum">5</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/IdentifyingASetOfStates?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>the expression <code>num_errors &gt; 5</code> is used to identify states of the model where more than 5 errors have occurred.
+</p>
+<p class='vspace'>It is also common to use <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>labels</a> to identify states in this way, like <code>"terminate"</code> in the example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">F</span> "<span class="prismident">terminate</span>" ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/IdentifyingASetOfStates?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Properties can refer to <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>labels</a> either from the model to which the property relates, or included in the same <a class='wikilink' href='PropertiesFiles.html'>properties file</a>.
+</p>
+</div>
+
+
+</body>
+</html>

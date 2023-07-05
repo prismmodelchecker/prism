@@ -1,0 +1,377 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | Appendices / ExplicitModelFiles </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for text
+ * CSS class: , CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2014 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.text .de1, .text .de2 {font-family: monospace; font-weight: normal;}
+.text  {font-family:monospace;}
+.text .imp {font-weight: bold; color: red;}
+.text li, .text .li1 {font-family: monospace; color: black; font-weight: normal;}
+.text .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.text .li2 {font-weight: bold;}
+.text .ln-xtra, .text li.ln-xtra, .text div.ln-xtra {background-color: #ffc;}
+.text span.xtra { display:block; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Appendices</a> /
+</p><h1>Explicit Model Files</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>This appendix details the (plain text) file formats used by PRISM for <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html'>exporting</a> and <a class='wikilink' href='../RunningPRISM/ExplicitModelImport.html'>importing</a> models that have already been constructed, i.e., they comprise an explicit list of states, transitions, etc. making up the model, rather than a high-level model description in the <a class='wikilink' href='../ThePRISMLanguage/Main.html'>PRISM modelling language</a>.
+Below, we describe:
+</p>
+<div class='vspace'></div><ul><li><a href='ExplicitModelFiles@action=print.html#sta'>State (.sta) files</a>
+</li><li><a href='ExplicitModelFiles@action=print.html#tra'>Transitions (.tra) files</a>
+</li><li><a href='ExplicitModelFiles@action=print.html#trarows'>Transitions (.tra) files (row form)</a>
+</li><li><a href='ExplicitModelFiles@action=print.html#lab'>Labels (.lab) files</a>
+</li><li><a href='ExplicitModelFiles@action=print.html#srew'>State rewards (.srew) files</a>
+</li><li><a href='ExplicitModelFiles@action=print.html#trew'>Transition rewards (.trew) files</a>
+</li></ul><div class='vspace'></div><hr />
+<p class='vspace'><a name='sta' id='sta'></a>
+</p><h3>States (.sta) files</h3>
+<p>These contain an explicit list of the reachable states of a model. The first line is of the form <code>(v1,...,vn)</code>, listing the names of all the variables in the model in the order that they appear in the PRISM model. Subsequent lines list the values of the <code>n</code> variables in each state of the model. Each line is of the form <code>i:(x1,...,xn)</code>, where <code>i</code> is the index of the state (starting from 0) and <code>x1,...,xn</code> are the values of each variable in the state. States are ordered by their index, or, equivalently, lexicographically according to the tuple of variable values.
+</p>
+<p class='vspace'>For the example PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a>, the states file looks like:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="text">(s,a,s1,s2)<br />
+0:(1,0,0,0)<br />
+1:(1,0,0,1)<br />
+2:(1,0,1,0)<br />
+3:(1,0,1,1)<br />
+4:(1,1,1,0)<br />
+5:(1,1,1,1)<br />
+6:(2,0,0,0)<br />
+7:(2,0,0,1)<br />
+8:(2,0,1,0)<br />
+9:(2,0,1,1)<br />
+10:(2,1,0,1)<br />
+11:(2,1,1,1)</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='tra' id='tra'></a>
+</p><h3>Transitions (.tra) files</h3>
+<p>These contain an explicit list of the transitions making up a probabilistic model, i.e. they are essentially a sparse matrix representation of the transition probability/rate matrix. The first line of the file contains information about the size of the model, the remaining lines contain information about transitions, one per line.
+</p>
+<p class='vspace'><strong>DTMCs and CTMCs</strong>
+</p>
+<p class='vspace'>For Markov chains the first line take the form "<code>n m</code>", giving the number of states (<code>n</code>) and the number of transitions (<code>m</code>). The remaining lines are of the form "<code>i j x</code>", where <code>i</code> and <code>j</code> are the row (source) and column (destination) indices of the transition, and <code>x</code> is the probability (for a DTMC) or rate (for a CTMC) of the transition. Row/column state indices are zero-indexed (i.e. between <code>0</code> and <code>n-1</code>). Probability/rate values are written as (positive) floating point numbers (examples: <code>0.5</code>, <code>.5</code>, <code>5.6e-6</code>, <code>1</code>).
+</p>
+<p class='vspace'>Often, the transition lines in the file are ordered by row index and then column index, but this is optional. For a DTMC, the probabilities for the outgoing transitions of each state should sum to 1.
+</p>
+<p class='vspace'>Here is an example, for the (DTMC) PRISM model <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (which looks like <a class='urllink' href='../uploads/lec3.dot.pdf'>this</a>):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="text">6 9<br />
+0 1 0.5<br />
+0 3 0.5<br />
+1 0 0.5<br />
+1 2 0.25<br />
+1 4 0.25<br />
+2 5 1<br />
+3 3 1<br />
+4 4 1<br />
+5 2 1</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>and here is one for the (CTMC) PRISM model <a class='urllink' href='../uploads/poll2.sm.html'>poll2.sm</a> (which looks like <a class='urllink' href='../uploads/poll2.dot.pdf'>this</a>):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="text">12 22<br />
+0 1 0.5<br />
+0 2 0.5<br />
+0 6 200<br />
+1 3 0.5<br />
+1 7 200<br />
+2 3 0.5<br />
+2 4 200<br />
+3 5 200<br />
+4 5 0.5<br />
+4 6 1<br />
+5 7 1<br />
+6 0 200<br />
+6 7 0.5<br />
+6 8 0.5<br />
+7 9 0.5<br />
+7 10 200<br />
+8 2 200<br />
+8 9 0.5<br />
+9 11 200<br />
+10 0 1<br />
+10 11 0.5<br />
+11 2 1</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'><strong>MDPs (or PAs)</strong>
+</p>
+<p class='vspace'>For MDPs, the format is an extension of the above
+To clarify terminology: each <em>state</em> of the MDP contains (nondeterministic) <em>choices</em>, each of which is essentially a probability distribution over successor states that we can view as a set of <em>transitions</em>. Optionally, each choice can be labelled with an <em>action</em>.
+</p>
+<p class='vspace'>The first line of the file take the form "<code>n c m</code>", giving the number of states (<code>n</code>), the total number of choices (<code>c</code>) and the total number of transitions (<code>m</code>). The remaining lines are of the form "<code>i k j x</code>" or "<code>i k j x a</code>", where <code>i</code> and <code>j</code> are the row (source) and column (destination) indices of the transition, <code>k</code> is the index of the choice that it belongs to, and <code>x</code> is the probability of the transition. <code>a</code> is optional and gives the action label for the choice of the transition. Action labels can be present for some, all or no states but, in slightly redundant fashion, the action labels, if present, must be the same for all transitions belonging to the same choice.
+</p>
+<p class='vspace'>Row/column state indices and choice indices are all zero-indexed. Probability values (as above) are written as (positive) floating point numbers and should sum to 1 for each choice. Often, the transition lines in the file are ordered by row index, then choice index and then column index, but this is optional.
+</p>
+<p class='vspace'>Here is an example, for the (MDP) PRISM model <a class='urllink' href='../uploads/lec12mdp.nm.html'>lec12mdp.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdp.dot.pdf'>this</a>):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="text">4 5 7<br />
+0 0 1 1 <br />
+1 0 0 0.7 <br />
+1 0 1 0.3 <br />
+1 1 2 0.5 <br />
+1 1 3 0.5 <br />
+2 0 2 1 <br />
+3 0 3 1 </div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>and here is an action-labelled version of the same model, <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> (which looks like <a class='urllink' href='../uploads/lec12mdpa.dot.pdf'>this</a>):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="text">4 5 7<br />
+0 0 1 1 a<br />
+1 0 2 0.5 c<br />
+1 0 3 0.5 c<br />
+1 1 0 0.7 b<br />
+1 1 1 0.3 b<br />
+2 0 2 1 a<br />
+3 0 3 1 a</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='trarows' id='trarows'></a>
+</p><h3>Transitions (.tra) files (row form)</h3>
+<p>There is alternative format for transition matrices (see the <a class='wikilink' href='../RunningPRISM/ExportingTheModel.html#formats'>-exportrows</a> switch) where transitions for each state/choice are collated on a single line.
+</p>
+<p class='vspace'>Here is the result for the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> example from above (a DTMC):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="text">6 9<br />
+0 0.5:1 0.5:3<br />
+1 0.5:0 0.25:2 0.25:4<br />
+2 1:5<br />
+3 1:3<br />
+4 1:4<br />
+5 1:2</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>for the <a class='urllink' href='../uploads/lec12mdp.nm.html'>lec12mdp.nm</a> example (an MDP):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="text">4 5 7<br />
+0 1:1 <br />
+1 0.7:0 0.3:1 <br />
+1 0.5:2 0.5:3 <br />
+2 1:2 <br />
+3 1:3</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>and for the <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> example (an MDP with actions):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="text">4 5 7<br />
+0 1:1 a<br />
+1 0.5:2 0.5:3 c<br />
+1 0.7:0 0.3:1 b<br />
+2 1:2 a<br />
+3 1:3 a</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='lab' id='lab'></a>
+</p><h3>Labels (.lab) files</h3>
+<p>These contain an explicit list of which <a class='wikilink' href='../ThePRISMLanguage/FormulasAndLabels.html'>labels</a> are satisfied in each state.
+The first line lists the labels, assigning each one an index.
+The remaining lines list indices of all states satisfying one or more labels,
+followed by a list of the the indices of labels that that are satisfied in it.
+This includes the built-in labels <code>"init"</code> (initial states) and <code>deadlock</code> (deadlock states).
+An example is shown below, where, for example, both <code>"heads"</code> and <code>"end"</code> are satisfied in state 2.
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="text">0=&quot;init&quot; 1=&quot;deadlock&quot; 2=&quot;heads&quot; 3=&quot;tails&quot; 4=&quot;end&quot;<br />
+0: 0<br />
+2: 2 4<br />
+3: 3 4</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='srew' id='srew'></a>
+</p><h3>State rewards (.srew) files</h3>
+<p>Reward files contain an (optional) header, giving the name of the reward structure that generated it
+and the type of rewards (state or transitions) stored in the file.
+For state rewards, the information following this header is an explicit list of the (non-zero) state rewards.
+The first line is of the form <code>n m</code> where <code>n</code> is the number of states in the model and <code>m</code> is the number of non-zero state rewards.
+The following <code>m</code> lines are of the form <code>i r</code>, denoting that the state reward for state <code>i</code> is <code>r</code>.
+</p>
+<p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get rewards in 3 states (0, 4 and 5):
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock10'>
+  <div class='sourceblocktext'><div class="text"># Reward structure &quot;r&quot;<br />
+# State rewards<br />
+6 3<br />
+0 2<br />
+4 1<br />
+5 1</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><hr />
+<p class='vspace'><a name='trew' id='trew'></a>
+</p><h3>Transition rewards (.trew) files</h3>
+<p>Files containing transition rewards, like those for state rewards, start with an (optional) header.
+The rest of the file is formatted identically to transitions files (see <a href='ExplicitModelFiles@action=print.html#tra'>above</a>),
+except that probabilities/rates are replaced with reward values,
+and the number of transitions (the last number on the first line) is replaced with the number of non-zero transition rewards.
+</p>
+<p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get non-zero transition rewards on 4 transitions:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock11'>
+  <div class='sourceblocktext'><div class="text"># Reward structure: &quot;r&quot;<br />
+# Transition rewards<br />
+6 4<br />
+1 0 1<br />
+1 2 1<br />
+1 4 1<br />
+2 5 2</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>And or the <a class='urllink' href='../uploads/lec12mdpa.nm.html'>lec12mdpa.nm</a> (4-state) MDP example, we get non-zero transition rewards on 4 transitions:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock12'>
+  <div class='sourceblocktext'><div class="text"># Reward structure: &quot;r&quot;<br />
+# Transition rewards<br />
+4 5 4<br />
+1 0 2 6<br />
+1 0 3 6<br />
+1 1 0 5<br />
+1 1 1 5</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/Appendices/ExplicitModelFiles?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+</div>
+
+
+</body>
+</html>

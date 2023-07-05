@@ -1,22 +1,25 @@
+
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
 "http://www.w3.org/TR/html4/loose.dtd">
+
 
 <html>
 <head>
 
 <title>
-PRISM Manual | Appendices / ExplicitModelFiles 
+PRISM Manual | Appendices / Explicit Model Files 
 </title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="keywords" content="prism, probabilistic, symbolic, model, checker, verification, birmingham, oxford, parker, norman, kwiatkowska">
 
-<link rel="icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
-<link rel="shortcut icon" href="../pub/skins/offline/images/p16.ico" type="image/x-icon">
+<link rel="icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
+<link rel="shortcut icon" href="http://www.prismmodelchecker.org/images/prism.ico" type="image/x-icon">
 
+<!--The following line is needed by PmWiki (for the manual) - don't delete-->
 <!--HTMLHeader--><style type='text/css'><!--
   ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
-  code.escaped { white-space: nowrap; }
+  code.escaped { white-space: pre; }
   .vspace { margin-top:1.33em; }
   .indent { margin-left:40px; }
   .outdent { margin-left:40px; text-indent:-40px; }
@@ -38,12 +41,31 @@ PRISM Manual | Appendices / ExplicitModelFiles
   div.faqtoc div.faq p.question 
     { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
   div.faqtoc div.faq p.question * { display:inline; }
-   
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
     .frame 
       { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
     .lfloat { float:left; margin-right:0.5em; }
     .rfloat { float:right; margin-left:0.5em; }
-a.varlink { text-decoration:none; }
+a.varlink { text-decoration:none;}
 /**
  * GeSHi Dynamically Generated Stylesheet
  * --------------------------------------
@@ -87,22 +109,134 @@ a.varlink { text-decoration:none; }
 --></style>  <meta name='robots' content='index,follow' />
 
 
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/base.css">
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prism.css">
-<link type="text/css" rel="stylesheet" href="../pub/skins/offline/css/prismmanual.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print">
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css">
+
+<link type="text/css" rel="stylesheet" href="../pub/skins/prism/css/prismmanual.css">
+
+
+<script type="text/javascript" src="http://www.prismmodelchecker.org/includes/prism.js"></script>
+
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-42079741-1', 'prismmodelchecker.org');
+  ga('send', 'pageview');
+</script>
 
 </head>
 
-<body text="#000000" bgcolor="#ffffff">
+<body text="#000000" bgcolor="#ffffff" onload="initialise()">
+
+<div id="prism-banner">
+	<div id="prism-bannerlefthalf"></div>
+	<div id="prism-bannerrighthalf"></div>
+	<div id="prism-bannerurl"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/url_thin.png" alt="www.prismmodelchecker.org"></a></div>
+	<div id="prism-bannerlogo"><a href="http://www.prismmodelchecker.org/"><img src="http://www.prismmodelchecker.org/images/p_blue.png" alt="P"></a></div>
+	<form id="prism-searchbox" title="Search the PRISM site with Google" method="get" action="https://www.google.com/search">
+	<input type="hidden" name="domains" value="www.prismmodelchecker.org">
+	<input type="hidden" name="sitesearch" value="www.prismmodelchecker.org">
+	<input class="input1" id="q" name="q" type="text" size="30">
+	<input class="input2" id="submit" type="submit" value="Search">
+	</form>
+</div>
+
+<div id="prism-navbar">
+<div id="prism-navbarinner">
+
+<ul id="prism-navbarmenu">
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/" title="">Home</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/about.php" title="">About</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/about.php">About PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/people.php">People</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/sponsors.php">Sponsors</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/contact.php">Contact</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/news.php">News</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/screenshots.php">Screenshots</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-tools.php">Other tools</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/links.php">Links</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/download.php" title="">Downloads</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/download.php">PRISM</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/dev/">Development versions</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/benchmarks/">Benchmarks</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">PRISM-games</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/other-downloads.php">Other downloads</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/doc/" title="">Documentation</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="../InstallingPRISM.html">Installation</a>
+	<li class="prism-navsubitem">&#187; <a href="../index.html">Manual</a>
+	<li class="prism-navsubitem">&#187; <a href="../FrequentlyAskedQuestions.html">FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/tutorial/">Tutorial</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/lectures/">Lectures</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitemsel"><a href="../index.html" title="">Manual</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/publ-lists.php" title="">Publications</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-selected.php">Selected publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publications.php">PRISM publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib.php">PRISM bibliography</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/bib-ext.php">External publications</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/publ-search.php">Search</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/casestudies/index.php" title="">Case Studies</a>
+
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/support.php" title="">Support</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="../InstallingPRISM/CommonProblemsAndQuestions.html">Installation FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="../FrequentlyAskedQuestions/index.html">PRISM FAQ</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker">Forum (Google)</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="https://github.com/prismmodelchecker/prism/wiki" title="">Developers</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="https://github.com/prismmodelchecker/prism/wiki">Developer resources</a>
+	<li class="prism-navsubitem">&#187; <a href="http://groups.google.com/group/prismmodelchecker-dev">Developer forum</a>
+	</ul>
+<li> &nbsp;&#8226;&nbsp;
+<li class="prism-navitem"><a href="http://www.prismmodelchecker.org/games/" title="">PRISM-games</a>
+	<ul class="prism-navbarsubmenu">
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/download.php">Download</a>
+	<li class="prism-navsubitem">&#187; <a href="http://www.prismmodelchecker.org/games/publ.php">Publications</a>
+	</ul>
+</ul>
+<div style="clear:both;"></div>
+
+</div> <!-- id="prism-navbarinner" -->
+</div> <!-- id="prism-navbar" -->
 
 <div id="layout-maincontainer">
 <div id="layout-main">
 
 <div id="prism-mainbox">
 
+<!--<a href="http://www.ox.ac.uk/"><img id="prism-unilogo" src="/images/oxford_logo_pale.png" alt="University of Oxford"></a>-->
+
 <!-- ============================================================================= -->
 
 <!--PageHeaderFmt-->
+  <div id="prism-man-commands1">
+    <p><span class='prism-man-commands'><a class='selflink' href='ExplicitModelFiles.html'>View</a> - </span><a rel='nofollow'  class='wikilink' href='ExplicitModelFiles@action=edit.html'>Edit</a> - <a class='wikilink' href='ExplicitModelFiles@action=print.html'>Print</a> - <a class='wikilink' href='../Main/Search.html'>Search</a>
+</p>
+
+  </div>
 <!--/PageHeaderFmt-->
 
 <!--PageTitleFmt-->
@@ -120,8 +254,8 @@ Below, we describe:
 </li><li><a href='ExplicitModelFiles.html#tra'>Transitions (.tra) files</a>
 </li><li><a href='ExplicitModelFiles.html#trarows'>Transitions (.tra) files (row form)</a>
 </li><li><a href='ExplicitModelFiles.html#lab'>Labels (.lab) files</a>
-</li><li><a href='ExplicitModelFiles.html#rews'>State rewards (.rews) files</a>
-</li><li><a href='ExplicitModelFiles.html#rewt'>Transition rewards (.rewt) files</a>
+</li><li><a href='ExplicitModelFiles.html#srew'>State rewards (.srew) files</a>
+</li><li><a href='ExplicitModelFiles.html#trew'>Transition rewards (.trew) files</a>
 </li></ul><div class='vspace'></div><hr />
 <p class='vspace'><a name='sta' id='sta'></a>
 </p><h3>States (.sta) files</h3>
@@ -309,15 +443,21 @@ An example is shown below, where, for example, both <code>"heads"</code> and <co
 </div>
 
 <div class='vspace'></div><hr />
-<p class='vspace'><a name='rews' id='rews'></a>
+<p class='vspace'><a name='srew' id='srew'></a>
 </p><h3>State rewards (.srew) files</h3>
-<p>These contain an explicit list of the (non-zero) state rewards for a particular reward structure of a model. The first line of the file is of the form <code>n m</code> where <code>n</code> is the number of states in the model and <code>m</code> is the number of non-zero state rewards. The following <code>m</code> lines are of the form <code>i r</code>, denoting that the state reward for state <code>i</code> is <code>r</code>.
+<p>Reward files contain an (optional) header, giving the name of the reward structure that generated it
+and the type of rewards (state or transitions) stored in the file.
+For state rewards, the information following this header is an explicit list of the (non-zero) state rewards.
+The first line is of the form <code>n m</code> where <code>n</code> is the number of states in the model and <code>m</code> is the number of non-zero state rewards.
+The following <code>m</code> lines are of the form <code>i r</code>, denoting that the state reward for state <code>i</code> is <code>r</code>.
 </p>
 <p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get rewards in 3 states (0, 4 and 5):
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock10'>
-  <div class='sourceblocktext'><div class="text">6 3<br />
+  <div class='sourceblocktext'><div class="text"># Reward structure &quot;r&quot;<br />
+# State rewards<br />
+6 3<br />
 0 2<br />
 4 1<br />
 5 1</div></div>
@@ -325,16 +465,20 @@ An example is shown below, where, for example, both <code>"heads"</code> and <co
 </div>
 
 <div class='vspace'></div><hr />
-<p class='vspace'><a name='rewt' id='rewt'></a>
+<p class='vspace'><a name='trew' id='trew'></a>
 </p><h3>Transition rewards (.trew) files</h3>
-<p>Files containing transition rewards are formatted identically to transitions files (see <a href='ExplicitModelFiles.html#tra'>above</a>),
-except that probabilities/rates are replaced with reward values, and the number of transitions (the last number on the first line) is replaced with the number of non-zero transition rewards.
+<p>Files containing transition rewards, like those for state rewards, start with an (optional) header.
+The rest of the file is formatted identically to transitions files (see <a href='ExplicitModelFiles.html#tra'>above</a>),
+except that probabilities/rates are replaced with reward values,
+and the number of transitions (the last number on the first line) is replaced with the number of non-zero transition rewards.
 </p>
 <p class='vspace'>For the <a class='urllink' href='../uploads/lec3.pm'>lec3.pm</a> (6-state) DTMC example from above, we get non-zero transition rewards on 4 transitions:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock11'>
-  <div class='sourceblocktext'><div class="text">6 4<br />
+  <div class='sourceblocktext'><div class="text"># Reward structure: &quot;r&quot;<br />
+# Transition rewards<br />
+6 4<br />
 1 0 1<br />
 1 2 1<br />
 1 4 1<br />
@@ -346,7 +490,9 @@ except that probabilities/rates are replaced with reward values, and the number 
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock12'>
-  <div class='sourceblocktext'><div class="text">4 5 4<br />
+  <div class='sourceblocktext'><div class="text"># Reward structure: &quot;r&quot;<br />
+# Transition rewards<br />
+4 5 4<br />
 1 0 2 6<br />
 1 0 3 6<br />
 1 1 0 5<br />
@@ -359,6 +505,12 @@ except that probabilities/rates are replaced with reward values, and the number 
 
 <!--PageFooterFmt-->
   <div id='prism-man-footer'>
+    <div id='prism-man-commands2'>
+      <p><a class='selflink' href='ExplicitModelFiles.html'>View</a> - <a rel='nofollow'  class='wikilink' href='ExplicitModelFiles@action=edit.html'>Edit</a> - <a class='wikilink' href='ExplicitModelFiles@action=print.html'>Print</a> - <a class='wikilink' href='../Main/Search.html'>Search</a> - <a rel='nofollow'  class='wikilink' href='ExplicitModelFiles@action=login.html'>Login</a>
+</p>
+
+    </div>
+    <div id='prism-man-lastmod'>Page last modified on April 11, 2023, at 01:51 PM</div>
   </div>
 <!--/PageFooterFmt-->
 
@@ -366,6 +518,13 @@ except that probabilities/rates are replaced with reward values, and the number 
 <!-- ============================================================================= -->
 
 </div> <!-- id="prism-mainbox" -->
+
+<div id="prism-footer">
+<a href="http://validator.w3.org/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_html.png" alt="Valid HTML 4.1"/></a>
+<a href="http://www.php.net/"><img border="0" src="http://www.prismmodelchecker.org/images/php_powered.png" alt="Powered by PHP"/></a>
+<a href="http://jigsaw.w3.org/css-validator/check/referer"><img border="0" src="http://www.prismmodelchecker.org/images/valid_css.png" alt="Valid CSS"/></a>
+<span style="color:#888888; font-size:85%; margin-left:20px;">Site hosted at the Department of Computer Science, University of Oxford</span>
+</div> <!-- id="prism-footer" -->
 
 </div> <!-- id="layout-main" -->
 </div> <!-- id="layout-maincontainer" -->
@@ -382,6 +541,9 @@ except that probabilities/rates are replaced with reward values, and the number 
 
 </div>  <!-- id="prism-navbar2" -->
 </div> <!-- id="layout-leftcol" -->
+
+<div id="layout-footer">
+</div> <!-- id="layout-footer" -->
 
 </body>
 </html>

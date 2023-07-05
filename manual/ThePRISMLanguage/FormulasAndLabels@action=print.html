@@ -1,0 +1,156 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | ThePRISMLanguage / FormulasAndLabels </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>The PRISM Language</a> /
+</p><h1>Formulas And Labels</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>PRISM models can include <em>formulas</em> which are used to avoid duplication of code.
+A formula comprises a name (an identifier) and an <a class='wikilink' href='Expressions.html'>expression</a>.
+The formula name can then be used as shorthand for the expression anywhere an expression might usually be accepted.
+A formula is defined as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">formula</span> <span class="prismident">num_tokens</span> = <span class="prismident">q1</span>+<span class="prismident">q2</span>+<span class="prismident">q3</span>+<span class="prismident">q</span>+<span class="prismident">q5</span>; <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/FormulasAndLabels?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>It can then be used anywhere within that file, as for example in this command:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> [] <span class="prismident">p1</span>=<span class="prismnum">2</span> &amp; <span class="prismident">num_tokens</span>=<span class="prismnum">5</span> -&gt; (<span class="prismident">p1</span>'=<span class="prismnum">4</span>); <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/FormulasAndLabels?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The effect is exactly as if the following had been typed:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism"> [] <span class="prismident">p1</span>=<span class="prismnum">2</span> &amp; (<span class="prismident">q1</span>+<span class="prismident">q2</span>+<span class="prismident">q3</span>+<span class="prismident">q</span>+<span class="prismident">q5</span>)=<span class="prismnum">5</span> -&gt; (<span class="prismident">p1</span>'=<span class="prismnum">4</span>); <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/FormulasAndLabels?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Formulas defined in a model can also be used when specifying its properties.
+</p>
+<div class='vspace'></div><h3>Formulas and renaming</h3>
+<p>During parsing of the model, expansion of formulas is done before module renaming so, if a module which uses formulas is renamed to another module, it is the contents of the formula which will be renamed, not the formula itself.
+</p>
+<div class='vspace'></div><h3>Labels</h3>
+<p>PRISM models can also contain <em>labels</em>. These are a way of identifying sets of states that are of particular interest. Labels can only be used when specifying <a class='wikilink' href='../PropertySpecification/Main.html'>properties</a> but, for convenience, can be defined in model files as well as property files. 
+</p>
+<p class='vspace'>Labels differ from formulas in two other ways: firstly, they must be of Boolean type;
+secondly, they are written using quotation marks (<code>"..."</code>), as illustrated in the following example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">label</span> "<span class="prismident">safe</span>" = <span class="prismident">temp</span>&lt;=<span class="prismnum">100</span> | <span class="prismident">alarm</span>=<span class="prismkeyword">true</span>;<br/>
+<span class="prismkeyword">label</span> "<span class="prismident">fail</span>" = <span class="prismident">temp</span>&gt;<span class="prismnum">100</span> &amp; <span class="prismident">alarm</span>=<span class="prismkeyword">false</span>;<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ThePRISMLanguage/FormulasAndLabels?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+</div>
+
+
+</body>
+</html>

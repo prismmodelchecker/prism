@@ -1,0 +1,192 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | ConfiguringPRISM / ComputationEngines </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Configuring PRISM</a> /
+</p><h1>Computation Engines</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<h3>Computation engines</h3>
+<p>PRISM contains four main <em>engines</em>,
+which implement the majority of its model checking functionality:
+</p>
+<div class='vspace'></div><ul><li>"MTBDD"
+</li><li>"sparse"
+</li><li>"hybrid"
+</li><li>"explicit"
+</li></ul><p class='vspace'>The first three of these engines are either wholly or partly <em>symbolic</em>,
+meaning that they use data structures such as
+binary decision diagrams (BDDs) and multi-terminal BDDs (MTBDDs).
+For these three engines, the process of
+constructing a probabilistic model (DTMC, MDP or CTMC)
+is performed in a symbolic fashion,
+representing the model as an MTBDD.
+Subsequent numerical computation performed during model checking, however,
+is carried out differently for the three engines.
+The "MTBDD" engine is implemented purely using MTBDDs and BDDs;
+the "sparse" engine uses sparse matrices;
+and the "hybrid" engine uses a combination of the other two.
+The "hybrid" engine is described in [<a class='wikilink' href='../Main/References.html#KNP04b'>KNP04b</a>].
+For detailed information about all three engines, see [<a class='wikilink' href='../Main/References.html#Par02'>Par02</a>].
+</p>
+<p class='vspace'>The fourth engine, "explicit", performs all aspects of model construction
+and model checking using <em>explicit-state</em> data structures.
+Models are typically stored as sparse matrices or variants of.
+This engine is implemented purely in Java, unlike the other engines
+which make use of code/libraries implemented in C/C++.
+One goal of the "explicit" engine is to provide an easily extensible model
+checking engine without the complication of symbolic data structures,
+although it also has other benefits (see below).
+</p>
+<p class='vspace'>The choice of engine ("MTBDD", "sparse", "hybrid" or "engine") should not affect the results of model checking - all engines perform essentially the same calculations. In some cases, though, certain functionality is not available with all engines and PRISM will either automatically switch to an appropriate engine, or prompt you to do so.
+Performance (time and space), however, may vary significantly and if you are using too much time/memory with one engine, it may be worth experimenting. Below, we briefly summarise the key characteristics of each engine.
+</p>
+<div class='vspace'></div><ul><li>The <strong>hybrid</strong> engine is enabled by default in PRISM. It uses a combination of <em>symbolic</em> and <em>explicit-state</em> data structures (as used in the MTBDD and sparse engines, respectively). In general it provides the best compromise between time and memory usage: it (almost) always uses less memory than the sparse engine, but is typically slightly slower. The size of model which can be handled with this engine is quite predictable. The limiting factor in terms of memory usage comes from the storage of 2-4 (depending on the computation being performed) arrays of 8-byte values, one for each state in the model. So, a typical PC can handle models with between 10<sup>7</sup> and 10<sup>8</sup> states (one vector for 10<sup>7</sup> states uses approximately 75 MB).
+<div class='vspace'></div></li><li>The <strong>sparse</strong> engine can be a good option for smaller models where model checking takes a long time. For larger models, however, memory usage quickly becomes prohibitive. As a rule of thumb, the upper limit for this engine, in terms of model sizes which can be handled, is about a factor of 10 less than the hybrid engine.
+<div class='vspace'></div></li><li>The <strong>MTBDD</strong> engine is much more unpredictable in terms of performance but, when a model exhibits a lot of structure and regularity, can be very effective. This engine has been successfully applied to extremely large structured (but non-trivial) models, in cases where the other two engines cannot be applied. The MTBDD engine often performs poorly when the model (or solutions computed from it) contain lots of distinct probabilities/rates; it performs best when there are few such values. For this reason the engine is often successfully applied to MDP models, but much less frequently to CTMCs. When using the MTBDD engine, the <em>variable ordering</em> of your model is especially important. This topic is covered in the <a class='wikilink' href='../FrequentlyAskedQuestions/PRISMModelling.html#ordering'>FAQ</a> section.
+<div class='vspace'></div></li><li>The <strong>explicit</strong> engine is similar to the sparse engine, in that it can be a good option for relatively small models, but will not scale up to some of the models that can be handled by the hybrid or MTBDD engines. However, unlike the sparse engine, the explicit engine does not use symbolic data structures for model construction, which can be beneficial in some cases. One example is models with a potentially very large state space, only a fraction of which is actually reachable.
+</li></ul><p class='vspace'>When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the <code>-mtbdd</code>, <code>-sparse</code>, <code>-hybrid</code> and <code>-explicit</code> (or <code>-m</code>, <code>-s</code>, <code>-h</code> and <code>-ex</code>, respectively) switches, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 1000 -m</span><br/>
+<span style="font-weight:bold;">prism poll2.sm -tr 1000 -s</span><br/>
+<span style="font-weight:bold;">prism poll2.sm -tr 1000 -h</span><br/>
+<span style="font-weight:bold;">prism poll2.sm -tr 1000 -ex</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/ConfiguringPRISM/ComputationEngines?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Note also that precise details regarding the memory usage of the current engine are displayed during model checking (from the GUI, check the "Log" tab). This can provide valuable feedback when experimenting with different engines.
+</p>
+<p class='vspace'>PRISM also has some basic support for automatically selecting the engine (and other settings) heuristically,
+based on the size and type of the model, and the property being checked.
+Use, for example, <code>-heuristic speed</code> from the command-line to choose options
+which target computation speed rather than saving memory.
+This is also available from the "Heuristic" option under the "PRISM" tab of the "Options" dialog in the GUI.
+</p>
+<div class='vspace'></div><h3>Approximate/statistical model checking</h3>
+<p>Although it is not treated as a separate "engine", like those above,
+PRISM also provides approximate/statistical model checking,
+which is based on the use of discrete-event simulation.
+From the GUI, this is enabled by choosing "Simulate" menu items or tick boxes;
+from the command-line, add the <code>-sim</code> switch.
+See the "<a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>Statistical Model Checking</a>"
+section for more details.
+</p>
+<p class='vspace'><a name='exact' id='exact'></a>
+</p><h3>Exact model checking</h3>
+<p>Most of PRISM's model checking functionality uses numerical solution based on floating point arithmetic and, often, this uses iterative numerical methods, which are run until some user-specified precision is reached. PRISM currently has some support for "exact" model checking, i.e., using arbitrary precision arithmetic to provide exact numerical values. Currently, this is implemented as a special case of <a class='wikilink' href='../RunningPRISM/ParametricModelChecking.html'>parametric model checking</a>, which limits is application to relatively small models. It can be used for analysing DTMCs/CTMCs (unbounded until, steady-state probabilities, reachability reward and steady-state reward) or MDPs (unbounded until and reachability rewards). You can enable this functionality using the "Do exact model checking" option in the GUI or using switch <code>-exact</code> from the command line.
+</p>
+<p class='vspace'><a name='pta' id='pta'></a>
+</p><h3>PTA engines</h3>
+<p>The techniques used to model check PTAs are different to the ones used for DTMCs, MDPs and CTMCs. For PTAs, PRISM currently has three distinct engines that can be used:
+</p>
+<div class='vspace'></div><ul><li>The <strong>stochastic games</strong> engine uses abstraction-refinement techniques based on stochastic two-player games [<a class='wikilink' href='../Main/References.html#KNP09c'>KNP09c</a>].
+<div class='vspace'></div></li><li>The <strong>digital clocks</strong> engine performs a discretisation, in the form of a language-level model translation, that reduces the problem to one of model checking over a finite-state MDP [<a class='wikilink' href='../Main/References.html#KNPS06'>KNPS06</a>].
+<div class='vspace'></div></li><li>The <strong>backwards reachability</strong> engine is a zone-based method based on a backwards traversal of the state space and solution of the resulting finite-state MDP [<a class='wikilink' href='../Main/References.html#KNSW07'>KNSW07</a>].
+</li></ul><p class='vspace'>The default engine for PTAs is "stochastic games". The engine to be used can be specified using the "PTA model checking method" setting in the "PRISM" options panel in the GUI. From the command-line, switch <code>-ptamethod &lt;name&gt;</code> should be used where <code>&lt;name&gt;</code> is either <code>games</code>, <code>digital</code> or <code>backwards</code>.
+</p>
+<p class='vspace'>The choice of engine for PTA model checking affects restrictions that imposed on both
+the <a class='wikilink' href='../ThePRISMLanguage/Real-timeModels.html'>modelling language</a>
+and the types of <a class='wikilink' href='../PropertySpecification/Real-timeModels.html'>properties</a> that can be checked.
+</p>
+</div>
+
+
+</body>
+</html>

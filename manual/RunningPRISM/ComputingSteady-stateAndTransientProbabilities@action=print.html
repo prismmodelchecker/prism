@@ -1,0 +1,182 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | RunningPRISM / ComputingSteady-stateAndTransientProbabilities </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Running PRISM</a> /
+</p><h1>Computing Steady-state And Transient Probabilities</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>If the model is a CTMC or DTMC, it is possible to compute corresponding vectors of
+steady-state or transient probabilities directly
+(rather than indirectly by analysing a property which requires their computation).
+From the GUI, select an option from the "Model | Compute" menu.
+For transient probabilities, you will be asked to supply the
+time value for which you wish to compute probabilities.
+From the command-line, add the <code>-steadystate</code> (or <code>-ss</code>) switch:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -ss</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>for steady-state probabilities or the <code>-transient</code> (or <code>-tr</code>) switch:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 2.0</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>for transient probabilities, again specifying a time value in the latter case.
+The probabilities are computed for all states of the model and displayed,
+either on the screen (from the command-line) or in the log (from the GUI).
+</p>
+<p class='vspace'>To instead export the vector of computed probabilities to a file, use the "Model | Compute/export" option from the GUI, or the <code>-exportsteadystate</code> (or <code>-exportss</code>) and <code>-exporttransient</code> (or <code>-exporttr</code>) switches from the command-line:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -ss -exportss poll2-ss.txt</span><br/>
+<span style="font-weight:bold;">prism poll2.sm -tr 2.0 -exporttr poll2-tr2.txt</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>From the command-line, you can request that the probability vectors exported are in Matlab format by adding the <code>-exportmatlab</code> switch.
+</p>
+<div class='vspace'></div><h3>Initial probability distributions</h3>
+<p>By default, for both steady-state and transient probability computation,
+PRISM assumes that the initial probability distribution of the model is
+an equiprobable choice over the set of initial states.
+You can override this and provide a specific initial distribution. This is done using the <code>-importinitdist</code> switch. The format for this imported distribution is identical to the ones exported by PRISM, i.e. simply a list of probabilities for all states separated by new lines. For example, this:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 1.0 -exporttr poll2-tr1.txt</span><br/>
+<span style="font-weight:bold;">prism poll2.sm -tr 1.0 -importinitdist poll2-tr1.txt -exporttr poll2-tr2.txt</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>is (essentially) equivalent to this:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 2.0 -exporttr poll2-tr2.txt</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<div class='vspace'></div><h3>Ranges of time values</h3>
+<p>Finally, you can compute transient probabilities for a range of time values, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 0.1:0.01:0.2</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which computes transient probabilities for the time points 0.1, 0.11, 0.12, .., 0.2. In this case, the computation is done incrementally, with probabilities for each time point being computed from the previous point for efficiency.
+</p>
+</div>
+
+
+</body>
+</html>

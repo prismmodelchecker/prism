@@ -1,0 +1,413 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | PropertySpecification / ThePOperator </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Property Specification</a> /
+</p><h1>The P Operator</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>One of the most important operators in the PRISM property specification language is the <code><strong>P</strong></code> operator, which is used to reason about the probability of an event's occurrence. This operator was originally proposed in the logic PCTL but also features in the other logics supported by PRISM, such as CSL. The <code><strong>P</strong></code> operator is applicable to all types of models supported by PRISM.
+</p>
+<p class='vspace'>Informally, the property:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span> <span class="prismident">bound</span> [ <span class="prismident">pathprop</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>is true in a state <em>s</em> of a model if
+"the probability that path property <code>pathprop</code> is satisfied by the paths from state <em>s</em>
+meets the bound <code>bound</code>".
+A typical example of a bound would be:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.98</span> [ <span class="prismident">pathprop</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which means: "the probability that <code>pathprop</code> is satisfied by the paths from state <em>s</em> is greater than 0.98". More precisely, <code>bound</code> can be any of <code>&gt;=p</code>, <code>&gt;p</code>, <code>&lt;=p</code> or <code>&lt;p</code>,
+where <code>p</code> is a PRISM language expression evaluating to a double in the range [0,1].
+</p>
+<p class='vspace'>The types of path property supported by PRISM and their semantics will be discussed shortly.
+</p>
+<div class='vspace'></div><h3>Nondeterminism</h3>
+<p>For models that can exhibit nondeterministic behaviour, such as MDPs or PTAs, some additional clarifications are necessary. Whereas for fully probabilistic models such as DTMCs and CTMCs, probability measures over paths are well defined (see e.g. [<a class='wikilink' href='../Main/References.html#KSK76'>KSK76</a>] and [<a class='wikilink' href='../Main/References.html#BKH99'>BKH99</a>], respectively), for nondeterministic models a probability measure can only be feasibly defined once all nondeterminism has been removed.
+</p>
+<p class='vspace'>Hence, the actual meaning of the property <code>P bound [ pathprop ]</code> in these cases is: 
+"the probability that <code>pathprop</code> is satisfied by the paths from state <em>s</em>
+meets the bound <code>bound</code> <em>for all possible resolutions of nondeterminism</em>".
+This means that, properties using the <code><strong>P</strong></code> operator then effectively reason about the
+<em>minimum</em> or <em>maximum</em> probability, over all possible resolutions of nondeterminism,
+that a certain type of behaviour is observed.
+This depends on the bound attached to the <code><strong>P</strong></code> operator:
+a lower bound (<code>&gt;</code> or <code>&gt;=</code>) relates to minimum probabilities
+and an upper bound (<code>&lt;</code> or <code>&lt;=</code>) to maximum probabilities.
+</p>
+<div class='vspace'></div><h3>Quantitative properties</h3>
+<p>It is also very often useful to take a <em>quantitative</em> approach to probabilistic model checking, computing the actual probability that some behaviour of a model is observed,
+rather than just verifying whether or not the probability is above or below a given bound.
+Hence, PRISM allows the <code><strong>P</strong></code> operator to take the following form:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismident">pathprop</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>These properties return a numerical rather than a Boolean value.
+The <a class='wikilink' href='TheSOperator.html'>S</a> and <a class='wikilink' href='Reward-basedProperties.html'>R</a> operators, discussed later, can also be used in this way.
+</p>
+<p class='vspace'>As mentioned above, for nondeterministic models (MDPs or PTAs), either minimum or maximum probability values can be computed. Therefore, in this case, we have two possible types of property:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">Pmin</span>=? [ <span class="prismident">pathprop</span> ]<br/>
+<span class="prismkeyword">Pmax</span>=? [ <span class="prismident">pathprop</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which return the minimum and maximum probabilities, respectively.
+</p>
+<p class='vspace'>It is also possible to specify to which state the probability returned by a quantitative property refers. This is covered in the later section on <a class='wikilink' href='Filters.html'>filters</a>.
+</p>
+<div class='vspace'></div><h3>Path properties</h3>
+<p>PRISM supports a wide range of path properties that can be used with the <code><strong>P</strong></code> operator.
+A path property is a formula that evaluates to either true or false for a single path in a model.
+Here, we review some of the simpler properties that feature a single <em>temporal operator</em>,
+as used for example in the logics PCTL and CSL. Later, we briefly describe how PRISM also supports more complex LTL-style path properties.
+</p>
+<p class='vspace'>The basic different types of path property that can be used inside the <code><strong>P</strong></code> operator are:
+</p>
+<div class='vspace'></div><ul><li><code><strong>X</strong></code> : "ne<strong>x</strong>t"
+</li><li><code><strong>U</strong></code> : "<strong>u</strong>ntil"
+</li><li><code><strong>F</strong></code> : "eventually" (sometimes called "<strong>f</strong>uture")
+</li><li><code><strong>G</strong></code> : "always" (sometimes called "<strong>g</strong>lobally")
+</li><li><code><strong>W</strong></code> : "<strong>w</strong>eak until"
+</li><li><code><strong>R</strong></code> : "<strong>r</strong>elease"
+</li></ul><p class='vspace'>In the following sections, we describe each of these <em>temporal operators</em>. We then discuss the (optional) use of time bounds with these operators. Finally, we also discuss LTL-style path properties.
+</p>
+<div class='vspace'></div><h3>"Next" path properties</h3>
+<p>The property <code><strong>X</strong> prop</code> is true for a path if <code>prop</code> is true in its second state,
+An example of this type of property, used inside a <code><strong>P</strong></code> operator, is:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.01</span> [ <span class="prismkeyword">X</span> <span class="prismident">y</span>=<span class="prismnum">1</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which is true in a state if "the probability of the expression <code>y=1</code> being true in the next state is less than 0.01".
+</p>
+<div class='vspace'></div><h3>"Until" path properties</h3>
+<p>The property <code>prop1 <strong>U</strong> prop2</code> is true for a path if
+<code>prop2</code> is true in some state of the path and <code>prop1</code> is true in all preceding states.
+A simple example of this would be:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismident">z</span>&lt;<span class="prismnum">2</span> <span class="prismkeyword">U</span> <span class="prismident">z</span>=<span class="prismnum">2</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which is true in a state if "the probability that <code>z</code> is eventually equal to 2, and that <code>z</code> remains less than 2 up until that point, is greater than 0.5".
+</p>
+<div class='vspace'></div><h3>"Eventually" path properties</h3>
+<p>The property <code><strong>F</strong> prop</code> is true for a path if <code>prop</code> eventually becomes true at some point along the path. The <code><strong>F</strong></code> operator is in fact a special case of the <code><strong>U</strong></code> operator (you will often see <code> <strong>F</strong> prop</code> written as <code><strong>true</strong> <strong>U</strong> prop</code>). A simple example is:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&lt;<span class="prismnum">0.1</span> [ <span class="prismkeyword">F</span> <span class="prismident">z</span>&gt;<span class="prismnum">2</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which is true in a state if "the probability that <code>z</code> is eventually greater than 2is less than 0.1".
+</p>
+<div class='vspace'></div><h3>"Globally" path properties</h3>
+<p>Whereas the <code><strong>F</strong></code> operator is used for "reachability" properties, <code><strong>G</strong></code> represents "invariance". The property <code><strong>G</strong> prop</code> is true of a path if <code>prop</code> remains true at all states along the path. Thus, for example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock8'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.99</span> [ <span class="prismkeyword">G</span> <span class="prismident">z</span>&lt;<span class="prismnum">10</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>states that, with probability at least 0.99, <code>z</code> never exceeds 10.
+</p>
+<div class='vspace'></div><h3>"Weak until" and "release" path properties</h3>
+<p>Like <code><strong>F</strong></code> and <code><strong>G</strong></code>, the operators <code><strong>W</strong></code> and <code><strong>R</strong></code> are derivable from other temporal operators.
+</p>
+<p class='vspace'>Weak until (<code>a <strong>W</strong> b</code>), which is equivalent to <code>(a <strong>U</strong> b) | <strong>G</strong> a</code>, requires that <code>a</code> remains true until <code>b</code> becomes true, but does not require that <code>b</code> ever does becomes true (i.e. <code>a</code> remains true forever). For example, a weak form of the until example used above is:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock9'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;<span class="prismnum">0.5</span> [ <span class="prismident">z</span>&lt;<span class="prismnum">2</span> <span class="prismkeyword">U</span> <span class="prismident">z</span>=<span class="prismnum">2</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which states that, with probability greater than 0.5, either <code>z</code> is always less than 2, or it is less than 2 until the point where <code>z</code> is 2.
+</p>
+<p class='vspace'>Release (<code>a <strong>R</strong> b</code>),  which is equivalent to <code>!(!a U !b)</code>, informally means that <code>b</code> is true until <code>a</code> becomes true, or <code>b</code> is true forever.
+</p>
+<p class='vspace'><a name='bounded' id='bounded'></a>
+</p><h3>"Bounded" variants of path properties</h3>
+<p>All of the temporal operators given above, with the exception of <code><strong>X</strong></code>, have "bounded" variants, where an additional time bound is imposed on the property being satisfied.
+The most common case is to use an upper time bound, i.e. of the form "<code>&lt;=t</code>" or "<code>&lt;t</code>", where <code>t</code> is a PRISM expression evaluating to a constant, non-negative value.
+</p>
+<p class='vspace'>For example, a bounded until property <code>prop1 <strong>U</strong>&lt;=t prop2</code>, is satisfied along a path if <code>prop2</code> becomes true within <code>t</code> steps and <code>prop1</code> is true in all states before that point.
+A typical example of this would be:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock10'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.98</span> [ <span class="prismident">y</span>&lt;<span class="prismnum">4</span> <span class="prismkeyword">U</span>&lt;=<span class="prismnum">7</span> <span class="prismident">y</span>=<span class="prismnum">4</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which is true in a state if "the probability of <code>y</code> first exceeding 3 within 7 time units is greater than or equal to 0.98". Similarly:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock11'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.98</span> [ <span class="prismkeyword">F</span>&lt;=<span class="prismnum">7</span> <span class="prismident">y</span>=<span class="prismnum">4</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>is true in a state if "the probability of <code>y</code> being equal to 4 within 7 time units is greater than or equal to 0.98" and:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock12'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.98</span> [ <span class="prismkeyword">G</span>&lt;=<span class="prismnum">7</span> <span class="prismident">y</span>=<span class="prismnum">4</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>is true if the probability of <code>y</code> staying equal to 4 for 7 time units is at least 0.98.
+</p>
+<p class='vspace'>The time bound can be an arbitrary (constant) expression,
+but note that you may need to bracket it,
+as in the following example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock13'>
+  <div class='sourceblocktext'><div class="prism"> <span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.98</span> [ <span class="prismkeyword">G</span>&lt;=(<span class="prismnum">2</span>*<span class="prismident">k</span>+<span class="prismnum">1</span>) <span class="prismident">y</span>=<span class="prismnum">4</span> ] <br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>You can also use lower time-bounds (i.e. <code>&gt;=t</code> or <code>&gt;t</code>) and time intervals <code>[t1,t2]</code>, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock14'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.98</span> [ <span class="prismkeyword">F</span>&gt;=<span class="prismnum">10</span> <span class="prismident">y</span>=<span class="prismnum">4</span> ]<br/>
+<span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.98</span> [ <span class="prismkeyword">F</span>[<span class="prismnum">10</span>,<span class="prismnum">20</span>] <span class="prismident">y</span>=<span class="prismnum">4</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=14' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>which refer to the probability of <code>y</code> becoming equal to 4 after 10 or more time units, and after between 10 and 20 time-units respectively.
+</p>
+<p class='vspace'>For CTMCs, the time bounds can be any (non-negative) numerical values - they are not restricted to integers, as for discrete-time models.
+For example:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock15'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&gt;=<span class="prismnum">0.25</span> [ <span class="prismident">y</span>&lt;=<span class="prismnum">1</span> <span class="prismkeyword">U</span>&lt;=<span class="prismnum">6.5</span> <span class="prismident">y</span>&gt;<span class="prismnum">1</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=15' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>means that the probability of <code>y</code> being greater than 1 within 6.5 time-units (and remaining less than or equal to 1 at all preceding time-points) is at least 0.25.
+</p>
+<div class='vspace'></div><h3>Transient probabilities</h3>
+<p>We can also use the bounded <code><strong>F</strong></code> operator to refer to a single time instant, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock16'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>[<span class="prismnum">10</span>,<span class="prismnum">10</span>] <span class="prismident">y</span>=<span class="prismnum">6</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=16' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>or, equivalently:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock17'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span>=<span class="prismnum">10</span> <span class="prismident">y</span>=<span class="prismnum">6</span> ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=17' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>both of which give the probability of <code>y</code> being 6 at time instant 10.
+</p>
+<p class='vspace'><a name='ltl' id='ltl'></a>
+</p><h3>LTL-style path properties</h3>
+<p>PRISM also supports probabilistic model checking of the temporal logic LTL (and, in fact, PCTL*). LTL provides a richer set of path properties for use with the <code><strong>P</strong></code> operator, by permitting temporal operators to be combined. Here are a few examples of properties expressible using this functionality:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock18'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&gt;<span class="prismnum">0.99</span> [ <span class="prismkeyword">F</span> ( "<span class="prismident">request</span>" &amp; (<span class="prismkeyword">X</span> "<span class="prismident">ack</span>") ) ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=18' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>"with probability greater than 0.99, a request is eventually received, followed immediately by an acknowledgement"
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock19'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>&gt;=<span class="prismnum">1</span> [ <span class="prismkeyword">G</span> <span class="prismkeyword">F</span> "<span class="prismident">send</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=19' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>"a message is sent infinitely often with probability 1"
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock20'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismkeyword">G</span> ("<span class="prismident">error</span>" &amp; !"<span class="prismident">repair</span>") ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=20' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>"the probability of an error occurring that is never repaired”
+</p>
+<p class='vspace'>Note that logical operators have precedence over temporal ones, so you will often need to include parentheses when using logical operators, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock21'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ (<span class="prismkeyword">F</span> "<span class="prismident">error1</span>") &amp; (<span class="prismkeyword">F</span> "<span class="prismident">error2</span>") ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=21' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>For temporal operators, unary operators (such as <code><strong>F</strong></code>, <code><strong>G</strong></code> and <code><strong>X</strong></code>) have precedence over binary ones (such as <code><strong>U</strong></code>). Unary operators can be nested, without parentheses, but binary ones cannot.
+</p>
+<p class='vspace'>So, these are allowed:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock22'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ <span class="prismkeyword">F</span> <span class="prismkeyword">X</span> <span class="prismkeyword">X</span> <span class="prismkeyword">X</span> "<span class="prismident">a</span>" ]<br/>
+<span class="prismkeyword">P</span>=? [ "<span class="prismident">a</span>" <span class="prismkeyword">U</span> <span class="prismkeyword">X</span> <span class="prismkeyword">X</span> <span class="prismkeyword">X</span> "<span class="prismident">error</span>" ]<br/>
+<span class="prismkeyword">P</span>=? [ ("<span class="prismident">a</span>" <span class="prismkeyword">U</span> "<span class="prismident">b</span>") <span class="prismkeyword">U</span> "<span class="prismident">c</span>" "<span class="prismident">error</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=22' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>but this is not:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock23'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">P</span>=? [ "<span class="prismident">a</span>" <span class="prismkeyword">U</span> "<span class="prismident">b</span>" <span class="prismkeyword">U</span> "<span class="prismident">c</span>" "<span class="prismident">error</span>" ]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator?action=sourceblock&amp;num=23' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+</div>
+
+
+</body>
+</html>

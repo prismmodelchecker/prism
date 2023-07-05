@@ -1,0 +1,425 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+<head>
+
+<title>PRISM Manual | RunningPRISM / SupportForSBML </title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+
+<!--HeaderText--><style type='text/css'><!--
+  ul, ol, pre, dl, p { margin-top:0px; margin-bottom:0px; }
+  code.escaped { white-space: pre; }
+  .vspace { margin-top:1.33em; }
+  .indent { margin-left:40px; }
+  .outdent { margin-left:40px; text-indent:-40px; }
+  a.createlinktext { text-decoration:none; border-bottom:1px dotted gray; }
+  a.createlink { text-decoration:none; position:relative; top:-0.5em;
+    font-weight:bold; font-size:smaller; border-bottom:none; }
+  img { border:0px; }
+  .editconflict { color:green; 
+  font-style:italic; margin-top:1.33em; margin-bottom:1.33em; }
+
+  table.markup { border:2px dotted #ccf; width:90%; }
+  td.markup1, td.markup2 { padding-left:10px; padding-right:10px; }
+  table.vert td.markup1 { border-bottom:1px solid #ccf; }
+  table.horiz td.markup1 { width:23em; border-right:1px solid #ccf; }
+  table.markup caption { text-align:left; }
+  div.faq p, div.faq pre { margin-left:2em; }
+  div.faq p.question { margin:1em 0 0.75em 0; font-weight:bold; }
+  div.faqtoc div.faq * { display:none; }
+  div.faqtoc div.faq p.question 
+    { display:block; font-weight:normal; margin:0.5em 0 0.5em 20px; line-height:normal; }
+  div.faqtoc div.faq p.question * { display:inline; }
+  td.markup1 pre { white-space: pre-wrap; }
+  .noPmTOC, .PmTOCdiv:empty {display:none;}
+.PmTOCdiv { display: inline-block; font-size: 13px; overflow: auto; max-height: 500px;}
+.PmTOCdiv a { text-decoration: none; display: block; line-height: 1;}
+.PmTOCdiv a.pmtoc-indent1 { margin-left: 1em; }
+.PmTOCdiv a.pmtoc-indent2 { margin-left: 2em; }
+.PmTOCdiv a.pmtoc-indent3 { margin-left: 3em; }
+.PmTOCdiv a.pmtoc-indent4 { margin-left: 4em; }
+.PmTOCdiv a.pmtoc-indent5 { margin-left: 5em; }
+.PmTOCdiv a.pmtoc-indent6 { margin-left: 6em; }
+.back-arrow {font-size: .8rem; text-decoration: none; vertical-align: text-top;}
+#PmTOCchk + label {cursor: pointer;}
+#PmTOCchk {display: none;}
+#PmTOCchk:not(:checked) + label > .pmtoc-show {display: none;}
+#PmTOCchk:checked + label > .pmtoc-hide {display: none;}
+#PmTOCchk:checked + label + div {display: none;}table.sortable th { cursor: pointer; }
+table.sortable th::after { color: transparent; content: "\00A0\025B8"; }
+table.sortable th:hover::after { color: inherit; content: "\00A0\025B8"; }
+table.sortable th.dir-u::after { color: inherit; content: "\00A0\025BE"; }
+table.sortable th.dir-d::after { color: inherit; content: "\00A0\025B4"; } 
+    .frame 
+      { border:1px solid #cccccc; padding:4px; background-color:#f9f9f9; }
+    .lfloat { float:left; margin-right:0.5em; }
+    .rfloat { float:right; margin-left:0.5em; }
+a.varlink { text-decoration:none;}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for xml
+ * CSS class: , CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2014 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.xml .de1, .xml .de2 {font-family: monospace; font-weight: normal;}
+.xml  {font-family:monospace;}
+.xml .imp {font-weight: bold; color: red;}
+.xml li, .xml .li1 {font-family: monospace; color: black; font-weight: normal;}
+.xml .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.xml .li2 {font-weight: bold;}
+.xml .es0 {color: #000099; font-weight: bold;}
+.xml .br0 {color: #66cc66;}
+.xml .sy0 {color: #66cc66;}
+.xml .st0 {color: #ff0000;}
+.xml .nu0 {color: #cc66cc;}
+.xml .sc-1 {color: #808080; font-style: italic;}
+.xml .sc0 {color: #00bbdd;}
+.xml .sc1 {color: #ddbb00;}
+.xml .sc2 {color: #339933;}
+.xml .sc3 {color: #009900;}
+.xml .re0 {color: #000066;}
+.xml .re1 {color: #000000; font-weight: bold;}
+.xml .re2 {color: #000000; font-weight: bold;}
+.xml .ln-xtra, .xml li.ln-xtra, .xml div.ln-xtra {background-color: #ffc;}
+.xml span.xtra { display:block; }
+
+.sourceblocklink {
+  text-align: right;
+  font-size: smaller;
+}
+.sourceblocktext {
+  padding: 0.5em;
+  border: 1px solid #808080;
+  color: #000000;
+  background-color: #f1f0ed;
+}
+.sourceblocktext div {
+  font-family: monospace;
+  font-size: small;
+  line-height: 1;
+  height: 1%;
+}
+.sourceblocktext div.head,
+.sourceblocktext div.foot {
+  font: italic medium serif;
+  padding: 0.5em;
+}
+/**
+ * GeSHi Dynamically Generated Stylesheet
+ * --------------------------------------
+ * Dynamically generated stylesheet for bash
+ * CSS class: , CSS id: 
+ * GeSHi (C) 2004 - 2007 Nigel McNie, 2007 - 2014 Benny Baumann
+ * (http://qbnz.com/highlighter/ and http://geshi.org/)
+ * --------------------------------------
+ */
+.bash .de1, .bash .de2 {font-family: monospace; font-weight: normal;}
+.bash  {font-family:monospace;}
+.bash .imp {font-weight: bold; color: red;}
+.bash li, .bash .li1 {font-family: monospace; color: black; font-weight: normal;}
+.bash .ln {width:1px;text-align:right;margin:0;padding:0 2px;vertical-align:top;}
+.bash .li2 {font-weight: bold;}
+.bash .kw1 {color: #000000; font-weight: bold;}
+.bash .kw2 {color: #c20cb9; font-weight: bold;}
+.bash .kw3 {color: #7a0874; font-weight: bold;}
+.bash .co0 {color: #666666; font-style: italic;}
+.bash .co1 {color: #800000;}
+.bash .co2 {color: #cc0000; font-style: italic;}
+.bash .co3 {color: #000000; font-weight: bold;}
+.bash .co4 {color: #666666;}
+.bash .es1 {color: #000099; font-weight: bold;}
+.bash .es2 {color: #007800;}
+.bash .es3 {color: #007800;}
+.bash .es4 {color: #007800;}
+.bash .es5 {color: #780078;}
+.bash .es_h {color: #000099; font-weight: bold;}
+.bash .br0 {color: #7a0874; font-weight: bold;}
+.bash .sy0 {color: #000000; font-weight: bold;}
+.bash .st0 {color: #ff0000;}
+.bash .st_h {color: #ff0000;}
+.bash .nu0 {color: #000000;}
+.bash .re0 {color: #007800;}
+.bash .re1 {color: #007800;}
+.bash .re2 {color: #007800;}
+.bash .re4 {color: #007800;}
+.bash .re5 {color: #660033;}
+.bash .ln-xtra, .bash li.ln-xtra, .bash div.ln-xtra {background-color: #ffc;}
+.bash span.xtra { display:block; }
+
+--></style>  <meta name='robots' content='noindex,nofollow' />
+
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/base.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/prism.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/print.css" media="print"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/css/bib.css"/>
+
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismmanual.css"/>
+<link type="text/css" rel="stylesheet" href="http://www.prismmodelchecker.org/manual/pub/skins/prismprint/css/prismprint.css"/>
+</head>
+
+<body text="#000000" bgcolor="#ffffcc">
+
+<!--PageTitleFmt-->
+  <p><a class='wikilink' href='Main.html'>Running PRISM</a> /
+</p><h1>Support For SBML</h1>
+
+<!--PageText-->
+<div id='wikitext'>
+<p>PRISM includes a (prototype) tool to translate specifications in <a class='urllink' href='http://sbml.org/'>SBML</a> (Systems Biology Markup Language) to model descriptions in the PRISM language. SBML is an XML-based format for representing models of biochemical reaction networks. The translator currently works with Level 2 Version 1 of the SBML specification, details of which can be found <a class='urllink' href='http://sbml.org/documents/'>here</a>.
+</p>
+<p class='vspace'>Since PRISM is a tool for analysing discrete-state systems, the translator is designed for SBML files intended for discrete stochastic simulation. A useful set of such files can be found in the CaliBayes <a class='urllink' href='http://code.google.com/p/dsmts/'>Discrete Stochastic Model Test Suite</a>. There are also many more SBML files available in the <a class='urllink' href='http://www.ebi.ac.uk/biomodels/'>BioModels Database</a>.
+</p>
+<p class='vspace'>We first give a simple example of an SBML file and its PRISM translation. We then give some more precise details of the translation process.
+</p>
+<div class='vspace'></div><h3>Example</h3>
+<p>An SBML file comprises a set of <em>species</em> and a set of <em>reactions</em> which they undergo. Below is the SBML file for the simple reversible reaction: <strong>Na + Cl &#8596; Na<sup>+</sup> + Cl<sup>-</sup></strong>, where there are initially 100 Na and Cl atoms and no ions, and the base rates for the forwards and backwards reactions are 100 and 10, respectively.
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock1'>
+  <div class='sourceblocktext'><div class="xml"><span class="re1">&lt;?xml</span> <span class="re0">version</span>=<span class="st0">&quot;1.0&quot;</span> <span class="re0">encoding</span>=<span class="st0">&quot;UTF-8&quot;</span><span class="re2">?&gt;</span><br />
+<span class="re1">&lt;sbml</span> <span class="re0">xmlns</span>=<span class="st0">&quot;http://www.sbml.org/sbml/level2&quot;</span> <span class="re0">metaid</span>=<span class="st0">&quot;_000000&quot;</span> <span class="re0">level</span>=<span class="st0">&quot;2&quot;</span> <span class="re0">version</span>=<span class="st0">&quot;1&quot;</span><span class="re2">&gt;</span><br />
+&nbsp; <span class="re1">&lt;model</span> <span class="re0">id</span>=<span class="st0">&quot;nacl&quot;</span> <span class="re0">name</span>=<span class="st0">&quot;Na+Cl&quot;</span><span class="re2">&gt;</span><br />
+<br />
+&nbsp; &nbsp; <span class="re1">&lt;listOfCompartments<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;compartment</span> <span class="re0">id</span>=<span class="st0">&quot;compartment&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; <span class="re1">&lt;/listOfCompartments<span class="re2">&gt;</span></span><br />
+<br />
+&nbsp; &nbsp; <span class="re1">&lt;listOfSpecies<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;species</span> <span class="re0">id</span>=<span class="st0">&quot;na&quot;</span> <span class="re0">initialAmount</span>=<span class="st0">&quot;100&quot;</span> <span class="re0">hasOnlySubstanceUnits</span>=<span class="st0">&quot;true&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;species</span> <span class="re0">id</span>=<span class="st0">&quot;cl&quot;</span> <span class="re0">initialAmount</span>=<span class="st0">&quot;100&quot;</span> <span class="re0">hasOnlySubstanceUnits</span>=<span class="st0">&quot;true&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;species</span> <span class="re0">id</span>=<span class="st0">&quot;na_plus&quot;</span> <span class="re0">initialAmount</span>=<span class="st0">&quot;0&quot;</span> <span class="re0">hasOnlySubstanceUnits</span>=<span class="st0">&quot;true&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;species</span> <span class="re0">id</span>=<span class="st0">&quot;cl_minus&quot;</span> <span class="re0">initialAmount</span>=<span class="st0">&quot;0&quot;</span> <span class="re0">hasOnlySubstanceUnits</span>=<span class="st0">&quot;true&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; <span class="re1">&lt;/listOfSpecies<span class="re2">&gt;</span></span><br />
+<br />
+&nbsp; &nbsp; <span class="re1">&lt;listOfReactions<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;reaction</span> <span class="re0">id</span>=<span class="st0">&quot;forwards&quot;</span> <span class="re0">reversible</span>=<span class="st0">&quot;false&quot;</span><span class="re2">&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;listOfReactants<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;na&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;cl&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/listOfReactants<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;listOfProducts<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;na_plus&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;cl_minus&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/listOfProducts<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;kineticLaw<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;math</span> <span class="re0">xmlns</span>=<span class="st0">&quot;http://www.w3.org/1998/Math/MathML&quot;</span><span class="re2">&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;apply<span class="re2">&gt;</span></span><span class="re1">&lt;times</span><span class="re2">/&gt;</span><span class="re1">&lt;ci<span class="re2">&gt;</span></span>forwards_rate<span class="re1">&lt;/ci<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;apply<span class="re2">&gt;</span></span><span class="re1">&lt;times</span><span class="re2">/&gt;</span><span class="re1">&lt;ci<span class="re2">&gt;</span></span>na<span class="re1">&lt;/ci<span class="re2">&gt;</span></span><span class="re1">&lt;ci<span class="re2">&gt;</span></span>cl<span class="re1">&lt;/ci<span class="re2">&gt;</span></span><span class="re1">&lt;/apply<span class="re2">&gt;</span></span><span class="re1">&lt;/apply<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/math<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;listOfParameters<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;parameter</span> <span class="re0">id</span>=<span class="st0">&quot;forwards_rate&quot;</span> <span class="re0">value</span>=<span class="st0">&quot;100&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/listOfParameters<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/kineticLaw<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;/reaction<span class="re2">&gt;</span></span><br />
+<br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;reaction</span> <span class="re0">id</span>=<span class="st0">&quot;backwards&quot;</span> <span class="re0">reversible</span>=<span class="st0">&quot;false&quot;</span><span class="re2">&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;listOfReactants<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;na_plus&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;cl_minus&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/listOfReactants<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;listOfProducts<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;na&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;speciesReference</span> <span class="re0">species</span>=<span class="st0">&quot;cl&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/listOfProducts<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;kineticLaw<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;math</span> <span class="re0">xmlns</span>=<span class="st0">&quot;http://www.w3.org/1998/Math/MathML&quot;</span><span class="re2">&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;apply<span class="re2">&gt;</span></span><span class="re1">&lt;times</span><span class="re2">/&gt;</span><span class="re1">&lt;ci<span class="re2">&gt;</span></span>backwards_rate<span class="re1">&lt;/ci<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;apply<span class="re2">&gt;</span></span><span class="re1">&lt;times</span><span class="re2">/&gt;</span><span class="re1">&lt;ci<span class="re2">&gt;</span></span>na_plus<span class="re1">&lt;/ci<span class="re2">&gt;</span></span><span class="re1">&lt;ci<span class="re2">&gt;</span></span>cl_minus<span class="re1">&lt;/ci<span class="re2">&gt;</span></span><span class="re1">&lt;/apply<span class="re2">&gt;</span></span><span class="re1">&lt;/apply<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/math<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;listOfParameters<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;parameter</span> <span class="re0">id</span>=<span class="st0">&quot;backwards_rate&quot;</span> <span class="re0">value</span>=<span class="st0">&quot;10&quot;</span><span class="re2">/&gt;</span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/listOfParameters<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; &nbsp; <span class="re1">&lt;/kineticLaw<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; &nbsp; <span class="re1">&lt;/reaction<span class="re2">&gt;</span></span><br />
+&nbsp; &nbsp; <span class="re1">&lt;/listOfReactions<span class="re2">&gt;</span></span><br />
+<br />
+&nbsp; <span class="re1">&lt;/model<span class="re2">&gt;</span></span><br />
+<span class="re1">&lt;/sbml<span class="re2">&gt;</span></span></div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>And here is the resulting PRISM code:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock2'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// File generated by automatic SBML-to-PRISM conversion</span><br/>
+<span class="prismcomment">// Original SBML file: nacl.xml</span><br/>
+<br/>
+<span class="prismkeyword">ctmc</span><br/>
+<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">MAX_AMOUNT</span> = <span class="prismnum">100</span>;<br/>
+<br/>
+<span class="prismcomment">// Parameters for reaction forwards</span><br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">forwards_rate</span> = <span class="prismnum">100</span>; <span class="prismcomment">// forwards_rate</span><br/>
+<br/>
+<span class="prismcomment">// Parameters for reaction backwards</span><br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">backwards_rate</span> = <span class="prismnum">10</span>; <span class="prismcomment">// backwards_rate</span><br/>
+<br/>
+<span class="prismcomment">// Species na</span><br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">na_MAX</span> = <span class="prismident">MAX_AMOUNT</span>;<br/>
+<span class="prismkeyword">module</span> <span class="prismident">na</span><br/>
+<br/>
+	<span class="prismident">na</span> : [<span class="prismnum">0</span>..<span class="prismident">na_MAX</span>] <span class="prismkeyword">init</span> <span class="prismnum">100</span>; <span class="prismcomment">// Initial amount 100</span><br/>
+<br/>
+	<span class="prismcomment">// forwards</span><br/>
+	[<span class="prismident">forwards</span>] <span class="prismident">na</span> &gt; <span class="prismnum">0</span> -&gt; (<span class="prismident">na</span>'=<span class="prismident">na</span>-<span class="prismnum">1</span>);<br/>
+	<span class="prismcomment">// backwards</span><br/>
+	[<span class="prismident">backwards</span>]&nbsp;&nbsp;<span class="prismident">na</span> &lt;= <span class="prismident">na_MAX</span>-<span class="prismnum">1</span> -&gt; (<span class="prismident">na</span>'=<span class="prismident">na</span>+<span class="prismnum">1</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+<br/>
+<span class="prismcomment">// Species cl</span><br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">cl_MAX</span> = <span class="prismident">MAX_AMOUNT</span>;<br/>
+<span class="prismkeyword">module</span> <span class="prismident">cl</span><br/>
+<br/>
+	<span class="prismident">cl</span> : [<span class="prismnum">0</span>..<span class="prismident">cl_MAX</span>] <span class="prismkeyword">init</span> <span class="prismnum">100</span>; <span class="prismcomment">// Initial amount 100</span><br/>
+<br/>
+	<span class="prismcomment">// forwards</span><br/>
+	[<span class="prismident">forwards</span>] <span class="prismident">cl</span> &gt; <span class="prismnum">0</span> -&gt; (<span class="prismident">cl</span>'=<span class="prismident">cl</span>-<span class="prismnum">1</span>);<br/>
+	<span class="prismcomment">// backwards</span><br/>
+	[<span class="prismident">backwards</span>]&nbsp;&nbsp;<span class="prismident">cl</span> &lt;= <span class="prismident">cl_MAX</span>-<span class="prismnum">1</span> -&gt; (<span class="prismident">cl</span>'=<span class="prismident">cl</span>+<span class="prismnum">1</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+<br/>
+<span class="prismcomment">// Species na_plus</span><br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">na_plus_MAX</span> = <span class="prismident">MAX_AMOUNT</span>;<br/>
+<span class="prismkeyword">module</span> <span class="prismident">na_plus</span><br/>
+<br/>
+	<span class="prismident">na_plus</span> : [<span class="prismnum">0</span>..<span class="prismident">na_plus_MAX</span>] <span class="prismkeyword">init</span> <span class="prismnum">0</span>; <span class="prismcomment">// Initial amount 0</span><br/>
+<br/>
+	<span class="prismcomment">// forwards</span><br/>
+	[<span class="prismident">forwards</span>]&nbsp;&nbsp;<span class="prismident">na_plus</span> &lt;= <span class="prismident">na_plus_MAX</span>-<span class="prismnum">1</span> -&gt; (<span class="prismident">na_plus</span>'=<span class="prismident">na_plus</span>+<span class="prismnum">1</span>);<br/>
+	<span class="prismcomment">// backwards</span><br/>
+	[<span class="prismident">backwards</span>] <span class="prismident">na_plus</span> &gt; <span class="prismnum">0</span> -&gt; (<span class="prismident">na_plus</span>'=<span class="prismident">na_plus</span>-<span class="prismnum">1</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+<br/>
+<span class="prismcomment">// Species cl_minus</span><br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">cl_minus_MAX</span> = <span class="prismident">MAX_AMOUNT</span>;<br/>
+<span class="prismkeyword">module</span> <span class="prismident">cl_minus</span><br/>
+<br/>
+	<span class="prismident">cl_minus</span> : [<span class="prismnum">0</span>..<span class="prismident">cl_minus_MAX</span>] <span class="prismkeyword">init</span> <span class="prismnum">0</span>; <span class="prismcomment">// Initial amount 0</span><br/>
+<br/>
+	<span class="prismcomment">// forwards</span><br/>
+	[<span class="prismident">forwards</span>]&nbsp;&nbsp;<span class="prismident">cl_minus</span> &lt;= <span class="prismident">cl_minus_MAX</span>-<span class="prismnum">1</span> -&gt; (<span class="prismident">cl_minus</span>'=<span class="prismident">cl_minus</span>+<span class="prismnum">1</span>);<br/>
+	<span class="prismcomment">// backwards</span><br/>
+	[<span class="prismident">backwards</span>] <span class="prismident">cl_minus</span> &gt; <span class="prismnum">0</span> -&gt; (<span class="prismident">cl_minus</span>'=<span class="prismident">cl_minus</span>-<span class="prismnum">1</span>);<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+<br/>
+<span class="prismcomment">// Reaction rates</span><br/>
+<span class="prismkeyword">module</span> <span class="prismident">reaction_rates</span><br/>
+<br/>
+	<span class="prismcomment">// forwards</span><br/>
+	[<span class="prismident">forwards</span>] (<span class="prismident">forwards_rate</span>*(<span class="prismident">na</span>*<span class="prismident">cl</span>)) &gt; <span class="prismnum">0</span> -&gt; (<span class="prismident">forwards_rate</span>*(<span class="prismident">na</span>*<span class="prismident">cl</span>)) : <span class="prismkeyword">true</span>;<br/>
+	<span class="prismcomment">// backwards</span><br/>
+	[<span class="prismident">backwards</span>] (<span class="prismident">backwards_rate</span>*(<span class="prismident">na_plus</span>*<span class="prismident">cl_minus</span>)) &gt; <span class="prismnum">0</span> -&gt; (<span class="prismident">backwards_rate</span>*(<span class="prismident">na_plus</span>*<span class="prismident">cl_minus</span>)) : <span class="prismkeyword">true</span>;<br/>
+<br/>
+<span class="prismkeyword">endmodule</span><br/>
+<br/>
+<span class="prismcomment">// Reward structures (one per species)</span><br/>
+<br/>
+<span class="prismcomment">// 1</span><br/>
+<span class="prismkeyword">rewards</span> "<span class="prismident">na</span>" <span class="prismkeyword">true</span> : <span class="prismident">na</span>; <span class="prismkeyword">endrewards</span><br/>
+<span class="prismcomment">// 2</span><br/>
+<span class="prismkeyword">rewards</span> "<span class="prismident">cl</span>" <span class="prismkeyword">true</span> : <span class="prismident">cl</span>; <span class="prismkeyword">endrewards</span><br/>
+<span class="prismcomment">// 3</span><br/>
+<span class="prismkeyword">rewards</span> "<span class="prismident">na_plus</span>" <span class="prismkeyword">true</span> : <span class="prismident">na_plus</span>; <span class="prismkeyword">endrewards</span><br/>
+<span class="prismcomment">// 4</span><br/>
+<span class="prismkeyword">rewards</span> "<span class="prismident">cl_minus</span>" <span class="prismkeyword">true</span> : <span class="prismident">cl_minus</span>; <span class="prismkeyword">endrewards</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>From the latter, we can use PRISM to generate a simple plot of the expected amount of Na and Na+ over time (using both model checking and a single random trace from the simulator):
+</p>
+<div class='vspace'></div><div class='img imgcaption'><a class='urllink' href='../uploads/sbml_ex_graph.png'><img src='../uploads/sbml_ex_graph.png' alt='' /></a><br /><span class='caption'><strong>Expected amount of Na/Na+ at time T</strong></span></div>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h3>Using the translator</h3>
+<p>At present, the SBML-to-PRISM translator is included in the PRISM code-base, but not integrated into the application itself.
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd prism</span><br/>
+<span style="font-weight:bold;">java -cp classes prism.SBML2Prism sbml_file.xml &gt; prism_file.sm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>If you are using a binary (rather than source code) distribution of PRISM, replace <code>classes</code> with <code>lib/prism.jar</code> in the above.
+</p>
+<p class='vspace'>Alternatively (on Linux or Mac OS X), ensure <code>prism</code> is in your path and then save the script below as an executable file called <code>sbml2prism</code>:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock4'>
+  <div class='sourceblocktext'><div class="bash"><span class="co0">#!/bin/sh</span><br />
+<br />
+<span class="co0"># Startup script for SBML-to-PRISM translator</span><br />
+<br />
+<span class="co0"># Launch using main PRISM script</span><br />
+<span class="re2">PRISM_MAINCLASS</span>=<span class="st0">&quot;prism.SBML2Prism&quot;</span><br />
+<span class="kw3">export</span> PRISM_MAINCLASS<br />
+prism <span class="st0">&quot;$@&quot;</span></div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Then use:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock5'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">sbml2prism sbml_file.xml &gt; prism_file.sm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The following PRISM properties file will also be useful:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock6'>
+  <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">T</span>;<br/>
+<span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">c</span>;<br/>
+<br/>
+<span class="prismkeyword">R</span>{<span class="prismident">c</span>}=? [<span class="prismkeyword">I</span>=<span class="prismident">T</span>]<br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>This contains a single property which, based on the reward structures in the PRISM model generated by the translator, means "the expected amount of species <em>c</em> at time <em>T</em>". The constant <em>c</em> is an integer index which can range between 1 and <em>N</em>, where <em>N</em> is the number of species in the model. To view the expected amount of each species over time, create an <a class='wikilink' href='Experiments.html'>experiment</a> in PRISM which varies <em>c</em> from 1 to <em>N</em> and <em>T</em> over the desired time range.
+</p>
+<div class='vspace'></div><hr />
+<div class='vspace'></div><h3>Details of the translation</h3>
+<p>The basic structure of the translation process is as follows:
+</p>
+<div class='vspace'></div><ul><li>Each <em>species</em> in the SBML file is represented by a <a class='wikilink' href='../ThePRISMLanguage/ModulesAndVariables.html'>module</a> in the resulting PRISM file. This module, which (where possible) retains the SBML species id as its name, contains a single <a class='wikilink' href='../ThePRISMLanguage/ModulesAndVariables.html'>variable</a> whose value represents the amount of the species present. A corresponding <a class='wikilink' href='../ThePRISMLanguage/CostsAndRewards.html'>reward structure</a> for computing the expected amount of the species at a given time instant is also created. Species for which the <code>boundaryCondition</code> flag is set to <code>true</code> in the SBML file do not have a corresponding module.
+<div class='vspace'></div></li><li>Each <em>reaction</em> in the SBML file is associated with a unique <a class='wikilink' href='../ThePRISMLanguage/Synchronisation.html'>synchronisation action label</a>. The module for each species which takes part in the reaction will include a synchronous <a class='wikilink' href='../ThePRISMLanguage/Commands.html'>command</a> to represent this. An additional PRISM module called <code>reaction_rates</code> stores the expression representing the rate of each reaction (from the corresponding <code>kineticLaw</code> section in the SBML file). Reaction stoichiometry information is respected but must be provided in the scalar <code>stoichiometry</code> field of a <code>speciesReference</code> element, not in a separate <code>StoichiometryMath</code> element.
+<div class='vspace'></div></li><li>Each <em>parameter</em> in the SBML file, either global to the file or specific to a reaction, becomes a <a class='wikilink' href='../ThePRISMLanguage/Constants.html'>constant</a> in the PRISM file. If a value for this parameter is given, it used. If not, the constant is left as undefined.
+</li></ul><p class='vspace'>As described above, this translation process is designed for discrete systems and so the amount of each species in the model is represented by an integer variable. It is therefore assumed that the initial amount for each species specified in the SBML file is also given as an integer. If this is not the case, then the values will need to be scaled accordingly first.
+</p>
+<p class='vspace'>Furthermore, since PRISM is primarily a model checking (rather than simulation) tool, it is important that the amount of each species also has an upper bound (to ensure a finite state space). When model checking, the efficiency (or even feasibility) of the process is likely to be very sensitive to the upper bound(s) chosen. When using the discrete-event simulation functionality of PRISM, this is not the case and the bounds can can be set much higher. By default the translator uses an upper bound of 100 (which is increased if the initial amount exceeds this). A different value can specified through a second command-line argument as follows:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock7'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">cd prism</span><br/>
+<span style="font-weight:bold;">java -cp classes prism.SBML2Prism sbml_file.xml 1000 &gt; prism_file.sm</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://www.prismmodelchecker.org/manual/RunningPRISM/SupportForSBML?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>Alternatively, upper bounds can be modified manually after the translation process.
+</p>
+<p class='vspace'>Finally, The following aspects of SBML files are not currently supported and are ignored during the translation process:
+</p>
+<div class='vspace'></div><ul><li>compartments
+</li><li>events/triggers
+</li></ul>
+</div>
+
+
+</body>
+</html>
