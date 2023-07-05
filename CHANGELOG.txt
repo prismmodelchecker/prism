@@ -1,7 +1,7 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
-Recent changes (up to commit fefa641)
+Version 4.8 (first released 5/7/2023)
 -----------------------------------------------------------------------------
 
 * Support for interval DTMC (IDTMC) and interval MDP (IMDP) model checking
