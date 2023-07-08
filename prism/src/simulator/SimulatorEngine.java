@@ -190,6 +190,14 @@ public class SimulatorEngine extends PrismComponent
 	}
 
 	/**
+	 * Re-initialise the random number generator using a specified seed.
+	 */
+	public void setRandomNumberGeneratorSeed(int seed)
+	{
+		rng = new RandomNumberGenerator(seed);
+	}
+
+	/**
 	 * Loads a new model (and its rewards) into the simulator.
 	 * Note: All constants in the model must have already been defined.
 	 * @param modelGen The model generator for simulation

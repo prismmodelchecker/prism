@@ -1225,6 +1225,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
+	 * Set the random seed for the simulator.
+	 */
+	public void setSimulatorSeed(int seed) throws PrismException
+	{
+		getSimulator().setRandomNumberGeneratorSeed(seed);
+	}
+
+	/**
 	 * Parse a PRISM model from a file.
 	 * @param file File to read in
 	 */

@@ -48,7 +48,15 @@ public class RandomNumberGenerator
 	 */
 	public RandomNumberGenerator()
 	{
-		random = new MersenneTwister(new Date());
+		this((int) new Date().getTime());
+	}
+
+	/**
+	 * Create a new random number generator, with a specific initial seed.
+	 */
+	public RandomNumberGenerator(int seed)
+	{
+		random = new MersenneTwister(seed);
 		uniform = new Uniform(random);
 		// Create exponential generator (rate 1.0 but this is ignored from now on)
 		exponential = new Exponential(1.0, random);
