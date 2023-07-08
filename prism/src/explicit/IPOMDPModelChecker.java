@@ -119,6 +119,66 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		Distribution[] transitions = (Distribution[]) simpleIPOMDP.get(2);
 		int[] observations = (int[]) simpleIPOMDP.get(3);
 
+		// LP with Gurobi
+		try {
+			// Number of states in the simple IPOMDP
+			int n = uncertainStates.size() + actionStates.size();
+
+			// Set up the environment for Gurobi
+			GRBEnv env = new GRBEnv("gurobi.log");
+			GRBModel model = new GRBModel(env);
+
+			// Create the variables for the probabilities
+			GRBVar probVars[] = new GRBVar[n];
+			for (int s = 0; s < n; s++) {
+				probVars[s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "p" + s);
+			}
+
+			// Create the variables for the policy
+			GRBVar policyVars[] = new GRBVar[2 * n];
+
+			// Handle the policy variables for the uncertain states
+			// There will be exactly one such variable for each state
+			for (int s : uncertainStates) {
+				policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
+
+				// The policy must be a valid distribution
+				GRBLinExpr validDistribution = new GRBLinExpr();
+				validDistribution.addTerm(1.0, policyVars[2 * s]);
+				model.addConstr(validDistribution, GRB.EQUAL, 1.0, "policyUncertainState" + s);
+			}
+
+			// Handle the policy variables for the action states
+			// There will be exactly two such variables for each state
+			for (int s : actionStates) {
+				policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
+				policyVars[2 * s + 1] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "b");
+
+				// The policy must be a valid distribution
+				GRBLinExpr validDistribution = new GRBLinExpr();
+				validDistribution.addTerm(1.0, policyVars[2 * s]);
+				validDistribution.addTerm(1.0, policyVars[2 * s + 1]);
+				model.addConstr(validDistribution, GRB.EQUAL, 1.0, "policyActionState" + s);
+				
+				// Strictly greater than zero
+				for (int k = 0; k <= 1; k++) {
+					double nonZero = 1e-9;
+					GRBLinExpr underlyingGraph = new GRBLinExpr();
+					underlyingGraph.addTerm(1.0, policyVars[2 * s + k]);
+					model.addConstr(underlyingGraph, GRB.GREATER_EQUAL, nonZero, "underlyingGraph" + (s + k));
+				}
+			}
+
+			// Optimise the model
+			model.optimize();
+
+			// Dispose of model and environment
+			model.dispose();
+			env.dispose();
+		} catch (GRBException e) {
+			throw new PrismException("Error solving LP: " +  e.getMessage());
+		}
+
 		// Return dummy result vector
 		ModelCheckerResult res = new ModelCheckerResult();
 		int total = ipomdp.getNumStates();
