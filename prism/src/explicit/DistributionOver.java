@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import simulator.RandomNumberGenerator;
 
@@ -111,5 +113,13 @@ public class DistributionOver<Value,T> implements Iterable<Entry<T, Value>>
 	{
 		int i = distr.sample(rng);
 		return i == -1 ? null : objects.apply(i);
+	}
+
+	@Override
+	public String toString()
+	{
+		return StreamSupport.stream(distr.spliterator(), false)
+				.map(e -> e.getValue() + ":" + objects.apply(e.getKey()))
+				.collect(Collectors.joining("+"));
 	}
 }

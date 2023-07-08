@@ -305,6 +305,13 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 			System.out.println(strat);
 			strat.exportActions(mainLog);
 
+			strat = new MRStrategy(mdp);
+			((MRStrategy) strat).setChoiceProbability(0, 0, 0.1);
+			((MRStrategy) strat).setChoiceProbability(0, 1, 0.9);
+			((MRStrategy) strat).setChoiceProbability(1, 0, 1.0);
+			System.out.println(strat);
+			strat.exportActions(mainLog);
+
 		} catch (PrismException e) {
 			throw new RuntimeException(e);
 		}
