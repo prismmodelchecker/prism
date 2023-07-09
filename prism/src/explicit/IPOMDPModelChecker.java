@@ -137,6 +137,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			// Create the variables for the policy
 			GRBVar policyVars[] = new GRBVar[2 * n];
 
+			// For each observation appoint a representative/leader
+			int[] observationsLeader = new int[n];
+			for (int s = n - 1; s >= 0; s--)
+				observationsLeader[ observations[s] ] = s;
+
 			// Handle the policy variables for the uncertain states
 			// There will be exactly one such variable for each state
 			for (int s : uncertainStates) {
@@ -146,6 +151,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				GRBLinExpr validDistribution = new GRBLinExpr();
 				validDistribution.addTerm(1.0, policyVars[2 * s]);
 				model.addConstr(validDistribution, GRB.EQUAL, 1.0, "policyUncertainState" + s);
+
+				// The policy must be observation-based
+				int idx = observationsLeader[ observations[s] ];
+				GRBLinExpr observationBased = new GRBLinExpr();
+				observationBased.addTerm(1.0, policyVars[2 * s]);
+				model.addConstr(observationBased, GRB.EQUAL, policyVars[2 * idx], "policyObservation" + s);
 			}
 
 			// Handle the policy variables for the action states
@@ -159,7 +170,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				validDistribution.addTerm(1.0, policyVars[2 * s]);
 				validDistribution.addTerm(1.0, policyVars[2 * s + 1]);
 				model.addConstr(validDistribution, GRB.EQUAL, 1.0, "policyActionState" + s);
-				
+
+				// The policy must be observation-based
+				for (int k = 0; k <= 1; k++) {
+					int idx = observationsLeader[ observations[s] ];
+					GRBLinExpr observationBased = new GRBLinExpr();
+					observationBased.addTerm(1.0, policyVars[2 * s + k]);
+					model.addConstr(observationBased, GRB.EQUAL, policyVars[2 * idx + k], "policyObservation" + s);
+				}
+
 				// Strictly greater than zero
 				for (int k = 0; k <= 1; k++) {
 					double nonZero = 1e-9;
