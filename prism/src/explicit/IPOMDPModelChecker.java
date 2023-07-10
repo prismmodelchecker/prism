@@ -112,18 +112,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		// Construct the binary/simple version of our IPOMDP
+		// Construct the binary/simple version of the IPOMDP
 		List<Object> simpleIPOMDP = constructSimpleIPOMDP(ipomdp);
 		ArrayList<Integer> uncertainStates = (ArrayList<Integer>) simpleIPOMDP.get(0);
 		ArrayList<Integer> actionStates = (ArrayList<Integer>) simpleIPOMDP.get(1);
 		Distribution[] transitions = (Distribution[]) simpleIPOMDP.get(2);
 		int[] observations = (int[]) simpleIPOMDP.get(3);
 
-		// Number of states in the simple IPOMDP
-		int n = uncertainStates.size() + actionStates.size();
-
 		// Initialise parameters
-		List<Object> parameters = initialiseParameters(n);
+		List<Object> parameters = initialiseParameters(uncertainStates, actionStates);
 		double[] policy = (double[]) parameters.get(0);
 		double penaltyParameter = (double) parameters.get(1);
 		double trustRegion = (double) parameters.get(2);
@@ -144,10 +141,20 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public List<Object> initialiseParameters(int n)
+	public List<Object> initialiseParameters(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates)
 	{
-		double[] policy = new double[2 * n];
 		double penaltyParameter = 1e4, trustRegion = 1.5, regionChangeFactor = 1.5, regionThreshold = 1e-4;
+
+		int numStates = uncertainStates.size() + actionStates.size();
+		double[] policy = new double[2 * numStates];
+		for (int s : uncertainStates) {
+			policy[2 * s] = 1.0;
+		}
+
+		for (int s : actionStates) {
+			policy[2 * s] = 0.5;
+			policy[2 * s + 1] = 0.5;
+		}
 
 		return Arrays.asList(policy, penaltyParameter, trustRegion, regionChangeFactor, regionThreshold);
 	}
