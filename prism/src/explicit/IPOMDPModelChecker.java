@@ -119,47 +119,20 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		Distribution[] transitions = (Distribution[]) simpleIPOMDP.get(2);
 		int[] observations = (int[]) simpleIPOMDP.get(3);
 
-		// LP with Gurobi
+		// Number of states in the simple IPOMDP
+		int n = uncertainStates.size() + actionStates.size();
+
+		// Initialise parameters
+		List<Object> parameters = initialiseParameters(n);
+		double[] policy = (double[]) parameters.get(0);
+		double penaltyParameter = (double) parameters.get(1);
+		double trustRegion = (double) parameters.get(2);
+		double regionChangeFactor = (double) parameters.get(3);
+		double regionThreshold = (double) parameters.get(4);
+
+		// Solve the Linear Programming
 		try {
-			// Number of states in the simple IPOMDP
-			int n = uncertainStates.size() + actionStates.size();
-
-			// Set up the environment for Gurobi
-			GRBEnv env = new GRBEnv("gurobi.log");
-			GRBModel model = new GRBModel(env);
-
-			// Create the variables for the probabilities
-			GRBVar probVars[] = new GRBVar[n];
-			for (int s = 0; s < n; s++) {
-				probVars[s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "p" + s);
-			}
-
-			// Create the variables for the policy
-			GRBVar policyVars[] = new GRBVar[2 * n];
-
-			// Handle the policy variables for the uncertain states
-			// There will be exactly one such variable for each state
-			for (int s : uncertainStates) {
-				policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
-			}
-
-			// Handle the policy variables for the action states
-			// There will be exactly two such variables for each state
-			for (int s : actionStates) {
-				policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
-				policyVars[2 * s + 1] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "b");
-			}
-
-			policyMustBeObservationBased(model, policyVars, uncertainStates, actionStates, observations);
-			policyMustPreserveUnderlyingGraph(model, policyVars, uncertainStates, actionStates);
-			policyMustBeValidDistribution(model, policyVars, uncertainStates, actionStates);
-
-			// Optimise the model
-			model.optimize();
-
-			// Dispose of model and environment
-			model.dispose();
-			env.dispose();
+			solveLinearProgrammingWithGurobi(uncertainStates, actionStates, observations);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
@@ -169,6 +142,57 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		int total = ipomdp.getNumStates();
 		res.soln = new double[total];
 		return res;
+	}
+
+	public List<Object> initialiseParameters(int n)
+	{
+		double[] policy = new double[2 * n];
+		double penaltyParameter = 1e4, trustRegion = 1.5, regionChangeFactor = 1.5, regionThreshold = 1e-4;
+
+		return Arrays.asList(policy, penaltyParameter, trustRegion, regionChangeFactor, regionThreshold);
+	}
+
+	public void solveLinearProgrammingWithGurobi(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, int[] observations) throws GRBException
+	{
+		// Number of states in the simple IPOMDP
+		int n = uncertainStates.size() + actionStates.size();
+
+		// Set up the environment for Gurobi
+		GRBEnv env = new GRBEnv("gurobi.log");
+		GRBModel model = new GRBModel(env);
+
+		// Create the variables for the probabilities
+		GRBVar probVars[] = new GRBVar[n];
+		for (int s = 0; s < n; s++) {
+			probVars[s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "p" + s);
+		}
+
+		// Create the variables for the policy
+		GRBVar policyVars[] = new GRBVar[2 * n];
+
+		// Handle the policy variables for the uncertain states
+		// There will be exactly one such variable for each state
+		for (int s : uncertainStates) {
+			policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
+		}
+
+		// Handle the policy variables for the action states
+		// There will be exactly two such variables for each state
+		for (int s : actionStates) {
+			policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
+			policyVars[2 * s + 1] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "b");
+		}
+
+		policyMustBeObservationBased(model, policyVars, uncertainStates, actionStates, observations);
+		policyMustPreserveUnderlyingGraph(model, policyVars, uncertainStates, actionStates);
+		policyMustBeValidDistribution(model, policyVars, uncertainStates, actionStates);
+
+		// Optimise the model
+		model.optimize();
+
+		// Dispose of model and environment
+		model.dispose();
+		env.dispose();
 	}
 
 	public void policyMustPreserveUnderlyingGraph(GRBModel model, GRBVar policyVars[], ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates) throws GRBException
