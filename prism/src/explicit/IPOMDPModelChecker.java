@@ -40,6 +40,7 @@ import common.Interval;
 import common.IterableStateSet;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
+import org.apache.logging.log4j.core.util.ArrayUtils;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import parser.ast.Expression;
 import prism.AccuracyFactory;
@@ -152,8 +153,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
 		// Construct the binary/simple version of the IPOMDP
-		List<Object> wrappedSimpleIPOMDP = constructSimpleIPOMDP(ipomdp);
+		List<Object> wrappedSimpleIPOMDP = determineSupport(ipomdp);
 		SimpleIPOMDP simpleIPOMDP = new SimpleIPOMDP((ArrayList<Integer>) wrappedSimpleIPOMDP.get(0), (ArrayList<Integer>) wrappedSimpleIPOMDP.get(1), (Distribution[]) wrappedSimpleIPOMDP.get(2), (int[]) wrappedSimpleIPOMDP.get(3));
+
+		// Determine goal states in the simple IPOMDP
+		ArrayList<Integer> goalStates = determineGoalStates(target, (int[]) wrappedSimpleIPOMDP.get(4));
 
 		// Initialise parameters
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
@@ -163,7 +167,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		// Solve the Linear Programming
 		try {
-			solveLinearProgrammingWithGurobi(mainVariables, parameters, simpleIPOMDP);
+			solveLinearProgrammingWithGurobi(goalStates, mainVariables, parameters, simpleIPOMDP);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
@@ -173,6 +177,19 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		int total = ipomdp.getNumStates();
 		res.soln = new double[total];
 		return res;
+	}
+
+	public ArrayList<Integer> determineGoalStates(BitSet target, int[] gadget)
+	{
+		ArrayList<Integer> goalStates = new ArrayList<>();
+		int indexOfGoalState = target.nextSetBit(0);
+
+		while (indexOfGoalState >= 0) {
+			goalStates.add(gadget[indexOfGoalState]);
+			indexOfGoalState = target.nextSetBit(indexOfGoalState + 1);
+		}
+
+		return goalStates;
 	}
 
 	public MainVariables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP) {
@@ -197,7 +214,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return new MainVariables(policy, prob);
 	}
 
-	public void solveLinearProgrammingWithGurobi(MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public void solveLinearProgrammingWithGurobi(ArrayList<Integer> goalStates, MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		// Number of states in the simple IPOMDP
 		int n = simpleIPOMDP.getNumStates();
@@ -236,12 +253,23 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
 
+		addConstraintsForGoalStates(model, probVars, goalStates);
+
 		// Optimise the model
 		model.optimize();
 
 		// Dispose of model and environment
 		model.dispose();
 		env.dispose();
+	}
+
+	public void addConstraintsForGoalStates(GRBModel model, GRBVar probVars[], ArrayList<Integer> goalStates) throws GRBException
+	{
+		for (int goalState : goalStates) {
+			GRBLinExpr constraint = new GRBLinExpr();
+			constraint.addTerm(1.0, probVars[goalState]);
+			model.addConstr(constraint, GRB.EQUAL, 1.0, "goalState" + goalState);
+		}
 	}
 
 	public void addConstraintsForTrustRegions(GRBModel model, GRBVar policyVars[], GRBVar probVars[], MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
@@ -388,22 +416,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * Transform the IPOMDP into a binary/simple IPOMDP.
-	 * @param ipomdp The IPOMDP which must be transformed
-	 */
-	public List<Object> constructSimpleIPOMDP(IPOMDP<Double> ipomdp)
-	{
-		List<Object> supportStructure = determineSupport(ipomdp);
-
-		ArrayList<Integer> uncertainStates = (ArrayList<Integer>) supportStructure.get(0);
-		ArrayList<Integer> actionStates = (ArrayList<Integer>) supportStructure.get(1);
-		Distribution[] transitions = (Distribution[]) supportStructure.get(2);
-		int[] observations = determineObservations(ipomdp, supportStructure);
-
-		return Arrays.asList(uncertainStates, actionStates, transitions, observations);
-	}
-
-	/**
 	 * Determine the support graph of the binary/simple IPOMDP (i.e. states, transitions).
 	 * @param ipomdp The IPOMDP which must be transformed
 	 */
@@ -467,19 +479,20 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			lastStateAdded = lastStateAddedFuture;
 		}
 
-		return Arrays.asList(uncertainStates, actionStates, transitions, traversal, gadget);
+		// Determine observations of the simple IPOMDP
+		int[] observations = determineObservations(ipomdp, traversal, gadget);
+
+		return Arrays.asList(uncertainStates, actionStates, transitions, observations, gadget);
 	}
 
 	/**
 	 * Determine the observations of the binary/simple IPOMDP.
 	 * @param ipomdp The IPOMDP which must be transformed
-	 * @param supportStructure The support graph of the binary/simple IPOMDP
+	 * @param traversal The order in which the states were created in the simple IPOMDP
+	 * @param gadget The mapping of each state from the initial IPOMDP to its correspondent in the simple variant
 	 */
-	public int[] determineObservations(IPOMDP<Double> ipomdp, List<Object> supportStructure)
+	public int[] determineObservations(IPOMDP<Double> ipomdp, ArrayList<Integer> traversal, int[] gadget)
 	{
-		ArrayList<Integer> traversal = (ArrayList<Integer>) supportStructure.get(3);
-		int[] gadget = (int[]) supportStructure.get(4);
-
 		int numStates = ipomdp.getNumStates();
 		int numStatesAfterProcess = traversal.size();
 
