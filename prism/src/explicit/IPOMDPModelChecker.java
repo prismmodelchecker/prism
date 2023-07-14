@@ -59,9 +59,6 @@ import gurobi.*;
  */
 public class IPOMDPModelChecker extends ProbModelChecker
 {
-	/*
-		Helper class for storing parameters of the algorithm.
-	 */
 	private class Parameters {
 		public final double penaltyWeight;
 		public final double trustRegion;
@@ -88,12 +85,23 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			this.transitions = transitions;
 			this.observations = observations;
 		}
+
+		public Integer getNumStates() {
+			return uncertainStates.size() + actionStates.size();
+		}
 	}
 
-	/**
-	 * Helper class for defining the edges.
-	 */
-	private class Edge<X, Y> {
+	private class MainVariables {
+		public final double[] policy;
+		public final double[] prob;
+
+		public MainVariables(double[] policy, double[] prob) {
+			this.policy = policy;
+			this.prob = prob;
+		}
+	}
+
+	private class Edge <X, Y> {
 		public final X state;
 		public final Y interval;
 		public Edge(X state, Y interval) {
@@ -150,9 +158,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Initialise parameters
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
+		// Initialise policy and therefore reaching probability vector
+		MainVariables mainVariables = initialiseMainVariables(simpleIPOMDP);
+
 		// Solve the Linear Programming
 		try {
-			solveLinearProgrammingWithGurobi(simpleIPOMDP);
+			solveLinearProgrammingWithGurobi(mainVariables, parameters, simpleIPOMDP);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
@@ -164,10 +175,32 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public void solveLinearProgrammingWithGurobi(SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public MainVariables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP) {
+		int numStates = simpleIPOMDP.getNumStates();
+
+		double[] policy = new double[2 * numStates];
+		double[] prob = new double[numStates];
+
+		for (int s : simpleIPOMDP.uncertainStates) {
+			policy[2 * s] = 1.0;
+		}
+
+		for (int s : simpleIPOMDP.actionStates) {
+			policy[2 * s] = 0.5;
+			policy[2 * s + 1] = 0.5;
+		}
+
+		// TODO
+		// compute prob
+		Arrays.fill(prob, 1);
+
+		return new MainVariables(policy, prob);
+	}
+
+	public void solveLinearProgrammingWithGurobi(MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		// Number of states in the simple IPOMDP
-		int n = simpleIPOMDP.uncertainStates.size() + simpleIPOMDP.actionStates.size();
+		int n = simpleIPOMDP.getNumStates();
 
 		// Set up the environment for Gurobi
 		GRBEnv env = new GRBEnv("gurobi.log");
@@ -201,12 +234,43 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
 
+		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
+
 		// Optimise the model
 		model.optimize();
 
 		// Dispose of model and environment
 		model.dispose();
 		env.dispose();
+	}
+
+	public void addConstraintsForTrustRegions(GRBModel model, GRBVar policyVars[], GRBVar probVars[], MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	{
+		int numStates = simpleIPOMDP.getNumStates();
+		double[] prob = mainVariables.prob;
+		double[] policy = mainVariables.policy;
+		double trustRegion = parameters.trustRegion + 1;
+
+		for (int s = 0; s < numStates; s++) {
+			GRBLinExpr firstConstraint = new GRBLinExpr();
+			firstConstraint.addTerm(1.0, probVars[s]);
+			model.addConstr(firstConstraint, GRB.GREATER_EQUAL, prob[s] / trustRegion, "trustRegionProbLeft" + s);
+
+			GRBLinExpr secondConstraint = new GRBLinExpr();
+			secondConstraint.addTerm(1.0, probVars[s]);
+			model.addConstr(secondConstraint, GRB.LESS_EQUAL, prob[s] * trustRegion, "trustRegionProbRight" + s);
+		}
+
+		for (int s : simpleIPOMDP.actionStates)
+			for (int k = 0; k <= 1; k++) {
+				GRBLinExpr firstConstraint = new GRBLinExpr();
+				firstConstraint.addTerm(1.0, policyVars[2 * s + k]);
+				model.addConstr(firstConstraint, GRB.GREATER_EQUAL, policy[2 * s + k] / trustRegion, "trustRegionPolicyLeft" + s);
+
+				GRBLinExpr secondConstraint = new GRBLinExpr();
+				secondConstraint.addTerm(1.0, policyVars[2 * s + k]);
+				model.addConstr(secondConstraint, GRB.LESS_EQUAL, policy[2 * s + k] * trustRegion, "trustRegionPolicyRight" + s);
+			}
 	}
 
 	public void addConstraintsForUncertainStates(GRBModel model, GRBVar probVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
@@ -302,7 +366,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 	public void policyMustBeObservationBased(GRBModel model, GRBVar policyVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
-		int n = simpleIPOMDP.uncertainStates.size() + simpleIPOMDP.actionStates.size();
+		int n = simpleIPOMDP.getNumStates();
 		int[] leaderOfObservation = new int[n];
 		for (int s = n - 1; s >= 0; s--)
 			leaderOfObservation[ simpleIPOMDP.observations[s] ] = s;
