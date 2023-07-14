@@ -40,6 +40,7 @@ import common.Interval;
 import common.IterableStateSet;
 import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import parser.ast.Expression;
 import prism.AccuracyFactory;
 import prism.Evaluator;
@@ -58,6 +59,37 @@ import gurobi.*;
  */
 public class IPOMDPModelChecker extends ProbModelChecker
 {
+	/*
+		Helper class for storing parameters of the algorithm.
+	 */
+	private class Parameters {
+		public final double penaltyWeight;
+		public final double trustRegion;
+		public final double regionChangeFactor;
+		public final double regionThreshold;
+
+		public Parameters(double penaltyWeight, double trustRegion, double regionChangeFactor, double regionThreshold) {
+			this.penaltyWeight = penaltyWeight;
+			this.trustRegion = trustRegion;
+			this.regionChangeFactor = regionChangeFactor;
+			this.regionThreshold = regionThreshold;
+		}
+	}
+
+	private class SimpleIPOMDP {
+		public final ArrayList<Integer> uncertainStates;
+		public final ArrayList<Integer> actionStates;
+		public final Distribution[] transitions;
+		public final int[] observations;
+
+		public SimpleIPOMDP(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions, int[] observations) {
+			this.uncertainStates = uncertainStates;
+			this.actionStates = actionStates;
+			this.transitions = transitions;
+			this.observations = observations;
+		}
+	}
+
 	/**
 	 * Helper class for defining the edges.
 	 */
@@ -112,23 +144,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
 		// Construct the binary/simple version of the IPOMDP
-		List<Object> simpleIPOMDP = constructSimpleIPOMDP(ipomdp);
-		ArrayList<Integer> uncertainStates = (ArrayList<Integer>) simpleIPOMDP.get(0);
-		ArrayList<Integer> actionStates = (ArrayList<Integer>) simpleIPOMDP.get(1);
-		Distribution[] transitions = (Distribution[]) simpleIPOMDP.get(2);
-		int[] observations = (int[]) simpleIPOMDP.get(3);
+		List<Object> wrappedSimpleIPOMDP = constructSimpleIPOMDP(ipomdp);
+		SimpleIPOMDP simpleIPOMDP = new SimpleIPOMDP((ArrayList<Integer>) wrappedSimpleIPOMDP.get(0), (ArrayList<Integer>) wrappedSimpleIPOMDP.get(1), (Distribution[]) wrappedSimpleIPOMDP.get(2), (int[]) wrappedSimpleIPOMDP.get(3));
 
 		// Initialise parameters
-		List<Object> parameters = initialiseParameters(uncertainStates, actionStates);
-		double[] policy = (double[]) parameters.get(0);
-		double penaltyWeight = (double) parameters.get(1);
-		double trustRegion = (double) parameters.get(2);
-		double regionChangeFactor = (double) parameters.get(3);
-		double regionThreshold = (double) parameters.get(4);
+		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
 		// Solve the Linear Programming
 		try {
-			solveLinearProgrammingWithGurobi(uncertainStates, actionStates, transitions, observations);
+			solveLinearProgrammingWithGurobi(simpleIPOMDP);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
@@ -140,28 +164,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public List<Object> initialiseParameters(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates)
-	{
-		double penaltyParameter = 1e4, trustRegion = 1.5, regionChangeFactor = 1.5, regionThreshold = 1e-4;
-
-		int numStates = uncertainStates.size() + actionStates.size();
-		double[] policy = new double[2 * numStates];
-		for (int s : uncertainStates) {
-			policy[2 * s] = 1.0;
-		}
-
-		for (int s : actionStates) {
-			policy[2 * s] = 0.5;
-			policy[2 * s + 1] = 0.5;
-		}
-
-		return Arrays.asList(policy, penaltyParameter, trustRegion, regionChangeFactor, regionThreshold);
-	}
-
-	public void solveLinearProgrammingWithGurobi(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions, int[] observations) throws GRBException
+	public void solveLinearProgrammingWithGurobi(SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		// Number of states in the simple IPOMDP
-		int n = uncertainStates.size() + actionStates.size();
+		int n = simpleIPOMDP.uncertainStates.size() + simpleIPOMDP.actionStates.size();
 
 		// Set up the environment for Gurobi
 		GRBEnv env = new GRBEnv("gurobi.log");
@@ -178,22 +184,22 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		// Handle the policy variables for the uncertain states
 		// There will be exactly one such variable for each state
-		for (int s : uncertainStates) {
+		for (int s : simpleIPOMDP.uncertainStates) {
 			policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
 		}
 
 		// Handle the policy variables for the action states
 		// There will be exactly two such variables for each state
-		for (int s : actionStates) {
+		for (int s : simpleIPOMDP.actionStates) {
 			policyVars[2 * s] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "a");
 			policyVars[2 * s + 1] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "b");
 		}
 
-		policyMustBeObservationBased(model, policyVars, uncertainStates, actionStates, observations);
-		policyMustPreserveUnderlyingGraph(model, policyVars, uncertainStates, actionStates);
-		policyMustBeValidDistribution(model, policyVars, uncertainStates, actionStates);
+		policyMustBeObservationBased(model, policyVars, simpleIPOMDP);
+		policyMustPreserveUnderlyingGraph(model, policyVars, simpleIPOMDP);
+		policyMustBeValidDistribution(model, policyVars, simpleIPOMDP);
 
-		addConstraintsForUncertainStates(model, probVars, uncertainStates, transitions);
+		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
 
 		// Optimise the model
 		model.optimize();
@@ -203,12 +209,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		env.dispose();
 	}
 
-	public void addConstraintsForUncertainStates(GRBModel model, GRBVar probVars[], ArrayList<Integer> uncertainStates, Distribution[] transitions) throws GRBException
+	public void addConstraintsForUncertainStates(GRBModel model, GRBVar probVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		// We have the constraints a(i) <= u(i) <= b(i) and sum_i u(i) = 1
 		// We encode these into the equation C * u + g >= 0
-		for (int s : uncertainStates) {
-			int n = transitions[s].size();
+		for (int s : simpleIPOMDP.uncertainStates) {
+			int n = simpleIPOMDP.transitions[s].size();
 			int m = 2 * n + 2;
 
 			// Keep track of the successor states
@@ -219,7 +225,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 			// Populate successors and determine vector g
 			for (int i = 0; i < n; i++) {
-				Edge<Integer, Interval<Double>> transition = transitions[s].get(i);
+				Edge<Integer, Interval<Double>> transition = simpleIPOMDP.transitions[s].get(i);
 
 				successors.add(transition.state);
 				g[2 * i] = -transition.interval.getLower();
@@ -260,17 +266,17 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	public void policyMustPreserveUnderlyingGraph(GRBModel model, GRBVar policyVars[], ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates) throws GRBException
+	public void policyMustPreserveUnderlyingGraph(GRBModel model, GRBVar policyVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		double smallValue = 1e-9;
 
-		for (int s : uncertainStates) {
+		for (int s : simpleIPOMDP.uncertainStates) {
 			GRBLinExpr underlyingGraph = new GRBLinExpr();
 			underlyingGraph.addTerm(1.0, policyVars[2 * s]);
 			model.addConstr(underlyingGraph, GRB.GREATER_EQUAL, smallValue, "underlyingGraph" + s);
 		}
 
-		for (int s : actionStates)
+		for (int s : simpleIPOMDP.actionStates)
 			for (int k = 0; k <= 1; k++) {
 				GRBLinExpr underlyingGraph = new GRBLinExpr();
 				underlyingGraph.addTerm(1.0, policyVars[2 * s + k]);
@@ -278,15 +284,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			}
 	}
 
-	public void policyMustBeValidDistribution(GRBModel model, GRBVar policyVars[], ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates) throws GRBException
+	public void policyMustBeValidDistribution(GRBModel model, GRBVar policyVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
-		for (int s : uncertainStates) {
+		for (int s : simpleIPOMDP.uncertainStates) {
 			GRBLinExpr validDistribution = new GRBLinExpr();
 			validDistribution.addTerm(1.0, policyVars[2 * s]);
 			model.addConstr(validDistribution, GRB.EQUAL, 1.0, "policyUncertainState" + s);
 		}
 
-		for (int s : actionStates) {
+		for (int s : simpleIPOMDP.actionStates) {
 			GRBLinExpr validDistribution = new GRBLinExpr();
 			validDistribution.addTerm(1.0, policyVars[2 * s]);
 			validDistribution.addTerm(1.0, policyVars[2 * s + 1]);
@@ -294,23 +300,23 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	public void policyMustBeObservationBased(GRBModel model, GRBVar policyVars[], ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, int[] observations) throws GRBException
+	public void policyMustBeObservationBased(GRBModel model, GRBVar policyVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
-		int n = uncertainStates.size() + actionStates.size();
+		int n = simpleIPOMDP.uncertainStates.size() + simpleIPOMDP.actionStates.size();
 		int[] leaderOfObservation = new int[n];
 		for (int s = n - 1; s >= 0; s--)
-			leaderOfObservation[ observations[s] ] = s;
+			leaderOfObservation[ simpleIPOMDP.observations[s] ] = s;
 
-		for (int s : uncertainStates) {
-			int idx = leaderOfObservation[ observations[s] ];
+		for (int s : simpleIPOMDP.uncertainStates) {
+			int idx = leaderOfObservation[ simpleIPOMDP.observations[s] ];
 			GRBLinExpr observationBased = new GRBLinExpr();
 			observationBased.addTerm(1.0, policyVars[2 * s]);
 			model.addConstr(observationBased, GRB.EQUAL, policyVars[2 * idx], "policyObservation" + s);
 		}
 
-		for (int s : actionStates)
+		for (int s : simpleIPOMDP.actionStates)
 			for (int k = 0; k <= 1; k++) {
-				int idx = leaderOfObservation[ observations[s] ];
+				int idx = leaderOfObservation[ simpleIPOMDP.observations[s] ];
 				GRBLinExpr observationBased = new GRBLinExpr();
 				observationBased.addTerm(1.0, policyVars[2 * s + k]);
 				model.addConstr(observationBased, GRB.EQUAL, policyVars[2 * idx + k], "policyObservation" + s);
