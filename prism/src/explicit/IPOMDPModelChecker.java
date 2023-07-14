@@ -77,7 +77,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 * 2) Several pairs of form (state, [-1, 1]) denoting the choices in an action state
 	 */
 	private class Distribution extends ArrayList<Edge<Integer, Interval<Double>>> {
-
 	}
 
 	/**
@@ -122,14 +121,14 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Initialise parameters
 		List<Object> parameters = initialiseParameters(uncertainStates, actionStates);
 		double[] policy = (double[]) parameters.get(0);
-		double penaltyParameter = (double) parameters.get(1);
+		double penaltyWeight = (double) parameters.get(1);
 		double trustRegion = (double) parameters.get(2);
 		double regionChangeFactor = (double) parameters.get(3);
 		double regionThreshold = (double) parameters.get(4);
 
 		// Solve the Linear Programming
 		try {
-			solveLinearProgrammingWithGurobi(uncertainStates, actionStates, observations);
+			solveLinearProgrammingWithGurobi(uncertainStates, actionStates, transitions, observations);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
@@ -159,7 +158,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return Arrays.asList(policy, penaltyParameter, trustRegion, regionChangeFactor, regionThreshold);
 	}
 
-	public void solveLinearProgrammingWithGurobi(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, int[] observations) throws GRBException
+	public void solveLinearProgrammingWithGurobi(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, Distribution[] transitions, int[] observations) throws GRBException
 	{
 		// Number of states in the simple IPOMDP
 		int n = uncertainStates.size() + actionStates.size();
@@ -194,12 +193,71 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		policyMustPreserveUnderlyingGraph(model, policyVars, uncertainStates, actionStates);
 		policyMustBeValidDistribution(model, policyVars, uncertainStates, actionStates);
 
+		addConstraintsForUncertainStates(model, probVars, uncertainStates, transitions);
+
 		// Optimise the model
 		model.optimize();
 
 		// Dispose of model and environment
 		model.dispose();
 		env.dispose();
+	}
+
+	public void addConstraintsForUncertainStates(GRBModel model, GRBVar probVars[], ArrayList<Integer> uncertainStates, Distribution[] transitions) throws GRBException
+	{
+		// We have the constraints a(i) <= u(i) <= b(i) and sum_i u(i) = 1
+		// We encode these into the equation C * u + g >= 0
+		for (int s : uncertainStates) {
+			int n = transitions[s].size();
+			int m = 2 * n + 2;
+
+			// Keep track of the successor states
+			ArrayList<Integer> successors = new ArrayList<>();
+
+			// Create vector g
+			double[] g = new double[m];
+
+			// Populate successors and determine vector g
+			for (int i = 0; i < n; i++) {
+				Edge<Integer, Interval<Double>> transition = transitions[s].get(i);
+
+				successors.add(transition.state);
+				g[2 * i] = -transition.interval.getLower();
+				g[2 * i + 1] = transition.interval.getUpper();
+			}
+			g[2 * n] = -1.0;
+			g[2 * n + 1] = 1.0;
+
+			// Create the dual variables
+			GRBVar dualVars[] = new GRBVar[m];
+			for (int i = 0; i < m; i++) {
+				dualVars[i] = model.addVar(0.0, 1e9, 0.0, GRB.CONTINUOUS, "dual" + s + "," + i);
+			}
+
+			// Introduce the probability inequality
+			GRBLinExpr inequality = new GRBLinExpr();
+			inequality.addTerm(-1.0, probVars[s]);
+			for (int i = 0; i < m; i++) {
+				inequality.addTerm(g[i], dualVars[i]);
+			}
+			model.addConstr(inequality, GRB.GREATER_EQUAL, 0.0, "dualizationInequality" + s);
+
+			// Introduce the dualization constraints
+			for (int i = 0; i < n; i++) {
+				int successor = successors.get(i);
+
+				GRBLinExpr constraint = new GRBLinExpr();
+				constraint.addTerm(1.0, probVars[successor]);
+
+				constraint.addTerm(1.0, dualVars[2 * i]);
+				constraint.addTerm(-1.0, dualVars[2 * i + 1]);
+
+				constraint.addTerm(1.0, dualVars[2 * n]);
+				constraint.addTerm(-1.0, dualVars[2 * n + 1]);
+
+				model.addConstr(constraint, GRB.EQUAL, 0.0, "dualizationConstraint" + s + "," + i);
+			}
+		}
 	}
 
 	public void policyMustPreserveUnderlyingGraph(GRBModel model, GRBVar policyVars[], ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates) throws GRBException
