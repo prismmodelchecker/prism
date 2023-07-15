@@ -26,13 +26,7 @@
 
 package explicit;
 
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.PrimitiveIterator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import acceptance.AcceptanceReach;
 import common.IntSet;
@@ -42,13 +36,10 @@ import explicit.rewards.MDPRewards;
 import explicit.rewards.Rewards;
 import org.apache.logging.log4j.core.util.ArrayUtils;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import parser.State;
 import parser.ast.Expression;
-import prism.AccuracyFactory;
-import prism.Evaluator;
-import prism.PrismComponent;
-import prism.PrismException;
+import prism.*;
 import strat.FMDStrategyStep;
-import prism.PrismFileLog;
 import strat.FMDStrategyProduct;
 import strat.MDStrategy;
 import strat.MDStrategyArray;
@@ -156,6 +147,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		List<Object> wrappedSimpleIPOMDP = determineSupport(ipomdp);
 		SimpleIPOMDP simpleIPOMDP = new SimpleIPOMDP((ArrayList<Integer>) wrappedSimpleIPOMDP.get(0), (ArrayList<Integer>) wrappedSimpleIPOMDP.get(1), (Distribution[]) wrappedSimpleIPOMDP.get(2), (int[]) wrappedSimpleIPOMDP.get(3));
 
+		createInducedIDTMC(simpleIPOMDP);
+
+		/*
 		// Determine goal states in the simple IPOMDP
 		ArrayList<Integer> goalStates = determineGoalStates(target, (int[]) wrappedSimpleIPOMDP.get(4));
 
@@ -171,12 +165,51 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
+		 */
 
 		// Return dummy result vector
 		ModelCheckerResult res = new ModelCheckerResult();
 		int total = ipomdp.getNumStates();
 		res.soln = new double[total];
 		return res;
+	}
+
+	public void createInducedIDTMC(SimpleIPOMDP simpleIPOMDP) throws PrismException
+	{
+		IDTMCSimple<Double> idtmc = new IDTMCSimple<>(3);
+		idtmc.setProbability(0, 1, new Interval<>(0.4, 0.6));
+		idtmc.setProbability(0, 2, new Interval<>(0.4, 0.6));
+		idtmc.setProbability(2, 2, new Interval<>(1.0, 1.0));
+		idtmc.setProbability(1, 1, new Interval<>(1.0, 1.0));
+
+		IDTMCModelChecker modelChecker = new IDTMCModelChecker(this);
+		modelChecker.inheritSettings(this);
+		modelChecker.setLog(new PrismDevNullLog());
+
+		// Limit iters for IDTMC solution - this implements "modified" policy iteration
+		modelChecker.setMaxIters(100);
+		modelChecker.setErrorOnNonConverge(false);
+
+		BitSet target = new BitSet();
+		target.set(1);
+
+		MinMax minMax = new MinMax();
+		minMax.setMinUnc(true);
+
+		ModelCheckerResult res = modelChecker.computeReachProbs(idtmc, target, minMax);
+		System.out.println(res.soln[0]);
+
+		/*
+		// Just iterate through model and print transitions
+		int numStates = idtmc.getNumStates();
+		for (int s = 0; s < numStates; s++) {
+				Iterator<Map.Entry<Integer, Interval<Double>>> iter = idtmc.getTransitionsIterator(s);
+				while (iter.hasNext()) {
+					Map.Entry<Integer, Interval<Double>> elem = iter.next();
+					mainLog.println(s + " -> " + elem.getValue() + ":" + elem.getKey());
+				}
+		}
+		*/
 	}
 
 	public ArrayList<Integer> determineGoalStates(BitSet target, int[] gadget)

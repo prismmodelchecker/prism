@@ -30,6 +30,8 @@ package explicit;
 import common.Interval;
 import prism.Evaluator;
 
+import java.util.ArrayList;
+
 /**
  * Simple explicit-state representation of an IDTMC.
  */
@@ -53,6 +55,7 @@ public class IDTMCSimple<Value> extends DTMCSimple<Interval<Value>> implements I
 	{
 		super(numStates);
 		createDefaultEvaluator();
+		initialiseWithTheNewEvaluator(numStates);
 	}
 
 	/**
@@ -96,5 +99,16 @@ public class IDTMCSimple<Value> extends DTMCSimple<Interval<Value>> implements I
 	private void createDefaultEvaluator()
 	{
 		((IDTMCSimple<Double>) this).setEvaluator(Evaluator.forDoubleInterval());
+	}
+
+	/**
+	 * Initialise again the transitions
+	 */
+	private void initialiseWithTheNewEvaluator(int numStates)
+	{
+		trans = new ArrayList<Distribution<Interval<Value>>>(numStates);
+		for (int i = 0; i < numStates; i++) {
+			trans.add(new Distribution<Interval<Value>>(getEvaluator()));
+		}
 	}
 }
