@@ -147,9 +147,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		List<Object> wrappedSimpleIPOMDP = determineSupport(ipomdp);
 		SimpleIPOMDP simpleIPOMDP = new SimpleIPOMDP((ArrayList<Integer>) wrappedSimpleIPOMDP.get(0), (ArrayList<Integer>) wrappedSimpleIPOMDP.get(1), (Distribution[]) wrappedSimpleIPOMDP.get(2), (int[]) wrappedSimpleIPOMDP.get(3));
 
-		createInducedIDTMC(simpleIPOMDP);
-
-		/*
 		// Determine goal states in the simple IPOMDP
 		ArrayList<Integer> goalStates = determineGoalStates(target, (int[]) wrappedSimpleIPOMDP.get(4));
 
@@ -159,13 +156,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Initialise policy and therefore reaching probability vector
 		MainVariables mainVariables = initialiseMainVariables(simpleIPOMDP);
 
+		// Induced IDTMC
+		returnInducedIDTMC(simpleIPOMDP, mainVariables.policy);
+
 		// Solve the Linear Programming
 		try {
 			solveLinearProgrammingWithGurobi(goalStates, mainVariables, parameters, simpleIPOMDP);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
-		 */
 
 		// Return dummy result vector
 		ModelCheckerResult res = new ModelCheckerResult();
@@ -174,42 +173,30 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public void createInducedIDTMC(SimpleIPOMDP simpleIPOMDP) throws PrismException
+	public IDTMCSimple<Double> returnInducedIDTMC(SimpleIPOMDP simpleIPOMDP, double[] policy) throws PrismException
 	{
-		IDTMCSimple<Double> idtmc = new IDTMCSimple<>(3);
-		idtmc.setProbability(0, 1, new Interval<>(0.4, 0.6));
-		idtmc.setProbability(0, 2, new Interval<>(0.4, 0.6));
-		idtmc.setProbability(2, 2, new Interval<>(1.0, 1.0));
-		idtmc.setProbability(1, 1, new Interval<>(1.0, 1.0));
+		// Create explicit IDTMC
+		IDTMCSimple<Double> idtmc = new IDTMCSimple<>(simpleIPOMDP.getNumStates());
 
-		IDTMCModelChecker modelChecker = new IDTMCModelChecker(this);
-		modelChecker.inheritSettings(this);
-		modelChecker.setLog(new PrismDevNullLog());
+		// Add transitions from uncertain states
+		for (int state : simpleIPOMDP.uncertainStates)
+			for (Edge<Integer, Interval<Double>> transition : simpleIPOMDP.transitions[state]) {
+				int successor = transition.state;
+				Interval<Double> interval = transition.interval;
 
-		// Limit iters for IDTMC solution - this implements "modified" policy iteration
-		modelChecker.setMaxIters(100);
-		modelChecker.setErrorOnNonConverge(false);
+				idtmc.setProbability(state, successor, interval);
+			}
 
-		BitSet target = new BitSet();
-		target.set(1);
+		// Add transitions from action states
+		for (int state : simpleIPOMDP.actionStates)
+			for (int k = 0; k <= 1; k++) {
+				int successor = simpleIPOMDP.transitions[state].get(k).state;
+				Interval<Double> interval = new Interval<>(policy[2 * state + k], policy[2 * state + k]);
 
-		MinMax minMax = new MinMax();
-		minMax.setMinUnc(true);
+				idtmc.setProbability(state, successor, interval);
+			}
 
-		ModelCheckerResult res = modelChecker.computeReachProbs(idtmc, target, minMax);
-		System.out.println(res.soln[0]);
-
-		/*
-		// Just iterate through model and print transitions
-		int numStates = idtmc.getNumStates();
-		for (int s = 0; s < numStates; s++) {
-				Iterator<Map.Entry<Integer, Interval<Double>>> iter = idtmc.getTransitionsIterator(s);
-				while (iter.hasNext()) {
-					Map.Entry<Integer, Interval<Double>> elem = iter.next();
-					mainLog.println(s + " -> " + elem.getValue() + ":" + elem.getKey());
-				}
-		}
-		*/
+		return idtmc;
 	}
 
 	public ArrayList<Integer> determineGoalStates(BitSet target, int[] gadget)
