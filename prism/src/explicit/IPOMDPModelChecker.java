@@ -52,10 +52,10 @@ import gurobi.*;
 public class IPOMDPModelChecker extends ProbModelChecker
 {
 	private class Parameters {
-		public final double penaltyWeight;
-		public final double trustRegion;
-		public final double regionChangeFactor;
-		public final double regionThreshold;
+		public double penaltyWeight;
+		public double trustRegion;
+		public double regionChangeFactor;
+		public double regionThreshold;
 
 		public Parameters(double penaltyWeight, double trustRegion, double regionChangeFactor, double regionThreshold) {
 			this.penaltyWeight = penaltyWeight;
@@ -83,11 +83,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	private class MainVariables {
+	private class Variables {
 		public double[] policy;
 		public double[] prob;
 
-		public MainVariables(double[] policy, double[] prob) {
+		public Variables(double[] policy, double[] prob) {
 			this.policy = policy;
 			this.prob = prob;
 		}
@@ -147,27 +147,51 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		List<Object> wrappedSimpleIPOMDP = determineSupport(ipomdp);
 		SimpleIPOMDP simpleIPOMDP = new SimpleIPOMDP((ArrayList<Integer>) wrappedSimpleIPOMDP.get(0), (ArrayList<Integer>) wrappedSimpleIPOMDP.get(1), (Distribution[]) wrappedSimpleIPOMDP.get(2), (int[]) wrappedSimpleIPOMDP.get(3));
 
+		// Store the gadget
+		int[] gadget = (int[]) wrappedSimpleIPOMDP.get(4);
+
 		// Determine goal states in the simple IPOMDP
-		BitSet newTarget = computeNewTargetSet(target, (int[]) wrappedSimpleIPOMDP.get(4));
+		BitSet newTarget = computeNewTargetSet(target, gadget);
 
 		// Initialise parameters
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
 		// Initialise policy and therefore reaching probability vector
-		MainVariables mainVariables = initialiseMainVariables(simpleIPOMDP, newTarget, minMax);
+		Variables variablesOld = initialiseMainVariables(simpleIPOMDP, newTarget, minMax);
 
-		// Solve the Linear Programming
-		try {
-			solveLinearProgrammingWithGurobi(simpleIPOMDP, newTarget, mainVariables, parameters);
-		} catch (GRBException e) {
-			throw new PrismException("Error solving LP: " +  e.getMessage());
+		double objectiveOld = 0.0;
+		while (parameters.trustRegion > parameters.regionThreshold) {
+			Variables variablesNew;
+			// Solve the Linear Programming
+			try {
+				variablesNew = solveLinearProgrammingWithGurobi(simpleIPOMDP, newTarget, minMax, variablesOld, parameters);
+			} catch (GRBException e) {
+				throw new PrismException("Error solving LP: " +  e.getMessage());
+			}
+
+			double objectiveNew = variablesNew.prob[0];
+			if (objectiveNew > objectiveOld) {
+				variablesOld = variablesNew;
+				objectiveOld = objectiveNew;
+				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
+			} else {
+				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
+			}
 		}
 
-		// Return dummy result vector
+		// Return result vector
 		ModelCheckerResult res = new ModelCheckerResult();
 		int total = ipomdp.getNumStates();
-		res.soln = new double[total];
+		res.soln = getProbabilitiesForTheInitialIPOMDP(variablesOld.prob, gadget);
 		return res;
+	}
+
+	public double[] getProbabilitiesForTheInitialIPOMDP(double[] prob, int[] gadget)
+	{
+		double[] initialProb = new double[gadget.length];
+		for (int i = 0; i < gadget.length; i++)
+			initialProb[i] = prob[ gadget[i] ];
+		return initialProb;
 	}
 
 	public IDTMCSimple<Double> createInducedIDTMC(SimpleIPOMDP simpleIPOMDP, double[] policy) throws PrismException
@@ -220,7 +244,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return newTarget;
 	}
 
-	public MainVariables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP, BitSet newTarget, MinMax minMax) throws PrismException
+	public Variables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP, BitSet newTarget, MinMax minMax) throws PrismException
 	{
 		int numStates = simpleIPOMDP.getNumStates();
 
@@ -236,11 +260,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		IDTMCSimple<Double> idtmc = createInducedIDTMC(simpleIPOMDP, policy);
 		double[] prob = computeReachProbsIDTMC(idtmc, newTarget, minMax);
-
-		return new MainVariables(policy, prob);
+		return new Variables(policy, prob);
 	}
 
-	public void solveLinearProgrammingWithGurobi(SimpleIPOMDP simpleIPOMDP, BitSet target, MainVariables mainVariables, Parameters parameters) throws GRBException
+	public Variables solveLinearProgrammingWithGurobi(SimpleIPOMDP simpleIPOMDP, BitSet target, MinMax minMax, Variables mainVariables, Parameters parameters) throws GRBException, PrismException
 	{
 		// Number of states in the simple IPOMDP
 		int n = simpleIPOMDP.getNumStates();
@@ -290,7 +313,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		policyMustBeValidDistribution(model, policyVars, simpleIPOMDP);
 
 		addConstraintsForGoalStates(model, probVars, goalStates);
-		addConstraintsforActionStates(model, policyVars, probVars, penaltyVars, mainVariables, simpleIPOMDP);
+		addConstraintsForActionStates(model, policyVars, probVars, penaltyVars, mainVariables, simpleIPOMDP);
 		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
 		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
 
@@ -300,11 +323,22 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		model.optimize();
 
 		// Extract optimal policy
-		mainVariables.policy = extractOptimalPolicy(policyVars, simpleIPOMDP);
+		double[] policy = extractOptimalPolicy(policyVars, simpleIPOMDP);
+
+		// Extract optimal probabilities
+		double[] prob = extractOptimalProbabilities(simpleIPOMDP, target, minMax, policy);
 
 		// Dispose of model and environment
 		model.dispose();
 		env.dispose();
+
+		return new Variables(policy, prob);
+	}
+
+	public double[] extractOptimalProbabilities(SimpleIPOMDP simpleIPOMDP, BitSet target, MinMax minMax, double[] policy) throws PrismException
+	{
+		IDTMCSimple<Double> idtmc = createInducedIDTMC(simpleIPOMDP, policy);
+		return computeReachProbsIDTMC(idtmc, target, minMax);
 	}
 
 	public double[] extractOptimalPolicy(GRBVar policyVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
@@ -333,7 +367,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		model.setObjective(obj, GRB.MAXIMIZE);
 	}
 
-	public void addConstraintsforActionStates(GRBModel model, GRBVar policyVars[], GRBVar probVars[], GRBVar penaltyVars[], MainVariables mainVariables, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public void addConstraintsForActionStates(GRBModel model, GRBVar policyVars[], GRBVar probVars[], GRBVar penaltyVars[], Variables mainVariables, SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		for (int state : simpleIPOMDP.actionStates) {
 			GRBLinExpr constraint = new GRBLinExpr();
@@ -362,7 +396,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	public void addConstraintsForTrustRegions(GRBModel model, GRBVar policyVars[], GRBVar probVars[], MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public void addConstraintsForTrustRegions(GRBModel model, GRBVar policyVars[], GRBVar probVars[], Variables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
 		int numStates = simpleIPOMDP.getNumStates();
 		double[] prob = mainVariables.prob;
@@ -505,10 +539,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			}
 	}
 
-	/**
-	 * Determine the support graph of the binary/simple IPOMDP (i.e. states, transitions).
-	 * @param ipomdp The IPOMDP which must be transformed
-	 */
 	public List<Object> determineSupport(IPOMDP<Double> ipomdp)
 	{
 		int numStates = ipomdp.getNumStates();
@@ -575,12 +605,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return Arrays.asList(uncertainStates, actionStates, transitions, observations, gadget);
 	}
 
-	/**
-	 * Determine the observations of the binary/simple IPOMDP.
-	 * @param ipomdp The IPOMDP which must be transformed
-	 * @param traversal The order in which the states were created in the simple IPOMDP
-	 * @param gadget The mapping of each state from the initial IPOMDP to its correspondent in the simple variant
-	 */
 	public int[] determineObservations(IPOMDP<Double> ipomdp, ArrayList<Integer> traversal, int[] gadget)
 	{
 		int numStates = ipomdp.getNumStates();
