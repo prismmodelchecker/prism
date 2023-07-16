@@ -84,8 +84,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	}
 
 	private class MainVariables {
-		public final double[] policy;
-		public final double[] prob;
+		public double[] policy;
+		public double[] prob;
 
 		public MainVariables(double[] policy, double[] prob) {
 			this.policy = policy;
@@ -154,10 +154,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
 		// Initialise policy and therefore reaching probability vector
-		MainVariables mainVariables = initialiseMainVariables(simpleIPOMDP);
-
-		// Induced IDTMC
-		createInducedIDTMC(simpleIPOMDP, mainVariables.policy);
+		MainVariables mainVariables = initialiseMainVariables(simpleIPOMDP, newTarget, minMax);
 
 		// Solve the Linear Programming
 		try {
@@ -223,12 +220,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return newTarget;
 	}
 
-	public MainVariables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP) {
+	public MainVariables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP, BitSet newTarget, MinMax minMax) throws PrismException
+	{
 		int numStates = simpleIPOMDP.getNumStates();
 
 		double[] policy = new double[2 * numStates];
-		double[] prob = new double[numStates];
-
 		for (int s : simpleIPOMDP.uncertainStates) {
 			policy[2 * s] = 1.0;
 		}
@@ -238,9 +234,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			policy[2 * s + 1] = 0.5;
 		}
 
-		// TODO
-		// compute prob
-		Arrays.fill(prob, 1);
+		IDTMCSimple<Double> idtmc = createInducedIDTMC(simpleIPOMDP, policy);
+		double[] prob = computeReachProbsIDTMC(idtmc, newTarget, minMax);
 
 		return new MainVariables(policy, prob);
 	}
@@ -299,18 +294,48 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
 		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
 
+		addObjective(model, probVars, penaltyVars, parameters, simpleIPOMDP);
+
 		// Optimise the model
 		model.optimize();
+
+		// Extract optimal policy
+		mainVariables.policy = extractOptimalPolicy(policyVars, simpleIPOMDP);
 
 		// Dispose of model and environment
 		model.dispose();
 		env.dispose();
 	}
 
+	public double[] extractOptimalPolicy(GRBVar policyVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
+	{
+		double[] optimalPolicy = new double[policyVars.length];
+		for (int state : simpleIPOMDP.uncertainStates) {
+			optimalPolicy[2 * state] = policyVars[2 * state].get(GRB.DoubleAttr.X);
+		}
+
+		for (int state : simpleIPOMDP.actionStates)
+			for (int k = 0; k <= 1; k++) {
+				optimalPolicy[2 * state + k] = policyVars[2 * state + k].get(GRB.DoubleAttr.X);
+			}
+
+		return optimalPolicy;
+	}
+
+	public void addObjective(GRBModel model, GRBVar probVars[], GRBVar penaltyVars[], Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	{
+		GRBLinExpr obj = new GRBLinExpr();
+		obj.addTerm(1.0, probVars[0]);
+		for (int state : simpleIPOMDP.actionStates) {
+			obj.addTerm(-parameters.penaltyWeight, penaltyVars[state]);
+		}
+
+		model.setObjective(obj, GRB.MAXIMIZE);
+	}
+
 	public void addConstraintsforActionStates(GRBModel model, GRBVar policyVars[], GRBVar probVars[], GRBVar penaltyVars[], MainVariables mainVariables, SimpleIPOMDP simpleIPOMDP) throws GRBException
 	{
-		for (int state : simpleIPOMDP.actionStates)
-		{
+		for (int state : simpleIPOMDP.actionStates) {
 			GRBLinExpr constraint = new GRBLinExpr();
 			constraint.addTerm(-1.0, probVars[state]);
 			constraint.addTerm(1.0, penaltyVars[state]);
