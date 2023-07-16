@@ -159,6 +159,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Initialise policy and therefore reaching probability vector
 		Variables variablesOld = initialiseMainVariables(simpleIPOMDP, newTarget, minMax);
 
+		System.out.println(variablesOld.prob[0]);
+
 		double objectiveOld = 0.0;
 		while (parameters.trustRegion > parameters.regionThreshold) {
 			Variables variablesNew;
@@ -268,14 +270,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Number of states in the simple IPOMDP
 		int n = simpleIPOMDP.getNumStates();
 
-		// Determine goal states as an array
-		ArrayList<Integer> goalStates = new ArrayList<>();
-		int indexOfGoalState = target.nextSetBit(0);
-		while (indexOfGoalState >= 0) {
-			goalStates.add(indexOfGoalState);
-			indexOfGoalState = target.nextSetBit(indexOfGoalState + 1);
-		}
-
 		// Set up the environment for Gurobi
 		GRBEnv env = new GRBEnv("gurobi.log");
 		GRBModel model = new GRBModel(env);
@@ -312,9 +306,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		policyMustPreserveUnderlyingGraph(model, policyVars, simpleIPOMDP);
 		policyMustBeValidDistribution(model, policyVars, simpleIPOMDP);
 
-		addConstraintsForGoalStates(model, probVars, goalStates);
-		addConstraintsForActionStates(model, policyVars, probVars, penaltyVars, mainVariables, simpleIPOMDP);
-		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
+		addConstraintsForGoalStates(model, probVars, target);
+		addConstraintsForActionStates(model, policyVars, probVars, penaltyVars, mainVariables, simpleIPOMDP, target);
+		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP, target);
 		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
 
 		addObjective(model, probVars, penaltyVars, parameters, simpleIPOMDP);
@@ -367,9 +361,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		model.setObjective(obj, GRB.MAXIMIZE);
 	}
 
-	public void addConstraintsForActionStates(GRBModel model, GRBVar policyVars[], GRBVar probVars[], GRBVar penaltyVars[], Variables mainVariables, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public void addConstraintsForActionStates(GRBModel model, GRBVar policyVars[], GRBVar probVars[], GRBVar penaltyVars[], Variables mainVariables, SimpleIPOMDP simpleIPOMDP, BitSet target) throws GRBException
 	{
 		for (int state : simpleIPOMDP.actionStates) {
+			// If current state is part of the target set then skip
+			if (target.get(state)) continue;
+
 			GRBLinExpr constraint = new GRBLinExpr();
 			constraint.addTerm(-1.0, probVars[state]);
 			constraint.addTerm(1.0, penaltyVars[state]);
@@ -387,12 +384,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	public void addConstraintsForGoalStates(GRBModel model, GRBVar probVars[], ArrayList<Integer> goalStates) throws GRBException
+	public void addConstraintsForGoalStates(GRBModel model, GRBVar probVars[], BitSet target) throws GRBException
 	{
-		for (int goalState : goalStates) {
+		int indexOfGoalState = target.nextSetBit(0);
+		while (indexOfGoalState >= 0) {
 			GRBLinExpr constraint = new GRBLinExpr();
-			constraint.addTerm(1.0, probVars[goalState]);
-			model.addConstr(constraint, GRB.EQUAL, 1.0, "goalState" + goalState);
+			constraint.addTerm(1.0, probVars[indexOfGoalState]);
+			model.addConstr(constraint, GRB.EQUAL, 1.0, "goalState" + indexOfGoalState);
+
+			indexOfGoalState = target.nextSetBit(indexOfGoalState + 1);
 		}
 	}
 
@@ -425,11 +425,14 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			}
 	}
 
-	public void addConstraintsForUncertainStates(GRBModel model, GRBVar probVars[], SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public void addConstraintsForUncertainStates(GRBModel model, GRBVar probVars[], SimpleIPOMDP simpleIPOMDP, BitSet target) throws GRBException
 	{
 		// We have the constraints a(i) <= u(i) <= b(i) and sum_i u(i) = 1
 		// We encode these into the equation C * u + g >= 0
 		for (int s : simpleIPOMDP.uncertainStates) {
+			// If current state is part of the target set then skip
+			if (target.get(s)) continue;
+
 			int n = simpleIPOMDP.transitions[s].size();
 			int m = 2 * n + 2;
 
@@ -467,7 +470,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			// Introduce the dualization constraints
 			for (int i = 0; i < n; i++) {
 				int successor = successors.get(i);
-
 				GRBLinExpr constraint = new GRBLinExpr();
 				constraint.addTerm(1.0, probVars[successor]);
 
