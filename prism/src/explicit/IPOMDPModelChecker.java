@@ -148,7 +148,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		SimpleIPOMDP simpleIPOMDP = new SimpleIPOMDP((ArrayList<Integer>) wrappedSimpleIPOMDP.get(0), (ArrayList<Integer>) wrappedSimpleIPOMDP.get(1), (Distribution[]) wrappedSimpleIPOMDP.get(2), (int[]) wrappedSimpleIPOMDP.get(3));
 
 		// Determine goal states in the simple IPOMDP
-		ArrayList<Integer> goalStates = determineGoalStates(target, (int[]) wrappedSimpleIPOMDP.get(4));
+		BitSet newTarget = computeNewTargetSet(target, (int[]) wrappedSimpleIPOMDP.get(4));
 
 		// Initialise parameters
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
@@ -157,11 +157,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		MainVariables mainVariables = initialiseMainVariables(simpleIPOMDP);
 
 		// Induced IDTMC
-		returnInducedIDTMC(simpleIPOMDP, mainVariables.policy);
+		createInducedIDTMC(simpleIPOMDP, mainVariables.policy);
 
 		// Solve the Linear Programming
 		try {
-			solveLinearProgrammingWithGurobi(goalStates, mainVariables, parameters, simpleIPOMDP);
+			solveLinearProgrammingWithGurobi(simpleIPOMDP, newTarget, mainVariables, parameters);
 		} catch (GRBException e) {
 			throw new PrismException("Error solving LP: " +  e.getMessage());
 		}
@@ -173,7 +173,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public IDTMCSimple<Double> returnInducedIDTMC(SimpleIPOMDP simpleIPOMDP, double[] policy) throws PrismException
+	public IDTMCSimple<Double> createInducedIDTMC(SimpleIPOMDP simpleIPOMDP, double[] policy) throws PrismException
 	{
 		// Create explicit IDTMC
 		IDTMCSimple<Double> idtmc = new IDTMCSimple<>(simpleIPOMDP.getNumStates());
@@ -199,17 +199,28 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return idtmc;
 	}
 
-	public ArrayList<Integer> determineGoalStates(BitSet target, int[] gadget)
+	public double[] computeReachProbsIDTMC(IDTMCSimple<Double> idtmc, BitSet target, MinMax minMax) throws PrismException
 	{
-		ArrayList<Integer> goalStates = new ArrayList<>();
-		int indexOfGoalState = target.nextSetBit(0);
+		IDTMCModelChecker modelChecker = new IDTMCModelChecker(this);
+		modelChecker.inheritSettings(this);
+		modelChecker.setLog(new PrismDevNullLog());
+		modelChecker.setMaxIters(100);
+		modelChecker.setErrorOnNonConverge(false);
 
+		ModelCheckerResult res = modelChecker.computeReachProbs(idtmc, target, minMax);
+		return res.soln;
+	}
+
+	public BitSet computeNewTargetSet(BitSet target, int[] gadget)
+	{
+		BitSet newTarget = new BitSet();
+		int indexOfGoalState = target.nextSetBit(0);
 		while (indexOfGoalState >= 0) {
-			goalStates.add(gadget[indexOfGoalState]);
+			newTarget.set(gadget[indexOfGoalState]);
 			indexOfGoalState = target.nextSetBit(indexOfGoalState + 1);
 		}
 
-		return goalStates;
+		return newTarget;
 	}
 
 	public MainVariables initialiseMainVariables(SimpleIPOMDP simpleIPOMDP) {
@@ -234,10 +245,18 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return new MainVariables(policy, prob);
 	}
 
-	public void solveLinearProgrammingWithGurobi(ArrayList<Integer> goalStates, MainVariables mainVariables, Parameters parameters, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	public void solveLinearProgrammingWithGurobi(SimpleIPOMDP simpleIPOMDP, BitSet target, MainVariables mainVariables, Parameters parameters) throws GRBException
 	{
 		// Number of states in the simple IPOMDP
 		int n = simpleIPOMDP.getNumStates();
+
+		// Determine goal states as an array
+		ArrayList<Integer> goalStates = new ArrayList<>();
+		int indexOfGoalState = target.nextSetBit(0);
+		while (indexOfGoalState >= 0) {
+			goalStates.add(indexOfGoalState);
+			indexOfGoalState = target.nextSetBit(indexOfGoalState + 1);
+		}
 
 		// Set up the environment for Gurobi
 		GRBEnv env = new GRBEnv("gurobi.log");
@@ -265,15 +284,20 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			policyVars[2 * s + 1] = model.addVar(0.0, 1.0, 0.0, GRB.CONTINUOUS, "policy" + s + "b");
 		}
 
+		// Create the penalty variables
+		GRBVar penaltyVars[] = new GRBVar[n];
+		for (int s = 0; s < n; s++) {
+			penaltyVars[s] = model.addVar(0.0, 1e9, 0.0, GRB.CONTINUOUS, "penalty" + s);
+		}
+
 		policyMustBeObservationBased(model, policyVars, simpleIPOMDP);
 		policyMustPreserveUnderlyingGraph(model, policyVars, simpleIPOMDP);
 		policyMustBeValidDistribution(model, policyVars, simpleIPOMDP);
 
-		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
-
-		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
-
 		addConstraintsForGoalStates(model, probVars, goalStates);
+		addConstraintsforActionStates(model, policyVars, probVars, penaltyVars, mainVariables, simpleIPOMDP);
+		addConstraintsForUncertainStates(model, probVars, simpleIPOMDP);
+		addConstraintsForTrustRegions(model, policyVars, probVars, mainVariables, parameters, simpleIPOMDP);
 
 		// Optimise the model
 		model.optimize();
@@ -281,6 +305,27 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Dispose of model and environment
 		model.dispose();
 		env.dispose();
+	}
+
+	public void addConstraintsforActionStates(GRBModel model, GRBVar policyVars[], GRBVar probVars[], GRBVar penaltyVars[], MainVariables mainVariables, SimpleIPOMDP simpleIPOMDP) throws GRBException
+	{
+		for (int state : simpleIPOMDP.actionStates)
+		{
+			GRBLinExpr constraint = new GRBLinExpr();
+			constraint.addTerm(-1.0, probVars[state]);
+			constraint.addTerm(1.0, penaltyVars[state]);
+
+			double RHS = 0.0;
+			for (int k = 0; k <= 1; k++) {
+				int successor = simpleIPOMDP.transitions[state].get(k).state;
+
+				constraint.addTerm(mainVariables.policy[2 * state + k], probVars[successor]);
+				constraint.addTerm(mainVariables.prob[successor], policyVars[2 * state + k]);
+				RHS = RHS + mainVariables.policy[2 * state + k] * mainVariables.prob[successor];
+			}
+
+			model.addConstr(constraint, GRB.GREATER_EQUAL, RHS, "actionState" + state);
+		}
 	}
 
 	public void addConstraintsForGoalStates(GRBModel model, GRBVar probVars[], ArrayList<Integer> goalStates) throws GRBException
