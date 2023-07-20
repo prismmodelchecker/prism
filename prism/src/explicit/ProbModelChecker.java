@@ -1250,6 +1250,9 @@ public class ProbModelChecker extends NonProbModelChecker
 		case IMDP:
 			res = ((IMDPModelChecker) this).computeReachRewards((IMDP<Double>) model, (MDPRewards<Double>) modelRewards, target, minMax);
 			break;
+		case IPOMDP:
+			res = ((IPOMDPModelChecker) this).computeReachRewards((IPOMDP<Double>) model, (MDPRewards<Double>) modelRewards, target, minMax);
+			break;
 		default:
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the " + expr.getOperatorSymbol() + " reward operator for " + model.getModelType()
 					+ "s");

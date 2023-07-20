@@ -53,23 +53,17 @@ import gurobi.*;
  */
 public class IPOMDPModelChecker extends ProbModelChecker
 {
-	/**
-	 * Parameters of the algorithm are stored within this class.
-	 */
-	private class Parameters {
-		public double penaltyWeight;
-		public double trustRegion;
-		public double regionChangeFactor;
-		public double regionThreshold;
-
-		public Parameters(double penaltyWeight, double trustRegion, double regionChangeFactor, double regionThreshold) {
-			this.penaltyWeight = penaltyWeight;
-			this.trustRegion = trustRegion;
-			this.regionChangeFactor = regionChangeFactor;
-			this.regionThreshold = regionThreshold;
+	private class Edge <X, Y> {
+		public final X state;
+		public final Y interval;
+		public Edge(X state, Y interval) {
+			this.state = state;
+			this.interval= interval;
 		}
 	}
 
+	private class Distribution extends ArrayList<Edge<Integer, Interval<Double>>> {
+	}
 	private class TransformIntoSimpleIPOMDP {
 		private SimpleIPOMDP simpleIPOMDP;
 		private IPOMDP<Double> initialIPOMDP;
@@ -237,24 +231,13 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	private class SpecificationDetails {
-
-		private BitSet target;
-		MinMax minMax;
-
-		public SpecificationDetails(BitSet target, MinMax minMax) {
-			this.target = target;
-			this.minMax = minMax;
-		}
-	}
-
 	static private class InducedDTMCFromIPOMDPAndPolicy {
 		static public double[] ComputeReachabilityProbabilities(SimpleIPOMDP simpleIPOMDP, double[] policy, SpecificationDetails specification) throws PrismException {
 			IDTMCSimple<Double> inducedIDTMC = createInducedIDTMC(simpleIPOMDP, policy);
 			return computeReachProbs(inducedIDTMC, specification);
 		}
 
-		static private IDTMCSimple<Double> createInducedIDTMC(SimpleIPOMDP simpleIPOMDP, double[] policy) throws PrismException
+		static private IDTMCSimple<Double> createInducedIDTMC(SimpleIPOMDP simpleIPOMDP, double[] policy)
 		{
 			// Create explicit IDTMC
 			IDTMCSimple<Double> inducedIDTMC = new IDTMCSimple<>(simpleIPOMDP.getNumStates());
@@ -294,7 +277,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	}
 
 	static private class VariableHandler {
-		static public double[] getProbabilitiesForInitialIPOMDP(Variables mainVariables, TransformIntoSimpleIPOMDP transformationProcess)
+		static public double[] getVariablesForInitialIPOMDP(Variables mainVariables, TransformIntoSimpleIPOMDP transformationProcess)
 		{
 			int[] gadget = transformationProcess.getGadgetMapping();
 			double[] initialProb = new double[gadget.length];
@@ -332,6 +315,47 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		public Variables(double[] policy, double[] prob) {
 			this.policy = policy;
 			this.prob = prob;
+		}
+	}
+
+	private class Parameters {
+		public double penaltyWeight;
+		public double trustRegion;
+		public double regionChangeFactor;
+		public double regionThreshold;
+
+		public Parameters(double penaltyWeight, double trustRegion, double regionChangeFactor, double regionThreshold) {
+			this.penaltyWeight = penaltyWeight;
+			this.trustRegion = trustRegion;
+			this.regionChangeFactor = regionChangeFactor;
+			this.regionThreshold = regionThreshold;
+		}
+	}
+
+	private class SpecificationDetails {
+
+		private BitSet target;
+		MinMax minMax;
+		private char inequalityDirection;
+		private int objectiveDirection;
+		private int penaltyCoefficient;
+
+		public SpecificationDetails(BitSet target, MinMax minMax) {
+			this.target = target;
+			this.minMax = minMax;
+			initialiseForLinearProgramming(minMax);
+		}
+
+		private void initialiseForLinearProgramming(MinMax minMax) {
+			if (minMax.isMax()) {
+				this.inequalityDirection = GRB.GREATER_EQUAL;
+				this.objectiveDirection = GRB.MAXIMIZE;
+				this.penaltyCoefficient = 1;
+			} else {
+				this.inequalityDirection = GRB.LESS_EQUAL;
+				this.objectiveDirection = GRB.MINIMIZE;
+				this.penaltyCoefficient = -1;
+			}
 		}
 	}
 
@@ -439,10 +463,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			GRBLinExpr obj = new GRBLinExpr();
 			obj.addTerm(1.0, probVars[0]);
 			for (int state : simpleIPOMDP.actionStates) {
-				obj.addTerm(-parameters.penaltyWeight, penaltyVars[state]);
+				obj.addTerm(-specification.penaltyCoefficient * parameters.penaltyWeight, penaltyVars[state]);
 			}
 
-			model.setObjective(obj, GRB.MAXIMIZE);
+			model.setObjective(obj, specification.objectiveDirection);
 		}
 
 		public void addConstraintsForActionStates() throws GRBException
@@ -453,7 +477,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 				GRBLinExpr constraint = new GRBLinExpr();
 				constraint.addTerm(-1.0, probVars[state]);
-				constraint.addTerm(1.0, penaltyVars[state]);
+				constraint.addTerm(specification.penaltyCoefficient, penaltyVars[state]);
 
 				double RHS = 0.0;
 				for (int k = 0; k <= 1; k++) {
@@ -464,7 +488,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					RHS = RHS + mainVariables.policy[2 * state + k] * mainVariables.prob[successor];
 				}
 
-				model.addConstr(constraint, GRB.GREATER_EQUAL, RHS, "actionState" + state);
+				model.addConstr(constraint, specification.inequalityDirection, RHS, "actionState" + state);
 			}
 		}
 
@@ -550,7 +574,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				for (int i = 0; i < m; i++) {
 					inequality.addTerm(g[i], dualVars[i]);
 				}
-				model.addConstr(inequality, GRB.GREATER_EQUAL, 0.0, "dualizationInequality" + s);
+				model.addConstr(inequality, specification.inequalityDirection, 0.0, "dualizationInequality" + s);
 
 				// Introduce the dualization constraints
 				for (int i = 0; i < n; i++) {
@@ -627,18 +651,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	private class Edge <X, Y> {
-		public final X state;
-		public final Y interval;
-		public Edge(X state, Y interval) {
-			this.state = state;
-			this.interval= interval;
-		}
-	}
-
-	private class Distribution extends ArrayList<Edge<Integer, Interval<Double>>> {
-	}
-
 	/**
 	 * Create a new IPOMDPModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -675,6 +687,27 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp);
 		SimpleIPOMDP simpleIPOMDP = transformationProcess.getSimpleIPOMDP();
 
+		// Compute the optimal policy and probabilities
+		Variables optimalVariables = applyAlgorithmGivenSimpleIPOMDP(simpleIPOMDP, transformationProcess, target, minMax);
+
+		// Return result vector
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = VariableHandler.getVariablesForInitialIPOMDP(optimalVariables, transformationProcess);
+		return res;
+	}
+
+	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
+	{
+		System.out.print(mdpRewards.getStateReward(0));
+
+		// Return result vector
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = new double[ipomdp.getNumStates()];
+		return res;
+	}
+
+	public Variables applyAlgorithmGivenSimpleIPOMDP(SimpleIPOMDP simpleIPOMDP, TransformIntoSimpleIPOMDP transformationProcess, BitSet target, MinMax minMax) throws PrismException
+	{
 		// Compute specification in the binary/simple version of the IPOMDP
 		SpecificationDetails simpleSpecification = new SpecificationDetails(transformationProcess.computeNewTargetGivenInitial(target), minMax);
 
@@ -685,7 +718,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		Variables variablesOld = new Variables();
 		VariableHandler.initialiseVariables(variablesOld, simpleIPOMDP, simpleSpecification);
 
-		double objectiveOld = 0.0;
+		double objectiveOld = (simpleSpecification.objectiveDirection == GRB.MAXIMIZE ? 0.0 : 1.0);
 		while (parameters.trustRegion > parameters.regionThreshold) {
 			Variables variablesNew;
 			// Solve the Linear Programming
@@ -697,7 +730,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			}
 
 			double objectiveNew = variablesNew.prob[0];
-			if (objectiveNew > objectiveOld) {
+			if (simpleSpecification.objectiveDirection * objectiveNew < simpleSpecification.objectiveDirection * objectiveOld) {
 				variablesOld = variablesNew;
 				objectiveOld = objectiveNew;
 				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
@@ -706,9 +739,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			}
 		}
 
-		// Return result vector
-		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = VariableHandler.getProbabilitiesForInitialIPOMDP(variablesOld, transformationProcess);
-		return res;
+		return variablesOld;
 	}
 }

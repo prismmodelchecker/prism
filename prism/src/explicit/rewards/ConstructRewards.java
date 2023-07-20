@@ -82,7 +82,7 @@ public class ConstructRewards extends PrismComponent
 			break;
 		case MDP:
 		case POMDP:
-		case IMDP:
+		case IMDP, IPOMDP:
 			rewards = buildMDPRewardStructure((MDP<Value>) model, rewardGen, r);
 			break;
 		default:
@@ -232,7 +232,7 @@ public class ConstructRewards extends PrismComponent
 		case CTMC:
 			return buildMCRewardStructure((DTMC<Double>) model, rewStr, constantValues);
 		case MDP:
-		case POMDP:
+		case POMDP, IPOMDP:
 			return buildMDPRewardStructure((MDP<Double>) model, rewStr, constantValues);
 		default:
 			throw new PrismNotSupportedException("Cannot build rewards for " + model.getModelType() + "s");
