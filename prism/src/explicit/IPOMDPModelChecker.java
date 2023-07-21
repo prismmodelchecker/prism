@@ -262,7 +262,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	static private class InducedDTMCFromIPOMDPAndPolicy {
+	static private class InducedIDTMCFromIPOMDPAndPolicy {
 		static public double[] ComputeReachabilityProbabilities(SimpleIPOMDP simpleIPOMDP, double[] policy, SpecificationDetails specification) throws PrismException {
 			IDTMCSimple<Double> inducedIDTMC = createInducedIDTMC(simpleIPOMDP, policy);
 			return computeReachProbs(inducedIDTMC, specification);
@@ -302,22 +302,18 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		static private MCRewards<Double> createRewardStructure(SimpleIPOMDP simpleIPOMDP, double[] policy)
 		{
-			int n = simpleIPOMDP.getNumStates();
-			MDPRewardsSimple rewards = new MDPRewardsSimple<>(n);
-			for (int s = 0; s < n; s++)
+			StateRewardsSimple<Double> rewards = new StateRewardsSimple<>();
+			for (int s = 0; s < simpleIPOMDP.getNumStates(); s++)
 				rewards.setStateReward(s, simpleIPOMDP.stateRewards[s]);
 
 			for (int s : simpleIPOMDP.actionStates) {
-				double cumulative = (double) rewards.getStateReward(s);
+				double cumulative = rewards.getStateReward(s);
 				for (int k = 0; k <= 1; k++)
 					cumulative = cumulative + policy[2 * s + k] * simpleIPOMDP.transitionRewards[2 * s + k];
 				rewards.setStateReward(s, cumulative);
 			}
 
-			int[] dummyStrategy = new int[n];
-			MCRewardsFromMDPRewards<Double> castRewards = new MCRewardsFromMDPRewards<>(rewards, dummyStrategy);
-
-			return castRewards;
+			return rewards;
 		}
 
 		static private double[] computeReachProbs(IDTMCSimple<Double> IDTMC, SpecificationDetails specification) throws PrismException
@@ -344,15 +340,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			return res.soln;
 		}
 	}
-
+	
 	static private class VariableHandler {
 		static public double[] getVariablesForInitialIPOMDP(Variables mainVariables, TransformIntoSimpleIPOMDP transformationProcess)
 		{
 			int[] gadget = transformationProcess.getGadgetMapping();
-			double[] initialProb = new double[gadget.length];
+			double[] initialVar = new double[gadget.length];
 			for (int i = 0; i < gadget.length; i++)
-				initialProb[i] = mainVariables.main[ gadget[i] ];
-			return initialProb;
+				initialVar[i] = mainVariables.main[ gadget[i] ];
+			return initialVar;
 		}
 
 		static public void initialiseVariables(Variables mainVariables, SimpleIPOMDP simpleIPOMDP, SpecificationDetails simpleSpecification) throws PrismException
@@ -371,9 +367,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 			double[] main;
 			if (simpleSpecification.isRewardSpecification)
-				main = InducedDTMCFromIPOMDPAndPolicy.ComputeReachabilityRewards(simpleIPOMDP, policy, simpleSpecification);
+				main = InducedIDTMCFromIPOMDPAndPolicy.ComputeReachabilityRewards(simpleIPOMDP, policy, simpleSpecification);
 			else
-				main = InducedDTMCFromIPOMDPAndPolicy.ComputeReachabilityProbabilities(simpleIPOMDP, policy, simpleSpecification);
+				main = InducedIDTMCFromIPOMDPAndPolicy.ComputeReachabilityProbabilities(simpleIPOMDP, policy, simpleSpecification);
 
 			mainVariables.policy = policy;
 			mainVariables.main = main;
@@ -435,7 +431,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	private class GurobiLinearProgramming {
+	private class LinearProgrammingWithGurobi {
 
 		private SimpleIPOMDP simpleIPOMDP;
 		private SpecificationDetails specification;
@@ -447,7 +443,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private GRBVar policyVars[];
 		private GRBVar penaltyVars[];
 
-		public GurobiLinearProgramming(SimpleIPOMDP simpleIPOMDP, SpecificationDetails specification, Variables mainVariables, Parameters parameters) throws GRBException {
+		public LinearProgrammingWithGurobi(SimpleIPOMDP simpleIPOMDP, SpecificationDetails specification, Variables mainVariables, Parameters parameters) throws GRBException {
 			this.simpleIPOMDP = simpleIPOMDP;
 			this.specification = specification;
 			this.mainVariables = mainVariables;
@@ -480,9 +476,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			// Extract optimal probabilities/rewards
 			double[] main;
 			if (specification.isRewardSpecification)
-				main = InducedDTMCFromIPOMDPAndPolicy.ComputeReachabilityRewards(simpleIPOMDP, policy, specification);
+				main = InducedIDTMCFromIPOMDPAndPolicy.ComputeReachabilityRewards(simpleIPOMDP, policy, specification);
 			else
-				main = InducedDTMCFromIPOMDPAndPolicy.ComputeReachabilityProbabilities(simpleIPOMDP, policy, specification);
+				main = InducedIDTMCFromIPOMDPAndPolicy.ComputeReachabilityProbabilities(simpleIPOMDP, policy, specification);
 
 			// Dispose of model and environment
 			model.dispose();
@@ -594,18 +590,18 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private void addConstraintsForTrustRegions() throws GRBException
 		{
 			int numStates = simpleIPOMDP.getNumStates();
-			double[] prob = mainVariables.main;
+			double[] main = mainVariables.main;
 			double[] policy = mainVariables.policy;
-			double trustRegion = parameters.trustRegion + 1;
+			double trustRegion = parameters.trustRegion + 2;
 
 			for (int s = 0; s < numStates; s++) {
 				GRBLinExpr firstConstraint = new GRBLinExpr();
 				firstConstraint.addTerm(1.0, mainVars[s]);
-				model.addConstr(firstConstraint, GRB.GREATER_EQUAL, prob[s] / trustRegion, "trustRegionProbLeft" + s);
+				model.addConstr(firstConstraint, GRB.GREATER_EQUAL, main[s] / trustRegion, "trustRegionMainLeft" + s);
 
 				GRBLinExpr secondConstraint = new GRBLinExpr();
 				secondConstraint.addTerm(1.0, mainVars[s]);
-				model.addConstr(secondConstraint, GRB.LESS_EQUAL, prob[s] * trustRegion, "trustRegionProbRight" + s);
+				model.addConstr(secondConstraint, GRB.LESS_EQUAL, main[s] * trustRegion, "trustRegionMainRight" + s);
 			}
 
 			for (int s : simpleIPOMDP.actionStates)
@@ -816,7 +812,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		Variables variablesOld = new Variables();
 		VariableHandler.initialiseVariables(variablesOld, simpleIPOMDP, simpleSpecification);
 
-		double objectiveOld = 0.0;
+		double objectiveOld;
 		objectiveOld = (simpleSpecification.isRewardSpecification ? 1e6 : 1.0);
 		objectiveOld = (simpleSpecification.objectiveDirection == GRB.MAXIMIZE ? 1 - objectiveOld : objectiveOld);
 
@@ -824,7 +820,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			Variables variablesNew;
 			// Solve the Linear Programming
 			try {
-				GurobiLinearProgramming gurobiLP = new GurobiLinearProgramming(simpleIPOMDP, simpleSpecification, variablesOld, parameters);
+				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(simpleIPOMDP, simpleSpecification, variablesOld, parameters);
 				variablesNew = gurobiLP.solveAndGetOptimalVariables();
 			} catch (GRBException e) {
 				throw new PrismException("Error solving LP: " +  e.getMessage());
