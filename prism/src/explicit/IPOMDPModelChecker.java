@@ -47,21 +47,23 @@ import strat.MDStrategyArray;
 import strat.Strategy;
 import gurobi.*;
 
+import java.lang.Math;
+
 /**
  * Explicit-state model checker for interval Markov decision prcoesses (IMDPs).
  */
 public class IPOMDPModelChecker extends ProbModelChecker
 {
-	private class Edge <X, Y> {
-		public final X state;
-		public final Y interval;
-		public Edge(X state, Y interval) {
+	private class Edge {
+		public final int state;
+		public final Interval<Double> interval;
+		public Edge(int state, Interval<Double> interval) {
 			this.state = state;
 			this.interval= interval;
 		}
 	}
 
-	private class Distribution extends ArrayList<Edge<Integer, Interval<Double>>> {
+	private class Distribution extends ArrayList<Edge> {
 	}
 	private class TransformIntoSimpleIPOMDP {
 		private SimpleIPOMDP simpleIPOMDP;
@@ -117,7 +119,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			Arrays.fill(gadget, -1);
 
 			// List of states showing the order in which states were created in the binary/simple variant
-			 traversal = new ArrayList<>();
+			traversal = new ArrayList<>();
 
 			// Representation of the support graph
 			ArrayList<Integer> uncertainStates = new ArrayList<Integer>();
@@ -227,12 +229,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					int currState = gadget[s];
 					int numChoices = ipomdp.getNumChoices(s);
 					for (int choice = 0; choice < numChoices - 2; choice++) {
-						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, choice);
+						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, numChoices - 1 - choice);
 						currState = simpleIPOMDP.transitions[currState].get(0).state;
 					}
 
-					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(s, numChoices - 2);
-					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, numChoices - 1);
+					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, 1);
+					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(s, 0);
 				}
 			}
 		}
@@ -281,7 +283,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 			// Add transitions from uncertain states
 			for (int state : simpleIPOMDP.uncertainStates)
-				for (Edge<Integer, Interval<Double>> transition : simpleIPOMDP.transitions[state]) {
+				for (Edge transition : simpleIPOMDP.transitions[state]) {
 					int successor = transition.state;
 					Interval<Double> interval = transition.interval;
 
@@ -340,7 +342,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			return res.soln;
 		}
 	}
-	
+
 	static private class VariableHandler {
 		static public double[] getVariablesForInitialIPOMDP(Variables mainVariables, TransformIntoSimpleIPOMDP transformationProcess)
 		{
@@ -362,7 +364,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 			for (int s : simpleIPOMDP.actionStates) {
 				policy[2 * s] = 0.5;
-				policy[2 * s + 1] = 0.5;
+				policy[2 * s + 1] = 1 - policy[2 * s];
 			}
 
 			double[] main;
@@ -490,6 +492,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private void initialiseModelAndVariables(SimpleIPOMDP simpleIPOMDP) throws GRBException {
 			int n = simpleIPOMDP.getNumStates();
 			this.env = new GRBEnv("gurobi.log");
+			env.set(GRB.IntParam.OutputFlag, 0);
+			env.start();
+
 			this.model = new GRBModel(env);
 			this.mainVars = new GRBVar[n];
 			this.policyVars = new GRBVar[2 * n];
@@ -592,7 +597,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			int numStates = simpleIPOMDP.getNumStates();
 			double[] main = mainVariables.main;
 			double[] policy = mainVariables.policy;
-			double trustRegion = parameters.trustRegion + 2;
+			double trustRegion = parameters.trustRegion + 1;
 
 			for (int s = 0; s < numStates; s++) {
 				GRBLinExpr firstConstraint = new GRBLinExpr();
@@ -635,7 +640,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 				// Populate successors and determine vector g
 				for (int i = 0; i < n; i++) {
-					Edge<Integer, Interval<Double>> transition = simpleIPOMDP.transitions[s].get(i);
+					Edge transition = simpleIPOMDP.transitions[s].get(i);
 
 					successors.add(transition.state);
 					g[2 * i] = -transition.interval.getLower();
@@ -715,13 +720,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			int[] leaderOfObservation = new int[n];
 			for (int s = n - 1; s >= 0; s--)
 				leaderOfObservation[ simpleIPOMDP.observations[s] ] = s;
-
-			for (int s : simpleIPOMDP.uncertainStates) {
-				int idx = leaderOfObservation[ simpleIPOMDP.observations[s] ];
-				GRBLinExpr observationBased = new GRBLinExpr();
-				observationBased.addTerm(1.0, policyVars[2 * s]);
-				model.addConstr(observationBased, GRB.EQUAL, policyVars[2 * idx], "policyObservation" + s);
-			}
 
 			for (int s : simpleIPOMDP.actionStates)
 				for (int k = 0; k <= 1; k++) {
@@ -809,33 +807,33 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
 		// Initialise policy and therefore reaching probability vector
-		Variables variablesOld = new Variables();
-		VariableHandler.initialiseVariables(variablesOld, simpleIPOMDP, simpleSpecification);
+		Variables variablesCurr = new Variables();
+		VariableHandler.initialiseVariables(variablesCurr, simpleIPOMDP, simpleSpecification);
 
-		double objectiveOld;
-		objectiveOld = (simpleSpecification.isRewardSpecification ? 1e6 : 1.0);
-		objectiveOld = (simpleSpecification.objectiveDirection == GRB.MAXIMIZE ? 1 - objectiveOld : objectiveOld);
+		double objectiveCurr;
+		objectiveCurr = (simpleSpecification.isRewardSpecification ? 1e6 : 1.0);
+		objectiveCurr = (simpleSpecification.objectiveDirection == GRB.MAXIMIZE ? 1 - objectiveCurr : objectiveCurr);
 
 		while (parameters.trustRegion > parameters.regionThreshold) {
 			Variables variablesNew;
 			// Solve the Linear Programming
 			try {
-				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(simpleIPOMDP, simpleSpecification, variablesOld, parameters);
+				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(simpleIPOMDP, simpleSpecification, variablesCurr, parameters);
 				variablesNew = gurobiLP.solveAndGetOptimalVariables();
 			} catch (GRBException e) {
 				throw new PrismException("Error solving LP: " +  e.getMessage());
 			}
 
 			double objectiveNew = variablesNew.main[0];
-			if (simpleSpecification.objectiveDirection * objectiveNew < simpleSpecification.objectiveDirection * objectiveOld) {
-				variablesOld = variablesNew;
-				objectiveOld = objectiveNew;
+			if (simpleSpecification.objectiveDirection * objectiveNew < simpleSpecification.objectiveDirection * objectiveCurr) {
+				variablesCurr = variablesNew;
+				objectiveCurr = objectiveNew;
 				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
 			} else {
 				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
 			}
 		}
 
-		return variablesOld;
+		return variablesCurr;
 	}
 }
