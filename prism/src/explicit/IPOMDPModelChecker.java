@@ -323,7 +323,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
 			modelChecker.setLog(new PrismDevNullLog());
-			modelChecker.setMaxIters(100);
+			modelChecker.setMaxIters(1000);
 			modelChecker.setErrorOnNonConverge(false);
 
 			ModelCheckerResult res = modelChecker.computeReachProbs(IDTMC, specification.target, specification.minMax);
@@ -335,7 +335,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
 			modelChecker.setLog(new PrismDevNullLog());
-			modelChecker.setMaxIters(1000);
+			modelChecker.setMaxIters(2500);
 			modelChecker.setErrorOnNonConverge(false);
 			modelChecker.setVerbosity(0);
 			modelChecker.setSilentPrecomputations(true);
@@ -415,8 +415,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		public int penaltyCoefficient;
 		public boolean isRewardSpecification;
 
-		public SpecificationDetails(BitSet target, MinMax minMax, boolean rewardSpecification) {
-			this.target = target;
+		public SpecificationDetails(TransformIntoSimpleIPOMDP transformationProcess, BitSet initTarget, MinMax minMax, boolean rewardSpecification) {
+			this.target = transformationProcess.computeNewTargetGivenInitial(initTarget);
 			this.minMax = minMax;
 			this.isRewardSpecification = rewardSpecification;
 			initialiseForLinearProgramming(minMax);
@@ -800,15 +800,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public Variables applyAlgorithmGivenSimpleIPOMDP(SimpleIPOMDP simpleIPOMDP, TransformIntoSimpleIPOMDP transformationProcess, BitSet target, MinMax minMax, boolean rewardSpecification) throws PrismException
+	public Variables applyAlgorithmGivenSimpleIPOMDP(SimpleIPOMDP simpleIPOMDP, TransformIntoSimpleIPOMDP transformationProcess, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
 	{
-		// Compute specification in the binary/simple version of the IPOMDP
-		SpecificationDetails simpleSpecification = new SpecificationDetails(transformationProcess.computeNewTargetGivenInitial(target), minMax, rewardSpecification);
+		// Compute specification associated with the binary/simple version of the IPOMDP
+		SpecificationDetails simpleSpecification = new SpecificationDetails(transformationProcess, target, minMax, isRewardSpecification);
 
 		// Initialise parameters
 		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
-		// Initialise policy and therefore reaching probability vector
+		// Initialise policy and therefore reaching probabilities/rewards vector
 		Variables variablesCurr = new Variables();
 		VariableHandler.initialiseVariables(variablesCurr, simpleIPOMDP, simpleSpecification);
 
