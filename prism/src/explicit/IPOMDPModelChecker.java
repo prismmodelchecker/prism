@@ -229,12 +229,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					int currState = gadget[s];
 					int numChoices = ipomdp.getNumChoices(s);
 					for (int choice = 0; choice < numChoices - 2; choice++) {
-						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, numChoices - 1 - choice);
+						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, choice + 1);
 						currState = simpleIPOMDP.transitions[currState].get(0).state;
 					}
 
-					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, 1);
 					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(s, 0);
+					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, numChoices - 1);
 				}
 			}
 		}
@@ -330,13 +330,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			return res.soln;
 		}
 
-		static private double[] computeReachRewards(IDTMCSimple<Double> IDTMC, MCRewards<Double> rewards, SpecificationDetails specification) throws PrismException
+		static private double[] computeReachRewards(IDTMC<Double> IDTMC, MCRewards<Double> rewards, SpecificationDetails specification) throws PrismException
 		{
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
 			modelChecker.setLog(new PrismDevNullLog());
-			modelChecker.setMaxIters(100);
+			modelChecker.setMaxIters(1000);
 			modelChecker.setErrorOnNonConverge(false);
+			modelChecker.setVerbosity(0);
+			modelChecker.setSilentPrecomputations(true);
 
 			ModelCheckerResult res = modelChecker.computeReachRewards(IDTMC, rewards, specification.target, specification.minMax);
 			return res.soln;
@@ -832,6 +834,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			} else {
 				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
 			}
+
+			System.out.println(objectiveCurr);
 		}
 
 		return variablesCurr;
