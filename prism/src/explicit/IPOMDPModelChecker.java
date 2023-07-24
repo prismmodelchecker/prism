@@ -349,6 +349,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		static public ArrayList<Double> computeIntervalProbabilitiesWhichGeneratedSolution(int state, double[] main, SimpleIPOMDP simpleIPOMDP) throws GRBException
 		{
 			int n = simpleIPOMDP.transitions[state].size();
+			double epsilon = 1e-2;
 
 			GRBModel model = new GRBModel(env);
 
@@ -360,7 +361,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				intervalProbabilities[i] = model.addVar(transition.interval.getLower(), transition.interval.getUpper(), 0.0, GRB.CONTINUOUS, "interval" + i);
 				recurrence.addTerm(main[transition.state], intervalProbabilities[i]);
 			}
-			model.addConstr(recurrence, GRB.EQUAL, main[state] - simpleIPOMDP.stateRewards[state], "recurrenceConstraint");
+			model.addConstr(recurrence, GRB.GREATER_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] - epsilon, "recurrenceConstraint");
+			model.addConstr(recurrence, GRB.LESS_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] + epsilon, "recurrenceConstraint");
 
 			GRBLinExpr distribution = new GRBLinExpr();
 			for (int i = 0; i < n; i++)
