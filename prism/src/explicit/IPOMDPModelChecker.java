@@ -27,6 +27,7 @@
 package explicit;
 
 import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.*;
 
 import acceptance.AcceptanceReach;
@@ -72,10 +73,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private IPOMDP<Double> initialIPOMDP;
 		private int[] gadget;
 		private ArrayList<Integer> traversal;
+		private ArrayList<Integer>[] randomisedConstruction;
 
 		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards) {
 			this.initialIPOMDP = initialIPOMDP;
 			this.simpleIPOMDP = new SimpleIPOMDP();
+			this.randomisedConstruction = new ArrayList[initialIPOMDP.getNumStates()];
 			determineSupportGraph(initialIPOMDP);
 			determineObservations(initialIPOMDP);
 			determineRewards(initialIPOMDP, rewards);
@@ -144,6 +147,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					transitions[currState] = distribution;
 				}
 
+				// Randomise the list of choices
+				randomisedConstruction[state] = new ArrayList<>();
+				for (int choice = 0; choice < numChoices; choice++)
+					randomisedConstruction[state].add(choice);
+				Collections.shuffle(randomisedConstruction[state]);
+
 				int lastStateAddedFuture = (numChoices == 1 ? lastStateAdded : lastStateAdded + numChoices);
 				for (int choice = 0; choice < numChoices; choice++) {
 					int currState = (numChoices == 1 ? gadget[state] : ++lastStateAdded);
@@ -151,7 +160,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 					uncertainStates.add(currState);
 					Distribution distribution = new Distribution();
-					Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, choice);
+					Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, randomisedConstruction[state].get(choice));
 					while (iterator.hasNext()) {
 						Map.Entry<Integer, Interval<Double>> elem = iterator.next();
 						int successor = elem.getKey();
@@ -221,22 +230,22 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			// If there is no reward structure
 			if (rewards == null) return;
 
-			for (int s = 0; s < ipomdp.getNumStates(); s++) {
-				simpleIPOMDP.stateRewards[ gadget[s] ] = rewards.getStateReward(s);
+			for (int state = 0; state < ipomdp.getNumStates(); state++) {
+				simpleIPOMDP.stateRewards[ gadget[state] ] = rewards.getStateReward(state);
 			}
 
-			for (int s = 0; s < ipomdp.getNumStates(); s++) {
-				if (ipomdp.getNumChoices(s) == 1) simpleIPOMDP.stateRewards[ gadget[s] ] = simpleIPOMDP.stateRewards[ gadget[s] ] + rewards.getTransitionReward(s, 0);
+			for (int state = 0; state < ipomdp.getNumStates(); state++) {
+				if (ipomdp.getNumChoices(state) == 1) simpleIPOMDP.stateRewards[ gadget[state] ] = simpleIPOMDP.stateRewards[ gadget[state] ] + rewards.getTransitionReward(state, 0);
 				else {
-					int currState = gadget[s];
-					int numChoices = ipomdp.getNumChoices(s);
+					int currState = gadget[state];
+					int numChoices = ipomdp.getNumChoices(state);
 					for (int choice = 0; choice < numChoices - 2; choice++) {
-						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, choice + 1);
+						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(state, randomisedConstruction[state].get(choice + 1));
 						currState = simpleIPOMDP.transitions[currState].get(0).state;
 					}
 
-					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(s, 0);
-					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(s, numChoices - 1);
+					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(state, randomisedConstruction[state].get(0));
+					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(state, randomisedConstruction[state].get(numChoices - 1));
 				}
 			}
 		}
@@ -280,14 +289,14 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 		static public ArrayList<Double> computeIntervalProbabilitiesWhichGeneratedSolution(int state, double[] main, SimpleIPOMDP simpleIPOMDP) throws GRBException
 		{
-			int n = simpleIPOMDP.transitions[state].size();
+			int numTransitions = simpleIPOMDP.transitions[state].size();
 			double epsilon = 1e-2;
 
 			GRBModel model = new GRBModel(env);
 
 			GRBLinExpr recurrence = new GRBLinExpr();
-			GRBVar[] intervalProbabilities = new GRBVar[n];
-			for (int i = 0; i < n; i++) {
+			GRBVar[] intervalProbabilities = new GRBVar[numTransitions];
+			for (int i = 0; i < numTransitions; i++) {
 				Edge transition = simpleIPOMDP.transitions[state].get(i);
 
 				intervalProbabilities[i] = model.addVar(transition.interval.getLower(), transition.interval.getUpper(), 0.0, GRB.CONTINUOUS, "interval" + i);
@@ -297,7 +306,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			model.addConstr(recurrence, GRB.LESS_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] + epsilon, "recurrenceConstraint");
 
 			GRBLinExpr distribution = new GRBLinExpr();
-			for (int i = 0; i < n; i++)
+			for (int i = 0; i < numTransitions; i++)
 				distribution.addTerm(1.0, intervalProbabilities[i]);
 			model.addConstr(distribution, GRB.EQUAL, 1.0, "distributionConstraint");
 
@@ -306,7 +315,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 			// Extract the interval probabilities which verify the two equality constraints
 			ArrayList<Double> intervals = new ArrayList<>();
-			for (int i = 0; i < n; i++)
+			for (int i = 0; i < numTransitions; i++)
 				intervals.add(intervalProbabilities[i].get(GRB.DoubleAttr.X));
 
 			// Dispose of model
@@ -530,25 +539,17 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			// Add main objective
 			addObjective();
 
-			System.out.println("preparing...");
-
 			// Optimise the model
 			model.optimize();
 
 			// Extract optimal policy
 			double[] policy = extractOptimalPolicy();
 
-			System.out.println("1 done ...");
-
 			// Compute the rewards/reaching probabilities given the policy
 			double[] main = computeMainUsingPolicy(policy);
 
-			System.out.println("2 done ...");
-
 			// Compute the values of the interval transitions which generated the solution
 			ArrayList<Double>[] intervalProbabilities = computeIntervalProbabilities(main);
-
-			System.out.println("3 done ...");
 
 			// Dispose of model
 			model.dispose();
@@ -980,3 +981,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return variablesCurr;
 	}
 }
+
+// TODO
+/*
+	remove states which cannot lead to goal
+	these have infinity reward
+	should be solvable with graph-based algorithm
+ */
