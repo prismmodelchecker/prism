@@ -503,45 +503,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
-	private class SolutionPoint {
-		private TransformIntoSimpleIPOMDP transformationProcess;
-		private SpecificationForSimpleIPOMDP specification;
-		private Parameters parameters;
-		private Variables variables;
-		private double objective;
-
-		public SolutionPoint(TransformIntoSimpleIPOMDP transformationProcess, SpecificationForSimpleIPOMDP specification, Parameters parameters) throws PrismException {
-			this.transformationProcess = transformationProcess;
-			this.specification = specification;
-			this.parameters = parameters;
-			this.objective = (specification.isRewardSpecification ? 1e6 : 1.0);
-			this.objective = (specification.objectiveDirection == GRB.MAXIMIZE ? 1 - this.objective : this.objective);
-			this.variables = new Variables();
-			VariableHandler.initialiseVariables(this.variables, transformationProcess.simpleIPOMDP, specification);
-		}
-
-		public void GetCloserTowardsOptimum() throws PrismException {
-			Variables newVariables;
-
-			// Solve the Linear Programming
-			try {
-				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(transformationProcess.simpleIPOMDP, specification, variables, parameters);
-				newVariables = gurobiLP.solveAndGetOptimalVariables();
-			} catch (GRBException | PrismException e) {
-				throw new PrismException("Error solving LP... " +  e.getMessage());
-			}
-
-			double newObjective = newVariables.main[0];
-			if (specification.objectiveDirection * newObjective < specification.objectiveDirection * objective) {
-				objective = newObjective;
-				variables = newVariables;
-				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
-			} else {
-				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
-			}
-		}
-	}
-
 	private class LinearProgrammingWithGurobi {
 
 		private SimpleIPOMDP simpleIPOMDP;
@@ -904,6 +865,49 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
+	private class SolutionPoint {
+		private TransformIntoSimpleIPOMDP transformationProcess;
+		private SpecificationForSimpleIPOMDP specification;
+		private Parameters parameters;
+		private Variables variables;
+		private double objective;
+
+		public SolutionPoint(TransformIntoSimpleIPOMDP transformationProcess, SpecificationForSimpleIPOMDP specification, Parameters parameters) throws PrismException {
+			this.transformationProcess = transformationProcess;
+			this.specification = specification;
+			this.parameters = parameters;
+			this.objective = (specification.isRewardSpecification ? 1e6 : 1.0);
+			this.objective = (specification.objectiveDirection == GRB.MAXIMIZE ? 1 - this.objective : this.objective);
+			this.variables = new Variables();
+			VariableHandler.initialiseVariables(this.variables, transformationProcess.simpleIPOMDP, specification);
+		}
+
+		public boolean GetCloserTowardsOptimum() throws PrismException {
+			Variables newVariables;
+
+			if (parameters.trustRegion <= parameters.regionThreshold) return false;
+
+			// Solve the Linear Programming
+			try {
+				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(transformationProcess.simpleIPOMDP, specification, variables, parameters);
+				newVariables = gurobiLP.solveAndGetOptimalVariables();
+			} catch (GRBException | PrismException e) {
+				throw new PrismException("Error solving LP... " +  e.getMessage());
+			}
+
+			double newObjective = newVariables.main[0];
+			if (specification.objectiveDirection * newObjective < specification.objectiveDirection * objective) {
+				objective = newObjective;
+				variables = newVariables;
+				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
+			} else {
+				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
+			}
+
+			return true;
+		}
+	}
+
 	/**
 	 * Create a new IPOMDPModelChecker, inherit basic state from parent (unless null).
 	 */
@@ -961,9 +965,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int queueSize = 5;
-		Queue<SolutionPoint> solutionQueue = new LinkedList<>();
-		for (int i = 0; i < queueSize; i++) {
+		int pruneIterations = 5;
+		int initialSize = 70;
+		ArrayList<SolutionPoint> population = new ArrayList<>();
+		for (int i = 0; i < initialSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
 			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
 
@@ -974,40 +979,39 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
 			// Add solution point to queue
-			solutionQueue.add(new SolutionPoint(transformationProcess, simpleSpecification, parameters));
+			population.add(new SolutionPoint(transformationProcess, simpleSpecification, parameters));
 		}
 
-		int cutOff = 10;
-		double epsilon = 1e-3;
-		while (solutionQueue.size() > 1) {
-			if (cutOff > 0) cutOff = cutOff - 1;
+		int numIterations = 0;
+		while (population.size() > 1) {
+			numIterations = numIterations + 1;
 
 			// First phase: advance the solution points towards the optimum
-			Queue<SolutionPoint> tempQueue = new LinkedList<>();
-			double bestObjective = 1e6; // TODO
-			while (solutionQueue.size() > 0) {
-				SolutionPoint solutionPoint = solutionQueue.remove();
+			for (int i = 0; i < population.size(); i++) {
+				SolutionPoint solutionPoint = population.get(i);
 				solutionPoint.GetCloserTowardsOptimum();
-				tempQueue.add(solutionPoint);
-
-				if (cutOff > 0) continue;
-				if (solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection * bestObjective)
-					bestObjective = solutionPoint.objective;
+				population.set(i, solutionPoint);
 			}
 
-			// Second phase: filter the solution points which are undesirable
-			while (tempQueue.size() > 0) {
-				SolutionPoint solutionPoint = tempQueue.remove();
+			// Determine whether it is time to prune
+			if (numIterations % pruneIterations > 0) continue;
 
-				if (solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection * bestObjective || Math.abs(solutionPoint.objective - bestObjective) <= epsilon)
-					solutionQueue.add(solutionPoint);
-			}
+			// Second phase: prune top half of the worst solutions
+			population.sort(Comparator.comparing((SolutionPoint point) -> point.objective * point.specification.objectiveDirection));
+			int toBeRemoved = (population.size() + 1) / 2;
+			for (int i = 0; i < toBeRemoved; i++)
+				population.remove(population.size() - 1);
 
-			System.out.println(bestObjective);
+			System.out.println(population.get(0).objective);
 		}
 
 		// Extract the remaining solution point
-		SolutionPoint solutionPoint = solutionQueue.remove();
+		SolutionPoint solutionPoint = population.get(0);
+
+		// Converge the point
+		int iterationsLeft = 20;
+		while (solutionPoint.GetCloserTowardsOptimum() == true && iterationsLeft > 0)
+			iterationsLeft = iterationsLeft - 1;
 
 		// Return result vector
 		ModelCheckerResult res = new ModelCheckerResult();
@@ -1015,10 +1019,3 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 }
-
-// TODO
-/*
-	remove states which cannot lead to goal
-	these have infinity reward
-	should be solvable with graph-based algorithm
- */
