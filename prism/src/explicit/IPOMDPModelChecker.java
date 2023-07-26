@@ -954,8 +954,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
-		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		//return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
 	}
 
 	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
@@ -968,7 +968,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 10;
+		int numAttempts = 20;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -1015,9 +1015,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 
 		int pruneIterations = 3;
-		int initialSize = 10;
+		int populationSize = 20;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
-		for (int i = 0; i < initialSize; i++) {
+		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
 			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
 
@@ -1031,19 +1031,14 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			population.add(new SolutionPoint(transformationProcess, simpleSpecification, parameters));
 		}
 
-		int numIterations = 0;
 		while (population.size() > 1) {
-			numIterations = numIterations + 1;
-
 			// First phase: advance the solution points towards the optimum
 			for (int i = 0; i < population.size(); i++) {
 				SolutionPoint solutionPoint = population.get(i);
-				solutionPoint.GetCloserTowardsOptimum();
+				for (int iterations = 0; iterations < pruneIterations; iterations++)
+					solutionPoint.GetCloserTowardsOptimum();
 				population.set(i, solutionPoint);
 			}
-
-			// Determine whether it is time to prune
-			if (numIterations % pruneIterations > 0) continue;
 
 			// Second phase: prune top half of the worst solutions
 			population.sort(Comparator.comparing((SolutionPoint point) -> point.objective * point.specification.objectiveDirection));
