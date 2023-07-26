@@ -73,12 +73,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private IPOMDP<Double> initialIPOMDP;
 		private int[] gadget;
 		private ArrayList<Integer> traversal;
-		private ArrayList<Integer>[] randomisedConstruction;
+		private ArrayList<Integer>[] randomisedChoicesForState;
 
 		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards) {
 			this.initialIPOMDP = initialIPOMDP;
 			this.simpleIPOMDP = new SimpleIPOMDP();
-			this.randomisedConstruction = new ArrayList[initialIPOMDP.getNumStates()];
+			this.randomisedChoicesForState = new ArrayList[initialIPOMDP.getNumStates()];
 			determineSupportGraph(initialIPOMDP);
 			determineObservations(initialIPOMDP);
 			determineRewards(initialIPOMDP, rewards);
@@ -131,6 +131,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			ArrayList<Integer> actionStates = new ArrayList<Integer>();
 			Distribution[] transitions = new Distribution[numStatesAfterProcess];
 
+			// Each observation will have a randomised list of actions
+			ArrayList<Integer>[] randomisedChoicesForObservation = new ArrayList[numStates];
+
 			int lastStateAdded = -1;
 			for (int state = 0; state < ipomdp.getNumStates(); state++) {
 				if (gadget[state] < 0) gadget[state] = ++lastStateAdded;
@@ -147,11 +150,17 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					transitions[currState] = distribution;
 				}
 
-				// Randomise the list of choices
-				randomisedConstruction[state] = new ArrayList<>();
-				for (int choice = 0; choice < numChoices; choice++)
-					randomisedConstruction[state].add(choice);
-				Collections.shuffle(randomisedConstruction[state]);
+				// Randomise the list of choices for the current observation
+				int obs = ipomdp.getObservation(state);
+				if (randomisedChoicesForObservation[obs] == null) {
+					randomisedChoicesForObservation[obs] = new ArrayList<>();
+					for (int choice = 0; choice < numChoices; choice++)
+						randomisedChoicesForObservation[obs].add(choice);
+					Collections.shuffle(randomisedChoicesForObservation[obs]);
+				}
+
+				// Assign the randomised list of choices to the current state
+				randomisedChoicesForState[state] = randomisedChoicesForObservation[obs];
 
 				int lastStateAddedFuture = (numChoices == 1 ? lastStateAdded : lastStateAdded + numChoices);
 				for (int choice = 0; choice < numChoices; choice++) {
@@ -160,7 +169,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 					uncertainStates.add(currState);
 					Distribution distribution = new Distribution();
-					Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, randomisedConstruction[state].get(choice));
+					Iterator<Map.Entry<Integer, Interval<Double>>> iterator = ipomdp.getTransitionsIterator(state, randomisedChoicesForState[state].get(choice));
 					while (iterator.hasNext()) {
 						Map.Entry<Integer, Interval<Double>> elem = iterator.next();
 						int successor = elem.getKey();
@@ -240,12 +249,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					int currState = gadget[state];
 					int numChoices = ipomdp.getNumChoices(state);
 					for (int choice = 0; choice < numChoices - 2; choice++) {
-						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(state, randomisedConstruction[state].get(choice + 1));
+						simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(state, randomisedChoicesForState[state].get(choice + 1));
 						currState = simpleIPOMDP.transitions[currState].get(0).state;
 					}
 
-					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(state, randomisedConstruction[state].get(0));
-					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(state, randomisedConstruction[state].get(numChoices - 1));
+					simpleIPOMDP.transitionRewards[2 * currState] = rewards.getTransitionReward(state, randomisedChoicesForState[state].get(0));
+					simpleIPOMDP.transitionRewards[2 * currState + 1] = rewards.getTransitionReward(state, randomisedChoicesForState[state].get(numChoices - 1));
 				}
 			}
 		}
@@ -954,8 +963,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		//return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
-		return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
 	}
 
 	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
@@ -968,7 +977,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 20;
+		int numAttempts = 40;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
