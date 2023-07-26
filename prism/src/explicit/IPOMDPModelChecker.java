@@ -872,6 +872,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private Variables variables;
 		private double objective;
 
+		public SolutionPoint() {}
+
 		public SolutionPoint(TransformIntoSimpleIPOMDP transformationProcess, SpecificationForSimpleIPOMDP specification, Parameters parameters) throws PrismException {
 			this.transformationProcess = transformationProcess;
 			this.specification = specification;
@@ -940,7 +942,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyAlgorithmGivenSimpleIPOMDP(ipomdp, null, target, minMax, false);
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, null, target, minMax, false);
 	}
 
 	/**
@@ -952,10 +954,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
 	}
 
-	public ModelCheckerResult applyAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -965,8 +968,54 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int pruneIterations = 5;
-		int initialSize = 70;
+		int numAttempts = 10;
+		boolean hasBeenAssigned = false;
+		SolutionPoint bestPoint = new SolutionPoint();
+		for (int i = 0; i < numAttempts; i++) {
+			// Construct the binary/simple version of the IPOMDP
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
+
+			// Compute specification associated with the binary/simple version of the IPOMDP
+			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, target, minMax, isRewardSpecification);
+
+			// Initialise parameters
+			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
+
+			// Create solution point
+			SolutionPoint solutionPoint = new SolutionPoint(transformationProcess, simpleSpecification, parameters);
+
+			// Converge the point
+			int iterationsLeft = 20;
+			while (solutionPoint.GetCloserTowardsOptimum() == true && iterationsLeft > 0)
+				iterationsLeft = iterationsLeft - 1;
+
+			// Update the best point
+			if (hasBeenAssigned == false || solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection *  bestPoint.objective) {
+				hasBeenAssigned = true;
+				bestPoint = solutionPoint;
+			}
+
+			System.out.println(solutionPoint.objective);
+		}
+
+		// Return result vector
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = VariableHandler.getVariablesForInitialIPOMDP(bestPoint.variables, bestPoint.transformationProcess);
+		return res;
+	}
+
+	public ModelCheckerResult applyGeneticAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	{
+		try {
+			env = new GRBEnv("gurobi.log");
+			env.set(GRB.IntParam.OutputFlag, 0);
+			env.start();
+		} catch (GRBException e) {
+			throw new PrismException("Could not initialise... " +  e.getMessage());
+		}
+
+		int pruneIterations = 3;
+		int initialSize = 10;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < initialSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
