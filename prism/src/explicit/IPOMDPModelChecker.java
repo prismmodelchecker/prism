@@ -503,6 +503,45 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 	}
 
+	private class SolutionPoint {
+		private TransformIntoSimpleIPOMDP transformationProcess;
+		private SpecificationForSimpleIPOMDP specification;
+		private Parameters parameters;
+		private Variables variables;
+		private double objective;
+
+		public SolutionPoint(TransformIntoSimpleIPOMDP transformationProcess, SpecificationForSimpleIPOMDP specification, Parameters parameters) throws PrismException {
+			this.transformationProcess = transformationProcess;
+			this.specification = specification;
+			this.parameters = parameters;
+			this.objective = (specification.isRewardSpecification ? 1e6 : 1.0);
+			this.objective = (specification.objectiveDirection == GRB.MAXIMIZE ? 1 - this.objective : this.objective);
+			this.variables = new Variables();
+			VariableHandler.initialiseVariables(this.variables, transformationProcess.simpleIPOMDP, specification);
+		}
+
+		public void GetCloserTowardsOptimum() throws PrismException {
+			Variables newVariables;
+
+			// Solve the Linear Programming
+			try {
+				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(transformationProcess.simpleIPOMDP, specification, variables, parameters);
+				newVariables = gurobiLP.solveAndGetOptimalVariables();
+			} catch (GRBException | PrismException e) {
+				throw new PrismException("Error solving LP... " +  e.getMessage());
+			}
+
+			double newObjective = newVariables.main[0];
+			if (specification.objectiveDirection * newObjective < specification.objectiveDirection * objective) {
+				objective = newObjective;
+				variables = newVariables;
+				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
+			} else {
+				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
+			}
+		}
+	}
+
 	private class LinearProgrammingWithGurobi {
 
 		private SimpleIPOMDP simpleIPOMDP;
@@ -897,17 +936,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		// Construct the binary/simple version of the IPOMDP
-		TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, null);
-		SimpleIPOMDP simpleIPOMDP = transformationProcess.getSimpleIPOMDP();
-
-		// Compute the optimal policy and probabilities
-		Variables optimalVariables = applyAlgorithmGivenSimpleIPOMDP(simpleIPOMDP, transformationProcess, target, minMax, false);
-
-		// Return result vector
-		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = VariableHandler.getVariablesForInitialIPOMDP(optimalVariables, transformationProcess);
-		return res;
+		return applyAlgorithmGivenSimpleIPOMDP(ipomdp, null, target, minMax, false);
 	}
 
 	/**
@@ -919,20 +948,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		// Construct the binary/simple version of the IPOMDP
-		TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
-		SimpleIPOMDP simpleIPOMDP = transformationProcess.getSimpleIPOMDP();
-
-		// Compute the optimal policy and probabilities
-		Variables optimalVariables = applyAlgorithmGivenSimpleIPOMDP(simpleIPOMDP, transformationProcess, target, minMax, true);
-
-		// Return result vector
-		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = VariableHandler.getVariablesForInitialIPOMDP(optimalVariables, transformationProcess);
-		return res;
+		return applyAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
 	}
 
-	public Variables applyAlgorithmGivenSimpleIPOMDP(SimpleIPOMDP simpleIPOMDP, TransformIntoSimpleIPOMDP transformationProcess, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	public ModelCheckerResult applyAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -942,43 +961,58 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		// Compute specification associated with the binary/simple version of the IPOMDP
-		SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, target, minMax, isRewardSpecification);
+		int queueSize = 5;
+		Queue<SolutionPoint> solutionQueue = new LinkedList<>();
+		for (int i = 0; i < queueSize; i++) {
+			// Construct the binary/simple version of the IPOMDP
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
 
-		// Initialise parameters
-		Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
+			// Compute specification associated with the binary/simple version of the IPOMDP
+			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, target, minMax, isRewardSpecification);
 
-		// Initialise policy and therefore reaching probabilities/rewards vector
-		Variables variablesCurr = new Variables();
-		VariableHandler.initialiseVariables(variablesCurr, simpleIPOMDP, simpleSpecification);
+			// Initialise parameters
+			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
-		double objectiveCurr;
-		objectiveCurr = (simpleSpecification.isRewardSpecification ? 1e6 : 1.0);
-		objectiveCurr = (simpleSpecification.objectiveDirection == GRB.MAXIMIZE ? 1 - objectiveCurr : objectiveCurr);
-
-		while (parameters.trustRegion > parameters.regionThreshold) {
-			Variables variablesNew;
-			// Solve the Linear Programming
-			try {
-				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(simpleIPOMDP, simpleSpecification, variablesCurr, parameters);
-				variablesNew = gurobiLP.solveAndGetOptimalVariables();
-			} catch (GRBException e) {
-				throw new PrismException("Error solving LP... " +  e.getMessage());
-			}
-
-			double objectiveNew = variablesNew.main[0];
-			if (simpleSpecification.objectiveDirection * objectiveNew < simpleSpecification.objectiveDirection * objectiveCurr) {
-				variablesCurr = variablesNew;
-				objectiveCurr = objectiveNew;
-				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
-			} else {
-				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
-			}
-
-			System.out.println(objectiveCurr);
+			// Add solution point to queue
+			solutionQueue.add(new SolutionPoint(transformationProcess, simpleSpecification, parameters));
 		}
 
-		return variablesCurr;
+		int cutOff = 10;
+		double epsilon = 1e-3;
+		while (solutionQueue.size() > 1) {
+			if (cutOff > 0) cutOff = cutOff - 1;
+
+			// First phase: advance the solution points towards the optimum
+			Queue<SolutionPoint> tempQueue = new LinkedList<>();
+			double bestObjective = 1e6; // TODO
+			while (solutionQueue.size() > 0) {
+				SolutionPoint solutionPoint = solutionQueue.remove();
+				solutionPoint.GetCloserTowardsOptimum();
+				tempQueue.add(solutionPoint);
+
+				if (cutOff > 0) continue;
+				if (solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection * bestObjective)
+					bestObjective = solutionPoint.objective;
+			}
+
+			// Second phase: filter the solution points which are undesirable
+			while (tempQueue.size() > 0) {
+				SolutionPoint solutionPoint = tempQueue.remove();
+
+				if (solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection * bestObjective || Math.abs(solutionPoint.objective - bestObjective) <= epsilon)
+					solutionQueue.add(solutionPoint);
+			}
+
+			System.out.println(bestObjective);
+		}
+
+		// Extract the remaining solution point
+		SolutionPoint solutionPoint = solutionQueue.remove();
+
+		// Return result vector
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = VariableHandler.getVariablesForInitialIPOMDP(solutionPoint.variables, solutionPoint.transformationProcess);
+		return res;
 	}
 }
 
