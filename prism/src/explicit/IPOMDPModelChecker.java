@@ -380,7 +380,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
 			modelChecker.setLog(new PrismDevNullLog());
-			modelChecker.setMaxIters(1000);
+			modelChecker.setMaxIters(2000);
 			modelChecker.setErrorOnNonConverge(false);
 
 			ModelCheckerResult res = modelChecker.computeReachProbs(IDTMC, specification.target, specification.minMax);
@@ -392,7 +392,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
 			modelChecker.setLog(new PrismDevNullLog());
-			modelChecker.setMaxIters(3000);
+			modelChecker.setMaxIters(5000);
 			modelChecker.setErrorOnNonConverge(false);
 			modelChecker.setVerbosity(0);
 			modelChecker.setSilentPrecomputations(true);
@@ -881,6 +881,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private Parameters parameters;
 		private Variables variables;
 		private double objective;
+		private int iterationsLeft;
 
 		public SolutionPoint() {}
 
@@ -888,6 +889,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			this.transformationProcess = transformationProcess;
 			this.specification = specification;
 			this.parameters = parameters;
+			this.iterationsLeft = 50;
 			this.objective = (specification.isRewardSpecification ? 1e6 : 1.0);
 			this.objective = (specification.objectiveDirection == GRB.MAXIMIZE ? 1 - this.objective : this.objective);
 			this.variables = new Variables();
@@ -897,7 +899,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		public boolean GetCloserTowardsOptimum() throws PrismException {
 			Variables newVariables;
 
-			if (parameters.trustRegion <= parameters.regionThreshold) return false;
+			if (parameters.trustRegion <= parameters.regionThreshold || iterationsLeft == 0) return false;
+			else iterationsLeft = iterationsLeft - 1;
 
 			// Solve the Linear Programming
 			try {
@@ -964,8 +967,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
-		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		//return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
 	}
 
 	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
@@ -978,7 +981,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 1;
+		int numAttempts = 20;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -995,17 +998,13 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			SolutionPoint solutionPoint = new SolutionPoint(transformationProcess, simpleSpecification, parameters);
 
 			// Converge the point
-			int iterationsLeft = 30;
-			while (solutionPoint.GetCloserTowardsOptimum() == true && iterationsLeft > 0)
-				iterationsLeft = iterationsLeft - 1;
+			while (solutionPoint.GetCloserTowardsOptimum() == true);
 
 			// Update the best point
 			if (hasBeenAssigned == false || solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection *  bestPoint.objective) {
 				hasBeenAssigned = true;
 				bestPoint = solutionPoint;
 			}
-
-			System.out.println(solutionPoint.objective);
 		}
 
 		// Return result vector
@@ -1024,8 +1023,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int pruneIterations = 5;
-		int populationSize = 32;
+		int pruneIterations = 4;
+		int populationSize = 128;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
@@ -1063,9 +1062,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		SolutionPoint solutionPoint = population.get(0);
 
 		// Converge the point
-		int iterationsLeft = 20;
-		while (solutionPoint.GetCloserTowardsOptimum() == true && iterationsLeft > 0)
-			iterationsLeft = iterationsLeft - 1;
+		while (solutionPoint.GetCloserTowardsOptimum() == true);
 
 		// Return result vector
 		ModelCheckerResult res = new ModelCheckerResult();
