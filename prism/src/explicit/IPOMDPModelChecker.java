@@ -100,15 +100,31 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			return this.initialIPOMDP;
 		}
 
-		public BitSet computeNewTargetGivenInitial(BitSet initialTarget) {
-			BitSet target = new BitSet();
-			int indexOfGoalState = initialTarget.nextSetBit(0);
+		public BitSet computeTransformationTarget(BitSet initTarget) {
+			BitSet updatedTarget = new BitSet();
+			int indexOfGoalState = initTarget.nextSetBit(0);
 			while (indexOfGoalState >= 0) {
-				target.set(gadget[indexOfGoalState]);
-				indexOfGoalState = initialTarget.nextSetBit(indexOfGoalState + 1);
+				updatedTarget.set(gadget[indexOfGoalState]);
+				indexOfGoalState = initTarget.nextSetBit(indexOfGoalState + 1);
 			}
 
-			return target;
+			return updatedTarget;
+		}
+
+		public BitSet computeTransformationRemain(BitSet initRemain) {
+			// Flip the initial bitset to get bad states
+			initRemain.flip(0, initRemain.size() - 1);
+
+			BitSet updatedRemain = new BitSet();
+			int indexOfGoalState = initRemain.nextSetBit(0);
+			while (indexOfGoalState >= 0 && indexOfGoalState < gadget.length) {
+				updatedRemain.set(gadget[indexOfGoalState]);
+				indexOfGoalState = initRemain.nextSetBit(indexOfGoalState + 1);
+			}
+
+			// Flip the updated bitset to get good states
+			updatedRemain.flip(0, updatedRemain.size());
+			return updatedRemain;
 		}
 
 		private void determineSupportGraph(IPOMDP<Double> ipomdp) {
@@ -383,7 +399,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			modelChecker.setMaxIters(2000);
 			modelChecker.setErrorOnNonConverge(false);
 
-			ModelCheckerResult res = modelChecker.computeReachProbs(IDTMC, specification.target, specification.minMax);
+			ModelCheckerResult res = modelChecker.computeReachProbs(IDTMC, specification.remain, specification.target, specification.minMax);
 			return res.soln;
 		}
 
@@ -435,6 +451,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			ArrayList<Double>[] intervalProbabilities = new ArrayList[numStates];
 			for (int state : simpleIPOMDP.uncertainStates) {
 				if (simpleSpecification.target.get(state)) continue;
+				if (!simpleSpecification.remain.get(state)) continue;
 				if (simpleSpecification.uncertaintyQuantifier == 'A') continue;
 				try {
 					intervalProbabilities[state] = InducedIDTMCFromIPOMDPAndPolicy.computeIntervalProbabilitiesWhichGeneratedSolution(state, main, simpleIPOMDP);
@@ -479,7 +496,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	}
 
 	private class SpecificationForSimpleIPOMDP {
-
+		public BitSet remain;
 		public BitSet target;
 		public MinMax minMax;
 		public char uncertaintyQuantifier;
@@ -488,8 +505,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		public int penaltyCoefficient;
 		public boolean isRewardSpecification;
 
-		public SpecificationForSimpleIPOMDP(TransformIntoSimpleIPOMDP transformationProcess, BitSet initTarget, MinMax minMax, boolean rewardSpecification) {
-			this.target = transformationProcess.computeNewTargetGivenInitial(initTarget);
+		public SpecificationForSimpleIPOMDP(TransformIntoSimpleIPOMDP transformationProcess, BitSet initRemain, BitSet initTarget, MinMax minMax, boolean rewardSpecification) {
+			this.remain = transformationProcess.computeTransformationRemain(initRemain);
+			this.target = transformationProcess.computeTransformationTarget(initTarget);
 			this.minMax = minMax;
 			this.isRewardSpecification = rewardSpecification;
 			initialiseForLinearProgramming(minMax);
@@ -628,6 +646,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			ArrayList<Double>[] intervalProbabilities = new ArrayList[simpleIPOMDP.getNumStates()];
 			for (int state : simpleIPOMDP.uncertainStates) {
 				if (specification.target.get(state)) continue;
+				if (!specification.remain.get(state)) continue;
 				if (specification.uncertaintyQuantifier == 'A') continue;
 				intervalProbabilities[state] = InducedIDTMCFromIPOMDPAndPolicy.computeIntervalProbabilitiesWhichGeneratedSolution(state, main, simpleIPOMDP);
 			}
@@ -651,6 +670,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			for (int state : simpleIPOMDP.actionStates) {
 				// If current state is part of the target set then skip
 				if (specification.target.get(state)) continue;
+				if (!specification.remain.get(state)) continue;
 
 				GRBLinExpr constraint = new GRBLinExpr();
 				constraint.addTerm(-1.0, mainVars[state]);
@@ -730,6 +750,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			for (int state : simpleIPOMDP.uncertainStates) {
 				// If current state is part of the target set then skip
 				if (specification.target.get(state)) continue;
+				if (!specification.remain.get(state)) continue;
 
 				int n = simpleIPOMDP.transitions[state].size();
 
@@ -769,11 +790,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		{
 			// We have the constraints a(i) <= u(i) <= b(i) and sum_i u(i) = 1
 			// We encode these into the equation C * u + g >= 0
-			for (int s : simpleIPOMDP.uncertainStates) {
+			for (int state : simpleIPOMDP.uncertainStates) {
 				// If current state is part of the target set then skip
-				if (specification.target.get(s)) continue;
+				if (specification.target.get(state)) continue;
+				if (!specification.remain.get(state)) continue;
 
-				int n = simpleIPOMDP.transitions[s].size();
+				int n = simpleIPOMDP.transitions[state].size();
 				int m = 2 * n + 2;
 
 				// Keep track of the successor states
@@ -784,7 +806,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 
 				// Populate successors and determine vector g
 				for (int i = 0; i < n; i++) {
-					Edge transition = simpleIPOMDP.transitions[s].get(i);
+					Edge transition = simpleIPOMDP.transitions[state].get(i);
 
 					successors.add(transition.state);
 					g[2 * i] = -transition.interval.getLower();
@@ -796,16 +818,16 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				// Create the dual variables
 				GRBVar dualVars[] = new GRBVar[m];
 				for (int i = 0; i < m; i++) {
-					dualVars[i] = model.addVar(0.0, 1e9, 0.0, GRB.CONTINUOUS, "dual" + s + "," + i);
+					dualVars[i] = model.addVar(0.0, 1e9, 0.0, GRB.CONTINUOUS, "dual" + state + "," + i);
 				}
 
 				// Introduce the probability inequality
 				GRBLinExpr inequality = new GRBLinExpr();
-				inequality.addTerm(-1.0, mainVars[s]);
+				inequality.addTerm(-1.0, mainVars[state]);
 				for (int i = 0; i < m; i++) {
 					inequality.addTerm(g[i], dualVars[i]);
 				}
-				model.addConstr(inequality, specification.inequalityDirection, -simpleIPOMDP.stateRewards[s], "dualizationInequality" + s);
+				model.addConstr(inequality, specification.inequalityDirection, -simpleIPOMDP.stateRewards[state], "dualizationInequality" + state);
 
 				// Introduce the dualization constraints
 				for (int i = 0; i < n; i++) {
@@ -819,7 +841,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					constraint.addTerm(1.0, dualVars[2 * n]);
 					constraint.addTerm(-1.0, dualVars[2 * n + 1]);
 
-					model.addConstr(constraint, GRB.EQUAL, 0.0, "dualizationConstraint" + s + "," + i);
+					model.addConstr(constraint, GRB.EQUAL, 0.0, "dualizationConstraint" + state + "," + i);
 				}
 			}
 		}
@@ -955,7 +977,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, null, target, minMax, false);
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, null, remain, target, minMax, false);
 	}
 
 	/**
@@ -967,11 +989,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		//return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
-		return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, target, minMax, true);
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, null, target, minMax, true);
+		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, null, target, minMax, true);
 	}
 
-	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -981,7 +1003,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 20;
+		int numAttempts = 1;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -989,7 +1011,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
-			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, target, minMax, isRewardSpecification);
+			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
 
 			// Initialise parameters
 			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
@@ -1013,7 +1035,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public ModelCheckerResult applyGeneticAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	public ModelCheckerResult applyGeneticAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -1031,7 +1053,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
-			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, target, minMax, isRewardSpecification);
+			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
 
 			// Initialise parameters
 			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
