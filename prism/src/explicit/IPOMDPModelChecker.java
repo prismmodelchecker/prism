@@ -299,7 +299,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		static public ArrayList<Double> computeIntervalProbabilitiesWhichGeneratedSolution(int state, double[] main, SimpleIPOMDP simpleIPOMDP) throws GRBException
 		{
 			int numTransitions = simpleIPOMDP.transitions[state].size();
-			double epsilon = 1e-2;
+			double epsilon = 1e-3;
 
 			GRBModel model = new GRBModel(env);
 
@@ -392,7 +392,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
 			modelChecker.setLog(new PrismDevNullLog());
-			modelChecker.setMaxIters(2500);
+			modelChecker.setMaxIters(3000);
 			modelChecker.setErrorOnNonConverge(false);
 			modelChecker.setVerbosity(0);
 			modelChecker.setSilentPrecomputations(true);
@@ -435,6 +435,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			ArrayList<Double>[] intervalProbabilities = new ArrayList[numStates];
 			for (int state : simpleIPOMDP.uncertainStates) {
 				if (simpleSpecification.target.get(state)) continue;
+				if (simpleSpecification.uncertaintyQuantifier == 'A') continue;
 				try {
 					intervalProbabilities[state] = InducedIDTMCFromIPOMDPAndPolicy.computeIntervalProbabilitiesWhichGeneratedSolution(state, main, simpleIPOMDP);
 				} catch (GRBException e) {
@@ -977,7 +978,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 40;
+		int numAttempts = 1;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -994,7 +995,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			SolutionPoint solutionPoint = new SolutionPoint(transformationProcess, simpleSpecification, parameters);
 
 			// Converge the point
-			int iterationsLeft = 20;
+			int iterationsLeft = 30;
 			while (solutionPoint.GetCloserTowardsOptimum() == true && iterationsLeft > 0)
 				iterationsLeft = iterationsLeft - 1;
 
@@ -1023,8 +1024,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int pruneIterations = 3;
-		int populationSize = 20;
+		int pruneIterations = 5;
+		int populationSize = 32;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
