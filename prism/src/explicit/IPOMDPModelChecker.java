@@ -977,7 +977,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachProbs(IPOMDP<Double> ipomdp, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, null, remain, target, minMax, false);
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, null, remain, target, minMax);
 	}
 
 	/**
@@ -989,11 +989,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	 */
 	public ModelCheckerResult computeReachRewards(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet target, MinMax minMax) throws PrismException
 	{
-		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, null, target, minMax, true);
-		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, null, target, minMax, true);
+		// By default, the agent can remain in any states
+		BitSet remain = new BitSet(ipomdp.getNumStates());
+		remain.flip(0, remain.size() - 1);
+
+		return applyIterativeAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, remain, target, minMax);
+		//return applyGeneticAlgorithmGivenSimpleIPOMDP(ipomdp, mdpRewards, remain, target, minMax);
 	}
 
-	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	public ModelCheckerResult applyIterativeAlgorithmGivenSimpleIPOMDP(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, MinMax minMax) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -1002,6 +1006,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		} catch (GRBException e) {
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
+
+		boolean isRewardSpecification = true;
+		if (mdpRewards == null) isRewardSpecification = false;
 
 		int numAttempts = 1;
 		boolean hasBeenAssigned = false;
