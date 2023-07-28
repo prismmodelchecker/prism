@@ -258,7 +258,7 @@ public class IMDPModelChecker extends ProbModelChecker
 		while (iters < k) {
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			imdp.mvMultUnc(soln, minMax, soln2, unknownStates.iterator(), null);
+			imdp.mvMultUnc(soln, minMax, soln2, unknownStates.iterator(), strat);
 			if (genStrat) {
 				fmdStrat.setStepChoices(k - iters, strat);
 			}
