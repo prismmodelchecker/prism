@@ -76,7 +76,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		BitSet target;
 		int[] observationList;
 
-		public ProductBetweenIPOMDPAndFSC(IPOMDP<Double> initIPOMDP, MDPRewards<Double> initMDPRewards, BitSet initRemain, BitSet initTarget, int memoryStatesFSC) throws PrismException {
+		public ProductBetweenIPOMDPAndFSC(IPOMDP<Double> initIPOMDP, MDPRewards<Double> initMDPRewards, BitSet initRemain, BitSet initTarget, int memoryStatesFSC) {
 			// The number of states for each of the models
 			int numStatesFSC = memoryStatesFSC;
 			int numStatesIPOMDP = initIPOMDP.getNumStates();
@@ -89,11 +89,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			this.target = new BitSet(numStatesProduct);
 			this.observationList = new int[numStatesProduct];
 
+			// Check if the reward structure is not presented
+			// That means that the model checker requires pure reaching probabilities
 			if (initMDPRewards == null)
 				rewards = null;
-
-			//  TODO
-			// Unreachable states
 
 			for (int stateIPOMDP = 0; stateIPOMDP < numStatesIPOMDP; stateIPOMDP++) {
 				for (int stateFSC = 0; stateFSC < numStatesFSC; stateFSC++) {
@@ -118,7 +117,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 								int successor = elem.getKey();
 								Interval<Double> interval = elem.getValue();
 
-								distribution.add((successor * numStatesFSC) + actionFSC, interval);
+								// Add transition to the successor state
+								// Note that action 'actionFSC' moves to state 'actionFSC', regardless of current state
+								distribution.add(successor * numStatesFSC + actionFSC, interval);
 							}
 
 							ipomdp.addActionLabelledChoice(productState, distribution, actionIPOMDP * numStatesFSC + actionFSC);
@@ -1078,7 +1079,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		remain.flip(0, remain.size() - 1);
 
 		// Construct the product between the IPOMDP and the FSC
-		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 1);
+		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 6);
 
 		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
 		//return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
@@ -1094,7 +1095,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 1;
+		int numAttempts = 25;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -1137,7 +1138,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 
 		int pruneIterations = 4;
-		int populationSize = 32;
+		int populationSize = 64;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
@@ -1168,7 +1169,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			for (int i = 0; i < toBeRemoved; i++)
 				population.remove(population.size() - 1);
 
-			//System.out.println(population.get(0).objective);
+			System.out.println(population.get(0).objective);
 		}
 
 		// Extract the remaining solution point
