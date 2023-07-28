@@ -70,10 +70,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 	}
 
 	private class ProductBetweenIPOMDPAndFSC {
-		private IPOMDPSimple<Double> ipomdp;
+		IPOMDPSimple<Double> ipomdp;
 		MDPRewardsSimple<Double> rewards;
 		BitSet remain;
 		BitSet target;
+		int[] observationList;
 
 		public ProductBetweenIPOMDPAndFSC(IPOMDP<Double> initIPOMDP, MDPRewards<Double> initMDPRewards, BitSet initRemain, BitSet initTarget, int memoryStatesFSC) throws PrismException {
 			// The number of states for each of the models
@@ -86,6 +87,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			this.rewards = new MDPRewardsSimple<>(numStatesProduct);
 			this.remain = new BitSet(numStatesProduct);
 			this.target = new BitSet(numStatesProduct);
+			this.observationList = new int[numStatesProduct];
 
 			if (initMDPRewards == null)
 				rewards = null;
@@ -129,27 +131,13 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				}
 			}
 
-			// Just iterate through model and print transitions
-			int numStates = ipomdp.getNumStates();
-			for (int s = 0; s < numStates; s++) {
-				int numChoices = ipomdp.getNumChoices(s);
-				for (int i = 0; i < numChoices; i++) {
-					Iterator<Map.Entry<Integer, Interval<Double>>> iter = ipomdp.getTransitionsIterator(s, i);
-					while (iter.hasNext()) {
-						Map.Entry<Integer, Interval<Double>> elem = iter.next();
-						mainLog.println(s + "," + i + " -> " + elem.getValue() + ":" + elem.getKey());
-					}
-				}
-			}
-
-			// TODO
 			for (int stateIPOMDP = 0; stateIPOMDP < numStatesIPOMDP; stateIPOMDP++) {
 				for (int stateFSC = 0; stateFSC < numStatesFSC; stateFSC++) {
 					int productState = (stateIPOMDP * numStatesFSC) + stateFSC;
 
 					// Construct the observation of the state
 					// This must be done after transitions have been added so that actions match for same observations
-					ipomdp.setObservation(productState, initIPOMDP.getObservation(stateIPOMDP) * numStatesFSC + stateFSC);
+					observationList[productState] = initIPOMDP.getObservation(stateIPOMDP) * numStatesFSC + stateFSC;
 				}
 			}
 		}
@@ -161,9 +149,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private int[] gadget;
 		private ArrayList<Integer> traversal;
 		private ArrayList<Integer>[] randomisedChoicesForState;
+		private int[] observationList;
 
-		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards) {
+		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards, int[] observationList) {
 			this.initialIPOMDP = initialIPOMDP;
+			this.observationList = observationList;
 			this.simpleIPOMDP = new SimpleIPOMDP();
 			this.randomisedChoicesForState = new ArrayList[initialIPOMDP.getNumStates()];
 			determineSupportGraph(initialIPOMDP);
@@ -254,7 +244,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				}
 
 				// Randomise the list of choices for the current observation
-				int obs = ipomdp.getObservation(state);
+				int obs = observationList[state];
 				if (randomisedChoicesForObservation[obs] == null) {
 					randomisedChoicesForObservation[obs] = new ArrayList<>();
 					for (int choice = 0; choice < numChoices; choice++)
@@ -323,7 +313,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				}
 
 				int initialState = gadget_inv[state];
-				int initialObservation = ipomdp.getObservation(initialState);
+				int initialObservation = observationList[initialState];
 				if (freshObservations[initialObservation] < 0)
 					freshObservations[initialObservation] = ++lastObservationAdded;
 
@@ -1015,20 +1005,20 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			try {
 				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(transformationProcess.simpleIPOMDP, specification, variables, parameters);
 				newVariables = gurobiLP.solveAndGetOptimalVariables();
+
+				double newObjective = newVariables.main[0];
+				if (specification.objectiveDirection * newObjective < specification.objectiveDirection * objective) {
+					objective = newObjective;
+					variables = newVariables;
+					parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
+				} else {
+					parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
+				}
+				return true;
 			} catch (GRBException | PrismException e) {
-				throw new PrismException("Error solving LP... " +  e.getMessage());
+				System.out.println("Error solving LP... " +  e.getMessage());
+				return false;
 			}
-
-			double newObjective = newVariables.main[0];
-			if (specification.objectiveDirection * newObjective < specification.objectiveDirection * objective) {
-				objective = newObjective;
-				variables = newVariables;
-				parameters.trustRegion = parameters.trustRegion * parameters.regionChangeFactor;
-			} else {
-				parameters.trustRegion = parameters.trustRegion / parameters.regionChangeFactor;
-			}
-
-			return true;
 		}
 	}
 
@@ -1068,7 +1058,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, null, remain, target, 1);
 
 		// Apply the algorithm to the product
-		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, minMax);
+		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
 	}
 
 	/**
@@ -1085,13 +1075,13 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		remain.flip(0, remain.size() - 1);
 
 		// Construct the product between the IPOMDP and the FSC
-		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 1);
+		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 3);
 
-		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, minMax);
-		//return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, minMax);
+		//return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
 	}
 
-	public ModelCheckerResult applyIterativeAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, MinMax minMax) throws PrismException
+	public ModelCheckerResult applyIterativeAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int[] observationList, MinMax minMax) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -1104,12 +1094,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		boolean isRewardSpecification = true;
 		if (mdpRewards == null) isRewardSpecification = false;
 
-		int numAttempts = 1;
+		int numAttempts = 10;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
 			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
 			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
@@ -1136,7 +1126,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		return res;
 	}
 
-	public ModelCheckerResult applyGeneticAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, MinMax minMax, boolean isRewardSpecification) throws PrismException
+	public ModelCheckerResult applyGeneticAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int[] observationList, MinMax minMax) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -1146,12 +1136,15 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
+		boolean isRewardSpecification = true;
+		if (mdpRewards == null) isRewardSpecification = false;
+
 		int pruneIterations = 4;
-		int populationSize = 128;
+		int populationSize = 32;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
 			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
