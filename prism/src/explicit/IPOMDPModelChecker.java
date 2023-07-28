@@ -580,13 +580,16 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		public char inequalityDirection;
 		public int objectiveDirection;
 		public int penaltyCoefficient;
-		public boolean isRewardSpecification;
+		public boolean isRewardSpecification = true;
 
-		public SpecificationForSimpleIPOMDP(TransformIntoSimpleIPOMDP transformationProcess, BitSet initRemain, BitSet initTarget, MinMax minMax, boolean rewardSpecification) {
+		public SpecificationForSimpleIPOMDP(TransformIntoSimpleIPOMDP transformationProcess, MDPRewards<Double> mdpRewards, BitSet initRemain, BitSet initTarget, MinMax minMax) {
 			this.remain = transformationProcess.computeTransformationRemain(initRemain);
 			this.target = transformationProcess.computeTransformationTarget(initTarget);
 			this.minMax = minMax;
-			this.isRewardSpecification = rewardSpecification;
+
+			if (mdpRewards == null)
+				this.isRewardSpecification = false;
+
 			initialiseForLinearProgramming(minMax);
 		}
 
@@ -1075,10 +1078,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		remain.flip(0, remain.size() - 1);
 
 		// Construct the product between the IPOMDP and the FSC
-		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 3);
+		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 1);
 
-		//return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
-		return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		//return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
 	}
 
 	public ModelCheckerResult applyIterativeAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int[] observationList, MinMax minMax) throws PrismException
@@ -1091,10 +1094,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		boolean isRewardSpecification = true;
-		if (mdpRewards == null) isRewardSpecification = false;
-
-		int numAttempts = 10;
+		int numAttempts = 1;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -1102,7 +1102,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
-			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
+			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, mdpRewards, remain, target, minMax);
 
 			// Initialise parameters
 			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
@@ -1136,9 +1136,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		boolean isRewardSpecification = true;
-		if (mdpRewards == null) isRewardSpecification = false;
-
 		int pruneIterations = 4;
 		int populationSize = 32;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
@@ -1147,7 +1144,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
-			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
+			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, mdpRewards, remain, target, minMax);
 
 			// Initialise parameters
 			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
@@ -1171,7 +1168,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			for (int i = 0; i < toBeRemoved; i++)
 				population.remove(population.size() - 1);
 
-			System.out.println(population.get(0).objective);
+			//System.out.println(population.get(0).objective);
 		}
 
 		// Extract the remaining solution point
