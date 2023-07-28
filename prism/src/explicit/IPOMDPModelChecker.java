@@ -1007,38 +1007,60 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		boolean isRewardSpecification = true;
-		if (mdpRewards == null) isRewardSpecification = false;
+		double bestObjective = 1000.0;
+		double worstObjective = 0.0;
+		double avg = 0.0;
+		int maxTrials = 10;
+		for (int trials = 0; trials < maxTrials; trials++) {
+			boolean isRewardSpecification = true;
+			if (mdpRewards == null) isRewardSpecification = false;
 
-		int numAttempts = 1;
-		boolean hasBeenAssigned = false;
-		SolutionPoint bestPoint = new SolutionPoint();
-		for (int i = 0; i < numAttempts; i++) {
-			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
+			int numAttempts = 25;
+			boolean hasBeenAssigned = false;
+			SolutionPoint bestPoint = new SolutionPoint();
+			for (int i = 0; i < numAttempts; i++) {
+				// Construct the binary/simple version of the IPOMDP
+				TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards);
 
-			// Compute specification associated with the binary/simple version of the IPOMDP
-			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
+				// Compute specification associated with the binary/simple version of the IPOMDP
+				SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, remain, target, minMax, isRewardSpecification);
 
-			// Initialise parameters
-			Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
+				// Initialise parameters
+				Parameters parameters = new Parameters(1e4, 1.5, 1.5, 1e-4);
 
-			// Create solution point
-			SolutionPoint solutionPoint = new SolutionPoint(transformationProcess, simpleSpecification, parameters);
+				// Create solution point
+				SolutionPoint solutionPoint = new SolutionPoint(transformationProcess, simpleSpecification, parameters);
 
-			// Converge the point
-			while (solutionPoint.GetCloserTowardsOptimum() == true);
+				// Converge the point
+				while (solutionPoint.GetCloserTowardsOptimum() == true);
 
-			// Update the best point
-			if (hasBeenAssigned == false || solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection *  bestPoint.objective) {
-				hasBeenAssigned = true;
-				bestPoint = solutionPoint;
+				// Update the best point
+				if (hasBeenAssigned == false || solutionPoint.specification.objectiveDirection * solutionPoint.objective < solutionPoint.specification.objectiveDirection * bestPoint.objective) {
+					hasBeenAssigned = true;
+					bestPoint = solutionPoint;
+				}
 			}
+
+			if (bestObjective > bestPoint.objective) {
+				bestObjective = bestPoint.objective;
+			}
+
+			if (worstObjective < bestPoint.objective) {
+				worstObjective = bestPoint.objective;
+			}
+
+			avg = avg + bestPoint.objective;
 		}
+
+		System.out.println("best=" + bestObjective);
+		System.out.println("worst=" + worstObjective);
+		System.out.println("avg=" + avg / maxTrials);
+
 
 		// Return result vector
 		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = VariableHandler.getVariablesForInitialIPOMDP(bestPoint.variables, bestPoint.transformationProcess);
+		//res.soln = VariableHandler.getVariablesForInitialIPOMDP(bestPoint.variables, bestPoint.transformationProcess);
+		res.soln = new double[ipomdp.getNumStates()];
 		return res;
 	}
 
