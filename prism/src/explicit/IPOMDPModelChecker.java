@@ -151,10 +151,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private ArrayList<Integer> traversal;
 		private ArrayList<Integer>[] randomisedChoicesForState;
 		private int[] observationList;
+		boolean shuffleActivated;
 
-		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards, int[] observationList) {
+		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards, boolean shuffleActivated, int[] observationList) {
 			this.initialIPOMDP = initialIPOMDP;
 			this.observationList = observationList;
+			this.shuffleActivated = shuffleActivated;
 			this.simpleIPOMDP = new SimpleIPOMDP();
 			this.randomisedChoicesForState = new ArrayList[initialIPOMDP.getNumStates()];
 			determineSupportGraph(initialIPOMDP);
@@ -250,7 +252,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 					randomisedChoicesForObservation[obs] = new ArrayList<>();
 					for (int choice = 0; choice < numChoices; choice++)
 						randomisedChoicesForObservation[obs].add(choice);
-					Collections.shuffle(randomisedChoicesForObservation[obs]);
+
+					if (shuffleActivated)
+						Collections.shuffle(randomisedChoicesForObservation[obs]);
 				}
 
 				// Assign the randomised list of choices to the current state
@@ -1079,10 +1083,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		remain.flip(0, remain.size() - 1);
 
 		// Construct the product between the IPOMDP and the FSC
-		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 6);
+		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 2);
 
-		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
-		//return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		//return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
 	}
 
 	public ModelCheckerResult applyIterativeAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int[] observationList, MinMax minMax) throws PrismException
@@ -1095,12 +1099,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 25;
+		int numAttempts = 20;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
 			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, observationList);
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, true, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
 			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, mdpRewards, remain, target, minMax);
@@ -1138,11 +1142,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 
 		int pruneIterations = 4;
-		int populationSize = 64;
+		int populationSize = 32;
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, observationList);
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, true, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
 			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, mdpRewards, remain, target, minMax);
