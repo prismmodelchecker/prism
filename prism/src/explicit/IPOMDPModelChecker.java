@@ -394,39 +394,50 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			return computeReachRewards(inducedIDTMC, rewardsIDTMC, specification);
 		}
 
-		static public ArrayList<Double> computeIntervalProbabilitiesWhichGeneratedSolution(int state, double[] main, SimpleIPOMDP simpleIPOMDP) throws GRBException
+		static public ArrayList<Double> computeIntervalProbabilitiesWhichGeneratedSolution(int state, double[] main, SimpleIPOMDP simpleIPOMDP)
 		{
 			int numTransitions = simpleIPOMDP.transitions[state].size();
+			ArrayList<Double> intervals = new ArrayList<>();
+			boolean feasible = false;
 			double epsilon = 1e-3;
 
-			GRBModel model = new GRBModel(env);
+			while (!feasible) {
+				try {
+					GRBModel model = new GRBModel(env);
 
-			GRBLinExpr recurrence = new GRBLinExpr();
-			GRBVar[] intervalProbabilities = new GRBVar[numTransitions];
-			for (int i = 0; i < numTransitions; i++) {
-				Edge transition = simpleIPOMDP.transitions[state].get(i);
+					GRBLinExpr recurrence = new GRBLinExpr();
+					GRBVar[] intervalProbabilities = new GRBVar[numTransitions];
+					for (int i = 0; i < numTransitions; i++) {
+						Edge transition = simpleIPOMDP.transitions[state].get(i);
 
-				intervalProbabilities[i] = model.addVar(transition.interval.getLower(), transition.interval.getUpper(), 0.0, GRB.CONTINUOUS, "interval" + i);
-				recurrence.addTerm(main[transition.state], intervalProbabilities[i]);
+						intervalProbabilities[i] = model.addVar(transition.interval.getLower(), transition.interval.getUpper(), 0.0, GRB.CONTINUOUS, "interval" + i);
+						recurrence.addTerm(main[transition.state], intervalProbabilities[i]);
+					}
+					model.addConstr(recurrence, GRB.GREATER_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] - epsilon, "recurrenceConstraint");
+					model.addConstr(recurrence, GRB.LESS_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] + epsilon, "recurrenceConstraint");
+
+					GRBLinExpr distribution = new GRBLinExpr();
+					for (int i = 0; i < numTransitions; i++)
+						distribution.addTerm(1.0, intervalProbabilities[i]);
+					model.addConstr(distribution, GRB.EQUAL, 1.0, "distributionConstraint");
+
+					// Optimise the model
+					model.optimize();
+
+					// Extract the interval probabilities which verify the two equality constraints
+
+					for (int i = 0; i < numTransitions; i++)
+						intervals.add(intervalProbabilities[i].get(GRB.DoubleAttr.X));
+
+					// Dispose of model
+					model.dispose();
+
+					// Found a feasible solution
+					feasible = true;
+				} catch (GRBException e) {
+					epsilon = epsilon * 10;
+				}
 			}
-			model.addConstr(recurrence, GRB.GREATER_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] - epsilon, "recurrenceConstraint");
-			model.addConstr(recurrence, GRB.LESS_EQUAL, main[state] - simpleIPOMDP.stateRewards[state] + epsilon, "recurrenceConstraint");
-
-			GRBLinExpr distribution = new GRBLinExpr();
-			for (int i = 0; i < numTransitions; i++)
-				distribution.addTerm(1.0, intervalProbabilities[i]);
-			model.addConstr(distribution, GRB.EQUAL, 1.0, "distributionConstraint");
-
-			// Optimise the model
-			model.optimize();
-
-			// Extract the interval probabilities which verify the two equality constraints
-			ArrayList<Double> intervals = new ArrayList<>();
-			for (int i = 0; i < numTransitions; i++)
-				intervals.add(intervalProbabilities[i].get(GRB.DoubleAttr.X));
-
-			// Dispose of model
-			model.dispose();
 
 			return intervals;
 		}
@@ -535,11 +546,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				if (simpleSpecification.target.get(state)) continue;
 				if (!simpleSpecification.remain.get(state)) continue;
 				if (simpleSpecification.uncertaintyQuantifier == 'A') continue;
-				try {
-					intervalProbabilities[state] = InducedIDTMCFromIPOMDPAndPolicy.computeIntervalProbabilitiesWhichGeneratedSolution(state, main, simpleIPOMDP);
-				} catch (GRBException e) {
-					throw new PrismException("Error while fixing intervals " +  e.getMessage());
-				}
+				intervalProbabilities[state] = InducedIDTMCFromIPOMDPAndPolicy.computeIntervalProbabilitiesWhichGeneratedSolution(state, main, simpleIPOMDP);
 			}
 
 			mainVariables.policy = policy;
@@ -726,7 +733,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				return InducedIDTMCFromIPOMDPAndPolicy.ComputeReachabilityProbabilities(simpleIPOMDP, policy, specification);
 		}
 
-		private ArrayList<Double>[] computeIntervalProbabilities(double[] main) throws GRBException
+		private ArrayList<Double>[] computeIntervalProbabilities(double[] main)
 		{
 			ArrayList<Double>[] intervalProbabilities = new ArrayList[simpleIPOMDP.getNumStates()];
 			for (int state : simpleIPOMDP.uncertainStates) {
@@ -1099,7 +1106,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 20;
+		int numAttempts = 10;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
@@ -1172,8 +1179,6 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			int toBeRemoved = (population.size() + 1) / 2;
 			for (int i = 0; i < toBeRemoved; i++)
 				population.remove(population.size() - 1);
-
-			System.out.println(population.get(0).objective);
 		}
 
 		// Extract the remaining solution point
