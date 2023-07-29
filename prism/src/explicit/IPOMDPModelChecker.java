@@ -75,6 +75,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		BitSet remain;
 		BitSet target;
 		int[] observationList;
+		int initialState;
 
 		public ProductBetweenIPOMDPAndFSC(IPOMDP<Double> initIPOMDP, MDPRewards<Double> initMDPRewards, BitSet initRemain, BitSet initTarget, int memoryStatesFSC) {
 			// The number of states for each of the models
@@ -83,6 +84,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			int numStatesProduct = numStatesIPOMDP * numStatesFSC;
 
 			// Create the product arguments
+			this.initialState = initIPOMDP.getFirstInitialState() * numStatesFSC;
 			this.ipomdp = new IPOMDPSimple<>(numStatesProduct);
 			this.rewards = new MDPRewardsSimple<>(numStatesProduct);
 			this.remain = new BitSet(numStatesProduct);
@@ -153,7 +155,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private int[] observationList;
 		boolean shuffleActivated;
 
-		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards, boolean shuffleActivated, int[] observationList) {
+		public TransformIntoSimpleIPOMDP(IPOMDP<Double> initialIPOMDP, MDPRewards<Double> rewards, int initialState, boolean shuffleActivated, int[] observationList) {
 			this.initialIPOMDP = initialIPOMDP;
 			this.observationList = observationList;
 			this.shuffleActivated = shuffleActivated;
@@ -162,6 +164,8 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			determineSupportGraph(initialIPOMDP);
 			determineObservations(initialIPOMDP);
 			determineRewards(initialIPOMDP, rewards);
+
+			this.simpleIPOMDP.initialState = gadget[initialState];
 		}
 
 		public int[] getGadgetMapping() {
@@ -365,17 +369,9 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		public int[] observations;
 		public double[] stateRewards;
 		public double[] transitionRewards;
+		public int initialState;
 
 		public SimpleIPOMDP() {}
-
-		public SimpleIPOMDP(ArrayList<Integer> uncertainStates, ArrayList<Integer> actionStates, SimpleDistribution[] transitions, int[] observations, double[] stateRewards, double[] transitionRewards) {
-			this.uncertainStates = uncertainStates;
-			this.actionStates = actionStates;
-			this.transitions = transitions;
-			this.observations = observations;
-			this.stateRewards = stateRewards;
-			this.transitionRewards = transitionRewards;
-		}
 
 		public Integer getNumStates() {
 			return uncertainStates.size() + actionStates.size();
@@ -484,7 +480,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			return rewards;
 		}
 
-		static private double[] computeReachProbs(IDTMCSimple<Double> IDTMC, SpecificationForSimpleIPOMDP specification) throws PrismException
+		static private double[] computeReachProbs(IDTMC<Double> IDTMC, SpecificationForSimpleIPOMDP specification) throws PrismException
 		{
 			IDTMCModelChecker modelChecker = new IDTMCModelChecker(null);
 			modelChecker.inheritSettings(modelChecker);
@@ -749,7 +745,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private void addObjective() throws GRBException
 		{
 			GRBLinExpr obj = new GRBLinExpr();
-			obj.addTerm(1.0, mainVars[0]);
+			obj.addTerm(1.0, mainVars[simpleIPOMDP.initialState]);
 			for (int state : simpleIPOMDP.actionStates)
 				obj.addTerm(-specification.penaltyCoefficient * parameters.penaltyWeight, penaltyAction[state]);
 			for (int state : simpleIPOMDP.uncertainStates)
@@ -996,10 +992,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		private Variables variables;
 		private double objective;
 		private int iterationsLeft;
+		private int initialState;
 
 		public SolutionPoint() {}
 
 		public SolutionPoint(TransformIntoSimpleIPOMDP transformationProcess, SpecificationForSimpleIPOMDP specification, Parameters parameters) throws PrismException {
+			this.initialState = transformationProcess.simpleIPOMDP.initialState;
 			this.transformationProcess = transformationProcess;
 			this.specification = specification;
 			this.parameters = parameters;
@@ -1021,7 +1019,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 				LinearProgrammingWithGurobi gurobiLP = new LinearProgrammingWithGurobi(transformationProcess.simpleIPOMDP, specification, variables, parameters);
 				newVariables = gurobiLP.solveAndGetOptimalVariables();
 
-				double newObjective = newVariables.main[0];
+				double newObjective = newVariables.main[initialState];
 				if (specification.objectiveDirection * newObjective < specification.objectiveDirection * objective) {
 					objective = newObjective;
 					variables = newVariables;
@@ -1072,8 +1070,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		// Construct the product between the IPOMDP and the FSC
 		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, null, remain, target, 1);
 
-		// Apply the algorithm to the product
-		return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		// Return result vector
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = new double[ipomdp.getNumStates()];
+		res.soln[ipomdp.getFirstInitialState()] = applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.initialState, product.observationList, minMax);
+		//res.soln[ipomdp.getFirstInitialState()] = applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.initialState, product.observationList, minMax);
+		return res;
 	}
 
 	/**
@@ -1090,13 +1092,17 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		remain.flip(0, remain.size() - 1);
 
 		// Construct the product between the IPOMDP and the FSC
-		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 2);
+		ProductBetweenIPOMDPAndFSC product = new ProductBetweenIPOMDPAndFSC(ipomdp, mdpRewards, remain, target, 1);
 
-		//return applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
-		return applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.observationList, minMax);
+		// Return result vector
+		ModelCheckerResult res = new ModelCheckerResult();
+		res.soln = new double[ipomdp.getNumStates()];
+		//res.soln[ipomdp.getFirstInitialState()] = applyIterativeAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.initialState, product.observationList, minMax);
+		res.soln[ipomdp.getFirstInitialState()] = applyGeneticAlgorithm(product.ipomdp, product.rewards, product.remain, product.target, product.initialState, product.observationList, minMax);
+		return res;
 	}
 
-	public ModelCheckerResult applyIterativeAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int[] observationList, MinMax minMax) throws PrismException
+	public double applyIterativeAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int initialState, int[] observationList, MinMax minMax) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -1106,12 +1112,12 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			throw new PrismException("Could not initialise... " +  e.getMessage());
 		}
 
-		int numAttempts = 10;
+		int numAttempts = 1;
 		boolean hasBeenAssigned = false;
 		SolutionPoint bestPoint = new SolutionPoint();
 		for (int i = 0; i < numAttempts; i++) {
 			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, true, observationList);
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, initialState, true, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
 			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, mdpRewards, remain, target, minMax);
@@ -1132,13 +1138,10 @@ public class IPOMDPModelChecker extends ProbModelChecker
 			}
 		}
 
-		// Return result vector
-		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = VariableHandler.getVariablesForInitialIPOMDP(bestPoint.variables, bestPoint.transformationProcess);
-		return res;
+		return bestPoint.variables.main[bestPoint.initialState];
 	}
 
-	public ModelCheckerResult applyGeneticAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int[] observationList, MinMax minMax) throws PrismException
+	public double applyGeneticAlgorithm(IPOMDP<Double> ipomdp, MDPRewards<Double> mdpRewards, BitSet remain, BitSet target, int initialState, int[] observationList, MinMax minMax) throws PrismException
 	{
 		try {
 			env = new GRBEnv("gurobi.log");
@@ -1153,7 +1156,7 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		ArrayList<SolutionPoint> population = new ArrayList<>();
 		for (int i = 0; i < populationSize; i++) {
 			// Construct the binary/simple version of the IPOMDP
-			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, true, observationList);
+			TransformIntoSimpleIPOMDP transformationProcess = new TransformIntoSimpleIPOMDP(ipomdp, mdpRewards, initialState, true, observationList);
 
 			// Compute specification associated with the binary/simple version of the IPOMDP
 			SpecificationForSimpleIPOMDP simpleSpecification = new SpecificationForSimpleIPOMDP(transformationProcess, mdpRewards, remain, target, minMax);
@@ -1182,14 +1185,11 @@ public class IPOMDPModelChecker extends ProbModelChecker
 		}
 
 		// Extract the remaining solution point
-		SolutionPoint solutionPoint = population.get(0);
+		SolutionPoint bestPoint = population.get(0);
 
 		// Converge the point
-		while (solutionPoint.GetCloserTowardsOptimum() == true);
+		while (bestPoint.GetCloserTowardsOptimum() == true);
 
-		// Return result vector
-		ModelCheckerResult res = new ModelCheckerResult();
-		res.soln = VariableHandler.getVariablesForInitialIPOMDP(solutionPoint.variables, solutionPoint.transformationProcess);
-		return res;
+		return bestPoint.variables.main[bestPoint.initialState];
 	}
 }
