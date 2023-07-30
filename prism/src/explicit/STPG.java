@@ -45,17 +45,6 @@ import prism.PrismUtils;
  * These are turn-based STPGs, i.e. at most one player controls each state.
  * Probabilistic states do not need to be stored explicitly; instead, like in an MDP,
  * players have several 'choices', each of which is a probability distribution over successor states.
- * <br><br>
- * For convenience/efficiency, STPGs can actually store two transitions/choices in two ways.
- * The first is as described above: a state has a list of choices which are distributions over states.
- * {@link #getNumChoices(s)} gives the number of choices, {@link #getAction(s)} gives an (optional) action label
- * for each one and {@link #getTransitionsIterator(s, i)} provides an iterator over target-state/probability pairs.
- * The second way is 'nested' choices: the choices in a state are instead transitions directly to states of the other player.
- * Each of those states then has has several choices that are distributions over states, as above.
- * The middle layer of states are not stored explicitly, however. If the {@code i}th choice of state {@code s}
- * is nested in this way, then {@link #isChoiceNested(s, i)} is true and {@link #getTransitionsIterator(s, i)} returns null.
- * Use {@link #getNumNestedChoices(s, i)}, {@link #getNestedAction(s, i)} and {@link #getNestedTransitionsIterator(s, i, j)}
- * to access the information.
  */
 public interface STPG<Value> extends MDP<Value>
 {
@@ -121,51 +110,6 @@ public interface STPG<Value> extends MDP<Value>
 	 */
 	public int getPlayer(int s);
 	
-	/**
-	 * Is choice {@code i} of state {@code s} in nested form? (See {@link explicit.STPG} for details)
-	 */
-	default boolean isChoiceNested(int s, int i)
-	{
-		// Default: No nested choices
-		return false;
-	}
-
-	/**
-	 * Get the number of (nested) choices in choice {@code i} of state {@code s}.
-	 */
-	default int getNumNestedChoices(int s, int i)
-	{
-		// Default: No nested choices
-		return 0;
-	}
-
-	/**
-	 * Get the action label (if any) for nested choice {@code i,j} of state {@code s}.
-	 */
-	default Object getNestedAction(int s, int i, int j)
-	{
-		// Default: No nested choices
-		return null;
-	}
-
-	/**
-	 * Get the number of transitions from nested choice {@code i,j} of state {@code s}.
-	 */
-	default int getNumNestedTransitions(int s, int i, int j)
-	{
-		// Default: No nested choices
-		return 0;
-	}
-
-	/**
-	 * Get an iterator over the transitions from nested choice {@code i,j} of state {@code s}.
-	 */
-	default Iterator<Entry<Integer, Value>> getNestedTransitionsIterator(int s, int i, int j)
-	{
-		// Default: No nested choices
-		return null;
-	}
-
 	/**
 	 * Perform a single step of precomputation algorithm Prob0, i.e., for states i in {@code subset},
 	 * set bit i of {@code result} iff, for all/some player 1 choices, for all/some player 2 choices,
