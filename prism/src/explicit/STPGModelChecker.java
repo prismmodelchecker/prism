@@ -547,7 +547,7 @@ public class STPGModelChecker extends ProbModelChecker
 		while (!done && iters < maxIters) {
 			iters++;
 			// Matrix-vector multiply and min/max ops
-			maxDiff = stpg.mvMultGSMinMax(soln, min1, min2, unknown, false, termCrit == TermCrit.ABSOLUTE);
+			maxDiff = stpg.mvMultGSMinMax(soln, min1, min2, unknown, false, termCrit == TermCrit.ABSOLUTE, null);
 			// Check termination
 			done = maxDiff < termCritParam;
 		}

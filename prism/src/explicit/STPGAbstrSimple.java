@@ -706,11 +706,11 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 	}
 
 	@Override
-	public double mvMultGSMinMax(double vect[], boolean min1, boolean min2, BitSet subset, boolean complement, boolean absolute)
+	public double mvMultGSMinMax(double vect[], boolean min1, boolean min2, BitSet subset, boolean complement, boolean absolute, int[] adv)
 	{
 		double d, diff, maxDiff = 0.0;
 		for (int s : new IterableStateSet(subset, numStates, complement)) {
-			d = mvMultJacMinMaxSingle(s, vect, min1, min2);
+			d = mvMultJacMinMaxSingle(s, vect, min1, min2, adv);
 			diff = absolute ? (Math.abs(d - vect[s])) : (Math.abs(d - vect[s]) / d);
 			maxDiff = diff > maxDiff ? diff : maxDiff;
 			vect[s] = d;
@@ -719,7 +719,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 	}
 
 	@Override
-	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min1, boolean min2)
+	public double mvMultJacMinMaxSingle(int s, double vect[], boolean min1, boolean min2, int[] adv)
 	{
 		int k;
 		double diag, d, prob, minmax1, minmax2;
