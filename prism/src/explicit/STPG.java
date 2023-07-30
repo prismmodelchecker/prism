@@ -121,7 +121,7 @@ public interface STPG<Value> extends MDP<Value>
 	 * @param forall2 For-all or there-exists for player 2 (true=for-all, false=there-exists)
 	 * @param result Store results here
 	 */
-	public void prob0step(BitSet subset, BitSet u, boolean forall1, boolean min2, BitSet result);
+	public void prob0step(BitSet subset, BitSet u, boolean forall1, boolean forall2, BitSet result);
 
 	/**
 	 * Perform a single step of precomputation algorithm Prob1, i.e., for states i in {@code subset},
@@ -135,7 +135,7 @@ public interface STPG<Value> extends MDP<Value>
 	 * @param forall2 For-all or there-exists for player 2 (true=for-all, false=there-exists)
 	 * @param result Store results here
 	 */
-	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean min1, boolean min2, BitSet result);
+	public void prob1step(BitSet subset, BitSet u, BitSet v, boolean forall1, boolean forall2, BitSet result);
 
 	/**
 	 * Do a matrix-vector multiplication followed by two min/max ops, i.e. one step of value iteration,
@@ -236,7 +236,6 @@ public interface STPG<Value> extends MDP<Value>
 	/**
 	 * Do a single row of (discounted) matrix-vector multiplication and sum of action reward followed by min/max.
 	 * i.e. return min/max_{k1,k2} { rew(s) + sum_j P_{k1,k2}(s,j)*vect[j] }
-	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param rewards The rewards
 	 * @param min1 Min or max for player 1 (true=min, false=max)

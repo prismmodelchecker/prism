@@ -357,7 +357,7 @@ public class STPGSimple<Value> extends MDPSimple<Value> implements STPG<Value>
 	 * @param s Row index
 	 * @param vect Vector to multiply by
 	 * @param mdpRewards The rewards
-	 * @param min2 Min or max (true=min, false=max)
+	 * @param min Min or max (true=min, false=max)
 	 * @param adv Storage for adversary choice indices (ignored if null)
 	 * @param disc Discount factor
 	 */
