@@ -49,11 +49,7 @@ import prism.PrismLog;
 import prism.PrismUtils;
 
 /**
- * Interface for classes that provide (read) access to an explicit-state MDP,
- * where the transition probabilities are stored as double floating point values.
- * <br>
- * For the generic methods, e.g., the prob0 / prob1 precomputations that do not
- * care about the concrete values, see {@link explicit.MDPGeneric}.
+ * Interface for classes that provide (read) access to an explicit-state MDP.
  */
 public interface MDP<Value> extends NondetModel<Value>
 {
@@ -295,7 +291,8 @@ public interface MDP<Value> extends NondetModel<Value>
 	 * Return sum_t f(s, t, P(s,i,t)), where t ranges over the i-successors of s.
 	 *
 	 * @param s the state s
-	 * @param c the consumer
+	 * @param i the choice i
+	 * @param f the function
 	 */
 	public default Value sumOverTransitions(final int s, final int i, final TransitionToValueFunction<Value> f)
 	{
@@ -511,7 +508,8 @@ public interface MDP<Value> extends NondetModel<Value>
 	 * Return sum_t f(s, t, P(s,i,t)), where t ranges over the i-successors of s.
 	 *
 	 * @param s the state s
-	 * @param c the consumer
+	 * @param i the choice i
+	 * @param f the function
 	 */
 	public default double sumOverDoubleTransitions(final int s, final int i, final DoubleTransitionToDoubleFunction f)
 	{
@@ -697,8 +695,8 @@ public interface MDP<Value> extends NondetModel<Value>
 	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by (and store the result in)
 	 * @param min Min or max for (true=min, false=max)
-	 * @param subset Only do multiplication for these rows (ignored if null)
 	 * @param states Perform computation for these rows, in the iteration order
+	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 * @param ensureMonotonic ensure monotonicity
 	 * @param fromBelow iteration from below or from above? (for ensureMonotonicity)
 	 */

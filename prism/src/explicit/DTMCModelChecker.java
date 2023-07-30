@@ -2155,7 +2155,7 @@ public class DTMCModelChecker extends ProbModelChecker
 	 * so if you wanted it, take a copy. 
 	 * @param dtmc The DTMC
 	 * @param initDist Initial distribution (will be overwritten)
-	 * @param processor Post-processor for the values of each BSCC (optional: null means no post-processing)
+	 * @param bsccPostProcessor Post-processor for the values of each BSCC (optional: null means no post-processing)
 	 */
 	public ModelCheckerResult computeSteadyStateProbs(DTMC<Double> dtmc, double initDist[], BSCCPostProcessor bsccPostProcessor) throws PrismException
 	{

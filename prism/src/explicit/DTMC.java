@@ -394,7 +394,7 @@ public interface DTMC<Value> extends Model<Value>
 	 * Return sum_t f(s, t, P(s,t)), where t ranges over the successors of s.
 	 *
 	 * @param s the state s
-	 * @param c the consumer
+	 * @param f the function
 	 */
 	public default double sumOverDoubleTransitions(final int s, final DoubleTransitionToDoubleFunction f)
 	{

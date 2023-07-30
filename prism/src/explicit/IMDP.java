@@ -177,7 +177,7 @@ public interface IMDP<Value> extends MDP<Interval<Value>>
 	 * i.e. for each s: result[s] = min/max_k min/max_P { rew(s) + rew_k(s) + sum_j P(s,k,j)*vect[j] }
 	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by
-	 * @param mcRewards The rewards
+	 * @param mdpRewards The rewards
 	 * @param minMax Min/max info (strategy and uncertainty)
 	 * @param result Vector to store result in
 	 * @param subset Only do multiplication for these rows (ignored if null)
@@ -194,7 +194,7 @@ public interface IMDP<Value> extends MDP<Interval<Value>>
 	 * i.e. for each s: result[s] = min/max_k min/max_P { rew(s) + rew_k(s) + sum_j P(s,k,j)*vect[j] }
 	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by
-	 * @param mcRewards The rewards
+	 * @param mdpRewards The rewards
 	 * @param minMax Min/max info (strategy and uncertainty)
 	 * @param result Vector to store result in
 	 * @param states Perform computation for these rows, in the iteration order
@@ -214,7 +214,7 @@ public interface IMDP<Value> extends MDP<Interval<Value>>
 	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param s Row index
 	 * @param vect Vector to multiply by
-	 * @param mcRewards The rewards
+	 * @param mdpRewards The rewards
 	 * @param minMax Min/max info (strategy and uncertainty)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
@@ -301,7 +301,7 @@ public interface IMDP<Value> extends MDP<Interval<Value>>
 	 * elements of {@code vect} is also returned.
 	 * Optionally, store optimal (memoryless) strategy info.
 	 * @param vect Vector to multiply by
-	 * @param mcRewards The rewards
+	 * @param mdpRewards The rewards
 	 * @param minMax Min/max info (strategy and uncertainty)
 	 * @param states Perform computation for these rows, in the iteration order
 	 * @param absolute If true, compute absolute, rather than relative, difference

@@ -333,7 +333,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * Compute until probabilities.
 	 * i.e. compute the probability of reaching a state in {@code target},
 	 * while remaining in those in @{code remain}.
-	 * @param dtmc The CTMC
+	 * @param ctmc The CTMC
 	 * @param remain Remain in these states (optional: null means "all")
 	 * @param target Target states
 	 */
@@ -637,7 +637,6 @@ public class CTMCModelChecker extends ProbModelChecker
 	 * Compute expected total rewards.
 	 * @param ctmc The CTMC
 	 * @param mcRewards The rewards
-	 * @param target Target states
 	 */
 	public ModelCheckerResult computeTotalRewards(CTMC<Double> ctmc, MCRewards<Double> mcRewards) throws PrismException
 	{
@@ -864,7 +863,7 @@ public class CTMCModelChecker extends ProbModelChecker
 	}
 
 	/**
-	 * @see DTMCModelChecker#computeSteadyStateProbsForBSCC(DTMC, BitSet, double[], BSCCPostProcessor)
+	 * @see DTMCModelChecker#computeSteadyStateProbsForBSCC}
 	 */
 	public ModelCheckerResult computeSteadyStateProbsForBSCC(CTMC<Double> ctmc, BitSet states, double result[]) throws PrismException
 	{

@@ -38,7 +38,7 @@ public interface MDStrategy<Value> extends Strategy<Value>
 	
 	/**
 	 * Get the action chosen by the strategy in the state index s
-	 * Returns {@link #StrategyInfo.UNDEFINED} if undefined.
+	 * Returns {@link StrategyInfo#UNDEFINED} if undefined.
 	 */
 	public default Object getChoiceAction(int s)
 	{

@@ -81,8 +81,9 @@ public class IMDPSimple<Value> extends MDPSimple<Interval<Value>> implements IMD
 	 * Delimit the intervals for probabilities for the ith choice (distribution) for state s.
 	 * i.e., trim the bounds of the intervals such that at least one
 	 * possible distribution takes each of the extremal values.
-	 * @param i The index of the state to delimit
-	 * @param eval An evaluator for the interval's child type (Value)
+	 * @param s The index of the state to delimit
+	 * @param i The index of the choice to delimit
+	 * @param evalChil An evaluator for the interval's child type (Value)
 	 */
 	public void delimit(int s, int i, Evaluator<Value> evalChil)
 	{
