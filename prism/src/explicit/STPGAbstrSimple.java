@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 
 import common.IterableStateSet;
 import explicit.rewards.STPGRewards;
+import explicit.rewards.STPGRewardsNestedSimple;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismUtils;
@@ -744,7 +745,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 			for (Distribution<Value> distr : distrs) {
 				dIter++;
 				// Compute sum for this distribution
-				d = rewards.getNestedTransitionReward(s, dsIter, dIter);
+				d = ((STPGRewardsNestedSimple<Double>) rewards).getNestedTransitionReward(s, dsIter, dIter);
 				for (Map.Entry<Integer, Value> e : distr) {
 					k = e.getKey();
 					prob = getEvaluator().toDouble(e.getValue());
@@ -787,7 +788,7 @@ public class STPGAbstrSimple<Value> extends ModelExplicit<Value> implements STPG
 			for (Distribution<Value> distr : distrs) {
 				dIter++;
 				// Compute sum for this distribution
-				d = rewards.getNestedTransitionReward(s, dsIter, dIter);
+				d = ((STPGRewardsNestedSimple<Double>) rewards).getNestedTransitionReward(s, dsIter, dIter);
 				for (Map.Entry<Integer, Value> e : distr) {
 					k = e.getKey();
 					prob = getEvaluator().toDouble(e.getValue());

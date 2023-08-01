@@ -46,12 +46,6 @@ public abstract class StateRewards<Value> extends RewardsExplicit<Value> impleme
 	}
 	
 	@Override
-	public Value getNestedTransitionReward(int s, int i, int j)
-	{
-		return getEvaluator().zero();
-	}
-	
-	@Override
 	public MDPRewards<Value> buildMDPRewards()
 	{
 		return deepCopy();
