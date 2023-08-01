@@ -45,7 +45,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	/**
 	 * Get the action chosen by the strategy in the state index s
 	 * and where the current memory of the strategy (if applicable) is m.
-	 * Returns {@link #StrategyInfo.UNDEFINED} if undefined.
+	 * Returns {@link StrategyInfo#UNDEFINED} if undefined.
 	 * For a randomised strategy (and if defined), this method returns
 	 * an instance of DistributionOver&lt;Object&gt; instead of Object.
 	 * Pass an arbitrary value (e.g. -1) for m if memory is not relevant.
@@ -78,7 +78,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	 * and where the current memory of the strategy (if applicable) is m.
 	 * For a deterministic strategy, this returns the (unique) chosen action;
 	 * for a randomised strategy, an action is sampled according to the strategy's distribution.
-	 * Returns {@link #StrategyInfo.UNDEFINED} if undefined.
+	 * Returns {@link StrategyInfo#UNDEFINED} if undefined.
 	 * Pass an arbitrary value (e.g. -1) for m if memory is not relevant.
 	 */
 	public default Object sampleChoiceAction(int s, int m, RandomNumberGenerator rng)
@@ -175,7 +175,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	 * (plus the action that was taken to get there).
 	 * @param m Current strategy memory value
 	 * @param action Last action taken in model
-	 * @param sInit Index of new model state
+	 * @param sNext Index of new model state
 	 */
     public default int getUpdatedMemory(int m, Object action, int sNext)
     {
