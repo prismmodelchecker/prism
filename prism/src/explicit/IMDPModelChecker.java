@@ -501,7 +501,7 @@ public class IMDPModelChecker extends ProbModelChecker
 		}
 		
 		// Precomputation (not optional)
-		BitSet inf = mcMDP.prob1(imdp, null, target, minMax.isMin(), strat);
+		BitSet inf = mcMDP.prob1(imdp, null, target, !minMax.isMin(), strat);
 		inf.flip(0, n);
 
 		// Print results of precomputation

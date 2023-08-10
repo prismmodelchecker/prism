@@ -9,3 +9,6 @@ Rminmin=? [ F "goal1"|"goal2" ];
 
 // RESULT: 98/80  // = 1+(0.1*1+0.1*(10/8))
 Rminmax=? [ F "goal1"|"goal2" ];
+
+// RESULT: 31/24  // = 1+(0.1*(10/6)+0.1*(10/8))
+Rminmax=? [ F "goal2" ];
