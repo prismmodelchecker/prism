@@ -557,7 +557,7 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param min Min or max probabilities (true=min, false=max)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public BitSet prob0(MDP<?> mdp, BitSet remain, BitSet target, boolean min, int strat[])
+	public BitSet prob0(NondetModel<?> mdp, BitSet remain, BitSet target, boolean min, int strat[])
 	{
 		int n, iters;
 		BitSet u, soln, unknown;
@@ -651,7 +651,7 @@ public class MDPModelChecker extends ProbModelChecker
 	 * @param min Min or max probabilities (true=min, false=max)
 	 * @param strat Storage for (memoryless) strategy choice indices (ignored if null)
 	 */
-	public BitSet prob1(MDP<?> mdp, BitSet remain, BitSet target, boolean min, int strat[])
+	public BitSet prob1(NondetModel<?> mdp, BitSet remain, BitSet target, boolean min, int strat[])
 	{
 		int n, iters;
 		BitSet u, v, soln, unknown;
