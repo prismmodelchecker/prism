@@ -92,16 +92,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/** Optional PRISM version suffix (e.g. "dev", "beta"). Read from prism.Version. */
 	private static String versionSuffix = prism.Version.versionSuffixString;
 
-	/** Build number (e.g. "6667"). Defaults to "" (undefined), read from prism.Revision class if present. */
-	private static String buildNumber = "";
-	static {
-		try {
-			buildNumber = Prism.class.getClassLoader().loadClass("prism.Revision").getField("svnRevision").get(null).toString();
-		} catch (Exception e) {
-			// Any problems (e.g. class not created), ignore.
-		}
-	}
-
 	//------------------------------------------------------------------------------
 	// Constants
 	//------------------------------------------------------------------------------
@@ -695,19 +685,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Append version suffix (e.g. "dev", "beta") if non-empty
 		if (versionSuffix.length() > 0) {
 			v += "." + versionSuffix;
-			// In this case, also append any build number
-			if (buildNumber.length() > 0)
-				v += ".r" + buildNumber;
 		}
 		return v;
-	}
-
-	/**
-	 * Get build number (SVN revision) for current version. Returns "" if not set up.
-	 */
-	public static String getBuildNumber()
-	{
-		return buildNumber;
 	}
 
 	public PrismLog getMainLog()
