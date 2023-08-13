@@ -1322,7 +1322,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	/**
 	 * Import a PRISM model from an SBML model in a string
-	 * @param file File to read in
+	 * @param s String containing model
 	 */
 	public ModulesFile importSBMLString(String s) throws PrismException, PrismLangException
 	{
