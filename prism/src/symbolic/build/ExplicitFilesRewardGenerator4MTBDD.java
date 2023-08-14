@@ -25,11 +25,14 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.build;
 
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.ExplicitFilesRewardGenerator;
+import prism.PrismComponent;
+import prism.PrismException;
 
 import java.io.File;
 import java.util.Collections;

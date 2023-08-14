@@ -81,6 +81,12 @@ import strat.Strategy;
 import strat.StrategyExportOptions;
 import strat.StrategyExportOptions.StrategyExportType;
 import strat.StrategyGenerator;
+import symbolic.build.ExplicitFiles2MTBDD;
+import symbolic.build.ExplicitFiles2ModelInfo;
+import symbolic.build.ExplicitFilesRewardGenerator4MTBDD;
+import symbolic.build.ExplicitModel2MTBDD;
+import symbolic.build.ModelGenerator2MTBDD;
+import symbolic.build.Modules2MTBDD;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;
 

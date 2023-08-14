@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.build;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +34,7 @@ import java.util.Iterator;
 import jdd.*;
 import parser.*;
 import parser.ast.*;
+import prism.*;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;

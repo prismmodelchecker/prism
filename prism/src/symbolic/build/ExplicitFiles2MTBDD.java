@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.build;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,6 +42,12 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
+import prism.ModelInfo;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
 import symbolic.model.Model;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.NondetModel;

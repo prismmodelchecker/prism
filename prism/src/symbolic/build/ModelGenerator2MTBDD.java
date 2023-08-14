@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.build;
 
 import java.util.LinkedList;
 import java.util.Vector;
@@ -38,6 +38,14 @@ import parser.VarList;
 import parser.ast.DeclarationClock;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.DeclarationType;
+import prism.ModelGenerator;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
+import prism.RewardGenerator;
 import symbolic.model.Model;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.NondetModel;

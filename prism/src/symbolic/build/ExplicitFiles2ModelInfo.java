@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.build;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,6 +45,11 @@ import parser.ast.ExpressionIdent;
 import parser.type.Type;
 import parser.type.TypeBool;
 import parser.type.TypeInt;
+import prism.ModelInfo;
+import prism.ModelType;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.RewardGenerator;
 
 /**
  * Class to build a ModelInfo object corresponding to imported explicit-state file storage of a model.

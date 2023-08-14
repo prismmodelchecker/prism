@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.build;
 
 import java.util.*;
 
@@ -32,6 +32,12 @@ import jdd.*;
 import parser.*;
 import parser.ast.*;
 import explicit.*;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismLog;
+import prism.ProgressDisplay;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.ProbModel;
 import symbolic.model.StochModel;
