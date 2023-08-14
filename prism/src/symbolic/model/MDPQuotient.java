@@ -33,7 +33,7 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import jdd.SanityJDD;
-import prism.ECComputer;
+import symbolic.comp.ECComputer;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.StateValues;

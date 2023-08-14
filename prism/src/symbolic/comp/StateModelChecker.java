@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,6 +43,21 @@ import parser.ast.*;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
 import parser.visitor.ReplaceLabels;
+import prism.Accuracy;
+import prism.Filter;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismSettings;
+import prism.PrismUtils;
+import prism.Result;
+import prism.StateListMTBDD;
+import prism.StateValues;
+import prism.StateValuesDV;
+import prism.StateValuesMTBDD;
+import prism.StateValuesVoid;
 import symbolic.model.Model;
 import symbolic.model.ProbModel;
 
@@ -73,7 +88,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	protected JDDVars[] varDDRowVars;
 
 	// The filter to be applied to the current property
-	protected Filter currentFilter;
+	protected prism.Filter currentFilter;
 
 	// The result of model checking will be stored here
 	protected Result result;
@@ -1179,11 +1194,11 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				s += " (but \"" + filter + "\" is true in " + statesFilter.size() + " states)";
 				throw new PrismException(s);
 			}
-			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
+			currentFilter = new prism.Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else if (op == FilterOperator.FORALL && filterInit && filterInitSingle && ODDUtils.hasIntValue(odd)) {
-			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
+			currentFilter = new prism.Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else if (op == FilterOperator.FIRST && filterInit && filterInitSingle && ODDUtils.hasIntValue(odd)) {
-			currentFilter = new Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
+			currentFilter = new prism.Filter(Filter.FilterOperator.STATE, ODDUtils.GetIndexOfFirstFromDD(ddFilter, odd, allDDRowVars));
 		} else {
 			currentFilter = null;
 		}
@@ -1212,7 +1227,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		boolean b = false;
 		String resultExpl = null;
 		Object resObj = null;
-		Accuracy resAcc = null; 
+		Accuracy resAcc = null;
 		switch (op) {
 		case PRINT:
 		case PRINTALL:

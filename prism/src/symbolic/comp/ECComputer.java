@@ -26,13 +26,16 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.util.List;
 
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismSettings;
 import symbolic.model.NondetModel;
 
 /**

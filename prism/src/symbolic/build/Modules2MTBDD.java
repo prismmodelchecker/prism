@@ -35,6 +35,7 @@ import jdd.*;
 import parser.*;
 import parser.ast.*;
 import prism.*;
+import symbolic.comp.StateModelChecker;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;

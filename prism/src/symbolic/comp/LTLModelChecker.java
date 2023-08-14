@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -59,6 +59,18 @@ import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeBool;
 import parser.type.TypePathBool;
+import prism.ModelType;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismLangException;
+import prism.PrismNotSupportedException;
+import prism.PrismSettings;
+import prism.PrismUtils;
+import symbolic.comp.ECComputer;
+import symbolic.comp.ModelChecker;
+import symbolic.comp.NondetModelChecker;
+import symbolic.comp.ProbModelChecker;
+import symbolic.comp.SCCComputer;
 import symbolic.model.Model;
 import symbolic.model.ModelVariablesDD;
 import symbolic.model.NondetModel;
@@ -1747,30 +1759,30 @@ public class LTLModelChecker extends PrismComponent
 		JDD.Deref(filter);
 		return union;
 	}
-}
 
-class queueElement
-{
-	List<JDDNode> statesH;
-	List<JDDNode> statesL;
-	JDDNode targetDD;
-	List<Integer> draIDs;
-	int next;
-	List<queueElement> children;
-
-	public queueElement(List<JDDNode> statesH, List<JDDNode> statesL, JDDNode targetDD, List<Integer> draIDs, int next)
+	class queueElement
 	{
-		this.statesH = statesH;
-		this.statesL = statesL;
-		this.targetDD = targetDD;
-		this.draIDs = draIDs;
-		this.next = next;
-	}
+		List<JDDNode> statesH;
+		List<JDDNode> statesL;
+		JDDNode targetDD;
+		List<Integer> draIDs;
+		int next;
+		List<queueElement> children;
 
-	public void addChildren(queueElement child)
-	{
-		if (children == null)
-			children = new ArrayList<queueElement>();
-		children.add(child);
+		public queueElement(List<JDDNode> statesH, List<JDDNode> statesL, JDDNode targetDD, List<Integer> draIDs, int next)
+		{
+			this.statesH = statesH;
+			this.statesL = statesL;
+			this.targetDD = targetDD;
+			this.draIDs = draIDs;
+			this.next = next;
+		}
+
+		public void addChildren(queueElement child)
+		{
+			if (children == null)
+				children = new ArrayList<queueElement>();
+			children.add(child);
+		}
 	}
 }

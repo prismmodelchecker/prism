@@ -37,6 +37,7 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.StateList;
+import symbolic.comp.StateModelChecker;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
@@ -180,7 +181,7 @@ public interface Model
 	 * and overwritten.
 	 * <br>
 	 * Note that a stored label takes precedence over the on-the-fly calculation
-	 * of an ExpressionLabel, cf. {@link prism.StateModelChecker#checkExpressionLabel}
+	 * of an ExpressionLabel, cf. {@link StateModelChecker#checkExpressionLabel}
 	 *
 	 * <br>[ STORES: labelDD, deref on later call to clear() ]
 	 * @param label the label name

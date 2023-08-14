@@ -27,7 +27,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import hybrid.PrismHybrid;
 
@@ -59,7 +59,25 @@ import parser.type.TypeBool;
 import parser.type.TypeDouble;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
-import prism.LTLModelChecker.LTLProduct;
+import prism.AccuracyFactory;
+import prism.IntegerBound;
+import symbolic.comp.LTLModelChecker.LTLProduct;
+import prism.OpRelOpBound;
+import prism.Operator;
+import prism.OpsAndBoundsList;
+import prism.OptionsIntervalIteration;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismFileLog;
+import prism.PrismNative;
+import prism.PrismNotSupportedException;
+import prism.PrismSettings;
+import prism.PrismUtils;
+import prism.StateValues;
+import prism.StateValuesDV;
+import prism.StateValuesMTBDD;
+import prism.StateValuesVoid;
+import prism.TileList;
 import sparse.PrismSparse;
 import strat.MDStrategyIV;
 import acceptance.AcceptanceOmega;

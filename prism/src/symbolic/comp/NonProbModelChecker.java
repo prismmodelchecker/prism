@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +40,12 @@ import parser.ast.ExpressionUnaryOp;
 import parser.ast.PropertiesFile;
 import cex.CexPathAsBDDs;
 import cex.CexPathStates;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismNotSupportedException;
+import prism.StateValues;
+import prism.StateValuesMTBDD;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;
 

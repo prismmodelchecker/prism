@@ -26,7 +26,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
@@ -42,6 +42,21 @@ import jdd.JDDVars;
 import mtbdd.PrismMTBDD;
 import parser.ast.Expression;
 import parser.ast.RelOp;
+import prism.MultiObjUtils;
+import prism.NativeIntArray;
+import prism.OpRelOpBound;
+import prism.Operator;
+import prism.OpsAndBoundsList;
+import prism.Point;
+import prism.Prism;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismNative;
+import prism.PrismNotSupportedException;
+import prism.PrismSettings;
+import prism.PrismUtils;
+import prism.Tile;
+import prism.TileList;
 import sparse.NDSparseMatrix;
 import sparse.PrismSparse;
 import acceptance.AcceptanceRabin;
@@ -743,7 +758,7 @@ public class MultiObjModelChecker extends PrismComponent
 	}
 
 	protected TileList generateParetoCurve(NondetModel modelProduct, JDDNode yes_ones, JDDNode maybe, final JDDNode st, JDDNode[] targets,
-			List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
+										   List<JDDNode> rewards, OpsAndBoundsList opsAndBounds) throws PrismException
 	{
 		//TODO this method does not work for more than 2 objectives
 		int numberOfPoints = 0;

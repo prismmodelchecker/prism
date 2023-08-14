@@ -25,7 +25,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.util.Stack;
 import java.util.Vector;
@@ -33,6 +33,10 @@ import java.util.Vector;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.PrismSettings;
+import symbolic.comp.SCCComputer;
 
 /**
  * SCC (strongly connected component) decomposition using SCC-Find search

@@ -24,11 +24,14 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.util.Vector;
 
 import jdd.*;
+import prism.PrismComponent;
+import prism.PrismException;
+import symbolic.comp.SCCComputer;
 
 /**
  * SCC (strongly connected component) decomposition

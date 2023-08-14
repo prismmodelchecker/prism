@@ -24,13 +24,18 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.io.*;
 
 import jdd.*;
 import dv.*;
 import mtbdd.*;
+import prism.Prism;
+import prism.PrismException;
+import prism.StateValues;
+import prism.StateValuesDV;
+import prism.StateValuesMTBDD;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;

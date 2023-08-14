@@ -26,7 +26,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import java.util.List;
 import java.util.Stack;
@@ -35,6 +35,8 @@ import java.util.Vector;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismComponent;
+import prism.PrismException;
 
 /**
  * Symbolic maximal end component computer for a nondeterministic model such as an MDP.
@@ -46,7 +48,7 @@ public class ECComputerDefault extends ECComputer
 	 * Build (M)EC computer for a given model.
 	 */
 	public ECComputerDefault(PrismComponent parent, JDDNode reach, JDDNode trans, JDDNode trans01, JDDVars allDDRowVars, JDDVars allDDColVars,
-			JDDVars allDDNondetVars) throws PrismException
+							 JDDVars allDDNondetVars) throws PrismException
 	{
 		super(parent, reach, trans, trans01, allDDRowVars, allDDColVars, allDDNondetVars);
 	}

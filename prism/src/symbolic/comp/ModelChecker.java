@@ -24,11 +24,14 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.comp;
 
 import jdd.JDDNode;
 import parser.Values;
 import parser.ast.*;
+import prism.PrismException;
+import prism.Result;
+import prism.StateValues;
 
 // interface for model checker classes
 

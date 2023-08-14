@@ -87,6 +87,12 @@ import symbolic.build.ExplicitFilesRewardGenerator4MTBDD;
 import symbolic.build.ExplicitModel2MTBDD;
 import symbolic.build.ModelGenerator2MTBDD;
 import symbolic.build.Modules2MTBDD;
+import symbolic.comp.ECComputer;
+import symbolic.comp.ModelChecker;
+import symbolic.comp.ProbModelChecker;
+import symbolic.comp.SCCComputer;
+import symbolic.comp.StateModelChecker;
+import symbolic.comp.StochModelChecker;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;
 

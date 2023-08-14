@@ -62,7 +62,7 @@ public class TileList
 	 * To ensure correct concurrent behaviour, object accessing any stored tile lists
 	 * or elements should synchronise on this object;
 	 */
-	protected static List<TileList> storedTileLists;
+	public static List<TileList> storedTileLists;
 
 	public static List<TileList> getStoredTileLists()
 	{
@@ -73,9 +73,9 @@ public class TileList
 	 * Formulas for X and Y axes (or multi-obj formulas) of the corresponding
 	 * elements of storedTileLists.
 	 */
-	protected static List<Expression> storedFormulasX;
-	protected static List<Expression> storedFormulasY;
-	protected static List<List<Expression>> storedFormulas;
+	public static List<Expression> storedFormulasX;
+	public static List<Expression> storedFormulasY;
+	public static List<List<Expression>> storedFormulas;
 
 	public static List<Expression> getStoredFormulasX()
 	{
