@@ -38,6 +38,11 @@ import parser.VarList;
 import parser.ast.DeclarationClock;
 import parser.ast.DeclarationIntUnbounded;
 import parser.ast.DeclarationType;
+import symbolic.model.Model;
+import symbolic.model.ModelVariablesDD;
+import symbolic.model.NondetModel;
+import symbolic.model.ProbModel;
+import symbolic.model.StochModel;
 
 /**
  * Class to construct a symbolic representation from a ModelGenerator object.

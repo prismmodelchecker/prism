@@ -33,6 +33,7 @@ import odd.*;
 import parser.State;
 import parser.Values;
 import parser.VarList;
+import symbolic.model.Model;
 
 /**
  * Stores a list of states as a BDD (or as a 0-1 MTBDD).

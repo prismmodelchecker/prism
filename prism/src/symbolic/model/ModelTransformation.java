@@ -24,10 +24,12 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import jdd.JDDNode;
 import prism.PrismException;
+import prism.StateValues;
+import symbolic.model.Model;
 
 /**
  * Interface for a model transformation.

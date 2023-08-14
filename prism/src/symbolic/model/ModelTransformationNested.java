@@ -24,10 +24,13 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import jdd.JDDNode;
 import prism.PrismException;
+import prism.StateValues;
+import symbolic.model.Model;
+import symbolic.model.ModelTransformation;
 
 /**
  * Nesting of two model transformations.
@@ -35,7 +38,8 @@ import prism.PrismException;
  * originalModel -(innerTransformation)-&gt; intermediateModel -(outerTransformation)-&gt; transformedModel
  */
 public class ModelTransformationNested<OriginalModel extends Model, IntermediateModel extends Model, TransformedModel extends Model> implements
-       ModelTransformation<OriginalModel, TransformedModel> {
+		ModelTransformation<OriginalModel, TransformedModel>
+{
 
 	/** The inner transformation */
 	protected ModelTransformation<OriginalModel, IntermediateModel> innerTransformation;

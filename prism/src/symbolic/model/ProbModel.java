@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import java.io.*;
 import java.util.*;
@@ -37,6 +37,14 @@ import parser.*;
 import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
+import prism.ModelType;
+import prism.Prism;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
+import prism.PrismUtils;
+import prism.StateList;
+import prism.StateListMTBDD;
 import sparse.*;
 
 /*
@@ -511,16 +519,34 @@ public class ProbModel implements Model
 
 	/**
 	 * Reset transition matrix DD.
+	 * The old one (if present) will be deref-ed.
 	 * Note: Update reachable states and call {@code filterReachableStates}
 	 * afterwards to update related information (trans01, odd, etc).
+	 * If the reachable states do not change, you probably still want
+	 * to call {@link #resetTrans01(JDDNode)}.
 	 *
 	 * <br>[ STORES: trans, DEREFS: <i>old transition matrix DD</i> ]
 	 */
 	public void resetTrans(JDDNode trans)
 	{
-		if (this.trans != null)
+		if (this.trans != null) {
 			JDD.Deref(this.trans);
+		}
 		this.trans = trans;
+	}
+
+	/**
+	 * Reset 0-1 transition matrix DD.
+	 * The old one (if present) will be deref-ed.
+	 *
+	 * <br>[ STORES: trans01, DEREFS: <i>old 0-1 transition matrix DD</i> ]
+	 */
+	public void resetTrans01(JDDNode trans01)
+	{
+		if (this.trans01 != null) {
+			JDD.Deref(this.trans01);
+		}
+		this.trans01 = trans01;
 	}
 
 	/**
@@ -600,7 +626,6 @@ public class ProbModel implements Model
 	/**
 	 * Set reachable states BDD (and compute number of states and ODD)
 	 */
-
 	public void setReach(JDDNode reach) throws PrismException
 	{
 		if (this.reach != null)

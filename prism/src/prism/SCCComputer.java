@@ -33,6 +33,7 @@ import java.util.Vector;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import symbolic.model.Model;
 
 /**
  * Abstract class for (symbolic) classes that compute (B)SCCs,

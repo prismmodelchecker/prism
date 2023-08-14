@@ -34,7 +34,9 @@ import mtbdd.*;
 import sparse.*;
 import hybrid.*;
 import parser.ast.*;
-import parser.type.*;
+import symbolic.model.Model;
+import symbolic.model.ProbModel;
+import symbolic.model.StochModel;
 
 /*
  * Model checker for CTMCs.

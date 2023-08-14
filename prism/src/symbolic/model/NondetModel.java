@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -37,6 +37,10 @@ import parser.*;
 import parser.ast.Declaration;
 import parser.ast.DeclarationInt;
 import parser.ast.Expression;
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismUtils;
 import sparse.*;
 
 /*
@@ -186,7 +190,7 @@ public class NondetModel extends ProbModel
 	// constructor
 
 	public NondetModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv, JDDVars asyv, JDDVars asv, JDDVars achv,
-			JDDVars andv, ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
+					   JDDVars andv, ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv, JDDVars[] vcv, Values cv)
 	{
 		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
 

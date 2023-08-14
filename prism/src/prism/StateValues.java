@@ -32,6 +32,7 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.ast.RelOp;
 import prism.Accuracy.AccuracyType;
+import symbolic.model.Model;
 
 /**
  * Interface for classes for state-indexed vectors of (integer or double) values

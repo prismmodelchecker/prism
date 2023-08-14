@@ -24,35 +24,37 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismException;
+import symbolic.model.NondetModel;
 
 /**
- * Description of a transformation operation for a ProbModel (DTMC/CTMC).
- * The transformation can request the allocation of extra state variables,
+ * Description of a transformation operation for a NondetModel (MDP).
+ * The transformation can request the allocation of extra state and action variables,
  * and specify new transition matrix, initial states and reward information.
  * <br>
  * After use, the transformation should be cleared by calling {@code clear()}.
- * <br>
- * Use ProbModel.getTransformed() to obtain a transformed model.
  */
-public abstract class ProbModelTransformationOperator
+public abstract class NondetModelTransformationOperator
 {
 	/** The original model */
-	protected ProbModel originalModel;
+	protected NondetModel originalModel;
 	/** The extra state variables (rows) */
 	protected JDDVars extraRowVars;
 	/** The extra state variables (columns) */
 	protected JDDVars extraColVars;
+	/** The extra action (non-deterministic choice) variables */
+	protected JDDVars extraActionVars;
 
 	/**
 	 * Constructor with the original model that is to be transformed.
 	 * The original model is not changed and will not be cleared when
 	 * {@code clear()} is called.
- 	 */
-	public ProbModelTransformationOperator(ProbModel model)
+	 */
+	public NondetModelTransformationOperator(NondetModel model)
 	{
 		originalModel = model;
 	}
@@ -68,6 +70,9 @@ public abstract class ProbModelTransformationOperator
 		if (extraColVars != null) {
 			extraColVars.derefAll();
 		}
+		if (extraActionVars != null) {
+			extraActionVars.derefAll();
+		}
 	}
 
 	/**
@@ -80,11 +85,26 @@ public abstract class ProbModelTransformationOperator
 	}
 
 	/**
+	 * Return the name (prefix) to use for any new extra action variable.
+	 * Default implementation: Return "tau".
+	 */
+	public String getExtraActionVariableName()
+	{
+		return "tau";
+	}
+
+	/**
 	 * Get the number of extra state variables needed for this transformation.
 	 * This is the number n of state variables and will lead to the allocation of
 	 * 2*n variables, n row and n column variables (interleaved).
 	 */
 	public abstract int getExtraStateVariableCount();
+
+	/**
+	 * Get the number of needed extra action variables for this transformation.
+	 * This will result in the allocation of n additional non-deterministic choice variables.
+	 */
+	public abstract int getExtraActionVariableCount();
 
 	/**
 	 * This method is called to notify the transformation operator
@@ -103,16 +123,31 @@ public abstract class ProbModelTransformationOperator
 	}
 
 	/**
+	 * This method is called to notify the transformation about the action variables
+	 * that were allocated.
+	 * <br>
+	 * The extraActionsVars are copies, i.e., this method is responsible
+	 * to ensure that they will be derefed eventually.
+	 * <br>
+	 * Default implementation: store in extraActionVars field.
+	 * <br>[ STORES: extraActionVars ]
+	 */
+	public void hookExtraActionVariableAllocation(JDDVars extraActionVars)
+	{
+		this.extraActionVars = extraActionVars;
+	}
+
+	/**
 	 * Get the transformed transition function.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public abstract	JDDNode getTransformedTrans();
+	public abstract	JDDNode getTransformedTrans() throws PrismException;
 
 	/**
 	 * Get the transformed start function.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public abstract JDDNode getTransformedStart();
+	public abstract JDDNode getTransformedStart() throws PrismException;
 
 	/**
 	 * Get the transformed state reward relation, given the old reward relation.
@@ -120,7 +155,7 @@ public abstract class ProbModelTransformationOperator
 	 * Default implementation: Return the old reward relation, unchanged.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public JDDNode getTransformedStateReward(JDDNode oldReward)
+	public JDDNode getTransformedStateReward(JDDNode oldReward) throws PrismException
 	{
 		return oldReward.copy();
 	}
@@ -131,9 +166,24 @@ public abstract class ProbModelTransformationOperator
 	 * Default implementation: Return the old reward relation, unchanged.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public JDDNode getTransformedTransReward(JDDNode oldReward)
+	public JDDNode getTransformedTransReward(JDDNode oldReward) throws PrismException
 	{
 		return oldReward.copy();
+	}
+
+	/**
+	 * Get the transformed trans actions relation,
+	 * mapping (state,action) to action index.
+	 * Action index 0 indicates unnamed action.
+	 * <br>
+	 * Default implementation: The old trans action relation is returned.
+	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
+	 */
+	public JDDNode getTransformedTransActions() throws PrismException
+	{
+		if (originalModel.getTransActions() == null)
+			return null;
+		return originalModel.getTransActions().copy();
 	}
 
 	/**

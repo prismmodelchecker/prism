@@ -24,13 +24,15 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import jdd.*;
 import parser.*;
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismLog;
 
 /*
  * Class for MTBDD-based storage of a PRISM model that is a CTMC.
@@ -57,8 +59,8 @@ public class StochModel extends ProbModel
 	// constructor
 
 	public StochModel(JDDNode tr, JDDNode s, JDDNode sr[], JDDNode trr[], String rsn[], JDDVars arv, JDDVars acv,
-			ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
-			JDDVars[] vcv, Values cv)
+					  ModelVariablesDD mvdd, int nm, String[] mn, JDDVars[] mrv, JDDVars[] mcv, int nv, VarList vl, JDDVars[] vrv,
+					  JDDVars[] vcv, Values cv)
 	{
 		super(tr, s, sr, trr, rsn, arv, acv, mvdd, nm, mn, mrv, mcv, nv, vl, vrv, vcv, cv);
 	}

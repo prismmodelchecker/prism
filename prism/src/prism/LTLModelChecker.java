@@ -59,6 +59,11 @@ import parser.ast.ExpressionTemporal;
 import parser.ast.ExpressionUnaryOp;
 import parser.type.TypeBool;
 import parser.type.TypePathBool;
+import symbolic.model.Model;
+import symbolic.model.ModelVariablesDD;
+import symbolic.model.NondetModel;
+import symbolic.model.ProbModel;
+import symbolic.model.Product;
 
 /**
  * LTL model checking functionality
@@ -73,7 +78,8 @@ public class LTLModelChecker extends PrismComponent
 	 * for translating a result in the product back to the original model.
 	 * @param <M> the underlying model type (ProbModel, NondetModel)
 	 */
-	public static class LTLProduct<M extends Model> extends Product<M> {
+	public static class LTLProduct<M extends Model> extends Product<M>
+	{
 		/**
 		 * The omega-regular acceptance condition, lifted to the product model,
 		 * but not necessarily restricted to the product model's reachable states.

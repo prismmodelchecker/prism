@@ -73,6 +73,9 @@ import common.StopWatch;
 import dv.DoubleVector;
 import dv.IntegerVector;
 import explicit.MinMax;
+import symbolic.model.MDPQuotient;
+import symbolic.model.Model;
+import symbolic.model.NondetModel;
 
 /*
  * Model checker for MDPs
@@ -680,10 +683,8 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Put unmodified trans and trans01 to modelProduct
 		if (transchanged) {
-			JDD.Deref(modelProduct.getTrans());
-			JDD.Deref(modelProduct.getTrans01());
-			modelProduct.trans = tmptrans;
-			modelProduct.trans01 = tmptrans01;
+			modelProduct.resetTrans(tmptrans);
+			modelProduct.resetTrans01(tmptrans01);
 		}
 
 		Object value;

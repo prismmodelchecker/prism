@@ -33,6 +33,7 @@ import jdd.*;
 import odd.*;
 import parser.VarList;
 import parser.ast.RelOp;
+import symbolic.model.Model;
 
 /**
  * Class for state-indexed vectors of (integer or double) values,

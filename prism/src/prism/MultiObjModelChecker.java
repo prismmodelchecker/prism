@@ -48,6 +48,7 @@ import acceptance.AcceptanceRabin;
 import automata.DA;
 import automata.LTL2DA;
 import dv.DoubleVector;
+import symbolic.model.NondetModel;
 
 /**
  * Multi-objective model checking functionality
@@ -69,7 +70,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 	//TODO: dra's element is changed here, not neat.
 	protected NondetModel constructDRAandProductMulti(NondetModel model, LTLModelChecker mcLtl, ModelChecker modelChecker, Expression ltl, int i,
-			DA<BitSet, AcceptanceRabin> dra[], Operator operator, Expression pathFormula, JDDVars draDDRowVars, JDDVars draDDColVars, JDDNode ddStateIndex)
+													  DA<BitSet, AcceptanceRabin> dra[], Operator operator, Expression pathFormula, JDDVars draDDRowVars, JDDVars draDDColVars, JDDNode ddStateIndex)
 			throws PrismException
 	{
 
@@ -130,15 +131,12 @@ public class MultiObjModelChecker extends PrismComponent
 				JDDNode actions = JDD.GreaterThan(rewardsIndex.get(i), 0.0);
 				if (!actions.equals(JDD.ZERO)) {
 					//mainLog.println("Removing non-zero reward actions in reward #" + i);
-					JDD.Ref(actions);
 					if (!transchanged)
 						JDD.Ref(modelProduct.getTrans());
-					JDDNode tmp = JDD.ITE(actions, JDD.Constant(0), modelProduct.getTrans());
-					modelProduct.trans = tmp;
+					modelProduct.resetTrans(JDD.ITE(actions.copy(), JDD.Constant(0), modelProduct.getTrans().copy()));
 					if (!transchanged)
 						JDD.Ref(modelProduct.getTrans01());
-					tmp = JDD.ITE(actions, JDD.Constant(0), modelProduct.getTrans01());
-					modelProduct.trans01 = tmp;
+					modelProduct.resetTrans01(JDD.ITE(actions, JDD.Constant(0), modelProduct.getTrans01().copy()));
 					transchanged = true;
 				}
 			}
@@ -292,8 +290,8 @@ public class MultiObjModelChecker extends PrismComponent
 			}
 
 			JDD.Ref(removedActions);
-			modelProduct.trans = JDD.Apply(JDD.TIMES, modelProduct.trans, JDD.Not(removedActions));
-			modelProduct.trans01 = JDD.Apply(JDD.TIMES, modelProduct.trans01, JDD.Not(removedActions));
+			modelProduct.resetTrans(JDD.Apply(JDD.TIMES, modelProduct.getTrans().copy(), JDD.Not(removedActions)));
+			modelProduct.resetTrans01(JDD.Apply(JDD.TIMES, modelProduct.getTrans01().copy(), JDD.Not(removedActions)));
 		} else {
 			JDD.Deref(rmecs);
 			JDD.Deref(removedActions);

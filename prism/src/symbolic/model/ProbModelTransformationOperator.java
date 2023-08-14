@@ -24,35 +24,37 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismException;
+import symbolic.model.ProbModel;
 
 /**
- * Description of a transformation operation for a NondetModel (MDP).
- * The transformation can request the allocation of extra state and action variables,
+ * Description of a transformation operation for a ProbModel (DTMC/CTMC).
+ * The transformation can request the allocation of extra state variables,
  * and specify new transition matrix, initial states and reward information.
  * <br>
  * After use, the transformation should be cleared by calling {@code clear()}.
+ * <br>
+ * Use ProbModel.getTransformed() to obtain a transformed model.
  */
-public abstract class NondetModelTransformationOperator
+public abstract class ProbModelTransformationOperator
 {
 	/** The original model */
-	protected NondetModel originalModel;
+	protected ProbModel originalModel;
 	/** The extra state variables (rows) */
 	protected JDDVars extraRowVars;
 	/** The extra state variables (columns) */
 	protected JDDVars extraColVars;
-	/** The extra action (non-deterministic choice) variables */
-	protected JDDVars extraActionVars;
 
 	/**
 	 * Constructor with the original model that is to be transformed.
 	 * The original model is not changed and will not be cleared when
 	 * {@code clear()} is called.
-	 */
-	public NondetModelTransformationOperator(NondetModel model)
+ 	 */
+	public ProbModelTransformationOperator(ProbModel model)
 	{
 		originalModel = model;
 	}
@@ -68,9 +70,6 @@ public abstract class NondetModelTransformationOperator
 		if (extraColVars != null) {
 			extraColVars.derefAll();
 		}
-		if (extraActionVars != null) {
-			extraActionVars.derefAll();
-		}
 	}
 
 	/**
@@ -83,26 +82,11 @@ public abstract class NondetModelTransformationOperator
 	}
 
 	/**
-	 * Return the name (prefix) to use for any new extra action variable.
-	 * Default implementation: Return "tau".
-	 */
-	public String getExtraActionVariableName()
-	{
-		return "tau";
-	}
-
-	/**
 	 * Get the number of extra state variables needed for this transformation.
 	 * This is the number n of state variables and will lead to the allocation of
 	 * 2*n variables, n row and n column variables (interleaved).
 	 */
 	public abstract int getExtraStateVariableCount();
-
-	/**
-	 * Get the number of needed extra action variables for this transformation.
-	 * This will result in the allocation of n additional non-deterministic choice variables.
-	 */
-	public abstract int getExtraActionVariableCount();
 
 	/**
 	 * This method is called to notify the transformation operator
@@ -121,31 +105,16 @@ public abstract class NondetModelTransformationOperator
 	}
 
 	/**
-	 * This method is called to notify the transformation about the action variables
-	 * that were allocated.
-	 * <br>
-	 * The extraActionsVars are copies, i.e., this method is responsible
-	 * to ensure that they will be derefed eventually.
-	 * <br>
-	 * Default implementation: store in extraActionVars field.
-	 * <br>[ STORES: extraActionVars ]
-	 */
-	public void hookExtraActionVariableAllocation(JDDVars extraActionVars)
-	{
-		this.extraActionVars = extraActionVars;
-	}
-
-	/**
 	 * Get the transformed transition function.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public abstract	JDDNode getTransformedTrans() throws PrismException;
+	public abstract	JDDNode getTransformedTrans();
 
 	/**
 	 * Get the transformed start function.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public abstract JDDNode getTransformedStart() throws PrismException;
+	public abstract JDDNode getTransformedStart();
 
 	/**
 	 * Get the transformed state reward relation, given the old reward relation.
@@ -153,7 +122,7 @@ public abstract class NondetModelTransformationOperator
 	 * Default implementation: Return the old reward relation, unchanged.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public JDDNode getTransformedStateReward(JDDNode oldReward) throws PrismException
+	public JDDNode getTransformedStateReward(JDDNode oldReward)
 	{
 		return oldReward.copy();
 	}
@@ -164,24 +133,9 @@ public abstract class NondetModelTransformationOperator
 	 * Default implementation: Return the old reward relation, unchanged.
 	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
 	 */
-	public JDDNode getTransformedTransReward(JDDNode oldReward) throws PrismException
+	public JDDNode getTransformedTransReward(JDDNode oldReward)
 	{
 		return oldReward.copy();
-	}
-
-	/**
-	 * Get the transformed trans actions relation,
-	 * mapping (state,action) to action index.
-	 * Action index 0 indicates unnamed action.
-	 * <br>
-	 * Default implementation: The old trans action relation is returned.
-	 * <br>[ REFS: <i>result</i>, DEREFS: <i>none</i> ]
-	 */
-	public JDDNode getTransformedTransActions() throws PrismException
-	{
-		if (originalModel.getTransActions() == null)
-			return null;
-		return originalModel.getTransActions().copy();
 	}
 
 	/**
@@ -205,7 +159,8 @@ public abstract class NondetModelTransformationOperator
 	 * Default implementation: return {@code null}
 	 * <br>[ REFS: <i>result</i> ]
 	 */
-	public JDDNode getReachableStates() throws PrismException {
+	public JDDNode getReachableStates() throws PrismException
+	{
 		return null;
 	}
 

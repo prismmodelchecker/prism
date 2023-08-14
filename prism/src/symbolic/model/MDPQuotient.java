@@ -25,7 +25,7 @@
 //==============================================================================
 
 
-package prism;
+package symbolic.model;
 
 import java.util.List;
 
@@ -33,6 +33,11 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import jdd.SanityJDD;
+import prism.ECComputer;
+import prism.PrismComponent;
+import prism.PrismException;
+import prism.StateValues;
+import prism.StateValuesMTBDD;
 
 /**
  * Transformation for obtaining the quotient MDP for an MDP, given an
@@ -161,7 +166,8 @@ public class MDPQuotient implements ModelTransformation<NondetModel,NondetModel>
 	}
 
 	/** The transformation operator for the MDPQuotient operation. */
-	public static class MDPQuotientOperator extends NondetModelTransformationOperator {
+	public static class MDPQuotientOperator extends NondetModelTransformationOperator
+	{
 		/** the list of equivalence classes */
 		private List<JDDNode> equivalentClasses;
 
@@ -338,7 +344,7 @@ public class MDPQuotient implements ModelTransformation<NondetModel,NondetModel>
 
 			// first run: collapse the target state ECs
 
-			if (verbose) parent.mainLog.println("Collapsing target states");
+			if (verbose) parent.getLog().println("Collapsing target states");
 			for (JDDNode ec : equivalentClasses) {
 				if (verbose) JDD.PrintMinterms(parent.getLog(), trans.copy(), "trans");
 				JDDNode ecCol = JDD.PermuteVariables(ec.copy(), originalModel.getAllDDRowVars(), originalModel.getAllDDColVars());
@@ -365,7 +371,7 @@ public class MDPQuotient implements ModelTransformation<NondetModel,NondetModel>
 			if (verbose) JDD.PrintMinterms(parent.getLog(), trans.copy(), "trans (after collapsing target states)");
 
 			newTrans = JDD.Constant(0);
-			if (verbose) parent.mainLog.println("\nCollapsing from states");
+			if (verbose) parent.getLog().println("\nCollapsing from states");
 			for (JDDNode ec : equivalentClasses) {
 				if (verbose) JDD.PrintMinterms(parent.getLog(), ec.copy(), "EC");
 

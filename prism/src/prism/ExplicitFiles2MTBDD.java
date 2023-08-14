@@ -42,6 +42,11 @@ import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.Values;
 import parser.VarList;
+import symbolic.model.Model;
+import symbolic.model.ModelVariablesDD;
+import symbolic.model.NondetModel;
+import symbolic.model.ProbModel;
+import symbolic.model.StochModel;
 
 
 /**
@@ -124,7 +129,7 @@ public class ExplicitFiles2MTBDD
 	 * The number of states should also be passed in as {@code numStates}.
 	 */
 	public Model build(File statesFile, File transFile, File labelsFile, ModelInfo modelInfo, int numStates,
-			ExplicitFilesRewardGenerator4MTBDD efrg4m) throws PrismException
+					   ExplicitFilesRewardGenerator4MTBDD efrg4m) throws PrismException
 	{
 		this.statesFile = statesFile;
 		this.transFile = transFile;

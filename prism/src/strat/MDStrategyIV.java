@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import dv.IntegerVector;
-import prism.Model;
+import symbolic.model.Model;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;

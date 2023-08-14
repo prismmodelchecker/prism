@@ -62,6 +62,9 @@ import prism.LTLModelChecker.LTLProduct;
 import sparse.PrismSparse;
 import dv.DoubleVector;
 import explicit.ExportIterations;
+import symbolic.model.Model;
+import symbolic.model.NondetModel;
+import symbolic.model.ProbModel;
 
 /*
  * Model checker for DTMCs.

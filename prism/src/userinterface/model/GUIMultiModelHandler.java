@@ -46,7 +46,7 @@ import javax.swing.border.TitledBorder;
 
 import parser.Values;
 import parser.ast.ModulesFile;
-import prism.Model;
+import symbolic.model.Model;
 import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;

@@ -1,9 +1,10 @@
-package prism;
+package symbolic.model;
 
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import prism.PrismException;
+import prism.StateValues;
 
 /**
  * Base class for the results of a product operation between a symbolic model and
@@ -82,7 +83,8 @@ public class Product<M extends Model> implements ModelTransformation<M, M>
 	 * @return the corresponding state values in the original model
 	 */
 	@Override
-	public StateValues projectToOriginalModel(StateValues svTransformed) throws PrismException {
+	public StateValues projectToOriginalModel(StateValues svTransformed) throws PrismException
+	{
 		// Filter against the productStatesOfInterest, i.e.,
 		// set values to 0 for all states that do not correspond to the states of interest
 		svTransformed.filter(productStatesOfInterest);

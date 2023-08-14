@@ -31,7 +31,8 @@ import java.util.ArrayList;
 import jdd.JDD;
 import jdd.JDDNode;
 import parser.State;
-import simulator.PathFullInfo;;
+import simulator.PathFullInfo;
+import symbolic.model.Model;;
 
 /**
  * Class to store a counterexample/witness comprising a single path, as a list of BDDs.
@@ -40,13 +41,13 @@ import simulator.PathFullInfo;;
  */
 public class CexPathAsBDDs implements PathFullInfo
 {
-	protected prism.Model model;
+	protected Model model;
 	protected ArrayList<JDDNode> states;
 
 	/**
 	 * Construct empty path.
 	 */
-	public CexPathAsBDDs(prism.Model model)
+	public CexPathAsBDDs(Model model)
 	{
 		this.model = model;
 		states = new ArrayList<JDDNode>();

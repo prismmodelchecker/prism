@@ -28,13 +28,17 @@ package prism;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import jdd.*;
 import parser.*;
 import parser.ast.*;
+import symbolic.model.ModelVariablesDD;
+import symbolic.model.Model;
+import symbolic.model.NondetModel;
+import symbolic.model.ProbModel;
+import symbolic.model.StochModel;
 
 // class to translate a modules description file into an MTBDD model
 

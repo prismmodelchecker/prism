@@ -33,6 +33,7 @@ import java.util.List;
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import symbolic.model.NondetModel;
 
 /**
  * Abstract class for (symbolic) classes that compute (M)ECs, i.e. (maximal) end components,

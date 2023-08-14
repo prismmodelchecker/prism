@@ -40,6 +40,8 @@ import parser.ast.ExpressionUnaryOp;
 import parser.ast.PropertiesFile;
 import cex.CexPathAsBDDs;
 import cex.CexPathStates;
+import symbolic.model.Model;
+import symbolic.model.NondetModel;
 
 /*
  * Non probabilistic model checker, initially for CTL.

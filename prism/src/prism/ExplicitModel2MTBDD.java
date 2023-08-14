@@ -32,6 +32,9 @@ import jdd.*;
 import parser.*;
 import parser.ast.*;
 import explicit.*;
+import symbolic.model.ModelVariablesDD;
+import symbolic.model.ProbModel;
+import symbolic.model.StochModel;
 
 /**
  * Class to convert explicit-state representation of a model to a symbolic one.
@@ -110,9 +113,9 @@ public class ExplicitModel2MTBDD
 	 * in which case a corresponding {@code ModulesFile} must be provided for variable
 	 * details (and e.g. module names). If both are null, a single variable x is assumed. 
 	 */
-	public Model buildModel(explicit.Model<Double> modelExpl, List<State> statesList, ModulesFile modulesFile, boolean doReach) throws PrismException
+	public symbolic.model.Model buildModel(explicit.Model<Double> modelExpl, List<State> statesList, ModulesFile modulesFile, boolean doReach) throws PrismException
 	{
-		Model model = null;
+		symbolic.model.Model model = null;
 		JDDNode tmp, tmp2;
 		JDDVars ddv;
 		int i;
@@ -192,7 +195,7 @@ public class ExplicitModel2MTBDD
 			model = new ProbModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, modelVariables, numModules,
 					moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList, varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.MDP) {
-			model = new NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDSynchVars,
+			model = new symbolic.model.NondetModel(trans, start, stateRewardsArray, transRewardsArray, rewardStructNames, allDDRowVars, allDDColVars, allDDSynchVars,
 					allDDSchedVars, allDDChoiceVars, allDDNondetVars, modelVariables, numModules, moduleNames, moduleDDRowVars, moduleDDColVars, numVars, varList,
 					varDDRowVars, varDDColVars, constantValues);
 		} else if (modelType == ModelType.CTMC) {

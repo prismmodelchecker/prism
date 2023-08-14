@@ -43,6 +43,8 @@ import parser.ast.*;
 import parser.ast.ExpressionFilter.FilterOperator;
 import parser.type.*;
 import parser.visitor.ReplaceLabels;
+import symbolic.model.Model;
+import symbolic.model.ProbModel;
 
 // Base class for model checkers - does state-based evaluations (no temporal/probabilistic)
 

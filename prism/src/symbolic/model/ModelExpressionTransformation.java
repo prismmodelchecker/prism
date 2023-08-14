@@ -25,9 +25,11 @@
 //==============================================================================
 
 
-package prism;
+package symbolic.model;
 
 import parser.ast.Expression;
+import symbolic.model.Model;
+import symbolic.model.ModelTransformation;
 
 /**
  * Interface for a model and expression transformation.<br>
@@ -43,7 +45,8 @@ import parser.ast.Expression;
  * {@code StateValues result = t.projectToOriginalModel(resultTransformed);}
  */
 public interface ModelExpressionTransformation<OriginalModel extends Model, TransformedModel extends Model>
-       extends ModelTransformation<OriginalModel, TransformedModel> {
+       extends ModelTransformation<OriginalModel, TransformedModel>
+{
 
 	/** Get the transformed expression. */
 	public Expression getTransformedExpression();

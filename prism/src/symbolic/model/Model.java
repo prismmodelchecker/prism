@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import java.io.*;
 import java.util.*;
@@ -32,6 +32,11 @@ import java.util.*;
 import jdd.*;
 import odd.*;
 import parser.*;
+import prism.ModelType;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
+import prism.StateList;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 

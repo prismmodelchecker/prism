@@ -24,13 +24,14 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.model;
 
 import java.util.Vector;
 
 import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
+import prism.PrismException;
 
 /**
  * Management and information storage about the DD variables
