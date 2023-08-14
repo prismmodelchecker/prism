@@ -193,6 +193,19 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	public int getNumStates();
 
 	/**
+	 * Export the model induced by this strategy to a PrismLog.
+	 */
+	public default prism.Model<Value> constructInducedModel() throws PrismException
+	{
+		return constructInducedModel(new StrategyExportOptions());
+	}
+
+	/**
+	 * Export the model induced by this strategy to a PrismLog.
+	 */
+	public prism.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException;
+
+	/**
 	 * Export the strategy to a PrismLog, with specified export type and options.
 	 */
 	public default void export(PrismLog out, StrategyExportOptions options) throws PrismException

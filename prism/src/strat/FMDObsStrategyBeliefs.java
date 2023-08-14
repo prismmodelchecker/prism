@@ -147,7 +147,16 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
     {
 		return m == -1 ? "?" : Belief.toStringUnobs(unobsBeliefs.get(m), pomdp);
     }
-    
+
+	@Override
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	{
+		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
+		Model<Value> prodModel = csp.constructProductModel(model, this);
+		return prodModel;
+	}
+
 	@Override
 	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
@@ -197,9 +206,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 
 	public void exportInducedModelNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		csp.setMode(options.getMode());
-		Model<Value> prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = constructInducedModel(options);
 		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
@@ -234,9 +241,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 	public void exportDotFileNonObs(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
 		// Construct the strategy-induced product model
-		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		csp.setMode(options.getMode());
-		Model<Value> prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = constructInducedModel(options);
 		List<State> stateList = prodModel.getStatesList();
 		// Export product model to dot file, with (if needed) a custom decorator
 		// to extract the final value of each state and convert to a belief

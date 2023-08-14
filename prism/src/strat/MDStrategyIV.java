@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import dv.IntegerVector;
+import explicit.ConstructStrategyProduct;
 import symbolic.model.Model;
 import prism.PrismException;
 import prism.PrismLog;
@@ -102,7 +103,13 @@ public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrate
 	{
 		return numStates;
 	}
-	
+
+	@Override
+	public Model constructInducedModel(StrategyExportOptions options) throws PrismException
+	{
+		throw new PrismException("Induced model construction not yet supported for symbolic engines");
+	}
+
 	@Override
 	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{

@@ -162,7 +162,16 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 		// No match
 		return -1;
 	}
-	
+
+	@Override
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	{
+		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
+		Model<Value> prodModel = csp.constructProductModel(model, this);
+		return prodModel;
+	}
+
 	@Override
 	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
@@ -195,9 +204,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	{
 		// If restricting to reachable states, construct product afresh
 		if (options.getReachOnly()) {
-			ConstructStrategyProduct csp = new ConstructStrategyProduct();
-			csp.setMode(options.getMode());
-			Model<Value> prodModel = csp.constructProductModel(model, this);
+			Model<Value> prodModel = constructInducedModel(options);
 			prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 		}
 		// Otherwise, just export MD strategy, unmodified

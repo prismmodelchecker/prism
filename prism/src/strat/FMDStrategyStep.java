@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import explicit.ConstructInducedModel;
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
 import explicit.NondetModel;
@@ -125,7 +126,16 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 		// Step count increases by 1 each time (up to k)
 		return m >= k ? k : m + 1;
 	}
-	
+
+	@Override
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	{
+		ConstructStrategyProduct csp = new ConstructStrategyProduct();
+		csp.setMode(options.getMode());
+		Model<Value> prodModel = csp.constructProductModel(model, this);
+		return prodModel;
+	}
+
 	@Override
 	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
@@ -155,18 +165,14 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	@Override
 	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		csp.setMode(options.getMode());
-		Model<Value> prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = constructInducedModel(options);
 		prodModel.exportToPrismExplicitTra(out, options.getModelPrecision());
 	}
 
 	@Override
 	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		ConstructStrategyProduct csp = new ConstructStrategyProduct();
-		csp.setMode(options.getMode());
-		Model<Value> prodModel = csp.constructProductModel(model, this);
+		Model<Value> prodModel = constructInducedModel(options);
 		prodModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 

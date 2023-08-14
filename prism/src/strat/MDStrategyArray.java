@@ -86,6 +86,17 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	}
 
 	@Override
+	public explicit.Model<Value> constructInducedModel(StrategyExportOptions options) throws PrismException
+	{
+		ConstructInducedModel cim = new ConstructInducedModel();
+		cim.setMode(options.getMode()).setReachOnly(options.getReachOnly());
+		Model<Value> inducedModel = cim.constructInducedModel(model, this);
+		// NB: for reach=false (and MDPs), it would be slightly cheaper to use:
+		//Model<Value> inducedModel = model.constructInducedModel(this);
+		return inducedModel;
+	}
+
+	@Override
 	public void exportActions(PrismLog out, StrategyExportOptions options)
 	{
 		List<State> states = model.getStatesList();
@@ -101,21 +112,14 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	@Override
 	public void exportInducedModel(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		ConstructInducedModel cim = new ConstructInducedModel();
-		cim.setMode(options.getMode()).setReachOnly(options.getReachOnly());
-		Model<Value> inducedModel = cim.constructInducedModel(model, this);
+		Model<Value> inducedModel = constructInducedModel(options);
 		inducedModel.exportToPrismExplicitTra(out, options.getModelPrecision());
-
-		// NB: for reach=false (and MDPs), it would be slightly cheaper to use:
-		//Model<Value> inducedModel = model.constructInducedModel(this);
 	}
 
 	@Override
 	public void exportDotFile(PrismLog out, StrategyExportOptions options) throws PrismException
 	{
-		ConstructInducedModel cim = new ConstructInducedModel();
-		cim.setMode(options.getMode()).setReachOnly(options.getReachOnly());
-		Model<Value> inducedModel = cim.constructInducedModel(model, this);
+		Model<Value> inducedModel = constructInducedModel(options);
 		inducedModel.exportToDotFile(out, null, options.getShowStates(), options.getModelPrecision());
 	}
 
