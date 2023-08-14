@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.states;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,6 +35,12 @@ import jdd.*;
 import odd.*;
 import parser.VarList;
 import parser.ast.RelOp;
+import prism.Accuracy;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
+import prism.StateAndValueConsumer;
+import prism.StateAndValuePrinter;
 import symbolic.model.Model;
 
 /**

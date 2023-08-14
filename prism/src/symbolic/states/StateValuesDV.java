@@ -24,7 +24,7 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.states;
 
 import java.io.*;
 
@@ -33,6 +33,11 @@ import jdd.*;
 import odd.*;
 import parser.VarList;
 import parser.ast.RelOp;
+import prism.Accuracy;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.StateAndValueConsumer;
+import prism.StateAndValuePrinter;
 import symbolic.model.Model;
 
 /**

@@ -28,9 +28,7 @@ package symbolic.model;
 
 import jdd.JDDNode;
 import prism.PrismException;
-import prism.StateValues;
-import symbolic.model.Model;
-import symbolic.model.ModelTransformation;
+import symbolic.states.StateValues;
 
 /**
  * Nesting of two model transformations.

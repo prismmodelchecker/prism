@@ -53,11 +53,11 @@ import prism.PrismLangException;
 import prism.PrismSettings;
 import prism.PrismUtils;
 import prism.Result;
-import prism.StateListMTBDD;
-import prism.StateValues;
-import prism.StateValuesDV;
-import prism.StateValuesMTBDD;
-import prism.StateValuesVoid;
+import symbolic.states.StateListMTBDD;
+import symbolic.states.StateValues;
+import symbolic.states.StateValuesDV;
+import symbolic.states.StateValuesMTBDD;
+import symbolic.states.StateValuesVoid;
 import symbolic.model.Model;
 import symbolic.model.ProbModel;
 

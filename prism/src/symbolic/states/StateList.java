@@ -24,13 +24,16 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.states;
 
 import java.util.List;
 
 import jdd.*;
 import parser.State;
 import parser.Values;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
 
 /**
  * Interface for classes that store a list of states.

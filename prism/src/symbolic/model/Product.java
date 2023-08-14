@@ -4,7 +4,7 @@ import jdd.JDD;
 import jdd.JDDNode;
 import jdd.JDDVars;
 import prism.PrismException;
-import prism.StateValues;
+import symbolic.states.StateValues;
 
 /**
  * Base class for the results of a product operation between a symbolic model and

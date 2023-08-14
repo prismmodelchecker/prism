@@ -36,7 +36,7 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
-import prism.StateList;
+import symbolic.states.StateList;
 import symbolic.comp.StateModelChecker;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;

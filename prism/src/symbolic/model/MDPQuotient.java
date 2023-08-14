@@ -36,8 +36,8 @@ import jdd.SanityJDD;
 import symbolic.comp.ECComputer;
 import prism.PrismComponent;
 import prism.PrismException;
-import prism.StateValues;
-import prism.StateValuesMTBDD;
+import symbolic.states.StateValues;
+import symbolic.states.StateValuesMTBDD;
 
 /**
  * Transformation for obtaining the quotient MDP for an MDP, given an

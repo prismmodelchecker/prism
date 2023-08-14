@@ -95,6 +95,9 @@ import symbolic.comp.StateModelChecker;
 import symbolic.comp.StochModelChecker;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;
+import symbolic.states.StateList;
+import symbolic.states.StateListMTBDD;
+import symbolic.states.StateValues;
 
 /**
  * Main class for all PRISM's core functionality.

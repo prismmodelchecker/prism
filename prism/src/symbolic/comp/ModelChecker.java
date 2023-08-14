@@ -31,7 +31,7 @@ import parser.Values;
 import parser.ast.*;
 import prism.PrismException;
 import prism.Result;
-import prism.StateValues;
+import symbolic.states.StateValues;
 
 // interface for model checker classes
 

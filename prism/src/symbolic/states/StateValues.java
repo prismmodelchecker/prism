@@ -24,14 +24,21 @@
 //	
 //==============================================================================
 
-package prism;
+package symbolic.states;
 
 import java.io.File;
 
 import jdd.JDDNode;
 import jdd.JDDVars;
 import parser.ast.RelOp;
+import prism.Accuracy;
 import prism.Accuracy.AccuracyType;
+import prism.PrismException;
+import prism.PrismLog;
+import prism.PrismNotSupportedException;
+import prism.ResultTesting;
+import prism.StateAndValueConsumer;
+import prism.StateVector;
 import symbolic.model.Model;
 
 /**

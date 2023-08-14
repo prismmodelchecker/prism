@@ -44,8 +44,8 @@ import prism.ModelType;
 import prism.Prism;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
-import prism.StateValues;
-import prism.StateValuesMTBDD;
+import symbolic.states.StateValues;
+import symbolic.states.StateValuesMTBDD;
 import symbolic.model.Model;
 import symbolic.model.NondetModel;
 

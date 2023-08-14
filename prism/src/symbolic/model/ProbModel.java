@@ -43,8 +43,8 @@ import prism.PrismException;
 import prism.PrismLog;
 import prism.PrismNotSupportedException;
 import prism.PrismUtils;
-import prism.StateList;
-import prism.StateListMTBDD;
+import symbolic.states.StateList;
+import symbolic.states.StateListMTBDD;
 import sparse.*;
 
 /*
