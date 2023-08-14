@@ -183,7 +183,7 @@ public class StateValuesMTBDD implements StateValues
 		int lineNum = 0, count = 0;
 		double d;
 		boolean hasIndices = false;
-		long size = model.getNumStates();
+		int size = model.getNumStates();
 		
 		try {
 			// open file for reading
@@ -298,7 +298,7 @@ public class StateValuesMTBDD implements StateValues
 	@Override
 	public int getSize()
 	{
-		return (int) model.getNumStates();
+		return model.getNumStates();
 	}
 
 	@Override

@@ -349,7 +349,7 @@ public class NondetModel extends ProbModel
 	{
 		int i, j, n;
 
-		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
+		log.print("States:      " + getNumStatesString() + " (" + getNumInitialStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
 		log.print("Choices:     " + getNumChoicesString() + "\n");
 

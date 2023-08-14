@@ -273,6 +273,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		// Was definedMFConstants evaluated exactly?
 		boolean definedMFConstantsAreExact = false;
 		// Built model storage - symbolic or explicit - at most one is non-null
+		prism.Model<?> model = null;
 		symbolic.model.Model modelSymb = null;
 		explicit.Model<?> modelExpl = null;
 		// Type of built model storage
@@ -1772,7 +1773,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		setModelInfo(modulesFile);
 		setDefinedMFConstants(null);
 		// Store built model info
-		setBuiltModel(ModelBuildType.SYMBOLIC, model, null);
+		setBuiltModel(ModelBuildType.SYMBOLIC, model);
 	}
 
 	/**
@@ -1792,7 +1793,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		setModelType(model == null ? null : model.getModelType());
 		setDefinedMFConstants(null);
 		// Store built model info
-		setBuiltModel(ModelBuildType.SYMBOLIC, model, null);
+		setBuiltModel(ModelBuildType.SYMBOLIC, model);
 	}
 
 	/**
@@ -1953,11 +1954,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	/**
-	 * Get the currently stored built (symbolic) model.
+	 * Get the currently stored built model.
 	 */
-	public Model getBuiltModel()
+	public prism.Model<?> getBuiltModel()
 	{
-		return getBuiltModelSymbolic();
+		return currentModelDetails.model;
 	}
 
 	/**
@@ -2120,19 +2121,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				case PRISM_MODEL:
 					Modules2MTBDD mod2mtbdd = new Modules2MTBDD(this, getPRISMModel());
 					newModelSymb = mod2mtbdd.translate();
-					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb, null);
+					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb);
 					break;
 				case MODEL_GENERATOR:
 					ModelGenerator2MTBDD modelGen2mtbdd = new ModelGenerator2MTBDD(this);
 					ModelGenerator<Double> modelGenDbl = (ModelGenerator<Double>) getModelGenerator();
 					newModelSymb = modelGen2mtbdd.build(modelGenDbl, (RewardGenerator<Double>) getRewardGenerator());
-					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb, null);
+					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb);
 					break;
 				case EXPLICIT_FILES:
 					ExplicitFiles2MTBDD expf2mtbdd = new ExplicitFiles2MTBDD(this);
 					ExplicitFilesRewardGenerator4MTBDD erfg4m = new ExplicitFilesRewardGenerator4MTBDD(this, explicitFilesStateRewardsFiles, explicitFilesNumStates);
 					newModelSymb = expf2mtbdd.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, getModelInfo(), explicitFilesNumStates, erfg4m);
-					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb, null);
+					setBuiltModel(ModelBuildType.SYMBOLIC, newModelSymb);
 					// Also build a RewardGenerator
 					// (needed e.g. when (multiple) reward files are later exported)
 					setRewardGenerator(erfg4m);
@@ -2156,12 +2157,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					ConstructModel constructModel = new ConstructModel(this);
 					constructModel.setFixDeadlocks(getFixDeadlocks());
 					newModelExpl = constructModel.constructModel(getModelGenerator());
-					setBuiltModel(ModelBuildType.EXPLICIT, null, newModelExpl);
+					setBuiltModel(ModelBuildType.EXPLICIT, newModelExpl);
 					break;
 				case EXPLICIT_FILES:
 					ExplicitFiles2Model expf2model = new ExplicitFiles2Model(this);
 					newModelExpl = expf2model.build(explicitFilesStatesFile, explicitFilesTransFile, explicitFilesLabelsFile, getModelInfo(), explicitFilesNumStates);
-					setBuiltModel(ModelBuildType.EXPLICIT, null, newModelExpl);
+					setBuiltModel(ModelBuildType.EXPLICIT, newModelExpl);
 					// Also build a Model/RewardGenerator
 					// (the latter since rewards are built later, the former e.g. for simulation)
 					setModelGenerator(new ModelModelGenerator<>(getBuiltModelExplicit(), getModelInfo()));
@@ -2230,11 +2231,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// Print model stats
 			mainLog.println();
+			mainLog.println("Type:        " + getBuiltModel().getModelType());
 			if (getBuiltModelType() == ModelBuildType.SYMBOLIC) {
-				mainLog.println("Type:        " + getBuiltModelSymbolic().getModelType());
 				getBuiltModelSymbolic().printTransInfo(mainLog, getExtraDDInfo());
 			} else {
-				mainLog.println("Type:        " + getBuiltModelExplicit().getModelType());
 				mainLog.print(getBuiltModelExplicit().infoStringTable());
 			}
 
@@ -3178,15 +3178,14 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 			// Check if we need to switch to MTBDD engine
 			if (getCurrentEngine() == PrismEngine.SYMBOLIC && getEngine() != MTBDD && !switchedToExplicitEngine) {
-				long n = getBuiltModelSymbolic().getNumStates();
 				// Either because number of states is two big for double-valued solution vectors
-				if (n == -1 || n > Integer.MAX_VALUE) {
+				if (getBuiltModelSymbolic().numStatesExceedsInt()) {
 					mainLog.printWarning("Switching to MTBDD engine, as number of states is too large for " + engineStrings[getEngine()] + " engine.");
 					switchToMTBDDEngine = true;
 				}
 				// Or based on heuristic choices of engine/method
 				// (sparse/hybrid typically v slow if need to work with huge state spaces)
-				else if (settings.getString(PrismSettings.PRISM_HEURISTIC).equals("Speed") && n > MTBDD_STATES_THRESHOLD) {
+				else if (settings.getString(PrismSettings.PRISM_HEURISTIC).equals("Speed") && getBuiltModelSymbolic().getNumStates() > MTBDD_STATES_THRESHOLD) {
 					mainLog.printWarning("Switching to MTBDD engine (default for heuristic=speed and this state space size).");
 					switchToMTBDDEngine = true;
 				}
@@ -4182,16 +4181,24 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	/**
 	 * Store the built model (only one of the symbolic./explicit models should be non-null)
 	 */
-	private void setBuiltModel(ModelBuildType buildType, symbolic.model.Model newModelSymb, explicit.Model newModelExpl) throws PrismException
+	private void setBuiltModel(ModelBuildType buildType, prism.Model<?> newModel) throws PrismException
 	{
 		switch (buildType) {
 			case SYMBOLIC:
-				this.currentModelDetails.modelSymb = newModelSymb;
-				this.currentModelDetails.modelExpl = null;
+				if (!(newModel instanceof symbolic.model.Model)) {
+					throw new PrismException("Attempt to store model of incorrect type");
+				}
+				currentModelDetails.model = newModel;
+				currentModelDetails.modelSymb = (symbolic.model.Model) newModel;
+				currentModelDetails.modelExpl = null;
 				break;
 			case EXPLICIT:
-				this.currentModelDetails.modelSymb = null;
-				this.currentModelDetails.modelExpl = newModelExpl;
+				if (!(newModel instanceof explicit.Model)) {
+					throw new PrismException("Attempt to store model of incorrect type");
+				}
+				currentModelDetails.model = newModel;
+				currentModelDetails.modelSymb = null;
+				currentModelDetails.modelExpl = (explicit.Model) newModel;;
 				break;
 			default:
 				throw new PrismException("Unknown built model type");
@@ -4206,6 +4213,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	private void clearBuiltModel()
 	{
+		currentModelDetails.model = null;
 		if (currentModelDetails.modelSymb != null) {
 			currentModelDetails.modelSymb.clear();
 			currentModelDetails.modelSymb = null;

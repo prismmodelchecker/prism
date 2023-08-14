@@ -58,26 +58,11 @@ import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
 /**
  * Interface for (abstract) classes that provide (read-only) access to an explicit-state model.
- * This is a generic class where probabilities/rates/etc. are of type {@code Value}.
+ * This is generic, where probabilities/rates/etc. are of type {@code Value}.
  */
-public interface Model<Value>
+public interface Model<Value> extends prism.Model<Value>
 {
 	// Accessors
-
-	/**
-	 * Get the type of this model.
-	 */
-	public ModelType getModelType();
-
-	/**
-	 * Get the number of states.
-	 */
-	public int getNumStates();
-
-	/**
-	 * Get the number of initial states.
-	 */
-	public int getNumInitialStates();
 
 	/**
 	 * Get iterator over initial state list.
@@ -171,9 +156,7 @@ public interface Model<Value>
 		return labels;
 	}
 	
-	/**
-	 * Get the total number of transitions in the model.
-	 */
+	@Override
 	public default int getNumTransitions()
 	{
 		int numStates = getNumStates();

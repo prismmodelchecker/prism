@@ -105,15 +105,59 @@ public class ProbModel implements Model
 
 	protected ODDNode odd; // odd
 
-	// accessor methods
+	// Accessors (for Model)
 
-	// model info
-
-	// type
+	@Override
 	public ModelType getModelType()
 	{
 		return ModelType.DTMC;
 	}
+
+	@Override
+	public int getNumStates()
+	{
+		return (numStates > Integer.MAX_VALUE) ? -1 : (int) Math.round(numStates);
+	}
+
+	@Override
+	public int getNumInitialStates()
+	{
+		return (numStartStates > Integer.MAX_VALUE) ? -1 : (int) Math.round(numStartStates);
+	}
+
+	@Override
+	public int getNumTransitions()
+	{
+		return (numTransitions > Integer.MAX_VALUE) ? -1 : (int) Math.round(numTransitions);
+	}
+
+	@Override
+	public boolean numStatesExceedsInt()
+	{
+		return numStates > Integer.MAX_VALUE;
+	}
+
+	@Override
+	public String getNumStatesString()
+	{
+		return PrismUtils.bigIntToString(numStates);
+	}
+
+	@Override
+	public String getNumInitialStatesString()
+	{
+		return PrismUtils.bigIntToString(numStartStates);
+	}
+
+	@Override
+	public String getNumTransitionsString()
+	{
+		return PrismUtils.bigIntToString(numTransitions);
+	}
+
+	// Other accessors
+
+	// model info
 
 	// modules
 	public int getNumModules()
@@ -191,36 +235,28 @@ public class ProbModel implements Model
 		return numRewardStructs;
 	}
 
-	// stats
-	public long getNumStates()
+	/**
+	 * Get the number of states.
+	 */
+	public long getNumStatesLong()
 	{
 		return (numStates > Long.MAX_VALUE) ? -1 : Math.round(numStates);
 	}
 
-	public long getNumTransitions()
-	{
-		return (numTransitions > Long.MAX_VALUE) ? -1 : Math.round(numTransitions);
-	}
-
-	public long getNumStartStates()
+	/**
+	 * Get the number of initial states, as a long.
+	 */
+	public long getNumInitialStatesLong()
 	{
 		return (numStartStates > Long.MAX_VALUE) ? -1 : Math.round(numStartStates);
 	}
 
-	// additional methods to get stats as strings
-	public String getNumStatesString()
+	/**
+	 * Get the total number of transitions in the model, as a long.
+	 */
+	public long getNumTransitionsLong()
 	{
-		return PrismUtils.bigIntToString(numStates);
-	}
-
-	public String getNumTransitionsString()
-	{
-		return PrismUtils.bigIntToString(numTransitions);
-	}
-
-	public String getNumStartStatesString()
-	{
-		return PrismUtils.bigIntToString(numStartStates);
+		return (numTransitions > Long.MAX_VALUE) ? -1 : Math.round(numTransitions);
 	}
 
 	// lists of states
@@ -782,7 +818,7 @@ public class ProbModel implements Model
 	{
 		int i, j, n;
 
-		log.print("States:      " + getNumStatesString() + " (" + getNumStartStatesString() + " initial)" + "\n");
+		log.print("States:      " + getNumStatesString() + " (" + getNumInitialStatesString() + " initial)" + "\n");
 		log.print("Transitions: " + getNumTransitionsString() + "\n");
 
 		log.println();

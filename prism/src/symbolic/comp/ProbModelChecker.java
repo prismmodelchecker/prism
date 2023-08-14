@@ -403,10 +403,10 @@ public class ProbModelChecker extends NonProbModelChecker
 					totalProbs = new StateValuesMTBDD(JDD.Constant(0), model);
 					break;
 				case Prism.SPARSE:
-					totalProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+					totalProbs = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 					break;
 				case Prism.HYBRID:
-					totalProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+					totalProbs = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 					break;
 				}
 
@@ -1179,10 +1179,10 @@ public class ProbModelChecker extends NonProbModelChecker
 				rewards = new StateValuesMTBDD(JDD.Constant(0), model);
 				break;
 			case Prism.SPARSE:
-				rewards = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+				rewards = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 				break;
 			case Prism.HYBRID:
-				rewards = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+				rewards = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 				break;
 			}
 
@@ -1319,7 +1319,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			if (engine == Prism.MTBDD) {
 				dist = new StateValuesMTBDD(JDD.Constant(0), model);
 			} else {
-				dist = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+				dist = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 			}
 			// Populate vector from file
 			dist.readFromFile(distFile);
@@ -2498,10 +2498,10 @@ public class ProbModelChecker extends NonProbModelChecker
 					solnProbs = new StateValuesMTBDD(JDD.Constant(0), model);
 					break;
 				case Prism.SPARSE:
-					solnProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+					solnProbs = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 					break;
 				case Prism.HYBRID:
-					solnProbs = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+					solnProbs = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 					break;
 				}
 
@@ -2581,7 +2581,7 @@ public class ProbModelChecker extends NonProbModelChecker
 	protected StateValues computeSteadyStateProbsForBSCC(JDDNode tr, JDDNode bscc) throws PrismException
 	{
 		JDDNode trf, init;
-		long n;
+		int n;
 		JDDNode probsMTBDD;
 		DoubleVector probsDV;
 		StateValues probs = null;
@@ -2591,7 +2591,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			// avoid a call to GetNumMinterms in this simple (and common) case
 			n = model.getNumStates();
 		} else {
-			n = Math.round(JDD.GetNumMinterms(bscc, allDDRowVars.n()));
+			n = (int) Math.round(JDD.GetNumMinterms(bscc, allDDRowVars.n()));
 		}
 
 		// special case: 1 state BSCC (in fact, we *need* to check for this

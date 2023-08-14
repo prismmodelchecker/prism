@@ -247,7 +247,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
-		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumStartStates() == 1);
+		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
 		
 		// Do model checking and store result vector
 		timer = System.currentTimeMillis();
@@ -1183,7 +1183,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		}
 		// Remember whether filter is for the initial state and, if so, whether there's just one
 		boolean filterInit = (filter instanceof ExpressionLabel && ((ExpressionLabel) filter).isInitLabel());
-		boolean filterInitSingle = filterInit & model.getNumStartStates() == 1;
+		boolean filterInitSingle = filterInit & model.getNumInitialStates() == 1;
 
 		// For some types of filter, store info that may be used to optimise model checking
 		FilterOperator op = expr.getOperatorType();
@@ -1412,7 +1412,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 				} else {
 					resultExpl += "all initial states";
 				}
-				mainLog.println(" of " + model.getNumStartStatesString() + " initial states.");
+				mainLog.println(" of " + model.getNumInitialStatesString() + " initial states.");
 			} else {
 				if (filterTrue) {
 					resultExpl += "all states";

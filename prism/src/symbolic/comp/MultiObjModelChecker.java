@@ -803,7 +803,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 		int exportAdvSetting = settings.getChoice(PrismSettings.PRISM_EXPORT_ADV);
 
-		NativeIntArray adversary = new NativeIntArray((int) modelProduct.getNumStates());
+		NativeIntArray adversary = new NativeIntArray(modelProduct.getNumStates());
 		int dimProb = targets.length;
 		int dimReward = rewards.size();
 		Point targetPoint = new Point(dimProb + dimReward);
@@ -1095,7 +1095,7 @@ public class MultiObjModelChecker extends PrismComponent
 
 		int maxIters = settings.getInteger(PrismSettings.PRISM_MULTI_MAX_POINTS);
 
-		NativeIntArray adversary = new NativeIntArray((int) modelProduct.getNumStates());
+		NativeIntArray adversary = new NativeIntArray(modelProduct.getNumStates());
 		int dimProb = targets.length;
 		int dimReward = rewards.size();
 		Point targetPoint = new Point(dimProb + dimReward);

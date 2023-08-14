@@ -41,10 +41,11 @@ import symbolic.comp.StateModelChecker;
 
 import static prism.PrismSettings.DEFAULT_EXPORT_MODEL_PRECISION;
 
-public interface Model
+/**
+ * Interface for classes that store models symbolically, as (MT)BDDs.
+ */
+public interface Model extends prism.Model<Double>
 {
-	ModelType getModelType();
-
 	int getNumModules();
 	String[] getModuleNames();
 	String getModuleName(int i);
@@ -120,12 +121,6 @@ public interface Model
 	
 	StateList getStartStates();
 	int getNumRewardStructs();
-	long getNumStates();
-	long getNumTransitions();
-	long getNumStartStates();
-	String getNumStatesString();
-	String getNumTransitionsString();
-	String getNumStartStatesString();
 
 	JDDNode getTrans();
 	JDDNode getTrans01();

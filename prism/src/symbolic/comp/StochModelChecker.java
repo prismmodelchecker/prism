@@ -382,7 +382,7 @@ public class StochModelChecker extends ProbModelChecker
 			if (engine == Prism.MTBDD) {
 				initDist = new StateValuesMTBDD(JDD.Constant(0), model);
 			} else {
-				initDist = new StateValuesDV(new DoubleVector((int) model.getNumStates()), model);
+				initDist = new StateValuesDV(new DoubleVector(model.getNumStates()), model);
 			}
 			// Populate vector from file
 			initDist.readFromFile(initDistFile);
