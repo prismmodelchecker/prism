@@ -225,6 +225,9 @@ public class ConstructInducedModel
 					inducedModel.addState();
 					break;
 			}
+			if (model.isInitialState(s)) {
+				inducedModel.addInitialState(map[s]);
+			}
 			if (reachOnly && inducedStatesList != null) {
 				inducedStatesList.add(model.getStatesList().get(s));
 			}
