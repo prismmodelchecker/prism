@@ -126,36 +126,56 @@ public class StrategyExportOptions implements Cloneable
 
 	// Set methods
 
+	/**
+	 * Set the type of strategy export.
+	 */
 	public StrategyExportOptions setType(StrategyExportType type)
 	{
 		this.type = type;
 		return this;
 	}
 
+	/**
+	 * Set the mode of construction for an induced model:
+	 * "restrict" (same model type but restrict to selected action choices); or
+	 * "reduce" (change mode type by removing nondeterminism)
+	 */
 	public StrategyExportOptions setMode(InducedModelMode mode)
 	{
 		this.mode = Optional.of(mode);
 		return this;
 	}
 
+	/**
+	 * Set whether to restrict strategy/model to reachable states.
+	 */
 	public StrategyExportOptions setReachOnly(boolean reachOnly)
 	{
 		this.reachOnly = Optional.of(reachOnly);
 		return this;
 	}
 
+	/**
+	 * Set whether to show full state details.
+	 */
 	public StrategyExportOptions setShowStates(boolean showStates)
 	{
 		this.showStates = Optional.of(showStates);
 		return this;
 	}
 
+	/**
+	 * Set whether to merge observationally equivalent states in partially observable models.
+	 */
 	public StrategyExportOptions setMergeObservations(boolean mergeObs)
 	{
 		this.mergeObs = Optional.of(mergeObs);
 		return this;
 	}
 
+	/**
+	 * Set precision to export probabilities/etc. (number of significant decimal places).
+	 */
 	public StrategyExportOptions setModelPrecision(int modelPrecision)
 	{
 		this.modelPrecision = Optional.of(modelPrecision);
@@ -164,36 +184,57 @@ public class StrategyExportOptions implements Cloneable
 
 	// Get methods
 
+	/**
+	 * Get the type of strategy export.
+	 */
 	public StrategyExportType getType()
 	{
 		return type;
 	}
 
+	/**
+	 * Get the mode of construction for an induced model.
+	 */
 	public InducedModelMode getMode()
 	{
 		return mode.orElse(InducedModelMode.RESTRICT);
 	}
 
+	/**
+	 * Whether to restrict strategy/model to reachable states.
+	 */
 	public boolean getReachOnly()
 	{
 		return reachOnly.orElse(!getType().equals(StrategyExportType.INDUCED_MODEL));
 	}
 
+	/**
+	 * Whether to show full state details.
+	 */
 	public boolean getShowStates()
 	{
 		return showStates.orElse(true);
 	}
 
+	/**
+	 * Whether to merge observationally equivalent states in partially observable models.
+	 */
 	public boolean getMergeObservations()
 	{
 		return mergeObs.orElse(true);
 	}
 
+	/**
+	 * Precision to export probabilities/etc. (number of significant decimal places).
+	 */
 	public int getModelPrecision()
 	{
 		return modelPrecision.orElse(DEFAULT_EXPORT_MODEL_PRECISION);
 	}
 
+	/**
+	 * Get string description for type of strategy export.
+	 */
 	public String description()
 	{
 		String s = getType().description();
