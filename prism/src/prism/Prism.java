@@ -1624,35 +1624,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			mainLog.println("Observables: " + String.join(" ", currentModulesFile.getObservableNames()));
 		}
 
-		// For some models, automatically switch engine
-		switch (currentModelType) {
-		case IDTMC:
-		case IMDP:
-		case LTS:
-		case POMDP:
-			if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
-				mainLog.println("\nSwitching to explicit engine, which supports " + currentModelType + "s...");
-				engineOld = getEngine();
-				engineSwitched = true;
-				try {
-					setEngine(Prism.EXPLICIT);
-				} catch (PrismException e) {
-					// Won't happen
-				}
-			}
-			break;
-		// For other models, switch engine back if changed earlier
-		default:
-			if (engineSwitched) {
-				try {
-					setEngine(engineOld);
-				} catch (PrismException e) {
-					// Won't happen
-				}
-				engineSwitched = false;
-			}
-		}
-
 		// If required, export parsed PRISM model
 		if (exportPrism) {
 			try {
@@ -1986,8 +1957,44 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public void buildModelIfRequired() throws PrismException
 	{
+		chooseEngineForModelBuild();
 		if (!modelIsBuilt())
 			doBuildModel();
+	}
+
+	/**
+	 * If required (based on model type), switch engine to enable building.
+	 */
+	private void chooseEngineForModelBuild()
+	{
+		// For some models, automatically switch engine
+		switch (currentModelType) {
+			case IDTMC:
+			case IMDP:
+			case LTS:
+			case POMDP:
+				if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
+					mainLog.println("\nSwitching to explicit engine, which supports " + currentModelType + "s...");
+					engineOld = getEngine();
+					engineSwitched = true;
+					try {
+						setEngine(Prism.EXPLICIT);
+					} catch (PrismException e) {
+						// Won't happen
+					}
+				}
+				break;
+			// For other models, switch engine back if changed earlier
+			default:
+				if (engineSwitched) {
+					try {
+						setEngine(engineOld);
+					} catch (PrismException e) {
+						// Won't happen
+					}
+					engineSwitched = false;
+				}
+		}
 	}
 
 	/**
