@@ -108,29 +108,8 @@ public class ConstructInducedModel
 		}
 
 		// Create a (simple, mutable) model of the appropriate type
-		ModelSimple<Value> inducedModel = null;
-		switch (inducedModelType) {
-			case DTMC:
-				inducedModel = new DTMCSimple<>();
-				break;
-			case MDP:
-				inducedModel = new MDPSimple<>();
-				break;
-			case POMDP:
-				inducedModel = new POMDPSimple<>();
-				break;
-			case IDTMC:
-				inducedModel = (ModelSimple<Value>) new IDTMCSimple<>();
-				break;
-			case IMDP:
-				inducedModel = (ModelSimple<Value>) new IMDPSimple<>();
-				break;
-			case STPG:
-				inducedModel = new STPGSimple<>();
-				break;
-			default:
-				throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
-		}
+		ModelSimple<Value> inducedModel = (ModelSimple<Value>) ModelSimple.forModelType(inducedModelType);
+		
 		// Attach evaluator and copy variable info
 		((ModelExplicit<Value>) inducedModel).setEvaluator(model.getEvaluator());
 		((ModelExplicit<Value>) inducedModel).setVarList(model.getVarList());

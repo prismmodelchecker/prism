@@ -119,29 +119,8 @@ public class ConstructStrategyProduct
 		}
 
 		// Create a (simple, mutable) model of the appropriate type
-		ModelSimple<Value> prodModel = null;
-		switch (productModelType) {
-		case DTMC:
-			prodModel = new DTMCSimple<>();
-			break;
-		case MDP:
-			prodModel = new MDPSimple<>();
-			break;
-		case POMDP:
-			prodModel = new POMDPSimple<>();
-			break;
-		case IDTMC:
-			prodModel = (ModelSimple<Value>) new IDTMCSimple<>();
-			break;
-		case IMDP:
-			prodModel = (ModelSimple<Value>) new IMDPSimple<>();
-			break;
-		case STPG:
-			prodModel = new STPGSimple<>();
-			break;
-		default:
-			throw new PrismNotSupportedException("Product construction not supported for " + modelType + "s");
-		}
+		ModelSimple<Value> prodModel = (ModelSimple<Value>) ModelSimple.forModelType(productModelType);
+
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
 		((ModelExplicit<Value>) prodModel).setVarList(newVarList);

@@ -518,29 +518,7 @@ public class LTLModelChecker extends PrismComponent
 
 		// Create a (simple, mutable) model of the appropriate type
 		ModelType modelType = model.getModelType();
-		ModelSimple<?> prodModel = null;
-		switch (modelType) {
-		case DTMC:
-			prodModel = new DTMCSimple<>();
-			break;
-		case MDP:
-			prodModel = new MDPSimple<>();
-			break;
-		case POMDP:
-			prodModel = new POMDPSimple<>();
-			break;
-		case IDTMC:
-			prodModel = new IDTMCSimple<>();
-			break;
-		case IMDP:
-			prodModel = new IMDPSimple<>();
-			break;
-		case STPG:
-			prodModel = new STPGSimple<>();
-			break;
-		default:
-			throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
-		}
+		ModelSimple<?> prodModel = ModelSimple.forModelType(modelType);
 
 		// Attach evaluator and variable info
 		((ModelExplicit<Value>) prodModel).setEvaluator(model.getEvaluator());
