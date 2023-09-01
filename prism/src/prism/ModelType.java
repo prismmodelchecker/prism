@@ -209,7 +209,20 @@ public enum ModelType
 		{
 			return DTMC;
 		}
-		
+
+		@Override
+		public boolean uncertain()
+		{
+			return true;
+		}
+	},
+	UMDP("uncertain Markov decision process") {
+		@Override
+		public ModelType removeNondeterminism()
+		{
+			return DTMC;
+		}
+
 		@Override
 		public boolean uncertain()
 		{

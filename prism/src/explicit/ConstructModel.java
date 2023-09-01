@@ -232,9 +232,11 @@ public class ConstructModel extends PrismComponent
 				throw new PrismNotSupportedException("Model construction not supported for " + modelType + "s");
 			}
 			// Attach evaluator and variable info
-			if (!modelType.uncertain()) {
-				((ModelExplicit<Value>) modelSimple).setEvaluator(modelGen.getEvaluator());
-			} else {
+			((ModelExplicit<Value>) modelSimple).setEvaluator(modelGen.getEvaluator());
+			if (modelType == ModelType.IMDP) {
+				imdp.setIntervalEvaluator(modelGen.getIntervalEvaluator());
+			}
+			if (modelType == ModelType.IDTMC) {
 				((ModelExplicit<Interval<Value>>) modelSimple).setEvaluator(modelGen.getIntervalEvaluator());
 			}
 	        ((ModelExplicit<Value>) modelSimple).setVarList(varList);
@@ -369,7 +371,7 @@ public class ConstructModel extends PrismComponent
 				if (modelType == ModelType.IDTMC) {
 					((IDTMCSimple<Value>) idtmc).delimit(src, modelGen.getEvaluator());
 				} else if (modelType == ModelType.IMDP) {
-					((IMDPSimple<Value>) imdp).delimit(src, ch, modelGen.getEvaluator());
+					imdp.delimit(src, ch);
 				}
 			}
 			// For partially observable models, add observation info to state

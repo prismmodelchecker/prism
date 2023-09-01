@@ -392,10 +392,10 @@ public abstract class ModelExporter<Value>
 			}
 			// IMDPs
 			else {
-				Iterator<Map.Entry<Integer, Interval<Value>>> iter = ((MDP<Interval<Value>>) model).getTransitionsIterator(s, j);
+				Iterator<Map.Entry<Integer, Interval<Value>>> iter = ((IMDP<Value>) model).getIntervalTransitionsIterator(s, j);
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Interval<Value>> e = iter.next();
-					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue(), action, (Evaluator<Interval<Value>>) model.getEvaluator()));
+					sorted.add((Transition<Object>) (Transition<? extends Object>) new Transition<>(e.getKey(), e.getValue(), action, ((IMDP<Value>) model).getIntervalEvaluator()));
 				}
 			}
 		}

@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import common.Interval;
 import explicit.rewards.ConstructRewards;
 import explicit.rewards.Rewards;
 import io.DotExporter;
@@ -1530,6 +1531,11 @@ public class StateModelChecker extends PrismComponent
 	 */
 	public <Value> void exportModel(Model<Value> model, ModelExportTask exportTask) throws PrismException
 	{
+		// For interval models, we use the underlying model over intervals
+		if (model.getModelType() == ModelType.IMDP) {
+			exportModel(((IMDP<Value>) model).getIntervalModel(), exportTask);
+			return;
+		}
 		ModelExportOptions exportOptions = exportTask.getExportOptions();
 		// Build an exporter of the required type
 		ModelExporter<Value> exporter;

@@ -601,7 +601,7 @@ public class IMDPModelChecker extends ProbModelChecker
 			IMDPModelChecker mc = new IMDPModelChecker(null);
 			Evaluator<Interval<Double>> eval = Evaluator.forDoubleInterval();
 			IMDPSimple<Double> imdp = new IMDPSimple<>();
-			imdp.setEvaluator(eval);
+			imdp.setIntervalEvaluator(eval);
 			imdp.addState();
 			imdp.addState();
 			imdp.addState();
