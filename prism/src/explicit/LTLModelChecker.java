@@ -555,9 +555,8 @@ public class LTLModelChecker extends PrismComponent
 		int numAPs = da.getAPList().size();
 		int modelNumStates = model.getNumStates();
 		int prodNumStates = Math.multiplyExact(modelNumStates, daSize);
-		int s_1, s_2, q_1, q_2;
 		BitSet s_labels = new BitSet(numAPs);
-		List<State> prodStatesList = null, daStatesList = null;
+		List<State> prodStatesList, daStatesList;
 
 		// Check size limits for this product construction approach
 		try {
@@ -571,18 +570,55 @@ public class LTLModelChecker extends PrismComponent
 		// s(s') = s' / daSize
 		// q(s') = s' % daSize
 
+		// Initialise state info storage
 		LinkedList<Point> queue = new LinkedList<Point>();
+		BitSet visited = new BitSet(prodNumStates);
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
-
 		if (model.getStatesList() != null) {
 			prodStatesList = new ArrayList<State>();
 			daStatesList = new ArrayList<State>(da.size());
 			for (int i = 0; i < da.size(); i++) {
 				daStatesList.add(new State(1).setValue(0, i));
 			}
+		} else {
+			prodStatesList = null;
+			daStatesList = null;
 		}
 
+		// Code to get the index for a new product state for model successor state s_2
+		// assuming the current automaton state is q_1
+		NewStateMap newStateMap = (q_1,s_2) -> {
+			// Get BitSet representing APs (labels) satisfied by successor state s_2
+			for (int k = 0; k < numAPs; k++) {
+				s_labels.set(k, labelBS.get(Integer.parseInt(da.getAPList().get(k).substring(1))).get(s_2));
+			}
+			// Find corresponding successor in DA
+			int q_2 = da.getEdgeDestByLabel(q_1, s_labels);
+			if (q_2 < 0) {
+				throw new PrismException("The deterministic automaton is not complete (state " + q_1 + ")");
+			}
+			// Add state/transition to model
+			if (!visited.get(s_2 * daSize + q_2) && map[s_2 * daSize + q_2] == -1) {
+				queue.add(new Point(s_2, q_2));
+				switch (modelType) {
+					case STPG:
+						((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_2));
+						break;
+					default:
+						prodModel.addState();
+						break;
+				}
+				map[s_2 * daSize + q_2] = prodModel.getNumStates() - 1;
+				if (prodStatesList != null) {
+					// Store state information for the product
+					prodStatesList.add(new State(daStatesList.get(q_2), model.getStatesList().get(s_2)));
+				}
+			}
+			return map[s_2 * daSize + q_2];
+		};
+
+		// Get initial states
 		// We need results for all states of the original model in statesOfInterest
 		// We thus explore states of the product starting from these states.
 		// These are designated as initial states of the product model
@@ -590,40 +626,17 @@ public class LTLModelChecker extends PrismComponent
 		// (b) to later identify the corresponding product state for the original states
 		//     of interest
 		for (int s_0 : new IterableStateSet(statesOfInterest, model.getNumStates())) {
-			// Get BitSet representing APs (labels) satisfied by state s_0
-			for (int k = 0; k < numAPs; k++) {
-				s_labels.set(k, labelBS.get(Integer.parseInt(da.getAPList().get(k).substring(1))).get(s_0));
-			}
-			// Find corresponding initial state in DA
-			int q_0 = da.getEdgeDestByLabel(da.getStartState(), s_labels);
-			if (q_0 < 0) {
-				throw new PrismException("The deterministic automaton is not complete (state " + da.getStartState() + ")");
-			}
-			// Add (initial) state to product
-			queue.add(new Point(s_0, q_0));
-			switch (modelType) {
-			case STPG:
-				((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_0));
-				break;
-			default:
-				prodModel.addState();
-			break;
-			}
-			prodModel.addInitialState(prodModel.getNumStates() - 1);
-			map[s_0 * daSize + q_0] = prodModel.getNumStates() - 1;
-			if (prodStatesList != null) {
-				// Store state information for the product
-				prodStatesList.add(new State(daStatesList.get(q_0), (State) model.getStatesList().get(s_0)));
-			}
+			int map_0 = newStateMap.apply(da.getStartState(), s_0);
+			prodModel.addInitialState(map_0);
 		}
 
-		// Product states
-		BitSet visited = new BitSet(prodNumStates);
+		// Explore product
 		while (!queue.isEmpty()) {
 			Point p = queue.pop();
-			s_1 = p.x;
-			q_1 = p.y;
+			int s_1 = p.x;
+			int q_1 = p.y;
 			visited.set(s_1 * daSize + q_1);
+			int map_1 = map[s_1 * daSize + q_1];
 
 			// Go through transitions from state s_1 in original model
 			int numChoices = (model instanceof NondetModel) ? ((NondetModel<Value>) model).getNumChoices(s_1) : 1;
@@ -649,44 +662,21 @@ public class LTLModelChecker extends PrismComponent
 				if (modelType.nondeterministic()) {
 					prodDistr = new Distribution<>(model.getEvaluator());
 				}
+
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Value> e = iter.next();
-					s_2 = e.getKey();
+					int s_2 = e.getKey();
 					Value prob = e.getValue();
-					// Get BitSet representing APs (labels) satisfied by successor state s_2
-					for (int k = 0; k < numAPs; k++) {
-						s_labels.set(k, labelBS.get(Integer.parseInt(da.getAPList().get(k).substring(1))).get(s_2));
-					}
-					// Find corresponding successor in DA
-					q_2 = da.getEdgeDestByLabel(q_1, s_labels);
-					if (q_2 < 0) {
-						throw new PrismException("The deterministic automaton is not complete (state " + q_1 + ")");
-					}
-					// Add state/transition to model
-					if (!visited.get(s_2 * daSize + q_2) && map[s_2 * daSize + q_2] == -1) {
-						queue.add(new Point(s_2, q_2));
-						switch (modelType) {
-						case STPG:
-							((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_2));
-							break;
-						default:
-							prodModel.addState();
-							break;
-						}
-						map[s_2 * daSize + q_2] = prodModel.getNumStates() - 1;
-						if (prodStatesList != null) {
-							// Store state information for the product
-							prodStatesList.add(new State(daStatesList.get(q_2), model.getStatesList().get(s_2)));
-						}
-					}
+					int map_2 = newStateMap.apply(q_1, s_2);
+
 					switch (modelType) {
 					case DTMC:
-						((DTMCSimple<Value>) prodModel).setProbability(map[s_1 * daSize + q_1], map[s_2 * daSize + q_2], prob);
+						((DTMCSimple<Value>) prodModel).setProbability(map_1, map_2, prob);
 						break;
 					case MDP:
 					case POMDP:
 					case STPG:
-						prodDistr.set(map[s_2 * daSize + q_2], prob);
+						prodDistr.set(map_2, prob);
 						break;
 					default:
 						throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
@@ -694,13 +684,13 @@ public class LTLModelChecker extends PrismComponent
 				}
 				switch (modelType) {
 				case MDP:
-					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((MDP<Value>) model).getAction(s_1, j));
+					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((MDP<Value>) model).getAction(s_1, j));
 					break;
 				case POMDP:
-					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
+					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
 					break;
 				case STPG:
-					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * daSize + q_1], prodDistr, ((STPG<Value>) model).getAction(s_1, j));
+					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((STPG<Value>) model).getAction(s_1, j));
 					break;
 				default:
 					break;
@@ -712,7 +702,7 @@ public class LTLModelChecker extends PrismComponent
 			if (modelType == ModelType.POMDP) {
 				State o = ((POMDP) model).getObservationAsState(s_1);
 				State u = ((POMDP) model).getUnobservationAsState(s_1);
-				((POMDPSimple) prodModel).setObservation(map[s_1 * daSize + q_1], o, u, null);
+				((POMDPSimple) prodModel).setObservation(map_1, o, u, null);
 			}
 		}
 
@@ -743,6 +733,12 @@ public class LTLModelChecker extends PrismComponent
 
 		return product;
 	}
+
+	@FunctionalInterface
+	interface NewStateMap
+	{
+		int apply(int q_1, int s_2) throws PrismException;
+	};
 
 	/**
 	 * Find the set of states that belong to accepting BSCCs in a model wrt an acceptance condition.

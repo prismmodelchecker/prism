@@ -154,8 +154,7 @@ public class ConstructStrategyProduct
 		int modelNumStates = model.getNumStates();
 		int memSize = strat.getMemorySize();
 		int prodNumStates;
-		int s_1, s_2, q_1, q_2;
-		List<State> prodStatesList = null, memStatesList = null;
+		List<State> prodStatesList, memStatesList;
 		Value stratChoiceProb = model.getEvaluator().one();
 
 		// Check size limits for this product construction approach
@@ -172,6 +171,7 @@ public class ConstructStrategyProduct
 
 		// Initialise state info storage
 		LinkedList<Point> queue = new LinkedList<Point>();
+		BitSet visited = new BitSet(prodNumStates);
 		int map[] = new int[prodNumStates];
 		Arrays.fill(map, -1);
 		if (model.getStatesList() != null) {
@@ -180,40 +180,60 @@ public class ConstructStrategyProduct
 			for (int i = 0; i < memSize; i++) {
 				memStatesList.add(new State(1).setValue(0, i));
 			}
+		} else {
+			prodStatesList = null;
+			memStatesList = null;
 		}
+
+		// Code to get the index for a new product state for model successor state s_2
+		// (or initial state s_2 if init==true)
+		// assuming the current memory status is q_1 and the action taken is act
+		// (q_1 and act are ignored if init==true)
+		NewStateMap newStateMap = (init, q_1, act, s_2) -> {
+			// Find corresponding memory value
+			int q_2 = -1;
+			if (init) {
+				q_2 = strat.getInitialMemory(s_2);
+			} else {
+				q_2 = strat.getUpdatedMemory(q_1, act, s_2);
+			}
+			if (q_2 < 0) {
+				throw new PrismException("The memory status is unknown (state " + s_2 + ")");
+			}
+			// Add state/transition to model
+			if (!visited.get(s_2 * memSize + q_2) && map[s_2 * memSize + q_2] == -1) {
+				queue.add(new Point(s_2, q_2));
+				switch (productModelType) {
+					case STPG:
+						((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_2));
+						break;
+					default:
+						prodModel.addState();
+						break;
+				}
+				map[s_2 * memSize + q_2] = prodModel.getNumStates() - 1;
+				if (prodStatesList != null) {
+					// Store state information for the product
+					prodStatesList.add(new State(model.getStatesList().get(s_2), memStatesList.get(q_2)));
+				}
+			}
+			return map[s_2 * memSize + q_2];
+		};
 
 		// Get initial states
 		for (int s_0 : model.getInitialStates()) {
-			// Find corresponding initial memory
-			int q_0 = strat.getInitialMemory(s_0);
-			if (q_0 < 0) {
-				throw new PrismException("The memory status is unknown (state " + s_0 + ")");
-			}
-			// Add (initial) state to product
-			queue.add(new Point(s_0, q_0));
-			switch (productModelType) {
-			case STPG:
-				((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_0));
-				break;
-			default:
-				prodModel.addState();
-			break;
-			}
-			prodModel.addInitialState(prodModel.getNumStates() - 1);
-			map[s_0 * memSize + q_0] = prodModel.getNumStates() - 1;
-			if (prodStatesList != null) {
-				// Store state information for the product
-				prodStatesList.add(new State(model.getStatesList().get(s_0), memStatesList.get(q_0)));
-			}
+			int map_0 = newStateMap.apply(true, -1, null, s_0);
+			prodModel.addInitialState(map_0);
 		}
 
-		// Product states
-		BitSet visited = new BitSet(prodNumStates);
+		// Explore product
 		while (!queue.isEmpty()) {
 			Point p = queue.pop();
-			s_1 = p.x;
-			q_1 = p.y;
+			int s_1 = p.x;
+			int q_1 = p.y;
 			visited.set(s_1 * memSize + q_1);
+			int map_1 = map[s_1 * memSize + q_1];
+
 			int numChoices =  model.getNumChoices(s_1);
 			// Extract strategy decision
 			Object decision = strat.getChoiceAction(s_1, q_1);
@@ -254,41 +274,21 @@ public class ConstructStrategyProduct
 				}
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Value> e = iter.next();
-					s_2 = e.getKey();
+					int s_2 = e.getKey();
 					Value prob = e.getValue();
 					if (strat.isRandomised()) {
 						prob = model.getEvaluator().multiply(prob, stratChoiceProb);
 					}
-					// Find corresponding memory update
-					q_2 = strat.getUpdatedMemory(q_1, model.getAction(s_1, j), s_2);
-					if (q_2 < 0) {
-						throw new PrismException("The memory status is unknown (state " + s_2 + ")");
-					}
-					// Add state/transition to model
-					if (!visited.get(s_2 * memSize + q_2) && map[s_2 * memSize + q_2] == -1) {
-						queue.add(new Point(s_2, q_2));
-						switch (productModelType) {
-						case STPG:
-							((STPGSimple<Value>) prodModel).addState(((STPG<Value>) model).getPlayer(s_2));
-							break;
-						default:
-							prodModel.addState();
-							break;
-						}
-						map[s_2 * memSize + q_2] = prodModel.getNumStates() - 1;
-						if (prodStatesList != null) {
-							// Store state information for the product
-							prodStatesList.add(new State(model.getStatesList().get(s_2), memStatesList.get(q_2)));
-						}
-					}
+					int map_2 = newStateMap.apply(false, q_1, model.getAction(s_1, j), s_2);
+
 					switch (productModelType) {
 					case DTMC:
-						((DTMCSimple<Value>) prodModel).setProbability(map[s_1 * memSize + q_1], map[s_2 * memSize + q_2], prob);
+						((DTMCSimple<Value>) prodModel).setProbability(map_1, map_2, prob);
 						break;
 					case MDP:
 					case POMDP:
 					case STPG:
-						prodDistr.set(map[s_2 * memSize + q_2], prob);
+						prodDistr.set(map_2, prob);
 						break;
 					default:
 						throw new PrismNotSupportedException("Product construction not implemented for " + modelType + "s");
@@ -296,13 +296,13 @@ public class ConstructStrategyProduct
 				}
 				switch (productModelType) {
 				case MDP:
-					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((MDP<Value>) model).getAction(s_1, j));
+					((MDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((MDP<Value>) model).getAction(s_1, j));
 					break;
 				case POMDP:
-					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
+					((POMDPSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((POMDP<Value>) model).getAction(s_1, j));
 					break;
 				case STPG:
-					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map[s_1 * memSize + q_1], prodDistr, ((STPG<Value>) model).getAction(s_1, j));
+					((STPGSimple<Value>) prodModel).addActionLabelledChoice(map_1, prodDistr, ((STPG<Value>) model).getAction(s_1, j));
 					break;
 				default:
 					break;
@@ -318,4 +318,10 @@ public class ConstructStrategyProduct
 		
 		return prodModel;
 	}
+
+	@FunctionalInterface
+	interface NewStateMap
+	{
+		int apply(boolean init, int q_1, Object act, int s_2) throws PrismException;
+	};
 }
