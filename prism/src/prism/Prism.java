@@ -1948,6 +1948,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	public void buildModel() throws PrismException
 	{
 		mainLog.printSeparator();
+		chooseEngineForModelBuild();
 		doBuildModel();
 	}
 
