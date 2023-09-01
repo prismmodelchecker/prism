@@ -191,7 +191,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 
 	@Override
-	public IterationValIter forMvMultMinMaxUnc(IMDP<Double> imdp, MinMax minMax, int[] strat)
+	public IterationValIter forMvMultMinMaxUnc(UMDP<Double> imdp, MinMax minMax, int[] strat)
 	{
 		return new TwoVectorIteration(imdp, null) {
 			@Override
@@ -203,7 +203,7 @@ public class IterationMethodPower extends IterationMethod {
 	}
 	
 	@Override
-	public IterationValIter forMvMultRewMinMaxUnc(IMDP<Double> imdp, MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat)
+	public IterationValIter forMvMultRewMinMaxUnc(UMDP<Double> imdp, MDPRewards<Double> mdpRewards, MinMax minMax, int[] strat)
 	{
 		return new TwoVectorIteration(imdp, null) {
 			@Override
