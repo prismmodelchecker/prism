@@ -211,10 +211,26 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 
 	/**
 	 * Export the strategy to a PrismLog, displaying strategy choices as action names.
+	 */
+	public default void exportActions(PrismLog out) throws PrismException
+	{
+		exportActions(out, new StrategyExportOptions());
+	}
+
+	/**
+	 * Export the strategy to a PrismLog, displaying strategy choices as action names.
 	 * @param options The options for export
 	 */
 	public void exportActions(PrismLog out, StrategyExportOptions options) throws PrismException;
-	
+
+	/**
+	 * Export the strategy to a PrismLog, displaying strategy choices as indices.
+	 */
+	public default void exportIndices(PrismLog out) throws PrismException
+	{
+		exportIndices(out, new StrategyExportOptions());
+	}
+
 	/**
 	 * Export the strategy to a PrismLog, displaying strategy choices as indices.
 	 * @param options The options for export
