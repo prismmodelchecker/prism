@@ -34,6 +34,8 @@ import prism.PrismException;
 import prism.PrismLog;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Class to store a memoryless deterministic (MD) strategy
@@ -91,7 +93,7 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
 			if (isChoiceDefined(s)) {
-				out.println((showStates ? states.get(s) : s) + ":" + getChoiceAction(s));
+				out.println((showStates ? states.get(s) : s) + "=" + getChoiceActionString(s));
 			}
 		}
 	}
@@ -121,5 +123,13 @@ public class MDStrategyArray<Value> extends StrategyExplicit<Value> implements M
 	public void clear()
 	{
 		choices = null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, getNumStates())
+				.mapToObj(s -> s + "=" + getChoiceActionString(s))
+				.collect(Collectors.joining(",")) + "]";
 	}
 }

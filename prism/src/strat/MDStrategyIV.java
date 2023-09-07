@@ -27,6 +27,8 @@
 package strat;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import dv.IntegerVector;
 import prism.Model;
@@ -118,5 +120,13 @@ public class MDStrategyIV extends StrategyWithStates<Double> implements MDStrate
 	{
 		iv.clear();
 		iv = null;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, getNumStates())
+				.mapToObj(s -> s + "=" + getChoiceActionString(s))
+				.collect(Collectors.joining(",")) + "]";
 	}
 }

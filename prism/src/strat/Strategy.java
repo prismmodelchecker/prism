@@ -27,8 +27,11 @@
 
 package strat;
 
+import explicit.Distribution;
+import explicit.MDPSimple;
 import prism.PrismException;
 import prism.PrismLog;
+import prism.PrismPrintStreamLog;
 import simulator.RandomNumberGenerator;
 
 /**
@@ -121,6 +124,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	/**
 	 * Get a string representing the choice made by the strategy in the state index s
 	 * and where the current memory of the strategy (if applicable) is m.
+	 * For unlabelled choices, this should return "", not null.
 	 * This may also indicate the reason why it is undefined, if it is.
 	 * Pass an arbitrary value (e.g. -1) for m if memory is not relevant.
 	 */
@@ -128,7 +132,7 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	{
 		Object action = getChoiceAction(s, m);
 		if (action != UNDEFINED) {
-			return action.toString();
+			return action == null ? "" : action.toString();
 		} else {
 			UndefinedReason why = whyUndefined(s, m);
 			if (why == null) {
@@ -269,4 +273,40 @@ public interface Strategy<Value> extends StrategyInfo<Value>
 	 * Clear storage of the strategy.
 	 */
 	public void clear();
+
+	/**
+	 * Test code.
+	 */
+	public static void main(String[] args)
+	{
+		PrismLog mainLog = new PrismPrintStreamLog(System.out);
+
+		MDPSimple mdp = new MDPSimple(2);
+		Distribution distr2 = Distribution.ofDouble();
+		distr2.add(0, 0.4);
+		distr2.add(1, 0.6);
+		Distribution distr1 = Distribution.ofDouble();
+		distr1.add(0, 1.0);
+		mdp.addActionLabelledChoice(0, distr1, "a");
+		mdp.addActionLabelledChoice(0, distr2, "b");
+		mdp.addActionLabelledChoice(1, distr1, "c");
+		mdp.addActionLabelledChoice(1, distr2, "d");
+
+		try {
+			Strategy strat = null;
+
+			strat = new MDStrategyArray(mdp, new int[] {0,1});
+			System.out.println(strat);
+			strat.exportActions(mainLog);
+
+			strat = new FMDStrategyStep(mdp, 2);
+			((FMDStrategyStep) strat).setStepChoices(0, new int[] {0,1});
+			((FMDStrategyStep) strat).setStepChoices(1, new int[] {1,1});
+			System.out.println(strat);
+			strat.exportActions(mainLog);
+
+		} catch (PrismException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

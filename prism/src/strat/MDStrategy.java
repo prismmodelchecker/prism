@@ -63,6 +63,16 @@ public interface MDStrategy<Value> extends Strategy<Value>
 		return isChoiceDefined(s, -1);
 	}
 
+	/**
+	 * Get a string representing the choice made by the strategy in the state index s.
+	 * For unlabelled choices, this should return "", not null.
+	 * This may also indicate the reason why it is undefined, if it is.
+	 */
+	public default String getChoiceActionString(int s)
+	{
+		return getChoiceActionString(s, -1);
+	}
+
 	// Methods for Strategy
 	
 	@Override
@@ -71,7 +81,7 @@ public interface MDStrategy<Value> extends Strategy<Value>
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
 			if (isChoiceDefined(s))
-				out.println(s + ":" + getChoiceAction(s));
+				out.println(s + "=" + getChoiceActionString(s));
 		}
 	}
 
@@ -81,7 +91,7 @@ public interface MDStrategy<Value> extends Strategy<Value>
 		int n = getNumStates();
 		for (int s = 0; s < n; s++) {
 			if (isChoiceDefined(s))
-				out.println(s + ":" + getChoiceIndex(s));
+				out.println(s + "=" + getChoiceIndex(s));
 		}
 	}
 }

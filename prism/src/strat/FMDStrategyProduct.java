@@ -37,6 +37,8 @@ import prism.PrismException;
 import prism.PrismLog;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Class to store finite-memory deterministic (FMD) strategies
@@ -172,7 +174,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 			int m = product.getAutomatonState(i);
 			Object act = strat.getChoiceAction(i);
 			if (act != UNDEFINED) {
-				out.println((showStates ? states.get(s) : s) + "," + m + ":" + act);
+				out.println((showStates ? states.get(s) : s) + "," + m + "=" + (act == null ? "" : act.toString()));
 			}
 		}
 	}
@@ -184,7 +186,7 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 		for (int i = 0; i < n; i++) {
 			int s = product.getModelState(i);
 			int m = product.getAutomatonState(i);
-			out.println(s + "," + m + ":" + strat.getChoiceIndex(i));
+			out.println(s + "," + m + "=" + strat.getChoiceIndex(i));
 		}
 	}
 
@@ -217,5 +219,15 @@ public class FMDStrategyProduct<Value> extends StrategyExplicit<Value>
 	public void clear()
 	{
 		strat.clear();
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, getNumStates())
+				.mapToObj(s -> IntStream.range(0, getMemorySize())
+				.mapToObj(m -> s + "," + m + "=" + getChoiceActionString(s, m))
+				.collect(Collectors.joining(",")))
+				.collect(Collectors.joining(",")) + "]";
 	}
 }

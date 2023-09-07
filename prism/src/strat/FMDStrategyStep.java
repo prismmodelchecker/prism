@@ -28,6 +28,8 @@ package strat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import explicit.ConstructStrategyProduct;
 import explicit.Model;
@@ -132,7 +134,7 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 		for (int s = 0; s < numStates; s++) {
 			for (int m = 0; m < k; m++) {
 				if (isChoiceDefined(s, m)) {
-					out.println((showStates ? states.get(s) : s) + "," + m + ":" + getChoiceAction(s, m));
+					out.println((showStates ? states.get(s) : s) + "," + m + "=" + getChoiceActionString(s, m));
 				}
 			}
 		}
@@ -144,7 +146,7 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 		for (int s = 0; s < numStates; s++) {
 			for (int m = 0; m < k; m++) {
 				if (isChoiceDefined(s, m)) {
-					out.println(s + "," + m + ":" + getChoiceIndex(s, m));
+					out.println(s + "," + m + "=" + getChoiceIndex(s, m));
 				}
 			}
 		}
@@ -173,7 +175,17 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	{
 		choices = null;
 	}
-	
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, getNumStates())
+				.mapToObj(s -> IntStream.range(0, k)
+				.mapToObj(m -> s + "," + m + "=" + getChoiceActionString(s, m))
+				.collect(Collectors.joining(",")))
+				.collect(Collectors.joining(",")) + "]";
+	}
+
 	// Classes to store the choice for each step (0...k-1) in one state
 	
 	/**
@@ -193,7 +205,7 @@ public class FMDStrategyStep<Value> extends StrategyExplicit<Value>
 	}
 	
 	/**
-	 * Simple implementation of {@link #StepChoices},
+	 * Simple implementation of {@link StepChoices},
 	 * just storing choice indices in an array of size k
 	 */
 	class StepChoicesArray extends StepChoices

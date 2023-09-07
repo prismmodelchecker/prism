@@ -36,6 +36,8 @@ import prism.PrismLog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Class to store finite-memory deterministic (FMD) observation-based strategies
@@ -159,7 +161,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 				} else {
 					out.print(mdpState[0] + "," + mdpState[1]);
 				}
-				out.println(":" + (act == null ? "" : act));
+				out.println("=" + (act == null ? "" : act));
 			}
 		}
 	}
@@ -173,7 +175,7 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 			if (act != UNDEFINED) {
 				int[] mdpState = mdpStates.get(i);
 				int actIndex = pomdp.getChoiceByActionForObservation(mdpState[0], act);
-				out.println(mdpState[0] + "," + mdpState[1] + ":" + actIndex);
+				out.println(mdpState[0] + "," + mdpState[1] + "=" + actIndex);
 			}
 		}
 	}
@@ -321,5 +323,14 @@ public class FMDObsStrategyBeliefs<Value> extends StrategyExplicit<Value>
 			return UNDEFINED;
 		}
 		return mdpStrat.getAction(i, 0);
+	}
+
+	@Override
+	public String toString()
+	{
+		return "[" + IntStream.range(0, mdpStrat.getNumStates())
+				.mapToObj(s -> mdpStates.get(s)[0] + "," + mdpStates.get(s)[1]
+					+ "=" + getActionPickedByMDP(s))
+				.collect(Collectors.joining(",")) + "]";
 	}
 }
