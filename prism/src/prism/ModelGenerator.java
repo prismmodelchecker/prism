@@ -198,7 +198,7 @@ public interface ModelGenerator<Value> extends ModelInfo
 	/**
 	 * Get a description for the action label of a choice, specified by its index/offset.
 	 * This might be displayed in a representation of a path, e.g. in the simulator UI.
-	 * By default this, will be {@code toString()} for {@link #getChoiceAction(int, int)},
+	 * By default this, will be {@code toString()} for {@link #getTransitionAction(int, int)},
 	 * but can be customised, e.g. a PRISM model shows "[a]" for a synchronous action a
 	 * and "M" for an unlabelled action belonging to a module M.
 	 * For unlabelled transitions, this should return "", not null. 
@@ -439,7 +439,6 @@ public interface ModelGenerator<Value> extends ModelInfo
 	 * For real-time models, get the clock invariant for the current state,
 	 * i.e., an expression over clock variables which must remain true.
 	 * If there is no invariant, this returns null;
-	 * @param i Index of the nondeterministic choice
 	 */
 	public default Expression getClockInvariant() throws PrismException
 	{
