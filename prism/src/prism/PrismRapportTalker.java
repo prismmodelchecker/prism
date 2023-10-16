@@ -180,7 +180,7 @@ public class PrismRapportTalker
 	 * @param getStateVector should the Result object store the state vector
 	 * @return An ArrayList of Result objects
 	 */
-	public ArrayList<Result> callPrism(ArrayList<String> propList, String modelPath, boolean generatePolicy, boolean getStateVector)  {
+	public ArrayList<Result> callPrism(ArrayList<String> propList, String modelPath, boolean exportInfoToFiles, boolean getStateVector)  {
 		try {
 			prism.setStoreVector(getStateVector);
 			
@@ -189,7 +189,7 @@ public class PrismRapportTalker
 				modelFileName = '/' + modelFileName;
 			}
 			
-			if(generatePolicy){
+			if(exportInfoToFiles){
 				
 				// settings for outputting state/policy information
 				prism.getSettings().set(PrismSettings.PRISM_EXPORT_ADV, "DTMC");
@@ -218,7 +218,7 @@ public class PrismRapportTalker
 				return null;
 			}
 			
-			if(generatePolicy) {
+			if(exportInfoToFiles) {
 				prism.exportStatesToFile(Prism.EXPORT_PLAIN, new File(directory + modelFileName + "_original.sta"));
 			}
 			
@@ -498,7 +498,7 @@ public class PrismRapportTalker
 				// command for returning state vector after model checking
 				if (command.equals("get_vector")){
 					try {
-						result=talker.callPrism(propList, modelFile, false, true);
+						result=talker.callPrism(propList, modelFile, true, true);
 						StateVector vect = result.get(0).getVector();
 						formattedResult = new ArrayList<String>();
 						for (int i = 0; i < vect.getSize(); i++) {
