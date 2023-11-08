@@ -27,6 +27,7 @@
 
 package explicit;
 
+import java.io.PrintStream;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Vector;
@@ -44,6 +45,7 @@ import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismNotSupportedException;
 import prism.PrismSettings;
+import prism.PrismUtils;
 
 /**
  * Explicit-state, non-probabilistic model checker.
@@ -480,6 +482,13 @@ public class NonProbModelChecker extends StateModelChecker
 		LTL2NBA ltl2nba = new LTL2NBA(this);
 		NBA nba = ltl2nba.convertLTLFormulaToNBA(expr, this.getConstantValues());
 		mainLog.println(" NBA has " + nba.size() + " states");
+		// If required, export DA
+		if (settings.getExportPropAut()) {
+			mainLog.println("Exporting " + "NBA" + " to file \"" + settings.getExportPropAutFilename() + "\"...");
+			PrintStream out = PrismUtils.newPrintStream(settings.getExportPropAutFilename());
+			nba.print(out, settings.getExportPropAutType());
+			out.close();
+		}
 
 		// If we only care about a few states in the model,
 		// it would make sense to do a nested DFS and construct the product on the fly.
