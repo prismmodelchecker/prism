@@ -879,7 +879,7 @@ public abstract class Expression extends ASTElement
 	{
 		if (expr instanceof ExpressionTemporal) {
 			if (((ExpressionTemporal) expr).getOperator() == ExpressionTemporal.P_F) {
-				return ((ExpressionTemporal) expr).getOperand2().isProposition();
+				return ((ExpressionTemporal) expr).getOperand2().getType() instanceof TypeBool;
 			}
 		}
 		return false;
