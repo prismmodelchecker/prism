@@ -1053,9 +1053,9 @@ public abstract class Expression extends ASTElement
 			if (!isPositiveNormalFormLTL(expr))
 				return false;
 		}
-		// Check temporal operators
+		// Check temporal operators (don't recurse into P/R/S subformulas)
 		try {
-			ASTTraverse astt = new ASTTraverse()
+			ASTTraverse astt = new ExpressionTraverseNonNested()
 			{
 				public void visitPost(ExpressionTemporal e) throws PrismLangException
 				{
