@@ -565,9 +565,10 @@ BIN_DIST_FILE = $(BIN_DIST_DIR).tar.gz
 BIN_DIST_INST = $(BIN_DIST_DIR)-installer.exe
 
 # Build a (binary) distribution in the release directory
+# (run "make clean_all && make all" first )
 
 release: JFLAGS += --release 9
-release: clean_all all binary release_check_version build_release clean_binary
+release: binary release_check_version build_release clean_binary
 
 release_check_version:
 	@if [ "$(VERSION)" = "" ]; then echo "Usage: make release VERSION=4.5"; exit 1; fi
