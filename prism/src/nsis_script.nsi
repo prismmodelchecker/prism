@@ -3,7 +3,7 @@
 ; You should always call makensis in the following way:
 ;
 ; > makensis /NOCD /DPRISM_NAME="PRISM X.y" /DPRISM_BUILD="prism-X.y"
-;   /DPRISM_BINDISTSUFFIX="winXX" /DPRISM_DIR="" installer_script.nsi
+;   /DPRISM_BINDISTSUFFIX="winXX" /DPRISM_BINDISTARCH="x86" /DPRISM_DIR="" installer_script.nsi
 ;
 ; where:
 ; * PRISM X.y" is the name of the program displayed to the user
@@ -24,7 +24,7 @@ UninstPage instfiles
 # --------------------------------------------------------------------------- #
 
 Name            "${PRISM_NAME}"
-OutFile         "..\${PRISM_BUILD}-${PRISM_BINDISTSUFFIX}-installer.exe"
+OutFile         "..\${PRISM_BUILD}-${PRISM_BINDISTSUFFIX}-${PRISM_BINDISTARCH}-installer.exe"
 
 CRCCheck        on
 
