@@ -1,0 +1,3 @@
+// RESULT: 0
+P=? [ s1=true & s2=true ]
+

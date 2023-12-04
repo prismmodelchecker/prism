@@ -26,6 +26,8 @@
 
 package parser;
 
+import java.util.function.Predicate;
+
 /**
  * Information required to evaluate an expression,
  * where the values for variables are stored in a State object.
@@ -40,15 +42,24 @@ public class EvaluateContextState extends EvaluateContext
 	 */
 	private Object[] varValues;
 
+	/** values of all labels in this state */
+	protected Predicate<String> labelValues;
+
 	public EvaluateContextState(State state)
 	{
-		setState(state);
+		this(null, state);
 	}
 
 	public EvaluateContextState(Values constantValues, State state)
 	{
-		setConstantValues(constantValues);
+		this(constantValues, null, state);
+	}
+
+	public EvaluateContextState(Values constantValues, Predicate<String> labelValues, State state)
+	{
 		setState(state);
+		setConstantValues(constantValues);
+		setLabelValues(labelValues);
 	}
 
 	/**
@@ -67,5 +78,17 @@ public class EvaluateContextState extends EvaluateContext
 		// There is no variable name info available,
 		// so use index if provided; otherwise unknown
 		return index == -1 ? null : varValues[index];
+	}
+
+	public EvaluateContextState setLabelValues(Predicate<String> labelValues)
+	{
+		this.labelValues = labelValues;
+		return this;
+	}
+
+	@Override
+	public Boolean getLabelValue(String name)
+	{
+		return labelValues.test(name);
 	}
 }

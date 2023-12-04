@@ -1,0 +1,5 @@
+-explicit -exportlabels labels-inside-labels.lab
+-mtbdd -exportlabels labels-inside-labels.lab
+-hybrid -exportlabels labels-inside-labels.lab
+-sparse -exportlabels labels-inside-labels.lab
+-exact

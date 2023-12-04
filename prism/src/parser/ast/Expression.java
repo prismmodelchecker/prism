@@ -50,6 +50,9 @@ import prism.ModelType;
 import prism.PrismException;
 import prism.PrismLangException;
 
+import java.util.Map;
+import java.util.function.Predicate;
+
 // Abstract class for PRISM language expressions
 
 public abstract class Expression extends ASTElement
@@ -102,6 +105,12 @@ public abstract class Expression extends ASTElement
 			public Object getConstantValue(String name)
 			{
 				return ec.getConstantValue(name);
+			}
+
+			@Override
+			public Boolean getLabelValue(String name)
+			{
+				return ec.getLabelValue(name);
 			}
 		}));
 	}
@@ -577,6 +586,19 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Evaluate this expression as a boolean, based on values for labels/variables.
+	 * Any typing issues cause an exception.
+	 * Constant values are supplied as a Values object.
+	 * Label values are supplied as a Map.
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Note: assumes that type checking has been done.
+	 */
+	public boolean evaluateBoolean(Values constantValues, Predicate<String> labelValues, State state) throws PrismLangException
+	{
+		return evaluateBoolean(new EvaluateContextState(constantValues, labelValues, state));
+	}
+
+	/**
 	 * Evaluate this expression as a boolean, based on values for some variables (but not constants).
 	 * Basically casts the result to a boolean, checking for any type errors.
 	 * Variable values are supplied as a State object, indexed over a subset of all variables,
@@ -657,6 +679,19 @@ public abstract class Expression extends ASTElement
 	public BigRational evaluateExact(Values constantValues, State state) throws PrismLangException
 	{
 		return evaluateExact(new EvaluateContextState(constantValues, state));
+	}
+
+	/**
+	 * Evaluate this expression exactly to a BigRational, based on values for constants, variables and labels.
+	 * This is regardless of the type (e.g. ints, booleans are also converted).
+	 * Constant values are supplied as a Values object.
+	 * Variable values are supplied as a State object, i.e. array of variable values.
+	 * Labels are supplied as a Map from label names to booleans.
+	 * Note: assumes that type checking has been done.
+	 */
+	public BigRational evaluateExact(Values constantValues, Predicate<String> labelValues, State state) throws PrismLangException
+	{
+		return evaluateExact(new EvaluateContextState(constantValues, labelValues, state));
 	}
 
 	/**

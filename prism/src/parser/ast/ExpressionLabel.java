@@ -26,6 +26,7 @@
 
 package parser.ast;
 
+import param.BigRational;
 import parser.EvaluateContext;
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
@@ -81,9 +82,21 @@ public class ExpressionLabel extends Expression
 	}
 	
 	@Override
-	public Object evaluate(EvaluateContext ec) throws PrismLangException
+	public Boolean evaluate(EvaluateContext ec) throws PrismLangException
 	{
-		throw new PrismLangException("Cannot evaluate labels", this);
+		Boolean value = ec.getLabelValue(this.name);
+		if (value == null)
+			throw new PrismLangException("Failed to evaluate label", this);
+		return value;
+	}
+
+	@Override
+	public BigRational evaluateExact(EvaluateContext ec) throws PrismLangException
+	{
+		Boolean value = ec.getLabelValue(this.name);
+		if (value == null)
+			throw new PrismLangException("Failed to evaluate label", this);
+		return BigRational.from(value);
 	}
 
 	@Override

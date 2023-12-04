@@ -57,6 +57,9 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	// Constant values
 	protected Values constantValues;
 
+	// Label list of Modules file
+	protected LabelList modulLabelList;
+
 	// Model info
 	protected Model model;
 	protected VarList varList;
@@ -135,7 +138,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 	 * {@code clearDummyModel()} later.
 	 * <br>[ REFS: <i>none</i>, DEREFS: <i>none</i> ]
 	 */
-	public StateModelChecker(Prism prism, VarList varList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
+	public StateModelChecker(Prism prism, VarList varList, LabelList modulLabelList, JDDVars allDDRowVars, JDDVars[] varDDRowVars, Values constantValues) throws PrismException
 	{
 		// Initialise PrismComponent
 		super(prism);
@@ -146,6 +149,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		this.allDDRowVars = allDDRowVars;
 		this.varDDRowVars = varDDRowVars;
 		this.constantValues = constantValues;
+		this.modulLabelList = modulLabelList;
 		// Create dummy model
 		reach = null;
 		model = new ProbModel(JDD.Constant(0),  // trans
@@ -1614,7 +1618,7 @@ public class StateModelChecker extends PrismComponent implements ModelChecker
 		if (propertiesFile != null) {
 			return propertiesFile.getCombinedLabelList(); // combined list from properties and modules file
 		} else {
-			return null;
+			return modulLabelList; // (if available) labelList of modules file only
 		}
 	}
 

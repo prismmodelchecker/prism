@@ -32,47 +32,89 @@ import java.util.List;
 import parser.visitor.ASTVisitor;
 import parser.visitor.DeepCopy;
 import prism.PrismLangException;
+import prism.PrismUtils;
 
 // class to store list of labels
 
 public class LabelList extends ASTElement
 {
 	// Name/expression pairs to define labels
-	private ArrayList<String> names;
-	private ArrayList<Expression> labels;
+	protected ArrayList<String> names;
+	protected ArrayList<Expression> labels;
 	// We also store an ExpressionIdent to match each name.
 	// This is to just to provide positional info.
-	private ArrayList<ExpressionIdent> nameIdents;
+	protected ArrayList<ExpressionIdent> nameIdents;
 	
 	// Constructor
-	
+
 	public LabelList()
 	{
 		names = new ArrayList<>();
 		labels = new ArrayList<>();
 		nameIdents = new ArrayList<>();
 	}
-	
+
+	/**
+	 * Checking all labels for cyclic dependencies. <br>
+	 * Note: This method does not take formulas into account. Therefore, to prevent
+	 * cycles completely, it is necessary to expand formulas beforehand.
+	 *
+	 * @throws PrismLangException In case a cyclic dependency was found.
+	 */
+	public void findCycles() throws PrismLangException
+	{
+		boolean[][] matrix = getLabelDependencies();
+		// Check for and report dependencies
+		int firstCycle = PrismUtils.findCycle(matrix);
+		if (firstCycle != -1) {
+			String s = "Cyclic dependency in definition of label \"" + names.get(firstCycle) + "\"";
+			throw new PrismLangException(s, labels.get(firstCycle));
+		}
+	}
+
+	/**
+	 * 	Create a boolean matrix of dependencies between labels.
+	 *
+	 * @return a matrix m such that label i depends on label j iff m[i][j]
+	 * @throws PrismLangException
+	 */
+	public boolean[][] getLabelDependencies() throws PrismLangException
+	{
+		// (matrix[i][j] is true if label i contains label j)
+		int n = size();
+		int j;
+		boolean[][] matrix = new boolean[n][n];
+		for (int i = 0; i < n; i++) {
+			List<String> iLabels = labels.get(i).getAllLabels();
+			for (j = 0; j < n; j++) {
+				if (iLabels.contains(names.get(j))) {
+					// label i contains j
+					matrix[i][j] = true;
+				}
+			}
+		}
+		return matrix;
+	}
+
 	// Set methods
-	
 	public void addLabel(ExpressionIdent n, Expression l)
 	{
 		names.add(n.getName());
 		labels.add(l);
 		nameIdents.add(n);
 	}
-	
+
 	public void setLabelName(int i , ExpressionIdent n)
 	{
 		names.set(i, n.getName());
 		nameIdents.set(i, n);
 	}
-	
+
 	public void setLabel(int i , Expression l)
 	{
 		labels.set(i, l);
 	}
-	
+
 	// Get methods
 
 	public int size()
@@ -84,17 +126,17 @@ public class LabelList extends ASTElement
 	{
 		return names.get(i);
 	}
-	
+
 	public List<String> getLabelNames()
 	{
 		return names;
 	}
-	
+
 	public Expression getLabel(int i)
 	{
 		return labels.get(i);
 	}
-	
+
 	public ExpressionIdent getLabelNameIdent(int i)
 	{
 		return nameIdents.get(i);
@@ -109,7 +151,7 @@ public class LabelList extends ASTElement
 	}
 
 	// Methods required for ASTElement:
-	
+
 	/**
 	 * Visitor method.
 	 */
@@ -117,7 +159,7 @@ public class LabelList extends ASTElement
 	{
 		return v.visit(this);
 	}
-	
+
 	/**
 	 * Convert to string.
 	 */
@@ -125,16 +167,16 @@ public class LabelList extends ASTElement
 	{
 		String s = "";
 		int i, n;
-		
+
 		n = size();
 		for (i = 0; i < n; i++) {
 			s += "label \"" + getLabelName(i);
 			s += "\" = " + getLabel(i) + ";\n";
 		}
-		
+
 		return s;
 	}
-	
+
 	@Override
 	public LabelList deepCopy(DeepCopy copier) throws PrismLangException
 	{

@@ -1446,6 +1446,8 @@ Expression ExpressionBasic(boolean prop, boolean pathprop) :
 	|
 		ret = ExpressionParenth(prop, pathprop)
 	|
+		ret = ExpressionLabel(prop, pathprop)
+	|
 		// Remaining options are only applicable for properties
 		ret = ExpressionProb(prop, pathprop)
 	|
@@ -1458,8 +1460,6 @@ Expression ExpressionBasic(boolean prop, boolean pathprop) :
 		ret = ExpressionForAll(prop, pathprop)
 	|
 		ret = ExpressionStrategy(prop, pathprop)
-	|
-		ret = ExpressionLabel(prop, pathprop)
 	|
 		ret = ExpressionFilter(prop, pathprop)
 	)
@@ -1938,10 +1938,8 @@ Expression ExpressionLabel(boolean prop, boolean pathprop) :
 	Token begin;
 }
 {
-	// This production is only allowed in expressions if the "prop" parameter is true
-	{ if (!prop) throw generateParseException(); }
 	// Label can be arbitary string or the "init" keyword
-	( begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE> )
+	begin = <DQUOTE> ( s=Identifier() | <INIT> { s = "init"; } ) <DQUOTE>
 	{ ret = new ExpressionLabel(s); ret.setPosition(begin, getToken(0)); return ret; }
 }
 
