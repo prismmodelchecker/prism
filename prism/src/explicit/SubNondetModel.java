@@ -35,6 +35,9 @@ import java.util.Map;
 import java.util.Set;
 
 import common.IterableStateSet;
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.FunctionalPrimitiveIterator;
+import common.iterable.Reducible;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -99,14 +102,14 @@ public class SubNondetModel<Value> implements NondetModel<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
-		List<Integer> is = new ArrayList<Integer>();
+		List<Integer> is = new ArrayList<>();
 		for (int i = initialStates.nextSetBit(0); i >= 0; i = initialStates.nextSetBit(i + 1)) {
 			is.add(translateState(i));
 		}
 
-		return is;
+		return Reducible.unboxInt(is);
 	}
 
 	@Override
@@ -128,7 +131,7 @@ public class SubNondetModel<Value> implements NondetModel<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getDeadlockStates()
+	public FunctionalPrimitiveIterable.OfInt getDeadlockStates()
 	{
 		throw new UnsupportedOperationException();
 	}

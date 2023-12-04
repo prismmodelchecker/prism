@@ -39,6 +39,8 @@ import java.util.TreeMap;
 import java.util.function.IntPredicate;
 
 import common.IteratorTools;
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.FunctionalPrimitiveIterator;
 import explicit.graphviz.Decorator;
 import parser.State;
 import parser.Values;
@@ -77,7 +79,7 @@ public interface Model<Value>
 	/**
 	 * Get iterator over initial state list.
 	 */
-	public Iterable<Integer> getInitialStates();
+	public FunctionalPrimitiveIterable.OfInt getInitialStates();
 
 	/**
 	 * Get the index of the first initial state
@@ -101,7 +103,7 @@ public interface Model<Value>
 	 * Get iterator over states that are/were deadlocks.
 	 * (Such states may have been fixed at build-time by adding self-loops)
 	 */
-	public Iterable<Integer> getDeadlockStates();
+	public FunctionalPrimitiveIterable.OfInt getDeadlockStates();
 	
 	/**
 	 * Get list of states that are/were deadlocks.
@@ -184,7 +186,7 @@ public interface Model<Value>
 	 */
 	public default int getNumTransitions(int s)
 	{
-		return Math.toIntExact(IteratorTools.count(getSuccessorsIterator(s)));
+		return Math.toIntExact(getSuccessorsIterator(s).count());
 	}
 
 	/**
@@ -210,7 +212,7 @@ public interface Model<Value>
 	 * from {@code getSuccessors}, ensuring that there are no
 	 * duplicates.
 	 */
-	public default Iterator<Integer> getSuccessorsIterator(int s)
+	public default FunctionalPrimitiveIterator.OfInt getSuccessorsIterator(int s)
 	{
 		SuccessorsIterator successors = getSuccessors(s);
 		return successors.distinct();

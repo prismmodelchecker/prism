@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.Reducible;
 import parser.State;
 import parser.Values;
 import parser.VarList;
@@ -279,9 +281,9 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
-		return initialStates;
+		return Reducible.unboxInt(initialStates);
 	}
 
 	@Override
@@ -303,9 +305,9 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getDeadlockStates()
+	public FunctionalPrimitiveIterable.OfInt getDeadlockStates()
 	{
-		return deadlocks;
+		return Reducible.unboxInt(deadlocks);
 	}
 
 	@Override

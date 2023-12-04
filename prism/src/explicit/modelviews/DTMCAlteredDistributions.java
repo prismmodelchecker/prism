@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 
+import common.iterable.FunctionalPrimitiveIterable;
 import common.iterable.Reducible;
 import common.iterable.SingletonIterator;
 import parser.State;
@@ -105,7 +106,7 @@ public class DTMCAlteredDistributions<Value> extends DTMCView<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return model.getInitialStates();
 	}
@@ -191,8 +192,7 @@ public class DTMCAlteredDistributions<Value> extends DTMCView<Value>
 
 	public static <Value> DTMCAlteredDistributions<Value> fixDeadlocks(final DTMC<Value> model)
 	{
-		final BitSet deadlockStates = new BitSet();
-		model.getDeadlockStates().forEach(deadlockStates::set);
+		final BitSet deadlockStates = model.getDeadlockStates().collect(new BitSet());
 		final DTMCAlteredDistributions<Value> fixed = addSelfLoops(model, deadlockStates);
 		fixed.deadlockStates = deadlockStates;
 		fixed.fixedDeadlocks = true;

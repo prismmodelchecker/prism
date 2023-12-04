@@ -30,6 +30,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;
 
+import common.iterable.FunctionalPrimitiveIterator;
+import common.iterable.Reducible;
 import prism.PrismException;
 
 /**
@@ -213,9 +215,9 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 
 	/** Get an iterator over the successors of state s */
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int s)
+	public FunctionalPrimitiveIterator.OfInt getSuccessorsIterator(final int s)
 	{
-		return trans.get(s).getSupport().iterator();
+		return Reducible.unboxInt(trans.get(s).getSupport()).iterator();
 	}
 
 	@Override

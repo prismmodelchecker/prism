@@ -27,12 +27,11 @@
 
 package explicit.modelviews;
 
-import java.util.BitSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
+import common.iterable.FunctionalPrimitiveIterable;
+import common.iterable.FunctionalPrimitiveIterator;
 import explicit.DTMC;
 import explicit.DTMCSimple;
 import explicit.MDP;
@@ -89,7 +88,7 @@ public class MDPFromDTMC<Value> extends MDPView<Value>
 	}
 
 	@Override
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return model.getInitialStates();
 	}
@@ -144,7 +143,7 @@ public class MDPFromDTMC<Value> extends MDPView<Value>
 
 
 	@Override
-	public Iterator<Integer> getSuccessorsIterator(final int state)
+	public FunctionalPrimitiveIterator.OfInt getSuccessorsIterator(final int state)
 	{
 		return model.getSuccessorsIterator(state);
 	}

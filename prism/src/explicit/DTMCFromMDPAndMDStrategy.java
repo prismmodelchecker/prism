@@ -29,6 +29,7 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 
+import common.iterable.FunctionalPrimitiveIterable;
 import explicit.rewards.MCRewards;
 import parser.State;
 import parser.Values;
@@ -76,7 +77,7 @@ public class DTMCFromMDPAndMDStrategy<Value> extends DTMCExplicit<Value>
 		return mdp.getNumInitialStates();
 	}
 
-	public Iterable<Integer> getInitialStates()
+	public FunctionalPrimitiveIterable.OfInt getInitialStates()
 	{
 		return mdp.getInitialStates();
 	}
