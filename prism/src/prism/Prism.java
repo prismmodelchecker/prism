@@ -2500,10 +2500,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return;
 		}
 		
-		if (getCurrentEngine() == PrismEngine.EXPLICIT) {
-			throw new PrismNotSupportedException("Export of transition rewards not yet supported by explicit engine");
-		}
-
 		// Can only do ordered version of export for MDPs
 		if (currentModelType == ModelType.MDP) {
 			if (!ordered)
@@ -2544,7 +2540,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
 				currentModel.exportTransRewardsToFile(r, exportType, ordered, fileToUse, precision, noexportheaders);
 			} else {
-				// Not implemented yet
+				explicit.StateModelChecker mcExpl = createModelCheckerExplicit(null);
+				try (PrismLog out = getPrismLogForFile(fileToUse)){
+					((explicit.ProbModelChecker) mcExpl).exportTransRewardsToFile(currentModelExpl, r, exportType, out, noexportheaders, precision);
+				} catch (PrismNotSupportedException e1) {
+					mainLog.println("\nReward export failed: " + e1.getMessage());
+					try {
+						if (fileToUse != null) {
+							fileToUse.delete();
+						}
+					} catch (SecurityException e2) {
+						// Cannot delete File; continue
+					}
+				}
 			}
 		}
 		
