@@ -92,6 +92,7 @@ public interface ModelInfo
 	 * Deprecated. Better to use {@link #setSomeUndefinedConstants(EvaluateContext)}.
 	 * @deprecated
 	 */
+	@Deprecated
 	public default void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
 		setSomeUndefinedConstants(EvaluateContext.create(someValues, exact));

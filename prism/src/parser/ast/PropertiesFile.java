@@ -557,6 +557,7 @@ public class PropertiesFile extends ASTElement
 	 * Deprecated. Better to use {@link #setSomeUndefinedConstants(EvaluateContext)}.
 	 * @deprecated
 	 */
+	@Deprecated
 	public void setSomeUndefinedConstants(Values someValues, boolean exact) throws PrismException
 	{
 		setSomeUndefinedConstants(EvaluateContext.create(someValues, exact));
@@ -568,6 +569,7 @@ public class PropertiesFile extends ASTElement
 	 * Deprecated: Just use {@link #setSomeUndefinedConstants(Values)}.
 	 * @deprecated
 	 */
+	@Deprecated
 	public void setUndefinedConstants(Values someValues) throws PrismException
 	{
 		setSomeUndefinedConstants(someValues);
