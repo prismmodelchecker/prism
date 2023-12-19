@@ -501,7 +501,7 @@ unittests: make_tests
 
 # Run a single test case from the test suite (useful quick check that the build was ok)
 test:
-	bin/prism ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm ../prism-tests/functionality/verify/dtmcs/dtmc_pctl.pm.props -prop 2 -test
+	bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
 
 # Run all tests from the test suite (in ../prism-tests and ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
