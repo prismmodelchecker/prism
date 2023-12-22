@@ -1,13 +1,14 @@
 #!/bin/sh
 
-# Script for installation of PRISM on a clean install of RHEL/CentOS/etc Linux.
+# Script for installation of PRISM on a clean install of Fedora-based Linux
+# (current based on Amazon Linux, should be easy to adapt to RHEL/CentOS/etc.)
 
 set -e # Abort if one of the commands fail
 set -x # Print commands as they are executed
 
 # Install dependencies: make/gcc/Java/git
 sudo yum -y update
-sudo yum -y install make gcc gcc-c++ java-1.8.0-openjdk-devel git
+sudo yum -y install make gcc gcc-c++ java-11-amazon-corretto-devel git
 
 # Install Python (only needed for testing (prism-auto) currently)
 sudo yum -y install python
