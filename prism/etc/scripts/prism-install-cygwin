@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Script for installation of PRISM on a clean install of Cygwin
+# already set up with required packages, e.g., via prism-install-win
+
+set -e # Abort if one of the commands fails
+set -x # Print commands as they are executed
+
+# Download the latest development version from GitHub
+git clone https://github.com/prismmodelchecker/prism.git
+
+# Compile PRISM and run a single test
+# (should ultimately display: "Testing result: PASS")
+(cd prism/prism && make && make test)
