@@ -82,7 +82,7 @@ PRISM_CLASSPATH="$PRISM_DIR"/lib/prism.jar:"$PRISM_DIR"/classes:"$PRISM_DIR":"$P
 PRISM_LIB_PATH="$PRISM_DIR"/lib
 
 # Copy library path to relevant vars
-LD_LIBRARY_PATH=${PRISM_LIB_PATH}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}
+LD_LIBRARY_PATH="${PRISM_LIB_PATH}${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}"
 JAVA_LIBRARY_PATH="$PRISM_LIB_PATH"
 
 # Export environment variables
