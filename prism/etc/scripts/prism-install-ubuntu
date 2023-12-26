@@ -2,7 +2,7 @@
 
 # Script for installation of PRISM on a clean install of Ubuntu
 
-set -e # Abort if one of the commands fail
+set -e # Abort if one of the commands fails
 set -x # Print commands as they are executed
 
 # Install dependencies: make/gcc/Java/git
