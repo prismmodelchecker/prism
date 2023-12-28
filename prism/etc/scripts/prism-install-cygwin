@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Script for installation of PRISM on a clean install of Cygwin
-# already set up with required packages, e.g., via prism-install-win
+# already set up with required packages, e.g., via prism-install-windows.bat
 
 set -e # Abort if one of the commands fails
 set -x # Print commands as they are executed
