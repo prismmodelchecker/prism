@@ -128,11 +128,7 @@ DETECT_JAVAC = $(shell $(PRISM_SRC_DIR)/scripts/findjavac.sh 2> /dev/null)
 ifeq ("$(DETECT_JAVAC)","")
   JAVA_DIR =
 else
-  ifneq (darwin,$(OSTYPE))
-    JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed 's/\/bin//')
-  else
-    JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed 's/\/Commands//')
-  endif
+  JAVA_DIR = $(shell dirname "$(DETECT_JAVAC)" | sed -e 's/\/bin//' -e 's/\/Commands//')
 endif
 
 # As a backup way of detecting JAVA_DIR, run java_home
