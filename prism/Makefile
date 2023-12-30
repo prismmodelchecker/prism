@@ -479,7 +479,8 @@ checks:
 	echo "OSTYPE/ARCH: $(OSTYPE) $(ARCH)"; \
 	echo "JAVA_DIR: $(JAVA_DIR)"; \
 	echo "JAVA_DIR_BACKUP: $(JAVA_DIR_BACKUP)"; \
-	echo "JAVAC: "`which $(JAVAC)` \
+	echo "JAVAC (which): "`which $(JAVAC)`; \
+	echo "JAVAC (version): "$(shell $(JAVAC) -version) \
 	)
 
 # Misc: count the number of lines of code
