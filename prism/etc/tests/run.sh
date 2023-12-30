@@ -12,3 +12,4 @@ set -x # Print commands as they are executed
 
 bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -ex -test
 bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
+bin/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test

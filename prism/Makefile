@@ -503,6 +503,10 @@ unittests: make_tests
 test:
 	bin/prism etc/tests/dtmc_pctl.prism etc/tests/dtmc_pctl.prism.props -h -test
 
+# Run a single test case from the test suite that relies on lpsolve being properly installed
+testlpsolve:
+	bin/prism etc/tests/test_lpsolve_mdpmo.prism etc/tests/test_lpsolve_mdpmo.prism.props -lp -test
+
 # Run all tests from the test suite (in ../prism-tests and ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
