@@ -11,8 +11,9 @@ jobs:
 
     strategy:
       matrix:
-        java: [9, 11, 15]
-    runs-on: ubuntu-latest
+        java: [9, 11, 21]
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
