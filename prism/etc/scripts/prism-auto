@@ -1073,11 +1073,16 @@ def benchmarkPropListFile(propListFile):
         benchmarkPropertiesFile(os.path.join(dir, propFile))
 
 # (Re-)start the nailgun server
-# We first try to stop an existing server (which should fail quickly if there is none running)
 def restartNailGunServer():
+	# First try to stop an existing server (which should fail quickly if there is none running)
     print("Stopping existing nailgun server, if it's running...")
     sys.stdout.flush()
     subprocess.Popen([options.ngprism, "stop"]).wait()
+    # For Java version >=19, running Nailgun needs a workaround
+    javaVersion = getJavaVersion()
+    if javaVersion is not None and javaVersion >= 19:
+        os.environ['PRISM_JAVA_PARAMS'] = '-Djava.security.manager=allow'
+    # Start the server and make sure it is running
     print("Starting nailgun server...")
     sys.stdout.flush()
     os.system(options.prismExec + " -ng &")
@@ -1089,6 +1094,20 @@ def restartNailGunServer():
         time.sleep(0.5)
         tries = tries + 1
         exitCode = subprocess.Popen([options.ngprism, "-version"]).wait()
+        
+# Get the (major) version of Java used to run PRISM, return as an integer (or None if failed)
+def getJavaVersion():
+    try:
+        # Get the output of "prism -javaversion", extract version as regexp
+        result = subprocess.run([options.prismExec, '-javaversion'], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+        javaVersionMajor = None
+        if result.returncode == 0:
+            javaVersionString = re.search(r'"(\d+)', result.stderr)
+            if javaVersionString:
+                javaVersionMajor = int(javaVersionString.group(1))
+        return javaVersionMajor
+    except FileNotFoundError: # prismExec call fails
+        return None
 
 #==================================================================================================
 # Main program
