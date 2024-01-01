@@ -2693,6 +2693,7 @@ public class PrismCL implements PrismModelListener
 		mainLog.println();
 		mainLog.println("-help .......................... Display this help message");
 		mainLog.println("-version ....................... Display PRISM version info");
+		mainLog.println("-javaversion ................... Display Java version info");
 		mainLog.println("-dir <dir> ..................... Set current working directory");
 		mainLog.println("-settings <file>................ Load settings from <file>");
 		mainLog.println();
