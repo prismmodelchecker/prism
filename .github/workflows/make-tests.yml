@@ -21,10 +21,45 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
-    - run: cd prism
     - name: make tests
       working-directory: ./prism
       run: |
         make
         make unittests
+        make tests
+
+  build-win:
+
+    strategy:
+      matrix:
+        java: [9, 11, 21]
+    runs-on: windows-latest
+
+    steps:
+    - run: git config --global core.autocrlf input
+    - uses: actions/checkout@v2
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+    - name: Install Cygwin Dependencies
+      uses: cygwin/cygwin-install-action@v4
+      with:
+        packages: |
+          make,
+          mingw64-x86_64-gcc-g++,
+          binutils,
+          dos2unix,
+          git,
+          wget,
+          unzip,
+          python
+    - name: make tests
+      shell: bash
+      env:
+        CYGWIN: winsymlinks:native
+      working-directory: ./prism
+      run: >-
+        make &&
+        make unittests &&
         make tests
