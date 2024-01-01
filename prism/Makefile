@@ -297,7 +297,7 @@ ifeq ($(OSTYPE),darwin)
 		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = x86
-		BIN_TARGETS=prism.darwin64 xprism.linux
+		BIN_TARGETS=prism.darwin xprism.linux
 	else
 	ifeq ($(ARCH),arm64)
 		CFLAGS = -arch arm64 -fPIC -DPIC -DHAVE_IEEE_754 -DBSD -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=8 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
@@ -305,14 +305,14 @@ ifeq ($(OSTYPE),darwin)
 		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = arm
-		BIN_TARGETS=prism.darwin64 xprism.linux
+		BIN_TARGETS=prism.darwin xprism.linux
 	else
 		CFLAGS = -arch i386 -DHAVE_IEEE_754 -DBSD -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
 		BINDISTSUFFIX = mac32
 		BINDISTARCH = x86
-		BIN_TARGETS=prism.darwin32 xprism.linux
+		BIN_TARGETS=prism.darwin xprism.linux
 	endif
 	endif
 	JFLAGS = -encoding UTF8
