@@ -111,6 +111,16 @@ ifeq ($(OSTYPE),cygwin)
     endif
 endif
 
+##################
+# Pre-processing #
+##################
+
+# Convert scripts needed for building, in case extracted with CRLF endings
+PRE_PROC := $(shell if [ "$(OSTYPE)" = "cygwin" ]; then \
+  dos2unix "$(PRISM_SRC_DIR)"/scripts/*.sh; \
+  dos2unix "$(CUDD_DIR)"/setup.sh; \
+fi 2> /dev/null)
+
 ########
 # Java #
 ########
@@ -402,9 +412,12 @@ make_dirs:
 	  for lib in `ls *$(LIBSUFFIX)`; do ln -fs $$lib `echo $$lib | sed s/$(LIBSUFFIX)/.jnilib/`; done;); \
 	fi
 # On Windows, convert the generated JNI headers using dos2unix
-	@if [ "$(LIBSUFFIX)" = ".dll" ]; then \
-		(dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h) \
-	fi;
+# and any scripts to be run from Cywgin, in case extracted with CRLF endings.
+	@if [ "$(OSTYPE)" = "cygwin" ]; then \
+	  dos2unix $(PRISM_INCLUDE_DIR)/jni/*.h; \
+	  find .. -name '*.sh' -exec dos2unix {} \; ; \
+	  dos2unix "$(PRISM_SRC_DIR)"/bin/prism.cygwin; \
+	fi
 
 # Compile unit tests
 make_tests:
