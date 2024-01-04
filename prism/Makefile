@@ -203,7 +203,7 @@ OPTIMISE = -O3
 
 # Compiler warnings to enable:
 # (WARNING: must not contain a % symbol!)
-WARNINGS = -Wformat
+WARNINGS = #-Wformat
 
 # Flags for compilation/linking
 # Flags to generate shared libraries
