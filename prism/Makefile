@@ -302,7 +302,7 @@ endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -arch x86_64 -fPIC -DPIC -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -arch x86_64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
@@ -310,14 +310,14 @@ ifeq ($(OSTYPE),darwin)
 		BIN_TARGETS=prism.darwin xprism.linux
 	else
 	ifeq ($(ARCH),arm64)
-		CFLAGS = -arch arm64 -fPIC -DPIC -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -arch arm64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = arm
 		BIN_TARGETS=prism.darwin xprism.linux
 	else
-		CFLAGS = -arch i386 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -arch i386 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = -Wl,-search_paths_first
 		BINDISTSUFFIX = mac32
