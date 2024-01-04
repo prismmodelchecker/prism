@@ -238,7 +238,7 @@ ifeq ($(OSTYPE),linux)
 		BINDISTSUFFIX = linux64
 		BINDISTARCH = arm
 	else
-		CFLAGS = -m32 -malign-double $(DEBUG) $(OPTIMISE) $(WARNINGS)
+		CFLAGS = -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
 		LDFLAGS = $(CFLAGS)
 		BINDISTSUFFIX = linux32
@@ -275,14 +275,14 @@ endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = -malign-double $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
+		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
 		LDFLAGS = $(CFLAGS) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
 		BINDISTARCH = x86
 	else
-		CFLAGS = -march=i686 -malign-double $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
+		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
 		LDFLAGS = $(CFLAGS) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
