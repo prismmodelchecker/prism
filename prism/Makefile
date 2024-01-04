@@ -217,7 +217,7 @@ ifeq ($(OSTYPE),linux)
 		# Position Independent Code required on AMD64/Itanium
 		CFLAGS = -m64 -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux64
 		BINDISTARCH = x86
 	else
@@ -226,7 +226,7 @@ ifeq ($(OSTYPE),linux)
 		# Note: We omit the -m64 flag from here since it seems to be unsupported by gcc on IA64
 		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux64
 		BINDISTARCH = ia64
 	else
@@ -234,13 +234,13 @@ ifeq ($(OSTYPE),linux)
 		# Position Independent Code required on Aarch64
 		CFLAGS = -fPIC -DPIC $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux64
 		BINDISTARCH = arm
 	else
 		CFLAGS = -m32 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS)
+		LDFLAGS =
 		BINDISTSUFFIX = linux32
 		BINDISTARCH = x86
 	endif
@@ -260,7 +260,7 @@ endif
 ifeq ($(OSTYPE),solaris)
 	CFLAGS = -mcpu=ultrasparc $(DEBUG) $(OPTIMISE) $(WARNINGS)
 	CXXFLAGS = --std=c++11 $(CFLAGS)
-	LDFLAGS = $(CFLAGS)
+	LDFLAGS =
 	BINDISTSUFFIX = solaris
 	BINDISTARCH = solaris
 	BIN_TARGETS=prism.linux xprism.linux
@@ -275,17 +275,17 @@ endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
 	ifeq ($(ARCH),x86_64)
-		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
+		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
 		BINDISTARCH = x86
 	else
-		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS) -static-libgcc -static-libstdc++
+		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
+		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win32
 		BINDISTARCH = x86
 	endif
@@ -304,7 +304,7 @@ ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),x86_64)
 		CFLAGS = -arch x86_64 -fPIC -DPIC -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
+		LDFLAGS = -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = x86
 		BIN_TARGETS=prism.darwin xprism.linux
@@ -312,14 +312,14 @@ ifeq ($(OSTYPE),darwin)
 	ifeq ($(ARCH),arm64)
 		CFLAGS = -arch arm64 -fPIC -DPIC -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
+		LDFLAGS = -Wl,-search_paths_first
 		BINDISTSUFFIX = mac64
 		BINDISTARCH = arm
 		BIN_TARGETS=prism.darwin xprism.linux
 	else
 		CFLAGS = -arch i386 -fno-common $(DEBUG) $(OPTIMISE) $(WARNINGS)
 		CXXFLAGS = --std=c++11 $(CFLAGS)
-		LDFLAGS = $(CFLAGS) -Wl,-search_paths_first
+		LDFLAGS = -Wl,-search_paths_first
 		BINDISTSUFFIX = mac32
 		BINDISTARCH = x86
 		BIN_TARGETS=prism.darwin xprism.linux
