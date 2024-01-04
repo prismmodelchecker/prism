@@ -12,31 +12,22 @@ if [ ! -f Makefile ]; then
   sleep 1; touch configure; touch config.h.in; touch `find . -name Makefile.in -print`
   
   # Collate arguments to be passed to configure
-  CONFIGURE_ARGS=()
+  CONFIGURE_ARGS=""
   if [ ! -z "$MAKE" ]; then
-    CONFIGURE_ARGS+=("MAKE=$MAKE")
+    CONFIGURE_ARGS=${CONFIGURE_ARGS}${CONFIGURE_ARGS:+ }MAKE="$MAKE"
   fi
   if [ ! -z "$CC" ]; then
-    CONFIGURE_ARGS+=("CC=$CC")
+    CONFIGURE_ARGS=${CONFIGURE_ARGS}${CONFIGURE_ARGS:+ }CC="$CC"
   fi
   if [ ! -z "$CXX" ]; then
-    CONFIGURE_ARGS+=("CXX=$CXX")
+    CONFIGURE_ARGS=${CONFIGURE_ARGS}${CONFIGURE_ARGS:+ }CXX="$CXX"
   fi
   if [ ! -z "$LD" ]; then
-    CONFIGURE_ARGS+=("LD=$LD")
-  fi
-  if [ ! -z "$CFLAGS" ]; then
-    CONFIGURE_ARGS+=("CFLAGS=$CFLAGS")
-  fi
-  if [ ! -z "$CXXFLAGS" ]; then
-    CONFIGURE_ARGS+=("CXXFLAGS=$CXXFLAGS")
-  fi
-  if [ ! -z "$LDFLAGS" ]; then
-    CONFIGURE_ARGS+=("LDFLAGS=$LDLAGS")
+    CONFIGURE_ARGS=${CONFIGURE_ARGS}${CONFIGURE_ARGS:+ }LD="$LD"
   fi
   
   # Build Makefile
-  ./configure --prefix="$(pwd)" "${CONFIGURE_ARGS[@]}" || exit 1
+  ./configure --prefix="$(pwd)" $CONFIGURE_ARGS CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" || exit 1
   
 fi
 
