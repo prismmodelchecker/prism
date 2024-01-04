@@ -13,17 +13,26 @@ if [ ! -f Makefile ]; then
   
   # Collate arguments to be passed to configure
   CONFIGURE_ARGS=()
+  if [ ! -z "$MAKE" ]; then
+    CONFIGURE_ARGS+=("MAKE=$MAKE")
+  fi
+  if [ ! -z "$CC" ]; then
+    CONFIGURE_ARGS+=("CC=$CC")
+  fi
+  if [ ! -z "$CXX" ]; then
+    CONFIGURE_ARGS+=("CXX=$CXX")
+  fi
+  if [ ! -z "$LD" ]; then
+    CONFIGURE_ARGS+=("LD=$LD")
+  fi
   if [ ! -z "$CFLAGS" ]; then
     CONFIGURE_ARGS+=("CFLAGS=$CFLAGS")
   fi
   if [ ! -z "$CXXFLAGS" ]; then
     CONFIGURE_ARGS+=("CXXFLAGS=$CXXFLAGS")
   fi
-  if [ ! -z "$CC" ]; then
-    CONFIGURE_ARGS+=("CC=$CC")
-  fi
-  if [ ! -z "$MAKE" ]; then
-    CONFIGURE_ARGS+=("MAKE=$MAKE")
+  if [ ! -z "$LDFLAGS" ]; then
+    CONFIGURE_ARGS+=("LDFLAGS=$LDLAGS")
   fi
   
   # Build Makefile
