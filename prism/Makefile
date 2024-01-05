@@ -274,16 +274,18 @@ ifeq ($(OSTYPE),solaris)
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
+	# -DWIN32 needed for lpsolve (included e.g. in sparse) - WIN32 is only defined by mingw/gcc without --std=c++11
+	# -static-libgcc -static-libstdc+ needed to build binaries that don't rely on these libraries to be present
+	# -Wl,--add-stdcall-alias needed so shared libraries can be read from JNI
+	# -Wl ... -lpthread ... --no-whole-archive needed to statically include pthread in case missing
 	ifeq ($(ARCH),x86_64)
 		CFLAGS = $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
 		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win64
 		BINDISTARCH = x86
 	else
 		CFLAGS = -march=i686 $(DEBUG) $(OPTIMISE) $(WARNINGS)
-		# need -DWIN32 for lpsolve (WIN32 is only defined by mingw/gcc without --std=c++11)
 		CXXFLAGS = --std=c++11 -DWIN32 $(CFLAGS)
 		LDFLAGS = -static-libgcc -static-libstdc++ -Wl,--add-stdcall-alias -Wl,-Bstatic,--whole-archive -lpthread -Wl,-Bdynamic,--no-whole-archive
 		BINDISTSUFFIX = win32
