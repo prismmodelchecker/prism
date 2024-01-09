@@ -15,6 +15,8 @@ sudo apt -y install python3
 # Download the latest development version from GitHub
 git clone https://github.com/prismmodelchecker/prism.git
 
-# Compile PRISM and run a single test
+# Compile PRISM and run a single test (unless --nobuild passed)
 # (should ultimately display: "Testing result: PASS")
-(cd prism/prism && make && make test)
+if [ "$*" = "${*/--nobuild}" ]; then
+  (cd prism/prism && make && make test)
+fi
