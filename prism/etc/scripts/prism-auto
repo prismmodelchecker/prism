@@ -679,8 +679,13 @@ def runPrism(args, bmArgs, dir=""):
             for line in open(logFile, 'r').readlines():
                 if re.match('Error:', line):
                     printTestResult(line)
-            print("To see log file, run:")
-            print("edit " + logFile)
+            if (options.printFailures):
+                print("Failing test log file:")
+                for line in open(logFile, 'r').readlines():
+                    print(line, end="")
+            else:
+                print("To see log file, run:")
+                print("edit " + logFile)
             prismArgsPrint = list(prismArgs)
             prismArgsPrint[0] = options.prismExec
             print("To re-run failing test:")
@@ -1162,6 +1167,7 @@ parser.add_option("--skip-duplicate-runs", action="store_true", dest="skipDuplic
 parser.add_option("--timeout", dest="timeout", metavar="N", default=None, help='Timeout for each PRISM run (examples values for N: 5 / 5s for seconds, 5m / 5h for minutes / hours)')
 parser.add_option("--dd-warnings", action="store_true", dest="ddWarnings", default=False, help="Print the DD reference count warnings")
 parser.add_option("--colour", dest="colourEnabled", metavar="X", type="choice", choices=["yes","no","auto"], default="auto", help="Whether to colour test results: yes, no, auto (yes iff in terminal mode) [default=auto]")
+parser.add_option("--print-failures", action="store_true", dest="printFailures", default=False, help="Display logs for failing tests")
 (options, args) = parser.parse_args()
 if len(args) < 1:
     parser.print_help()

@@ -521,7 +521,7 @@ testlpsolve:
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 tests: testslocal
 	@if [ -d ../prism-tests ]; then \
-	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping tests"; \
 	fi
@@ -529,13 +529,13 @@ tests: testslocal
 # Just display the command to run the test suite on this version of PRISM
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testsecho:
-	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
+	@echo etc/scripts/prism-auto -t -m ../prism-tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS)
 
 # Run local tests (in ./tests)
 # Optionally, extra arguments for prism-auto are picked up via variable TESTS_ARGS
 testslocal:
 	@if [ -d tests ]; then \
-	  etc/scripts/prism-auto -t -m tests -p bin/prism --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
+	  etc/scripts/prism-auto -t -m tests -p bin/prism --print-failures --nailgun --ngprism bin/ngprism $(TESTS_ARGS); \
 	else \
 	  echo "Skipping local tests"; \
 	fi
@@ -548,7 +548,7 @@ testslocal:
 testsfull:
 	etc/scripts/prism-auto -t -m ../prism-tests \
 	--skip-export-runs --skip-duplicate-runs --test-all -a ../prism-tests/all-engines.args --timeout 1m \
-	-p bin/prism --nailgun $(TESTS_ARGS);
+	-p bin/prism --print-failures --nailgun $(TESTS_ARGS);
 
 ##########################
 # Building distributions #
