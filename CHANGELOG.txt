@@ -1,6 +1,16 @@
 This file contains details of the changes in each new version of PRISM.
 
 -----------------------------------------------------------------------------
+Changes since last release (up to a6d86d21)
+-----------------------------------------------------------------------------
+
+* Updates/fixes in install/launch/testing scripts and build process
+* New -javaversion switch to show Java version used
+* New tests in etc/tests available for easier build tests
+* Transition reward export (MDP-like models) for explicit engine
+* Various bugfixes
+
+-----------------------------------------------------------------------------
 Version 4.8 (first released 5/7/2023)
 -----------------------------------------------------------------------------
 
