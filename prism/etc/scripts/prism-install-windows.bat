@@ -17,3 +17,6 @@ setx PATH "%ProgramFiles(x86)%\NSIS;%PATH%"
 @REM Get and install Cygwin, with core packages needed for PRISM install
 "%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -Command "wget -Uri  http://cygwin.com/setup-x86_64.exe -Outfile setup-x86_64.exe
 .\setup-x86_64.exe -P make -P mingw64-x86_64-gcc-g++ -P binutils -P dos2unix -P git -P wget -P unzip -P python -P nano -q -s http://ftp.inf.tu-dresden.de/software/windows/cygwin/
+
+@REM Launch a Cygwin terminal
+"%HOMEDRIVE%\cygwin64\bin\mintty.exe" -
