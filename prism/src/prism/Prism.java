@@ -3794,28 +3794,31 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			fau.setConstantValues(currentModulesFile.getConstantValues());
 			probsExpl = fau.doTransient(time);
 		}
-		// Symbolic
-		else if (getCurrentEngine() == PrismEngine.SYMBOLIC) {
-			buildModelIfRequired();
-			if (currentModelType == ModelType.DTMC) {
-				mc = new ProbModelChecker(this, currentModel, null);
-				probs = ((ProbModelChecker) mc).doTransient((int) time, fileIn);
-			} else {
-				mc = new StochModelChecker(this, currentModel, null);
-				probs = ((StochModelChecker) mc).doTransient(time, fileIn);
-			}
-		}
-		// Explicit
+		// Non-FAU
 		else {
+			// Build model, if necessary
 			buildModelIfRequired();
-			if (currentModelType == ModelType.DTMC) {
-				DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
-				probsExpl = mcDTMC.doTransient((DTMC<Double>) currentModelExpl, (int) time, fileIn);
-			} else if (currentModelType == ModelType.CTMC) {
-				CTMCModelChecker mcCTMC = new CTMCModelChecker(this);
-				probsExpl = mcCTMC.doTransient((CTMC<Double>) currentModelExpl, time, fileIn);
-			} else {
-				throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
+			// Symbolic
+			if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
+				if (currentModelType == ModelType.DTMC) {
+					mc = new ProbModelChecker(this, currentModel, null);
+					probs = ((ProbModelChecker) mc).doTransient((int) time, fileIn);
+				} else {
+					mc = new StochModelChecker(this, currentModel, null);
+					probs = ((StochModelChecker) mc).doTransient(time, fileIn);
+				}
+			}
+			// Explicit
+			else {
+				if (currentModelType == ModelType.DTMC) {
+					DTMCModelChecker mcDTMC = new DTMCModelChecker(this);
+					probsExpl = mcDTMC.doTransient((DTMC<Double>) currentModelExpl, (int) time, fileIn);
+				} else if (currentModelType == ModelType.CTMC) {
+					CTMCModelChecker mcCTMC = new CTMCModelChecker(this);
+					probsExpl = mcCTMC.doTransient((CTMC<Double>) currentModelExpl, time, fileIn);
+				} else {
+					throw new PrismException("Transient probabilities only computed for DTMCs/CTMCs");
+				}
 			}
 		}
 
@@ -3908,42 +3911,45 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 					probsExpl = fau.doTransient(timeDouble - initTimeDouble, probsExpl);
 				}
 			}
-			// Symbolic
-			else if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
-				buildModelIfRequired();
-				if (currentModelType.continuousTime()) {
-					StochModelChecker mc = new StochModelChecker(this, currentModel, null);
-					if (i == 0) {
-						initDist = mc.readDistributionFromFile(fileIn);
-						initTimeDouble = 0;
-					}
-					probs = ((StochModelChecker) mc).doTransient(timeDouble - initTimeDouble, initDist);
-				} else {
-					ProbModelChecker mc = new ProbModelChecker(this, currentModel, null);
-					if (i == 0) {
-						initDist = mc.readDistributionFromFile(fileIn);
-						initTimeInt = 0;
-					}
-					probs = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDist);
-				}
-			}
-			// Explicit
+			// Non-FAU
 			else {
+				// Build model, if necessary
 				buildModelIfRequired();
-				if (currentModelType.continuousTime()) {
-					CTMCModelChecker mc = new CTMCModelChecker(this);
-					if (i == 0) {
-						initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
-						initTimeDouble = 0;
+				// Symbolic
+				if (currentModelBuildType == ModelBuildType.SYMBOLIC) {
+					if (currentModelType.continuousTime()) {
+						StochModelChecker mc = new StochModelChecker(this, currentModel, null);
+						if (i == 0) {
+							initDist = mc.readDistributionFromFile(fileIn);
+							initTimeDouble = 0;
+						}
+						probs = ((StochModelChecker) mc).doTransient(timeDouble - initTimeDouble, initDist);
+					} else {
+						ProbModelChecker mc = new ProbModelChecker(this, currentModel, null);
+						if (i == 0) {
+							initDist = mc.readDistributionFromFile(fileIn);
+							initTimeInt = 0;
+						}
+						probs = ((ProbModelChecker) mc).doTransient(timeInt - initTimeInt, initDist);
 					}
-					probsExpl = mc.doTransient((CTMC<Double>) currentModelExpl, timeDouble - initTimeDouble, initDistExpl);
-				} else {
-					DTMCModelChecker mc = new DTMCModelChecker(this);
-					if (i == 0) {
-						initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
-						initTimeInt = 0;
+				}
+				// Explicit
+				else {
+					if (currentModelType.continuousTime()) {
+						CTMCModelChecker mc = new CTMCModelChecker(this);
+						if (i == 0) {
+							initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
+							initTimeDouble = 0;
+						}
+						probsExpl = mc.doTransient((CTMC<Double>) currentModelExpl, timeDouble - initTimeDouble, initDistExpl);
+					} else {
+						DTMCModelChecker mc = new DTMCModelChecker(this);
+						if (i == 0) {
+							initDistExpl = mc.readDistributionFromFile(fileIn, currentModelExpl);
+							initTimeInt = 0;
+						}
+						probsExpl = mc.doTransient((DTMC<Double>) currentModelExpl, timeInt - initTimeInt, initDistExpl);
 					}
-					probsExpl = mc.doTransient((DTMC<Double>) currentModelExpl, timeInt - initTimeInt, initDistExpl);
 				}
 			}
 
