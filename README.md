@@ -7,7 +7,7 @@ This is PRISM (Probabilistic Symbolic Model Checker).
 
 For detailed installation instructions, check the online manual at:
 
-  http://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
+  https://www.prismmodelchecker.org/manual/InstallingPRISM/Instructions
   
 or see the local copy included in this distribution:
 
@@ -38,7 +38,7 @@ If you have problems check the manual, especially the section "Common Problems A
 
 The best source of information about using PRISM is the online manual:
 
-  http://www.prismmodelchecker.org/manual/
+  https://www.prismmodelchecker.org/manual/
 
 You can also view the local copy included in this distribution:
 
@@ -46,7 +46,7 @@ You can also view the local copy included in this distribution:
 
 For other PRISM-related information, see the website:
 
-  http://www.prismmodelchecker.org/doc
+  https://www.prismmodelchecker.org/doc
 
 Information for developers is kept here:
 
@@ -58,12 +58,12 @@ PRISM is distributed under the GNU General Public License (GPL), version 2.
 A copy of this license can be found in the file `COPYING.txt`.
 For more information, see:
 
-  http://www.gnu.org/licenses/
+  https://www.gnu.org/licenses/
 
 PRISM also uses various other libraries (mainly to be found in the lib directory).
 For details of those, including licenses and links to downloads and source code, see:
 
-http://www.prismmodelchecker.org/other-downloads.php
+https://www.prismmodelchecker.org/other-downloads.php
 
 
 ## Acknowledgements
@@ -112,14 +112,14 @@ We also gratefully acknowledge contributions to the PRISM code-base from
 
 For more details see:
 
-  http://www.prismmodelchecker.org/people.php
+  https://www.prismmodelchecker.org/people.php
 
 
 ## Contact
 
 If you have problems or questions regarding PRISM, please use the help forum provided. See:
 
-  http://www.prismmodelchecker.org/support.php
+  https://www.prismmodelchecker.org/support.php
 
 Other comments and feedback about any aspect of PRISM are also very welcome. Please contact:
 

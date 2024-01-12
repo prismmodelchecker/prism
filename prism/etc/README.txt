@@ -22,7 +22,7 @@ Where appropriate, comments/instructions are included in the files themselves.
 
  * scripts/hoa/ - Scripts for attaching external LTL-to-automaton translators
    to PRISM via the HOA (Hanoi Omega Automata) format. See:
-   http://www.prismmodelchecker.org/manual/ConfiguringPRISM/AutomataGeneration
+   https://www.prismmodelchecker.org/manual/ConfiguringPRISM/AutomataGeneration
 
  * syntax-highlighters/ - Syntax highlighting configs for various tools
    - gnome/{Overrides.xml,prism.lang} - files for Gnome environment

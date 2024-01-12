@@ -6,7 +6,7 @@ To simplify maintenance of scripts and config files, we mostly omit version numb
 
 See here for more details and links:
 
-http://www.prismmodelchecker.org/other-downloads.php
+https://www.prismmodelchecker.org/other-downloads.php
 
 and here for further details about compilation:
 
