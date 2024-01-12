@@ -17,7 +17,7 @@ Very abbreviated instructions for installing/running PRISM are as follows:
 
 For Windows binary distributions:
 
- * to install, run `prism-XXX-win-installer.exe`
+ * to install, run `prism-XXX-win64-installer.exe`
  * to run, use Desktop/Start menu shortcuts or double-click `bin\xprism.bat`
 
 For other binary distributions:
@@ -28,7 +28,7 @@ For other binary distributions:
 For source code distributions:
 
  * enter the PRISM directory and type `cd prism` then `make`
- * to check the install, type `make test`
+ * to check the install, type `make test` or `etc/tests/run.sh`
  * to run, execute `bin/xprism` or `bin/prism`
 
 If you have problems check the manual, especially the section "Common Problems And Questions".
@@ -46,8 +46,11 @@ You can also view the local copy included in this distribution:
 
 For other PRISM-related information, see the website:
 
-  http://www.prismmodelchecker.org/
+  http://www.prismmodelchecker.org/doc
 
+Information for developers is kept here:
+
+  https://github.com/prismmodelchecker/prism/wiki
 
 ## Licensing
 
@@ -57,13 +60,8 @@ For more information, see:
 
   http://www.gnu.org/licenses/
 
-PRISM uses the CUDD (Colorado University Decision Diagram) library of Fabio Somenzi,
-which is freely available. For more information about this library, see:
-
-  http://vlsi.colorado.edu/~fabio/CUDD/
-
 PRISM also uses various other libraries (mainly to be found in the lib directory).
-For details of those, and for links to source where we distribute only binaries, see:
+For details of those, including licenses and links to downloads and source code, see:
 
 http://www.prismmodelchecker.org/other-downloads.php
 
