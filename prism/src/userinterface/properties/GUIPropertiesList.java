@@ -329,10 +329,16 @@ public class GUIPropertiesList extends JList implements KeyListener
 
 	public void addProperty(String name, String propString, String comment)
 	{
+		addProperty(name, propString, comment, true);
+	}
+
+	public void addProperty(String name, String propString, String comment, boolean validate)
+	{
 		counter++;
 		GUIProperty gp = new GUIProperty(prism, this, "PROPERTY" + counter, propString, name, comment);
 		listModel.addElement(gp);
-		validateProperties();
+		if (validate)
+			validateProperties();
 	}
 
 	public void setProperty(int index, String name, String propString, String comment)
@@ -362,8 +368,9 @@ public class GUIPropertiesList extends JList implements KeyListener
 			String nam = pf.getPropertyName(i);
 			String str = pf.getProperty(i).toString();
 			String com = pf.getPropertyComment(i);
-			addProperty(nam, str, com);
+			addProperty(nam, str, com, false);
 		}
+		validateProperties();
 	}
 
 	public boolean deleteProperty(int index)
