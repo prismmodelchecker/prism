@@ -146,7 +146,7 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	}
 
 	/**
-	 * Construct an MDPSimple object from an MDPSparse one.
+	 * Construct an MDPSimple object from an MDP object.
 	 */
 	public MDPSimple(MDP<Value> mdp)
 	{
@@ -154,16 +154,16 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 		copyFrom(mdp);
 		int numStates = getNumStates();
 		for (int i = 0; i < numStates; i++) {
-			int numChoices = getNumChoices(i);
+			int numChoices = mdp.getNumChoices(i);
 			for (int j = 0; j < numChoices; j++) {
-				Object action = getAction(i, j);
+				Object action = mdp.getAction(i, j);
 				Distribution<Value> distr = new Distribution<>(getEvaluator());
-				Iterator<Map.Entry<Integer, Value>> iter = getTransitionsIterator(i, j);
+				Iterator<Map.Entry<Integer, Value>> iter = mdp.getTransitionsIterator(i, j);
 				while (iter.hasNext()) {
 					Map.Entry<Integer, Value> e = iter.next();
 					distr.set(e.getKey(), e.getValue());
 				}
-				if (action == null) {
+				if (action != null) {
 					addActionLabelledChoice(i, distr, action);
 				} else {
 					addChoice(i, distr);
