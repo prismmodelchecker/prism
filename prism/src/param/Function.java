@@ -26,6 +26,9 @@
 
 package param;
 
+import parser.ast.Expression;
+import prism.PrismException;
+
 /**
  * Represents a rational function.
  * Allows for the usual operations (addition, multiplication, etc.) which
@@ -151,6 +154,13 @@ public abstract class Function extends StateValue
 	 * @return BigRational representation of this function
 	 */
 	public abstract BigRational asBigRational();
+
+	/**
+	 * Returns an Expression representing this object.
+	 *
+	 * @return Expression representation of this function
+	 */
+	public abstract Expression asExpression() throws PrismException;
 
 	/**
 	 * Returns true iff this function represents not-a-number.
