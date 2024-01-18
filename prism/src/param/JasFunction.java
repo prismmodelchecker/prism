@@ -87,6 +87,25 @@ final class JasFunction extends Function {
 	@Override
 	public String toString()
 	{
+		return toStringExpression();
+	}
+
+	/**
+	 * Convert to string formatted as Expression.
+	 */
+	public String toStringExpression() {
+		try {
+			return asExpression().toString();
+		} catch (PrismException e) {
+			return "?";
+		}
+	}
+
+	/**
+	 * Convert to string formatted using JAS methods.
+	 */
+	public String toStringJas()
+	{
 		if (isNaN()) {
 			return "NaN";
 		} else if (isInf()) {
