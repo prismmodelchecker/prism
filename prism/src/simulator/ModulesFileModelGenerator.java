@@ -691,12 +691,15 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 					Value rew = eval.evaluate(rewStr.getReward(i), modulesFile.getConstantValues(), state);
 					// Check reward is finite/non-negative (would be checked at model construction time,
 					// but more fine grained error reporting can be done here)
+					// We omit the check in symbolic (parametric) cases - too expensive
 					// Note use of original model since modulesFile may have been simplified
-					if (!eval.isFinite(rew)) {
-						throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
-					}
-					if (!eval.geq(rew, eval.zero())) {
-						throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+					if (!eval.isSymbolic()) {
+						if (!eval.isFinite(rew)) {
+							throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
+						}
+						if (!eval.geq(rew, eval.zero())) {
+							throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+						}
 					}
 					d = eval.add(d, rew);
 				}
@@ -721,12 +724,15 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 						Value rew = eval.evaluate(rewStr.getReward(i), modulesFile.getConstantValues(), state);
 						// Check reward is finite/non-negative (would be checked at model construction time,
 						// but more fine grained error reporting can be done here)
+						// We omit the check in symbolic (parametric) cases - too expensive
 						// Note use of original model since modulesFile may have been simplified
-						if (!eval.isFinite(rew)) {
-							throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
-						}
-						if (!eval.geq(rew, eval.zero())) {
-							throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+						if (!eval.isSymbolic()) {
+							if (!eval.isFinite(rew)) {
+								throw new PrismLangException("Reward structure is not finite at state " + state, rewStr.getReward(i));
+							}
+							if (!eval.geq(rew, eval.zero())) {
+								throw new PrismLangException("Reward structure is negative + (" + rew + ") at state " + state, originalModulesFile.getRewardStruct(r).getReward(i));
+							}
 						}
 						d = eval.add(d, rew);
 					}
