@@ -358,7 +358,12 @@ public class StateValues implements StateVector, Iterable<Object>
 	 */
 	public static StateValues createFromArrayResult(ModelCheckerResult res, Model<?> model) throws PrismException
 	{
-		StateValues sv = createFromDoubleArray(res.soln, model);
+		StateValues sv = null;
+		if (res.solnObj != null) {
+			sv = createFromObjectArray(TypeDouble.getInstance(), res.solnObj, model);
+		} else {
+			sv = createFromDoubleArray(res.soln, model);
+		}
 		sv.setAccuracy(res.accuracy);
 		return sv;
 	}
