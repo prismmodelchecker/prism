@@ -104,7 +104,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		DTMCModelChecker mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachProbs(product.getProductModel(), acc); 
-		StateValues probsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		StateValues probsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {
@@ -140,7 +140,7 @@ public class DTMCModelChecker extends ProbModelChecker
 		DTMCModelChecker mcProduct = new DTMCModelChecker(this);
 		mcProduct.inheritSettings(this);
 		ModelCheckerResult res = mcProduct.computeReachRewards((DTMC<Double>)product.getProductModel(), productRewards, acc);
-		StateValues rewardsProduct = StateValues.createFromDoubleArrayResult(res, product.getProductModel());
+		StateValues rewardsProduct = StateValues.createFromArrayResult(res, product.getProductModel());
 
 		// Output vector over product, if required
 		if (getExportProductVector()) {

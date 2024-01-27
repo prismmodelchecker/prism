@@ -350,7 +350,19 @@ public class StateValues implements StateVector, Iterable<Object>
 		sv.setAccuracy(AccuracyFactory.doublesFromQualitative());
 		return sv;
 	}
-	
+
+	/**
+	 * Create a new state values vector from an existing array of values,
+	 * stored in a ModelCheckerResult object. Accuracy information is also extracted.
+	 * Also set associated model (whose state space size should match vector size).
+	 */
+	public static StateValues createFromArrayResult(ModelCheckerResult res, Model<?> model) throws PrismException
+	{
+		StateValues sv = createFromDoubleArray(res.soln, model);
+		sv.setAccuracy(res.accuracy);
+		return sv;
+	}
+
 	/**
 	 * Create a new state values vector, reading in the values from a file.
 	 */

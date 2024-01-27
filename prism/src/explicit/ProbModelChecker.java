@@ -753,7 +753,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -815,7 +815,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 			result.setStrategy(res.strat);
-			sv = StateValues.createFromDoubleArrayResult(res, model);
+			sv = StateValues.createFromArrayResult(res, model);
 		} else if (windowSize == 0) {
 			// A trivial case: windowSize=0 (prob is 1 in target states, 0 otherwise)
 			sv = StateValues.createFromBitSetAsDoubles(target, model);
@@ -843,7 +843,7 @@ public class ProbModelChecker extends NonProbModelChecker
 				throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 			}
 			result.setStrategy(res.strat);
-			sv = StateValues.createFromDoubleArrayResult(res, model);
+			sv = StateValues.createFromArrayResult(res, model);
 		}
 
 		// perform lowerBound restricted next-step computations to
@@ -912,7 +912,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Cannot model check " + expr + " for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1038,7 +1038,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1092,7 +1092,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1123,7 +1123,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1145,7 +1145,7 @@ public class ProbModelChecker extends NonProbModelChecker
 			throw new PrismNotSupportedException("Explicit engine does not yet handle the steady-state reward operator for " + model.getModelType() + "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
@@ -1205,7 +1205,7 @@ public class ProbModelChecker extends NonProbModelChecker
 					+ "s");
 		}
 		result.setStrategy(res.strat);
-		return StateValues.createFromDoubleArrayResult(res, model);
+		return StateValues.createFromArrayResult(res, model);
 	}
 
 	/**
