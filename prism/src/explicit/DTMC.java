@@ -37,8 +37,10 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 import common.IterableStateSet;
+import common.iterable.FunctionalIterator;
 import common.iterable.PrimitiveIterable;
 import common.iterable.Reducible;
 import explicit.graphviz.Decorator;
@@ -176,6 +178,15 @@ public interface DTMC<Value> extends Model<Value>
 		// Default implementation just adds null actions 
 		final Iterator<Entry<Integer, Value>> transitions = getTransitionsIterator(s);
 		return Reducible.extend(transitions).map(transition -> attachAction(transition, null));
+	}
+
+	/**
+	 * Get an iterator over the transitions from state {@code s},
+	 * after mapping probability values using the provided function.
+	 */
+	public default <T> FunctionalIterator<Entry<Integer, T>> getTransitionsMappedIterator(int s, Function<? super Value, ? extends T> function)
+	{
+		return Reducible.extend(getTransitionsIterator(s)).map(t -> new AbstractMap.SimpleImmutableEntry<>(t.getKey(), function.apply(t.getValue())));
 	}
 
 	/**

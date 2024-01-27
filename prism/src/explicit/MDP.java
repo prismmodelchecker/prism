@@ -28,6 +28,7 @@ package explicit;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Iterator;
@@ -37,9 +38,12 @@ import java.util.Map.Entry;
 import java.util.PrimitiveIterator;
 import java.util.TreeMap;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.function.Function;
 
 import common.IterableStateSet;
 import common.IteratorTools;
+import common.iterable.FunctionalIterator;
+import common.iterable.Reducible;
 import explicit.graphviz.Decorator;
 import explicit.rewards.MCRewards;
 import explicit.rewards.MDPRewards;
@@ -237,6 +241,15 @@ public interface MDP<Value> extends NondetModel<Value>
 	 * Get an iterator over the transitions from choice {@code i} of state {@code s}.
 	 */
 	public Iterator<Entry<Integer, Value>> getTransitionsIterator(int s, int i);
+
+	/**
+	 * Get an iterator over the transitions from choice {@code i} of state {@code s},
+	 * after mapping probability values using the provided function.
+	 */
+	public default <T> FunctionalIterator<Entry<Integer, T>> getTransitionsMappedIterator(int s, int i, Function<? super Value, ? extends T> function)
+	{
+		return Reducible.extend(getTransitionsIterator(s, i)).map(t -> new AbstractMap.SimpleImmutableEntry<>(t.getKey(), function.apply(t.getValue())));
+	}
 
 	/**
 	 * Functional interface for a consumer,
