@@ -553,6 +553,14 @@ public interface Evaluator<Value>
 			this.functionFactory = functionFactory;
 		}
 
+		/**
+		 * Get the FunctionFactory used for manipulating Function objects.
+		 */
+		public FunctionFactory getFunctionFactory()
+		{
+			return functionFactory;
+		}
+
 		@Override
 		public Function zero()
 		{

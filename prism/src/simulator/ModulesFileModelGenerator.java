@@ -119,21 +119,6 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
-	 * This method builds a generator for a parametric model using the function factory provided.
-	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Function>}.
-	 * Throw an explanatory exception if the model generator cannot be created.
-	 * @param modulesFile The PRISM model
-	 * @param functionFactory Factory for creating/manipulating rational functions 
-	 * @param parent Parent, used e.g. for settings (can be null)
-	 */
-	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, FunctionFactory functionFactory, PrismComponent parent) throws PrismException
-	{
-		Evaluator<Function> eval = Evaluator.forRationalFunction(functionFactory);
-		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
-	}
-	
-	/**
-	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
 	 * This method assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).
 	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Double>}.
 	 * Throw an explanatory exception if the model generator cannot be created.
@@ -145,7 +130,58 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		Evaluator<Double> eval = Evaluator.forDouble();
 		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
 	}
-	
+
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method assumes that Functions are used to represent probabilities parametrically.
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Function>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param paramNames names of parameters
+	 * @param lowerStr lower bounds of parameters as strings
+	 * @param upperStr upper bounds of parameters as strings
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, String[] paramNames, String[] lowerStr, String[] upperStr, PrismComponent parent) throws PrismException
+	{
+		FunctionFactory functionFactory = FunctionFactory.create(paramNames, lowerStr, upperStr, parent.getSettings());
+		return createForRationalFunctions(modulesFile, functionFactory, parent);
+	}
+
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method assumes that Functions are used to represent probabilities parametrically,
+	 * but that all probabilities are in fact constant, i.e., represented by rationals.
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Function>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, PrismComponent parent) throws PrismException
+	{
+		// Set up a dummy parameter (not used)
+		String[] paramNames = new String[] { "dummy" };
+		String[] lowerStr = new String[] { "0" };
+		String[] upperStr = new String[] { "1" };
+		FunctionFactory functionFactory = FunctionFactory.create(paramNames, lowerStr, upperStr, parent.getSettings());
+		return createForRationalFunctions(modulesFile, functionFactory, parent);
+	}
+
+	/**
+	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
+	 * This method builds a generator for a parametric model using the function factory provided.
+	 * Use this method to guarantee getting a {@code ModulesFileModelGenerator<Function>}.
+	 * Throw an explanatory exception if the model generator cannot be created.
+	 * @param modulesFile The PRISM model
+	 * @param functionFactory Factory for creating/manipulating rational functions
+	 * @param parent Parent, used e.g. for settings (can be null)
+	 */
+	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, FunctionFactory functionFactory, PrismComponent parent) throws PrismException
+	{
+		Evaluator<Function> eval = Evaluator.forRationalFunction(functionFactory);
+		return new ModulesFileModelGenerator<>(modulesFile, eval, parent);
+	}
+
 	/**
 	 * Build a ModulesFileModelGenerator for a particular PRISM model, represented by a {@link ModulesFile} instance.
 	 * This constructor assumes that doubles are used to represent probabilities (rather than, say, exact arithmetic).

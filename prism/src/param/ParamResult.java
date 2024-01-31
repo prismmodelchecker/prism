@@ -2,7 +2,7 @@
 //	
 //	Copyright (c) 2016-
 //	Authors:
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham/Oxford)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Birmingham/Oxford)
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de> (TU Dresden)
 //	
 //------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ import prism.PrismNotSupportedException;
 
 /**
  * Stores the result of a ParamModelChecker run (a RegionValues object)
- * as well as additional information (ModelBuilder, FunctionFactory)
+ * as well as additional information (ParamMode, FunctionFactory)
  * that is needed to test the actual result against an expected result
  * (test mode).
  */
@@ -59,8 +59,8 @@ public class ParamResult
 
 	/**
 	 * Constructor
+	 * @param mode exact or parametric?
 	 * @param regionValues the actual result
-	 * @param modelBuilder the model builder used during checking
 	 * @param factory the function factory used during checking
 	 */
 	public ParamResult(ParamMode mode, RegionValues regionValues, FunctionFactory factory)

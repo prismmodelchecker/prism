@@ -3,7 +3,7 @@
 //	Copyright (c) 2013-
 //	Authors:
 //	* Ernst Moritz Hahn <emhahn@cs.ox.ac.uk> (University of Oxford)
-//	* Dave Parker <d.a.parker@cs.bham.ac.uk> (University of Birmingham)
+//	* Dave Parker <david.parker@cs.ox.ac.uk> (University of Birmingham/Oxford)
 //	
 //------------------------------------------------------------------------------
 //	
@@ -39,6 +39,7 @@ import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismSettings;
 
 /**
  * Generates new functions, stores valid ranges of parameters, etc.
@@ -55,7 +56,38 @@ public abstract class FunctionFactory
 	 * {@code lowerBounds} and {@code upperBounds}
 	 */
 	protected HashMap<String, Integer> varnameToInt;
-	
+
+	/**
+	 * Create a FunctionFactory based on PRISM settings and parameter details.
+	 * @param paramNames names of parameters
+	 * @param lowerStr lower bounds of parameters as strings
+	 * @param upperStr upper bounds of parameters as strings
+	 * @param settings PRISM settings
+	 */
+	public static FunctionFactory create(String[] paramNames, String[] lowerStr, String[] upperStr, PrismSettings settings) throws PrismException
+	{
+		// Convert parameter info from strings to numbers
+		BigRational[] lower = new BigRational[lowerStr.length];
+		BigRational[] upper = new BigRational[upperStr.length];
+		for (int param = 0; param < lowerStr.length; param++) {
+			lower[param] = new BigRational(lowerStr[param]);
+			upper[param] = new BigRational(upperStr[param]);
+		}
+
+		// Create function factory
+		String functionType = settings.getString(PrismSettings.PRISM_PARAM_FUNCTION);
+		if (functionType.equals("JAS")) {
+			return new JasFunctionFactory(paramNames, lower, upper);
+		} else if (functionType.equals("JAS-cached")) {
+			return new CachedFunctionFactory(new JasFunctionFactory(paramNames, lower, upper));
+		} else if (functionType.equals("DAG")) {
+			double dagMaxError = settings.getDouble(PrismSettings.PRISM_PARAM_DAG_MAX_ERROR);
+			return new DagFunctionFactory(paramNames, lower, upper, dagMaxError, false);
+		} else {
+			throw new PrismException("Unknown function factory type \"" + functionType + "\"");
+		}
+	}
+
 	/**
 	 * Creates a new function factory.
 	 * {@code parameterNames}, {@code lowerBounds}, {@code upperBounds} all
@@ -191,7 +223,6 @@ public abstract class FunctionFactory
 	 * expression can be represented as a rational function. In this case
 	 * a {@code PrismException} will be thrown.
 	 * 
-	 * @param factory function factory used to construct function
 	 * @param expr PRISM expression to transform to rational function
 	 * @return rational function representing the given PRISM expression
 	 * @throws PrismException thrown if {@code expr} cannot be represented as rational function
@@ -208,7 +239,6 @@ public abstract class FunctionFactory
 	 * expression can be represented as a rational function. In this case
 	 * a {@code PrismException} will be thrown.
 	 * 
-	 * @param factory function factory used to construct function
 	 * @param expr PRISM expression to transform to rational function
 	 * @return rational function representing the given PRISM expression
 	 * @throws PrismException thrown if {@code expr} cannot be represented as rational function
