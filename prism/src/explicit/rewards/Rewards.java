@@ -42,8 +42,27 @@ public interface Rewards<Value>
 	 */
 	public Rewards<Value> liftFromModel(Product<?> product);
 
-	/** Returns true if this reward structure has transition rewards */
-	public boolean hasTransitionRewards();
+	/**
+	 * Returns true if this reward structure has state rewards.
+	 * This method can sometimes return true even if there are some,
+	 * but a value of false always indicates that none are present.
+	 */
+	public default boolean hasStateRewards()
+	{
+		// Safe to assume true by default
+		return true;
+	}
+
+	/**
+	 * Returns true if this reward structure has transition rewards.
+	 * This method can sometimes return true even if there are some,
+	 * but a value of false always indicates that none are present.
+	 */
+	public default boolean hasTransitionRewards()
+	{
+		// Safe to assume true by default
+		return true;
+	}
 
 	/**
 	 * Get an Evaluator for the reward values stored in this class.

@@ -223,6 +223,12 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 	}
 
 	@Override
+	public boolean hasStateRewards()
+	{
+		return stateRewards != null;
+	}
+
+	@Override
 	public boolean hasTransitionRewards()
 	{
 		return transRewards != null;
