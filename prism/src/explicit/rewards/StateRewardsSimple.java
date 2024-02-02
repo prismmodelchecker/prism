@@ -27,9 +27,11 @@
 package explicit.rewards;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import explicit.Model;
 import explicit.Product;
+import prism.Evaluator;
 
 /**
  * Explicit-state storage of just state rewards (mutable).
@@ -59,6 +61,48 @@ public class StateRewardsSimple<Value> extends StateRewards<Value>
 			stateRewards = null;
 		} else {
 			stateRewards = new ArrayList<>(rews.stateRewards);
+		}
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 */
+	public StateRewardsSimple(StateRewards<Value> rews, Model<?> model)
+	{
+		this(rews, model, r -> r);
+	}
+
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 */
+	public StateRewardsSimple(StateRewards<Value> rews, Model<?> model, Function<? super Value, ? extends Value> rewMap)
+	{
+		this(rews, model, rewMap, rews.getEvaluator());
+	}
+
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 * @param eval Evaluator for Value
+	 */
+	public <T> StateRewardsSimple(StateRewards<T> rews, Model<?> model, Function<? super T, ? extends Value> rewMap, Evaluator<Value> eval)
+	{
+		setEvaluator(eval);
+		int numStates = model.getNumStates();
+		if (rews.hasStateRewards()) {
+			stateRewards = new ArrayList<Value>(numStates);
+			for (int i = 0; i < numStates; i++) {
+				stateRewards.add(rewMap.apply(rews.getStateReward(i)));
+			}
 		}
 	}
 

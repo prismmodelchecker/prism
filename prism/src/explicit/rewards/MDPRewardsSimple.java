@@ -28,9 +28,12 @@ package explicit.rewards;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 import explicit.Model;
+import explicit.NondetModel;
 import explicit.Product;
+import prism.Evaluator;
 
 /**
  * Simple explicit-state storage of rewards for an MDP.
@@ -88,6 +91,59 @@ public class MDPRewardsSimple<Value> extends RewardsExplicit<Value> implements M
 					for (int j = 0; j < n; j++) {
 						list2.add(list.get(j));
 					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 */
+	public MDPRewardsSimple(MDPRewards<Value> rews, NondetModel<?> model)
+	{
+		this(rews, model, r -> r);
+	}
+
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 */
+	public MDPRewardsSimple(MDPRewards<Value> rews, NondetModel<?> model, Function<? super Value, ? extends Value> rewMap)
+	{
+		this(rews, model, rewMap, rews.getEvaluator());
+	}
+
+	/**
+	 * Copy constructor, mapping reward values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 * @param rews Rewards to copy
+	 * @param model Associated model (needed for sizes)
+	 * @param rewMap Reward value map
+	 * @param eval Evaluator for Value
+	 */
+	public <T> MDPRewardsSimple(MDPRewards<T> rews, NondetModel<?> model, Function<? super T, ? extends Value> rewMap, Evaluator<Value> eval)
+	{
+		setEvaluator(eval);
+		numStates = model.getNumStates();
+		if (rews.hasStateRewards()) {
+			stateRewards = new ArrayList<Value>(numStates);
+			for (int i = 0; i < numStates; i++) {
+				stateRewards.add(rewMap.apply(rews.getStateReward(i)));
+			}
+		}
+		if (rews.hasTransitionRewards()) {
+			transRewards = new ArrayList<>(numStates);
+			for (int i = 0; i < numStates; i++) {
+				int numChoices = model.getNumChoices(i);
+				List<Value> list = new ArrayList<>(numChoices);
+				transRewards.add(list);
+				for (int j = 0; j < numChoices; j++) {
+					list.add(rewMap.apply(rews.getTransitionReward(i, j)));
 				}
 			}
 		}
