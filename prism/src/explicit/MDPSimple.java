@@ -37,9 +37,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
+import prism.Evaluator;
 import prism.PrismException;
-
 
 /**
  * Simple explicit-state representation of an MDP.
@@ -150,23 +151,49 @@ public class MDPSimple<Value> extends MDPExplicit<Value> implements NondetModelS
 	 */
 	public MDPSimple(MDP<Value> mdp)
 	{
+		this(mdp, p -> p);
+	}
+
+	/**
+	 * Construct an MDPSimple object from an MDP object,
+	 * mapping probability values using the provided function.
+	 * There is no attempt to check that distributions sum to one,
+	 * but empty choices (all probabilities mapped to zero) are removed.
+	 */
+	public MDPSimple(MDP<Value> mdp, Function<? super Value, ? extends Value> probMap)
+	{
+		this(mdp, probMap, mdp.getEvaluator());
+	}
+
+	/**
+	 * Construct an MDPSimple object from an MDP object,
+	 * mapping probability values using the provided function.
+	 * There is no attempt to check that distributions sum to one,
+	 * but empty choices (all probabilities mapped to zero) are removed.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 */
+	public <T> MDPSimple(MDP<T> mdp, Function<? super T, ? extends Value> probMap, Evaluator<Value> eval)
+	{
 		this(mdp.getNumStates());
 		copyFrom(mdp);
+		setEvaluator(eval);
 		int numStates = getNumStates();
 		for (int i = 0; i < numStates; i++) {
 			int numChoices = mdp.getNumChoices(i);
 			for (int j = 0; j < numChoices; j++) {
 				Object action = mdp.getAction(i, j);
-				Distribution<Value> distr = new Distribution<>(getEvaluator());
-				Iterator<Map.Entry<Integer, Value>> iter = mdp.getTransitionsIterator(i, j);
+				Distribution<Value> distr = new Distribution<>(eval);
+				Iterator<Map.Entry<Integer, T>> iter = mdp.getTransitionsIterator(i, j);
 				while (iter.hasNext()) {
-					Map.Entry<Integer, Value> e = iter.next();
-					distr.set(e.getKey(), e.getValue());
+					Map.Entry<Integer, T> e = iter.next();
+					distr.set(e.getKey(), probMap.apply(e.getValue()));
 				}
-				if (action != null) {
-					addActionLabelledChoice(i, distr, action);
-				} else {
-					addChoice(i, distr);
+				if (!distr.isEmpty()) {
+					if (action != null) {
+						addActionLabelledChoice(i, distr, action);
+					} else {
+						addChoice(i, distr);
+					}
 				}
 			}
 		}

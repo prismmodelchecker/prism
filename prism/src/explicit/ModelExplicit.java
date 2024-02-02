@@ -93,9 +93,9 @@ public abstract class ModelExplicit<Value> implements Model<Value>
 	 * Copy data from another Model (used by superclass copy constructors).
 	 * Assumes that this has already been initialise()ed.
 	 */
-	public void copyFrom(Model<Value> model)
+	public void copyFrom(Model<?> model)
 	{
-		setEvaluator(model.getEvaluator());
+		setEvaluator((Evaluator<Value>) model.getEvaluator());
 		numStates = model.getNumStates();
 		for (int in : model.getInitialStates()) {
 			addInitialState(in);

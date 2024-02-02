@@ -29,7 +29,9 @@ package explicit;
 import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;
+import java.util.function.Function;
 
+import prism.Evaluator;
 import prism.PrismException;
 
 /**
@@ -89,6 +91,45 @@ public class DTMCSimple<Value> extends DTMCExplicit<Value> implements ModelSimpl
 			trans.set(permut[i], new Distribution<Value>(dtmc.trans.get(i), permut));
 		}
 		numTransitions = dtmc.numTransitions;
+	}
+
+	/**
+	 * Construct a DTMCSimple object from a DTMC object.
+	 */
+	public DTMCSimple(DTMC<Value> dtmc)
+	{
+		this(dtmc, p -> p);
+	}
+
+	/**
+	 * Construct a DTMCSimple object from a DTMC object,
+	 * mapping probability values using the provided function.
+	 * There is no attempt to check that distributions sum to one.
+	 */
+	public DTMCSimple(DTMC<Value> dtmc, Function<? super Value, ? extends Value> probMap)
+	{
+		this(dtmc, probMap, dtmc.getEvaluator());
+	}
+
+	/**
+	 * Construct a DTMCSimple object from a DTMC object,
+	 * mapping probability values using the provided function.
+	 * There is no attempt to check that distributions sum to one.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 */
+	public <T> DTMCSimple(DTMC<T> dtmc, Function<? super T, ? extends Value> probMap, Evaluator<Value> eval)
+	{
+		this(dtmc.getNumStates());
+		copyFrom(dtmc);
+		setEvaluator(eval);
+		int numStates = getNumStates();
+		for (int i = 0; i < numStates; i++) {
+			Iterator<Map.Entry<Integer, T>> iter = dtmc.getTransitionsIterator(i);
+			while (iter.hasNext()) {
+				Map.Entry<Integer, T> e = iter.next();
+				addToProbability(i, e.getKey(), probMap.apply(e.getValue()));
+			}
+		}
 	}
 
 	// Mutators (for ModelSimple)

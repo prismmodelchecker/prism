@@ -26,8 +26,12 @@
 
 package explicit;
 
+import prism.Evaluator;
+
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Simple explicit-state representation of a CTMC.
@@ -80,6 +84,33 @@ public class CTMCSimple<Value> extends DTMCSimple<Value> implements CTMC<Value>
 	public CTMCSimple(CTMCSimple<Value> ctmc, int permut[])
 	{
 		super(ctmc, permut);
+	}
+
+	/**
+	 * Construct a CTMCSimple object from a CTMC object.
+	 */
+	public CTMCSimple(CTMC<Value> ctmc)
+	{
+		super(ctmc);
+	}
+
+	/**
+	 * Construct a CTMCSimple object from a CTMC object,
+	 * mapping rate values using the provided function.
+	 */
+	public CTMCSimple(CTMC<Value> ctmc, Function<? super Value, ? extends Value> rateMap)
+	{
+		super(ctmc, rateMap, ctmc.getEvaluator());
+	}
+
+	/**
+	 * Construct a CTMCSimple object from a CTMC object,
+	 * mapping rate values using the provided function.
+	 * Since the type changes (T -> Value), an Evaluator for Value must be given.
+	 */
+	public <T> CTMCSimple(DTMC<T> ctmc, Function<? super T, ? extends Value> rateMap, Evaluator<Value> eval)
+	{
+		super(ctmc, rateMap, eval);
 	}
 
 	// Accessors (for CTMC)
