@@ -298,21 +298,27 @@ public class VarList
 	}
 
 	/**
-	 * Get the value (as an Object) for the ith variable, from its encoding as an integer. 
+	 * Get the value (as an Object) for the ith variable, from its encoding as an integer.
+	 * In case of any problems, this will return null.
 	 */
 	public Object decodeFromInt(int i, int val)
 	{
-		Type type = getType(i);
-		// Integer type
-		if (type instanceof TypeInt) {
-			return val + getLow(i);
+		try {
+			Type type = getType(i);
+			// Integer type
+			if (type instanceof TypeInt) {
+				return type.castValueTo(val + getLow(i), ec.getEvaluationMode());
+			}
+			// Boolean type
+			else if (type instanceof TypeBool) {
+				return val != 0;
+			}
+			// Unknown
+			return null;
+		} catch (PrismLangException e) {
+			// In case of any error return null
+			return null;
 		}
-		// Boolean type
-		else if (type instanceof TypeBool) {
-			return val != 0;
-		}
-		// Anything else
-		return null;
 	}
 
 	/**
@@ -411,10 +417,10 @@ public class VarList
 					vals = allValues.get(j);
 					for (k = lo + 1; k < hi + 1; k++) {
 						valsNew = new Values(vals);
-						valsNew.setValue(var, k);
+						valsNew.setValue(var, getType(i).castValueTo(k, ec.getEvaluationMode()));
 						allValues.add(valsNew);
 					}
-					vals.addValue(var, lo);
+					vals.addValue(var, getType(i).castValueTo(lo, ec.getEvaluationMode()));
 				}
 			} else {
 				throw new PrismLangException("Cannot determine all values for a variable of type " + getType(i));
@@ -453,10 +459,10 @@ public class VarList
 					state = allStates.get(j);
 					for (int k = lo + 1; k < hi + 1; k++) {
 						stateNew = new State(state);
-						stateNew.setValue(i, k);
+						stateNew.setValue(i, getType(i).castValueTo(k, ec.getEvaluationMode()));
 						allStates.add(stateNew);
 					}
-					state.setValue(i, lo);
+					state.setValue(i, getType(i).castValueTo(lo, ec.getEvaluationMode()));
 				}
 			} else {
 				throw new PrismLangException("Cannot determine all values for a variable of type " + getType(i));
