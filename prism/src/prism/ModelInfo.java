@@ -74,7 +74,7 @@ public interface ModelInfo
 	/**
 	 * Set values for some undefined constants.
 	 * It is preferable to use {@link #setSomeUndefinedConstants(EvaluateContext)} instead.
-	 * By default, this method creates an {@link EvaluateContext} via {@link EvaluateContext#create(someValues)}.
+	 * By default, this method creates an {@link EvaluateContext} via {@link EvaluateContext#create(Values)}.
 	 * If this will be called frequently, it is better to maintain your own {@link EvaluateContext}.
 	 * Also, this method can only handle the default (floating point) evaluation mode.
 	 */
@@ -96,7 +96,7 @@ public interface ModelInfo
 
 	/**
 	 * Get access to the values for all constants in the model, including the 
-	 * undefined constants set previously via the method {@link #setSomeUndefinedConstants()}.
+	 * undefined constants set previously via the method {@link #setSomeUndefinedConstants(EvaluateContext)}.
 	 * Until they are set for the first time, this method may return null.
 	 */
 	public default Values getConstantValues()
@@ -108,7 +108,7 @@ public interface ModelInfo
 	/**
 	 * Get access to an EvaluateContext object defining the values
 	 * for all constants in the model, including the undefined constants
-	 * set previously via the method {@link #setSomeUndefinedConstants()}.
+	 * set previously via the method {@link #setSomeUndefinedConstants(EvaluateContext)}.
 	 * This also specified the evaluation mode being used.
 	 */
 	public default EvaluateContext getEvaluateContext()
