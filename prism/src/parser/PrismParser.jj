@@ -1283,7 +1283,7 @@ Expression ExpressionImplies(boolean prop, boolean pathprop) :
 }
 {
 	{ begin = getToken(1); } ret = ExpressionIff(prop, pathprop)
-	( <IMPLIES> expr = ExpressionIff(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, ret, expr); ret.setPosition(begin, getToken(0)); } )*
+	( <IMPLIES> expr = ExpressionImplies(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.IMPLIES, ret, expr); ret.setPosition(begin, getToken(0)); } )?
 	{ return ret; }
 }
 
