@@ -326,6 +326,37 @@ public class ExpressionBinaryOp extends Expression
 		return operand1.returnsSingleValue() && operand2.returnsSingleValue();
 	}
 
+	@Override
+	public Precedence getPrecedence()
+	{
+		switch (op) {
+			case IMPLIES:
+				return Precedence.IMPLIES;
+			case IFF:
+				return Precedence.IFF;
+			case OR:
+				return Precedence.OR;
+			case AND:
+				return Precedence.AND;
+			case EQ:
+			case NE:
+				return Precedence.EQUALITY;
+			case GT:
+			case GE:
+			case LT:
+			case LE:
+				return Precedence.RELOP;
+			case PLUS:
+			case MINUS:
+				return Precedence.PLUS_MINUS;
+			case TIMES:
+			case DIVIDE:
+				return Precedence.TIMES_DIVIDE;
+			default:
+				return null;
+		}
+	}
+
 	// Methods required for ASTElement:
 
 	@Override
@@ -354,7 +385,25 @@ public class ExpressionBinaryOp extends Expression
 	@Override
 	public String toString()
 	{
-		return operand1 + opSymbols[op] + operand2;
+		StringBuilder builder = new StringBuilder();
+		if (op == IMPLIES || op == EQ || op == NE) {
+			// => is a (right-associative) non-commutative binary operator
+			// Don't treat = and != as associative since types may vary
+			builder.append(Expression.toStringPrecLeq(operand1, this));
+		} else {
+			// Others are commutative (or left-associative)
+			builder.append(Expression.toStringPrecLt(operand1, this));
+		}
+		builder.append(opSymbols[op]);
+		if (op == MINUS || op == DIVIDE || op == EQ || op == NE) {
+			// - and / are (left-associative) non-commutative binary operators
+			// Don't treat = and != as associative since types may vary
+			builder.append(Expression.toStringPrecLeq(operand2, this));
+		} else {
+			// Others are commutative (or right-associative)
+			builder.append(Expression.toStringPrecLt(operand2, this));
+		}
+		return builder.toString();
 	}
 
 	@Override

@@ -170,6 +170,21 @@ public class ExpressionUnaryOp extends Expression
 		return operand.returnsSingleValue();
 	}
 
+	@Override
+	public Precedence getPrecedence()
+	{
+		switch (op) {
+			case NOT:
+				return Precedence.NOT;
+			case MINUS:
+				return Precedence.UNARY_MINUS;
+			case PARENTH:
+				return Precedence.BASIC;
+			default:
+				return null;
+		}
+	}
+
 	// Methods required for ASTElement:
 
 	@Override
@@ -197,10 +212,17 @@ public class ExpressionUnaryOp extends Expression
 	@Override
 	public String toString()
 	{
-		if (op == PARENTH)
-			return "(" + operand + ")";
-		else
-			return opSymbols[op] + operand;
+		StringBuilder builder = new StringBuilder();
+		if (op == PARENTH) {
+			builder.append("(");
+		} else {
+			builder.append(opSymbols[op]);
+		}
+		builder.append(Expression.toStringPrecLt(operand, this));
+		if (op == PARENTH) {
+			builder.append(")");
+		}
+		return builder.toString();
 	}
 
 	@Override

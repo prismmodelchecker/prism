@@ -121,6 +121,12 @@ public class ExpressionITE extends Expression
 		return operand1.returnsSingleValue() && operand2.returnsSingleValue() && operand3.returnsSingleValue();
 	}
 
+	@Override
+	public Precedence getPrecedence()
+	{
+		return Precedence.ITE;
+	}
+
 	// Methods required for ASTElement:
 
 	@Override
@@ -150,7 +156,14 @@ public class ExpressionITE extends Expression
 	@Override
 	public String toString()
 	{
-		return operand1 + " ? " + operand2 + " : " + operand3;
+		StringBuilder builder = new StringBuilder();
+		// ? is a (right-associative) non-commutative operator
+		builder.append(Expression.toStringPrecLeq(operand1, this));
+		builder.append("?");
+		builder.append(Expression.toStringPrecLeq(operand2, this));
+		builder.append(":");
+		builder.append(Expression.toStringPrecLt(operand3, this));
+		return builder.toString();
 	}
 
 	@Override
