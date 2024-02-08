@@ -55,9 +55,11 @@ public class DTMCEmbeddedSimple<Value> extends DTMCExplicit<Value>
 	 */
 	public DTMCEmbeddedSimple(CTMCSimple<Value> ctmc)
 	{
+		// Initialise/copy basic model info
+		initialise(ctmc.getNumStates());
+		copyFrom(ctmc);
+		// Store CTMC info
 		this.ctmc = ctmc;
-		this.numStates = ctmc.getNumStates();
-		// TODO: should we copy other stuff across too?
 		exitRates = new ArrayList<>(numStates);
 		numExtraTransitions = 0;
 		for (int i = 0; i < numStates; i++) {
