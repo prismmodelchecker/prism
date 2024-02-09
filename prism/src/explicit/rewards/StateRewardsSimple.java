@@ -140,11 +140,7 @@ public class StateRewardsSimple<Value> extends StateRewards<Value>
 	@Override
 	public Value getStateReward(int s)
 	{
-		try {
-			return stateRewards.get(s);
-		} catch (IndexOutOfBoundsException e) {
-			return getEvaluator().zero();
-		}
+		return (s < stateRewards.size()) ? stateRewards.get(s) : getEvaluator().zero();
 	}
 
 	// Converters
