@@ -9,10 +9,10 @@ const int c = 0;
 
 // Baseline: should generate error
 
-// RESULT: Error exponent
+// RESULT: Error:exponent
 pow(2,c-1);
 
-// RESULT: Error exponent
+// RESULT: Error:exponent
 filter(forall, pow(2,s-1)>0);
 
 // -------------------------
