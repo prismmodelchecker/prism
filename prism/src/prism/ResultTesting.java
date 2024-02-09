@@ -145,7 +145,7 @@ public class ResultTesting
 					if (word.length() == 0) {
 						throw new PrismException("Invalid RESULT specification: no expected words immediately following 'Error:'");
 					}
-					if (!errMsg.toLowerCase().contains(word)) {
+					if (!errMsg.toLowerCase().contains(word.toLowerCase())) {
 						throw new PrismException("Error message should contain \"" + word + "\"");
 					}
 				}
