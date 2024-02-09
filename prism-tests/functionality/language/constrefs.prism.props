@@ -1,0 +1,5 @@
+const int M = N;
+const int x;
+
+// RESULT: 1/6
+P=? [ F s=7+M & d=x ]
