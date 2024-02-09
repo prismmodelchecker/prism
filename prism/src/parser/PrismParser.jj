@@ -526,6 +526,7 @@ TOKEN :
 |	< MINUS:		"-" >
 |	< TIMES:		"*" >
 |	< DIVIDE:		"/" >
+|	< POWER:		"^" >
 |	< PRIME:		"'" >
 |	< RENAME:		"<-" >
 |	< QMARK:		"?" >
@@ -1403,11 +1404,27 @@ Expression ExpressionTimesDivide(boolean prop, boolean pathprop) :
 	Token begin = null;
 }
 {
-	{ begin = getToken(1); } ret = ExpressionUnaryMinus(prop, pathprop)
+	{ begin = getToken(1); } ret = ExpressionPower(prop, pathprop)
 	(
 		( <TIMES> { op = ExpressionBinaryOp.TIMES; } | <DIVIDE> { op = ExpressionBinaryOp.DIVIDE; } )
-		expr = ExpressionUnaryMinus(prop, pathprop) { ret = new ExpressionBinaryOp(op, ret, expr); ret.setPosition(begin, getToken(0)); }
+		expr = ExpressionPower(prop, pathprop) { ret = new ExpressionBinaryOp(op, ret, expr); ret.setPosition(begin, getToken(0)); }
 	)*
+	{ return ret; }
+}
+
+// Expression: power (^)
+
+Expression ExpressionPower(boolean prop, boolean pathprop) :
+{
+	Expression ret, expr;
+	int op;
+	Token begin = null;
+}
+{
+	{ begin = getToken(1); } ret = ExpressionUnaryMinus(prop, pathprop)
+	(
+		<POWER> expr = ExpressionPower(prop, pathprop) { ret = new ExpressionBinaryOp(ExpressionBinaryOp.POW, ret, expr); ret.setPosition(begin, getToken(0)); }
+	)?
 	{ return ret; }
 }
 

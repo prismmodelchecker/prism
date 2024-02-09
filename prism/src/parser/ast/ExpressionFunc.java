@@ -30,6 +30,7 @@ import common.SafeCast;
 import param.BigRational;
 import parser.EvaluateContext;
 import parser.EvaluateContext.EvalMode;
+import parser.type.Type;
 import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.visitor.ASTVisitor;
@@ -497,30 +498,45 @@ public class ExpressionFunc extends Expression
 	 */
 	private Object applyPow(Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
 	{
+		try {
+			// The apply code is in a separate static method for re-use elsewhere
+			return applyPow(getType(), eval1, eval2, evalMode);
+		} catch (PrismLangException e) {
+			throw new PrismLangException(e.getMessage(), this);
+		}
+	}
+
+	/**
+	 * Apply a (pow) function instance of the specified type to the arguments provided
+	 * The arguments are assumed to be the correct kinds of Objects for their type
+	 * (as returned by {@link Type#castValueTo(Object, EvalMode)}).
+	 */
+	public static Object applyPow(Type type, Object eval1, Object eval2, EvalMode evalMode) throws PrismLangException
+	{
 		// All arguments ints
-		if (getType() instanceof TypeInt) {
+		if (type instanceof TypeInt) {
 			switch (evalMode) {
 			case FP:
 				int iBase = (int) eval1;
 				int iExp = (int) eval2;
 				// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 				if (iExp < 0)
-					throw new PrismLangException("Negative exponent not allowed for integer power", this);
+					throw new PrismLangException("Negative exponent not allowed for integer power");
 				try {
 					return SafeCast.toIntExact(Math.pow(iBase, iExp));
 				} catch (ArithmeticException e) {
-					throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage(), this);
+					throw new PrismLangException("Overflow evaluating integer power: " + e.getMessage());
 				}
 			case EXACT:
 				BigInteger biBase = (BigInteger) eval1;
 				BigInteger biExp = (BigInteger) eval2;
 				// Not allowed to do e.g. pow(2,-2) because of typing (should be pow(2.0,-2) instead)
 				if (biExp.compareTo(BigInteger.ZERO) < 0)
-					throw new PrismLangException("Negative exponent not allowed for integer power", this);
+					throw new PrismLangException("Negative exponent not allowed for integer power");
 				try {
 					return biBase.pow(biExp.intValue());
 				} catch (ArithmeticException e) {
-					throw new PrismLangException("Cannot compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
+					throw new PrismLangException("Cannot compute pow exactly, as there is a problem with the exponent: " + e.getMessage());
 				}
 			default:
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);
@@ -537,7 +553,7 @@ public class ExpressionFunc extends Expression
 				if (((BigRational) exp).isInteger()) {
 					return ((BigRational) base).pow(((BigRational) exp).toInt());
 				} else {
-					throw new PrismLangException("Cannot compute fractional powers exactly", this);
+					throw new PrismLangException("Cannot compute fractional powers exactly");
 				}
 			default:
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);

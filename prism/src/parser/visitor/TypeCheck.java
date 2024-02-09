@@ -296,6 +296,7 @@ public class TypeCheck extends ASTTraverse
 		case ExpressionBinaryOp.PLUS:
 		case ExpressionBinaryOp.MINUS:
 		case ExpressionBinaryOp.TIMES:
+		case ExpressionBinaryOp.POW:
 			if (!(t1 instanceof TypeInt || t1 instanceof TypeDouble)) {
 				throw new PrismLangException("Type error: " + e.getOperatorSymbol() + " can only be applied to ints or doubles", e.getOperand1());
 			}

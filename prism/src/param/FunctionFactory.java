@@ -231,6 +231,23 @@ public abstract class FunctionFactory
 			}
 		} else if (expr instanceof ExpressionBinaryOp) {
 			ExpressionBinaryOp binExpr = ((ExpressionBinaryOp) expr);
+			// power is handled differently due to some constraints
+			if (binExpr.getOperator() ==  ExpressionBinaryOp.POW) {
+				// power is supported if the exponent doesn't refer to
+				// parametric constants and can be exactly evaluated
+				try {
+					// non-parametric constants and state variable values have
+					// been already partially expanded, so if this evaluation
+					// succeeds there are no parametric constants involved
+					int exp = binExpr.getOperand2().evaluateInt();
+					Function f1 = expr2function(binExpr.getOperand1());
+					return f1.pow(exp);
+				} catch (PrismException e) {
+					// Most likely, a parametric constant occurred.
+					throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
+				}
+			}
+			// other arithmetic binary operators:
 			Function f1 = expr2function(binExpr.getOperand1());
 			Function f2 = expr2function(binExpr.getOperand2());
 			switch (binExpr.getOperator()) {

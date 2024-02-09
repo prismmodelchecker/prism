@@ -102,6 +102,11 @@ final class CachedFunction extends Function {
 	}
 
 	@Override
+	public Function pow(int exp) {
+		return factory.pow(this, exp);
+	}
+
+	@Override
 	public Function star() {
 		return factory.star(this);
 	}

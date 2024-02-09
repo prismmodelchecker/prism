@@ -54,12 +54,13 @@ public class ExpressionBinaryOp extends Expression
 	public static final int MINUS = 12;
 	public static final int TIMES = 13;
 	public static final int DIVIDE = 14;
+	public static final int POW = 15;
 	// Operator symbols
-	public static final String opSymbols[] = { "", "=>", "<=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/" };
+	public static final String opSymbols[] = { "", "=>", "<=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/", "^" };
 	// Operator type testers
 	public static boolean isLogical(int op) { return op==IMPLIES || op==IFF || op==OR || op==AND; }
 	public static boolean isRelOp(int op) { return op==EQ || op==NE || op==GT ||  op==GE || op==LT || op==LE; }
-	public static boolean isArithmetic(int op) { return op==PLUS || op==MINUS || op==TIMES ||  op==DIVIDE; }
+	public static boolean isArithmetic(int op) { return op==PLUS || op==MINUS || op==TIMES || op==DIVIDE || op== POW; }
 	
 	// Operator
 	protected int op = 0;
@@ -215,6 +216,10 @@ public class ExpressionBinaryOp extends Expression
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
 
+		// Division (reuse code for pow())
+		case POW:
+			return ExpressionFunc.applyPow(getType(), eval1, eval2, evalMode);
+
 		// Other numerical (relations/arithmetic) - mix of doubles/ints
 		default:
 			try {
@@ -352,6 +357,8 @@ public class ExpressionBinaryOp extends Expression
 			case TIMES:
 			case DIVIDE:
 				return Precedence.TIMES_DIVIDE;
+			case POW:
+				return Precedence.POW;
 			default:
 				return null;
 		}

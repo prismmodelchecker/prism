@@ -117,6 +117,11 @@ public class DagFunction extends Function {
 	}
 
 	@Override
+	public Function pow(int exp) {
+		throw new RuntimeException("DagFunction does not support powers");
+	}
+
+	@Override
 	public Function star() {
 		return dagFactory.star(this);
 	}

@@ -1,0 +1,86 @@
+// Some tests of power operator, in each case:
+// * occurring in a constant (so Expression evaluation)
+// * occurring in a constant property (so probably model checking)
+// * occurring in a state-dependent property (so model checking, various engines)
+
+// RESULT: 1
+"one": s+1;
+
+// RESULT: 1
+"one_s": round(1+P=?[F<=1 d=6]);
+
+// RESULT: 1
+"one_m": round(P=?[F true]);
+
+// -------------------------
+
+// RESULT: 8
+cPow1; const int cPow1 = 2^3;
+
+// RESULT: 8
+2^3;
+
+// RESULT: 8
+(2*"one")^(d+3);
+
+// RESULT: 8
+(2*"one_s")^(d+3);
+
+// RESULT: 8
+(2*"one_m")^(d+3);
+
+// -------------------------
+
+// RESULT: 1/4
+cPow2; const double cPow2 = 0.5^2;
+
+// RESULT: 1/4
+0.5^2;
+
+// RESULT: 1/4
+(0.5*"one")^(d+2);
+
+// RESULT: 1/4
+(0.5*"one_s")^(d+2);
+
+// RESULT: 1/4
+(0.5*"one_m")^(d+2);
+
+// -------------------------
+
+// RESULT: 1/2
+cPow3; const double cPow3 = 2^-1.0;
+
+// RESULT: 1/2
+2^-1.0;
+
+// RESULT: 1/2
+(2*"one")^(d-1.0);
+
+// RESULT: 1/2
+(2*"one_s")^(d-1.0);
+
+// RESULT: 1/2
+(2*"one_m")^(d-1.0);
+
+// -------------------------
+
+// Don't test errors for now - not done properly for symbolic/param
+
+// RESULT: Error
+//cPow4; const double cPow4 = 2^-1;
+//cPow4; const double cPow4 = pow(2,-1);
+
+// RESULT: Error:negative
+//2^-1;
+
+// RESULT: Error:negative
+//(2*"one")^(d-1);
+
+// RESULT: Error:negative
+//(2*"one_s")^(d-1);
+
+// RESULT: Error:negative
+//(2*"one_m")^(d-1);
+
+// -------------------------

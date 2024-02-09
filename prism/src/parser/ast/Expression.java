@@ -137,6 +137,7 @@ public abstract class Expression extends ASTElement
 		RELOP,
 		PLUS_MINUS,
 		TIMES_DIVIDE,
+		POW,
 		UNARY_MINUS,
 		BASIC
 	}
@@ -818,6 +819,11 @@ public abstract class Expression extends ASTElement
 	public static ExpressionBinaryOp Divide(Expression expr1, Expression expr2)
 	{
 		return new ExpressionBinaryOp(ExpressionBinaryOp.DIVIDE, expr1, expr2);
+	}
+
+	public static ExpressionBinaryOp Pow(Expression expr1, Expression expr2)
+	{
+		return new ExpressionBinaryOp(ExpressionBinaryOp.POW, expr1, expr2);
 	}
 
 	public static ExpressionUnaryOp Parenth(Expression expr)

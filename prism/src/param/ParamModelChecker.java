@@ -327,6 +327,9 @@ final public class ParamModelChecker extends PrismComponent
 		case ExpressionBinaryOp.DIVIDE:
 			regionOp = Region.DIVIDE;
 			break;
+		case ExpressionBinaryOp.POW:
+			regionOp = Region.POW;
+			break;
 		default:
 			throw new PrismNotSupportedException("operator \"" + ExpressionBinaryOp.opSymbols[parserOp]
 					+ "\" not currently supported for " + mode + " analyses");

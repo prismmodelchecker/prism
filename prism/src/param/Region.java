@@ -59,7 +59,8 @@ abstract class Region {
 	static final int PARENTH = 20;
 	static final int FORALL = 21;
 	static final int EXISTS = 22;
-	static final String opSymbols[] = { "", "=>", "<=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/", "1st", "avg", "-", "!", "()", "forall", "exists"};
+	static final int POW = 23;
+	static final String opSymbols[] = { "", "=>", "<=>", "|", "&", "=", "!=", ">", ">=", "<", "<=", "+", "-", "*", "/", "1st", "avg", "-", "!", "()", "forall", "exists", "^" };
 
 	/** region factory to which this region belongs */
 	protected RegionFactory factory;

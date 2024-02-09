@@ -243,7 +243,13 @@ final class CachedFunctionFactory extends FunctionFactory {
 		Function function2 = getFunctionFromCache(cached2);
 		return makeUnique(function1.divide(function2));
 	}
-	
+
+	Function pow(Function cached1, int exp)
+	{
+		Function function1 = getFunctionFromCache(cached1);
+		return makeUnique(function1.pow(exp));
+	}
+
 	Function star(Function cached) {
 		Function result;
 		if (useOpCache) {

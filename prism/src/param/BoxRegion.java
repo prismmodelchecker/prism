@@ -276,6 +276,9 @@ final class BoxRegion extends Region {
 				} else if (op == Region.PLUS || op == Region.MINUS || op == Region.TIMES || op == Region.DIVIDE) {
 					Function stateVal = arithOp(op, values1.getStateValueAsFunction(state), values2.getStateValueAsFunction(state));
 					values.setStateValue(state, stateVal);
+				} else if (op == Region.POW) {
+					Function stateVal = powOp(values1.getStateValueAsFunction(state), values2.getStateValueAsFunction(state));
+					values.setStateValue(state, stateVal);
 				} else {
 					throw new UnsupportedOperationException("operator not yet implemented for parametric analyses");
 				}
@@ -384,6 +387,26 @@ final class BoxRegion extends Region {
 			throw new IllegalArgumentException("unsupported arithmetic operator number " + op);
 		}
 		return result;
+	}
+
+	/**
+	 * Performs a power operation on two rational functions.
+	 *
+	 * @param op1 first operand
+	 * @param op2  second operand
+	 * @return value of operation
+	 */
+	private Function powOp(Function op1, Function op2)
+	{
+		if (!op2.isConstant()) {
+			throw new IllegalArgumentException("unsupported pow operation");
+		}
+		BigRational exp = op2.asBigRational();
+		if (!exp.isInteger()) {
+			throw new IllegalArgumentException("unsupported pow operation");
+		}
+		int expInt = exp.getNum().intValue();
+		return op1.pow(expInt);
 	}
 
 	/**
