@@ -218,7 +218,7 @@ public abstract class FunctionFactory
 		if (expr instanceof ExpressionLiteral) {
 			String exprString = ((ExpressionLiteral) expr).getString();
 			if (exprString == null || exprString.equals("")) {
-				throw new PrismLangException("Cannot convert from literal for which no string is set", expr);
+				throw new PrismLangException("Cannot create rational function from literal for which no string is set", expr);
 			}
 			return fromBigRational(new BigRational(exprString));
 		} else if (expr instanceof ExpressionConstant) {
@@ -243,7 +243,7 @@ public abstract class FunctionFactory
 			case ExpressionBinaryOp.DIVIDE:
 				return f1.divide(f2);
 			default:
-				throw new PrismLangException("Cannot create a function for expression " + expr, expr);
+				throw new PrismLangException("Cannot create rational function for this operator: " + expr, expr);
 			}
 		} else if (expr instanceof ExpressionUnaryOp) {
 			ExpressionUnaryOp unExpr = ((ExpressionUnaryOp) expr);
@@ -254,7 +254,7 @@ public abstract class FunctionFactory
 			case ExpressionUnaryOp.PARENTH:
 				return f;
 			default:
-				throw new PrismLangException("Cannot create a function for expression " + expr, expr);
+				throw new PrismLangException("Cannot create rational function for this operator: " + expr, expr);
 			}
 		} else if (expr instanceof ExpressionITE){
 			ExpressionITE iteExpr = (ExpressionITE) expr;
@@ -276,7 +276,7 @@ public abstract class FunctionFactory
 					// Do nothing here, exception is thrown below
 				}
 			}
-			throw new PrismLangException("Cannot create a function for expression " + expr, expr);
+			throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
 		} else if (expr instanceof ExpressionFunc) {
 			// functions (min, max, floor, ...) are supported if
 			// they don't refer to parametric constants in their arguments
@@ -289,10 +289,10 @@ public abstract class FunctionFactory
 				return fromBigRational(value);
 			} catch (PrismException e) {
 				// Most likely, a parametric constant occurred.
-				throw new PrismLangException("Cannot create a function for expression " + expr, expr);
+				throw new PrismLangException("Cannot create rational function: " + e.getMessage(), expr);
 			}
 		} else {
-			throw new PrismLangException("Cannot create a function for expression " + expr, expr);
+			throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
 		}
 	}
 }

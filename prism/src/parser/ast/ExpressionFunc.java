@@ -520,7 +520,7 @@ public class ExpressionFunc extends Expression
 				try {
 					return biBase.pow(biExp.intValue());
 				} catch (ArithmeticException e) {
-					throw new PrismLangException("Can not compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
+					throw new PrismLangException("Cannot compute pow exactly, as there is a problem with the exponent: " + e.getMessage(), this);
 				}
 			default:
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);
@@ -534,7 +534,11 @@ public class ExpressionFunc extends Expression
 			case FP:
 				return Math.pow((double) base, (double) exp);
 			case EXACT:
-				return ((BigRational) base).pow(((BigRational) exp).toInt());
+				if (((BigRational) exp).isInteger()) {
+					return ((BigRational) base).pow(((BigRational) exp).toInt());
+				} else {
+					throw new PrismLangException("Cannot compute fractional powers exactly", this);
+				}
 			default:
 				throw new PrismLangException("Unknown evaluation mode " + evalMode);
 			}
@@ -588,7 +592,7 @@ public class ExpressionFunc extends Expression
 			// Type will be double; so evaluate both operands and cast to doubles
 			return PrismUtils.log((double) x, (double) b);
 		case EXACT:
-			throw new PrismLangException("Currently, can not compute log exactly", this);
+			throw new PrismLangException("Currently, cannot compute log exactly", this);
 		default:
 			throw new PrismLangException("Unknown evaluation mode " + evalMode);
 		}
