@@ -1,0 +1,3 @@
+-param p,q,r
+-const p=0.5,q=0.2,r=0.05 -exact
+-const p=0.5,q=0.2,r=0.05 -ex
