@@ -136,6 +136,10 @@ public class ResultTesting
 	 */
 	private static boolean checkExceptionAgainstExpectedResultString(String strExpected, Exception result) throws PrismException
 	{
+		if (result instanceof PrismNotSupportedException) {
+			// not supported -> handle in caller
+			throw (PrismNotSupportedException)result;
+		}
 		String errMsg = result.getMessage();
 		if (strExpected.startsWith("Error")) {
 			// handle expected errors
@@ -151,10 +155,6 @@ public class ResultTesting
 				}
 			}
 			return true;
-		}
-		if (result instanceof PrismNotSupportedException) {
-			// not supported -> handle in caller
-			throw (PrismNotSupportedException)result;
 		}
 		throw new PrismException("Unexpected error: " + errMsg);
 	}
