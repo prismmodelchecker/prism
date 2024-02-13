@@ -562,6 +562,16 @@ public abstract class Expression extends ASTElement
 	}
 
 	/**
+	 * Evaluate this expression as a BigRational.
+	 * This assumes that the type of the expression is (or can be cast to) double..
+	 * Basically casts the result to a BigRational, checking for any type errors.
+	 */
+	public BigRational evaluateBigRational(EvaluateContext ec) throws PrismLangException
+	{
+		return (BigRational) TypeDouble.getInstance().castValueTo(evaluate(ec), EvalMode.EXACT);
+	}
+
+	/**
 	 * Evaluate this expression as a boolean.
 	 * This assumes that the type of the expression is bool.
 	 * Basically casts the result to a boolean, checking for any type errors.

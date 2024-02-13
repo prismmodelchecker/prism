@@ -61,6 +61,7 @@ import explicit.rewards.ConstructRewards;
 import explicit.rewards.Rewards;
 import param.Lumper.BisimType;
 import param.StateEliminator.EliminationOrder;
+import parser.EvaluateContext;
 import parser.State;
 import parser.Values;
 import parser.ast.Expression;
@@ -915,7 +916,7 @@ final public class ParamModelChecker extends PrismComponent
 		relOp = expr.getRelOp();
 		pb = expr.getProb();
 		if (pb != null) {
-			p = pb.evaluateExact(constantValues);
+			p = pb.evaluateBigRational(EvaluateContext.create(constantValues, EvaluateContext.EvalMode.EXACT));
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}
@@ -1026,7 +1027,7 @@ final public class ParamModelChecker extends PrismComponent
 		RelOp relOp = expr.getRelOp();
 		rb = expr.getReward();
 		if (rb != null) {
-			r = rb.evaluateExact(constantValues);
+			r = rb.evaluateBigRational(EvaluateContext.create(constantValues, EvaluateContext.EvalMode.EXACT));
 			if (r.compareTo(0) == -1)
 				throw new PrismException("Invalid reward bound " + r + " in R[] formula");
 		}
@@ -1161,7 +1162,7 @@ final public class ParamModelChecker extends PrismComponent
 		relOp = expr.getRelOp();
 		pb = expr.getProb();
 		if (pb != null) {
-			p = pb.evaluateExact(constantValues);
+			p = pb.evaluateBigRational(EvaluateContext.create(constantValues, EvaluateContext.EvalMode.EXACT));
 			if (p.compareTo(0) == -1 || p.compareTo(1) == 1)
 				throw new PrismException("Invalid probability bound " + p + " in P operator");
 		}

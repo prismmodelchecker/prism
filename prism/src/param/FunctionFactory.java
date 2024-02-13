@@ -29,6 +29,7 @@ package param;
 
 import java.util.HashMap;
 
+import parser.EvaluateContext;
 import parser.Values;
 import parser.ast.Expression;
 import parser.ast.ExpressionBinaryOp;
@@ -52,10 +53,10 @@ public abstract class FunctionFactory
 	protected BigRational[] lowerBounds;
 	/** upper bounds of parameters */
 	protected BigRational[] upperBounds;
-	/** maps variable name to index in {@code parameterNames},
-	 * {@code lowerBounds} and {@code upperBounds}
-	 */
+	/** maps variable name to index in {@code parameterNames}, @code lowerBounds} and {@code upperBounds} */
 	protected HashMap<String, Integer> varnameToInt;
+	/** for expression evaluation (no constants need, just a convenient way to force exact evaluation */
+	protected EvaluateContext ec = EvaluateContext.create(EvaluateContext.EvalMode.EXACT);
 
 	/**
 	 * Create a FunctionFactory based on PRISM settings and parameter details.
@@ -269,7 +270,7 @@ public abstract class FunctionFactory
 					// non-parametric constants and state variable values have
 					// been already partially expanded, so if this evaluation
 					// succeeds there are no parametric constants involved
-					int exp = binExpr.getOperand2().evaluateInt();
+					int exp = binExpr.getOperand2().evaluateInt(ec);
 					Function f1 = expr2function(binExpr.getOperand1());
 					return f1.pow(exp);
 				} catch (PrismException e) {
@@ -312,7 +313,7 @@ public abstract class FunctionFactory
 					// non-parametric constants and state variable values have
 					// been already partially expanded, so if this evaluation
 					// succeeds there are no parametric constants involved
-					boolean ifValue = iteExpr.getOperand1().evaluateExact().toBoolean();
+					boolean ifValue = iteExpr.getOperand1().evaluateBoolean(ec);
 					if (ifValue) {
 						return expr2function(iteExpr.getOperand2());
 					} else {
@@ -332,7 +333,7 @@ public abstract class FunctionFactory
 				// non-parametric constants and state variable values have
 				// been already partially expanded, so if this evaluation
 				// succeeds there are no parametric constants involved
-				BigRational value = expr.evaluateExact();
+				BigRational value = expr.evaluateBigRational(ec);
 				return fromBigRational(value);
 			} catch (PrismException e) {
 				// Most likely, a parametric constant occurred.
