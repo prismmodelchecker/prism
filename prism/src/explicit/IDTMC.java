@@ -234,6 +234,11 @@ public interface IDTMC<Value> extends DTMC<Interval<Value>>
 	 */
 	public static double mvMultUncSingle(DoubleIntervalDistribution did, double vect[], MinMax minMax)
 	{
+		// Trivial case: singleton interval (which must be [1.0,1.0])
+		if (did.size == 1) {
+			return vect[did.index[0]];
+		}
+
 		// Avoid enumeration of all extreme distributions using optimisation from:
 		// Three-valued abstraction for probabilistic systems,
 		// Joost-Pieter Katoen, Daniel Klink, Martin Leucker and Verena Wolf

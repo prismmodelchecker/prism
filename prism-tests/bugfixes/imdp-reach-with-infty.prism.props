@@ -1,0 +1,5 @@
+// RESULT: 1
+Rminmin=?[F "target"];
+
+// RESULT: 1
+Rminmax=?[F "target"];
