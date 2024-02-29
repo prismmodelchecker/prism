@@ -9,4 +9,4 @@ PRISM_DIR=/home/luser/prism
 PRISM_MAINCLASS=userinterface.GUIPrism
 PRISM_HEADLESS=false
 export PRISM_MAINCLASS PRISM_HEADLESS
-$PRISM_DIR/bin/prism "$@"
+"$PRISM_DIR"/bin/prism "$@"
