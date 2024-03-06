@@ -236,11 +236,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	public enum ModelBuildType {
-		SYMBOLIC, EXPLICIT, EXACT
+		SYMBOLIC, EXPLICIT, EXACT, PARAM
 	}
 	
 	public enum PrismEngine {
-		SYMBOLIC, EXPLICIT, EXACT
+		SYMBOLIC, EXPLICIT, EXACT, PARAM
 	}
 
 	/** Class to store details about a loaded model */
@@ -304,6 +304,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	
 	// Info for explicit files load
 	private ExplicitModelImporter modelImporter;
+
+	// Info about parametric mode
+	private boolean param = false;
+	private String[] paramNames;
+	private String[] paramLowerBounds;
+	private String[] paramUpperBounds;
 
 	// Has the CUDD library been initialised yet?
 	private boolean cuddStarted = false;
@@ -537,6 +543,19 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	// Set methods for miscellaneous options
+
+	public void setParametric(String[] paramNames, String[] paramLowerBounds, String[] paramUpperBounds)
+	{
+		param = true;
+		this.paramNames = paramNames;
+		this.paramLowerBounds = paramLowerBounds;
+		this.paramUpperBounds = paramUpperBounds;
+	}
+
+	public void setParametricOff()
+	{
+		param = false;
+	}
 
 	public void setExportDigital(boolean b) throws PrismException
 	{
@@ -1869,7 +1888,9 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	 */
 	public PrismEngine getCurrentEngine()
 	{
-		if (settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
+		if (param) {
+			return PrismEngine.PARAM;
+		} else if (settings.getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
 			return PrismEngine.EXACT;
 		} else if (getEngine() == Prism.EXPLICIT) {
 			return PrismEngine.EXPLICIT;
@@ -1905,7 +1926,10 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				if (getPRISMModel() != null) {
 					// Create a model generator via ModulesFileModelGenerator
 					ModulesFileModelGenerator<?> mfmg = null;
-					if (getCurrentEngine() == PrismEngine.EXACT) {
+					if (getCurrentEngine() == PrismEngine.PARAM) {
+						// Parametric model checking uses functions
+						mfmg = ModulesFileModelGenerator.createForRationalFunctions(getPRISMModel(), paramNames, paramLowerBounds, paramUpperBounds, this);
+					} else if (getCurrentEngine() == PrismEngine.EXACT) {
 						// Exact model checking uses rationals
 						mfmg = ModulesFileModelGenerator.createForRationalFunctions(getPRISMModel(), this);
 					} else {
@@ -2017,6 +2041,8 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 			return ModelBuildType.SYMBOLIC;
 		case EXACT:
 			return ModelBuildType.EXACT;
+		case PARAM:
+			return ModelBuildType.PARAM;
 		default:
 			return null;
 		}
@@ -2152,6 +2178,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				break;
 			case EXPLICIT:
 			case EXACT:
+			case PARAM:
 				explicit.Model<?> newModelExpl;
 				switch (getModelSource()) {
 				case PRISM_MODEL:
@@ -4153,6 +4180,7 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 				break;
 			case EXPLICIT:
 			case EXACT:
+			case PARAM:
 				if (!(newModel instanceof explicit.Model)) {
 					throw new PrismException("Attempt to store model of incorrect type");
 				}
