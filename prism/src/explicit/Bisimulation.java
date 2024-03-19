@@ -97,7 +97,7 @@ public class Bisimulation<Value> extends PrismComponent
 		DTMCSimple<Value> dtmcNew = new DTMCSimple<>(numBlocks);
 		for (int i = 0; i < numBlocks; i++) {
 			for (Map.Entry<Integer, Value> e : mdp.getChoice(i, 0)) {
-				dtmcNew.setProbability((Integer) mdp.getAction(i, 0), e.getKey(), e.getValue());
+				dtmcNew.setProbability(i, e.getKey(), e.getValue());
 			}
 		}
 		attachStatesAndLabels(dtmc, dtmcNew, propNames, propBSs);
@@ -128,7 +128,7 @@ public class Bisimulation<Value> extends PrismComponent
 		CTMCSimple<Value> ctmcNew = new CTMCSimple<>(numBlocks);
 		for (int i = 0; i < numBlocks; i++) {
 			for (Map.Entry<Integer, Value> e : mdp.getChoice(i, 0)) {
-				ctmcNew.setProbability((Integer) mdp.getAction(i, 0), e.getKey(), e.getValue());
+				ctmcNew.setProbability(i, e.getKey(), e.getValue());
 			}
 		}
 		attachStatesAndLabels(ctmc, ctmcNew, propNames, propBSs);
@@ -220,8 +220,12 @@ public class Bisimulation<Value> extends PrismComponent
 		//try { mdp.exportToDotFile("mdp.dot"); } catch (PrismException e) {}
 		// Update info
 		boolean changed = numBlocks != numBlocksNew;
-		partition = partitionNew;
-		numBlocks = numBlocksNew;
+		if (changed) {
+			// Note, once converged, we keep the partition from the previous iter
+			// because the transition info in the MDP is in terms of this
+			partition = partitionNew;
+			numBlocks = numBlocksNew;
+		}
 
 		return changed;
 	}
