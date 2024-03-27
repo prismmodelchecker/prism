@@ -27,8 +27,6 @@
 
 package param;
 
-import java.util.HashMap;
-
 import parser.EvaluateContext;
 import parser.Values;
 import parser.ast.Expression;
@@ -38,9 +36,13 @@ import parser.ast.ExpressionFunc;
 import parser.ast.ExpressionITE;
 import parser.ast.ExpressionLiteral;
 import parser.ast.ExpressionUnaryOp;
+import parser.type.TypeInt;
+import parser.visitor.ASTTraverse;
 import prism.PrismException;
 import prism.PrismLangException;
 import prism.PrismSettings;
+
+import java.util.HashMap;
 
 /**
  * Generates new functions, stores valid ranges of parameters, etc.
@@ -264,17 +266,12 @@ public abstract class FunctionFactory
 			ExpressionBinaryOp binExpr = ((ExpressionBinaryOp) expr);
 			// power is handled differently due to some constraints
 			if (binExpr.getOperator() ==  ExpressionBinaryOp.POW) {
-				// power is supported if the exponent doesn't refer to
-				// parametric constants and can be exactly evaluated
-				try {
-					// non-parametric constants and state variable values have
-					// been already partially expanded, so if this evaluation
-					// succeeds there are no parametric constants involved
+				// power is supported if the exponent is an integer and doesn't refer parametric constants
+				if (!containsParameter(binExpr.getOperand2(), constantValues) && binExpr.getOperand2().getType() instanceof TypeInt) {
 					int exp = binExpr.getOperand2().evaluateInt(ec);
 					Function f1 = expr2function(binExpr.getOperand1());
 					return f1.pow(exp);
-				} catch (PrismException e) {
-					// Most likely, a parametric constant occurred.
+				} else {
 					throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
 				}
 			}
@@ -308,39 +305,52 @@ public abstract class FunctionFactory
 			ExpressionITE iteExpr = (ExpressionITE) expr;
 			// ITE expressions where the if-expression does not
 			// depend on a parametric constant are supported
-			if (iteExpr.getOperand1().isConstant()) {
-				try {
-					// non-parametric constants and state variable values have
-					// been already partially expanded, so if this evaluation
-					// succeeds there are no parametric constants involved
-					boolean ifValue = iteExpr.getOperand1().evaluateBoolean(ec);
-					if (ifValue) {
-						return expr2function(iteExpr.getOperand2());
-					} else {
-						return expr2function(iteExpr.getOperand3());
-					}
-				} catch (PrismException e) {
-					// Most likely, a parametric constant occurred.
-					// Do nothing here, exception is thrown below
+			if (!containsParameter(iteExpr.getOperand1(), constantValues)) {
+				boolean ifValue = iteExpr.getOperand1().evaluateBoolean(ec);
+				if (ifValue) {
+					return expr2function(iteExpr.getOperand2());
+				} else {
+					return expr2function(iteExpr.getOperand3());
 				}
-			}
-			throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
+			} else {
+				throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
+				}
 		} else if (expr instanceof ExpressionFunc) {
 			// functions (min, max, floor, ...) are supported if
 			// they don't refer to parametric constants in their arguments
 			// and can be exactly evaluated
-			try {
-				// non-parametric constants and state variable values have
-				// been already partially expanded, so if this evaluation
-				// succeeds there are no parametric constants involved
+			if (!containsParameter(expr, constantValues)) {
 				BigRational value = expr.evaluateBigRational(ec);
 				return fromBigRational(value);
-			} catch (PrismException e) {
-				// Most likely, a parametric constant occurred.
-				throw new PrismLangException("Cannot create rational function: " + e.getMessage(), expr);
+			} else {
+				throw new PrismLangException("Cannot create rational function for this function: " + expr, expr);
 			}
 		} else {
 			throw new PrismLangException("Cannot create rational function for expression " + expr, expr);
 		}
+	}
+
+	/**
+	 * Returns true if the expression contains a reference to a parameter,
+	 * i.e., an ExpressionConstant not in the provided constantValues list.
+	 */
+	private static boolean containsParameter(Expression expr, Values constantValues)
+	{
+		try {
+			// check for time bounds, don't recurse into P/R/SS subformulas
+			expr.accept(new ASTTraverse()
+			{
+				public void visitPre(ExpressionConstant e) throws PrismLangException
+				{
+					String exprString = ((ExpressionConstant) e).getName();
+					if (constantValues == null || !constantValues.contains(exprString)) {
+						throw new PrismLangException("Found one");
+					}
+				}
+			});
+		} catch (PrismLangException e) {
+			return true;
+		}
+		return false;
 	}
 }
