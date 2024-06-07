@@ -57,7 +57,7 @@ public interface ModelGenerator<Value> extends ModelInfo
 	 * Get an Evaluator for intervals of Value (needed for models with interval probabilities)
 	 * A default implementation provides an evaluator for the (usual) case when Value is Double.
 	 */
-	public default Evaluator<Interval<Value>> getIntervalEvaluator()
+	public default Evaluator<Interval<Value>> getIntervalEvaluator() throws PrismException
 	{
 		return getEvaluator().createIntervalEvaluator();
 		//return (Evaluator<Interval<Value>>) (Evaluator<? extends Interval<?>>) Evaluator.createForDoubleIntervals();

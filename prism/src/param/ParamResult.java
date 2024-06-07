@@ -85,7 +85,7 @@ public class ParamResult
 	@Override
 	public String toString()
 	{
-		return regionValues.toString();
+		return regionValues.toStringInitState();
 	}
 
 	/**

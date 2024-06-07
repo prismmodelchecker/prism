@@ -92,6 +92,7 @@ import parser.type.TypeDouble;
 import parser.type.TypeInt;
 import parser.type.TypePathBool;
 import parser.type.TypePathDouble;
+import prism.Accuracy;
 import prism.Evaluator;
 import prism.ModelType;
 import prism.PrismComponent;
@@ -244,6 +245,9 @@ final public class ParamModelChecker extends PrismComponent
 		// Also evaluate/replace any constants
 		//expr = (Expression) expr.replaceConstants(constantValues);
 
+		// Create storage for result
+		result = new Result();
+
 		// Wrap a filter round the property, if needed
 		// (in order to extract the final result of model checking) 
 		expr = ExpressionFilter.addDefaultFilterIfNeeded(expr, model.getNumInitialStates() == 1);
@@ -260,11 +264,6 @@ final public class ParamModelChecker extends PrismComponent
 			mainLog.printWarning("Computation of Boolean values / parameter regions used heuristic sampling, results are potentially inaccurate.");
 		}
 
-		// Store result
-		result = new Result();
-		vals.clearExceptInit();
-		result.setResult(new ParamResult(mode, vals, functionFactory));
-		
 		/* // Output plot to tex file
 		if (paramLower.length == 2) {
 			try {
@@ -279,7 +278,15 @@ final public class ParamModelChecker extends PrismComponent
 				throw new PrismException("file could not be written");
 			}
 		}*/
-		
+
+		// Print result to log
+		String resultString = "Result";
+		if (!("Result".equals(expr.getResultName())))
+			resultString += " (" + expr.getResultName().toLowerCase() + ")";
+		resultString += ": " + result.getResultAndAccuracy();
+		mainLog.println("\n" + resultString);
+
+		// Return result
 		return result;
 	}
 	
@@ -629,6 +636,20 @@ final public class ParamModelChecker extends PrismComponent
 		default:
 			throw new PrismException("Unrecognised filter type \"" + expr.getOperatorName() + "\"");
 		}
+
+		// Store result
+		vals.clearExceptInit();
+		ParamResult paramResult = new ParamResult(mode, resVals, functionFactory);
+		if (mode == ParamMode.EXACT) {
+			// Convert result of parametric model checking to a single value,
+			// either boolean for boolean properties or a rational for numeric properties
+			// There should be just one region since no parameters are used
+			result.setResult(paramResult.getSimpleResult(expr.getType()));
+		} else {
+			result.setResult(paramResult);
+		}
+		result.setAccuracy(new Accuracy(Accuracy.AccuracyLevel.EXACT));
+		result.setExplanation(null);
 
 		return resVals;
 	}
@@ -992,6 +1013,9 @@ final public class ParamModelChecker extends PrismComponent
 
 	private RegionValues checkProbUntil(Model<?> model, RegionValues b1, RegionValues b2, boolean min, BitSet needStates) throws PrismException
 	{
+		if (model.getModelType() == ModelType.MDP && settings.getBoolean(PrismSettings.PRISM_FAIRNESS)) {
+			throw new PrismNotSupportedException("Model checking MDPs under fairness not supported by " + mode + " engine\"");
+		}
 		return valueComputer.computeUnbounded(model, b1, b2, min, null);
 	}
 		
@@ -1040,14 +1064,14 @@ final public class ParamModelChecker extends PrismComponent
 
 		// Compute rewards
 		rews = checkRewardFormula(model, rew, expr.getExpression(), min, needStates);
-		rews.clearNotNeeded(needStates);
 
-		// Print out probabilities
+		// Print out rewards
 		if (verbosity > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
 			mainLog.print(rews);
 		}
 
+		rews.clearNotNeeded(needStates);
 		// For =? properties, just return values
 		if (rb == null) {
 			return rews;
@@ -1170,12 +1194,12 @@ final public class ParamModelChecker extends PrismComponent
 
 		// Compute probabilities
 		probs = checkProbSteadyState(model, expr.getExpression(), min, needStates);
-		probs.clearNotNeeded(needStates);
 
 		if (verbosity > 5) {
 			mainLog.print("\nProbabilities (non-zero only) for all states:\n");
 			mainLog.print(probs);
 		}
+		probs.clearNotNeeded(needStates);
 		// For =? properties, just return values
 		if (pb == null) {
 			return probs;

@@ -28,6 +28,7 @@
 
 package prism;
 
+import param.BigRational;
 import strat.Strategy;
 
 /**
@@ -187,14 +188,19 @@ public class Result
 	 */
 	public String getResultAndAccuracy()
 	{
+		String resultString = result.toString();
+		// If accuracy is missing or blank, omit it
 		if (accuracy != null) {
 			String accuracyString = accuracy.toString(result);
 			if (accuracyString != null && !"".equals(accuracyString)) {
-				return result.toString() + " (" + accuracy.toString(result) + ")";
+				resultString += " (" + accuracy.toString(result) + ")";
 			}
 		}
-		// If accuracy is missing or blank, omit it
-		return result.toString();
+		// Append approximate value for exact results
+		if (result instanceof BigRational) {
+			resultString += " (" + ((BigRational) result).toApproximateString() + ")";
+		}
+		return resultString;
 	}
 	
 	/**

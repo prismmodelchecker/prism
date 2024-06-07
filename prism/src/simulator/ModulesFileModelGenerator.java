@@ -29,6 +29,7 @@ import prism.ModelType;
 import prism.PrismComponent;
 import prism.PrismException;
 import prism.PrismLangException;
+import prism.PrismNotSupportedException;
 import prism.RewardGenerator;
 
 public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, RewardGenerator<Value>
@@ -159,6 +160,10 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 	 */
 	public static ModulesFileModelGenerator<Function> createForRationalFunctions(ModulesFile modulesFile, PrismComponent parent) throws PrismException
 	{
+		// Uncertain models not supported - catch here for better error message
+		if (modulesFile.getModelType().uncertain()) {
+			throw new PrismNotSupportedException("Exact " + modulesFile.getModelType() + "s are not supported");
+		}
 		// Set up a dummy parameter (not used)
 		String[] paramNames = new String[] { "dummy" };
 		String[] lowerStr = new String[] { "0" };
@@ -224,7 +229,7 @@ public class ModulesFileModelGenerator<Value> implements ModelGenerator<Value>, 
 		
 		// No support for system...endsystem yet
 		if (modulesFile.getSystemDefn() != null) {
-			throw new PrismException("The system...endsystem construct is not currently supported");
+			throw new PrismNotSupportedException("The system...endsystem construct is not currently supported");
 		}
 		
 		// Store basic model info

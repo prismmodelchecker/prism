@@ -32,6 +32,7 @@ import java.util.Map;
 
 import common.Interval;
 import prism.Evaluator;
+import prism.PrismException;
 
 /**
  * Various utility methods for working with intervals
@@ -104,7 +105,7 @@ public class IntervalUtils
 	 * @param distr The distribution to delimit
 	 * @param eval An evaluator for the interval's child type (Value)
 	 */
-	public static <Value> void delimit(List<Interval<Value>> distr, Evaluator<Value> eval)
+	public static <Value> void delimit(List<Interval<Value>> distr, Evaluator<Value> eval) throws PrismException
 	{
 		// Compute 1 minus the sum of all bounds
 		Evaluator<Interval<Value>> evalInt = eval.createIntervalEvaluator();
