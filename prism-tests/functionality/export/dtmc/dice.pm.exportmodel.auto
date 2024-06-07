@@ -20,3 +20,11 @@
 -exportmodel dice.pm.lab -ex
 -exportmodel dice.pm.srew -ex
 -exportmodel dice.pm.trew -ex
+
+# Export model info - exact
+
+-exportmodel dice.pm.exact.all -exact
+
+-exportmodel dice.pm.exact.tra -exact
+-exportmodel dice.pm.exact.srew -exact
+-exportmodel dice.pm.exact.trew -exact

@@ -20,3 +20,12 @@
 -exportmodel robot.prism.srew -ex
 -exportmodel robot.prism.srew -ex
 #-exportmodel robot.prism.trew -ex # order different
+
+# Export model info - exact
+
+-exportmodel robot.prism.exact.all -exact
+-exportmodel robot.prism.exact.tra -exact
+-exportmodel robot.prism.exact.srew -exact
+-exportmodel robot.prism.exact.srew -exact
+-exportmodel robot.prism.exact.srew -exact
+-exportmodel robot.prism.exact.trew -exact

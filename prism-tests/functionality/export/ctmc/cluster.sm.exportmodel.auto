@@ -23,3 +23,13 @@
 -exportmodel cluster.sm.lab -ex
 -exportmodel cluster.sm.srew -ex
 -exportmodel cluster.sm.trew -ex
+
+# Export model info - exact
+
+-exportmodel cluster.sm.exact.all -exact
+
+-exportmodel cluster.sm.exact.tra -exact
+-exportmodel cluster.sm.exact.sta -exact
+-exportmodel cluster.sm.exact.lab -exact
+-exportmodel cluster.sm.exact.srew -exact
+-exportmodel cluster.sm.exact.trew -exact

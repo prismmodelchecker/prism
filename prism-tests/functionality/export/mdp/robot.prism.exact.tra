@@ -1,0 +1,17 @@
+6 10 16
+0 0 0 2/5 east
+0 0 1 3/5 east
+0 1 1 1/10 south
+0 1 3 4/5 south
+0 1 4 1/10 south
+1 0 2 1 east
+1 1 2 1/2 south
+1 1 4 1/2 south
+2 0 2 1 stuck
+3 0 3 1 stuck
+4 0 5 1 east
+4 1 3 3/5 west
+4 1 4 2/5 west
+5 0 4 1 west
+5 1 2 9/10 north
+5 1 5 1/10 north
