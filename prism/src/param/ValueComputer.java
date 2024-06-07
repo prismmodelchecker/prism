@@ -293,16 +293,15 @@ final class ValueComputer extends PrismComponent
 
 	private RegionValues computeUnboundedMC(DTMC<Function> dtmc, Region region, StateValues b1, StateValues b2, MCRewards<Function> mcRewards) throws PrismException
 	{
+		BitSet inf = null;
 		if (mcRewards != null) {
 			// determine infinity states
 			explicit.DTMCModelChecker mcExplicit = new explicit.DTMCModelChecker(this);
 			mcExplicit.setSilentPrecomputations(true);
-			BitSet inf = mcExplicit.prob1(dtmc, b1.toBitSet(), b2.toBitSet());
+			inf = mcExplicit.prob1(dtmc, b1.toBitSet(), b2.toBitSet());
 			inf.flip(0, dtmc.getNumStates());
-
 			for (int i : new IterableStateSet(inf, dtmc.getNumStates())) {
-				// clear states with infinite value from b1 so they will get Infinity value
-				// in the DTMC
+				// clear states with infinite value from b1 so they will get Infinity value in the DTMC
 				b1.setStateValue(i, false);
 			}
 		}
@@ -314,6 +313,14 @@ final class ValueComputer extends PrismComponent
 //		}
 
 		StateValues values = computeValues(pmc, dtmc.getFirstInitialState());
+
+		// Set value of infinity states
+		if (mcRewards != null) {
+			for (int i : new IterableStateSet(inf, dtmc.getNumStates())) {
+				values.setStateValue(i, functionFactory.getInf());
+			}
+		}
+
 		return regionFactory.completeCover(values);
 	}
 
