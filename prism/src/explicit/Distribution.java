@@ -309,7 +309,20 @@ public class Distribution<Value> implements FunctionalIterable<Entry<Integer, Va
 		if (! (o instanceof Distribution)) {
 			return false;
 		}
-		return map.equals(((Distribution<?>) o).map);
+		// Check elements of distribution using evaluator equals method
+		HashMap<Integer,Value> oMap = ((Distribution<Value>) o).map;
+		if (map.size() != oMap.size()) {
+			return false;
+		}
+		for (Map.Entry<Integer,Value> entry : map.entrySet()) {
+			Integer key = entry.getKey();
+			Value value = entry.getValue(); // We assume nothing maps to null
+			Value oValue = oMap.get(key);
+			if (oValue == null || !getEvaluator().equals(value, oValue)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
