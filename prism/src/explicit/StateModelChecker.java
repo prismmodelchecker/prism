@@ -577,6 +577,8 @@ public class StateModelChecker extends PrismComponent
 			model = bisim.minimise(model, propNames, propBSs);
 			mainLog.println("Modified property: " + exprNew);
 			expr = exprNew;
+			//model.exportToPrismExplicitTra("bisim.tra");
+			//model.exportStates(Prism.EXPORT_PLAIN, modelInfo.createVarList(), new PrismFileLog("bisim.sta"));
 		}
 
 		// Do model checking and store result vector
