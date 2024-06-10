@@ -175,11 +175,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	// Settings / flags / options
 	//------------------------------------------------------------------------------
 
-	// Export parsed PRISM model?
-	protected boolean exportPrism = false;
-	protected File exportPrismFile = null;
-	protected boolean exportPrismConst = false;
-	protected File exportPrismConstFile = null;
 	// Export digital clocks translation PRISM model?
 	protected boolean exportDigital = false;
 	protected File exportDigitalFile = null;
@@ -552,32 +547,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 
 	// Set methods for miscellaneous options
 
-	public void setExportPrism(boolean b) throws PrismException
-	{
-		exportPrism = b;
-	}
-
-	/**
-	 * Set file to export parsed PRISM file to (null = stdout).
-	 */
-	public void setExportPrismFile(File f) throws PrismException
-	{
-		exportPrismFile = f;
-	}
-
-	public void setExportPrismConst(boolean b) throws PrismException
-	{
-		exportPrismConst = b;
-	}
-
-	/**
-	 * Set file to export parsed PRISM file, with constants expanded, to (null = stdout).
-	 */
-	public void setExportPrismConstFile(File f) throws PrismException
-	{
-		exportPrismConstFile = f;
-	}
-
 	public void setExportDigital(boolean b) throws PrismException
 	{
 		exportDigital = b;
@@ -906,26 +875,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	}
 
 	// Get methods for miscellaneous options
-
-	public boolean getExportPrism()
-	{
-		return exportPrism;
-	}
-
-	public File getExportPrismFile()
-	{
-		return exportPrismFile;
-	}
-
-	public boolean getExportPrismConst()
-	{
-		return exportPrismConst;
-	}
-
-	public File getExportPrismConstFile()
-	{
-		return exportPrismConstFile;
-	}
 
 	public boolean getExportTarget()
 	{
@@ -1650,19 +1599,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		if (getModelInfo().getModelType().partiallyObservable()) {
 			mainLog.println("Observables: " + String.join(" ", getModelInfo().getObservableNames()));
 		}
-
-		// If required, export parsed PRISM model
-		if (exportPrism) {
-			try {
-				exportPRISMModel(exportPrismFile);
-			}
-			// In case of error, just print a warning
-			catch (FileNotFoundException e) {
-				mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportPrismFile + "\" for output");
-			} catch (PrismException e) {
-				mainLog.printWarning("PRISM code export failed: " + e.getMessage());
-			}
-		}
 	}
 
 	/**
@@ -1739,19 +1675,6 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		}
 		if (getModelGenerator(false) != null) {
 			getModelGenerator(false).setSomeUndefinedConstants(definedMFConstants, exact);
-		}
-
-		// If required, export parsed PRISM model, with constants expanded
-		if (exportPrismConst) {
-			try {
-				exportPRISMModelWithExpandedConstants(exportPrismConstFile);
-			}
-			// In case of error, just print a warning
-			catch (FileNotFoundException e) {
-				mainLog.printWarning("PRISM code export failed: Couldn't open file \"" + exportPrismConstFile + "\" for output");
-			} catch (PrismException e) {
-				mainLog.printWarning("PRISM code export failed: " + e.getMessage());
-			}
 		}
 	}
 

@@ -80,6 +80,8 @@ public class PrismCL implements PrismModelListener
 	private boolean importresults = false;
 	private boolean steadystate = false;
 	private boolean dotransient = false;
+	private boolean exportprism = false;
+	private boolean exportprismconst = false;
 	private boolean exporttrans = false;
 	private boolean exportstaterewards = false;
 	private boolean exporttransrewards = false;
@@ -151,6 +153,8 @@ public class PrismCL implements PrismModelListener
 	private String importResultsFilename = null;
 	private String importModelWarning = null;
 	private String propertiesFilename = null;
+	private String exportPrismFilename = null;
+	private String exportPrismConstFilename = null;
 	private String exportTransFilename = null;
 	private String exportStateRewardsFilename = null;
 	private String exportTransRewardsFilename = null;
@@ -705,6 +709,20 @@ public class PrismCL implements PrismModelListener
 			errorAndExit(e.getMessage());
 		}
 
+		// export prism model, if requested
+		if (exportprism) {
+			try {
+				File f = (exportPrismFilename.equals("stdout")) ? null : new File(exportPrismFilename);
+				prism.exportPRISMModel(f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportPrismFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e);
+			}
+		}
+
 		// parse properties
 
 		try {
@@ -782,6 +800,20 @@ public class PrismCL implements PrismModelListener
 
 	private void doExports()
 	{
+		// export prism model (with constants), if requested
+		if (exportprismconst) {
+			try {
+				File f = (exportPrismConstFilename.equals("stdout")) ? null : new File(exportPrismConstFilename);
+				prism.exportPRISMModelWithExpandedConstants(f);
+			}
+			// in case of error, report it and proceed
+			catch (FileNotFoundException e) {
+				error("Couldn't open file \"" + exportPrismConstFilename + "\" for output");
+			} catch (PrismException e) {
+				error(e);
+			}
+		}
+
 		if (param || prism.getSettings().getBoolean(PrismSettings.PRISM_EXACT_ENABLED)) {
 			if (exporttrans ||
 			    exportstaterewards ||
@@ -1515,6 +1547,24 @@ public class PrismCL implements PrismModelListener
 
 				// EXPORT OPTIONS:
 
+				// export prism model to file
+				else if (sw.equals("exportprism")) {
+					if (i < args.length - 1) {
+						exportprism = true;
+						exportPrismFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
+				// export prism model to file (with consts expanded)
+				else if (sw.equals("exportprismconst")) {
+					if (i < args.length - 1) {
+						exportprismconst = true;
+						exportPrismConstFilename = args[++i];
+					} else {
+						errorAndExit("No file specified for -" + sw + " switch");
+					}
+				}
 				// export results
 				else if (sw.equals("exportresults")) {
 					if (i < args.length - 1) {
@@ -1755,28 +1805,6 @@ public class PrismCL implements PrismModelListener
 						processExportStratSwitch(args[++i]);
 					} else {
 						errorAndExit("No file/options specified for -" + sw + " switch");
-					}
-				}
-				// export prism model to file
-				else if (sw.equals("exportprism")) {
-					if (i < args.length - 1) {
-						String filename = args[++i];
-						File f = (filename.equals("stdout")) ? null : new File(filename);
-						prism.setExportPrism(true);
-						prism.setExportPrismFile(f);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
-					}
-				}
-				// export prism model to file (with consts expanded)
-				else if (sw.equals("exportprismconst")) {
-					if (i < args.length - 1) {
-						String filename = args[++i];
-						File f = (filename.equals("stdout")) ? null : new File(filename);
-						prism.setExportPrismConst(true);
-						prism.setExportPrismConstFile(f);
-					} else {
-						errorAndExit("No file specified for -" + sw + " switch");
 					}
 				}
 				// export digital clocks translation prism model to file
