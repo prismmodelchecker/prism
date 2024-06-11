@@ -139,7 +139,7 @@ public abstract class EvaluateContext
 	
 	// Utility methods
 	
-	/*
+	/**
 	 * Create an EvaluateContext with no constants and default (floating point) evaluation mode.
 	 */
 	public static EvaluateContext create()
@@ -147,7 +147,7 @@ public abstract class EvaluateContext
 		return new EvaluateContextConstants(null);
 	}
 	
-	/*
+	/**
 	 * Create an EvaluateContext with no constants and the specified evaluation mode.
 	 */
 	public static EvaluateContext create(EvalMode evalMode)
@@ -155,7 +155,7 @@ public abstract class EvaluateContext
 		return new EvaluateContextConstants(null).setEvaluationMode(evalMode);
 	}
 	
-	/*
+	/**
 	 * Create an EvaluateContext with the specified constants and default (floating point) evaluation mode.
 	 */
 	public static EvaluateContext create(Values constantValues)
@@ -163,7 +163,7 @@ public abstract class EvaluateContext
 		return new EvaluateContextConstants(constantValues);
 	}
 	
-	/*
+	/**
 	 * Create an EvaluateContext with the specified constants and evaluation mode.
 	 */
 	public static EvaluateContext create(Values constantValues, EvalMode evalMode)
@@ -171,7 +171,7 @@ public abstract class EvaluateContext
 		return new EvaluateContextConstants(constantValues).setEvaluationMode(evalMode);
 	}
 	
-	/*
+	/**
 	 * Create an EvaluateContext with the specified constants and evaluation mode (exact or not).
 	 */
 	public static EvaluateContext create(Values constantValues, boolean exact)
@@ -179,7 +179,7 @@ public abstract class EvaluateContext
 		return new EvaluateContextConstants(constantValues).setEvaluationMode(exact ? EvalMode.EXACT : EvalMode.FP);
 	}
 	
-	/*
+	/**
 	 * Create an EvaluateContext by copying core information
 	 * (constants, evaluation mode, etc.) from another EvaluateContext.
 	 */
